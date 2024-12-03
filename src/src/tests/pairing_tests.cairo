@@ -4169,68 +4169,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xb2cbc2078ddbfaa7de025ab5,
-                        limb1: 0x8f180b7f837ff5880af2d8a7,
-                        limb2: 0x9cc2ac2feb91b78
-                    },
-                    w1: u288 {
-                        limb0: 0xa591428b92ebd2a21abec753,
-                        limb1: 0x28208698d947d559a85b25c7,
-                        limb2: 0x2b4691bfa6539beb
-                    },
-                    w2: u288 {
-                        limb0: 0xf6ef1e002aa95b3c440d8421,
-                        limb1: 0x9cd77810447ab3747db696a3,
-                        limb2: 0x27b1bda2ff2bbe08
-                    },
-                    w3: u288 {
-                        limb0: 0xde4cd7d7910730b235b46414,
-                        limb1: 0x2ddb6a5f96f0380df66dfe01,
-                        limb2: 0xfc2973e1356ebf5
-                    },
-                    w4: u288 {
-                        limb0: 0xd725e7a84302d8aa32e80fcf,
-                        limb1: 0xc1be1f3b6812a70f1d4dbdef,
-                        limb2: 0x96dc0c72aa87605
-                    },
-                    w5: u288 {
-                        limb0: 0xaa4b56d786db49e831390ace,
-                        limb1: 0x499ad8458f796af631ece5e5,
-                        limb2: 0xea15f5754762638
-                    },
-                    w6: u288 {
-                        limb0: 0x174d95d075fd3727469afe66,
-                        limb1: 0x223ede9edcf039bf49c1ec61,
-                        limb2: 0x103abf47dccc2f4d
-                    },
-                    w7: u288 {
-                        limb0: 0xa6cf05749310487c359ed5e3,
-                        limb1: 0x66bb1e1310597230fbd36c03,
-                        limb2: 0x26e4a5a33276fc31
-                    },
-                    w8: u288 {
-                        limb0: 0x3b63b728ddcc7c24ba04ea22,
-                        limb1: 0x77bdfb0a69f8df530bdd64ae,
-                        limb2: 0x65373ec7b46d265
-                    },
-                    w9: u288 {
-                        limb0: 0x4f31198ee15d57679a07cceb,
-                        limb1: 0x767d00d134cad0d2879f0705,
-                        limb2: 0x51b781e90fe55d3
-                    },
-                    w10: u288 {
-                        limb0: 0x1d25747ef4e9d6c1a688457c,
-                        limb1: 0x7a67f4f4d74fd3acd28c325e,
-                        limb2: 0x880237565c157f1
-                    },
-                    w11: u288 {
-                        limb0: 0xb5c1a016cca2b0b70d3882c4,
-                        limb1: 0xe4b9a0f502db2b1916a717fe,
-                        limb2: 0x1c718116af5b9bf
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xa1fc4e1e3b65f7f7793d75d7,
                         limb1: 0xae4e796f20d02f00e403c73f,
                         limb2: 0x21c18c15eaf2e543
@@ -4293,126 +4231,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xc141808bf3d908c4616492b3,
-                        limb1: 0x5834851b0abdb02873b62058,
-                        limb2: 0x9f8f3a514281306
+                        limb0: 0xbfcbda7691d6021a784022d5,
+                        limb1: 0xf407b3b09ed4b94542a95f63,
+                        limb2: 0x484ab1dd7428e01
                     },
                     w1: u288 {
-                        limb0: 0x3b820a07ba724a9917378495,
-                        limb1: 0xe2c3f393d3ed30b098663d7,
-                        limb2: 0x2e48eb414b93a0b3
+                        limb0: 0xb133cd33b820c39fb9fef059,
+                        limb1: 0x254f89192819893523420d52,
+                        limb2: 0x181f7e2c71063ffc
                     },
                     w2: u288 {
-                        limb0: 0x84098a37010e1038db40961,
-                        limb1: 0xf808a4d7ad54cfeb6d8eba26,
-                        limb2: 0xbdf45af1f5b4215
+                        limb0: 0x6386c277c18b70fbeccdb0ac,
+                        limb1: 0x830322bd75699347acf10beb,
+                        limb2: 0x25b122a978cff8b4
                     },
                     w3: u288 {
-                        limb0: 0x900ccb524892622686c3b558,
-                        limb1: 0x9b467c9e83e6ad6cb145da60,
-                        limb2: 0xf6c4c18f9d9acdf
+                        limb0: 0x43de51582c42a09b767cb0db,
+                        limb1: 0x38fbf88e5df42583be8f94b5,
+                        limb2: 0x425b802f131c9cb
                     },
                     w4: u288 {
-                        limb0: 0xb2a38810a29073d9d799fbd6,
-                        limb1: 0xfa7be656ef56e78fce55e743,
-                        limb2: 0x8c23916cee1cbee
+                        limb0: 0x79e8bf369ece3027d02d9b23,
+                        limb1: 0xc43d966f8d7269715ebecee4,
+                        limb2: 0x10b0ade019bf9b51
                     },
                     w5: u288 {
-                        limb0: 0xe9b5f5ac08dc3072186dc4f3,
-                        limb1: 0x4057b4957d214455b93b6279,
-                        limb2: 0x1d16044d31983066
+                        limb0: 0x25fb1663997d761c2d966543,
+                        limb1: 0xbc90d7df362a1172ac8ad1d7,
+                        limb2: 0x1236e39a09e91ce8
                     },
                     w6: u288 {
-                        limb0: 0xb0ad3ee897b0f656eabd71b5,
-                        limb1: 0xb704ceb895c3924cf4727927,
-                        limb2: 0x17f1f10e76b4e9fd
+                        limb0: 0x7519170922b5b0bdd65be6a7,
+                        limb1: 0x8d728cf7e9203cdde92b6b1a,
+                        limb2: 0x1559bd06e06a1748
                     },
                     w7: u288 {
-                        limb0: 0x4f04625b02e3e1bf6d387c36,
-                        limb1: 0x1d583e19e6bc9ac57db13a0c,
-                        limb2: 0x1095b03dcb74d1b1
+                        limb0: 0x3522045a369b7bbb242270df,
+                        limb1: 0xd947b9644921f9337a72005e,
+                        limb2: 0xdcb748b310acabf
                     },
                     w8: u288 {
-                        limb0: 0x21c4399cc18b975d04242497,
-                        limb1: 0x687f6f86108390a0cf2dd208,
-                        limb2: 0x2d67c398ad69288c
+                        limb0: 0xca82b75883645f8fd56ce314,
+                        limb1: 0x48e0e79fa58c59fd9d8355f8,
+                        limb2: 0x101f82655362fa7b
                     },
                     w9: u288 {
-                        limb0: 0x603e3fe991e6720bd794401c,
-                        limb1: 0xadcf00e62f844d042fa55c88,
-                        limb2: 0x2955c5cde10bd61d
+                        limb0: 0x61742edaa0da46b51a3efb80,
+                        limb1: 0x20dc1158e04bce1a5dc049e0,
+                        limb2: 0x1cf24ce8520c3a8b
                     },
                     w10: u288 {
-                        limb0: 0x3433d6d3c30f1ede92e895d6,
-                        limb1: 0xf39baea2524cc0790b3ba967,
-                        limb2: 0x2ecbad3d0674a417
+                        limb0: 0x37ffb162df38cdcb561cd489,
+                        limb1: 0x16b25873b29fdfb563b16a9f,
+                        limb2: 0x2375d4bad02acd4
                     },
                     w11: u288 {
-                        limb0: 0x4cb8e0bfc2f34d527970ee48,
-                        limb1: 0xa2eb50c665bf7a12292ea3bc,
-                        limb2: 0x11b947c4a0acbee9
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x26c62ee7e94dcb29e0357bb1,
-                        limb1: 0x4ca1598a87bc0412dd8d117f,
-                        limb2: 0x17774e3e8a23ff73
-                    },
-                    w1: u288 {
-                        limb0: 0x7809068c62de431b5489c670,
-                        limb1: 0xc994b0437e4dc0b9527821ca,
-                        limb2: 0x1982b56c3e0bcdc9
-                    },
-                    w2: u288 {
-                        limb0: 0x9077dade5d72d1ad3abd8fd,
-                        limb1: 0xa497c1a9c18ef0ef3993ddfd,
-                        limb2: 0x2872b0c088da975c
-                    },
-                    w3: u288 {
-                        limb0: 0x67acef3ecbb15eee40139640,
-                        limb1: 0xdbcbcc93eb8642d2dc8167a4,
-                        limb2: 0x2969378a0cfddacb
-                    },
-                    w4: u288 {
-                        limb0: 0xa4383bb93d17ceefd6953d3c,
-                        limb1: 0xd2319b0bfd91255bddcef3eb,
-                        limb2: 0x193581cebff836c6
-                    },
-                    w5: u288 {
-                        limb0: 0xa0008e4410656947089801c1,
-                        limb1: 0xf23a463b42645f7fec8e6f0,
-                        limb2: 0x26457780a6d80fcc
-                    },
-                    w6: u288 {
-                        limb0: 0x6db2f6f180a6b0cab54e0502,
-                        limb1: 0x7409ae15eaa0aa0311a81058,
-                        limb2: 0x24e212fee032cb7c
-                    },
-                    w7: u288 {
-                        limb0: 0x7d7b5ce96bac14f5cb32d71b,
-                        limb1: 0xcb09e3f0e4fcd13eece95b0a,
-                        limb2: 0x260d3e40114b8d2e
-                    },
-                    w8: u288 {
-                        limb0: 0xc62aa77588361bf2193aa0c,
-                        limb1: 0xd89e8c8fa73dbf28988f967,
-                        limb2: 0x1b1a5d98ae47d852
-                    },
-                    w9: u288 {
-                        limb0: 0xf4b62996e365f3421a3259b,
-                        limb1: 0x73462ce2dd5f25690f00ec11,
-                        limb2: 0x19139c8f3a190fa8
-                    },
-                    w10: u288 {
-                        limb0: 0x709d865aa40c7a52986a5e5a,
-                        limb1: 0xa9887cd610decf67818b14bd,
-                        limb2: 0x2143f989b60bcfb4
-                    },
-                    w11: u288 {
-                        limb0: 0x43ca0093e2dca54f07586b65,
-                        limb1: 0x5e5363e0de0a1c9ed68f160c,
-                        limb2: 0x2d87bf0c00e24b17
+                        limb0: 0x2c023248737e318d2195a92,
+                        limb1: 0xaca7d0297ea2a7757d8cc9e1,
+                        limb2: 0x251260ddb7f1756d
                     }
                 },
                 E12D {
@@ -4479,68 +4355,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xb34c98eb4cab6388a544842b,
-                        limb1: 0xce327724aa74afacf7bac08b,
-                        limb2: 0x36162799a7e24d6
-                    },
-                    w1: u288 {
-                        limb0: 0xa9a385f7e3699b92207e68bd,
-                        limb1: 0x257186e8d55ad344214b98e3,
-                        limb2: 0x1498b0559bb73436
-                    },
-                    w2: u288 {
-                        limb0: 0xe323ef14d16bf161a52a69df,
-                        limb1: 0xa5f8671454497314c427ed14,
-                        limb2: 0x2b156b033ded48e2
-                    },
-                    w3: u288 {
-                        limb0: 0xa012d41cd6a98deca19cd46f,
-                        limb1: 0x20dff1bab685ffa19766cc30,
-                        limb2: 0x2ffcb88895ad917c
-                    },
-                    w4: u288 {
-                        limb0: 0xb1937ab7b0a0788482c9c77c,
-                        limb1: 0x382711ded20158fbebb40451,
-                        limb2: 0x2329acac3b7e7657
-                    },
-                    w5: u288 {
-                        limb0: 0x5528bcd30d715a2f1bff1ca6,
-                        limb1: 0x3ec427039627584e818b63c7,
-                        limb2: 0x25c6a0cf63bf7dd7
-                    },
-                    w6: u288 {
-                        limb0: 0xd4898a4d5fdf2a7d8a0c304f,
-                        limb1: 0x2d95e510700be4d67ef65764,
-                        limb2: 0x2e9016185f7b20a0
-                    },
-                    w7: u288 {
-                        limb0: 0x49ed23d113552b4cb2636085,
-                        limb1: 0x575c9889f5083cf48dc634b6,
-                        limb2: 0x17c684edf163feea
-                    },
-                    w8: u288 {
-                        limb0: 0x785afcfb500eb46ac2ebdfae,
-                        limb1: 0x9d5213a6b98dd3b465eb31fc,
-                        limb2: 0x1422e11be61be73
-                    },
-                    w9: u288 {
-                        limb0: 0x6acb9af224981a2f1770aa5c,
-                        limb1: 0x9f91d142d1bcf8405167f240,
-                        limb2: 0x2ac23d0b332316c9
-                    },
-                    w10: u288 {
-                        limb0: 0x2e61b3dbe4e7856062c5a10e,
-                        limb1: 0x9dcca7992b329429dd1cf22b,
-                        limb2: 0xb3706c9bb52d916
-                    },
-                    w11: u288 {
-                        limb0: 0xecdf4465d7ff363af70f9a9d,
-                        limb1: 0x6927013c51139d2fe43bc7b9,
-                        limb2: 0xf58d4ab3c5f025
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x7a0590f085219d1e49b1a202,
                         limb1: 0xc263a8319f723136aa0b96a3,
                         limb2: 0x679690afb81dbda
@@ -4603,126 +4417,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x5823ad601cc1a941bdf1b9f7,
-                        limb1: 0xac6dee3e52f983d633d18efb,
-                        limb2: 0x2baf533173aad278
+                        limb0: 0x7f1da8d717c321da92620a38,
+                        limb1: 0x1c34d5a41dd1580cad5da4bb,
+                        limb2: 0x264c35a795ea35b3
                     },
                     w1: u288 {
-                        limb0: 0x955e174a1453c268536d19bf,
-                        limb1: 0xb91059381d19ea076d1cc4a3,
-                        limb2: 0x222d695ac04df2b8
+                        limb0: 0x93ef419e31d7e04fbfe40f26,
+                        limb1: 0x8dcee057ceb6a01686e7055a,
+                        limb2: 0x1c2f5969c7a2c07e
                     },
                     w2: u288 {
-                        limb0: 0xd7ab75c17e96ecd900871b63,
-                        limb1: 0x79669344349188c0b76138e3,
-                        limb2: 0x4ce45a2fa17a6db
+                        limb0: 0x8fe175866e96f98fff3a22a0,
+                        limb1: 0x9e8081541ccefcb53c7eb2d,
+                        limb2: 0x2244e4f0ae949c4
                     },
                     w3: u288 {
-                        limb0: 0x901e95efd1caa95e496e1703,
-                        limb1: 0xdf521580eeda1c42b20244cc,
-                        limb2: 0x5f5af97d5233e7b
+                        limb0: 0xf44cab93381d8325a2fc894e,
+                        limb1: 0x21e4d8a6a1c197c760b4b674,
+                        limb2: 0x2e70f85fae87c741
                     },
                     w4: u288 {
-                        limb0: 0x71d57a05c07a1b8b75762f55,
-                        limb1: 0x8a274d7780ddf13205587144,
-                        limb2: 0x78a0ec0197c09c8
+                        limb0: 0x2b9421d1f4a75279a4a37950,
+                        limb1: 0xa40bf928ba237c3b64bd886b,
+                        limb2: 0x2181a8053d4d2243
                     },
                     w5: u288 {
-                        limb0: 0xf25162848f560ac6839d603a,
-                        limb1: 0x30810acd9bdd35ba36ea8742,
-                        limb2: 0x1138d4cca81215f3
+                        limb0: 0x551eedbb1be148ec878c8497,
+                        limb1: 0x63cfbe2727afbb1c9ab904d8,
+                        limb2: 0x1201390258b7fa5c
                     },
                     w6: u288 {
-                        limb0: 0xf7e43b6c89fefd00cefb291,
-                        limb1: 0xcc6d04b9e05abd9c122a93e1,
-                        limb2: 0x10ded642ee62251c
+                        limb0: 0x3413023817ffe912237924bb,
+                        limb1: 0xc8ec7546fa50a3a5bf73ef64,
+                        limb2: 0x154b10842ab9f08e
                     },
                     w7: u288 {
-                        limb0: 0x10f6fc19044b522c284e1fa0,
-                        limb1: 0xe937d8e00309ccf250a89f13,
-                        limb2: 0x21dc4a7143af1a9e
+                        limb0: 0x3433f3946abd235f4852671f,
+                        limb1: 0x4f0065f08eeb7ee8349bf5b9,
+                        limb2: 0x25af5a4af220ec11
                     },
                     w8: u288 {
-                        limb0: 0xda5ee9d36b84a9ef129cff31,
-                        limb1: 0x9ae6534b056cfbce0243a0fe,
-                        limb2: 0x2a7f19d4258100fd
+                        limb0: 0xdf980696295073821473e3a9,
+                        limb1: 0xe1d5ffff2ee85385ae1d84ed,
+                        limb2: 0x998add2cc38123b
                     },
                     w9: u288 {
-                        limb0: 0x6dd2e9bfc3f7da352a227d0c,
-                        limb1: 0xcfdaaaaec27d7dec3ecc8b94,
-                        limb2: 0x2f0201f85b622f02
+                        limb0: 0xa4460f4fa19d7da44b6d37d6,
+                        limb1: 0x21a63d9ac273152908e20cf4,
+                        limb2: 0xb43c05ecc1a46d7
                     },
                     w10: u288 {
-                        limb0: 0x21dc892ce159be1579cd9021,
-                        limb1: 0x95e2b8d3809f2c702a306b9f,
-                        limb2: 0x1b11537f08501897
+                        limb0: 0xfa2ac15271ea1ea122a7f7c2,
+                        limb1: 0x98ccdf1be55f7224639cae5a,
+                        limb2: 0x128165600a34f4d8
                     },
                     w11: u288 {
-                        limb0: 0x3bf48b96c6095627a99690e4,
-                        limb1: 0x65ac6c3c460cc4924730547e,
-                        limb2: 0x292063765ef63920
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xdb3673fa637fc2350edde2a,
-                        limb1: 0x6c0e1efe696942fdd186409,
-                        limb2: 0x4d717abffa4f043
-                    },
-                    w1: u288 {
-                        limb0: 0x6a3a9cdda76a9bac70643261,
-                        limb1: 0x54daa6d6db74f099866764b0,
-                        limb2: 0x2badc4eac37416b2
-                    },
-                    w2: u288 {
-                        limb0: 0x66a59adcf914fa232ca06762,
-                        limb1: 0x27282724dc02baf77cc21cb4,
-                        limb2: 0x29b95069fabac174
-                    },
-                    w3: u288 {
-                        limb0: 0xe1aaf7f34e80dcce78ea37cb,
-                        limb1: 0x1ca5dfc1029acac068971ebe,
-                        limb2: 0x1d14837c4f978ad4
-                    },
-                    w4: u288 {
-                        limb0: 0x2755c2d9db19afe44fa13d36,
-                        limb1: 0x1035919bcea316a157372024,
-                        limb2: 0x150c392eda60a463
-                    },
-                    w5: u288 {
-                        limb0: 0xc0e730f5dae8b4a52607e44c,
-                        limb1: 0xda536448bac31ce91f7571ee,
-                        limb2: 0x8342cebc8d3528b
-                    },
-                    w6: u288 {
-                        limb0: 0x7edbd0ab676cf56536884ab2,
-                        limb1: 0x5acecc970bb1dfe9d2e9e08c,
-                        limb2: 0x1e30826bded89945
-                    },
-                    w7: u288 {
-                        limb0: 0x5d8e808ef06fd9a12dfeccca,
-                        limb1: 0x4550cf32aa76a1b51dc142f2,
-                        limb2: 0xa11ed1bffc1b9e4
-                    },
-                    w8: u288 {
-                        limb0: 0x1868898bb4fd01800e7f2010,
-                        limb1: 0x14339a907bab8832d24d079,
-                        limb2: 0x2858676a6cafb3bb
-                    },
-                    w9: u288 {
-                        limb0: 0xe65650a31128e11b7873d8ab,
-                        limb1: 0x3dc232e3575a89226efda264,
-                        limb2: 0x786b0a87dfba5ac
-                    },
-                    w10: u288 {
-                        limb0: 0xb9420c8de6c9333779b29375,
-                        limb1: 0xb6c64d5de10d1b414a63a7af,
-                        limb2: 0x24fea2936fdbd45a
-                    },
-                    w11: u288 {
-                        limb0: 0x77e7cda91612d752877d536c,
-                        limb1: 0x7937f46fa26d5be3013b9629,
-                        limb2: 0xb2129f6dc2019dc
+                        limb0: 0x880fb407eaa05426a8a3699f,
+                        limb1: 0x13b039a6d088cde86bc99280,
+                        limb2: 0x25f0ddbe00bfe102
                     }
                 },
                 E12D {
@@ -4789,126 +4541,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x6b9e7f3811d5d180743d8b0e,
-                        limb1: 0xd0801ea02f0c2b678f697915,
-                        limb2: 0x13b06a6976eb6983
+                        limb0: 0x9f1833d4ee6e05b2e98eb194,
+                        limb1: 0xdf61e89608afbbff54451d49,
+                        limb2: 0x7341a57c8351835
                     },
                     w1: u288 {
-                        limb0: 0xac14b0ea09f63a3d189754dc,
-                        limb1: 0x6c3ea781d36a3a0aea0d6b39,
-                        limb2: 0x2f45d7a66cdc1108
+                        limb0: 0x396bde8ca73f5e0e52f1bcc3,
+                        limb1: 0xb41de7c6525d9097f89f9874,
+                        limb2: 0x1fee062ab770bd4a
                     },
                     w2: u288 {
-                        limb0: 0x886daf9760cadfc00f1f803c,
-                        limb1: 0xcc24279dbbae86fec989accc,
-                        limb2: 0x164a04f8d1355b2
+                        limb0: 0xde88c90e56f5efff42fc5ae5,
+                        limb1: 0x70eb11756f50d40816fa1a84,
+                        limb2: 0x1f35fa63de82bc30
                     },
                     w3: u288 {
-                        limb0: 0x6869cc73f05fc76616a5af32,
-                        limb1: 0x494594bb6630a90c3ce83367,
-                        limb2: 0x18338cabebac5bd7
+                        limb0: 0xaacbc7daaefa32f112ff727,
+                        limb1: 0x55e72851bb33661f52250a3f,
+                        limb2: 0x18c4cc5aa53fa8ab
                     },
                     w4: u288 {
-                        limb0: 0x6206c2df1f84d402c3d23c1d,
-                        limb1: 0x730954caf366d40acc4aaf07,
-                        limb2: 0x1ec609c2ba4335fa
+                        limb0: 0x4d832925bb29a07f12600b73,
+                        limb1: 0x4d648c8bf3aef6e9dc8f3eca,
+                        limb2: 0x468982847f8a07e
                     },
                     w5: u288 {
-                        limb0: 0xdb720aeae73524bbf064aa20,
-                        limb1: 0xe0ae53a1e01469bd02bec526,
-                        limb2: 0xfa6dc9adf40d1ab
+                        limb0: 0x6865044fe86fc113321d84b3,
+                        limb1: 0x4afb949d44ddc19a50d76746,
+                        limb2: 0x1c4878b6bc126ea
                     },
                     w6: u288 {
-                        limb0: 0x212af7fa80a61af22787b6a8,
-                        limb1: 0x6b8ee77ba5e043951d715e9c,
-                        limb2: 0x17fcad1938a13ef4
+                        limb0: 0xcdb1ec52b0efcf2a333cb03e,
+                        limb1: 0x1d47715e046d09a63bd817b5,
+                        limb2: 0x47664218590ab80
                     },
                     w7: u288 {
-                        limb0: 0x9d1d2cde9ad06e7038af58b6,
-                        limb1: 0xd5d46c1afa24bf3473a5edf7,
-                        limb2: 0x2790e3ffd61e0121
+                        limb0: 0x9354e8a50050939f807da303,
+                        limb1: 0xdd6956fd5c5a1aab21b97b7c,
+                        limb2: 0x1bf57342d5e7ec73
                     },
                     w8: u288 {
-                        limb0: 0x8c1123c83e1a0d5a3639c5ae,
-                        limb1: 0x4e05d21564b5c4fa4ac1b5f9,
-                        limb2: 0x1d2d03d3d7eedea6
+                        limb0: 0xf18eec3aaeee1eea6b00228e,
+                        limb1: 0x90405b5368a83b8e3e141abd,
+                        limb2: 0x5489f27d98c5a6d
                     },
                     w9: u288 {
-                        limb0: 0x20b092c19e6a17ef19ca4ee5,
-                        limb1: 0x1f025d71a31b0c251d449434,
-                        limb2: 0xe3e948ea7c8a452
+                        limb0: 0x33372084065e44dcd5edfe77,
+                        limb1: 0x9ea7ef66db0f0ff55972dbea,
+                        limb2: 0x20d81d5b8dd287c6
                     },
                     w10: u288 {
-                        limb0: 0xcab2ad9cc56dbf4e9fdcc746,
-                        limb1: 0x3b593fc88c4a91c88dd55dd0,
-                        limb2: 0x24dc327558b8abb2
+                        limb0: 0xf95c243e1128f75841ac88a8,
+                        limb1: 0xe39101c1f545587666fc99c9,
+                        limb2: 0x1332f858bc2d9ed6
                     },
                     w11: u288 {
-                        limb0: 0x261597101f6a92531debbad2,
-                        limb1: 0x22a09911c5c8b4f3af3050a6,
-                        limb2: 0x16f555e992f1d1bd
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xcae9783ef04ca47280293641,
-                        limb1: 0xa75413405731c971e2e7e4e8,
-                        limb2: 0x260e4379e0e38353
-                    },
-                    w1: u288 {
-                        limb0: 0x48c4ba9524d0dc5596017721,
-                        limb1: 0xb3b54f60a5c8234dab37510e,
-                        limb2: 0xb88224277d4e3c3
-                    },
-                    w2: u288 {
-                        limb0: 0x40e9a9fca312aada1d7fe6aa,
-                        limb1: 0xede90dd8d10e2b6397f91f4c,
-                        limb2: 0x1d0c638b26810513
-                    },
-                    w3: u288 {
-                        limb0: 0xdf9a50f8a39205195fda7f33,
-                        limb1: 0x4216dfd1aacc73a395885e97,
-                        limb2: 0x20ffaf1296dde345
-                    },
-                    w4: u288 {
-                        limb0: 0xc1c63806be04267fedf1dd51,
-                        limb1: 0xd11620cdda6ea2ac8e3e53f1,
-                        limb2: 0xaec9e6a34380f38
-                    },
-                    w5: u288 {
-                        limb0: 0xb9be06484c900956b3f8f8f7,
-                        limb1: 0x54bdcaa14d8b4f154e94502b,
-                        limb2: 0x235b5f25d29a123f
-                    },
-                    w6: u288 {
-                        limb0: 0xfdc1d892e8b5f7da2cabdd30,
-                        limb1: 0x5a20edc6d5e684df44eb47e,
-                        limb2: 0x107ddedcbe298b21
-                    },
-                    w7: u288 {
-                        limb0: 0xc31eb0e940bfbbbe1c70e96d,
-                        limb1: 0x3a371932d6836fe4f89e41eb,
-                        limb2: 0xaeec18521006075
-                    },
-                    w8: u288 {
-                        limb0: 0x3c0534a3851195e74c3a0109,
-                        limb1: 0xd3c5c1ab5ddfb0556a8d1a0d,
-                        limb2: 0x22e16ce35b4ee04a
-                    },
-                    w9: u288 {
-                        limb0: 0xde23e3254cab7ac367147044,
-                        limb1: 0x3d891d65bc30c6e3581b916f,
-                        limb2: 0x437bb3fbff61bfd
-                    },
-                    w10: u288 {
-                        limb0: 0x2c52897b1448fe7faa8ed6ca,
-                        limb1: 0x156bc3f9434c5289cec472dc,
-                        limb2: 0x2e07da5ec97f0e54
-                    },
-                    w11: u288 {
-                        limb0: 0x38ae7dd70b5867d1da15dba4,
-                        limb1: 0xd3dc033c205922923bb77d81,
-                        limb2: 0x6579c74f9d0e486
+                        limb0: 0x3dda3f6e97341fc9cbbe60d7,
+                        limb1: 0x7214e1d782068b63e36e074f,
+                        limb2: 0x7087cef01dfb965
                     }
                 },
                 E12D {
@@ -4975,126 +4665,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x5207641583aba1270e985001,
-                        limb1: 0x7a359f97234955d3b91c1382,
-                        limb2: 0x4e07a16ab163414
+                        limb0: 0x86528ff5d288de551ba82e20,
+                        limb1: 0x779518dbb60908f0c9f431,
+                        limb2: 0x17e7b0c198e5fbb4
                     },
                     w1: u288 {
-                        limb0: 0x9cf749ba8a2663dbe98702e1,
-                        limb1: 0xf56ff58ec1e779cad6f184fe,
-                        limb2: 0x549cfce62e2bbe0
+                        limb0: 0xa6b91b5273ad23056d2b5571,
+                        limb1: 0x18283f4038662f9f2d32aa6d,
+                        limb2: 0x26250f9c485aaafe
                     },
                     w2: u288 {
-                        limb0: 0xb5c83ad1ce5be3cd488d4d10,
-                        limb1: 0xbd6471858be1e616a315956,
-                        limb2: 0x121fc58a2b2e2dcd
+                        limb0: 0xff4b38ab950cec36907872c,
+                        limb1: 0xe8220a80ab1a1ebfb4a6b5ad,
+                        limb2: 0x16a38cdcffaa084e
                     },
                     w3: u288 {
-                        limb0: 0x18f07df21c0e16798d6236e6,
-                        limb1: 0xa6130609b9053eb1ad89b2aa,
-                        limb2: 0x2c896d17a8ced729
+                        limb0: 0x30fe4c50e7cfb82354077ff9,
+                        limb1: 0xd825202a8b56831d4cb461f8,
+                        limb2: 0xacbc4404e784841
                     },
                     w4: u288 {
-                        limb0: 0x874d401cd210558dd7cd6e69,
-                        limb1: 0xbd5d1731547f7c076aea7100,
-                        limb2: 0x11e3cd1ffaff7e1d
+                        limb0: 0x2f290a090b14ab72c573f72d,
+                        limb1: 0x28fe7dd957a3fea3a48824a3,
+                        limb2: 0x8d4fde60889f05e
                     },
                     w5: u288 {
-                        limb0: 0xffda727e9edcb83beb1b264e,
-                        limb1: 0x8b3f3753bf7de981989dbee7,
-                        limb2: 0x16c735f0abe9104d
+                        limb0: 0x78e4ad232628f93493799b05,
+                        limb1: 0x853fa0b232ed0e0fe4c72ee8,
+                        limb2: 0x1905420adaee585
                     },
                     w6: u288 {
-                        limb0: 0x20dc640fd7fa6d96e51b4b87,
-                        limb1: 0x98dc8170235a2d8b9f0646be,
-                        limb2: 0x1097d2aafaa29b0f
+                        limb0: 0xf5b5ceac316dae7d4b72f222,
+                        limb1: 0xda7b251194b88252808ac1a8,
+                        limb2: 0xc2ad9e69e7a3c18
                     },
                     w7: u288 {
-                        limb0: 0x8d75d10d90693ff17bf30e21,
-                        limb1: 0x800292599a6c2b8f3f72471c,
-                        limb2: 0x1d3214b16f1149ef
+                        limb0: 0x871823350e01e7c076568b23,
+                        limb1: 0xc2fcb7b9ab99f9ea2de64a6f,
+                        limb2: 0xcbca7c0f294b05
                     },
                     w8: u288 {
-                        limb0: 0xda3ef108cef5a9e7965fa3a4,
-                        limb1: 0x3b7a43989606f1f662527a3b,
-                        limb2: 0x2e34632d2ac50086
+                        limb0: 0x58214cf485aa2980892ab270,
+                        limb1: 0x38ae8b1a6d563a6e90b57720,
+                        limb2: 0xadc0f206a82720c
                     },
                     w9: u288 {
-                        limb0: 0x62402c11b0b157b5569ef8a3,
-                        limb1: 0x27c937922e9d595377e5701c,
-                        limb2: 0x12fca4abfb56c583
+                        limb0: 0xe47d85736adce266525b33a5,
+                        limb1: 0x75f41b36a691ecb3f1af75f,
+                        limb2: 0x2aaaad4a322f5ca2
                     },
                     w10: u288 {
-                        limb0: 0x5b146a2af18248564e5c1062,
-                        limb1: 0x1539279f1c2274921ade581b,
-                        limb2: 0x1d0ba65714e84a1
+                        limb0: 0x449e76f3e507d1e4f79b2b41,
+                        limb1: 0xa66a19bfc8476c6ef9730a71,
+                        limb2: 0x1c4a7da448d6a424
                     },
                     w11: u288 {
-                        limb0: 0x7051cc6301ab5a67d26bf5fa,
-                        limb1: 0x74f08d1de4361b26e6b4a246,
-                        limb2: 0x15eda5a0e8ad06f8
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xc1564d46eff3a57112c82372,
-                        limb1: 0x65639d134f9b62cacab6bb67,
-                        limb2: 0x1993802bbfb81f1a
-                    },
-                    w1: u288 {
-                        limb0: 0xe5fa336e9e122a9f47ad3783,
-                        limb1: 0x64bf60691c6c5325757c2121,
-                        limb2: 0xce95198cabf3358
-                    },
-                    w2: u288 {
-                        limb0: 0x3b9d1e045973b64d75ba8de5,
-                        limb1: 0x18d378bebd698cc0b99e6227,
-                        limb2: 0x233efe8a373e26e6
-                    },
-                    w3: u288 {
-                        limb0: 0x7df3369e13c26cafa8cd9a3d,
-                        limb1: 0xbfc97c4d673fa542f8e2d920,
-                        limb2: 0x1353ce1aee67dd6a
-                    },
-                    w4: u288 {
-                        limb0: 0xabd34f860a10ccf275845e71,
-                        limb1: 0x7e647b6c31f82f99ef22e66f,
-                        limb2: 0x9dc375a582be98c
-                    },
-                    w5: u288 {
-                        limb0: 0xb1f2b2bde6d5b08dcc3db2ce,
-                        limb1: 0x4233dcb86fdc5e39fa6b405b,
-                        limb2: 0x14c600ef9a47e3a9
-                    },
-                    w6: u288 {
-                        limb0: 0xc8a64d5e081d88b35850cbae,
-                        limb1: 0xe562f3586b4ecf63a02d234a,
-                        limb2: 0x1419edcaeb4425ea
-                    },
-                    w7: u288 {
-                        limb0: 0xae4cd37490a22ea2762a5df0,
-                        limb1: 0x5bfe6d52394b36fd73a2938c,
-                        limb2: 0x1d25277281e9aeb4
-                    },
-                    w8: u288 {
-                        limb0: 0x22b0faef607063e9097acdc6,
-                        limb1: 0x9f890c7975c6777e6887038a,
-                        limb2: 0x102c70b179977ebf
-                    },
-                    w9: u288 {
-                        limb0: 0xd8f62a8c9cf3d40fc33dc7a4,
-                        limb1: 0xfd69ac3cff97f9bfb4272c09,
-                        limb2: 0x18df4bd4afc91e83
-                    },
-                    w10: u288 {
-                        limb0: 0x86f7457474a5197451a94c63,
-                        limb1: 0x1c251c7e2e63c8fc3800ac51,
-                        limb2: 0x19533aea5a2cda1e
-                    },
-                    w11: u288 {
-                        limb0: 0xe8314cf511dc16961819fcd9,
-                        limb1: 0xeec4f83453982c5e2f12ab0b,
-                        limb2: 0x5ee0517efe331a1
+                        limb0: 0xaa745ba79deacfc0e958305c,
+                        limb1: 0x771b3d2cba2c850277042d9f,
+                        limb2: 0x2bbe2dd81ae206bf
                     }
                 },
                 E12D {
@@ -5285,68 +4913,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xeeaff33f08d089036091f23a,
-                        limb1: 0x2a44df78f89a8372dc258ce0,
-                        limb2: 0x26fc82b71882d917
-                    },
-                    w1: u288 {
-                        limb0: 0xbfd4a67aa6811970f76df946,
-                        limb1: 0xf1a4615163ef25bfacabed3d,
-                        limb2: 0x1688e6c722ce08de
-                    },
-                    w2: u288 {
-                        limb0: 0x66e3bea0f3f135ef1edbf639,
-                        limb1: 0x3e0d96e58446ba35f7a9e5a0,
-                        limb2: 0x67ade48c196cb4e
-                    },
-                    w3: u288 {
-                        limb0: 0x65f311175b5d772601d7eb11,
-                        limb1: 0x1d7c8edef7ced77a59371220,
-                        limb2: 0x26af60cec4dc0c3e
-                    },
-                    w4: u288 {
-                        limb0: 0x2f6a7fe4cc84ed0877378290,
-                        limb1: 0xb39827a57f408139431f1f9d,
-                        limb2: 0x28527089e8870b42
-                    },
-                    w5: u288 {
-                        limb0: 0x6b41daa3c61edf7015051713,
-                        limb1: 0xdbd402f6c2d5b48b10eb708f,
-                        limb2: 0x25327bcfdf3e6d05
-                    },
-                    w6: u288 {
-                        limb0: 0x54955de808f99650ed919b88,
-                        limb1: 0xa3a8fe0dd332c7f2b93a707,
-                        limb2: 0x24cc495baae86e3a
-                    },
-                    w7: u288 {
-                        limb0: 0xcca7e2031469ad050f091d6b,
-                        limb1: 0xdea46ae3abe0c8a2230e0e11,
-                        limb2: 0x58438384377eba3
-                    },
-                    w8: u288 {
-                        limb0: 0xd67537b9a594c986e4f3846e,
-                        limb1: 0xdfdf9c0a55e7ba6bc3eff295,
-                        limb2: 0xbca7feb4560a11f
-                    },
-                    w9: u288 {
-                        limb0: 0x5d0a3adb9e19d73d7c1fd56f,
-                        limb1: 0xa788cc87939037a5da443e28,
-                        limb2: 0x241b7ebb3af96563
-                    },
-                    w10: u288 {
-                        limb0: 0xb44d7f76d34968eb1e7e4675,
-                        limb1: 0xd8cc02b2ddffda6b611735fd,
-                        limb2: 0x106b5bee4ceb79ca
-                    },
-                    w11: u288 {
-                        limb0: 0xbb0ac2282d510195ce1e8809,
-                        limb1: 0xe7d90c31482db40e8e0564e7,
-                        limb2: 0x5d4f51bef50e5a6
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xacd367bfb3a86503c4696228,
                         limb1: 0xe5bebb9f891e0fcf9bb400df,
                         limb2: 0x1f053bcf8dd0c40e
@@ -5471,68 +5037,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xd7c55ebaa75e7fb9640fa8de,
-                        limb1: 0x35ab753131261ec6e8fa71aa,
-                        limb2: 0x15cc5f52488dfefe
-                    },
-                    w1: u288 {
-                        limb0: 0xc637c5a8ac33ff32300f089a,
-                        limb1: 0xfc1fb97f63cd7c6f17699d8,
-                        limb2: 0x28fff806ff3c20d5
-                    },
-                    w2: u288 {
-                        limb0: 0x13e98681d2c4c06bc9f7be,
-                        limb1: 0xffe46ca72f80f967869cf0ac,
-                        limb2: 0x2ed3bdc908106638
-                    },
-                    w3: u288 {
-                        limb0: 0x84ee49c19748b0709b40d090,
-                        limb1: 0x325a4dc6fdfb2d861b931969,
-                        limb2: 0x210b9b640fbd6b15
-                    },
-                    w4: u288 {
-                        limb0: 0xe4cbabb47d240e42e4df9e9d,
-                        limb1: 0xc716259cd79eaeae04d2e806,
-                        limb2: 0x17964d3e6b3f45ee
-                    },
-                    w5: u288 {
-                        limb0: 0xa4c02df9004feb779b1cddbe,
-                        limb1: 0x515bc7367bbc40dfadc53924,
-                        limb2: 0x1dc0a40c4481f6f6
-                    },
-                    w6: u288 {
-                        limb0: 0x8b8dd09161c6cec0338e834d,
-                        limb1: 0x5f2bd89ac4452fecd81fcc63,
-                        limb2: 0x1627e62ee6610ca5
-                    },
-                    w7: u288 {
-                        limb0: 0xb9873ca6378bbd41b2922366,
-                        limb1: 0x50a72274ed79596d09c6462e,
-                        limb2: 0xda76ba52474d96b
-                    },
-                    w8: u288 {
-                        limb0: 0x5c42fddd452967982ed1fcf1,
-                        limb1: 0xae6730fc6357182eb8a665d5,
-                        limb2: 0x29d77f895008cfed
-                    },
-                    w9: u288 {
-                        limb0: 0x1416d8881be2c0851f0460f6,
-                        limb1: 0x53526bb7b3738a1a66ea5871,
-                        limb2: 0x286b01bfb6b954f6
-                    },
-                    w10: u288 {
-                        limb0: 0x87e36d6505b80992146f2056,
-                        limb1: 0xf629e62ef3f1c2b802917ea,
-                        limb2: 0x138153508ab84084
-                    },
-                    w11: u288 {
-                        limb0: 0x62ee33c755bce93755e5b247,
-                        limb1: 0x44be5c19f78287b3adf77568,
-                        limb2: 0x1d9c0c65b6b32cd5
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x1b9b3275438def2b14d3d6ec,
                         limb1: 0x215e7ca4b8e610b90aea1fe2,
                         limb2: 0xc57e1f84bab1fde
@@ -5595,126 +5099,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x36dcd509735a36d3d277c09,
-                        limb1: 0xd5e9021e0c6360975901c3c5,
-                        limb2: 0x9f3510903987aa4
+                        limb0: 0x92acc012d562dfdfb6481b25,
+                        limb1: 0x3e64355b8e9e3082f99d33c5,
+                        limb2: 0x290b6aea5955f671
                     },
                     w1: u288 {
-                        limb0: 0x8ac57fd28f161543e08c60ea,
-                        limb1: 0xb15aa29e1287ebaf8807fd4a,
-                        limb2: 0x1c5487d43b5a9f7d
+                        limb0: 0xea2dac1a1640a6ac9b9ad377,
+                        limb1: 0xe1775d01c8f21468867a89ff,
+                        limb2: 0x1cf6cdd23f7ccb8b
                     },
                     w2: u288 {
-                        limb0: 0xdd5aa62936822925bd7b787e,
-                        limb1: 0x4635c08e2cc81e9ace52c84d,
-                        limb2: 0x2b3d64a62def38e2
+                        limb0: 0xd51e98bf9719380b097ea1fb,
+                        limb1: 0xd74149401b7667643b22e27f,
+                        limb2: 0x129b599f9eed72c9
                     },
                     w3: u288 {
-                        limb0: 0xdd9ffcc02a53232435eb127b,
-                        limb1: 0xd8c9b530c9d04b15dd3d70e,
-                        limb2: 0x69280e1e78b8c01
+                        limb0: 0x66f868e872b587c8e5a18431,
+                        limb1: 0x5ce11b08a6e0fe0e0f9b96f1,
+                        limb2: 0xcecf76d78ff36b2
                     },
                     w4: u288 {
-                        limb0: 0x65efcd97eed7d076d17e22bf,
-                        limb1: 0xcb3ac4944e0f2f80d7115651,
-                        limb2: 0x23ffaac0c6699a48
+                        limb0: 0x5ccd6edc479aeaf571c0890d,
+                        limb1: 0x91881d482210406422d39529,
+                        limb2: 0x2b1eefab1035d22a
                     },
                     w5: u288 {
-                        limb0: 0x1531b2e771d28022f033c608,
-                        limb1: 0xe3e8e7bd8556ab7d415dcea3,
-                        limb2: 0x2d04d9f4df04ca89
+                        limb0: 0x10b346eae6854f264c866223,
+                        limb1: 0xece7a4751aad88e0d43ff850,
+                        limb2: 0x26ac9d94ac41a06c
                     },
                     w6: u288 {
-                        limb0: 0xb5d74a1c9c59831b96c92ef1,
-                        limb1: 0x430b8cac3ff4ceebdf0f58c0,
-                        limb2: 0xc802a4a1ac18507
+                        limb0: 0xdca528ca6016058cf3e5fae2,
+                        limb1: 0x78690b84e775a92f8bc8a4ed,
+                        limb2: 0x212be7d16a5f6c89
                     },
                     w7: u288 {
-                        limb0: 0xdfcfa4d0a292f923659b0eec,
-                        limb1: 0xae122e96d6aa70c4fb4f83f9,
-                        limb2: 0x8fccf5a3b0bc65a
+                        limb0: 0xf3e83e445c62eeeb7ec84ce0,
+                        limb1: 0xdd116e6e8364db0a64b50304,
+                        limb2: 0x279d1022cd3e3e1f
                     },
                     w8: u288 {
-                        limb0: 0x4ffcffd38dd9efd29c9ec50f,
-                        limb1: 0xc059b4645faea5fbe4bfc013,
-                        limb2: 0x23544f87ad08b41e
+                        limb0: 0x65f73450ca7a1766028a9d92,
+                        limb1: 0xf27270b3123129865bf05ad5,
+                        limb2: 0x26bc3d97ad8925f4
                     },
                     w9: u288 {
-                        limb0: 0x251d9548c877b8aa855c50a3,
-                        limb1: 0xb3add67d52eb32de9105cc15,
-                        limb2: 0x15f4be8506271f1
+                        limb0: 0x944c276de7f91d41bcc4127e,
+                        limb1: 0xa89166f745e7e0640866c8db,
+                        limb2: 0xe7f920bd863ceb4
                     },
                     w10: u288 {
-                        limb0: 0x8f2ae3001d749c7d4cc92402,
-                        limb1: 0xe7856d313a74937d7fa51e79,
-                        limb2: 0x259ee48e9e9b488a
+                        limb0: 0xa31d4c6a3bdcbe04860624d4,
+                        limb1: 0x7c504b80689c987f9708269e,
+                        limb2: 0x27550021cf25c30d
                     },
                     w11: u288 {
-                        limb0: 0x6b63d1f8ce576033e97e9038,
-                        limb1: 0x7b2a76117da412752da2846d,
-                        limb2: 0x6990e1a2efc852e
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x1fa0244692768e2475efaf31,
-                        limb1: 0xbae8f168689bee3e520bb5d3,
-                        limb2: 0x2eba9807b37ce0c6
-                    },
-                    w1: u288 {
-                        limb0: 0x58e85e1841894bdde0e0b171,
-                        limb1: 0x4b6e2f638bfa5ea4eb56aab8,
-                        limb2: 0x108733f230f8406
-                    },
-                    w2: u288 {
-                        limb0: 0x989a59f7029c594cebea4494,
-                        limb1: 0xb592c7c482c32f10f150eed3,
-                        limb2: 0x3056736a61e69a23
-                    },
-                    w3: u288 {
-                        limb0: 0xc625308c657430f28b3f4c6d,
-                        limb1: 0x63c4c70f42f29cc8715ca1b3,
-                        limb2: 0x26c11ad7d67a098a
-                    },
-                    w4: u288 {
-                        limb0: 0xfd8f6a6bd59d23ecb4e05c45,
-                        limb1: 0xc203778a94b02c5ea751cc29,
-                        limb2: 0x1b5660d097c9a2f7
-                    },
-                    w5: u288 {
-                        limb0: 0xc19d3d183efe416c834c0095,
-                        limb1: 0xb7fc15dad4e89e674410b44b,
-                        limb2: 0x3efc50a1afe3929
-                    },
-                    w6: u288 {
-                        limb0: 0xea72904c349e53d85516450e,
-                        limb1: 0x5d4bbe5186be2f0d1bef0b21,
-                        limb2: 0x2d63ae49229f1b55
-                    },
-                    w7: u288 {
-                        limb0: 0x62ff2f8ec11e0f8d8493d9e4,
-                        limb1: 0x337753a5450d93b87d1beda7,
-                        limb2: 0xe72c5750ca40dc7
-                    },
-                    w8: u288 {
-                        limb0: 0xfb68bb6bd8fafb98ac47e33,
-                        limb1: 0x64a66d18cfd06b1234ce9ae6,
-                        limb2: 0xfeed65807e61e72
-                    },
-                    w9: u288 {
-                        limb0: 0x6d14065dc4ff36e98bc6f133,
-                        limb1: 0xd95d5bfeec62335d59cc35b5,
-                        limb2: 0x2a6ce0a66f0dcedf
-                    },
-                    w10: u288 {
-                        limb0: 0xdd8fd7afee4b166ecd2425c0,
-                        limb1: 0x4a6c7517136eb7a7c9416789,
-                        limb2: 0x1832414464f6fdec
-                    },
-                    w11: u288 {
-                        limb0: 0x647ccfc70e1228874c23636c,
-                        limb1: 0x3be5f9dc34b687c75ed0a670,
-                        limb2: 0x2102784d6a9f5b32
+                        limb0: 0x91cb5c5218981603a881667f,
+                        limb1: 0xa0905ee77f1c0e9a5f9de4,
+                        limb2: 0xcc2ecbee6addff5
                     }
                 },
                 E12D {
@@ -5905,68 +5347,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xbae5b8c86e1817cc460fff4b,
-                        limb1: 0xc1a20b71bf017dae367c3482,
-                        limb2: 0x2133af1c25fb8593
-                    },
-                    w1: u288 {
-                        limb0: 0xeac8299d96e2a95bd1f07c57,
-                        limb1: 0x99e72ea770a3575e60d3128c,
-                        limb2: 0x266e070e75f4d2dd
-                    },
-                    w2: u288 {
-                        limb0: 0xab1dd6d02031c8c5b31bb645,
-                        limb1: 0xb110ba138244e9f19a858bb2,
-                        limb2: 0x142d61a2ac05285a
-                    },
-                    w3: u288 {
-                        limb0: 0x438df58b7e014591d52f3860,
-                        limb1: 0x1c33fd586dbd44cf6c5ada37,
-                        limb2: 0x5177aa9d026ce00
-                    },
-                    w4: u288 {
-                        limb0: 0xec91f7d1303ebf5932f6a8f1,
-                        limb1: 0x82a74baf5611c4080ede970e,
-                        limb2: 0x11191f4382d4a298
-                    },
-                    w5: u288 {
-                        limb0: 0x418ff55d9dfff6f214af0364,
-                        limb1: 0x9eac1d0f6e4eeaa01c9b959f,
-                        limb2: 0x954a206ccfee5f3
-                    },
-                    w6: u288 {
-                        limb0: 0xf7556a45ee5a4c1b43fc2262,
-                        limb1: 0x8d2054c1ae4b6fb3d90d8de6,
-                        limb2: 0x17503e25ccde1837
-                    },
-                    w7: u288 {
-                        limb0: 0x6744715ed29cc929975ca7b4,
-                        limb1: 0xe8dc44ec0d9e478223b8b327,
-                        limb2: 0xd588d0c72843dda
-                    },
-                    w8: u288 {
-                        limb0: 0x37df8544cbb4d50d1750d0ab,
-                        limb1: 0x1fded5cf9e7ceef1359e89a3,
-                        limb2: 0x1cd5e75628e29e93
-                    },
-                    w9: u288 {
-                        limb0: 0xb87c8829e13e4ef7fbc5b4b5,
-                        limb1: 0x73576d5561e13112722f1a07,
-                        limb2: 0x1c9cb0a6bd4078a7
-                    },
-                    w10: u288 {
-                        limb0: 0x73b9d6525847c071b3802ff5,
-                        limb1: 0x61653370d841b0fc438501e7,
-                        limb2: 0x19584e044d151d8f
-                    },
-                    w11: u288 {
-                        limb0: 0x9bad35551c6f7bd89c6d4b65,
-                        limb1: 0x6abce4fa28f7f4599ab30fe9,
-                        limb2: 0x2357bc998cdbcf31
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x7430544030d0c5607d8574fa,
                         limb1: 0x948e3aa4cdc35494aa3d0c22,
                         limb2: 0x149ca9118143d93b
@@ -6029,126 +5409,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x2fdd45f14bd2e71c558f0c38,
-                        limb1: 0xbe423f6f409135153c49653f,
-                        limb2: 0x19ac07503f7ed093
+                        limb0: 0x6e6bdf80500cb854f5dd0bff,
+                        limb1: 0xbf9a626b9cbccc283c57700b,
+                        limb2: 0x20f5c7f5f71cb22d
                     },
                     w1: u288 {
-                        limb0: 0x712cec13fddc4b5c45ea2f47,
-                        limb1: 0xf4258573d41680e36142fc6b,
-                        limb2: 0x2ef0950d73ca270b
+                        limb0: 0xdb32a31be60950339fb1122a,
+                        limb1: 0xf752607f2d770dbc152220c2,
+                        limb2: 0x119f27829f3f396b
                     },
                     w2: u288 {
-                        limb0: 0xede6eadca94f04595fa49dec,
-                        limb1: 0x1e5cc86563b78f264bf026f,
-                        limb2: 0x2a0758aac50e7491
+                        limb0: 0x9d48d334e95302c9d457e824,
+                        limb1: 0x71e66184e0c417cc823bcb6d,
+                        limb2: 0x230fd13d768e195b
                     },
                     w3: u288 {
-                        limb0: 0xd2758450c1234dfe75fa13c8,
-                        limb1: 0xa609e14e3c32820f62d75360,
-                        limb2: 0x192fb9273e219654
+                        limb0: 0x2cce2b592737976adcdeb399,
+                        limb1: 0x6f7e7895cc9ac490802fc64c,
+                        limb2: 0x2e34a9c5e37e2c13
                     },
                     w4: u288 {
-                        limb0: 0x6a245d3c3df8acc1345f6a37,
-                        limb1: 0x208f3a9701fd2846b10428f9,
-                        limb2: 0xfc380289574db0d
+                        limb0: 0x1b78faac53b2579e5036465a,
+                        limb1: 0x3dd4cb80488ff8f5cac70df4,
+                        limb2: 0x29834f6805b456e1
                     },
                     w5: u288 {
-                        limb0: 0x3cbe71cb4351bd06b01cf7a5,
-                        limb1: 0x91028a0a9ba2e42eeb14aeae,
-                        limb2: 0x759e3230cc024f
+                        limb0: 0xbeb6734949c1988a2bab2b43,
+                        limb1: 0x2551b72dc3bd9631884c52eb,
+                        limb2: 0x2a7502d7a3ab80e4
                     },
                     w6: u288 {
-                        limb0: 0x1a35dc135e92851e04f3e6b8,
-                        limb1: 0xf619c16cfb8c337bb5bb949d,
-                        limb2: 0x24e4752f8a5f3d75
+                        limb0: 0xc862806b3e7a8b9b9c55054,
+                        limb1: 0x874d4d7db6cd2dc1c25218dc,
+                        limb2: 0x102e882c30c3623e
                     },
                     w7: u288 {
-                        limb0: 0x506104afba31c20a61a75e43,
-                        limb1: 0x31cd03015c98792f34ee3349,
-                        limb2: 0x7ea788f93bac7
+                        limb0: 0xf303abb1515fa0b31a804e39,
+                        limb1: 0x240918f6ba89758a1c7d1cfa,
+                        limb2: 0x7f3dfb58aa1125b
                     },
                     w8: u288 {
-                        limb0: 0xf78fb1034084c8d96efeac2a,
-                        limb1: 0xdaa4f64e87ddd182c7b9c6ea,
-                        limb2: 0xae59384fb9c7128
+                        limb0: 0x3f1cfdf33cad91734b211407,
+                        limb1: 0x17c4a8522daa84de4bad7323,
+                        limb2: 0x19c76e0eb6c3b0c3
                     },
                     w9: u288 {
-                        limb0: 0x9bfa518f1a5f38abd4fa3756,
-                        limb1: 0x5441d990c3b813ca7713129,
-                        limb2: 0x7f5da8e329fb2dc
+                        limb0: 0x3a57bba7ae1b75fc6df7c6c0,
+                        limb1: 0xac20c3a4dd640432204a0563,
+                        limb2: 0x23288051e80e08eb
                     },
                     w10: u288 {
-                        limb0: 0x9023d6d476a985e0dfb24a14,
-                        limb1: 0xbcb0c72ef594e7052db08de1,
-                        limb2: 0x11772b90bb557415
+                        limb0: 0x5e00c38b0e2a7ce9098d68b0,
+                        limb1: 0x66eae940dafebe8c421747aa,
+                        limb2: 0x9136eb12adac86f
                     },
                     w11: u288 {
-                        limb0: 0xf4ad676b4572333994418a58,
-                        limb1: 0xace4ef56b73b28e36fca1d3c,
-                        limb2: 0x101fb88b2b6f15bb
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x5bb45687493a11f8c031be7f,
-                        limb1: 0x228c6338279eae5854979991,
-                        limb2: 0x29cdea35cf2ff805
-                    },
-                    w1: u288 {
-                        limb0: 0x40564be49ebced1f7ab77f81,
-                        limb1: 0x6151addd935ab515da1ebc85,
-                        limb2: 0x2c881256af0d03e3
-                    },
-                    w2: u288 {
-                        limb0: 0xa1dca87ffa1adc9d01c768a,
-                        limb1: 0xc0330f9fe2af80b41a4c650e,
-                        limb2: 0x2a00a048ceb9e725
-                    },
-                    w3: u288 {
-                        limb0: 0x17db557bac2e5f5b0c3c14c2,
-                        limb1: 0x74d4203577dd4017c233765a,
-                        limb2: 0x2d4a02293b84933f
-                    },
-                    w4: u288 {
-                        limb0: 0x36cbfc249ce87842a64e06ed,
-                        limb1: 0x301570c53359d99f548138ff,
-                        limb2: 0x9ddf8d2eb32b0de
-                    },
-                    w5: u288 {
-                        limb0: 0x7a51cb5bc410d480c4b20913,
-                        limb1: 0xa2f087adc308088ff5c7f785,
-                        limb2: 0x19fe83a07d3de659
-                    },
-                    w6: u288 {
-                        limb0: 0x77cba9fae59abf1982dfe21c,
-                        limb1: 0xbd808d9873aa7418f50b1a17,
-                        limb2: 0x94e11284070133a
-                    },
-                    w7: u288 {
-                        limb0: 0x95cc961847acec5cec6fe0b0,
-                        limb1: 0x2b70919ac996e98f0c449a8e,
-                        limb2: 0x1106f60e46256639
-                    },
-                    w8: u288 {
-                        limb0: 0xc9484d6ad3b1426cc6f7597b,
-                        limb1: 0x681d8dbd8feddba1359e9ab0,
-                        limb2: 0xb871acc6377b3ec
-                    },
-                    w9: u288 {
-                        limb0: 0x795333aef69553bb89432d06,
-                        limb1: 0x15720ca05088e80018d0086,
-                        limb2: 0x204f664fb5a8b537
-                    },
-                    w10: u288 {
-                        limb0: 0xfe74dff290385f4d02437d37,
-                        limb1: 0x3448ebb0fd12a91f0264ae86,
-                        limb2: 0x872f185346019ab
-                    },
-                    w11: u288 {
-                        limb0: 0x8709cfbf8efbbca603c72864,
-                        limb1: 0xd6b9c331fc88983ffafdacc,
-                        limb2: 0xada917510233f84
+                        limb0: 0xf157c33f547ac7f32e5da8f0,
+                        limb1: 0xf76a7a02c64558b3145a2909,
+                        limb2: 0x260334b73e26b56
                     }
                 },
                 E12D {
@@ -6215,68 +5533,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x7814d2a2c673f884b8085ba9,
-                        limb1: 0xbd40bf21978b9505c24ee7c,
-                        limb2: 0x12f9fbc18fd0945a
-                    },
-                    w1: u288 {
-                        limb0: 0x4e44b87366f0c6852069ce2c,
-                        limb1: 0x56457b867283b23613156034,
-                        limb2: 0x2d485871a7f62f8e
-                    },
-                    w2: u288 {
-                        limb0: 0x7e0e12c8bfab2c621558e974,
-                        limb1: 0x4ac7103f3b7df77b0ed0601a,
-                        limb2: 0x5752e31d723670a
-                    },
-                    w3: u288 {
-                        limb0: 0x4ca4c60fd2b3fae36c0888a,
-                        limb1: 0x560314ba12824fb705eb7dae,
-                        limb2: 0x1538c2aea43d2fcd
-                    },
-                    w4: u288 {
-                        limb0: 0x1bfe7bb6becc1a1e21ef8c5b,
-                        limb1: 0x7fbc1eaf3d87902d5fa7360,
-                        limb2: 0x2ba646f9306088b4
-                    },
-                    w5: u288 {
-                        limb0: 0xe98c3b87f3c3962c9fdbb590,
-                        limb1: 0xfbaed2bad5dba241b8f9bf68,
-                        limb2: 0x2411f0793d279fee
-                    },
-                    w6: u288 {
-                        limb0: 0x2489fbe2849fe66d3648c99d,
-                        limb1: 0x2aa30b0e94bc9828ab8d0b1,
-                        limb2: 0x1db1b5b17906d60
-                    },
-                    w7: u288 {
-                        limb0: 0x21e5e6605c156bb1bccabcc5,
-                        limb1: 0x743e14bb6db3b9b8c59d717b,
-                        limb2: 0xcfb3133529c7340
-                    },
-                    w8: u288 {
-                        limb0: 0xbb24ad8c53e2c6bdf456c13b,
-                        limb1: 0x1e97fec087f78f36b63d833a,
-                        limb2: 0x24afd8f7725a3455
-                    },
-                    w9: u288 {
-                        limb0: 0x48d5f3a8126f76c7a05783db,
-                        limb1: 0x25f6b188a8de6999a0337840,
-                        limb2: 0xcf17086fec6dc4e
-                    },
-                    w10: u288 {
-                        limb0: 0x757efec185f1c79cde655ce9,
-                        limb1: 0x69daadfcccd7ef9c30862410,
-                        limb2: 0x18823a4a6e3c2b51
-                    },
-                    w11: u288 {
-                        limb0: 0xcf3c82f516e9831a2ff2c839,
-                        limb1: 0xd41a6fbe0751356564e2a877,
-                        limb2: 0x4eae9761fd6d8d7
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x51d791055394af3437707fca,
                         limb1: 0x23d9d4f513172857b91ac570,
                         limb2: 0x12d712a33c1350ef
@@ -6339,126 +5595,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x84d747316dfb7280a154afbb,
-                        limb1: 0x80071e830936574617a5f0ad,
-                        limb2: 0x1dff475aa67504a2
+                        limb0: 0xae28d327617f61548f759aba,
+                        limb1: 0x1401aa78c9ec2231ff346415,
+                        limb2: 0x113fb038206ddf58
                     },
                     w1: u288 {
-                        limb0: 0xe0a9ccc4ad7ff65c90f62885,
-                        limb1: 0xcb80f6d1e6248546b4e5c292,
-                        limb2: 0x2f3e4804b670544c
+                        limb0: 0x42996e09532c7a0cefd8a71e,
+                        limb1: 0x69c61eb722a1e7209c4cd611,
+                        limb2: 0x13a6cbdff96772d
                     },
                     w2: u288 {
-                        limb0: 0xc115b4231eec168701bbd1d8,
-                        limb1: 0x592c78a2c785d9e6bbbb5de9,
-                        limb2: 0x1b54dc791e38a075
+                        limb0: 0xbf63f1fcc51ddcc897f42363,
+                        limb1: 0x707fca9fe10a26f918b0ca37,
+                        limb2: 0x669edeff7d809fe
                     },
                     w3: u288 {
-                        limb0: 0xb0566993295ac71e46832195,
-                        limb1: 0x15d89114380d896b6c6ffc6d,
-                        limb2: 0x589b40e1a2c6a77
+                        limb0: 0x8bb34e49a388ddc9b04b2180,
+                        limb1: 0x38dcd13822ba4ee2a5cdd793,
+                        limb2: 0x1d5dac515eaa51b8
                     },
                     w4: u288 {
-                        limb0: 0x32e6236d18ef0a0cba148407,
-                        limb1: 0x75c5547a357550ec4490dc2,
-                        limb2: 0x241ab669be7fdc59
+                        limb0: 0xa0125e6adb1681a41dbbf2d6,
+                        limb1: 0x3e2cccd5ac961e1a78aab8ce,
+                        limb2: 0x13d6bd7db8c4b48e
                     },
                     w5: u288 {
-                        limb0: 0x731cfc382a22095cf97312ac,
-                        limb1: 0xa56f43cc755589bc5edb9961,
-                        limb2: 0x1d649b991c214429
+                        limb0: 0x737b7f10bf6822280731a819,
+                        limb1: 0x69bd4676e8f1e6a89c10d4e7,
+                        limb2: 0x19ba69c1ce404728
                     },
                     w6: u288 {
-                        limb0: 0x79861a255596c846a8f2654b,
-                        limb1: 0xead4c4100bafeb163bf387aa,
-                        limb2: 0x2e183a705cb116b
+                        limb0: 0x4309f0c42a45a1cd80562659,
+                        limb1: 0xdda759df4dc118a6bb9c4ff4,
+                        limb2: 0x1fef98dddc22b559
                     },
                     w7: u288 {
-                        limb0: 0x6eb1257f363c5ddb622bb47b,
-                        limb1: 0x42a90e60a4aba2cf9c166ac1,
-                        limb2: 0x22bc32cae062bc75
+                        limb0: 0x16e4b900d586497d3c45f6df,
+                        limb1: 0x49f7f05337ad0de92e3b353d,
+                        limb2: 0x2a317f6bb6771fc4
                     },
                     w8: u288 {
-                        limb0: 0x9afb711365a4a45e6a05726e,
-                        limb1: 0xa0ad87509587f222fc280fcb,
-                        limb2: 0x670f44b9b517db3
+                        limb0: 0xdb1d34070b21596c13268b11,
+                        limb1: 0xaa74ad91700236cbbbdc34ff,
+                        limb2: 0x1f3d2738883aba1b
                     },
                     w9: u288 {
-                        limb0: 0xdf8fd469aa5b4aab45c6cef2,
-                        limb1: 0x980bb3a0104c1552a29e2297,
-                        limb2: 0xf193adff9f73057
+                        limb0: 0x5dd4d2f3b2fa8a97fa8ea9f9,
+                        limb1: 0x2c5dc834a8f95e902710f4df,
+                        limb2: 0x138f968bf21498ba
                     },
                     w10: u288 {
-                        limb0: 0xbb026624b9aff703c4a15566,
-                        limb1: 0xec4bd1d08ae19c587baa6b86,
-                        limb2: 0xa72c13a9735cef5
+                        limb0: 0xabdbabb3b67443c8a7106c79,
+                        limb1: 0xb0ae2b75703e953d30907447,
+                        limb2: 0x190bab990471c462
                     },
                     w11: u288 {
-                        limb0: 0xb462b0d615d16c7f37e95d82,
-                        limb1: 0x5890313d651a4c313e7a6d48,
-                        limb2: 0x169fe024e45961c5
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x9275eeaca7ed67c748ad13a1,
-                        limb1: 0x89c8e03db0b7a5048e039168,
-                        limb2: 0x18e65c682630c5d
-                    },
-                    w1: u288 {
-                        limb0: 0x9a0fee4f3dba75bfac6fef83,
-                        limb1: 0xa5f45410b12fb42aa2671528,
-                        limb2: 0xaf271a96d993111
-                    },
-                    w2: u288 {
-                        limb0: 0xec43b9adb1e3768acd3083d4,
-                        limb1: 0x7b24e5f7ffb34e51d55cc588,
-                        limb2: 0x29d060494babc596
-                    },
-                    w3: u288 {
-                        limb0: 0x67dc40b0af0e10bac7a05952,
-                        limb1: 0xebf5b34d0c0616026ed7e65a,
-                        limb2: 0x30374b2d414cf057
-                    },
-                    w4: u288 {
-                        limb0: 0xdccf4e86511eb060ef6b09cb,
-                        limb1: 0xb8f88821d9e2fc976f551374,
-                        limb2: 0x13489c73fabbc9db
-                    },
-                    w5: u288 {
-                        limb0: 0x1766383264ea79163e53cca1,
-                        limb1: 0xe26d7a5e4522e3b62d0a2c92,
-                        limb2: 0x1068c96469a54143
-                    },
-                    w6: u288 {
-                        limb0: 0xd631180209a3a491bcdcbcaf,
-                        limb1: 0xd274eb379ffb96d0080d6a27,
-                        limb2: 0x12f90e2564e5e574
-                    },
-                    w7: u288 {
-                        limb0: 0x7ccb990a2d4f3d909ab47ac0,
-                        limb1: 0x14e69a8c84385472abc58c47,
-                        limb2: 0x2f91aa7f35a6a028
-                    },
-                    w8: u288 {
-                        limb0: 0xdf8f82bd9c0e471242981be,
-                        limb1: 0xb293c77cf24c3c14fa4da691,
-                        limb2: 0xa151237273b3124
-                    },
-                    w9: u288 {
-                        limb0: 0x44f06f58480ae669a0809114,
-                        limb1: 0x754559fb743aecec3589bcd,
-                        limb2: 0x159166d1317624c6
-                    },
-                    w10: u288 {
-                        limb0: 0x181648a6f295bddf00b68eeb,
-                        limb1: 0x631c1596b7a2878ea3892305,
-                        limb2: 0x1e22501d45bcd6ad
-                    },
-                    w11: u288 {
-                        limb0: 0xde3351ba3fb4ddcc883cc7a3,
-                        limb1: 0x497f571dd073afb155a59c13,
-                        limb2: 0x21469de05906eb86
+                        limb0: 0xcf34ae390b76e945d679a1ba,
+                        limb1: 0x4f4ea018b12e85eefbae6240,
+                        limb2: 0x11b6508aaf7e8efa
                     }
                 },
                 E12D {
@@ -6587,68 +5781,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x6c490351ed33365477ef135f,
-                        limb1: 0x95cd563c8cf7e5c65276fa0,
-                        limb2: 0x21674c8db95a73a2
-                    },
-                    w1: u288 {
-                        limb0: 0x991a3c4fb7bec4e1ef338f0d,
-                        limb1: 0x8914d7c3f80811c228e95764,
-                        limb2: 0x2dcafaf1b47a95e9
-                    },
-                    w2: u288 {
-                        limb0: 0x9ffcc64c84552f5c9a361d50,
-                        limb1: 0x44ce5317bc5ae00680a318ce,
-                        limb2: 0x1d8409bee89ec60f
-                    },
-                    w3: u288 {
-                        limb0: 0xe58bfa2a87e3efc941ed7779,
-                        limb1: 0x86a19721be49e88171c3ffff,
-                        limb2: 0x11e845bde1dfbbda
-                    },
-                    w4: u288 {
-                        limb0: 0x2e1d6308651eaa8c8fab8e43,
-                        limb1: 0x94115ffbf9a57fd06a61b45f,
-                        limb2: 0x2e690391888dd9da
-                    },
-                    w5: u288 {
-                        limb0: 0xbd795824c1744828ae7ef811,
-                        limb1: 0xad1f4809c72134e801c991cf,
-                        limb2: 0xb6e17abd8396e2b
-                    },
-                    w6: u288 {
-                        limb0: 0xf24167dbe7e5ad7c15e04ba5,
-                        limb1: 0x82e89526e991ecd1e052d4f0,
-                        limb2: 0x66ec7f826440df9
-                    },
-                    w7: u288 {
-                        limb0: 0xe31da86a62cea52ed8dbaec3,
-                        limb1: 0xa16f7553fa28b952a8641c78,
-                        limb2: 0x2fa3ce6860cb6f75
-                    },
-                    w8: u288 {
-                        limb0: 0x7b664cb1dbe0a2d36ec8bd78,
-                        limb1: 0xdb78d889a0028d847c97205e,
-                        limb2: 0x2f346886b94f2412
-                    },
-                    w9: u288 {
-                        limb0: 0x99d016216d39e143c2343aed,
-                        limb1: 0xbcdefab53f27382d1103af65,
-                        limb2: 0x299076e38fab489e
-                    },
-                    w10: u288 {
-                        limb0: 0x5403ad612b9352c4f9f1f790,
-                        limb1: 0xe75ff1f2e0a6c13c793a780e,
-                        limb2: 0xe82e2d5796d6858
-                    },
-                    w11: u288 {
-                        limb0: 0x1c654c441cdd489aff215ae5,
-                        limb1: 0x8d3e9314ffa5701fc9f8fb2f,
-                        limb2: 0x2eb27640cd144ddf
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x5a115fd010369153e97447d6,
                         limb1: 0x30bec73abe3a59b63e145fad,
                         limb2: 0x13cad9f295161d7b
@@ -6773,68 +5905,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xdf09db0d29f0a62f6c8475de,
-                        limb1: 0x5ec575f94a505ac73d5eb91,
-                        limb2: 0x1a0ad63d4559f556
-                    },
-                    w1: u288 {
-                        limb0: 0x1cac1afb8b5d508002b5065f,
-                        limb1: 0x4da7bbbdb51ef1871dcc83a,
-                        limb2: 0x27df7e2b493760cb
-                    },
-                    w2: u288 {
-                        limb0: 0x2773e85297b76f094c31e28f,
-                        limb1: 0xeac183b0e7f4bd9365d17a46,
-                        limb2: 0x25033451789b2a
-                    },
-                    w3: u288 {
-                        limb0: 0x3d2e805aecbccbe1bc60ad99,
-                        limb1: 0x1ddcf8529b4a8b2195b93a07,
-                        limb2: 0x200389fbda976a30
-                    },
-                    w4: u288 {
-                        limb0: 0xf1a994c4c63e36939d049bc0,
-                        limb1: 0x2a8fe03df99c43e7d6afa30c,
-                        limb2: 0x21f259ada3c4c4a0
-                    },
-                    w5: u288 {
-                        limb0: 0x53721ba178599e3e8afc67a,
-                        limb1: 0x47746cd7fd60596c0c378114,
-                        limb2: 0x17d9b5aff235ca37
-                    },
-                    w6: u288 {
-                        limb0: 0x2f10c27df1ba3f449f0c7d9,
-                        limb1: 0x2cd55dc247a34217832071bb,
-                        limb2: 0x1fb4effd619b5fc9
-                    },
-                    w7: u288 {
-                        limb0: 0xcb9cc1b9a861c26c9e29ea1b,
-                        limb1: 0x5553c47fa2cf5d51711f8841,
-                        limb2: 0x9ccef2596139986
-                    },
-                    w8: u288 {
-                        limb0: 0xdc944d5a9f6098966cb7e6ca,
-                        limb1: 0xba654abdeef4d2b7310df74f,
-                        limb2: 0x21ba47cd335f5a55
-                    },
-                    w9: u288 {
-                        limb0: 0xbf9f356da450ec434f817b6b,
-                        limb1: 0x2f213a2981d260fcb5182223,
-                        limb2: 0x1ef068ea4b94a17a
-                    },
-                    w10: u288 {
-                        limb0: 0x1363798632c9ca77196250e7,
-                        limb1: 0x7da432fe110c6e9e240ad351,
-                        limb2: 0x1a36e2917de4e9ad
-                    },
-                    w11: u288 {
-                        limb0: 0xe661c0831c587f9f76fd1823,
-                        limb1: 0xaa8917aa2614965557c64832,
-                        limb2: 0x246454b57f998dbf
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x672f14cd0b10414f1a06ab0e,
                         limb1: 0xbc03210758f55bd394a8677b,
                         limb2: 0x1919a01fe8398d6e
@@ -6893,68 +5963,6 @@ mod pairing_tests {
                         limb0: 0xa9507d23f9e956aa9f5be47d,
                         limb1: 0x20a327008223620fe131958e,
                         limb2: 0x1e5fc15a15ef1efa
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x4f8d140c2aa860f7a221414,
-                        limb1: 0x6d312f696e08e932cbf4d34e,
-                        limb2: 0x24e660b3a25454c2
-                    },
-                    w1: u288 {
-                        limb0: 0x69a4598a1e6c895627be842a,
-                        limb1: 0x57a2bd1222b5cc06af5252c1,
-                        limb2: 0x106a48712e64aeab
-                    },
-                    w2: u288 {
-                        limb0: 0x8b53b9360acf4361007be8eb,
-                        limb1: 0xc8a25e63f60093d68027d272,
-                        limb2: 0x398b1a76bf0a5e1
-                    },
-                    w3: u288 {
-                        limb0: 0xa6654b50cb03f7fd3f92472b,
-                        limb1: 0xae53bb4228cd2f3ea1abd48,
-                        limb2: 0x1cf0da1f010f6e0d
-                    },
-                    w4: u288 {
-                        limb0: 0xe5884cf0fa8ffff2cc4e9a88,
-                        limb1: 0xbc85f5bdebbc68f108b9f085,
-                        limb2: 0x2fc046823a870a8a
-                    },
-                    w5: u288 {
-                        limb0: 0xcf5a2df5a4d2523e494a2480,
-                        limb1: 0xdbecffabadbaa2422173c0c5,
-                        limb2: 0x2609bfa148638005
-                    },
-                    w6: u288 {
-                        limb0: 0xde1b509834f821071d950bb1,
-                        limb1: 0xe274e6a8c7e44a260c2d0ee6,
-                        limb2: 0x1484e3ca1c0103ad
-                    },
-                    w7: u288 {
-                        limb0: 0x31c4d6b81f1e3366a2591e67,
-                        limb1: 0x886e07f99f9325c502fdf677,
-                        limb2: 0x340a57f86bd1236
-                    },
-                    w8: u288 {
-                        limb0: 0x888bc6e8073ffe78eda2a3e8,
-                        limb1: 0xb0552352911a8a747a36741b,
-                        limb2: 0x28d8cc09a6584c3e
-                    },
-                    w9: u288 {
-                        limb0: 0x7cf7d5c4c63e7081821e8802,
-                        limb1: 0x5029274a156dcab3e83ba19b,
-                        limb2: 0x113b6ed17e48fdc4
-                    },
-                    w10: u288 {
-                        limb0: 0xd8a6f9deed6e9af73def087f,
-                        limb1: 0x7dd73bb05aae976cb1a0bca9,
-                        limb2: 0x510d23290051599
-                    },
-                    w11: u288 {
-                        limb0: 0x9b3cf2c6e46a0a68a692486,
-                        limb1: 0xbe6e0ef4d4984c2da4bfb25c,
-                        limb2: 0x13589bec72bdaa35
                     }
                 },
                 E12D {
@@ -7021,126 +6029,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xdab2d4d1fb4dfff987a7d3d3,
-                        limb1: 0x2411e94edcc7bffd7075d449,
-                        limb2: 0x135e75c4d51d972e
+                        limb0: 0xbc95d451e65b0289c2f0d9f4,
+                        limb1: 0x29864b5c2006361c7ec32dbc,
+                        limb2: 0x231b97e42e88b4ff
                     },
                     w1: u288 {
-                        limb0: 0xee981fb59ed03970c6ca8281,
-                        limb1: 0x3e83fef603c51d5671177815,
-                        limb2: 0x2e73c1090281f7e
+                        limb0: 0x4bc818c5e9f6ed62903ac570,
+                        limb1: 0xa6da69d8d95bf6c6529bfd2e,
+                        limb2: 0x9e56c349c350628
                     },
                     w2: u288 {
-                        limb0: 0x2462d8aa24aa18eb50b5a9e1,
-                        limb1: 0xe3c51abeea523cbd99f67788,
-                        limb2: 0x219691038e9fb944
+                        limb0: 0xed520f5d2e7e426947558231,
+                        limb1: 0x407b04e8f131e18a83493135,
+                        limb2: 0xa24acdc96970f27
                     },
                     w3: u288 {
-                        limb0: 0x51a75794bbb49357c072ac7c,
-                        limb1: 0xacf0030cb7b3b033758c6ce5,
-                        limb2: 0x19ff12286c625ddc
+                        limb0: 0x1d6c5e4e2aeea52567838f68,
+                        limb1: 0x3bdb301020d1702216efd42d,
+                        limb2: 0x2b59a5b8dcb0422b
                     },
                     w4: u288 {
-                        limb0: 0x1835bb1b322765b3dfe43b7,
-                        limb1: 0xd85ff6ad5e822f2b5952e64a,
-                        limb2: 0x26109ac2a0ee1fa2
+                        limb0: 0xf85e1201fcab94bada581d84,
+                        limb1: 0xe0efe6f4951ed52abf8b76af,
+                        limb2: 0xa6ae5af3e8d245c
                     },
                     w5: u288 {
-                        limb0: 0x28377aa4720374e31fa523c6,
-                        limb1: 0x98010cd0baccac458d385f47,
-                        limb2: 0x211dfc9a438703b1
+                        limb0: 0x51002d24f61e489d8c153193,
+                        limb1: 0xb32c323348563ffd15f5c33c,
+                        limb2: 0x26c4b2966b0b0244
                     },
                     w6: u288 {
-                        limb0: 0xd32596c7e3dfad9d447ed8e5,
-                        limb1: 0xd573f106cfbd666d15feb207,
-                        limb2: 0x1e3cc79ca1f45379
+                        limb0: 0xb16e8f73703c8fc9cbe27a54,
+                        limb1: 0xe85c673315e3ff3bd80c385a,
+                        limb2: 0x1097084941caa56b
                     },
                     w7: u288 {
-                        limb0: 0xfc302529a4a61bd5a423fb3c,
-                        limb1: 0xf617b6ebf00bd11e8e835138,
-                        limb2: 0x260c00ce39570eaf
+                        limb0: 0x418c90f7a9ddb4b009516166,
+                        limb1: 0x6b3e04040348ba6064a95888,
+                        limb2: 0x1109803e56079bbf
                     },
                     w8: u288 {
-                        limb0: 0x5a28cfe72c28f721eefedc65,
-                        limb1: 0xaecaa571f47d61801e600dc2,
-                        limb2: 0x91eb40b8d54b92b
+                        limb0: 0xfba73400ff9d91da0d4bb12f,
+                        limb1: 0xaa1955281d88ef0e24a3555b,
+                        limb2: 0x2eb930dc35c971e5
                     },
                     w9: u288 {
-                        limb0: 0xa6e7e349e855618437c69fcc,
-                        limb1: 0x8ae373cf2e3fff0801b97744,
-                        limb2: 0x44f27dc1d1b52a2
+                        limb0: 0x5cf265fa7a069ab0faf07634,
+                        limb1: 0x1fc2d713371237aca902f86b,
+                        limb2: 0x239dbccb24faaa
                     },
                     w10: u288 {
-                        limb0: 0xdc2133838f37b58846b25dba,
-                        limb1: 0xa3a162f6304c8bf0beadd509,
-                        limb2: 0x109dafeada3dc8bd
+                        limb0: 0x2b4f288428a4b9bbe4f2fa4c,
+                        limb1: 0x7623c03640928ed49d920ddf,
+                        limb2: 0x13201c25a3d33428
                     },
                     w11: u288 {
-                        limb0: 0xc66eaef153de9583a26367e5,
-                        limb1: 0x6dd443ede60c6976367536b6,
-                        limb2: 0x588655d8d021805
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xd1dc59d40bfaa1c081e79239,
-                        limb1: 0xf73edeeb7156c14d096722a3,
-                        limb2: 0x18953813aa53fe9
-                    },
-                    w1: u288 {
-                        limb0: 0xcfc95ea325c93d272d3133be,
-                        limb1: 0xa32568a0f09320d2edc3cb7a,
-                        limb2: 0x2a996f20edd8f50b
-                    },
-                    w2: u288 {
-                        limb0: 0x78572d8a580b86dbb0ed031e,
-                        limb1: 0x4a5b37e9eb6624bc1bb4f769,
-                        limb2: 0x20df006298f101cb
-                    },
-                    w3: u288 {
-                        limb0: 0xf7654431a8706574d5db209,
-                        limb1: 0xdd5e5f3c38b72121679584d8,
-                        limb2: 0x814382bcc69cedb
-                    },
-                    w4: u288 {
-                        limb0: 0x66838e035e38f699a412a26f,
-                        limb1: 0x1a3f0821f1ab6668f29e6ab0,
-                        limb2: 0xc28a386ed25e298
-                    },
-                    w5: u288 {
-                        limb0: 0xdcdbc4f664bdae26b038ff20,
-                        limb1: 0xfe640f4c16b1f22eb863f242,
-                        limb2: 0x1bf8156efd9374cb
-                    },
-                    w6: u288 {
-                        limb0: 0x5e69bc6059e0e6eda85de3b1,
-                        limb1: 0xc353cda075341baa589a746f,
-                        limb2: 0x8335a9b482a3e77
-                    },
-                    w7: u288 {
-                        limb0: 0xaf97d6ef161698c06a1577c1,
-                        limb1: 0xd748b56a64cb9d0dac4928fb,
-                        limb2: 0x2b802e25b0ea345a
-                    },
-                    w8: u288 {
-                        limb0: 0x7cbd25a0bc1abfd29e8a2a3,
-                        limb1: 0x605d190ead54b42c2d1963f9,
-                        limb2: 0x2342f667c6083101
-                    },
-                    w9: u288 {
-                        limb0: 0xc339e68dd91e49ba60483fde,
-                        limb1: 0xf7b9cff667518bddf42d72d7,
-                        limb2: 0x170e32478b76ae1d
-                    },
-                    w10: u288 {
-                        limb0: 0x4dc24b99c9dff82018f9b58d,
-                        limb1: 0x801145cfc3cf2bf3f86c4e2f,
-                        limb2: 0x1c58e73371d0a904
-                    },
-                    w11: u288 {
-                        limb0: 0x4554e7c477ca633fbaa16d83,
-                        limb1: 0x78b0510d6a0c90bd113d8d93,
-                        limb2: 0x1526bcadb21d5b1a
+                        limb0: 0x40775c9ff8a831905a097195,
+                        limb1: 0x26f944b86fd036f02e3194c7,
+                        limb2: 0x28d19be843b3ff3c
                     }
                 },
                 E12D {
@@ -7285,439 +6231,729 @@ mod pairing_tests {
                 .span(),
             big_Q: array![
                 u288 {
-                    limb0: 0x5c962793dea86de362ae0718,
-                    limb1: 0xab024b561310d9fac8ddcb82,
-                    limb2: 0x290e78a2e360653a
+                    limb0: 0xf68c7f0e15fc5e088df4a5f4,
+                    limb1: 0x192d2d6906627b018e10ea48,
+                    limb2: 0x757ffbf935c88f2
                 },
                 u288 {
-                    limb0: 0x428a636d27d0a2a099bd787d,
-                    limb1: 0x40145e13c79e9f0600667cb8,
-                    limb2: 0x1766111bc7003b45
+                    limb0: 0x92d1c56bddf6c0f4d50d9b0a,
+                    limb1: 0xcfe689463175fefe89afbce0,
+                    limb2: 0x23fe2f2a141f97df
                 },
                 u288 {
-                    limb0: 0x507bc07a3d7844d9eca28289,
-                    limb1: 0x271128c6a62899d983c8a658,
-                    limb2: 0xbaa040e72497634
+                    limb0: 0x5597ea8ec110ee96a3a693cc,
+                    limb1: 0xe2b007560bfd98532cf78cfb,
+                    limb2: 0x2d4e54afc3e58
                 },
                 u288 {
-                    limb0: 0x938c8677f139b3b32ba24eda,
-                    limb1: 0x549c60ff78905a5fb1b92cba,
-                    limb2: 0x21a167833322521
+                    limb0: 0x70f964f9fbc8ee78da53e7fc,
+                    limb1: 0x882335e2eab582ee18fccd4,
+                    limb2: 0x2c9c6ccddbde8e44
                 },
                 u288 {
-                    limb0: 0x9da01279e390b9597ca22ebf,
-                    limb1: 0x1ea3c5629e45ec118e8ef512,
-                    limb2: 0x1327c6cb56b92156
+                    limb0: 0x9df294131c1ac85ae944403c,
+                    limb1: 0xe103527cf2d779669335aef2,
+                    limb2: 0x3f334d976cd0ac3
                 },
                 u288 {
-                    limb0: 0xd0353312ff08ea052c7b21be,
-                    limb1: 0xedaad6eecfd87626fa01f56a,
-                    limb2: 0x8bf12b3d524e45a
+                    limb0: 0x92bdefa336c518ee3de6bb2b,
+                    limb1: 0x5569c8538119d1889a2863a8,
+                    limb2: 0x596fb5d3d7f5bc0
                 },
                 u288 {
-                    limb0: 0x405b19a5e60dc7d102410a63,
-                    limb1: 0x12d9ce80bee76c8f7314ed3b,
-                    limb2: 0x1f3075e69ae5baa3
+                    limb0: 0x68320307a71f717424dd8889,
+                    limb1: 0x4f007feb181863970ba8014,
+                    limb2: 0x2f5517819af5a2be
                 },
                 u288 {
-                    limb0: 0xc2c036faa8f9cd03bdc6211f,
-                    limb1: 0x5295f7475a44192b3730e53d,
-                    limb2: 0x30234f0d9c9baf81
+                    limb0: 0xf9a7f7f6b132d6623ac3c925,
+                    limb1: 0x62f109edd96de101a1fe5ead,
+                    limb2: 0x190704f1c3f3cae6
                 },
                 u288 {
-                    limb0: 0x91b9dd123c563bcf1b1cfe0b,
-                    limb1: 0xce790a0e68b15679e58aa985,
-                    limb2: 0x253fd4dba4843b3d
+                    limb0: 0x7ce0a07cec03eceec4d656a1,
+                    limb1: 0xbb469b388c403ccd063a6496,
+                    limb2: 0x21b7ab1a4596ae5d
                 },
                 u288 {
-                    limb0: 0x90c103eca35674b5921faf7e,
-                    limb1: 0x8938e11c76410fcee14b2b43,
-                    limb2: 0x2f8de7524e8da25d
+                    limb0: 0x74dafe128bb3c3f2163190d2,
+                    limb1: 0xa57856fa720cd0660c1e4ebf,
+                    limb2: 0x25e94be90f5a8a46
                 },
                 u288 {
-                    limb0: 0x58ba20f9c09df618fe43a67c,
-                    limb1: 0xe1d4a21bb7c93f189a33b913,
-                    limb2: 0x58643ba0ed3afcd
+                    limb0: 0x12d8387c120a7b378b834e1e,
+                    limb1: 0xbe0ccb041adee67123ccb266,
+                    limb2: 0x302a743d70fb09a
                 },
                 u288 {
-                    limb0: 0x611a0492b763b1dadda77525,
-                    limb1: 0xd87b473a5caf4a570a17de63,
-                    limb2: 0x1269405c6c440824
+                    limb0: 0xb424e00fb910dd53fa351f7a,
+                    limb1: 0x2b94f853be1812204b8f6f4e,
+                    limb2: 0x58ac1908ad756b5
                 },
                 u288 {
-                    limb0: 0x8a746743e6ef1becbedde182,
-                    limb1: 0xb3edd4e906536d32c8b5a815,
-                    limb2: 0x7cae558726150a9
+                    limb0: 0xe4f750a05155ebbd02f6c5c6,
+                    limb1: 0x18931d3b5a9b17249092d46c,
+                    limb2: 0x10209a963e462d11
                 },
                 u288 {
-                    limb0: 0x875edcdf01e802ac2059ec98,
-                    limb1: 0xca9dcfed37d74b6bf66ddf4b,
-                    limb2: 0x2eee82be2a277d48
+                    limb0: 0xe7440d76761c3d644b830bec,
+                    limb1: 0x70504a8a9ac69a3b3cbd5ded,
+                    limb2: 0x119f3273d2e000e1
                 },
                 u288 {
-                    limb0: 0xa141dbc42bac32676f7f73ab,
-                    limb1: 0xfed93b898eb82d5784bc0f2d,
-                    limb2: 0x1fc304cca9a6b4c9
+                    limb0: 0x8956632a911193bff430fbd4,
+                    limb1: 0xcdeb705169ca8d331890e14,
+                    limb2: 0x289adfea231e994d
                 },
                 u288 {
-                    limb0: 0x46314ffc7d1c0946daa99408,
-                    limb1: 0xcd48984a59d7a6222e7f06d0,
-                    limb2: 0x2f7dc28a3b312732
+                    limb0: 0xdba0187ffc8a77433f858eba,
+                    limb1: 0xfe9fd7bac6c5769adf4efe5b,
+                    limb2: 0x226ecb7c73131dcb
                 },
                 u288 {
-                    limb0: 0x4e724b6c5b6284071494315c,
-                    limb1: 0xe80059a2e324b819ff728f38,
-                    limb2: 0x1e6c97fa54c9c4c8
+                    limb0: 0x6618406539876d0b8aae5814,
+                    limb1: 0x3df9237727b00d6c39416905,
+                    limb2: 0x233136ff59bf8481
                 },
                 u288 {
-                    limb0: 0xc96cbdf20ff32446f8695812,
-                    limb1: 0xf2d4db6cb15f1ed393e33bca,
-                    limb2: 0x25a986cf0c3ce985
+                    limb0: 0x89852644eccd0deebb36bb9f,
+                    limb1: 0x7eab45366e2574902e13c7ba,
+                    limb2: 0xbbe293396ccd861
                 },
                 u288 {
-                    limb0: 0x9aa4d1cfe421ae5c3666847e,
-                    limb1: 0xf9e7b8056683db409a5f8611,
-                    limb2: 0x23bd482e6eee51e
+                    limb0: 0x7406cf0a5d0aae05d3859b52,
+                    limb1: 0x408dd6788f13c8f1c62e46f9,
+                    limb2: 0x522f07d7ab21925
                 },
                 u288 {
-                    limb0: 0xceee54a4cc41a3a474dfbcd2,
-                    limb1: 0xbbe644a8a45b8210cab92e45,
-                    limb2: 0x1a1a22268653e99e
+                    limb0: 0x5d3665fba0bb9b35cf0e6cfa,
+                    limb1: 0xb1e755cc3aeb7d580d42bb26,
+                    limb2: 0x1d4ae98c890f02df
                 },
                 u288 {
-                    limb0: 0x12522abd2533a4dfa75a8770,
-                    limb1: 0xd75e0726c04b28ddb6524396,
-                    limb2: 0x4057cb7f85b0ba6
+                    limb0: 0x6e96712261b531a050bf614d,
+                    limb1: 0xf5e79c2439a8239dbfd439ed,
+                    limb2: 0x27f0cfdf904e1d16
                 },
                 u288 {
-                    limb0: 0x69652382b649ebee8834a41f,
-                    limb1: 0x93a6caa5f78e3a97b9cc14c4,
-                    limb2: 0x25dc9ca617865c80
+                    limb0: 0xfca686976f122b6b4260dc6f,
+                    limb1: 0x23cbd557bd558c6ca2e30717,
+                    limb2: 0x26c49431bfabe919
                 },
                 u288 {
-                    limb0: 0xc3a51a7ee17435648dbff178,
-                    limb1: 0xb43a4cd2636df233284fbb8f,
-                    limb2: 0xc1df8231f5c9859
+                    limb0: 0x3a043c6946354e5b44b243ea,
+                    limb1: 0x57938958bcd4656369870f8,
+                    limb2: 0x204a4a04dca72bc6
                 },
                 u288 {
-                    limb0: 0x78a727fcde1c3071389f87d0,
-                    limb1: 0xb136ffc852798fa4e7e48477,
-                    limb2: 0xf21b61f756c453
+                    limb0: 0x410113cbb11720668270bc98,
+                    limb1: 0xcdfb83c6c1ea5f4b7e9f8c8b,
+                    limb2: 0x2c837622398943ae
                 },
                 u288 {
-                    limb0: 0xb17623d7a3783b97ab9b6e38,
-                    limb1: 0xe28b1feafb55ad28067622a7,
-                    limb2: 0xa7d5778d909afd1
+                    limb0: 0x49d1b76b6613aeef6b5aef6c,
+                    limb1: 0x420a50699b69a56c9a165b3,
+                    limb2: 0x16017524d14ed8dd
                 },
                 u288 {
-                    limb0: 0x7f3933b140c9b081e88c86c5,
-                    limb1: 0x24d91e297448d7f35f3bc693,
-                    limb2: 0x9a4490cc7499f9d
+                    limb0: 0xfbddf0d81ec692d8dd90e063,
+                    limb1: 0xc4058cb797354963fa4913e1,
+                    limb2: 0x10a73ed19f2e7eb0
                 },
                 u288 {
-                    limb0: 0xfaf2fe9882baa29e388e826c,
-                    limb1: 0xf1537bb5210d1526fa467ad8,
-                    limb2: 0x245a027d7a96fe9f
+                    limb0: 0x8d0a728693233d8e3502e2b5,
+                    limb1: 0x8ba3275ebf032202230f93cc,
+                    limb2: 0x2a8fcde7fd5b0495
                 },
                 u288 {
-                    limb0: 0xaf39c8e4127be8ac96342d41,
-                    limb1: 0x227f60f52539c99c5671ebfe,
-                    limb2: 0x1fbfb7d1278daff9
+                    limb0: 0xfa41164bc811902751021df7,
+                    limb1: 0x9427808e8f61ae0d74324d5c,
+                    limb2: 0x1e6dbd34d4fc53d7
                 },
                 u288 {
-                    limb0: 0x1b2ba70afec76b24d34e7dea,
-                    limb1: 0x187296bc75595f0bdf50d5b5,
-                    limb2: 0x16396177c3328a90
+                    limb0: 0xd412d98ba2d0df6012a45bb0,
+                    limb1: 0xca4330f350a8b440f22de8cf,
+                    limb2: 0x62d2fd3073a4399
                 },
                 u288 {
-                    limb0: 0xb1515e9e0650b03ee94b7509,
-                    limb1: 0xd6a9b462118bc1dbe107fccb,
-                    limb2: 0x11da485a293f3b40
+                    limb0: 0x5b1f85c33863689f68eca2bc,
+                    limb1: 0x14179fde46e842877101a6ca,
+                    limb2: 0x1f24b0adc742a81e
                 },
                 u288 {
-                    limb0: 0xefe96a47088f39d671c87e2c,
-                    limb1: 0xb87a44c54484e6e367098eb4,
-                    limb2: 0x2976872ce855dfe4
+                    limb0: 0xdb7b279e64cf71b0dd3dd2ab,
+                    limb1: 0x4cb0b1784a244240c2cdc1ea,
+                    limb2: 0x49f45967043ba7c
                 },
                 u288 {
-                    limb0: 0x33c10718149e29af724b6095,
-                    limb1: 0x6f8e13fd1bbcafdc982ef6f6,
-                    limb2: 0x7a8545f2f2097e7
+                    limb0: 0xc70bf570e264d93f5ab4aa50,
+                    limb1: 0x29cb7ded469fa50084cd2e98,
+                    limb2: 0x29aef8867bdb4f22
                 },
                 u288 {
-                    limb0: 0xa5e84f9c6d1671edebd22b7a,
-                    limb1: 0x3b0c3193b19038e59e6e6e71,
-                    limb2: 0xca2a0e4a8feca07
+                    limb0: 0x8ca28fc3ba245454cc0bc43c,
+                    limb1: 0xfb7d6a4dc6584c138c41a442,
+                    limb2: 0x6f318a6031f21b0
                 },
                 u288 {
-                    limb0: 0xea6c643413614db9f65ebb61,
-                    limb1: 0x8d2cf77926fb1034d1b64f16,
-                    limb2: 0x2e2ac6a22fe8e3b8
+                    limb0: 0xaa6dffdd5c78bce67b2cfb05,
+                    limb1: 0xbd86ec5de2c0c3584fe05de7,
+                    limb2: 0x15f430068f3f18a3
                 },
                 u288 {
-                    limb0: 0xb9248dc4fd6e7d425f3ada11,
-                    limb1: 0x935774bf1529afbfbbee82a7,
-                    limb2: 0x5bf582050a4559d
+                    limb0: 0x96a441ed01be61634c57bbc4,
+                    limb1: 0x1064662ccd3550710c6e066f,
+                    limb2: 0x294be1ff8bbf485e
                 },
                 u288 {
-                    limb0: 0x2ef410815de4c6ce2e71ace,
-                    limb1: 0x4edc788a04e21ab50aee08d3,
-                    limb2: 0x52bd97b18bd98fa
+                    limb0: 0xc2b131630ed56cb1e86f59f2,
+                    limb1: 0xf18ccc50973350cd5295bba5,
+                    limb2: 0x2e1abee571ae8614
                 },
                 u288 {
-                    limb0: 0x1b236f9a04652f2cc399768f,
-                    limb1: 0xbb40d0e27c703cd0d08f5099,
-                    limb2: 0x1daa571ffc2aa2f9
+                    limb0: 0x2dcb8c94d5a1956b0c754c8a,
+                    limb1: 0x23d021eb096d8187f2cbc654,
+                    limb2: 0x48e736998441893
                 },
                 u288 {
-                    limb0: 0x80a5b26b6f2dd5ecd2b40adc,
-                    limb1: 0x6e37918b50cdd30b6bc3621a,
-                    limb2: 0x2ed9ab8e8a774947
+                    limb0: 0x1941d824aeea1f5bad256c20,
+                    limb1: 0xa7eae5bf861b73221789a983,
+                    limb2: 0x5b57c8cbc31de84
                 },
                 u288 {
-                    limb0: 0x58491999f724f1bc69a1ed76,
-                    limb1: 0x1086c1a51f13702f28ffbaa2,
-                    limb2: 0x1c4bbeff80b6b44c
+                    limb0: 0x4ba8a5e13f64ab5d2d0acee6,
+                    limb1: 0xa62af93d85aae91e3bf9a543,
+                    limb2: 0x1ee68fd52867e6ea
                 },
                 u288 {
-                    limb0: 0xc00c34a5d25bc87f9e833477,
-                    limb1: 0xf0aad11207d359742fefc467,
-                    limb2: 0xa365043a5844f4e
+                    limb0: 0x7e78274fa3c26fa1d2e6eda8,
+                    limb1: 0x6ff2af5d04b666248121009f,
+                    limb2: 0x3b40cc91efd0057
                 },
                 u288 {
-                    limb0: 0x8fa8b60cb75004dbae68e180,
-                    limb1: 0xa10011a4de7ff7d4c44cf556,
-                    limb2: 0x10a2feed533dc7ed
+                    limb0: 0x6083b5a1ec8e8f2166375108,
+                    limb1: 0x8eaa18db1251e0504a6ebd90,
+                    limb2: 0x1de4f2bebd0f43c9
                 },
                 u288 {
-                    limb0: 0x1fc3a4e7f43e14e57d4515aa,
-                    limb1: 0x2fdb65692bf18bda23f8bcf3,
-                    limb2: 0x5d3f6257260c311
+                    limb0: 0x702b27b840922d96d5a2ffb2,
+                    limb1: 0xcd4eee24a5a113ca60f55ad9,
+                    limb2: 0x122906c0c4740cdd
                 },
                 u288 {
-                    limb0: 0x37561db12fcf975fcdbcc4bf,
-                    limb1: 0x41141e38efdbc9ac37af51c8,
-                    limb2: 0x23386369c5157318
+                    limb0: 0x85bb711735559eb0cfe762e6,
+                    limb1: 0xf10de7d4709be3183e1826c1,
+                    limb2: 0x2fcde48e2ae776b8
                 },
                 u288 {
-                    limb0: 0xac4393f96683da0cb040a2b0,
-                    limb1: 0xaa719d8f1d8fcce5ba86411e,
-                    limb2: 0xf887dd6e4bb28ec
+                    limb0: 0x2f88de5928085262a9695c4f,
+                    limb1: 0xd56c45e67b669258f9d07b9c,
+                    limb2: 0x2ca48c7a46ca4298
                 },
                 u288 {
-                    limb0: 0xdbf44ef0aa352f1db88e8d12,
-                    limb1: 0xeb32c157e9883c3fb1cf4c67,
-                    limb2: 0x1aa50edfca2b6258
+                    limb0: 0x7176d4689d562fac170dfdc4,
+                    limb1: 0x26d1601ad6be10bffdaeb59,
+                    limb2: 0x1b9908a601f3675c
                 },
                 u288 {
-                    limb0: 0xd4546a9d6749a5e17d22184d,
-                    limb1: 0x5c20328f81b96a02cd527543,
-                    limb2: 0x12ec578fed706b12
+                    limb0: 0xb6aab323a944ba2e46a7e9ad,
+                    limb1: 0x2c93ff6fb29306423c6872ca,
+                    limb2: 0x24420bbdfb06a524
                 },
                 u288 {
-                    limb0: 0x89fd344f1481fb9ad7247db5,
-                    limb1: 0xf016dc2a5ab0b3b8cdc3cdbf,
-                    limb2: 0x13720a6603bc5bf0
+                    limb0: 0x736cb9051a49ac60bade8cb8,
+                    limb1: 0xe48a504acab4fb5d4ab83d6c,
+                    limb2: 0x252b2eb02a24c5e3
                 },
                 u288 {
-                    limb0: 0x27edb66d9eb5413023091024,
-                    limb1: 0xe83bf819893ea28f0543a480,
-                    limb2: 0x1105dfd0e1924d51
+                    limb0: 0x39b3d293f4c560aa6cdfec33,
+                    limb1: 0xd6349d1ab0a51234f906ca0b,
+                    limb2: 0x2fb8d8192779e983
                 },
                 u288 {
-                    limb0: 0x2679f2317f9bf6aa58217060,
-                    limb1: 0x5ec01013b075069ecb4195bc,
-                    limb2: 0x2af33115df9f76f1
+                    limb0: 0xbac157dcace16214245af0a2,
+                    limb1: 0x575d6db1202db813c9255aab,
+                    limb2: 0xf4318fb92221244
                 },
                 u288 {
-                    limb0: 0x3f8f147c3d08cf91659c280e,
-                    limb1: 0x659041be3333b1411eb967b5,
-                    limb2: 0x1a3e95e91152d025
+                    limb0: 0xe97c10919025d1259bfc0435,
+                    limb1: 0x971700f9de86f2c604e842f6,
+                    limb2: 0x1ccd5863baedbbcf
                 },
                 u288 {
-                    limb0: 0xb0de104d702c45c2edf7ae94,
-                    limb1: 0xf422aad7a65fcc51df36e8ba,
-                    limb2: 0x1a82390174fa0f2e
+                    limb0: 0x34c0e0929dd34f2558f74a8e,
+                    limb1: 0xa55138fe8e56709b851eae7e,
+                    limb2: 0x62387c2456c7455
                 },
                 u288 {
-                    limb0: 0x65e75ba2fc9c3e4fe279829c,
-                    limb1: 0x7fd2eb7795f1dcaa75bb39e7,
-                    limb2: 0x14ca6e7e1ca457f
+                    limb0: 0x4d920c4a1ca2ebc051a086c7,
+                    limb1: 0x4513082d203483c38e01a2fe,
+                    limb2: 0x265b81d006080f59
                 },
                 u288 {
-                    limb0: 0xa58f3996fc40aa9b27f8c561,
-                    limb1: 0xe629789390986134e5ebb8f6,
-                    limb2: 0x7ea1a4e1772c126
+                    limb0: 0x3a994491cd318b69812e3c84,
+                    limb1: 0x10ddae0a266592875996f97e,
+                    limb2: 0x2be70f7e2e1e4e2d
                 },
                 u288 {
-                    limb0: 0x6e69f15fb3e5ad5d13fc7887,
-                    limb1: 0x6f34e9ba22f22d4867613632,
-                    limb2: 0x22a05abc403be565
+                    limb0: 0x6c36a6d6f0690d02d92477a4,
+                    limb1: 0x1a30bec838dbc66f00f363d9,
+                    limb2: 0x2ec55c8fdf1a3cf
                 },
                 u288 {
-                    limb0: 0xc698c8dd55917e6ba2282e26,
-                    limb1: 0xb7be052e2a520d6bca552be7,
-                    limb2: 0x2f3d4789539461ec
+                    limb0: 0x79a726e82eb0979436e65a6d,
+                    limb1: 0x97461485e785f7f2c3dd6580,
+                    limb2: 0xc19d16900b16721
                 },
                 u288 {
-                    limb0: 0x60e84b95fe642ceeb6b9f567,
-                    limb1: 0x9ba6c6dbc857e6255e2d592a,
-                    limb2: 0x1d683755c74b227b
+                    limb0: 0x2655c56d0453dd3630200a4f,
+                    limb1: 0x666d3932a0b15d22f142f742,
+                    limb2: 0xc185f393d6ea81a
                 },
                 u288 {
-                    limb0: 0x29fd7dd908c9b69f3de30f3e,
-                    limb1: 0xa616232dd573d4508a3b9287,
-                    limb2: 0xf8f60f12717bc90
+                    limb0: 0x8b907bba6bd50b7b3fcb889e,
+                    limb1: 0x9a324c57376ae6a3c4c828f9,
+                    limb2: 0xaed0921fd02e1fa
                 },
                 u288 {
-                    limb0: 0x6373eb6300f4067ca602be54,
-                    limb1: 0x97cc84974ec2fd083b15f69,
-                    limb2: 0x2aed4caa30fd4fcc
+                    limb0: 0x8bf7e51fca952fb3a37bec3,
+                    limb1: 0x809609996a32d61eeec1c5ca,
+                    limb2: 0x165354cbf533a741
                 },
                 u288 {
-                    limb0: 0xa7fefc07ac7a0c0e249c04d6,
-                    limb1: 0xf67c793885efeb7c84aaacd2,
-                    limb2: 0x1ce3b2f59895f2c6
+                    limb0: 0x87b3666f6e042161be69f955,
+                    limb1: 0x3c4aabbf071c41ca521fb3fc,
+                    limb2: 0x5e65262ff6c5594
                 },
                 u288 {
-                    limb0: 0xc493de447360c6ccf5ea5803,
-                    limb1: 0xbc98f9a80ac65d0b945bfe32,
-                    limb2: 0x23f5fe84bff28912
+                    limb0: 0x3188d18ae7bf71b685d1d2d2,
+                    limb1: 0x47872f71017ae2fc6efb8994,
+                    limb2: 0x1f796270201e21e0
                 },
                 u288 {
-                    limb0: 0xe8e80432f785b328754b087f,
-                    limb1: 0xb1d670c26ee9fae6d797f748,
-                    limb2: 0xcd627976db9d120
+                    limb0: 0x2762e5fab60e653c2d9950a5,
+                    limb1: 0xb5feb777d1928c4ba4ff8f39,
+                    limb2: 0x2f666d8ad27f5e30
                 },
                 u288 {
-                    limb0: 0x8982d5f9d5408282e021eabd,
-                    limb1: 0x3dc9210377fafacd590d4759,
-                    limb2: 0x6280c4373eb09d6
+                    limb0: 0xe15b1bab7c2567e1dcb354f3,
+                    limb1: 0x462a6fad3e5fc5dca73bf70c,
+                    limb2: 0xabea261655a427
                 },
                 u288 {
-                    limb0: 0x40fe8e146c2a0ad7c72703f4,
-                    limb1: 0x353e40ca6e38e686df223ced,
-                    limb2: 0x2210ce1b836814c
+                    limb0: 0x49345b5b7ca15bed1bf5b23a,
+                    limb1: 0x3ac9b391386bc3b9acbdf68c,
+                    limb2: 0x2d40730d64b6f032
                 },
                 u288 {
-                    limb0: 0x4d9ffe351225f4c6ffb91baf,
-                    limb1: 0x2b27e587b748d77603824e72,
-                    limb2: 0x17d40a5f92d7b3a7
+                    limb0: 0xbcdeddd475a71fc561554c5b,
+                    limb1: 0x902f8be9e52100db7c29809b,
+                    limb2: 0xcae5eda2a989aab
                 },
                 u288 {
-                    limb0: 0xfacf9f1d6baf623b4a7171ee,
-                    limb1: 0x31463d7946999b0de82433ad,
-                    limb2: 0x938fafbe3f19ab8
+                    limb0: 0x9ae2702815656fd83e99eb82,
+                    limb1: 0x8021eecd874da663f87f2336,
+                    limb2: 0x2bfa060a81af2bee
                 },
                 u288 {
-                    limb0: 0x70c6bb493b7fa5d83a440dc3,
-                    limb1: 0x31809ce27d7bfd6583394ad8,
-                    limb2: 0xbf1f8b48c6c455
+                    limb0: 0x6fec10018d826317c4692976,
+                    limb1: 0x192656215c56d434007a052d,
+                    limb2: 0x276ff4a84119aecb
                 },
                 u288 {
-                    limb0: 0xfa39a5bd8b203aa02e1bbb53,
-                    limb1: 0xb762fe963a879bb28bba2e14,
-                    limb2: 0x1cc57e3b97f741f3
+                    limb0: 0xe0b4deb6e8f95c9499935773,
+                    limb1: 0xdd9f378286c262da528e6ad4,
+                    limb2: 0x2f35fdbbb44ff512
                 },
                 u288 {
-                    limb0: 0xce53ba369441d7d5032a54f9,
-                    limb1: 0x98d316c7ae296b5d9ecac953,
-                    limb2: 0x89766eb53e6487b
+                    limb0: 0xf2cb65f814421e84c853b085,
+                    limb1: 0x885ed835830e27f135bc17e3,
+                    limb2: 0x12bb4370fc60a8e
                 },
                 u288 {
-                    limb0: 0xbddcd569b8d2d6b72924fd7f,
-                    limb1: 0xc44686618fc5d6deb551e9db,
-                    limb2: 0x99be11c96f84d36
+                    limb0: 0x7b96ae153d10e7af25d2eb27,
+                    limb1: 0x609d3511e03a3d323a2a2beb,
+                    limb2: 0x1cd8319040eddb34
                 },
                 u288 {
-                    limb0: 0xe625ebd80a3170f4b4071b8e,
-                    limb1: 0x136bca5776cc3f37511e5075,
-                    limb2: 0x1924977002cedcee
+                    limb0: 0x330e4f16b3eff5c9c1ffa06e,
+                    limb1: 0x792baadc1f869607f0499a68,
+                    limb2: 0x5ac5088f838a2a1
                 },
                 u288 {
-                    limb0: 0x5ebaa0fd70efe11488299968,
-                    limb1: 0xda1a5058ba273e7be2c654b4,
-                    limb2: 0x3d5dc3e31822025
+                    limb0: 0x4f9f7a5a0654b785250fc74b,
+                    limb1: 0x87a71736772446b8350a1dbd,
+                    limb2: 0x289d5ddb891e66f2
                 },
                 u288 {
-                    limb0: 0x87cc97d9fa1252d5aa5bc046,
-                    limb1: 0xb751ad890bf86a329250a55a,
-                    limb2: 0x1d574ab39f7f103a
+                    limb0: 0x99286fa24886fa617e757d38,
+                    limb1: 0x63034a1718dcd339d6712ef1,
+                    limb2: 0x1af46294f53a20ee
                 },
                 u288 {
-                    limb0: 0x182afe77ad9946c92124039b,
-                    limb1: 0xe590fcffc78050777f8f8b72,
-                    limb2: 0x29a2c389cc5e0647
+                    limb0: 0xc3a0d7e1585ac8d337ceaecd,
+                    limb1: 0x1e529bf56bcb609736a6d02,
+                    limb2: 0x1abc3c9d7500730b
                 },
                 u288 {
-                    limb0: 0xd079452c131e8f3e39b45b7d,
-                    limb1: 0xac5345abc54153983b492094,
-                    limb2: 0x2b9a56e12a20dea5
+                    limb0: 0xc8b83b5b94c4105ee231dd5,
+                    limb1: 0x7b4d3129c63e37cb07875b52,
+                    limb2: 0x1a4f649fd3d3b2d9
                 },
                 u288 {
-                    limb0: 0x2745dea941068b42b200381e,
-                    limb1: 0x4c58e884997c33df212c08a9,
-                    limb2: 0x173901ac93cd203
+                    limb0: 0xa5c10195c1c9650a9f3cac38,
+                    limb1: 0xc5ba36ecbf26f82afd9d441b,
+                    limb2: 0xf12a810e117990d
                 },
                 u288 {
-                    limb0: 0xc35d1fd5a8ba514fcd733e97,
-                    limb1: 0xf7a709eb30fa0b3c8c0efcf4,
-                    limb2: 0xdb2d22eae5a1275
+                    limb0: 0xcc47a6d284492714d90ba21a,
+                    limb1: 0xfa19061c4704d1f477c4dda0,
+                    limb2: 0x18cb43394a95effc
                 },
                 u288 {
-                    limb0: 0x8f6e4b06f4af6129e1694c45,
-                    limb1: 0x28ac7e8991ee2be48fc5afb4,
-                    limb2: 0x2cd82062cfdc3094
+                    limb0: 0xab64c0afb8bdf5c260f8211d,
+                    limb1: 0xa08a0a4369b3a4fb29931dbb,
+                    limb2: 0x1de2f9d7c1239d70
                 },
                 u288 {
-                    limb0: 0x4fa6f53008982a22bd0a757d,
-                    limb1: 0xf534301e43f0b0fdf3af27af,
-                    limb2: 0x5ae79b613bd1689
+                    limb0: 0x57adcab2e2df4ec7d06be22a,
+                    limb1: 0xe0f75f298ffa3b6481337106,
+                    limb2: 0x2538da4293348204
                 },
                 u288 {
-                    limb0: 0x648071b65d8febedfd5ea2c3,
-                    limb1: 0xc2c75bb05e741049c266a403,
-                    limb2: 0x22363a34f72b8cc0
+                    limb0: 0xe79d538065ff412e2c91fd8,
+                    limb1: 0x422a8305ab03aa83e9c7b417,
+                    limb2: 0x94e245347e7a135
                 },
                 u288 {
-                    limb0: 0x3c096cf9bc32d1d60bbd5457,
-                    limb1: 0xed50cc600a4a873f40779be7,
-                    limb2: 0x269c20aa095d7e6
+                    limb0: 0xbf4082c85a023d191f360b21,
+                    limb1: 0x1a8ea83c88cace5a680c4496,
+                    limb2: 0x2edfd9d664942a4f
                 },
                 u288 {
-                    limb0: 0xcd865e4d91018818e0c2a95e,
-                    limb1: 0xef290e80d99aa9d3a71ecfb7,
-                    limb2: 0x13c4b1fa808f234f
+                    limb0: 0x4d6e7c9399edf248444b3768,
+                    limb1: 0x18a2dadeee6e9d25bce97a6,
+                    limb2: 0x17defccbc9adc5bb
                 },
                 u288 {
-                    limb0: 0x77aa2dd2ed05121aaedf93ab,
-                    limb1: 0xa69a5006f566b7aea23117a2,
-                    limb2: 0x78b5d9e9d7181ee
+                    limb0: 0x7d20d85ba61bcc08918621c3,
+                    limb1: 0x6e094cff869987098fa20be,
+                    limb2: 0x73003b7bf877fec
                 },
                 u288 {
-                    limb0: 0x6df11d7cb15e07156cfe9e87,
-                    limb1: 0x27a6d1a0f5d161fed69a1699,
-                    limb2: 0x19d92d8e593a2179
+                    limb0: 0xbf363cc881973850deedb594,
+                    limb1: 0xc23a09b47df533ca75423245,
+                    limb2: 0x1006165cd2e7094a
                 },
                 u288 {
-                    limb0: 0x33117bf37eee72bcf1b02275,
-                    limb1: 0xe7ba56bdf23f552ed98fa7ba,
-                    limb2: 0x1e847869e873a822
+                    limb0: 0xc353f232264c8aaab03e0a86,
+                    limb1: 0xe3e7d012ae3547b2ebcd4a63,
+                    limb2: 0x2dff11a4d0c5d572
                 },
                 u288 {
-                    limb0: 0x2b6ecf97f9ce28752c2b4874,
-                    limb1: 0x3a15830f72c4d03913f52aac,
-                    limb2: 0x1b6c393e12ef1361
+                    limb0: 0x8b9be0fe913e3ed91c677135,
+                    limb1: 0x2b94fbe9b1e970c6494efb30,
+                    limb2: 0x18296a1b2846b6ab
                 },
                 u288 {
-                    limb0: 0x4168297954991a7d0f50dcc4,
-                    limb1: 0xee812a98d04ca12425d089b5,
-                    limb2: 0x72acfd36302e458
+                    limb0: 0x1fbdf26abe99964a1b311ac5,
+                    limb1: 0x9befb1fead38dad59c519f97,
+                    limb2: 0x111ea6fa99c92f81
                 },
                 u288 {
-                    limb0: 0xc371bc1036a195f45271a69b,
-                    limb1: 0x7206b0f2d217c9ae09ca3d8a,
-                    limb2: 0x6fc3dd6c08d22a3
+                    limb0: 0x94e540ac73b69d3291447f02,
+                    limb1: 0x148bf0d44fc2e4344b48ce97,
+                    limb2: 0x16cf7b5e3d504347
+                },
+                u288 {
+                    limb0: 0x5613e868d77c6f92738ebad4,
+                    limb1: 0xa318e04c4b50094886e5016d,
+                    limb2: 0x1242c45be0c1c435
+                },
+                u288 {
+                    limb0: 0x95ed936a5cad6c14478e2c22,
+                    limb1: 0x4021275a98e48a23b44e7518,
+                    limb2: 0x22600ad24c2479ee
+                },
+                u288 {
+                    limb0: 0x464bd8dd68f24e1a7ec6a63c,
+                    limb1: 0xfce44a7e272443e3152b85c4,
+                    limb2: 0x1b419043fec17bc7
+                },
+                u288 {
+                    limb0: 0xfba834211915d5ff89828074,
+                    limb1: 0xfbddac3769262aedd93c7cc2,
+                    limb2: 0xb7f8661a40f57e7
+                },
+                u288 {
+                    limb0: 0x947b896433253bd0b366dd6c,
+                    limb1: 0x10be7c271b6becb5c6552cbd,
+                    limb2: 0xace469c516bdbb8
+                },
+                u288 {
+                    limb0: 0x4168703f8dad67181a75c8a7,
+                    limb1: 0x6ff977d191a4c22bf4686496,
+                    limb2: 0x20390a55c6c8963
+                },
+                u288 {
+                    limb0: 0xca1f10b29d359a047a96c5ab,
+                    limb1: 0xa5261bf94ba77c9957232d91,
+                    limb2: 0x2e3598dbc84cac12
+                },
+                u288 {
+                    limb0: 0x9b8a068f9cd5c71d613dde02,
+                    limb1: 0xb86fc148b13233f10894aae4,
+                    limb2: 0x84b4285a825141
+                },
+                u288 {
+                    limb0: 0x2570443b26126cb1c41d4c3f,
+                    limb1: 0xe76ec3f87195b032bb2929bf,
+                    limb2: 0x17de52ffc0aa7f58
+                },
+                u288 {
+                    limb0: 0x5da966dadc1a25632b99de6b,
+                    limb1: 0x8e288ff5a3381151e97d8d6e,
+                    limb2: 0x1130fba5f4afed6b
+                },
+                u288 {
+                    limb0: 0xc0710457a5dfb76c148f2aa5,
+                    limb1: 0xd9889fa33289b0cc48ddad25,
+                    limb2: 0x2a3c68d1d3bd4cbc
+                },
+                u288 {
+                    limb0: 0x8c9b3a8babf46352480a7de,
+                    limb1: 0xdba3240679c6c5640d76a0e0,
+                    limb2: 0x1ed26926d2c79d35
+                },
+                u288 {
+                    limb0: 0x1f04f6cec68a478409f14996,
+                    limb1: 0xca54514077400a8feda5472e,
+                    limb2: 0x90735afd73a9802
+                },
+                u288 {
+                    limb0: 0x3825aa2864b900e5a7b50446,
+                    limb1: 0x19679c497390113aba465c79,
+                    limb2: 0x57a4498a044c057
+                },
+                u288 {
+                    limb0: 0xaf0c438bda26bcc0f3649af1,
+                    limb1: 0x3ae9c7da6f98eb243a4eabe1,
+                    limb2: 0x1eaefbc754d2c955
+                },
+                u288 {
+                    limb0: 0x482b18fe80f0be1aab6c6238,
+                    limb1: 0xb645b0c13fd39500ff776a30,
+                    limb2: 0x1df08aa0f104a25a
+                },
+                u288 {
+                    limb0: 0xb7bba7997ac92ce15e710b96,
+                    limb1: 0x8526d8e9fd8921a9c346b3a6,
+                    limb2: 0x8f6674e0b97bc18
+                },
+                u288 {
+                    limb0: 0x929049f5b01e22fd571d1d02,
+                    limb1: 0xbdfd6e8d9e23f0b9c1562140,
+                    limb2: 0x271340d2efaf35e9
+                },
+                u288 {
+                    limb0: 0x3f00e5d11e407bed5c6e3acd,
+                    limb1: 0x1cd20d4d24e6ee8df4ccbe70,
+                    limb2: 0x1f93b6e26feb0406
+                },
+                u288 {
+                    limb0: 0xfe137f1a362950155010b351,
+                    limb1: 0xaa2c43ea9f117d50c137a7d9,
+                    limb2: 0xe9e6f28b08c5352
+                },
+                u288 {
+                    limb0: 0x97f86652b8fef573fd0f3c61,
+                    limb1: 0x76fe5a531d3f75dbf2a213cf,
+                    limb2: 0x211561c21a15e2b7
+                },
+                u288 {
+                    limb0: 0x2b34ccdd16ed066c10b98358,
+                    limb1: 0x4fc5ed37069d3e0fe56f394c,
+                    limb2: 0x1e9b53c95213f01a
+                },
+                u288 {
+                    limb0: 0x1996ae72a652180c7f66b358,
+                    limb1: 0xe57dc1eb4813e2d50eb76136,
+                    limb2: 0x224258c648636219
+                },
+                u288 {
+                    limb0: 0x6153ca4e88c120ae5a9a2aab,
+                    limb1: 0xd735770ed1acfd062c9712e,
+                    limb2: 0xa8d1e806ba95d7
+                },
+                u288 {
+                    limb0: 0xa4293ba081b3c6785f70fae1,
+                    limb1: 0xf28475551943b2916689ebce,
+                    limb2: 0x1061aa8e03cd7938
+                },
+                u288 {
+                    limb0: 0x4b75210036f89d4665ed9364,
+                    limb1: 0xe68f487e34bf25e74c92ff25,
+                    limb2: 0xc6b9cf69bc2c551
+                },
+                u288 {
+                    limb0: 0x3b14c634a9c3ef7fcf60cf66,
+                    limb1: 0x2fa7a481f375980859180d83,
+                    limb2: 0x3604cb3c1e6996
+                },
+                u288 {
+                    limb0: 0xc5fd914415768b48dce5f40c,
+                    limb1: 0xd1f9bf65a7cfe9814c486bfe,
+                    limb2: 0x76e92b3e2cd4884
+                },
+                u288 {
+                    limb0: 0x6e8b8a54da08cada4b9fa780,
+                    limb1: 0x1fbec4b6ae8915e49b1b4e6b,
+                    limb2: 0x1f70ebdbb4fddcc4
+                },
+                u288 {
+                    limb0: 0x5e2f7b2a2190c3c0fff55baa,
+                    limb1: 0xb60af6317d2d44f76d407d05,
+                    limb2: 0x2085925c2400f3c
+                },
+                u288 {
+                    limb0: 0x4f63e859d1ae6c6e038d5fea,
+                    limb1: 0x878bed552dd18035d25e73cd,
+                    limb2: 0x8a243177a14b60c
+                },
+                u288 {
+                    limb0: 0x7fa7b8bf7248f72da12310bd,
+                    limb1: 0x3483957909dce135dd5ef986,
+                    limb2: 0x176c39ce513cfb0b
+                },
+                u288 {
+                    limb0: 0xd4e5b51e3eb4536f486197b0,
+                    limb1: 0x80caf2fa80f76aac0748a479,
+                    limb2: 0x282a041fbbecc085
+                },
+                u288 {
+                    limb0: 0xe0a259333fc6ac4ba8557060,
+                    limb1: 0xc1c1dbb6761aef4616e52a6e,
+                    limb2: 0xa349e95691fee05
+                },
+                u288 {
+                    limb0: 0xc206054dca599cce7db7365d,
+                    limb1: 0x6f104838356b7c3746bf99d4,
+                    limb2: 0x2e91facc86558c3f
+                },
+                u288 {
+                    limb0: 0x91004fc104369a89d25d8c26,
+                    limb1: 0x14facd247c8f280a46f79e98,
+                    limb2: 0x23cbf11e2af950f3
+                },
+                u288 {
+                    limb0: 0x479e1d9134d34df3d502fdd8,
+                    limb1: 0x3d3c720c39d18b8b4a60a1cb,
+                    limb2: 0x2b053298f284b79b
+                },
+                u288 {
+                    limb0: 0xf9622766582e252dfa3300d4,
+                    limb1: 0x3818faae94bd04853cac4207,
+                    limb2: 0xe9be8d76dba0da6
+                },
+                u288 {
+                    limb0: 0x973d6d222af6c265cd1d860a,
+                    limb1: 0xe618c5255aabe32fd1df3a68,
+                    limb2: 0x1b81e08e19fee26f
+                },
+                u288 {
+                    limb0: 0x13822e39419e1ca0b6bdb416,
+                    limb1: 0x360507a325e19f326d9eb8f6,
+                    limb2: 0x28c2bfb913002123
+                },
+                u288 {
+                    limb0: 0xfd16ceb8f013368ebddcc694,
+                    limb1: 0xf1929058b1e6bb7bc67dc864,
+                    limb2: 0xd7661e39102d33b
+                },
+                u288 {
+                    limb0: 0x3612b108164a4552070f7e5a,
+                    limb1: 0x2e3609e470ca0987bd956b17,
+                    limb2: 0x2ccc2eca0f0dfe49
+                },
+                u288 {
+                    limb0: 0xc875326cda1e8fd21da9615,
+                    limb1: 0x9f66068176a81497167eb987,
+                    limb2: 0x1f7394d2904f11cf
+                },
+                u288 {
+                    limb0: 0x69877a7629e8eb6f0df115d,
+                    limb1: 0x36172d986bb37cbf9a2d075a,
+                    limb2: 0x175398a914994c2
+                },
+                u288 {
+                    limb0: 0x85708dcd364bf9b08019481,
+                    limb1: 0x3ebdde5d0ec8d7c970e45456,
+                    limb2: 0x27444427c540c51f
+                },
+                u288 {
+                    limb0: 0x2f56b0d371fa70ca2fce4262,
+                    limb1: 0x2180ce71f33f5f3f7205ab6f,
+                    limb2: 0x1f27aa9a95c6946a
+                },
+                u288 {
+                    limb0: 0x3954013a43cfc40b1016b96f,
+                    limb1: 0x7f0d3ed3585cc4214f306586,
+                    limb2: 0x75e7c268f093cca
+                },
+                u288 {
+                    limb0: 0x7a720f1514605a33205501c0,
+                    limb1: 0xe3d84f0e081e6ef514ec59e7,
+                    limb2: 0x1f99f2e3b0a8a1e4
+                },
+                u288 {
+                    limb0: 0x33ed3bbd9fb0082742e7bb,
+                    limb1: 0x775026cbe49bf656d773fce9,
+                    limb2: 0x14d8a470e1427fd4
+                },
+                u288 {
+                    limb0: 0x4ded0727f47936a47255a255,
+                    limb1: 0x27001e7ee4c96b9ead74cd0e,
+                    limb2: 0x1e9b2b2b0a741e12
+                },
+                u288 {
+                    limb0: 0x10df2aacf278f65392b703ba,
+                    limb1: 0x805effc7556dcb71e9952f58,
+                    limb2: 0xb19cff4a4d0f4ee
+                },
+                u288 {
+                    limb0: 0x3f207b8e5bc078b042180f67,
+                    limb1: 0x814c653a1d08ecb3e6065305,
+                    limb2: 0x11da4c1def9b80
+                },
+                u288 {
+                    limb0: 0xe104f66e7756e8200655fb65,
+                    limb1: 0x1d4d8bc3baa910c975d8c817,
+                    limb2: 0x37f3afd1a3828ef
+                },
+                u288 {
+                    limb0: 0x918596d2bb250627d3e880ff,
+                    limb1: 0x5ac25c68696504208b7c70,
+                    limb2: 0x406131d01640fb8
+                },
+                u288 {
+                    limb0: 0x9efdc2816f117e0b8d847cfa,
+                    limb1: 0xa17463269f89987f0dac6e7a,
+                    limb2: 0x284412f8a4a278b4
+                },
+                u288 {
+                    limb0: 0xa232d7a575617f61ff3a5fc8,
+                    limb1: 0x53334859baf44bad232d44d4,
+                    limb2: 0x7ca49b7ea7e3242
+                },
+                u288 {
+                    limb0: 0x1b3ae30a930b48e38d849ad1,
+                    limb1: 0x3d5e424024cdcdf61346f1ba,
+                    limb2: 0x26a4efa8c150db3b
+                },
+                u288 {
+                    limb0: 0x89cae907e28f5a70809a351,
+                    limb1: 0x16328bcb13c59828dc5d467c,
+                    limb2: 0x190ba400f525f1a9
                 }
             ],
         };
@@ -11989,68 +11225,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x1d18bba0ebd5a2044edde2d5,
-                        limb1: 0xcff72595f4be766f751bdc88,
-                        limb2: 0x1756d70ddb0dce5c
-                    },
-                    w1: u288 {
-                        limb0: 0xce9d8c8622dcbc41d80c5c7d,
-                        limb1: 0xccb39a0411bd24cde646f3c7,
-                        limb2: 0x12e2fa31c56f918
-                    },
-                    w2: u288 {
-                        limb0: 0x2436614d9a644c11addf35ad,
-                        limb1: 0x6ebf0bc2a944da8f2ae8bfd6,
-                        limb2: 0xfff84376a792c24
-                    },
-                    w3: u288 {
-                        limb0: 0x78ce4be8cb20ba9452ad8695,
-                        limb1: 0x6971c85248e885e3290f24c,
-                        limb2: 0x2f264f33452fc5ff
-                    },
-                    w4: u288 {
-                        limb0: 0xe3720244aa30dda423ce3dc4,
-                        limb1: 0x5d28f9c394652b030938f27,
-                        limb2: 0x1b98c429f9f06b46
-                    },
-                    w5: u288 {
-                        limb0: 0xdc1c777953ee2849ea7c28dd,
-                        limb1: 0xc759e046ffa085efb9cea1ae,
-                        limb2: 0x18cdb5c03ee2fd8f
-                    },
-                    w6: u288 {
-                        limb0: 0xd5722001132b1c4a179593e2,
-                        limb1: 0x7e6d999ba0301813eb314fa5,
-                        limb2: 0x295544d97774c4b9
-                    },
-                    w7: u288 {
-                        limb0: 0xb0a32bcbab707b27e535aa6a,
-                        limb1: 0x6b684c2133909ca403e3a990,
-                        limb2: 0x1328aa12a979166a
-                    },
-                    w8: u288 {
-                        limb0: 0xd5daf73d2fdf09eb67c73665,
-                        limb1: 0x9e5a3bfdf6fcedf403b59e37,
-                        limb2: 0x1371958bb4738135
-                    },
-                    w9: u288 {
-                        limb0: 0x9d015ba30d89adf27defff94,
-                        limb1: 0xb7260d995255184d9a38f427,
-                        limb2: 0x145e8f56d3d54548
-                    },
-                    w10: u288 {
-                        limb0: 0x317161ff156275f17f516e15,
-                        limb1: 0xe4d5ccbcb87850490d73d269,
-                        limb2: 0x8de94706ee61c77
-                    },
-                    w11: u288 {
-                        limb0: 0x7429cbd0ca6e844a6fb5688b,
-                        limb1: 0xfdf0bde28d03af2b59a8947f,
-                        limb2: 0x1ddf0e95870c71ad
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xa72a4848e30642eded615898,
                         limb1: 0xbef543f14f1aad5e18139eb6,
                         limb2: 0x2c7bcf2fddd1e961
@@ -12113,126 +11287,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x83f2f62c17a26e5331c80523,
-                        limb1: 0x6926928f388bb690c307cf98,
-                        limb2: 0x2e20ee9e709683aa
+                        limb0: 0x8d5b811a09caa58be413ffdb,
+                        limb1: 0xaec13af0ff4aa5a9b3dcb582,
+                        limb2: 0xb759534e5c8811b
                     },
                     w1: u288 {
-                        limb0: 0x83d0f310650d9ea0226788a,
-                        limb1: 0xd4cadc8961094ee83e2e23b2,
-                        limb2: 0x1c9f398ca10fc2b8
+                        limb0: 0x8bfd162f232d87d70447c4fb,
+                        limb1: 0x5b714a61f27eeeb66210a238,
+                        limb2: 0x235eb11b01463a62
                     },
                     w2: u288 {
-                        limb0: 0xf9a4f4ae040a34624a4d4397,
-                        limb1: 0x24e117b94912f863d2a25575,
-                        limb2: 0x15ca68b9e3e59b71
+                        limb0: 0xa97e216801ac38c907ba52a0,
+                        limb1: 0x70ae4f1968af5555df98298f,
+                        limb2: 0x95e6702a59e1a6a
                     },
                     w3: u288 {
-                        limb0: 0x1b03e3bdcdbee02bb7a0448b,
-                        limb1: 0xb9e6e27a79d9358bc7e6799f,
-                        limb2: 0xf2d19841839959d
+                        limb0: 0x9cd4ed96bdec2348819310c,
+                        limb1: 0x4766b2e8e7e732e7970b9689,
+                        limb2: 0x149bdcbd6a7afcb9
                     },
                     w4: u288 {
-                        limb0: 0x2b534cfd8aa64520418fa813,
-                        limb1: 0xdaace0ac529f24becd8aabf3,
-                        limb2: 0x1d3c1ddde1ae177c
+                        limb0: 0xbe702be60291c9e6e885e5c3,
+                        limb1: 0xe93a545111f29c9592a036c4,
+                        limb2: 0x1591e5e82ed4b4dc
                     },
                     w5: u288 {
-                        limb0: 0xddf4d0d3f587c59a9e38c0f7,
-                        limb1: 0x8a26911a1a855a0ebc74d3b1,
-                        limb2: 0x840e1faeeabf43c
+                        limb0: 0x8d199a3abe5faaff7a3bc9f8,
+                        limb1: 0x7cc933e5a020b4766ac8a761,
+                        limb2: 0x2fe6b400ae57faae
                     },
                     w6: u288 {
-                        limb0: 0x69e0e1bcd385d7e6e8f1b4eb,
-                        limb1: 0xea5bcdde0bf9850f39a7cfa3,
-                        limb2: 0x27391d933441232e
+                        limb0: 0xaec592ab3c28bfe83c215cfa,
+                        limb1: 0xac24f84ed0a437939c2000e9,
+                        limb2: 0x1f2843afe30b053a
                     },
                     w7: u288 {
-                        limb0: 0xab4936797b756d61dedd5f6c,
-                        limb1: 0x299819139c71c846bbab8405,
-                        limb2: 0x1b730dfda6569322
+                        limb0: 0x6d2d0627cede31c8eb85e75e,
+                        limb1: 0x7bdddc87f039012eb3b77194,
+                        limb2: 0x178660f13401179e
                     },
                     w8: u288 {
-                        limb0: 0xa4b120723a618e04955c3625,
-                        limb1: 0x8b5ed5792defdc4bc3f3c724,
-                        limb2: 0x15c5db9c9dbe92f3
+                        limb0: 0x62368134bd89bd0f837ed4d4,
+                        limb1: 0x6dc31aed6fb226f4b4c0f22c,
+                        limb2: 0x24e758c4f9d85d63
                     },
                     w9: u288 {
-                        limb0: 0x56792113672b90fecdf7979b,
-                        limb1: 0xab0dbf5a1938f47e4e96aeb6,
-                        limb2: 0x142dbcbdfecd0b4c
+                        limb0: 0x2f1d16930c76c2c58ded454a,
+                        limb1: 0xd31b8e954fb055fe7ca38da,
+                        limb2: 0xdc52b7ecb883c77
                     },
                     w10: u288 {
-                        limb0: 0x2473afe69f5f9b4a3c33c054,
-                        limb1: 0xd3bb40ce915ee671a4c45a9d,
-                        limb2: 0x3ea3122ff5d8d0d
+                        limb0: 0x709c6bce583682d54711f158,
+                        limb1: 0xb32e399977ba98f1dbf49828,
+                        limb2: 0x1ff3ce291ef8cdaa
                     },
                     w11: u288 {
-                        limb0: 0x744fa038b59b62031f136a9c,
-                        limb1: 0xa1871d9e73a819563bf271fe,
-                        limb2: 0x12c10ba659650297
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x6d6cb34445e96e155da0ac50,
-                        limb1: 0x7298a9dba442496464d838f0,
-                        limb2: 0x2b7c1078e80305bc
-                    },
-                    w1: u288 {
-                        limb0: 0xf8a313ed64db25c78c8b096f,
-                        limb1: 0xc93b46d58d86b50429af9f8a,
-                        limb2: 0x228cf6341232c9d0
-                    },
-                    w2: u288 {
-                        limb0: 0x23890f1cf78e2605306ae152,
-                        limb1: 0xaf4cf161cb684706f827cfa8,
-                        limb2: 0x130b4c9ae441fcae
-                    },
-                    w3: u288 {
-                        limb0: 0x62687f88354998b8840a0195,
-                        limb1: 0x438e51e1e015164c02994424,
-                        limb2: 0x14d87640c06d4dc4
-                    },
-                    w4: u288 {
-                        limb0: 0x14461e8620d7e59170e35a58,
-                        limb1: 0x50467d967d5945189eaa9ee4,
-                        limb2: 0xc787e583f9bf4ec
-                    },
-                    w5: u288 {
-                        limb0: 0x58475110a18dc38919796fa8,
-                        limb1: 0xd90ff1560c383963d3b8d20b,
-                        limb2: 0xd03d7c6d7409d19
-                    },
-                    w6: u288 {
-                        limb0: 0x7a76fedec2f8bb73e741c92c,
-                        limb1: 0xbb5b5111b0eb42a6d029b125,
-                        limb2: 0xfbc944c95a6966a
-                    },
-                    w7: u288 {
-                        limb0: 0xaf43099d256eb1381b3e7a0,
-                        limb1: 0x492f9612c4f9d39b0ea13c36,
-                        limb2: 0x151643fca64fd6dc
-                    },
-                    w8: u288 {
-                        limb0: 0xe0173579222bdfb0bce72e0c,
-                        limb1: 0xb625fa436b099cbe6f52ca18,
-                        limb2: 0x2dff45bf5a38fe23
-                    },
-                    w9: u288 {
-                        limb0: 0x6976739088ef49797b0701dd,
-                        limb1: 0xbd5451c1d8dffe63a59bf9d8,
-                        limb2: 0x1ee5b2809c97438d
-                    },
-                    w10: u288 {
-                        limb0: 0x36ecb98c17134963d92f15ad,
-                        limb1: 0x7dd694be409df34861715753,
-                        limb2: 0x2c76ce55fee206f5
-                    },
-                    w11: u288 {
-                        limb0: 0x1f6f2dd6648cb840fd3bb49d,
-                        limb1: 0x8812fbed36e6acef711f7d4f,
-                        limb2: 0x2da20280fa167018
+                        limb0: 0xfedfcfb5ac3535fd88a15183,
+                        limb1: 0xe97e7b5d3bf6635f37dd122d,
+                        limb2: 0x22a38c2aae1e8fc9
                     }
                 },
                 E12D {
@@ -12299,68 +11411,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x475ea1ac378cce82fdec6e11,
-                        limb1: 0xaf08bf5a3e8d6079773e920c,
-                        limb2: 0x29c64c212dec677c
-                    },
-                    w1: u288 {
-                        limb0: 0x6a66f6f07056762d6f45fad4,
-                        limb1: 0xf4c43d4045657382b87dff21,
-                        limb2: 0x16d9d49a8e63d7c3
-                    },
-                    w2: u288 {
-                        limb0: 0xa59ac52cd4e419ce3f1ae36b,
-                        limb1: 0xdfb1ce2ef3408cc28a41e5a2,
-                        limb2: 0x14dad6f197b4f161
-                    },
-                    w3: u288 {
-                        limb0: 0x6c6a0ddf93ce5582dfc3cc74,
-                        limb1: 0xa529ac6da259d5be95c076c,
-                        limb2: 0x4e5a740c3ca6be7
-                    },
-                    w4: u288 {
-                        limb0: 0xc2832d412ca32424be977f9b,
-                        limb1: 0x793b99600de88a00f4837b0b,
-                        limb2: 0xc21a9182cda50aa
-                    },
-                    w5: u288 {
-                        limb0: 0x674f91ae23122a0338c02feb,
-                        limb1: 0x71539df1cd6023a3f2eaa9e9,
-                        limb2: 0x4b27f545463b062
-                    },
-                    w6: u288 {
-                        limb0: 0x73ec9a0498e5e31e7d270c93,
-                        limb1: 0x73e9e98b55bafef9b2ed2e55,
-                        limb2: 0x2bd9df4553f4f95f
-                    },
-                    w7: u288 {
-                        limb0: 0x6240fa69c29c4e21eed50eac,
-                        limb1: 0x8d1992cae13f12ab6aa647e5,
-                        limb2: 0x25264d0d9b827af8
-                    },
-                    w8: u288 {
-                        limb0: 0x4aa9d7ad5b7eb6f57407b26a,
-                        limb1: 0x4515fdfdca36232d90d8a5cf,
-                        limb2: 0x14c679ebb9399fe6
-                    },
-                    w9: u288 {
-                        limb0: 0xdcb62fa4a4232afe6501190f,
-                        limb1: 0xa3cf98c6ffc234ea1fc35257,
-                        limb2: 0x20e6dd26ca2b2516
-                    },
-                    w10: u288 {
-                        limb0: 0x8307af3c11545153d835e472,
-                        limb1: 0xf578bafdc9aca43ae3555d04,
-                        limb2: 0x2f25b67185eeaaf6
-                    },
-                    w11: u288 {
-                        limb0: 0xdcf358e4f0f4bc010df330be,
-                        limb1: 0x5c913cc63b5d63696eb7e6e1,
-                        limb2: 0x17e92114ae31d284
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xe7df08107e805939ebd064d1,
                         limb1: 0x84eaf0a72178fea0cd7fdda3,
                         limb2: 0x1a3c2d31a8a1ee84
@@ -12423,126 +11473,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x9145d23e1d33dce7cb0839c,
-                        limb1: 0x892f4c807907a75abee8bbda,
-                        limb2: 0xa56b1b72cc2b9f0
+                        limb0: 0x5c840d64ee3e008381f3e04,
+                        limb1: 0x243b2760acc2f44649a5b24f,
+                        limb2: 0x2e6cfbab4b3fed61
                     },
                     w1: u288 {
-                        limb0: 0xc045b6214ea3bd40c7805bfa,
-                        limb1: 0x818cf825077e8549e61adefc,
-                        limb2: 0x2e602dfc9caf5216
+                        limb0: 0x9743d90c3eef67f5cdf72c19,
+                        limb1: 0xf3b5548f9d13f9dc940fa4b2,
+                        limb2: 0x13b8b4c7ca5ec4a2
                     },
                     w2: u288 {
-                        limb0: 0xa0cc6073bdea9a4ca383a10b,
-                        limb1: 0xe79f0d2737e8c8365a87944b,
-                        limb2: 0x257dd0273728731f
+                        limb0: 0xf97c58447c8b03814fa6103f,
+                        limb1: 0x30d22f3e8c4c7d8523c76597,
+                        limb2: 0x872b0b5d8b48bd1
                     },
                     w3: u288 {
-                        limb0: 0x584afff405302c9d3b06b03d,
-                        limb1: 0xcdb49b72b159c3780599946e,
-                        limb2: 0x18e9955b5a0cc3b2
+                        limb0: 0x78947a908649525b01ca6334,
+                        limb1: 0xcfe0ba68f50e623a89171963,
+                        limb2: 0x29503e874bbfec29
                     },
                     w4: u288 {
-                        limb0: 0x1e7f09e8af00dc774008a357,
-                        limb1: 0x8e9cff55afcf734da6c424c5,
-                        limb2: 0x16db67ad67e47c31
+                        limb0: 0x1dae9e71040fd1230c92cbb1,
+                        limb1: 0x65a3011a3d4b8129b45eaad6,
+                        limb2: 0x81795daa56a29d3
                     },
                     w5: u288 {
-                        limb0: 0x395f7e573aae8580343e7e12,
-                        limb1: 0x333bece35910bc98fb20c975,
-                        limb2: 0x147f63cddf601bdb
+                        limb0: 0xd7376a308b09572a31465eb8,
+                        limb1: 0x9a987b8f5f86b01cd050946c,
+                        limb2: 0x1b4cef85ace274fe
                     },
                     w6: u288 {
-                        limb0: 0x51c9f47119484c917ef47875,
-                        limb1: 0x8a924e1dbe7d4e0bbad38445,
-                        limb2: 0xbd5d3832c19b001
+                        limb0: 0x121c88496e9a87e389aabc55,
+                        limb1: 0x53070d5039789dbe1ff3c5d9,
+                        limb2: 0x6f0665bfd35e8c7
                     },
                     w7: u288 {
-                        limb0: 0x5269f444d05a9fd451de2ea8,
-                        limb1: 0x32f02455484589d869c2db07,
-                        limb2: 0x1becf18c2ab3f054
+                        limb0: 0xdd9ddf4069428e4d4bdf5f7d,
+                        limb1: 0x6dace55e5658b1bf8c3a2093,
+                        limb2: 0x29485c58194eed74
                     },
                     w8: u288 {
-                        limb0: 0xeefe935755117b807727aed3,
-                        limb1: 0x5960cc5670b867f2a04a4d85,
-                        limb2: 0x15abdc1b3e74284c
+                        limb0: 0x5ee1da4b7149da261bda9305,
+                        limb1: 0x7601e480e9a8d7be7979c77e,
+                        limb2: 0x14cffa23faf832a0
                     },
                     w9: u288 {
-                        limb0: 0x27db8eb4ff1af479c7978d9d,
-                        limb1: 0x7a4857d9fcf07cf48940b71,
-                        limb2: 0x2847fabc07b9b1cc
+                        limb0: 0xb4e59ad341d4b129ba6ce9a2,
+                        limb1: 0xaa1fd997e27e7f4f5fab6918,
+                        limb2: 0x157b9b49aca1ab9
                     },
                     w10: u288 {
-                        limb0: 0x7e32812b21ebdcf6606a465d,
-                        limb1: 0xcbc768842936d11c03f1e369,
-                        limb2: 0x24d44db85cceac43
+                        limb0: 0xfff92978e32c48590140bfab,
+                        limb1: 0xe1cc130cb1566161f46fa326,
+                        limb2: 0x11f2a66bd21895fe
                     },
                     w11: u288 {
-                        limb0: 0xc6bbe95fcbfe12e898110b8d,
-                        limb1: 0xeb016acec18ed09b1f5d6dfb,
-                        limb2: 0x129cabb44190284c
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x5e1921fbfd402a1551528994,
-                        limb1: 0x77812fb192e815031f993bbe,
-                        limb2: 0x284ca4ef290a8fcd
-                    },
-                    w1: u288 {
-                        limb0: 0x935884f270a248539954808e,
-                        limb1: 0xbedd8ea9d45dff7325abb40f,
-                        limb2: 0x51633c60bf24ebb
-                    },
-                    w2: u288 {
-                        limb0: 0xdd2e5f7031bd36151189379c,
-                        limb1: 0xbccaf495d8aae0fe85cc186b,
-                        limb2: 0x1965091b827dd0f5
-                    },
-                    w3: u288 {
-                        limb0: 0x104eff766c3c6705f626b796,
-                        limb1: 0x3062b5f7ccac865e55336fbf,
-                        limb2: 0x20506d422297855f
-                    },
-                    w4: u288 {
-                        limb0: 0x18fdffe66134ae9e041bd7e,
-                        limb1: 0xf9a858eae417684ee33dc0e5,
-                        limb2: 0x1061a7c537520fb2
-                    },
-                    w5: u288 {
-                        limb0: 0xead4f3c29087bdee8dca9e1d,
-                        limb1: 0x4097a91d6e90cfddecbe35c5,
-                        limb2: 0x2e0e652a8eb5e415
-                    },
-                    w6: u288 {
-                        limb0: 0x6e231865d32c498022cbec57,
-                        limb1: 0x2a3c4ea0596b538d3f9ab2dd,
-                        limb2: 0xf41bd70b71e71b0
-                    },
-                    w7: u288 {
-                        limb0: 0x556233d48d8ee7e2aa7cfd32,
-                        limb1: 0x40dc20655652fb561b721570,
-                        limb2: 0xb67803439a9338b
-                    },
-                    w8: u288 {
-                        limb0: 0xc4b12fb538adacc8f11472db,
-                        limb1: 0x249147e863b9ef5b3c2a4812,
-                        limb2: 0x7e75d071bb792c0
-                    },
-                    w9: u288 {
-                        limb0: 0x8e8265cbb036d73e3d6f6078,
-                        limb1: 0x4a99459956e1943a4f9bc862,
-                        limb2: 0x7f28a19946ccc01
-                    },
-                    w10: u288 {
-                        limb0: 0x844205431206250e1b21e4fa,
-                        limb1: 0xcd27ba93dd0feef0c0164d0e,
-                        limb2: 0xa83011da70f4b5b
-                    },
-                    w11: u288 {
-                        limb0: 0xd114de31163903c702649587,
-                        limb1: 0xb662eb1310c5374a94cf235,
-                        limb2: 0xc7920424ecd9a86
+                        limb0: 0x4a8d0b05c8ab2197c89b44f2,
+                        limb1: 0x48260cd32fd7d0452d9aa26,
+                        limb2: 0x1ff38242cb34892c
                     }
                 },
                 E12D {
@@ -12609,126 +11597,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x132584ae9346fbb3e8d70d1c,
-                        limb1: 0x471584accf00e5fe0fb52267,
-                        limb2: 0x142be98ca70017fa
+                        limb0: 0x2513fcc1815172e2acb78c48,
+                        limb1: 0xf1fb049b85c85a858e3796f5,
+                        limb2: 0x300c791e8d042987
                     },
                     w1: u288 {
-                        limb0: 0xda226b141da77897b26ca6ca,
-                        limb1: 0xbf000b454b4d58018593c2,
-                        limb2: 0x2436c8eaed7054cc
+                        limb0: 0xb5f548909a82f0ce9b151b26,
+                        limb1: 0x8087f9db3ad26d11c3dcd0d3,
+                        limb2: 0xbe98e54b599db1f
                     },
                     w2: u288 {
-                        limb0: 0x88e97f74be81fa89c5c2eee5,
-                        limb1: 0xd721ec562cc84fa007750119,
-                        limb2: 0x1c728c5533ad4b15
+                        limb0: 0x1e55ee1359e4dacd0a224ac,
+                        limb1: 0xc049969cc268c7302cbbb96,
+                        limb2: 0x292939420dc4994c
                     },
                     w3: u288 {
-                        limb0: 0x91fd00805d77aae788b1cc00,
-                        limb1: 0x35687296e18df82d476327c1,
-                        limb2: 0x1890da27facc765b
+                        limb0: 0x9a439ef1b4b8a3e5e0d131ee,
+                        limb1: 0x5243b76e0bffe1ad4934762b,
+                        limb2: 0x10b7c0e8f5e55d8e
                     },
                     w4: u288 {
-                        limb0: 0x2521088df66058eae087b09e,
-                        limb1: 0x4ad8691a61993a08b653d7b9,
-                        limb2: 0x18673026d1baa8a1
+                        limb0: 0x472318a31d61843dc0ac35a3,
+                        limb1: 0xfdc8264ebbe6c3255fd45fbd,
+                        limb2: 0x23cab8acf199a2a6
                     },
                     w5: u288 {
-                        limb0: 0x2747f14960f8ca73443e8f1b,
-                        limb1: 0x90ff30575a77ce8b628cd79e,
-                        limb2: 0x1081c4e0797d7474
+                        limb0: 0x3c5f90aa19be5ca9d586b983,
+                        limb1: 0xcba0d66ca2dc42a68f4136fa,
+                        limb2: 0x23d949165118abea
                     },
                     w6: u288 {
-                        limb0: 0x78875e4e3788cdb16f5f049a,
-                        limb1: 0x72d0d77bce96263d6db7865,
-                        limb2: 0x15a77348943a44c0
+                        limb0: 0x7aff327e17d6666c7f90c4a7,
+                        limb1: 0x2f133759ea769762428ca397,
+                        limb2: 0x229a3fc5c84e256a
                     },
                     w7: u288 {
-                        limb0: 0xcfed96d858afc1500e7830bd,
-                        limb1: 0xed2811858629995ca8e96fac,
-                        limb2: 0x28f9d12785e0c825
+                        limb0: 0xe2793380656d37b00873ec9a,
+                        limb1: 0x1338f4f95cf705ab40325500,
+                        limb2: 0xf5ae003d907d6e1
                     },
                     w8: u288 {
-                        limb0: 0xd0a6d2429df08e836188da95,
-                        limb1: 0x99958ed416de2331f73d4be4,
-                        limb2: 0x22c2004994d5646d
+                        limb0: 0x85c6f4773db45818f2a0edfa,
+                        limb1: 0x11b541412c501fd59d939141,
+                        limb2: 0x25f1c74f47ddcbbc
                     },
                     w9: u288 {
-                        limb0: 0xebde9c1c5f7c3aab9203f662,
-                        limb1: 0x75f348a91181299b3a044725,
-                        limb2: 0x2d9267dca0fb48ae
+                        limb0: 0x79f213447462cc95732ff6eb,
+                        limb1: 0xa2d558f0e0eca18cfa84426,
+                        limb2: 0x1ab5af6e2200b5a6
                     },
                     w10: u288 {
-                        limb0: 0x588e19b57430cd3cd73127f0,
-                        limb1: 0xb2b40a3ed32a8df0029c76c6,
-                        limb2: 0x163b2c50520ea013
+                        limb0: 0x7bae196bef0db195215adf17,
+                        limb1: 0xd0a4b5dc5a11d37222964f4d,
+                        limb2: 0x4f26d49b9bc199a
                     },
                     w11: u288 {
-                        limb0: 0x4eed40250632719bb12b8b4e,
-                        limb1: 0x6af45095ca2e6eca07202b15,
-                        limb2: 0x25a8db5f957d4c7
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xa23310a12201943e23aa5bd1,
-                        limb1: 0xbee1334f9806ce3578fef084,
-                        limb2: 0x28657ead94b89af6
-                    },
-                    w1: u288 {
-                        limb0: 0x59b94046b5ff262b5e8bac8d,
-                        limb1: 0xa26aaf69c240602226caa87,
-                        limb2: 0xa14880e83d57976
-                    },
-                    w2: u288 {
-                        limb0: 0xfaca5dd5ff3743fc2b2dbdf8,
-                        limb1: 0x49539cb79207283db8623f85,
-                        limb2: 0x1acdfb1b20bb8aef
-                    },
-                    w3: u288 {
-                        limb0: 0x6c23f94e180e0cd8c9b22249,
-                        limb1: 0xec43541af2f5d6f65a766e79,
-                        limb2: 0x13fa8ba07ec36a44
-                    },
-                    w4: u288 {
-                        limb0: 0xb8107cb284f0c33ecc24feb,
-                        limb1: 0xfca5d1bd227c65646918a5bd,
-                        limb2: 0x271fa3be3309646e
-                    },
-                    w5: u288 {
-                        limb0: 0x81f30884ef4b28758cdad4fc,
-                        limb1: 0x365b3880328a750b693640a0,
-                        limb2: 0x1b4df765970dcbd9
-                    },
-                    w6: u288 {
-                        limb0: 0xc78fca6dfd870a1742ce758f,
-                        limb1: 0x6f79d87c4ca0375ca8a0e625,
-                        limb2: 0x57c6024c5c30ce6
-                    },
-                    w7: u288 {
-                        limb0: 0x4bc54bcc3bad8a6a65ce10f3,
-                        limb1: 0x42479fb26592fd5d40a8d7f5,
-                        limb2: 0x444db66d34ef65f
-                    },
-                    w8: u288 {
-                        limb0: 0x2f60f4f593272c507ef4d63b,
-                        limb1: 0xcd2c8aef3e1dfbf8f9ce2476,
-                        limb2: 0x24da82710bc1075d
-                    },
-                    w9: u288 {
-                        limb0: 0xb6777326ac75618e96f77036,
-                        limb1: 0x59704f46aa4bad894db4dff5,
-                        limb2: 0x22ef914037a40732
-                    },
-                    w10: u288 {
-                        limb0: 0xd811c1e5e2fee21dda9a8dc6,
-                        limb1: 0xaf61f71a3ec0f1305d5b2720,
-                        limb2: 0xb080c0605b3814b
-                    },
-                    w11: u288 {
-                        limb0: 0xf25dcd7e17c43cf2537de93b,
-                        limb1: 0xd6210f7200910c06e1aaf68e,
-                        limb2: 0x2a97d64a50f193ad
+                        limb0: 0xb16717e715fbc76c3bac66f1,
+                        limb1: 0x3ebe263de3e1a89803bc0da8,
+                        limb2: 0xfb0595b5b9d8246
                     }
                 },
                 E12D {
@@ -12795,126 +11721,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x9b6b40b9edb0b1a09649add7,
-                        limb1: 0x7300434f919aa9c6aec6de20,
-                        limb2: 0x1b35c7b58651594a
+                        limb0: 0x5eaa057c5e9d338929a7ad43,
+                        limb1: 0x7ae96e982db7587ba91a1736,
+                        limb2: 0x72cb1aafef8fc8e
                     },
                     w1: u288 {
-                        limb0: 0x77f16a42e1156c88cae36b84,
-                        limb1: 0x1fb344532e359edf1157a825,
-                        limb2: 0xea457b770fb8b98
+                        limb0: 0x1bb7723ff47ccb109a4226ec,
+                        limb1: 0x328efe288a27af15b2af6381,
+                        limb2: 0x2dccf1917c988cef
                     },
                     w2: u288 {
-                        limb0: 0x92eb3d2b0484da28c7107c9b,
-                        limb1: 0x300d0109b9168e1a518d6bac,
-                        limb2: 0x17ea224ae40143cd
+                        limb0: 0xcc638278fb869f3c6930e578,
+                        limb1: 0x685535107befb2dbff15dcb0,
+                        limb2: 0x1552b4647293ddad
                     },
                     w3: u288 {
-                        limb0: 0xfcab5844b1c7bb9e86ebdf77,
-                        limb1: 0x2d3792e6471570cf1f20c460,
-                        limb2: 0x21d218caeea972de
+                        limb0: 0x6a2bab4ed331aeb86499d23f,
+                        limb1: 0x3e6ac194919d26afeae1c7e6,
+                        limb2: 0xa3bd7d404906b4a
                     },
                     w4: u288 {
-                        limb0: 0x8e763b9a9d4fdfa175a11681,
-                        limb1: 0xf9b3ae1547a2aac54ac9ce38,
-                        limb2: 0x9f5534f1c5d4f42
+                        limb0: 0xd0f18a8f6bcb2c54d031eae7,
+                        limb1: 0x428e6f2b4d1b1d15ecbfeaf5,
+                        limb2: 0x2f7d795e0c7bb871
                     },
                     w5: u288 {
-                        limb0: 0x826a35db413e341d9e7cf81e,
-                        limb1: 0xae8658cebbe992c39df4f244,
-                        limb2: 0x166de44519a3ac15
+                        limb0: 0x9fa385290e5a47297dba3917,
+                        limb1: 0xb79650782cdb39ff5a1f208,
+                        limb2: 0x15d475f38ea7476b
                     },
                     w6: u288 {
-                        limb0: 0x31a761f1ad8d1a301d73d9ca,
-                        limb1: 0x93d202a68e75d340caff0586,
-                        limb2: 0x1b79d9b7e1d5546c
+                        limb0: 0x7bb49cca7dfd0cb7e3f79b2c,
+                        limb1: 0x8c7bac4c06a9d05c2accbd03,
+                        limb2: 0x1fa0d8145555736d
                     },
                     w7: u288 {
-                        limb0: 0xd15a6193c960d38964f3ad02,
-                        limb1: 0xe6b0b640f54b51d8865f74ea,
-                        limb2: 0x170e5af319f82b3a
+                        limb0: 0xf736aafbbf8cd7e7c4065e91,
+                        limb1: 0x43830e9122457788cb86d1ab,
+                        limb2: 0x135aa9aaad9954db
                     },
                     w8: u288 {
-                        limb0: 0xb1e4b71f36ebf4411784be0e,
-                        limb1: 0x5c254c7f4185c90c30b0740,
-                        limb2: 0x2bbe8f406f7ee5f
+                        limb0: 0xbed546ba0b8744fcb9d52660,
+                        limb1: 0xfbc7f3baa7c7119fcce3e80,
+                        limb2: 0x15a9f9b27f95df27
                     },
                     w9: u288 {
-                        limb0: 0xd5af656a3254a5697086dfc8,
-                        limb1: 0x26962a92a61437cc7bc2bce3,
-                        limb2: 0x2d9cdfa1d3f5f16f
+                        limb0: 0xb4f28322f24bab28cefc2b81,
+                        limb1: 0xbb67c1a9879e054fb1dd9bd3,
+                        limb2: 0x6dc479b44e4a35
                     },
                     w10: u288 {
-                        limb0: 0x92ab7eb67df4017094c08c84,
-                        limb1: 0x8ca9b1c4a1756d4e8b140fff,
-                        limb2: 0x4789bab61b6ea9f
+                        limb0: 0xc55900f2e2fcb03d4745b72e,
+                        limb1: 0x789b848782d349549f5f1e85,
+                        limb2: 0x13a9a01aff27a9ae
                     },
                     w11: u288 {
-                        limb0: 0x69628a393538c13d3fe93f56,
-                        limb1: 0x4834b09623d3f434932cdb49,
-                        limb2: 0x1de9f07a12d15e53
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xf790d7855fe8c941f1757217,
-                        limb1: 0xf52d0bfbaab48dda995b90a7,
-                        limb2: 0x1216aadcb2e8d35a
-                    },
-                    w1: u288 {
-                        limb0: 0x3a6e7087e8c5faeec8d36ebc,
-                        limb1: 0xc2dccf57e569baaa00619d60,
-                        limb2: 0x24e8d4a43dbc206
-                    },
-                    w2: u288 {
-                        limb0: 0xc729a481ebd40038950c41b3,
-                        limb1: 0x400af86a734c7aed66ec2610,
-                        limb2: 0xb69f78712cf2c7d
-                    },
-                    w3: u288 {
-                        limb0: 0x82954c074f8076ac2730289b,
-                        limb1: 0xebfded73b04180522d0c00dd,
-                        limb2: 0x7da4edaf1200ae
-                    },
-                    w4: u288 {
-                        limb0: 0xded8beb7e0b7f6a42448b2e,
-                        limb1: 0x6c012aeb0096719e77612217,
-                        limb2: 0x8df8736ab38eb5e
-                    },
-                    w5: u288 {
-                        limb0: 0x99c3e8fb05ba793650e6cfab,
-                        limb1: 0x2b4f1f398c219944730fb5a8,
-                        limb2: 0x2129d3754ac39e87
-                    },
-                    w6: u288 {
-                        limb0: 0xcd5f8c9659021a7706b79229,
-                        limb1: 0xa21d1b6f7bd52d297a973b9,
-                        limb2: 0x16b39868e1126585
-                    },
-                    w7: u288 {
-                        limb0: 0x44bdbaaeb280cb68c6a88b24,
-                        limb1: 0x546d201cce708c52c3b87f4d,
-                        limb2: 0x28aafa131df9e864
-                    },
-                    w8: u288 {
-                        limb0: 0x75bb5c612e2d1895c3f19252,
-                        limb1: 0x85d1aa717e515ef264333b2c,
-                        limb2: 0x20b2f77070fa2629
-                    },
-                    w9: u288 {
-                        limb0: 0x3efd157e424dcd28f0ce7c91,
-                        limb1: 0x84247f41213b9bef85d35feb,
-                        limb2: 0xccb0d011b1a804c
-                    },
-                    w10: u288 {
-                        limb0: 0xfa72a24285fb74c4ccb1351,
-                        limb1: 0xe2037a744c5679ca06d36b11,
-                        limb2: 0x1755ffcecf529027
-                    },
-                    w11: u288 {
-                        limb0: 0xe680a0a057bb71acabb969aa,
-                        limb1: 0x618e70b71da78e231fb6ab95,
-                        limb2: 0x1d7a790299fc1ef3
+                        limb0: 0xec2faefd68343ff84384d5e8,
+                        limb1: 0x1a7cf79c9cfdf71ef2008e74,
+                        limb2: 0x29c5f1ef7cfa4e48
                     }
                 },
                 E12D {
@@ -13105,68 +11969,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xf8a7dd244e839c601f669964,
-                        limb1: 0xa51f62b519a079d88def6891,
-                        limb2: 0x2c19a04f40f36a8e
-                    },
-                    w1: u288 {
-                        limb0: 0xacc32c47ef97ffdfab856ac6,
-                        limb1: 0x635b165a9676175b8957686d,
-                        limb2: 0xf4e082e69b40051
-                    },
-                    w2: u288 {
-                        limb0: 0xc783d8255c6d67baa7343511,
-                        limb1: 0x5df8531a51a07a6e4891e564,
-                        limb2: 0x1b1aa54656d378d1
-                    },
-                    w3: u288 {
-                        limb0: 0xf5da0c55852d686efbb2d6f7,
-                        limb1: 0xea0b2005f4999e604a52e37,
-                        limb2: 0x14bb18050cbbff2e
-                    },
-                    w4: u288 {
-                        limb0: 0x7a91d5db4b90d3f10d1babe1,
-                        limb1: 0x553d80f4a039cbf9aa83a8f2,
-                        limb2: 0x169718428c804ec0
-                    },
-                    w5: u288 {
-                        limb0: 0x8cd9a4345da9b3c8214255f6,
-                        limb1: 0x33f435e6c1e0a8dc909f713a,
-                        limb2: 0x48e651c4d900473
-                    },
-                    w6: u288 {
-                        limb0: 0x1d642ac0295efe12eeb53769,
-                        limb1: 0x9cac40fc7b04caa3c9e9be20,
-                        limb2: 0x278ca7e8f487a180
-                    },
-                    w7: u288 {
-                        limb0: 0xade42dd6bd5b59371a733eb6,
-                        limb1: 0xcb8e58995751ffe80046438a,
-                        limb2: 0xa9d74faf127d390
-                    },
-                    w8: u288 {
-                        limb0: 0x1ba290bb4f6a05e84492f082,
-                        limb1: 0x805d3bdfeab86578911c48da,
-                        limb2: 0x9ca62c546caa0a6
-                    },
-                    w9: u288 {
-                        limb0: 0x416cffceb465cc29b2109f43,
-                        limb1: 0x362dd166905ac603cd5ff2b3,
-                        limb2: 0xa1f829306f7c3e5
-                    },
-                    w10: u288 {
-                        limb0: 0xb9ce30c993e3fa84c3b5d748,
-                        limb1: 0x73769f54705f6c0f44f98b0e,
-                        limb2: 0x1673efd9e2a61bb3
-                    },
-                    w11: u288 {
-                        limb0: 0x34c9965ad624a68b635a20f1,
-                        limb1: 0x8e532e5dbf2ecdac3dc673a0,
-                        limb2: 0x1947d3421d76c6fe
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x1d5b005c0f05c5913d89d3b8,
                         limb1: 0x1e9c6e293e242c3b4c758f7f,
                         limb2: 0x303cc3f8883df373
@@ -13291,68 +12093,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x4c6817fbfce6f4f40e92699f,
-                        limb1: 0x9d1115db304c124cf9b8fac8,
-                        limb2: 0x14c3e621019a9c70
-                    },
-                    w1: u288 {
-                        limb0: 0xdc58782280140692eafd68cc,
-                        limb1: 0x5dae05ee763bae38517e0c4d,
-                        limb2: 0x2109916209056170
-                    },
-                    w2: u288 {
-                        limb0: 0x2cf52a4f6e718bd6706bc987,
-                        limb1: 0x8416acd4f887d7fc8ef1ff43,
-                        limb2: 0x27ee7751e17cdd9
-                    },
-                    w3: u288 {
-                        limb0: 0xcccc506a40610fa5d566ff91,
-                        limb1: 0x602c5372f160e79ae4df789,
-                        limb2: 0x804060e5c2d0a53
-                    },
-                    w4: u288 {
-                        limb0: 0x2452c8f3e333d1babb30dc2b,
-                        limb1: 0x1956ec1c6d144f6eaf0bbb94,
-                        limb2: 0x235b978d7acded06
-                    },
-                    w5: u288 {
-                        limb0: 0xeee959a499f85d8c76120b8f,
-                        limb1: 0x8fed4be66a89f5ad4cc0a575,
-                        limb2: 0xa61447c917c98cc
-                    },
-                    w6: u288 {
-                        limb0: 0x5c6f5341911df0e3b052f967,
-                        limb1: 0x6d10270c223ff3f5cb70df7e,
-                        limb2: 0x1d05a7412b83e9d8
-                    },
-                    w7: u288 {
-                        limb0: 0x3a275df8fdb62a4730efa437,
-                        limb1: 0x9416749e23f6a1bad55f99a,
-                        limb2: 0x1637570ff129d2bb
-                    },
-                    w8: u288 {
-                        limb0: 0x3f8d9e600876df64e357ce62,
-                        limb1: 0xdb095af73254fb4a210832ab,
-                        limb2: 0x1cf8b6e3f0db37bf
-                    },
-                    w9: u288 {
-                        limb0: 0xf26f676d3fc23904ed44f3a3,
-                        limb1: 0x84c6823a25935a7d65968f25,
-                        limb2: 0xb9a6b2cfaf286ea
-                    },
-                    w10: u288 {
-                        limb0: 0x98149b5e7a06c071f56d5aec,
-                        limb1: 0xca954e739c580d049d29ac17,
-                        limb2: 0x1c20127eae4995ec
-                    },
-                    w11: u288 {
-                        limb0: 0x7eb2b5bbb72ab165d03f2259,
-                        limb1: 0xd8dc1209ab39c4727b7efea0,
-                        limb2: 0xe0d224e0ccf70fd
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xff28b79435eb24678e3c8eb2,
                         limb1: 0xc0ba0a6fad1811714d5c9c79,
                         limb2: 0x303a480b499d41e7
@@ -13415,126 +12155,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xab8c7b013b33d0780c77817d,
-                        limb1: 0x2d531c7705201a98bb0a6812,
-                        limb2: 0x1988f22135f42a3e
+                        limb0: 0x5f32f9a8eeade34241b12810,
+                        limb1: 0x133593b9a4a6f381aada074b,
+                        limb2: 0x19a32273e388ac99
                     },
                     w1: u288 {
-                        limb0: 0x5b5f27d4b722c1000362508e,
-                        limb1: 0x1c4dd44f797e30c08e1eeb91,
-                        limb2: 0x1ab9bf1ca0d1d5f4
+                        limb0: 0xbb69e4856293ec3d92e7d805,
+                        limb1: 0x14b85538654531e02cc5932f,
+                        limb2: 0x2491b31e28bd44cb
                     },
                     w2: u288 {
-                        limb0: 0xbfd496163b914bb1d40edf6a,
-                        limb1: 0xa197b0fbd28e8952c6ba7b69,
-                        limb2: 0x73b5b4a8c2c387d
+                        limb0: 0x7d82d03af6f8c76c427ba75e,
+                        limb1: 0x967b04b92b39941ab44d08d0,
+                        limb2: 0x2ed3f4a2944bbc22
                     },
                     w3: u288 {
-                        limb0: 0x60e48d0b81cee319c67e70b2,
-                        limb1: 0x6da2bdffbcff9a1e491ee324,
-                        limb2: 0x20c1614c7cfc95a5
+                        limb0: 0xa67689abcb222c5eb04f50c2,
+                        limb1: 0xe0d373c25972b07e166bbcea,
+                        limb2: 0x1a446eebcb6a1bee
                     },
                     w4: u288 {
-                        limb0: 0xe255be74a16fd77c0c800634,
-                        limb1: 0x35b2ebcb410fcbe1424f2558,
-                        limb2: 0x20d48cb88aeb470f
+                        limb0: 0x144f30062c10c29bc8be47e4,
+                        limb1: 0x64ff3ba7a156ef19d36084b,
+                        limb2: 0x1cc5ff275bd1ad9f
                     },
                     w5: u288 {
-                        limb0: 0x6d5811060601b2db51266ed0,
-                        limb1: 0x6748d9658418b3e6435409fa,
-                        limb2: 0xbff91bf7deb349a
+                        limb0: 0x4056c33c3a351381152ed01f,
+                        limb1: 0xb7b9abe58c58333fc5e0adf8,
+                        limb2: 0xdc9e6ce6f13cf11
                     },
                     w6: u288 {
-                        limb0: 0x7507cd9ebebd6a04da82c245,
-                        limb1: 0x9ac881291c7607ab66e01320,
-                        limb2: 0x4fd877a49e91ee5
+                        limb0: 0x859bc9e4ea2fc918100b2aac,
+                        limb1: 0xc35b40b2582eadc5a1bfe918,
+                        limb2: 0x26298d0dffc77744
                     },
                     w7: u288 {
-                        limb0: 0xb584c55fbd3dd528a5345d43,
-                        limb1: 0xd172d2de68bc3afcb7b717d3,
-                        limb2: 0xff5c57569b2e33a
+                        limb0: 0x291737ba242cd9b07c66d388,
+                        limb1: 0x333115d29458501e74089135,
+                        limb2: 0x19226600b340c7ad
                     },
                     w8: u288 {
-                        limb0: 0x6885170cbb057c5883d6de67,
-                        limb1: 0x4b0c8255704a6a04bc28e182,
-                        limb2: 0x49c7dea82871816
+                        limb0: 0xee5f0962e034c8abc8d0ba4d,
+                        limb1: 0xc7427067383034c39b47f730,
+                        limb2: 0x2ae92f519b17a927
                     },
                     w9: u288 {
-                        limb0: 0x8d7a329f843edd86045353da,
-                        limb1: 0x8f83e0e3305104145b09d939,
-                        limb2: 0x70184156089d071
+                        limb0: 0xadcd32340a46dbcdcf713132,
+                        limb1: 0x14238f7af8998c11c93864c3,
+                        limb2: 0x2d78f33e6b135046
                     },
                     w10: u288 {
-                        limb0: 0x71eae78db574de81c70bf803,
-                        limb1: 0x481d2bef04944d67155b1dc8,
-                        limb2: 0xb984b39fd917825
+                        limb0: 0xccce7f0390dcb48a4fc658a,
+                        limb1: 0xb02ef39422aed2a4dd9d99c7,
+                        limb2: 0x22b7c12ee728e4b0
                     },
                     w11: u288 {
-                        limb0: 0x8ff355f808f3798e037fb925,
-                        limb1: 0x9dd31f9f753139391b91caaa,
-                        limb2: 0x2c80bc9072aac399
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xc2279ec8bc5422a67c7d347a,
-                        limb1: 0xa00db33203b8ef4bcea3cc87,
-                        limb2: 0x2028da00c5d377c1
-                    },
-                    w1: u288 {
-                        limb0: 0x1e11104bd1c8cbe8ff8b7c02,
-                        limb1: 0x4e7b13afcda41210b77350f8,
-                        limb2: 0x19020381dbc58f4b
-                    },
-                    w2: u288 {
-                        limb0: 0x3b2349e8a4752eadd93bbecf,
-                        limb1: 0x84c3aad731bc7ba8e044ad0,
-                        limb2: 0x7a5de21165d0b5d
-                    },
-                    w3: u288 {
-                        limb0: 0x7ef4730981b368462ba5eb38,
-                        limb1: 0x5e9c0c264b468dbd83227076,
-                        limb2: 0x1660763382f6897f
-                    },
-                    w4: u288 {
-                        limb0: 0x56eaa8387f3e0b725037b0c4,
-                        limb1: 0xbb3fa724a0b0d2f67a35f9bc,
-                        limb2: 0x837a75d1061873b
-                    },
-                    w5: u288 {
-                        limb0: 0x74857d84b9c93b2e01b6cd03,
-                        limb1: 0x31a0df8b98307d281281d1bf,
-                        limb2: 0x2faae2a759b515e4
-                    },
-                    w6: u288 {
-                        limb0: 0xaa93ce6b8cc7949e0eb55f3a,
-                        limb1: 0xabb47e5de0a4879a2cdbe2dd,
-                        limb2: 0x1c2878774c363328
-                    },
-                    w7: u288 {
-                        limb0: 0x1c4de7ad438a7b6ff2186bc0,
-                        limb1: 0xa66b03c340f1e84c2f0ba1cb,
-                        limb2: 0x10b8baf8fe2b5358
-                    },
-                    w8: u288 {
-                        limb0: 0x8ea57a83dc387c287f5a9878,
-                        limb1: 0x6661b935956f53802b880c84,
-                        limb2: 0x16b85fd7ec1aac46
-                    },
-                    w9: u288 {
-                        limb0: 0x10cb3872b90e53df6d738d6d,
-                        limb1: 0x7ff27533207f6e9b89caa000,
-                        limb2: 0x276091a6d5d8f0c4
-                    },
-                    w10: u288 {
-                        limb0: 0x41dacee9e163630e571d9cb1,
-                        limb1: 0x7db290e0bf10603376aa9572,
-                        limb2: 0xca84aab79d8e2b7
-                    },
-                    w11: u288 {
-                        limb0: 0xf987a6c16b1940acd7e84fa8,
-                        limb1: 0x99a6d49c58892a9b52dbc13a,
-                        limb2: 0x2ec92fa70b80f8c9
+                        limb0: 0xa55e6345f04363f98e39d62c,
+                        limb1: 0x83304eb48f67c3e63068f9,
+                        limb2: 0x1b26fcc2e690d30e
                     }
                 },
                 E12D {
@@ -13725,68 +12403,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xfa5bf41f99dfd521e6c7542a,
-                        limb1: 0x48a84a85c6ce97703b4a49,
-                        limb2: 0x39f099de20602a8
-                    },
-                    w1: u288 {
-                        limb0: 0xc4e684ca8603b17a690136f2,
-                        limb1: 0xa76bddfa465244e11666f0d7,
-                        limb2: 0x27204222aeef2b23
-                    },
-                    w2: u288 {
-                        limb0: 0x3acb699244602e00455ffe5b,
-                        limb1: 0x3fc2f383c156db054121223a,
-                        limb2: 0x28695828376461da
-                    },
-                    w3: u288 {
-                        limb0: 0x3a07683215929252004e7bdf,
-                        limb1: 0x1f1ebb2750e97b60dcdb99c6,
-                        limb2: 0x11c810f774266b64
-                    },
-                    w4: u288 {
-                        limb0: 0x24592e8201f6475a3d3ccf1f,
-                        limb1: 0xd0f82ad88ecab46ac3f57d1d,
-                        limb2: 0x1939b6f988d67535
-                    },
-                    w5: u288 {
-                        limb0: 0x8f09cc5e47f163e1314fe446,
-                        limb1: 0x724e140bb4072315fa3d8797,
-                        limb2: 0xbab146086678134
-                    },
-                    w6: u288 {
-                        limb0: 0x6e48113b5595cfe9383a620b,
-                        limb1: 0xdd1b6dbe07087126e9cd4e26,
-                        limb2: 0x2978c672259221b0
-                    },
-                    w7: u288 {
-                        limb0: 0x22d6e201ee833201c7cccbf6,
-                        limb1: 0x98decd40b79ef8bdbce1560,
-                        limb2: 0xaba15d83c347e5c
-                    },
-                    w8: u288 {
-                        limb0: 0xf8510c6f36199ef1ed3a335a,
-                        limb1: 0x962280be9e6686a18bcba001,
-                        limb2: 0x2e76441906bf77e3
-                    },
-                    w9: u288 {
-                        limb0: 0x8a4f3edfb6ddae1f17f0c7a1,
-                        limb1: 0x177eecc418c1707057f53b9,
-                        limb2: 0x12a2a3e231e20159
-                    },
-                    w10: u288 {
-                        limb0: 0x89b644a789278301ea71928e,
-                        limb1: 0x8fdc2b348ad44e4b896c814b,
-                        limb2: 0x118c724833f2b592
-                    },
-                    w11: u288 {
-                        limb0: 0x191c874f2bb69e6958dd2ff8,
-                        limb1: 0x43bffd21ae8d05604684e8a9,
-                        limb2: 0x296c99726d898ee8
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xda5fa34846746a819c442983,
                         limb1: 0xb0cda896f70d81847cc85ed8,
                         limb2: 0x16f7dc8dd816b6ef
@@ -13849,126 +12465,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x55f40c68deeab1ae57531787,
-                        limb1: 0x22a9b8edb83cd29b04f0c0f2,
-                        limb2: 0x647eeaf240c7a9c
+                        limb0: 0x62979183e1e24b624116a174,
+                        limb1: 0xbdba041021322754848f1d61,
+                        limb2: 0xa476d754210008a
                     },
                     w1: u288 {
-                        limb0: 0x6b161fff90f928cffedb53f,
-                        limb1: 0x9c271cd7a96400b57ad19aa,
-                        limb2: 0x12717c809e9c1cb4
+                        limb0: 0x4287ad8fa4e3fda207b68f52,
+                        limb1: 0xcd665ac9b975b2aff1f8dd08,
+                        limb2: 0xfe07d087ed107ab
                     },
                     w2: u288 {
-                        limb0: 0x7cb51bd8cd821ece038da8cf,
-                        limb1: 0xb1677e62f2efe83221c5444c,
-                        limb2: 0x3c8c8178855ddbd
+                        limb0: 0x308669cfeafff59899fa785e,
+                        limb1: 0x829fc34300d1e178417143de,
+                        limb2: 0xd874d7418c3b242
                     },
                     w3: u288 {
-                        limb0: 0x61ff5153f71eee3cdb8649a4,
-                        limb1: 0x9954be45f8fde31719e6e495,
-                        limb2: 0x25fe1ac42453bf6
+                        limb0: 0x675789df45cb28ed6b2f322,
+                        limb1: 0x6829dd797f7f7a6f1fc6bf04,
+                        limb2: 0x268ec7b4c8e79e67
                     },
                     w4: u288 {
-                        limb0: 0xa4d9193e97cf2f828d970ed5,
-                        limb1: 0xf33f993744418df3d8f6a487,
-                        limb2: 0x11428995669e5980
+                        limb0: 0x5b0a25b74c83183bc84f5d0e,
+                        limb1: 0x6c375c7e4a8f194cfcc07c38,
+                        limb2: 0x21dd433dcc0e0ce5
                     },
                     w5: u288 {
-                        limb0: 0x7bdf7b29040c379676a42fd8,
-                        limb1: 0xc3074b9bea8b9b2862617833,
-                        limb2: 0x38c11bba91117ea
+                        limb0: 0xa042285feb04a253194546ae,
+                        limb1: 0x36b0350cc940c7e0f0a1ec94,
+                        limb2: 0x2b85fd9d9e053b76
                     },
                     w6: u288 {
-                        limb0: 0xb00b7909c403c763575e8950,
-                        limb1: 0xee34429c4e5606723ffa4dc6,
-                        limb2: 0x28f3b52ee45b634c
+                        limb0: 0x2b65196fb3229731e0e0639c,
+                        limb1: 0x5365707554bc24f77ea1439e,
+                        limb2: 0x73310d2feb86b4
                     },
                     w7: u288 {
-                        limb0: 0xf811c030c9859f4210d4791f,
-                        limb1: 0x201b9673b468ad7ca44f9525,
-                        limb2: 0x2e68896c95b23c02
+                        limb0: 0xda9afd8f517d9c0088de82a6,
+                        limb1: 0x3a334adbafdc8c0fe20dd788,
+                        limb2: 0x12bc5ca2182ea4c0
                     },
                     w8: u288 {
-                        limb0: 0x506ddc09f2e23114cfc7e036,
-                        limb1: 0x3eb82800ceb8b01d3aa37d49,
-                        limb2: 0x20e2cce9df421fe5
+                        limb0: 0x30f3db4d6495b2ae35511824,
+                        limb1: 0x96e95c10e585fe2e57ce7be8,
+                        limb2: 0x1fca4754d1120ebf
                     },
                     w9: u288 {
-                        limb0: 0x1bb8643c9b5d16e3616d350,
-                        limb1: 0xdbb6c409759d0e34e2cc50e9,
-                        limb2: 0x1a01767827a731cb
+                        limb0: 0x411d4e59d273304e5653544,
+                        limb1: 0x2b76a536fa12d1623f35eaa5,
+                        limb2: 0x1f9ebab7aa9085b1
                     },
                     w10: u288 {
-                        limb0: 0xc18936880b866812e13c2225,
-                        limb1: 0x50a7bb44a870ca0b8ac34b04,
-                        limb2: 0x13e3b3e51c15209f
+                        limb0: 0x21016f80ced8c3d9272193ab,
+                        limb1: 0xdd9f7de1487853a3ac2db25b,
+                        limb2: 0xfb3e5578686ac87
                     },
                     w11: u288 {
-                        limb0: 0xcdb9af9281112f7b4236fa25,
-                        limb1: 0x8513134d8342ad458e474a54,
-                        limb2: 0x24726237e159c70d
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0xdc91aa3595588b2d027509c4,
-                        limb1: 0xf4ef439340ea4ea1435b25b2,
-                        limb2: 0x1fbada834e4aa855
-                    },
-                    w1: u288 {
-                        limb0: 0x3ae6bcdb34501dfbb78e72fc,
-                        limb1: 0x90cf0a63c3b3482e4d996574,
-                        limb2: 0x26c6a274afa19f6f
-                    },
-                    w2: u288 {
-                        limb0: 0xfad0da7b5afe042033d17cc5,
-                        limb1: 0x89240776c78512b15dc33026,
-                        limb2: 0x2c536fbba8fcfeeb
-                    },
-                    w3: u288 {
-                        limb0: 0xf38d6fb5e7c4e1522ee1bda6,
-                        limb1: 0x5180817aaf06d7ebbeea56ee,
-                        limb2: 0x267c8e26f7003b5c
-                    },
-                    w4: u288 {
-                        limb0: 0x9b30cca77f25ee13d3ec210c,
-                        limb1: 0x184d42a677e3f1b7537c37fc,
-                        limb2: 0x296dbcda72267eaa
-                    },
-                    w5: u288 {
-                        limb0: 0x700dc72396bf52f2875265b2,
-                        limb1: 0x740e397329876a3087c668ee,
-                        limb2: 0x1778bfa1ad419a2e
-                    },
-                    w6: u288 {
-                        limb0: 0xdf38e88aadadc6b83898c167,
-                        limb1: 0x8c2027fbee98aad33e67fd15,
-                        limb2: 0xaaa3e042f0f6c9d
-                    },
-                    w7: u288 {
-                        limb0: 0xa9a7d2a90782b7198f0bece0,
-                        limb1: 0xd8914f4c8f5f0e038fb4c6c4,
-                        limb2: 0x1121a8cf2dd3a4ba
-                    },
-                    w8: u288 {
-                        limb0: 0x1c4bc21950b259ae1763247b,
-                        limb1: 0x44c0a3845ea067e7d4b66555,
-                        limb2: 0x4bd117562237f74
-                    },
-                    w9: u288 {
-                        limb0: 0x517b19cecb5322f8f37ee655,
-                        limb1: 0xc82d4323124bac94b258be0f,
-                        limb2: 0x2de2bd1e94e6947b
-                    },
-                    w10: u288 {
-                        limb0: 0x4b61f8f4a8e58a0d12fc3794,
-                        limb1: 0x6eb859c8827d230b67a53b1b,
-                        limb2: 0x991dbbd6cc73caf
-                    },
-                    w11: u288 {
-                        limb0: 0x26f68e50185c61ee975045c2,
-                        limb1: 0x820eeb78677af932809913a8,
-                        limb2: 0x2050742965cbb8fe
+                        limb0: 0x7c123e62ef78fe69adf00547,
+                        limb1: 0x468ac789efbe486f5b24bdae,
+                        limb2: 0x2d5f9d45750a66f9
                     }
                 },
                 E12D {
@@ -14035,68 +12589,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x363e37ce4684a1b3a92c2e21,
-                        limb1: 0x2348dbf0efd4596defc9cbcf,
-                        limb2: 0x1ceed93a8f5b5d56
-                    },
-                    w1: u288 {
-                        limb0: 0xcdbac10ddeaa80e06ff6381d,
-                        limb1: 0xceb903d493636168d727c815,
-                        limb2: 0xe352fdc3390c197
-                    },
-                    w2: u288 {
-                        limb0: 0x80adf879768fc92f7638813b,
-                        limb1: 0x10491c3ec5b7c4a3ede55f29,
-                        limb2: 0x2e8ae8250727d1b8
-                    },
-                    w3: u288 {
-                        limb0: 0xc674ab29b08d23590859abaf,
-                        limb1: 0xdc38079f674b70a6a0508193,
-                        limb2: 0xba603208841ea30
-                    },
-                    w4: u288 {
-                        limb0: 0xdbb103cf84f31d1071282ccd,
-                        limb1: 0xca9519d511d9420503a19eb3,
-                        limb2: 0x521178a2d48d6c
-                    },
-                    w5: u288 {
-                        limb0: 0x7bd263637853b9a315af6769,
-                        limb1: 0x7351d8cdee5c1a026e0f6c33,
-                        limb2: 0x637847e626e481d
-                    },
-                    w6: u288 {
-                        limb0: 0x374964104ac92874909f9755,
-                        limb1: 0x7d862614dc7fc261d21b0b83,
-                        limb2: 0xfc7c5003cd7ea34
-                    },
-                    w7: u288 {
-                        limb0: 0x7cffb7d9abe0c646372c7028,
-                        limb1: 0x876f6d57f947739a51ded7fc,
-                        limb2: 0x35414bdb470fc48
-                    },
-                    w8: u288 {
-                        limb0: 0xd734158170529fcbfa6eb829,
-                        limb1: 0x79dda3ccc193edb4c3ffcabf,
-                        limb2: 0x46de2bacb139684
-                    },
-                    w9: u288 {
-                        limb0: 0xc61627578fd00ab8354ed7df,
-                        limb1: 0x645bc0ecd6e9968f9234fa,
-                        limb2: 0x344354ecb97bc23
-                    },
-                    w10: u288 {
-                        limb0: 0x6dbb17f00e42d2c9d1d96142,
-                        limb1: 0x535e925da700f9982eb7b134,
-                        limb2: 0x36f1e7eee45e55f
-                    },
-                    w11: u288 {
-                        limb0: 0x78d5a3202fffc2d269156dfa,
-                        limb1: 0x1e6760526181e6c4c27275bc,
-                        limb2: 0x2276b3d7033a1430
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x231431a681ca1912d93c493c,
                         limb1: 0x7cd5100d863f21b7b69548cf,
                         limb2: 0x6be1a88eb32559b
@@ -14159,126 +12651,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xee9376522e1e8b5b06a73365,
-                        limb1: 0xa40daedbb95129e0e4b730b0,
-                        limb2: 0x2dbb4d219a10506a
+                        limb0: 0xec5d0a0dbf26b9244185606,
+                        limb1: 0x2577b931ba5d8d5cde41b68d,
+                        limb2: 0x5e96e308db4b280
                     },
                     w1: u288 {
-                        limb0: 0x5bb3612ff2638ee43f91e4ad,
-                        limb1: 0x19e687d41b2d73ed0a0848e7,
-                        limb2: 0x12650c5a8afdf20b
+                        limb0: 0xbaa744f3269430ce568e50bd,
+                        limb1: 0x60f2b1523bf010f9abc7a2c8,
+                        limb2: 0x8e4f258d7ed76a4
                     },
                     w2: u288 {
-                        limb0: 0xbaff5b406b3723e87b7ddb4a,
-                        limb1: 0x2f1acea8d0af90181928d4d,
-                        limb2: 0x22278df7531524e7
+                        limb0: 0x2342a9e354749981838268ee,
+                        limb1: 0xaf2ecea58318aed3b37f5692,
+                        limb2: 0x291525813b88babf
                     },
                     w3: u288 {
-                        limb0: 0x666d334e07c3fdfa0ded1283,
-                        limb1: 0xc23935b23bbc19e19e4914d2,
-                        limb2: 0xf8a43da3ae5e4de
+                        limb0: 0xdc734db514a13e85b5204e5d,
+                        limb1: 0x122d47c0509cc9315fcc9d29,
+                        limb2: 0x23d67f47908d3e5
                     },
                     w4: u288 {
-                        limb0: 0xac2d88cd8b7afa208bf5a4a1,
-                        limb1: 0xadca464e90f0c9f191c11fc6,
-                        limb2: 0x93aabdb1b4a7730
+                        limb0: 0x56558781f1a6382f991559cb,
+                        limb1: 0xd87862bbd0f987a16c7df25d,
+                        limb2: 0x7281838826ccd22
                     },
                     w5: u288 {
-                        limb0: 0x56ff185cfdd8cd24b66f2af6,
-                        limb1: 0x6ddbd2d6b48942d514a5faec,
-                        limb2: 0x46405e53c409f4d
+                        limb0: 0x288fc284a7951c14de8da86e,
+                        limb1: 0x69d04a96c38b3cc0548f7544,
+                        limb2: 0xf60950d3a14b67b
                     },
                     w6: u288 {
-                        limb0: 0xa8f3ab8c4a2cc082c9c226a7,
-                        limb1: 0x6059380a81711ff39ea1829b,
-                        limb2: 0x1a60963819016d4e
+                        limb0: 0x318952aeb73d7b08c5fe781b,
+                        limb1: 0x901f81c957993437980ea613,
+                        limb2: 0x119433627695ee93
                     },
                     w7: u288 {
-                        limb0: 0x6456cc1faae8c805d74fb87e,
-                        limb1: 0xbe5b971228b65a5750dfb223,
-                        limb2: 0x101e4fc7427f1ea8
+                        limb0: 0x595a69d331001fb9c7a9f006,
+                        limb1: 0x1e4cc5c97a405d3e3f5b53fe,
+                        limb2: 0x1348746ac61470a
                     },
                     w8: u288 {
-                        limb0: 0xceeb53e99c90c929d58be878,
-                        limb1: 0x630bb2f044dde26e4c7420ef,
-                        limb2: 0x307b33c069fd620
+                        limb0: 0x9c061b99db93b1ebce5d9fe6,
+                        limb1: 0x1cfe992ec44f28737dff910b,
+                        limb2: 0x2ef11c4ef77570ee
                     },
                     w9: u288 {
-                        limb0: 0x7a6e414a58ac9b0ea213fc1,
-                        limb1: 0x3d6fa1e3353bce5884958997,
-                        limb2: 0x20b2b206bb8f115d
+                        limb0: 0xea82ad0d20f75a7fcb7131a,
+                        limb1: 0xa08d4a3e487358d11c698ece,
+                        limb2: 0x1b26098d599d7ae1
                     },
                     w10: u288 {
-                        limb0: 0x3ef7e43e2fb358ddf03c2aae,
-                        limb1: 0x7843c2bd1db47b59cca200f0,
-                        limb2: 0x1ae66740098611f6
+                        limb0: 0xc022d7a34d19af209e5bd73e,
+                        limb1: 0xe7579941b62b48517495a22,
+                        limb2: 0x4624fa9f3c5da9a
                     },
                     w11: u288 {
-                        limb0: 0xc5c46e370f76fd62fb4e41bb,
-                        limb1: 0x3e96b93a9609d4e6a91bf742,
-                        limb2: 0x2b7892dc61534859
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x9ff3d80f101fa264b85ff8d5,
-                        limb1: 0xa86855c567c1c81557cf9d3d,
-                        limb2: 0x19e2d644d356cf7a
-                    },
-                    w1: u288 {
-                        limb0: 0xe6a5fe140a0383715622b34,
-                        limb1: 0xc320ad2a20243348bf564308,
-                        limb2: 0x153f963d1c491b2f
-                    },
-                    w2: u288 {
-                        limb0: 0x38fa5e7f9fe95bd87a008cd6,
-                        limb1: 0x823568347b22ad318132621a,
-                        limb2: 0x15cacd524b7c81e1
-                    },
-                    w3: u288 {
-                        limb0: 0x923b5721b8b3d4efd3420d33,
-                        limb1: 0xac33b6305d6a3b967b7b8897,
-                        limb2: 0x2f2f524d75782b84
-                    },
-                    w4: u288 {
-                        limb0: 0xe317d4bbbf1b48305cff50,
-                        limb1: 0x119960555ce9b8ff7bc8699d,
-                        limb2: 0x1341a862a58f3a53
-                    },
-                    w5: u288 {
-                        limb0: 0x68f8bd14c0f052c7d49bad8,
-                        limb1: 0x7c2df8b2cd08a1b47bcba238,
-                        limb2: 0x215c278c7d09528d
-                    },
-                    w6: u288 {
-                        limb0: 0x6fd5dfd91537861641414c0b,
-                        limb1: 0x34df8a65db40dc5a89af59f8,
-                        limb2: 0x1068772a7cf3bc4e
-                    },
-                    w7: u288 {
-                        limb0: 0xb071dfecf1aa5b03fd24529a,
-                        limb1: 0x9b73dc03add69eeae0af040d,
-                        limb2: 0x259abddb47577d9a
-                    },
-                    w8: u288 {
-                        limb0: 0x2b75716ef46bc7918f549434,
-                        limb1: 0xe16b2f81a5a69d088f77461a,
-                        limb2: 0x2503573e3c7ec5b3
-                    },
-                    w9: u288 {
-                        limb0: 0xcb5ac0d553a6165a12272ada,
-                        limb1: 0xd139fa09e05982a939bac0a8,
-                        limb2: 0x143eb21971e8d48b
-                    },
-                    w10: u288 {
-                        limb0: 0xac11e2078b19bdef7a1ed3de,
-                        limb1: 0x57ea83bc543af50a7d804529,
-                        limb2: 0x2d24468c4df58e7d
-                    },
-                    w11: u288 {
-                        limb0: 0x78ac86ef8112cffd6e46c05c,
-                        limb1: 0xfa6108e3ab4a083c5e4c8f98,
-                        limb2: 0x62485b151f1a148
+                        limb0: 0xda5e34b4246623fb0f08bbeb,
+                        limb1: 0x5b88dd2c5f4e947261dbf571,
+                        limb2: 0x14fb70e3a5644ab9
                     }
                 },
                 E12D {
@@ -14407,68 +12837,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0x8fd4c679cb4084453aae1017,
-                        limb1: 0x9576c0773ae9f07cee45bf9d,
-                        limb2: 0xf71862857ee11c6
-                    },
-                    w1: u288 {
-                        limb0: 0xb4ed54b6e94d62686bbedbf4,
-                        limb1: 0x4bc33d1a075928d973dc8462,
-                        limb2: 0xde6c6a5221bdbc3
-                    },
-                    w2: u288 {
-                        limb0: 0xe40a340e806b7f1932d7ed51,
-                        limb1: 0xbd73e60ee6075cf4793b7a95,
-                        limb2: 0x16c9fc692191a3a0
-                    },
-                    w3: u288 {
-                        limb0: 0x550d86c8ddc6d7ac82c50d39,
-                        limb1: 0x7d753b8f916828b9b6e0f5b9,
-                        limb2: 0x215c9ecd389302f
-                    },
-                    w4: u288 {
-                        limb0: 0x7ddb580e8e8f0c70c6051c41,
-                        limb1: 0x389a5d619f425a49ce41e79c,
-                        limb2: 0x1a4ab936af3e382e
-                    },
-                    w5: u288 {
-                        limb0: 0x43ad0a27a22816967a9e1c56,
-                        limb1: 0xab70c46b9317e8c5147e4b1,
-                        limb2: 0x17e757bacd77bd32
-                    },
-                    w6: u288 {
-                        limb0: 0x9518bca2b675d7d8231faf0c,
-                        limb1: 0x2f93d0808f292c134d121ffc,
-                        limb2: 0x177469f51d183fd0
-                    },
-                    w7: u288 {
-                        limb0: 0xfa878dd8f63a5bcab4040ed8,
-                        limb1: 0xe8750db7175ce592c51187a4,
-                        limb2: 0x1ad0e9a85fac64b9
-                    },
-                    w8: u288 {
-                        limb0: 0x45cc130a325b42b5e0cabaf9,
-                        limb1: 0x932f5698f44b68e2ce5970c8,
-                        limb2: 0xde70010880751ff
-                    },
-                    w9: u288 {
-                        limb0: 0xe30eebf51ae2d1481d6f5641,
-                        limb1: 0xa0605b190757fd024746dd39,
-                        limb2: 0x1b71dcfef0e4849d
-                    },
-                    w10: u288 {
-                        limb0: 0x4bfa02f074521e4f97d86ed5,
-                        limb1: 0x916e4ee9700431f5628d7f6a,
-                        limb2: 0x2bde2b7e93562721
-                    },
-                    w11: u288 {
-                        limb0: 0xb6597569716f0d00312488ae,
-                        limb1: 0x44a25ad1cd0a8550ce1b2238,
-                        limb2: 0x139954e2012b311b
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0x56b32d16ca998bb70b7788b2,
                         limb1: 0xb01d382c48614d4ead2ee20f,
                         limb2: 0x9a64fc7378b5983
@@ -14593,68 +12961,6 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xdcacd06d1a5c56ad24d5b315,
-                        limb1: 0x825390299e39072898569401,
-                        limb2: 0x142c00f3f19e5a4c
-                    },
-                    w1: u288 {
-                        limb0: 0x1114e6d87a2b756942de33a0,
-                        limb1: 0xbf497d3cd57353f4bb53504f,
-                        limb2: 0x2a94d06053ea2748
-                    },
-                    w2: u288 {
-                        limb0: 0xbca2ca67eed852fcaa18190e,
-                        limb1: 0xf8e02de260245553921538e2,
-                        limb2: 0x299c578012901138
-                    },
-                    w3: u288 {
-                        limb0: 0xc4bf6e9f56effdbc295ea92c,
-                        limb1: 0x65b04f7a5997cc8b571188f2,
-                        limb2: 0x282635bf01770188
-                    },
-                    w4: u288 {
-                        limb0: 0x1a1192888657d275ff94a718,
-                        limb1: 0x935caf5b0269f7396fbbb12,
-                        limb2: 0x125ab5c832211b36
-                    },
-                    w5: u288 {
-                        limb0: 0xfb72d0975eff85b654a0cf12,
-                        limb1: 0xe2499b1d6196a0847bbc60b0,
-                        limb2: 0x15ea3c414e0db333
-                    },
-                    w6: u288 {
-                        limb0: 0x90e38450bc569d15a2b7afda,
-                        limb1: 0xb42f1f4ac0f1d9d1620683f7,
-                        limb2: 0x2946badf4df856c6
-                    },
-                    w7: u288 {
-                        limb0: 0x1bcc9e2c63b8299c5579d83f,
-                        limb1: 0xac2947543e363d9f2aec261,
-                        limb2: 0x159ebe610afb0058
-                    },
-                    w8: u288 {
-                        limb0: 0x7cfb8a5e8252fd875409dfb9,
-                        limb1: 0xe162e554d7a0fdd193638616,
-                        limb2: 0xbf4367763f2ca34
-                    },
-                    w9: u288 {
-                        limb0: 0xd4c2b477d3966eec6f13a93e,
-                        limb1: 0xd4775509f0a69099388a4a3b,
-                        limb2: 0x18218b96c487029a
-                    },
-                    w10: u288 {
-                        limb0: 0x445d8d5619d7610dc39254a3,
-                        limb1: 0x1db9e0e5f87965a24aaf6d05,
-                        limb2: 0x2613ba33626496a9
-                    },
-                    w11: u288 {
-                        limb0: 0xaa884e51a84b5ff939035806,
-                        limb1: 0x52faec90620dc85b271682d6,
-                        limb2: 0x2a6657930d76cb8f
-                    }
-                },
-                E12D {
-                    w0: u288 {
                         limb0: 0xe0eb79ef697704f9f88009a7,
                         limb1: 0xf84e9fd2b03ff24c279431ef,
                         limb2: 0x1ecafc868da37277
@@ -14713,68 +13019,6 @@ mod pairing_tests {
                         limb0: 0xec0d73c52157b51a5163723,
                         limb1: 0x5b46f935b0ed7732d2de6790,
                         limb2: 0x28dfc542f18824d9
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x65fe9911a3f53851bdd1e796,
-                        limb1: 0x971cd44755159f3d6dc55d5c,
-                        limb2: 0x2859f608cc7ad96c
-                    },
-                    w1: u288 {
-                        limb0: 0xd830e3c4a65ba9a613038b3e,
-                        limb1: 0xb585cda53b4f552c17587a37,
-                        limb2: 0xe55f7ecb27019ed
-                    },
-                    w2: u288 {
-                        limb0: 0x3ceb43f95c089dc4e701e8ee,
-                        limb1: 0xfdd315ff90ec81bacae5a447,
-                        limb2: 0x2fe21dc5c43a220b
-                    },
-                    w3: u288 {
-                        limb0: 0x78b6cdd8562b5899d6cf9657,
-                        limb1: 0xd422fe796c3d85e8aadfbc49,
-                        limb2: 0x17f2e7feb00ff2ef
-                    },
-                    w4: u288 {
-                        limb0: 0xcc0f876a060e759c45f05dd4,
-                        limb1: 0xb75865df9ae00d1ea4a623b2,
-                        limb2: 0x26f316dc71fb00fb
-                    },
-                    w5: u288 {
-                        limb0: 0x597c6fdc21b85d8b360aa324,
-                        limb1: 0x5359ad43ae3306088983914d,
-                        limb2: 0x24e3f76d951b9699
-                    },
-                    w6: u288 {
-                        limb0: 0xc659d6c9cb48fd131170c0a8,
-                        limb1: 0x2f7ef894e5f3ae2a6520e406,
-                        limb2: 0x1dc86b0f9cef3f15
-                    },
-                    w7: u288 {
-                        limb0: 0x7539debf40c408f6eee9145e,
-                        limb1: 0xd567e64c228e44bfe11551e1,
-                        limb2: 0xe5c39a44dd2d195
-                    },
-                    w8: u288 {
-                        limb0: 0x2f9d92490bfe75690687b8f,
-                        limb1: 0xe09e4a9dee8d8ade19ec3b58,
-                        limb2: 0x2c642f8c86c070f2
-                    },
-                    w9: u288 {
-                        limb0: 0x22c1fd1c2e16ab3d9cd21ee2,
-                        limb1: 0xe89400c7e26cb130fd1097a9,
-                        limb2: 0x614bc27df3261d9
-                    },
-                    w10: u288 {
-                        limb0: 0xf9e081670afd6dddd3411b0f,
-                        limb1: 0x69529167f430c999443f126,
-                        limb2: 0x1825758e9e66212f
-                    },
-                    w11: u288 {
-                        limb0: 0xf8991f204d35e8b1fcb0e563,
-                        limb1: 0x619dad210a01f248c23b047a,
-                        limb2: 0x7d11fadefd6bed
                     }
                 },
                 E12D {
@@ -14841,126 +13085,64 @@ mod pairing_tests {
                 },
                 E12D {
                     w0: u288 {
-                        limb0: 0xd159fdd2ff099a3e32aa5da6,
-                        limb1: 0x5aa95d924018bda13a33c49f,
-                        limb2: 0x2dab33966f1b4245
+                        limb0: 0xa8471dd55603384b42066496,
+                        limb1: 0xe46eee6fcaba6ee1116284f5,
+                        limb2: 0x2575472a96ec8df
                     },
                     w1: u288 {
-                        limb0: 0x76bd552bbc9b910d5278ad34,
-                        limb1: 0x125c304aa3131496825a27cc,
-                        limb2: 0x3d14c6fd44dd426
+                        limb0: 0x9b001b2c565f0ddfa573296c,
+                        limb1: 0x5debea2a4077e45fd6049d3e,
+                        limb2: 0x10ea438a1d19edf5
                     },
                     w2: u288 {
-                        limb0: 0xeabf0305740575a2a71efd23,
-                        limb1: 0x80010d7ebc0c84e8a7d7239b,
-                        limb2: 0x2af3a9238f524f42
+                        limb0: 0x459fab1d8fcf4bb48996829,
+                        limb1: 0x1beefd7fc2a65a73c031c7f3,
+                        limb2: 0xbfde865e2af211d
                     },
                     w3: u288 {
-                        limb0: 0x8f8c2b6c4cb35fd1753fe76a,
-                        limb1: 0xe266cdf610dfbe066e1e68a,
-                        limb2: 0x30403d5a5fd3ef8b
+                        limb0: 0x127b67ab28f4648ccd7298af,
+                        limb1: 0x8d1a33c8a95c07a2d8182b51,
+                        limb2: 0x154f5a2a8978766f
                     },
                     w4: u288 {
-                        limb0: 0x30dabf58fb0221cb1548649a,
-                        limb1: 0x7facfd15f3f8042bf438f174,
-                        limb2: 0x996be119de67e7d
+                        limb0: 0xa843c7b6cdbfec70273c7179,
+                        limb1: 0x451376ff143138b26508e149,
+                        limb2: 0x27ee093ad5b5641d
                     },
                     w5: u288 {
-                        limb0: 0x53a10dbc2038dac047f7b072,
-                        limb1: 0xc5021ce5dc10b26f12e5e6c9,
-                        limb2: 0x4dedde9bf891cde
+                        limb0: 0xe46d7ddc38e93e5d4539397e,
+                        limb1: 0x10c546e7762036ef0406b68e,
+                        limb2: 0x1e5de28d570d8c23
                     },
                     w6: u288 {
-                        limb0: 0xaf699859d55d2f63291a0033,
-                        limb1: 0xf03e7b96ed01283a3a221366,
-                        limb2: 0x2fe4c3408aff347
+                        limb0: 0x1d71841c43b80d2bfc818be0,
+                        limb1: 0x9ed8354ed235ab98dcbafdfd,
+                        limb2: 0xc7832fd4bcfdd58
                     },
                     w7: u288 {
-                        limb0: 0x8e78323d3f09e61d69f47270,
-                        limb1: 0x5f6e0202d5f658d5989b985f,
-                        limb2: 0x1e4b269a42cd2734
+                        limb0: 0x9120a99dcef073912a3fbe11,
+                        limb1: 0xc99085975b31be35943fe6de,
+                        limb2: 0x19b2aeb3f9a37fc0
                     },
                     w8: u288 {
-                        limb0: 0x252b47d007ef9a56c76d2ae9,
-                        limb1: 0xac9f49406dbf0ce04253b722,
-                        limb2: 0x257407ee3a61d951
+                        limb0: 0xfdd9ded7b646da18595ccac2,
+                        limb1: 0x7326e81c5c4d6cd485a95afc,
+                        limb2: 0xb12576c70934ed4
                     },
                     w9: u288 {
-                        limb0: 0xdc2a60a615d500a53259c80a,
-                        limb1: 0x388bf1ab0a1767c3788b817,
-                        limb2: 0x1b23fc9a966801bb
+                        limb0: 0x761820abaa0929428358b641,
+                        limb1: 0x49c5bd0dedc35fae8f0ae35e,
+                        limb2: 0x179d6cc8ca4c2127
                     },
                     w10: u288 {
-                        limb0: 0xd0f7eb21362aa989e4d6b213,
-                        limb1: 0xe74a2ec6d66f4f55d329d373,
-                        limb2: 0x1a662cf574ae5562
+                        limb0: 0x337630f723038a58f57b249a,
+                        limb1: 0xb6754ac913be8838812111fe,
+                        limb2: 0xc811873605012b5
                     },
                     w11: u288 {
-                        limb0: 0xa5a7d1de4dabce428331ac37,
-                        limb1: 0xee5017b91fde56bb9fa004e7,
-                        limb2: 0x10ba7b5a434c67e1
-                    }
-                },
-                E12D {
-                    w0: u288 {
-                        limb0: 0x3849edf1643cd1b06a5313ca,
-                        limb1: 0xa99ee3514f896df4f07cda1,
-                        limb2: 0x26b4dca3eca82676
-                    },
-                    w1: u288 {
-                        limb0: 0x70125c51233e07e43390abaa,
-                        limb1: 0xc7de3239b24ca16f2741abdd,
-                        limb2: 0x22b42fd8b25fedb
-                    },
-                    w2: u288 {
-                        limb0: 0x9db8a5ee765738a56da8a438,
-                        limb1: 0x30159c0d807f609660dbf89d,
-                        limb2: 0x2ce63d54a34e18d6
-                    },
-                    w3: u288 {
-                        limb0: 0x2122943927652c648bbac1fe,
-                        limb1: 0x781c91ffb2df4eda9b137bd1,
-                        limb2: 0x8b13a1e2bf0931a
-                    },
-                    w4: u288 {
-                        limb0: 0xb3b1f25bf456cca2264adb91,
-                        limb1: 0x214ded03f6a77b4d26d429b4,
-                        limb2: 0x173f73c7e853e0ef
-                    },
-                    w5: u288 {
-                        limb0: 0xfabc542e52d7997e90d2428c,
-                        limb1: 0xfe7fc38ff512787879021bec,
-                        limb2: 0x1ff6341af15a754a
-                    },
-                    w6: u288 {
-                        limb0: 0x82f92beaad96a7d300ac3b06,
-                        limb1: 0x63169cba1ec51c7853dcbfb8,
-                        limb2: 0x2af3f7b2045021f
-                    },
-                    w7: u288 {
-                        limb0: 0x46fa256b7a99e26d4fff996d,
-                        limb1: 0xcd41ad01d696bdedb40d9168,
-                        limb2: 0x25fd008969475dae
-                    },
-                    w8: u288 {
-                        limb0: 0x90c52bcb1f026bc3d0b06a6,
-                        limb1: 0x899c5d552025574d832e75db,
-                        limb2: 0x1e1abadde2d7b7e1
-                    },
-                    w9: u288 {
-                        limb0: 0x96b0a74091d7ca98d5adb56f,
-                        limb1: 0xc3a292fd285f824aab7653d4,
-                        limb2: 0x2837e439aa028e90
-                    },
-                    w10: u288 {
-                        limb0: 0xc2cd379c3c0dcab6dd8e93f9,
-                        limb1: 0xa278fb7771b07e8c974e6629,
-                        limb2: 0x23dba7c668ebcbf8
-                    },
-                    w11: u288 {
-                        limb0: 0x59eae3a5a6dcbc0166cb6623,
-                        limb1: 0xf7363b4bc53027c9f071e104,
-                        limb2: 0xc61bd441fcf09c
+                        limb0: 0xd311f807d8869697ae180475,
+                        limb1: 0x3184bc6814d397f313fcd460,
+                        limb2: 0x335982df9e3c62a
                     }
                 },
                 E12D {
@@ -15153,574 +13335,954 @@ mod pairing_tests {
                 .span(),
             big_Q: array![
                 u288 {
-                    limb0: 0xd68de947541bcf1e0d7af28d,
-                    limb1: 0x9ea7081ec5296a6071db9a1,
-                    limb2: 0x1dd1736ed437a016
+                    limb0: 0xca81921c151d66a0175ed1f1,
+                    limb1: 0xb99064d84f4ee7eea6b900f1,
+                    limb2: 0xeedd2f36c562a41
                 },
                 u288 {
-                    limb0: 0xfbf195a3606edcf42fd2987c,
-                    limb1: 0xa2ddf76d283dc93c85100930,
-                    limb2: 0x16ca04cb716138ef
+                    limb0: 0x37c6bd6aff966de212559a4f,
+                    limb1: 0x57c2f5686b8e9e2e4153357e,
+                    limb2: 0x224e1012225e5c30
                 },
                 u288 {
-                    limb0: 0x1bbd76a9c1c472c7ad4fa2c7,
-                    limb1: 0x50cde2587af3f53c552ef1d3,
-                    limb2: 0x1f6e2320f49e00ba
+                    limb0: 0x70e1f80bae277f08b6773838,
+                    limb1: 0x7d2c44f1488db416b60a53dd,
+                    limb2: 0x2ede61f367e0d4b9
                 },
                 u288 {
-                    limb0: 0x3a4aa64b8e6194fd539a8698,
-                    limb1: 0x690edaad1a6798ef2992a709,
-                    limb2: 0x10224f1a02dc21d5
+                    limb0: 0x33bbc4438c0b190fcacb2282,
+                    limb1: 0x4152d4fa3ad46fa239195eaf,
+                    limb2: 0x2b1576e995f3e9e1
                 },
                 u288 {
-                    limb0: 0xec344203d6986cbdcf7bd7c7,
-                    limb1: 0xb26fb4c2907f41d75e78c74a,
-                    limb2: 0xd05ca1327ede167
+                    limb0: 0xa66693f20e7541273710fda,
+                    limb1: 0x4ae68aac5fdd755d8c13e4ce,
+                    limb2: 0xf7bf173888d8c9a
                 },
                 u288 {
-                    limb0: 0xcbc14a40fb9adb7027a13d10,
-                    limb1: 0xa1425b0ed552bfda4dd20cfd,
-                    limb2: 0xdb91856f5dc83b
+                    limb0: 0xa5ab0d0482f9335aa35ed40,
+                    limb1: 0xb89f2129d4bc24e5d02db3bc,
+                    limb2: 0x18db4ed560632e49
                 },
                 u288 {
-                    limb0: 0x38fbd7e1464bbd00bb49e97b,
-                    limb1: 0x733835bec78bfbfedf9cf987,
-                    limb2: 0xb0e66bd09350d4a
+                    limb0: 0xad3ad307d393fc4a656b5e4c,
+                    limb1: 0x445603716c8a44429b23dc2,
+                    limb2: 0x15b447124515950
                 },
                 u288 {
-                    limb0: 0xdfedfd2139dd8816db671a3b,
-                    limb1: 0xe22adacf14e7bbe1012acd8b,
-                    limb2: 0xf50a2993bc29dea
+                    limb0: 0x20e0e8c832bd607dc0dc7c5a,
+                    limb1: 0x15313c5c184ba69e70ea037f,
+                    limb2: 0x64f5848c48f6e5
                 },
                 u288 {
-                    limb0: 0xc48786ec60b852a82f7127a9,
-                    limb1: 0x1814e78ed0f4fdb7a95d6455,
-                    limb2: 0xbce2c82fdc9c13a
+                    limb0: 0xcc818d6b8fa7e5751ce6490d,
+                    limb1: 0x4869085d01f2770a96615a25,
+                    limb2: 0x2f209ecccc84ed49
                 },
                 u288 {
-                    limb0: 0x28dcb4305314246bc0d2ecc5,
-                    limb1: 0xfc211fea54a86dfbf6c3937,
-                    limb2: 0x141e56cd9ea49225
+                    limb0: 0x52107657f105e32deb169705,
+                    limb1: 0x51c3c4c00f7d3ab0807b043f,
+                    limb2: 0x231519bfdfe40b42
                 },
                 u288 {
-                    limb0: 0x70b7b5d0b7991b7f8318ebd6,
-                    limb1: 0xd30fa3d4b10babcbf6b6c139,
-                    limb2: 0xccf48106139b887
+                    limb0: 0x49e3fd9868bf9e5304d0f69c,
+                    limb1: 0x5716b0e87e7b1f9f84a5f40c,
+                    limb2: 0x8ac7a0b641579fa
                 },
                 u288 {
-                    limb0: 0x88e32ab3bb93ec3a0e06246e,
-                    limb1: 0x69c74833b36bafc32a9b9ac5,
-                    limb2: 0x2d64f8a8d198db00
+                    limb0: 0x98e24db86f8abfc91ef4161d,
+                    limb1: 0xa076b054e64230527b40e53c,
+                    limb2: 0x27859822b815d6c4
                 },
                 u288 {
-                    limb0: 0xa834222883067b01f3fdc73a,
-                    limb1: 0xa8727c51d95dbdf71b89ce89,
-                    limb2: 0x74364213c1d7970
+                    limb0: 0x3bd307d84c12d6ddb522c689,
+                    limb1: 0x2a994b67e88de79bd3062c5d,
+                    limb2: 0x19a90636af86d5d3
                 },
                 u288 {
-                    limb0: 0xe86cf70ec9f32d974fe56d4a,
-                    limb1: 0x38227976ea664003f5ea64e2,
-                    limb2: 0x3fb3df78ac1fe4a
+                    limb0: 0xfb13bf0c6aa24a049dfffea0,
+                    limb1: 0xbbf3f94323b78b7aaef345d3,
+                    limb2: 0x159435234c68b140
                 },
                 u288 {
-                    limb0: 0x313ee354fec9c097bc353400,
-                    limb1: 0x5b98eb4401577bd654ebcea5,
-                    limb2: 0xa0012beda7faadf
+                    limb0: 0x1bbb873eeb894b027e3fe997,
+                    limb1: 0x1f1c18b289e122ff66189ef8,
+                    limb2: 0x1ff5094767921e9e
                 },
                 u288 {
-                    limb0: 0x2822f727add7f087f5d86039,
-                    limb1: 0x5cb396e9fcfdea110ac421a0,
-                    limb2: 0x155cab466745e049
+                    limb0: 0x9e144f30841400493f2a539e,
+                    limb1: 0xd7d08dac725bc269f40687d6,
+                    limb2: 0x1c2579365e374382
                 },
                 u288 {
-                    limb0: 0x94b0bbcb97144aeb710aaac6,
-                    limb1: 0xc522490386c456c0c35141f,
-                    limb2: 0x24b1b0968cad5abc
+                    limb0: 0x55bc8f51b90ec85b1b5ea49b,
+                    limb1: 0x6ca90ae82fbdd16dd459ea03,
+                    limb2: 0x1a8ce5a85856924
                 },
                 u288 {
-                    limb0: 0xe6bb395ffa050cfb33c0d825,
-                    limb1: 0x9c231533ace92975a53ec72a,
-                    limb2: 0x1eb04e4d3b2ee4e9
+                    limb0: 0xea45b5a9969bc69aab9d3b3b,
+                    limb1: 0x74db2358b3086722550f88ab,
+                    limb2: 0x1aed839f48870b8d
                 },
                 u288 {
-                    limb0: 0x8628b9ad1e04e9eaa6b60da5,
-                    limb1: 0x54a183d22c116945c97c6851,
-                    limb2: 0x12058ac97626b8f4
+                    limb0: 0x9f290506c818e726440f9625,
+                    limb1: 0xbc6076b1dfc425439b1e7987,
+                    limb2: 0x72c41fdc9d5adda
                 },
                 u288 {
-                    limb0: 0x760c243ec45928bbdabdaf93,
-                    limb1: 0xfc456c19f14a716804d4186,
-                    limb2: 0xa88f881d0ad3ef1
+                    limb0: 0xf6539ec15132a0825bb041a2,
+                    limb1: 0xe563a62bc30696938ac5521c,
+                    limb2: 0x16a5f27ba56a4891
                 },
                 u288 {
-                    limb0: 0x2efaee5cd9dabfb0be53299a,
-                    limb1: 0x2b347dd0bb003e9a52666efe,
-                    limb2: 0x1e385d1334668e7d
+                    limb0: 0xc6562a8e7315ec1d86a83fbc,
+                    limb1: 0xf09566184ba498d12785d36d,
+                    limb2: 0x25b1632c7160c65f
                 },
                 u288 {
-                    limb0: 0xc352aa54bdfb248301994a81,
-                    limb1: 0xba391514f9c37c36f2c83335,
-                    limb2: 0x14d5b65acd288937
+                    limb0: 0x34cfdecdf24699cb6372d77e,
+                    limb1: 0x18193bea1075c08300f7e63a,
+                    limb2: 0x2eb5c9bf35035c13
                 },
                 u288 {
-                    limb0: 0x401bcaa15e9376fbdac83e97,
-                    limb1: 0x58f7c190847163917bef3104,
-                    limb2: 0x10c14635c77f410
+                    limb0: 0xe67ad43eec792f71660e630b,
+                    limb1: 0x774f0498985ac9d837046bfe,
+                    limb2: 0x167813064cd31402
                 },
                 u288 {
-                    limb0: 0x4b724bedd3d38bd1c3d67a61,
-                    limb1: 0x66ac8d826abe47a19453664c,
-                    limb2: 0xd4d75ffb8c28a5
+                    limb0: 0x261b6589cea4ce4e380d8913,
+                    limb1: 0xea09cf19340d3a89d7b340f2,
+                    limb2: 0x17d54a7fafd79538
                 },
                 u288 {
-                    limb0: 0xd65ffc143f20ab6b957e0ae9,
-                    limb1: 0x64b474e6def085a629d5d160,
-                    limb2: 0x2e277001396cb65e
+                    limb0: 0xf06fa319fe3a7096106c0bcd,
+                    limb1: 0xa4925d117de7827da4155e81,
+                    limb2: 0xfacd10c0d6b576b
                 },
                 u288 {
-                    limb0: 0xc2679afcdb15c2631d68a376,
-                    limb1: 0x6f0fc35b96d17c0c3f174d22,
-                    limb2: 0x19cc49f6e9ba217a
+                    limb0: 0x4af3f0cf5522cc4ff2988eca,
+                    limb1: 0xd3c6c70d55f7c48505031558,
+                    limb2: 0xec483114f23f61a
                 },
                 u288 {
-                    limb0: 0x2ed03e3d20117024f1362a31,
-                    limb1: 0x65d273cd16661256b2e2d9ed,
-                    limb2: 0x220a99d77f037ae7
+                    limb0: 0xcfa0821f551d51844ee8ef40,
+                    limb1: 0x37075ff5d82eae55aaa89ffa,
+                    limb2: 0x6e13e0f01f5fece
                 },
                 u288 {
-                    limb0: 0xdfbdbeee8dcd8cf0eaf0612b,
-                    limb1: 0xd6c41d91aa7080ecc3f9ba5e,
-                    limb2: 0xa09fe56600f203d
+                    limb0: 0xbeab8c67d463477fe0a462ec,
+                    limb1: 0x2802dde8e93da83af6345bd,
+                    limb2: 0x11b4ad0e02eb81e3
                 },
                 u288 {
-                    limb0: 0x4d1ed5882cc50afbb3e46938,
-                    limb1: 0xe86df24f533f44bdde964f4d,
-                    limb2: 0x2829abb6bc1e84f8
+                    limb0: 0x43320104db4c6e23e18311e0,
+                    limb1: 0x76cb69f2decc0f7ff921d0bc,
+                    limb2: 0x2ee553360d999e9c
                 },
                 u288 {
-                    limb0: 0xdc5de31bab6e5b2a603aed99,
-                    limb1: 0xaa355a6c8b01b5a7f9e168be,
-                    limb2: 0x53005cacc7448d3
+                    limb0: 0xdfbace63c158868f5a94456a,
+                    limb1: 0xda78001747d16ec5f374f7ba,
+                    limb2: 0x2d2baf2cd38cab0d
                 },
                 u288 {
-                    limb0: 0x1467b425e9a579718652b7dd,
-                    limb1: 0xe4ca9dab702556e8452e8dfa,
-                    limb2: 0x26441ea86941cce2
+                    limb0: 0xf292bd8d77832ff66c2ad523,
+                    limb1: 0x13e3e8362b65393093b61f5e,
+                    limb2: 0x3042b1c68a029e6d
                 },
                 u288 {
-                    limb0: 0xe0b21b6dc7fa5883480000b1,
-                    limb1: 0x12f7aff077497cc7e6a2297c,
-                    limb2: 0x170e7de945472cc0
+                    limb0: 0x23720bad416ba6674350a141,
+                    limb1: 0x743e812b3e8d29d084904cf7,
+                    limb2: 0x66c1422f97093ed
                 },
                 u288 {
-                    limb0: 0x79ad3fff1de5fd93e8318ac,
-                    limb1: 0xa996ae475aa58332e344a9f5,
-                    limb2: 0x3928eeb0f2bf4df
+                    limb0: 0x348014957bf7929f4d0f6b04,
+                    limb1: 0x8ca056e42c0de1f186b49580,
+                    limb2: 0x11677b3eab8ce22b
                 },
                 u288 {
-                    limb0: 0xd7c526e3dc0d74d867c38543,
-                    limb1: 0x385cb009eee29ff6ee12ea00,
-                    limb2: 0x29f3ad85ca6b753c
+                    limb0: 0x473cfa9fabd49a8050ec36f1,
+                    limb1: 0xe488b057baf67880b22f35b4,
+                    limb2: 0xda83f04ad54d7d8
                 },
                 u288 {
-                    limb0: 0xdee28375a9cf1f9e3f86b401,
-                    limb1: 0xe17c944e2ddf0a1c871ba3e9,
-                    limb2: 0xe723cd00823c7fc
+                    limb0: 0x8f656a81f4498d23bb890991,
+                    limb1: 0xa9d54e5cc5ae552948fcc5c3,
+                    limb2: 0x1d30ea10852f0a4d
                 },
                 u288 {
-                    limb0: 0x264f2b45049147ef4225e92,
-                    limb1: 0x413ea58efbd80e206336037,
-                    limb2: 0x21caeb16205ba937
+                    limb0: 0x1ffe9dc9478607eddbf1cd80,
+                    limb1: 0x915257d6a5ed945fea4355bd,
+                    limb2: 0x23bc9a147c719826
                 },
                 u288 {
-                    limb0: 0xf7f1b24f2ec0a29c02042a04,
-                    limb1: 0x7192f41733a586ca2b37b290,
-                    limb2: 0x292c62d923532b8d
+                    limb0: 0x3ee3b7ee6a36e230300abf31,
+                    limb1: 0xce6698ca3ba08994498a486f,
+                    limb2: 0x2375c5e5f2f782a1
                 },
                 u288 {
-                    limb0: 0xd3c9728c159b7ee86b6947e2,
-                    limb1: 0xecaf2664d1c7fc227d467dad,
-                    limb2: 0x55b7e984a697bc
+                    limb0: 0xd27f2b1e902e0c5677ff31c8,
+                    limb1: 0xcc2f73a9e02eeb5a49589443,
+                    limb2: 0x112ba33806ca3af3
                 },
                 u288 {
-                    limb0: 0x931e4a8cb3dd8d81b19ae408,
-                    limb1: 0x7a0f64a13613443a4df87a48,
-                    limb2: 0x21cf09f8a4646ca6
+                    limb0: 0x8d9a76f0df42c691d596083b,
+                    limb1: 0xd9550033909a7dd06c87c7c6,
+                    limb2: 0x2d3fc197bf781651
                 },
                 u288 {
-                    limb0: 0xfabf7611b911002e875c7231,
-                    limb1: 0x69e240482a32acfc3328540,
-                    limb2: 0x1b92844dedcbc28
+                    limb0: 0x931812c389c26405f6261efd,
+                    limb1: 0xa63777d26355cc94edf8f63c,
+                    limb2: 0x241a2063d4cbeb50
                 },
                 u288 {
-                    limb0: 0xe6b54f5a4d342f01cb72e49c,
-                    limb1: 0x6c6795962b3b59969ab373e5,
-                    limb2: 0x12d9c1b96288a628
+                    limb0: 0x40de96d838e46257e457ae,
+                    limb1: 0x30d47e3256eac472b851672,
+                    limb2: 0x2825313a9baa2468
                 },
                 u288 {
-                    limb0: 0xbce16e61f6a4d3e4254eda21,
-                    limb1: 0x1f12790e130e020e992f2b40,
-                    limb2: 0x11f61125a5f2024d
+                    limb0: 0x85a01d419e39bbdb7355178c,
+                    limb1: 0xf4c41cff9b0d1ce2272f54d1,
+                    limb2: 0xa98e424ba5f154e
                 },
                 u288 {
-                    limb0: 0x4cda2fdbdd5d7101abfab565,
-                    limb1: 0xab51f35392b780b0b623d976,
-                    limb2: 0x1f9177f508c99cca
+                    limb0: 0x69b7993741b6495f619bc69e,
+                    limb1: 0xee503df4f163ee81d6835ac5,
+                    limb2: 0x11d6c75a35e823b4
                 },
                 u288 {
-                    limb0: 0x5d7e82dec028b3b2d7226c0c,
-                    limb1: 0x5cbfeb1f842de58741fabc3f,
-                    limb2: 0x26fa2072a8ee0aa2
+                    limb0: 0x3e3c05d38a75cc49bf988016,
+                    limb1: 0x458b30fb95cde68e98703ea7,
+                    limb2: 0x2785e8fe806221c0
                 },
                 u288 {
-                    limb0: 0xcafe7cbe4bbddc618c0ae7d7,
-                    limb1: 0x8c74ff47c46f3cadf19adc74,
-                    limb2: 0x2294387b9a4dcb54
+                    limb0: 0x3ab73e676bd7cf3e2bd2fefa,
+                    limb1: 0x91032423b7be6ad98adb2749,
+                    limb2: 0x2cd037db5cadd871
                 },
                 u288 {
-                    limb0: 0x9207f2921145b3459701ad35,
-                    limb1: 0x1566a74e28c1e6f6d5136b9a,
-                    limb2: 0x97df40844636272
+                    limb0: 0xa965bbf9cfccef0c8c86301e,
+                    limb1: 0x121d4e4cccef1357768a37e0,
+                    limb2: 0x70ba3f81ae200a9
                 },
                 u288 {
-                    limb0: 0x3b0cd4d5de37e5b165b0f3fe,
-                    limb1: 0xd069d888b3605b989bda86a,
-                    limb2: 0xa801c54d1c0ef9e
+                    limb0: 0xc2b901b9cdf677038f722ac0,
+                    limb1: 0x1b8519a01bef42b02f86fa96,
+                    limb2: 0x526cc0715cdb7cc
                 },
                 u288 {
-                    limb0: 0xafa8d889a0d67fc97a77e42a,
-                    limb1: 0x1dae6c5ea491d0c4f77647e5,
-                    limb2: 0x7d5b18987453fbc
+                    limb0: 0x93465319169cb60a970b343,
+                    limb1: 0xeb08fc4109fdd2580afb1bde,
+                    limb2: 0x2fbe1dfad16d28ac
                 },
                 u288 {
-                    limb0: 0x1ac6deae77fff5f2322268ea,
-                    limb1: 0xbded8cd4490b7688e6cefd13,
-                    limb2: 0x1f3e5a84d1372594
+                    limb0: 0xcc51f7a9bee0ccc7305fa92f,
+                    limb1: 0xdc36d50d3bd61989a9778aa9,
+                    limb2: 0x63f62fbc15a91d4
                 },
                 u288 {
-                    limb0: 0x85b6cc5ea8d21d6aec8551e1,
-                    limb1: 0xb88fe974006bc37511486bee,
-                    limb2: 0x185598dbdeacd861
+                    limb0: 0x7146f187933b426842f9aee,
+                    limb1: 0x4a7a0fadbbe646e844f5f3b1,
+                    limb2: 0xe36dfed487c5d58
                 },
                 u288 {
-                    limb0: 0x684b9396e761ad00f14782a6,
-                    limb1: 0x871f9c3fa4f200e9fdc0e61b,
-                    limb2: 0x29f73bb8e7949c26
+                    limb0: 0x4d314a51a35fdeb3d6773d08,
+                    limb1: 0x5a279429769a95dafcf4bc3a,
+                    limb2: 0x21f9ab1535990277
                 },
                 u288 {
-                    limb0: 0xd3c63dd39db59676239be301,
-                    limb1: 0x573c4da95b922ffcf4bbc83e,
-                    limb2: 0x1e67980a65112d62
+                    limb0: 0xfb04045a7849ea0747f4ef80,
+                    limb1: 0x83e9f85a74ef348fcdef944b,
+                    limb2: 0x24fb3a7e14cefe03
                 },
                 u288 {
-                    limb0: 0x431de0840bb1ed29886c3314,
-                    limb1: 0x46afa5a8e041ba1c4281b307,
-                    limb2: 0x1d1ac7a3de1ccd8
+                    limb0: 0xe59b49c3c2f65fd612eee6ef,
+                    limb1: 0xa8b7f663cf71c758089b7768,
+                    limb2: 0x264c1b47535e1efa
                 },
                 u288 {
-                    limb0: 0x7ca0feffefc9ade050f268e6,
-                    limb1: 0x1ac1749332abf013cb27cc3a,
-                    limb2: 0xde80f2faf221dd1
+                    limb0: 0x1f314333d247c83bf5e0885f,
+                    limb1: 0x520b0d06b81dc0e762898878,
+                    limb2: 0x12ef66123cdf4a67
                 },
                 u288 {
-                    limb0: 0x42e787ca925351bbb33aecb3,
-                    limb1: 0xbd6bb9c4c59915ae749c3d2a,
-                    limb2: 0x15cca4fa4e792bf5
+                    limb0: 0x9ee4420645d46c61004aa76b,
+                    limb1: 0xe16b2c8a9931c0a9c3423e59,
+                    limb2: 0x6cc92be9f36db1d
                 },
                 u288 {
-                    limb0: 0x49af131e32790613eea47694,
-                    limb1: 0xd71981ad50bc4bda05a95414,
-                    limb2: 0x1402405f5e42ec96
+                    limb0: 0x70d9607545d479d9af95cee5,
+                    limb1: 0x55488e5ed229a945c6c1bb10,
+                    limb2: 0x2d3df35441e827be
                 },
                 u288 {
-                    limb0: 0xf763f1e8d8b2478f8f9ba419,
-                    limb1: 0x115e06e9af26c15580520009,
-                    limb2: 0x48fc36274d10ed5
+                    limb0: 0x44ef56fb506f6ac83d3ee800,
+                    limb1: 0xee648db67c31110f4ffa299,
+                    limb2: 0x3cd8ddca08050a7
                 },
                 u288 {
-                    limb0: 0x32189420558bde72c020f508,
-                    limb1: 0x72159679cd485fdf8175b8e9,
-                    limb2: 0xda083d6643b1485
+                    limb0: 0x320fc676a1a8643c28a1ec38,
+                    limb1: 0x1e61bca64e8742ba13172ddb,
+                    limb2: 0x1bb4b1d3bd82edb9
                 },
                 u288 {
-                    limb0: 0xd377710439cd98af62b283fe,
-                    limb1: 0x83b82508507d7d64e743f5dc,
-                    limb2: 0x1b33229c01cf7ab2
+                    limb0: 0x698bd1b44d3f6171080a93fb,
+                    limb1: 0x901c467eadddc6cfe45631a7,
+                    limb2: 0xebee1f5ef863ece
                 },
                 u288 {
-                    limb0: 0x6356ee70c25c4c16af1c794,
-                    limb1: 0x388ef5736825f8eea622842e,
-                    limb2: 0x113d09bafd8b254a
+                    limb0: 0xdcfa566967df21c1b60a0733,
+                    limb1: 0x4cbfaae95a10eef04ad718b8,
+                    limb2: 0x2608d3b452345ff
                 },
                 u288 {
-                    limb0: 0xee4a48f8b006b5d4a5c13ddf,
-                    limb1: 0xf4c9b478e7b575620e554e3a,
-                    limb2: 0x407bcea40d8bd46
+                    limb0: 0xd25a1aceb522c56d87ec8c10,
+                    limb1: 0xf0994d9148d6aa3912b158b6,
+                    limb2: 0x2642af90876c5a13
                 },
                 u288 {
-                    limb0: 0x9d02bef88d950db768f0666d,
-                    limb1: 0x296f8c2bcd29cc4a2b7a86b9,
-                    limb2: 0x1757eb9fd5d712c4
+                    limb0: 0x28de01088baea7749030fc93,
+                    limb1: 0x3cd745efbe37b4398ccb0a44,
+                    limb2: 0x2105e629ea423cbe
                 },
                 u288 {
-                    limb0: 0x63dce9b8e0b94b3250a3117b,
-                    limb1: 0xb0cec1d191b12277598b88b0,
-                    limb2: 0x51c062ba7abb139
+                    limb0: 0x6b202ed10b120783cdb87aea,
+                    limb1: 0xf003848524d07b193a3003ad,
+                    limb2: 0xb18a81b9e0ef7d7
                 },
                 u288 {
-                    limb0: 0xe7b9d3345b8bfdd5d29eca6f,
-                    limb1: 0xe4d7f5a95eb0e209c0f96ace,
-                    limb2: 0x15bc522355e4218
+                    limb0: 0xfffe4ac95a453626e43b8762,
+                    limb1: 0x5b4f803c05f5bb51dfbab48b,
+                    limb2: 0x1545fd064a2456ff
                 },
                 u288 {
-                    limb0: 0x2f2c73818af34a6e9e8337d,
-                    limb1: 0xa0270f9dec01724c53bd768b,
-                    limb2: 0x38e172bcec9a0c9
+                    limb0: 0xa419aad2186910fb65126915,
+                    limb1: 0x189b7339a1acd5488e1c39d9,
+                    limb2: 0x2f2babe00999b18b
                 },
                 u288 {
-                    limb0: 0xca6a89ba332a610ed66edcee,
-                    limb1: 0xb18e2bf32065090d2594b030,
-                    limb2: 0x1480342cf67428c1
+                    limb0: 0x439ca23b28c5fa21d376d715,
+                    limb1: 0xb32bfdc3cc36aed660db9669,
+                    limb2: 0x2cfef2a9bd50c03c
                 },
                 u288 {
-                    limb0: 0x25ce0b6a11861e782f25bd76,
-                    limb1: 0xbbcd2311523d78888db8ac59,
-                    limb2: 0x784336b9ac304
+                    limb0: 0xa194e8e95ff512b208a7ce61,
+                    limb1: 0xbb2351f35065c0b3b3777c7b,
+                    limb2: 0x2a4cac59b0ebc448
                 },
                 u288 {
-                    limb0: 0x90c32183e2f899efae81406c,
-                    limb1: 0xad2b880cdd79039749738486,
-                    limb2: 0x2aa16c04ee1ca374
+                    limb0: 0xdb79efe4b7def4897e4d3396,
+                    limb1: 0xd121b730ac4b092ec5512e8f,
+                    limb2: 0x25a265c927e20e23
                 },
                 u288 {
-                    limb0: 0xec573d2dd06fa89a80ca1e6a,
-                    limb1: 0xd5025b3e39a589ae9e6b781,
-                    limb2: 0x2915cb7fb1474f8c
+                    limb0: 0x5cfbf3811c6f4c584080d74c,
+                    limb1: 0x8d45b2dc9bc976b6b4dd081e,
+                    limb2: 0x3500843d3fd427b
                 },
                 u288 {
-                    limb0: 0xb13e4a8e38a4e0bfc8800b12,
-                    limb1: 0x30278d2de906b803a1456223,
-                    limb2: 0xbac95c17bb3755c
+                    limb0: 0x23156dcbd27745a38317e780,
+                    limb1: 0xd908e02f34937057d24e08da,
+                    limb2: 0x95e1d22b431bed4
                 },
                 u288 {
-                    limb0: 0xfa2abb0906f7fcf7aa89ec28,
-                    limb1: 0xaa58a83412c51e2ddc1514ad,
-                    limb2: 0x1dc03f66683fbbb7
+                    limb0: 0x597a8eb4060cec45953a3c33,
+                    limb1: 0x49db5c01b491bf61252b638f,
+                    limb2: 0x1056e016028c3ebe
                 },
                 u288 {
-                    limb0: 0x4179962a7d9495adc8745cd6,
-                    limb1: 0x6cab48b22b5353a204d2bb90,
-                    limb2: 0x1df0346728c20b17
+                    limb0: 0xb25ce265066569a766f41a7f,
+                    limb1: 0xeab053ed702f7579ba89199e,
+                    limb2: 0x2cad752fd6667888
                 },
                 u288 {
-                    limb0: 0xe397bc013f8473f559d51b9c,
-                    limb1: 0xa2fd844d24bc977399de676e,
-                    limb2: 0x205309208cded720
+                    limb0: 0xc2074d2ca59ab7a3854c94d5,
+                    limb1: 0x7b2cdc446ee4d5e03eee89d9,
+                    limb2: 0x608cd66c0851e37
                 },
                 u288 {
-                    limb0: 0x723c3f293725de3d6c9a4fb4,
-                    limb1: 0x1518981f228622b2e59ef45d,
-                    limb2: 0x12b60e131c8111ac
+                    limb0: 0x95c43087e0da1b0a5a89492f,
+                    limb1: 0x42f6a4ed3f85a0a13dc98d38,
+                    limb2: 0x15216ecad27d2141
                 },
                 u288 {
-                    limb0: 0x7e430e5c6597422f4ab9c0f2,
-                    limb1: 0xd3e636f92f59e1ecedf9b8f8,
-                    limb2: 0x2e5f5baec75b1814
+                    limb0: 0x43724d6a3d40468428284426,
+                    limb1: 0x2385837d40bb7d62caaff4ca,
+                    limb2: 0x450fc57225373c1
                 },
                 u288 {
-                    limb0: 0x1db2d9c1c4e0390663df4b80,
-                    limb1: 0x395703ab901ace278d77b5e3,
-                    limb2: 0x145f1b0775544598
+                    limb0: 0xe1df2133504f454db9564cd0,
+                    limb1: 0x11a8243b0c249c847e922ec9,
+                    limb2: 0x138f79826d5074c8
                 },
                 u288 {
-                    limb0: 0x68643e3234d677df53808118,
-                    limb1: 0x541e959d521800a817edb6bc,
-                    limb2: 0x18dcbb45e5c0a1ac
+                    limb0: 0x505fdb441b8c20f345eaf730,
+                    limb1: 0xcd083cb69535c69de04b33a3,
+                    limb2: 0x19ff30be4b36d2a4
                 },
                 u288 {
-                    limb0: 0xc259436227e1d8d48a166b24,
-                    limb1: 0xd923cad534268a2eebfe5730,
-                    limb2: 0xd1d0d40e7a6413f
+                    limb0: 0xa0735cce8016fa55761c917e,
+                    limb1: 0x1698ebae30942441fc0439a2,
+                    limb2: 0x6d05e574bb009e2
                 },
                 u288 {
-                    limb0: 0x3e1f762056fb7bda11f91a13,
-                    limb1: 0xa7a5cf42f632b5066ae49e41,
-                    limb2: 0x1f479478a3fcd19b
+                    limb0: 0x5490d6b1303a272d3bf4ef0e,
+                    limb1: 0x1496a848ce12578c3a0b1a43,
+                    limb2: 0x87a1fe732f919b0
                 },
                 u288 {
-                    limb0: 0xb39227c3065af023ae36d77b,
-                    limb1: 0x22722fc804bff3bcd562ca69,
-                    limb2: 0x432558cc6f29a9b
+                    limb0: 0xb558585a8222094a11e605e3,
+                    limb1: 0x6b0230545ea5d679935512d0,
+                    limb2: 0x2fccb0ee7764867d
                 },
                 u288 {
-                    limb0: 0xeac99ae55786b67f933f53af,
-                    limb1: 0x1b79a6e34f5eee99fc5f90a7,
-                    limb2: 0x3a0529a5200c8c2
+                    limb0: 0x73e9b43b161c5d04830ae655,
+                    limb1: 0x9a99c375fcd3eba5ce1ab386,
+                    limb2: 0x12a5b99bf60af3b4
                 },
                 u288 {
-                    limb0: 0x46dfea337eab93707bba0641,
-                    limb1: 0x328e7a01f67bfecfab7eae3e,
-                    limb2: 0x29f05e8b11f778a6
+                    limb0: 0x6bb1f5e58836eecc979daf64,
+                    limb1: 0x2b8bd3ecce6fa7d59a462b1,
+                    limb2: 0xd0c972862600f4e
                 },
                 u288 {
-                    limb0: 0xa4c706d533ec304750d0fa15,
-                    limb1: 0xb755d51577c5bd78f02cbef4,
-                    limb2: 0x1be0559a906fcc10
+                    limb0: 0x838d0378bfe5f9e33dee2969,
+                    limb1: 0x67508c3fb6e2f86afe7f8f4c,
+                    limb2: 0x1264c565d03f39a7
                 },
                 u288 {
-                    limb0: 0xf612e48f1963041fabcf44e,
-                    limb1: 0xe21ae849da9ca904f9fcc238,
-                    limb2: 0x15ff923f60db029c
+                    limb0: 0x8d554272c889a7cef749a91,
+                    limb1: 0x7506e0a1c7386af263fa2824,
+                    limb2: 0x2f70322eb1aa6724
                 },
                 u288 {
-                    limb0: 0x6dbeb88e16b3e01f48149780,
-                    limb1: 0xb41bdb5e6aa33bac8a4bd1f8,
-                    limb2: 0x155aad935404f3a0
+                    limb0: 0x8e12a8df98f2ce04d11fff81,
+                    limb1: 0x8dcd30c864c0d4e84759b9a6,
+                    limb2: 0x14056f0919101fd1
                 },
                 u288 {
-                    limb0: 0xae7e78109b800b634abc4869,
-                    limb1: 0x83b3337ff65e0719c1ec726f,
-                    limb2: 0x13b8bf27226a505b
+                    limb0: 0x33613887ddf070521b755e7a,
+                    limb1: 0x290e22dc837c1fbdb81a28b,
+                    limb2: 0x1aca534e8fc54be4
                 },
                 u288 {
-                    limb0: 0xb216ce09ace3d28a9a7a5203,
-                    limb1: 0x5c538482b518253e544de427,
-                    limb2: 0x1592d0b18c1c7d6b
+                    limb0: 0x2293457ea38e2d5103f1797f,
+                    limb1: 0x6ea7064ca05531972dbd3d88,
+                    limb2: 0x2bd314ec52f892bd
                 },
                 u288 {
-                    limb0: 0xc6d08d98dd632d2944fc1b8f,
-                    limb1: 0x82329e3267dda3f8b2294e84,
-                    limb2: 0x23b316fad7736ddf
+                    limb0: 0xad8778d732a6fa715f6d73c1,
+                    limb1: 0x9da39634f4a73a9a481afa4c,
+                    limb2: 0x210acb8f1115ef96
                 },
                 u288 {
-                    limb0: 0x555bf08876f63efd9c9c9181,
-                    limb1: 0xec44cdd238b7c6a510782783,
-                    limb2: 0x1fab70ce66653fe5
+                    limb0: 0xd70d8bc1425afc17e54d7e44,
+                    limb1: 0x28142e61bec93e5076e65b7a,
+                    limb2: 0x19b986bd9ad36a3b
                 },
                 u288 {
-                    limb0: 0x46f1222fa2ee335488238b3e,
-                    limb1: 0xdc69265772d9d97d0afb32db,
-                    limb2: 0x1a3260210cbb5b7b
+                    limb0: 0x5a6af830ed007394c8705ca,
+                    limb1: 0x6ebbdb388fe4db913cc8a7d5,
+                    limb2: 0x22417e0a6498aa1f
                 },
                 u288 {
-                    limb0: 0x7fdc89bd866a84c853980f31,
-                    limb1: 0x17de73c48a314b970362024f,
-                    limb2: 0x15df0f0461f759ba
+                    limb0: 0xa2f627a38fda9eb1971f5b06,
+                    limb1: 0x83cab7edc33670f89d052861,
+                    limb2: 0x1e01345fb85f8f86
                 },
                 u288 {
-                    limb0: 0x1ab08de775a8ad5697635e2f,
-                    limb1: 0xdedddc61747a3257c0d10e32,
-                    limb2: 0xa7518d34aa5df4e
+                    limb0: 0x78ec9a4d0eb4f63bd5b51906,
+                    limb1: 0x9c3aa350295dbdcd47c99fd7,
+                    limb2: 0x2af9deed71e743c6
                 },
                 u288 {
-                    limb0: 0xcfb096e8f1322e299c4485d3,
-                    limb1: 0x71b277fdfe8bafda29b54e28,
-                    limb2: 0x2b0a65636ef9085d
+                    limb0: 0xce5a395db07dbb317712141e,
+                    limb1: 0x8229c82a1c520ef1305bf0b0,
+                    limb2: 0x2ec6fc0c84d8561f
                 },
                 u288 {
-                    limb0: 0xc3a47c8ca6ac31d30a3dcaa9,
-                    limb1: 0x72edf69c74613b6a644c1b45,
-                    limb2: 0x1e72a36d98bd9dec
+                    limb0: 0xb3da892475fd754c3e814af8,
+                    limb1: 0xfa3172525023870e7abdf2eb,
+                    limb2: 0x199af205fb6c4fb9
                 },
                 u288 {
-                    limb0: 0x74444ad9bdc81033c4456ef,
-                    limb1: 0x5babc8f2fa6d4c733d428406,
-                    limb2: 0x135c52d7237365ac
+                    limb0: 0x93797018d157d9d89e4cfc69,
+                    limb1: 0xb57660ce9b8a033791fafdd6,
+                    limb2: 0xa83cd64abc58e8d
                 },
                 u288 {
-                    limb0: 0xc3ffa391a4862b3ecfbb13a4,
-                    limb1: 0x71ed173df02172ec206a465a,
-                    limb2: 0x251bcb8f882ccd1e
+                    limb0: 0xd09a9a68b3e043ea9d1083dc,
+                    limb1: 0xf8f80f3f5557a3b7f82d2142,
+                    limb2: 0x2d6dab6850714c2b
                 },
                 u288 {
-                    limb0: 0x5e1ce878fce48f9c66453e82,
-                    limb1: 0x64be2d114c9f269741dbdd50,
-                    limb2: 0x2cf712b69704143d
+                    limb0: 0x602b8715abb2dd0cd1f13087,
+                    limb1: 0xbee979897dbb42839a84481d,
+                    limb2: 0x24bb090847a60adb
                 },
                 u288 {
-                    limb0: 0xdfebdd641d96c75e03ae4e2a,
-                    limb1: 0x31baa4928c67c26f8256f171,
-                    limb2: 0x192757e0492c30c
+                    limb0: 0x2d95317e0022811d0e8caa2a,
+                    limb1: 0xc9ccdb9c4134f7ae4cdfc029,
+                    limb2: 0x114154935a8e6fed
                 },
                 u288 {
-                    limb0: 0xfbb4672fa1f2fd5f52d4de6e,
-                    limb1: 0x46a23681e8e693095924c96d,
-                    limb2: 0x10b8341398b71619
+                    limb0: 0xea4802fea37112889eaf82ea,
+                    limb1: 0xf99b9eb73f019353267c7033,
+                    limb2: 0xe190224d57875c8
                 },
                 u288 {
-                    limb0: 0xecf6b4520f1705d588140cc2,
-                    limb1: 0x5637642824554e72dce00d0f,
-                    limb2: 0x2eb4ad3dcf23a177
+                    limb0: 0xed8b2f32332c42ed1015a430,
+                    limb1: 0x3c99292fd102212a2eaa3377,
+                    limb2: 0x1de8c37856619d45
                 },
                 u288 {
-                    limb0: 0x49cb1897e94f5d495d972984,
-                    limb1: 0xb0c0520e1812a3ad245cf3b0,
-                    limb2: 0x2ad0d683080f25c8
+                    limb0: 0x9cbc19bbe07359799be57bb2,
+                    limb1: 0x8075fa59fe304352f8dc86d6,
+                    limb2: 0x230a700550a7a7da
                 },
                 u288 {
-                    limb0: 0x7f434695a67c22e934d2247e,
-                    limb1: 0xa04af6af9e48642315283e5d,
-                    limb2: 0xd6eb321fbffde4b
+                    limb0: 0xe60e8293991169666e35986e,
+                    limb1: 0x856fdea2783dd93d583d2b1f,
+                    limb2: 0x74a230f5bb9a2af
                 },
                 u288 {
-                    limb0: 0x595b0beadf77f994593370ea,
-                    limb1: 0x54fa1179d9a09a0dd4e2235c,
-                    limb2: 0x3017b81089129260
+                    limb0: 0xd2d2b03bf7848c69432915c5,
+                    limb1: 0xda73108828e2e3a81d51f420,
+                    limb2: 0x2db26fe400dc6026
                 },
                 u288 {
-                    limb0: 0xfeb8dc59c0f038f5f2fead84,
-                    limb1: 0x13e77cf742234393ecd235f5,
-                    limb2: 0xd1e3dc6c488acb2
+                    limb0: 0x5383286b16581779f30fbf8b,
+                    limb1: 0x4a0d38ef4f8e3b93227e120c,
+                    limb2: 0x201138c359abd9d8
                 },
                 u288 {
-                    limb0: 0x34423ed76efd92b512afb8dc,
-                    limb1: 0xa92d19de544bd4d458bc03e,
-                    limb2: 0x2f8831a84feca089
+                    limb0: 0xfc3bd3cf58d4256f2c33118b,
+                    limb1: 0xe62e15e8995f8530f919658c,
+                    limb2: 0x28e31a748b414f16
                 },
                 u288 {
-                    limb0: 0xb1c5bedae382ae4f855e66b,
-                    limb1: 0xd2797c9918417a12b2e55115,
-                    limb2: 0x29b07086b04bddd
+                    limb0: 0xed1b65ceb62d65c4cd5df2f8,
+                    limb1: 0x46fe3d5e71399901f2beba47,
+                    limb2: 0x14ef0dc4b873426d
                 },
                 u288 {
-                    limb0: 0x53435e70d100538df84fc156,
-                    limb1: 0x896ce16ad69bb4c61b11688c,
-                    limb2: 0xf94cc4b507f4c41
+                    limb0: 0xddd48f9ea765d608cabef7ba,
+                    limb1: 0x32387619839131684e0985c8,
+                    limb2: 0x1ac0c36598ce89a8
                 },
                 u288 {
-                    limb0: 0x1ec573cf73e423ba2923e9c3,
-                    limb1: 0xb62e2a855947898bb10696fe,
-                    limb2: 0x2daec6a287fc9dd1
+                    limb0: 0xd1b3617fb903978ffe6fcf74,
+                    limb1: 0x6eb831e6d69181b221221db6,
+                    limb2: 0x2df7948110304166
                 },
                 u288 {
-                    limb0: 0x7948807200ac8abae519b81b,
-                    limb1: 0x4b101498741ee3951e3c4a61,
-                    limb2: 0x246b38619bc5e31b
+                    limb0: 0x6b11415af5e579dbe286abc6,
+                    limb1: 0xca0e59852a3203e195d004f9,
+                    limb2: 0x2bbc55282412cda6
                 },
                 u288 {
-                    limb0: 0x9f48d74501ed9e3be75e207c,
-                    limb1: 0xf4b853911340f61199485f29,
-                    limb2: 0xc7a8d6a3ae84344
+                    limb0: 0xcec2923997eacb79308d9927,
+                    limb1: 0xaa7e018c70667778f84cbfa2,
+                    limb2: 0x19ce917b6b1d9d59
                 },
                 u288 {
-                    limb0: 0x9a253935efd3c0e57fa38a01,
-                    limb1: 0x9c9e2ff7f32f4959a7c1c1d7,
-                    limb2: 0x111e2cc3705e0c57
+                    limb0: 0xea70fe5ee7e08ca71814ce9d,
+                    limb1: 0x18292eb21bbcf0d7f93a213c,
+                    limb2: 0x1cc8e3ecf2441d26
                 },
                 u288 {
-                    limb0: 0xa0fc4329e6a235b2f28bd99c,
-                    limb1: 0xc17ce85cb262aa8d601ddd42,
-                    limb2: 0x1eec8ce499cb960d
+                    limb0: 0xe2861454b99d7cdaff9cf9ea,
+                    limb1: 0x7d99cf63a0744359a9a81470,
+                    limb2: 0xdbd96f26219f937
                 },
                 u288 {
-                    limb0: 0x9b4b0fd1e13c8e72ef18c072,
-                    limb1: 0x1f0c20dd816bd32ab5f7bc42,
-                    limb2: 0x3b847ff1ae1297a
+                    limb0: 0x67bf2394e40a817be17c8208,
+                    limb1: 0x216c5644f26279156a1300ad,
+                    limb2: 0x531efc85d2445df
                 },
                 u288 {
-                    limb0: 0xce6c77a1489613b32ec5918b,
-                    limb1: 0xea76e119f3afbe0f72fa0d5f,
-                    limb2: 0x2bb6dc80f13564cc
+                    limb0: 0xa048439b73cc78fe8d31b8fb,
+                    limb1: 0xdb64714c5d5f496c37153eab,
+                    limb2: 0x5dac36cef7d6667
+                },
+                u288 {
+                    limb0: 0xa874d0fe7298d226968b5388,
+                    limb1: 0xf6774c331abc4dd71663c6d0,
+                    limb2: 0xe5263d5f383e1ad
+                },
+                u288 {
+                    limb0: 0xc259af4edc9f9486fb76dc60,
+                    limb1: 0xf16c0602be7228ea9dc3bbcd,
+                    limb2: 0x27b39e037fe23d15
+                },
+                u288 {
+                    limb0: 0x699df503829631325f216169,
+                    limb1: 0x596e0a402a58d6641448f8e0,
+                    limb2: 0x21492e39bf40e00b
+                },
+                u288 {
+                    limb0: 0x31b2113899ebeeba99658d78,
+                    limb1: 0xdfc8a3e9df462829abee7ef3,
+                    limb2: 0x3471ff4dde10dfe
+                },
+                u288 {
+                    limb0: 0x7b1fc765f6a251882d2deeb9,
+                    limb1: 0x24f54c719d0aa078c65edec8,
+                    limb2: 0x10647685ee0c6d71
+                },
+                u288 {
+                    limb0: 0x1c6a20ca9586ac2e9b6f7ac5,
+                    limb1: 0x50db3fb731e33d0265287fae,
+                    limb2: 0x264c880d886cbc8d
+                },
+                u288 {
+                    limb0: 0xf1219f2e9ac927582389654d,
+                    limb1: 0x22727f55d95e622f1c77513,
+                    limb2: 0x2a86ebf343a2b2e4
+                },
+                u288 {
+                    limb0: 0x552996a83a91ae1343d071fa,
+                    limb1: 0xe140b45e95f9bf24022c711f,
+                    limb2: 0xf9411ae4508d7d3
+                },
+                u288 {
+                    limb0: 0x2fae9b47e047e0c810b0dedf,
+                    limb1: 0xdd97a9ebfaf38c1ce8e85a6,
+                    limb2: 0x21ba3ba5eb516295
+                },
+                u288 {
+                    limb0: 0xd07c18b20ad53cc430ff8b15,
+                    limb1: 0x5162c41ca374a160fdbdd03f,
+                    limb2: 0x2db092a2d8fcba6d
+                },
+                u288 {
+                    limb0: 0xcd0b3c61df76a2e55402afc8,
+                    limb1: 0x509da9cfece48f8351b71c93,
+                    limb2: 0x1c9b6a810b012b76
+                },
+                u288 {
+                    limb0: 0xfd2d3cd1f83e41431c677d8a,
+                    limb1: 0xcfeee48fb1f292a72d4c9fec,
+                    limb2: 0x110ff74d4b67bed2
+                },
+                u288 {
+                    limb0: 0xa64f7f1e20823ab68c87be1f,
+                    limb1: 0x55808918e1aa07a39ae9394f,
+                    limb2: 0x4f5afc73557ba0b
+                },
+                u288 {
+                    limb0: 0xdf091be395426ffbb7d12aa,
+                    limb1: 0x2d124e1e1659f3f25f48b36e,
+                    limb2: 0x2b86fc3991db4a31
+                },
+                u288 {
+                    limb0: 0x8fcb993888c820ee24fb57ac,
+                    limb1: 0xa3efdbd920603a471283659b,
+                    limb2: 0x25a6ba637feca4a2
+                },
+                u288 {
+                    limb0: 0x54b4a009e69f050691589df6,
+                    limb1: 0xfd1f372fe399d3a8ed947ce1,
+                    limb2: 0x27327fd09f8e9d84
+                },
+                u288 {
+                    limb0: 0xf0901afa5e86fdec90f505bf,
+                    limb1: 0x4f6d56670ab475d136e9638c,
+                    limb2: 0x1946e133ef526545
+                },
+                u288 {
+                    limb0: 0x61f2c22b19400bea304ea4b8,
+                    limb1: 0x453b70d7da14f02658cdaef3,
+                    limb2: 0x2cd17f89f13bed9d
+                },
+                u288 {
+                    limb0: 0x3d4ee11725e4217e7cb137d,
+                    limb1: 0xcb17edbf7ff6efda56e16f73,
+                    limb2: 0x17dd065eee0e5e5e
+                },
+                u288 {
+                    limb0: 0x852ba8ebfa0d9e8899c77bb6,
+                    limb1: 0x75f76b6edcb51edaf397fd2,
+                    limb2: 0x145a3932468a5f1b
+                },
+                u288 {
+                    limb0: 0x124de13d1ee6bfdba3fe605a,
+                    limb1: 0xd69dca692e41a61cdab660d3,
+                    limb2: 0x1b5b302dc80dcd49
+                },
+                u288 {
+                    limb0: 0xb61a46eb454e8712754176e5,
+                    limb1: 0xc71c1e7d05c604f08b46329d,
+                    limb2: 0x223ffd50d3547a
+                },
+                u288 {
+                    limb0: 0xabfba0d1153aad2b308294d4,
+                    limb1: 0x87de741f5e31b793c6fdb5bd,
+                    limb2: 0x249ccf46376e5727
+                },
+                u288 {
+                    limb0: 0x3b0e43855677034bbc98bd62,
+                    limb1: 0xbcd5dd6ab2cc5a32c4624bc7,
+                    limb2: 0x1937b315adc6bb4a
+                },
+                u288 {
+                    limb0: 0xd511c0896fad1dc8bcde5fe4,
+                    limb1: 0x2306bca01aadebe3309a2a21,
+                    limb2: 0x2c10a2532339c68d
+                },
+                u288 {
+                    limb0: 0xf7d731d6630f74d949da2d0b,
+                    limb1: 0x77c276c2be7207d061046d2e,
+                    limb2: 0x2565bb16d63d6b34
+                },
+                u288 {
+                    limb0: 0x33fcdda732971f1e1421584a,
+                    limb1: 0x3b49f75dcebae435b4c3076e,
+                    limb2: 0x2e3bc0f1d147d469
+                },
+                u288 {
+                    limb0: 0x46d8765beb48e70c0f958dde,
+                    limb1: 0xe1d86f3e0cb3f95a71e92b23,
+                    limb2: 0x900ef08d1f97090
+                },
+                u288 {
+                    limb0: 0x938e6b3fb97cab539cdf38c,
+                    limb1: 0xfd189430878927cf768201be,
+                    limb2: 0xd26ad5ea5a197a3
+                },
+                u288 {
+                    limb0: 0x6ece43d62bd37cfc28a143f5,
+                    limb1: 0x56108a8888a66b1fa66899a9,
+                    limb2: 0x10a67abec59a8d3b
+                },
+                u288 {
+                    limb0: 0xfc7ab5a229f39b6d8ccf03b0,
+                    limb1: 0xc2f1def11a0a4a0e025e440d,
+                    limb2: 0x1afc69813070b5b2
+                },
+                u288 {
+                    limb0: 0xe45bd308504fb7765876b515,
+                    limb1: 0xa8c794ead540ff7b5b4e7c74,
+                    limb2: 0x55fc6d1e71dcee6
+                },
+                u288 {
+                    limb0: 0xc9cc218b6aa9d3abfd2aee18,
+                    limb1: 0x314d3ac636b58452eb3d3955,
+                    limb2: 0x2cbefb47fc677ebf
+                },
+                u288 {
+                    limb0: 0xf5d55e4c914018444516add3,
+                    limb1: 0x8da17baa2cef2b8d69ef35dc,
+                    limb2: 0x2027e1885e1e1fab
+                },
+                u288 {
+                    limb0: 0x5289273fb918de920609d86e,
+                    limb1: 0xeca0af34d7cf515280cba87c,
+                    limb2: 0xe89b5216fd72047
+                },
+                u288 {
+                    limb0: 0xfde7779b8e3b67e11bb53dd7,
+                    limb1: 0x73f64b12512df320c547f23c,
+                    limb2: 0x169bde5c24f2d57d
+                },
+                u288 {
+                    limb0: 0x249c1237a08f6e7558abc19,
+                    limb1: 0x1dd7f33c366618c3adb78a5c,
+                    limb2: 0x1cb88d9a21b31292
+                },
+                u288 {
+                    limb0: 0xe4304565dfc1d51ca226b87c,
+                    limb1: 0xffcb43503801ef953c609d29,
+                    limb2: 0x1e038bda1a9f4d24
+                },
+                u288 {
+                    limb0: 0xee565ea7941e5e6df000481f,
+                    limb1: 0x6ea99418641eb43b5b008418,
+                    limb2: 0x71720368223892
+                },
+                u288 {
+                    limb0: 0xd010d071dd3c5ce666ae9fb2,
+                    limb1: 0x85963729739c81e847897a55,
+                    limb2: 0x135baaf6e3805b61
+                },
+                u288 {
+                    limb0: 0x771f4a9012033f119d27698f,
+                    limb1: 0xb6bace21c1f42d3ffd24c2,
+                    limb2: 0xcf45890ca42576f
+                },
+                u288 {
+                    limb0: 0x2819cf07dd882be86c93bc8e,
+                    limb1: 0x5c83baed4a5cd2629ee99cf1,
+                    limb2: 0xbb2795a0257e22c
+                },
+                u288 {
+                    limb0: 0x2097738d7e1bd7ee65345e0b,
+                    limb1: 0x29cef261a882c565c7741544,
+                    limb2: 0x2762df464e177a39
+                },
+                u288 {
+                    limb0: 0x525783e33aeb40d8e7e53b58,
+                    limb1: 0xaa0250e6c73fec107722f26e,
+                    limb2: 0x2e6930604af3b7d9
+                },
+                u288 {
+                    limb0: 0xb2309504aa37eac73f0fb357,
+                    limb1: 0x399584c0b9850f6700a74bbb,
+                    limb2: 0x1281e29c71d104d3
+                },
+                u288 {
+                    limb0: 0x4938b5652920c6e87658ad6f,
+                    limb1: 0xd444784fa22286b85aef18fa,
+                    limb2: 0x25f32ab2f697ac3b
+                },
+                u288 {
+                    limb0: 0x9feef67991630d2600580f80,
+                    limb1: 0x974573718962e054c4daceec,
+                    limb2: 0x4f4ce28bd1234c0
+                },
+                u288 {
+                    limb0: 0xd17e754d2ea7a1817bea5d7b,
+                    limb1: 0xc1522111f76a91a481a14410,
+                    limb2: 0x2d7051a88f96b16b
+                },
+                u288 {
+                    limb0: 0x234e6d73d2caf93d2b1911a1,
+                    limb1: 0x13c99439693b2724ba1dc346,
+                    limb2: 0x954de8da4c78abe
+                },
+                u288 {
+                    limb0: 0xb9d191d7e3e04a54cdb71c8c,
+                    limb1: 0x88c0c0105e8f37717ba7666f,
+                    limb2: 0x1eb13eee87051211
+                },
+                u288 {
+                    limb0: 0x659b3ecedfe553d1a1b82d59,
+                    limb1: 0x4f6fdccf43ebb02d1e9f44dd,
+                    limb2: 0x23dd6471f597cf55
+                },
+                u288 {
+                    limb0: 0xcb455e0d971280fae89be065,
+                    limb1: 0x639205b040f16108f89aabe1,
+                    limb2: 0x28c67bd181ad616d
+                },
+                u288 {
+                    limb0: 0xdcab44b264fd6eb14a838189,
+                    limb1: 0x815d2aafabb6a730e1ad469c,
+                    limb2: 0x1c7291e4ce311cd5
+                },
+                u288 {
+                    limb0: 0xb01c05d0ef1a9a0830de40dc,
+                    limb1: 0x2ae5a3474295b16e9ca87789,
+                    limb2: 0x227af7f14b217d16
+                },
+                u288 {
+                    limb0: 0x2ae134056b011455d5f75df4,
+                    limb1: 0xf91f5932530cee7aef9bc302,
+                    limb2: 0x11d547126bf99fc
+                },
+                u288 {
+                    limb0: 0x521185a16aa56ed63aa490d2,
+                    limb1: 0xee1dea7f009620a691021fd6,
+                    limb2: 0x186b8925db964e67
+                },
+                u288 {
+                    limb0: 0x85f5786e73f7746fba6aff31,
+                    limb1: 0xfaf42da6b0529201f7954cbb,
+                    limb2: 0x2318b51d76069a4a
+                },
+                u288 {
+                    limb0: 0x2952819907a2369bd08ca3f8,
+                    limb1: 0x3549c71e2b49d31221e6e267,
+                    limb2: 0x22b077d040ba5cb8
+                },
+                u288 {
+                    limb0: 0x29b925316591ba4bae0d1d6f,
+                    limb1: 0xd9cfa9e66d3cc286d0735fa9,
+                    limb2: 0x9b08d76813e83c5
+                },
+                u288 {
+                    limb0: 0xec318e32a5a4aba0985b3d3,
+                    limb1: 0x43f89e6f4495abb85363e0d4,
+                    limb2: 0x134491946182b5f7
+                },
+                u288 {
+                    limb0: 0xb0f83ebd0e35745dd0af37aa,
+                    limb1: 0x52f378d435cd641ee1ca1c8b,
+                    limb2: 0x24172f993aefe41d
+                },
+                u288 {
+                    limb0: 0x327becc00cea7dcc3f134943,
+                    limb1: 0xb714acc62745dd4a70eabbee,
+                    limb2: 0x1db49dae821eb1dd
+                },
+                u288 {
+                    limb0: 0x71fe41b7e78225173978dbb0,
+                    limb1: 0x14d8f88e4a699b01574593d2,
+                    limb2: 0x14d3d7cd9b00396e
+                },
+                u288 {
+                    limb0: 0x23f5363c93de0abbd3ec6d85,
+                    limb1: 0xf51a978501996ed9d5dd0fe,
+                    limb2: 0x17c453f280196c98
+                },
+                u288 {
+                    limb0: 0xd1fbfa54cab1935cb7b3204a,
+                    limb1: 0xc09390fa0a93bc82b04a6be1,
+                    limb2: 0x2118408740401de2
+                },
+                u288 {
+                    limb0: 0x28e7ceb728137ad457c4aacb,
+                    limb1: 0xf45ca3296b71f4d0f6ce070f,
+                    limb2: 0x208f1f78c553fb36
+                },
+                u288 {
+                    limb0: 0xd24b152a93a95f5093713260,
+                    limb1: 0x62b3e8efe59f697ee1e1a91e,
+                    limb2: 0x895c178aef4381a
+                },
+                u288 {
+                    limb0: 0xd892c87db5ab1f8f963b9f7a,
+                    limb1: 0x59b223328ccae9ca9b9762b3,
+                    limb2: 0x19fced5d71579472
+                },
+                u288 {
+                    limb0: 0x1bccabfc24ac2e484975e309,
+                    limb1: 0xde9475e7bba2da33931a9e5c,
+                    limb2: 0xc5005df4b75a4d
+                },
+                u288 {
+                    limb0: 0xe7b5be5f1ddc889332dcb4c1,
+                    limb1: 0xbe240b0dfda16db677654749,
+                    limb2: 0x1866c81941552666
+                },
+                u288 {
+                    limb0: 0xcd9dc5eea2c96cdd7f53d909,
+                    limb1: 0x508fdb2cf64895fa86d77c02,
+                    limb2: 0x2c7225fe60f7d703
+                },
+                u288 {
+                    limb0: 0x252901c9010ee08480c51916,
+                    limb1: 0x5b8a72877b687b0fc0d7eff4,
+                    limb2: 0x1ce53add01ea1d1d
+                },
+                u288 {
+                    limb0: 0x8c7189ae75d1178b5813df92,
+                    limb1: 0x290cb78eb32e275bf7bd9cbd,
+                    limb2: 0x242258d24e270276
+                },
+                u288 {
+                    limb0: 0xc2aab8c41ec5c07e0c979390,
+                    limb1: 0x56c14d14cbbce7c240b49a11,
+                    limb2: 0x2f1726b0151a781c
+                },
+                u288 {
+                    limb0: 0x166e67bd81c6578aa085e351,
+                    limb1: 0xcfa67306a266a2796c95026e,
+                    limb2: 0xfe931c858170869
+                },
+                u288 {
+                    limb0: 0xad9ee747d992471d807bda59,
+                    limb1: 0xbd207508a39c034ae37bda8e,
+                    limb2: 0x12fe9c921cb4510a
                 }
             ],
         };
