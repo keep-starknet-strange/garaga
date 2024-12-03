@@ -14,7 +14,7 @@ use garaga::definitions::{
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-//use garaga::single_pairing_tower::E12T;
+use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
 fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
@@ -4191,7 +4191,7 @@ fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(z); // in47
     circuit_inputs = circuit_inputs.next_2(ci); // in48
 
-    let outputs = circuit_inputs.done_2().eval(modulus).expect('eval failed');
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let Q0: G2Point = G2Point {
         x0: outputs.get_output(t254),
         x1: outputs.get_output(t255),

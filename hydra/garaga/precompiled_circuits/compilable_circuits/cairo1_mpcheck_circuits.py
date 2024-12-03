@@ -294,7 +294,6 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         sum_i_prod_k_P,
         bit_type,
     ):
-        print(f"BIT TYPE {bit_type}")
         new_points = []
         if bit_type == "00":
             for k in range(self.n_pairs):

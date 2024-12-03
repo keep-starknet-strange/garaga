@@ -189,17 +189,17 @@ fn multi_pairing_check_bn254_2P_2F(
         c_i = _c_i;
     };
 
-    let R_n_minus_2 = Ris.pop_front().expect('rnminus2');
-    let R_last = Ris.pop_front().expect('rlast');
+    let R_n_minus_2 = Ris.pop_front().unwrap();
+    let R_last = Ris.pop_front().unwrap();
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
         yInv_0,
         xNegOverY_0,
-        *lines.pop_front().expect('l0'),
-        *lines.pop_front().expect('l1'),
+        *lines.pop_front().unwrap(),
+        *lines.pop_front().unwrap(),
         yInv_1,
         xNegOverY_1,
-        *lines.pop_front().expect('l2'),
-        *lines.pop_front().expect('l3'),
+        *lines.pop_front().unwrap(),
+        *lines.pop_front().unwrap(),
         *R_n_minus_2,
         *R_last,
         c_i,
