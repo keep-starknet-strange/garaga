@@ -141,11 +141,17 @@ class DerivePointFromX(ModuloCircuit):
 
 
 class ECIPCircuits(ModuloCircuit):
-    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+    def __init__(
+        self,
+        name: str,
+        curve_id: int,
+        compilation_mode: int = 0,
+        generic_circuit: bool = True,
+    ):
         super().__init__(
             name=name,
             curve_id=curve_id,
-            generic_circuit=True,
+            generic_circuit=generic_circuit,
             compilation_mode=compilation_mode,
         )
         self.curve = CURVES[curve_id]

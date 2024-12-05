@@ -14,7 +14,7 @@ use core::poseidon::hades_permutation;
 use garaga::circuits::ec;
 use garaga::utils::hashing;
 use garaga::utils::neg_3;
-use garaga::basic_field_ops::{sub_mod_p, neg_mod_p, mul_mod_p};
+use garaga::basic_field_ops::{add_mod_p, sub_mod_p, neg_mod_p, mul_mod_p, batch_3_mod_p};
 use garaga::utils::{u384_assert_zero, u384_assert_eq};
 
 #[generate_trait]
@@ -240,6 +240,12 @@ impl FunctionFeltImpl of FunctionFeltTrait {
         assert!((*self.b_num).len() == msm_size + 2, "b_num wrong degree for given msm size");
         assert!((*self.b_den).len() == msm_size + 5, "b_den wrong degree for given msm size");
     }
+    fn validate_degrees_batched(self: @FunctionFelt, msm_size: usize) {
+        assert!((*self.a_num).len() == msm_size + 3, "a_num wrong degree for given msm size");
+        assert!((*self.a_den).len() == msm_size + 4, "a_den wrong degree for given msm size");
+        assert!((*self.b_num).len() == msm_size + 4, "b_num wrong degree for given msm size");
+        assert!((*self.b_den).len() == msm_size + 7, "b_den wrong degree for given msm size");
+    }
     fn update_hash_state(
         self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252
     ) -> (felt252, felt252, felt252) {
@@ -256,9 +262,7 @@ struct MSMHint {
     Q_low: G1Point,
     Q_high: G1Point,
     Q_high_shifted: G1Point,
-    SumDlogDivLow: FunctionFelt,
-    SumDlogDivHigh: FunctionFelt,
-    SumDlogDivHighShifted: FunctionFelt,
+    RLCSumDlogDiv: FunctionFelt,
 }
 
 #[derive(Drop, Debug, PartialEq, Serde)]
@@ -297,7 +301,6 @@ fn scalar_mul_g1_fixed_small_scalar(
     let (s0, s1, s2) = hades_permutation(
         s0 + curve_index.into(), s1 + 1.into(), s2
     ); // Include curve_index and msm size
-    let (s0, s1, s2) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
     // Check input points are on curve and hash them at the same time.
 
     point.assert_on_curve(curve_index);
@@ -307,6 +310,8 @@ fn scalar_mul_g1_fixed_small_scalar(
     let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
     // Hash scalar.
     let (s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + scalar.into(), s1, s2);
+
+    let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
 
     let random_point: G1Point = derive_ec_point_from_X(
         s0,
@@ -375,21 +380,15 @@ fn msm_g1(
     }
 
     // Validate the degrees of the functions field elements given the msm size
-    hint.SumDlogDivLow.validate_degrees(n);
-    hint.SumDlogDivHigh.validate_degrees(n);
-    hint.SumDlogDivHighShifted.validate_degrees(1);
+    hint.RLCSumDlogDiv.validate_degrees_batched(n);
 
     // Hash everything to obtain a x coordinate.
-
     let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
         'MSM_G1', 0, 1
     ); // Init Sponge state
     let (s0, s1, s2) = hades_permutation(
         s0 + curve_index.into(), s1 + n.into(), s2
     ); // Include curve_index and msm size
-    let (s0, s1, s2) = hint.SumDlogDivLow.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.SumDlogDivHigh.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.SumDlogDivHighShifted.update_hash_state(s0, s1, s2);
 
     let mut s0 = s0;
     let mut s1 = s1;
@@ -424,6 +423,10 @@ fn msm_g1(
         s2 = _s2;
     };
 
+    let base_rlc_coeff = s1;
+
+    let (s0, _, _) = hint.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
+
     let random_point: G1Point = derive_ec_point_from_X(
         s0,
         derive_point_from_x_hint.y_last_attempt,
@@ -446,25 +449,40 @@ fn msm_g1(
         (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
     ];
 
-    // Verify Q_low = sum(scalar_low * P for scalar_low,P in zip(scalars_low, points))
-    zk_ecip_check(
-        points, epns_low, hint.Q_low, n, mb, hint.SumDlogDivLow, random_point, curve_index
+    let rhs_low = compute_rhs_ecip(
+        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index
     );
-    // Verify Q_high = sum(scalar_high * P for scalar_high,P in zip(scalars_high, points))
-    zk_ecip_check(
-        points, epns_high, hint.Q_high, n, mb, hint.SumDlogDivHigh, random_point, curve_index
+    let rhs_high = compute_rhs_ecip(
+        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index
     );
-    // Verify Q_high_shifted = 2^128 * Q_high
-    zk_ecip_check(
+    let rhs_high_shifted = compute_rhs_ecip(
         array![hint.Q_high].span(),
+        mb.m_A0,
+        mb.b_A0,
+        random_point.x,
         epns_shifted,
         hint.Q_high_shifted,
-        1,
-        mb,
-        hint.SumDlogDivHighShifted,
-        random_point,
         curve_index
     );
+
+    let p_curve = get_p(curve_index);
+
+    let zk_ecip_batched_rhs = batch_3_mod_p(
+        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), p_curve
+    );
+
+    let batched_lhs = compute_lhs_ecip(
+        hint.RLCSumDlogDiv,
+        random_point,
+        G1Point { x: mb.x_A2, y: mb.y_A2 },
+        mb.coeff0,
+        mb.coeff2,
+        n,
+        curve_index
+    );
+
+    u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
+
     // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
     return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
 }
@@ -483,8 +501,8 @@ fn msm_g1_u128(
 ) -> G1Point {
     let n = scalars.len();
     assert!(n == points.len(), "scalars and points length mismatch");
-    if n == 0 {
-        panic!("Msm size must be >= 1");
+    if (n != 1 && n != 2) {
+        panic_with_felt252('Msm size must be [1,2]');
     }
 
     // Check result points are either on curve, or the point at infinity
@@ -503,7 +521,6 @@ fn msm_g1_u128(
     let (s0, s1, s2) = hades_permutation(
         s0 + curve_index.into(), s1 + n.into(), s2
     ); // Include curve_index and msm size
-    let (s0, s1, s2) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
 
     let mut s0 = s0;
     let mut s1 = s1;
@@ -533,6 +550,8 @@ fn msm_g1_u128(
         s2 = _s2;
     };
 
+    let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
+
     let random_point: G1Point = derive_ec_point_from_X(
         s0,
         derive_point_from_x_hint.y_last_attempt,
@@ -548,8 +567,23 @@ fn msm_g1_u128(
     // Get positive and negative multiplicities of low and high part of scalars
     let epns = neg_3::u128_array_to_epns(scalars, scalars_digits_decompositions);
 
-    // Verify Q = sum(scalar * P for scalar,P in zip(scalars, points))
-    zk_ecip_check(points, epns, hint.Q, n, mb, hint.SumDlogDiv, random_point, curve_index);
+    let case = n - 1;
+
+    let A0 = random_point;
+    let A2 = G1Point { x: mb.x_A2, y: mb.y_A2 };
+
+    let (lhs) = match case {
+        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
+            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index
+        )),
+        _ => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
+            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index
+        ),
+    };
+
+    let rhs = compute_rhs_ecip(points, mb.m_A0, mb.b_A0, random_point.x, epns, hint.Q, curve_index);
+
+    u384_assert_eq(lhs, rhs);
 
     return hint.Q;
 }
@@ -599,45 +633,45 @@ fn compute_lhs_ecip(
 ) -> u384 {
     let case = msm_size - 1;
     let (res) = match case {
-        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
+        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         )),
-        1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
+        1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_circuit(
+        2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_circuit(
+        3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_circuit(
+        4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_circuit(
+        5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_circuit(
+        6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_circuit(
+        7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_circuit(
+        8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
-        9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_circuit(
+        9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
             A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
         ),
         _ => {
-            let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_circuit(
+            let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
                 A0.x,
                 A2.x,
                 FunctionFelt {
-                    a_num: sum_dlog_div.a_num.slice(0, 11 + 1),
-                    a_den: sum_dlog_div.a_den.slice(0, 11 + 2),
-                    b_num: sum_dlog_div.b_num.slice(0, 11 + 2),
-                    b_den: sum_dlog_div.b_den.slice(0, 11 + 5),
+                    a_num: sum_dlog_div.a_num.slice(0, 11 + 3),
+                    a_den: sum_dlog_div.a_den.slice(0, 11 + 4),
+                    b_num: sum_dlog_div.b_num.slice(0, 11 + 4),
+                    b_den: sum_dlog_div.b_den.slice(0, 11 + 7),
                 },
                 curve_index
             );
@@ -655,10 +689,10 @@ fn compute_lhs_ecip(
                     A2.x,
                     xA0_power,
                     xA2_power,
-                    *sum_dlog_div.a_num.at(i + 1),
-                    *sum_dlog_div.a_den.at(i + 2),
-                    *sum_dlog_div.b_num.at(i + 2),
-                    *sum_dlog_div.b_den.at(i + 5),
+                    *sum_dlog_div.a_num.at(i + 3),
+                    *sum_dlog_div.a_den.at(i + 4),
+                    *sum_dlog_div.b_num.at(i + 4),
+                    *sum_dlog_div.b_den.at(i + 7),
                     curve_index
                 );
                 f_A0 = _f_A0;
@@ -676,7 +710,6 @@ fn compute_lhs_ecip(
     return res;
 }
 
-#[inline(always)]
 fn compute_rhs_ecip(
     mut points: Span<G1Point>,
     m_A0: u384,

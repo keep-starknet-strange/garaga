@@ -165,12 +165,15 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
         "class": EvalFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
+        "params": [
+            {"n_points": k, "batched": True} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ]
+        + [{"n_points": k, "batched": False} for k in [1, 2]],
         "filename": "ec",
     },
     CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
         "class": InitFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [11]],
+        "params": [{"n_points": k, "batched": True} for k in [11]],
         "filename": "ec",
     },
     CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {

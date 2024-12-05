@@ -3,7 +3,11 @@ from random import randint
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point
 from garaga.hints import neg_3
-from garaga.hints.ecip import slope_intercept
+from garaga.hints.ecip import (
+    n_coeffs_from_n_points,
+    n_points_from_n_coeffs,
+    slope_intercept,
+)
 from garaga.modulo_circuit import WriteOps
 from garaga.modulo_circuit_structs import G1PointCircuit, G2PointCircuit, u384
 from garaga.precompiled_circuits.compilable_circuits.base import (
@@ -398,25 +402,18 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
         n_points: int = 1,
         auto_run: bool = True,
         compilation_mode: int = 0,
+        batched: bool = False,
+        generic_circuit: bool = True,
     ) -> None:
         self.n_points = n_points
+        self.batched = batched
+        self.generic_circuit = generic_circuit
         super().__init__(
-            name=f"eval_fn_challenge_dupl_{n_points}P",
+            name=f"eval_fn_challenge_dupl_{n_points}P" + ("_rlc" if batched else ""),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
         )
-
-    @staticmethod
-    def _n_coeffs_from_n_points(n_points: int) -> tuple[int, int, int, int]:
-        return (1 + n_points, 1 + n_points + 1, 1 + n_points + 1, 1 + n_points + 4)
-
-    @staticmethod
-    def _n_points_from_n_coeffs(n_coeffs: int) -> int:
-        # n_coeffs = 10 + 4n_points => 4n_points = n_coeffs - 10
-        assert n_coeffs >= 10
-        assert (n_coeffs - 10) % 4 == 0
-        return (n_coeffs - 10) // 4
 
     def build_input(self) -> list[PyFelt]:
         input = []
@@ -426,14 +423,17 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
             [xA, _yA, _A]
         ).output
         input.extend([xA0.felt, _yA.felt, xA2.felt, yA2.felt, coeff0.felt, coeff2.felt])
-        n_coeffs = self._n_coeffs_from_n_points(self.n_points)
+        n_coeffs = n_coeffs_from_n_points(self.n_points, self.batched)
         for _ in range(sum(n_coeffs)):
             input.append(self.field(randint(0, CURVES[self.curve_id].p - 1)))
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
         circuit = ECIPCircuits(
-            self.name, self.curve_id, compilation_mode=self.compilation_mode
+            self.name,
+            self.curve_id,
+            compilation_mode=self.compilation_mode,
+            generic_circuit=self.generic_circuit,
         )
 
         xA0, yA0 = circuit.write_struct(
@@ -454,14 +454,14 @@ class EvalFunctionChallengeDuplCircuit(BaseModuloCircuit):
                 start_idx += length
             return result
 
-        n_points = self._n_points_from_n_coeffs(len(all_coeffs))
+        n_points = n_points_from_n_coeffs(len(all_coeffs), self.batched)
         _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
-            all_coeffs, self._n_coeffs_from_n_points(n_points)
+            all_coeffs, n_coeffs_from_n_points(n_points, self.batched)
         )
         log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = (
             circuit.write_struct(
                 structs.FunctionFeltCircuit(
-                    name="SumDlogDiv",
+                    name="SumDlogDiv" + ("Batched" if self.batched else ""),
                     elmts=[
                         structs.u384Span("log_div_a_num", _log_div_a_num),
                         structs.u384Span("log_div_a_den", _log_div_a_den),
@@ -494,31 +494,22 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
         curve_id: int,
         n_points: int = 1,
         auto_run: bool = True,
+        batched: bool = False,
         compilation_mode: int = 0,
     ) -> None:
         self.n_points = n_points
+        self.batched = batched
         super().__init__(
-            name=f"init_fn_challenge_dupl_{n_points}P",
+            name=f"init_fn_challenge_dupl_{n_points}P" + ("_rlc" if batched else ""),
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
         )
 
-    @staticmethod
-    def _n_coeffs_from_n_points(n_points: int) -> tuple[int, int, int, int]:
-        return (1 + n_points, 1 + n_points + 1, 1 + n_points + 1, 1 + n_points + 4)
-
-    @staticmethod
-    def _n_points_from_n_coeffs(n_coeffs: int) -> int:
-        # n_coeffs = 10 + 4n_points => 4n_points = n_coeffs - 10
-        assert n_coeffs >= 10
-        assert (n_coeffs - 10) % 4 == 0
-        return (n_coeffs - 10) // 4
-
     def build_input(self) -> list[PyFelt]:
         input = []
         input.extend([self.field.random(), self.field.random()])  # xA0, xA2
-        n_coeffs = self._n_coeffs_from_n_points(self.n_points)
+        n_coeffs = n_coeffs_from_n_points(self.n_points, self.batched)
         for _ in range(sum(n_coeffs)):
             input.append(self.field(randint(0, CURVES[self.curve_id].p - 1)))
         return input
@@ -539,9 +530,9 @@ class InitFunctionChallengeDuplCircuit(BaseModuloCircuit):
                 start_idx += length
             return result
 
-        n_points = self._n_points_from_n_coeffs(len(all_coeffs))
+        n_points = n_points_from_n_coeffs(len(all_coeffs), self.batched)
         _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
-            all_coeffs, self._n_coeffs_from_n_points(n_points)
+            all_coeffs, n_coeffs_from_n_points(n_points, self.batched)
         )
 
         log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = (
