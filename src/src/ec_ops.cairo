@@ -309,7 +309,7 @@ fn scalar_mul_g1_fixed_small_scalar(
     // Hash result point
     let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
     // Hash scalar.
-    let (s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + scalar.into(), s1, s2);
+    let (s0, s1, s2) = core::poseidon::hades_permutation(s0 + scalar.into(), s1, s2);
 
     let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
 

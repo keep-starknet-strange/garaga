@@ -1076,44 +1076,12 @@ mod tests {
             },
             derive_point_from_x_hint: DerivePointFromXHint {
                 y_last_attempt: u384 {
-                    limb0: 0xb41227cd42b7ef71d89d05e6,
-                    limb1: 0x3cc2397220b0e255eb196131,
-                    limb2: 0x6e445b08463f6f4d96d3e54,
-                    limb3: 0x2d18f52270acbae6773fc2d
+                    limb0: 0x6515783d21f573c7cd61fbae,
+                    limb1: 0x1013607aa988eeb0dbea896a,
+                    limb2: 0xc459d27f6d3a34be79bbb31a,
+                    limb3: 0xb32862ff9309b9044f09471
                 },
-                g_rhs_sqrt: array![
-                    u384 {
-                        limb0: 0x489c3c21e68b52fc13551cc7,
-                        limb1: 0xbb28e4fee8814d3f2f01d56d,
-                        limb2: 0x80fb27b5cbf818227f16956b,
-                        limb3: 0x591848cb4740509e9519aa6
-                    },
-                    u384 {
-                        limb0: 0x49a5971b41da691b6c54c9ce,
-                        limb1: 0x4934d801184f79e0bd159c78,
-                        limb2: 0xb65685c7a705678007327db4,
-                        limb3: 0x878b66031665700502ead64
-                    },
-                    u384 {
-                        limb0: 0x8cc9746861ef5ebb714c1aad,
-                        limb1: 0x3f2d8a4b2b9b1e0c15f8a888,
-                        limb2: 0x72b4b3e003c80b045232c974,
-                        limb3: 0x6f360afb566d59ae9d3dcb1
-                    },
-                    u384 {
-                        limb0: 0xc1dafeb229958918d6f807bf,
-                        limb1: 0x82f92ae44451b0c83ca491d3,
-                        limb2: 0xa547d45e3abd786d7e4bd18a,
-                        limb3: 0xb04d1504a41448451e1bf6d
-                    },
-                    u384 {
-                        limb0: 0x62564d5dadfa6951c74d9994,
-                        limb1: 0x938bc3286f0b2fc8671794d8,
-                        limb2: 0xd176d81898f67fe46da9c716,
-                        limb3: 0x297c2b03926eec52554f824
-                    }
-                ]
-                    .span(),
+                g_rhs_sqrt: array![].span(),
             }
         };
 
