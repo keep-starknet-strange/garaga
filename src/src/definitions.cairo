@@ -1,9 +1,10 @@
-use core::circuit::{u96, u384, U384Zero, CircuitModulus};
+pub use core::circuit::{u96, u384, CircuitModulus};
 use garaga::basic_field_ops::{neg_mod_p};
 use core::result::Result;
 use core::serde::{Serde};
 use core::num;
 use core::num::traits::{Zero, One};
+use core::RangeCheck;
 
 extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
 
@@ -26,9 +27,9 @@ pub impl u384Serde of Serde<u384> {
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct u288 {
-    limb0: u96,
-    limb1: u96,
-    limb2: u96,
+    pub limb0: u96,
+    pub limb1: u96,
+    pub limb2: u96,
 }
 
 pub impl u288Serde of Serde<u288> {
@@ -48,46 +49,46 @@ pub impl u288Serde of Serde<u288> {
 
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct G1Point {
-    x: u384,
-    y: u384,
+pub struct G1Point {
+    pub x: u384,
+    pub y: u384,
 }
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct G2Point {
-    x0: u384,
-    x1: u384,
-    y0: u384,
-    y1: u384,
+pub struct G2Point {
+    pub x0: u384,
+    pub x1: u384,
+    pub y0: u384,
+    pub y1: u384,
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
-struct G2Line<T> {
-    r0a0: T,
-    r0a1: T,
-    r1a0: T,
-    r1a1: T,
+pub struct G2Line<T> {
+    pub r0a0: T,
+    pub r0a1: T,
+    pub r1a0: T,
+    pub r1a1: T,
 }
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct G1G2Pair {
-    p: G1Point,
-    q: G2Point,
+pub struct G1G2Pair {
+    pub p: G1Point,
+    pub q: G2Point,
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
-struct E12D<T> {
-    w0: T,
-    w1: T,
-    w2: T,
-    w3: T,
-    w4: T,
-    w5: T,
-    w6: T,
-    w7: T,
-    w8: T,
-    w9: T,
-    w10: T,
-    w11: T,
+pub struct E12D<T> {
+    pub w0: T,
+    pub w1: T,
+    pub w2: T,
+    pub w3: T,
+    pub w4: T,
+    pub w5: T,
+    pub w6: T,
+    pub w7: T,
+    pub w8: T,
+    pub w9: T,
+    pub w10: T,
+    pub w11: T,
 }
 
 // Represents the point at infinity
@@ -555,37 +556,37 @@ impl E12DSerde288 of Serde<E12D<u288>> {
 }
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct MillerLoopResultScalingFactor<T> {
-    w0: T,
-    w2: T,
-    w4: T,
-    w6: T,
-    w8: T,
-    w10: T,
+pub struct MillerLoopResultScalingFactor<T> {
+    pub w0: T,
+    pub w2: T,
+    pub w4: T,
+    pub w6: T,
+    pub w8: T,
+    pub w10: T,
 }
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
-struct E12DMulQuotient<T> {
-    w0: T,
-    w1: T,
-    w2: T,
-    w3: T,
-    w4: T,
-    w5: T,
-    w6: T,
-    w7: T,
-    w8: T,
-    w9: T,
-    w10: T,
+pub struct E12DMulQuotient<T> {
+    pub w0: T,
+    pub w1: T,
+    pub w2: T,
+    pub w3: T,
+    pub w4: T,
+    pub w5: T,
+    pub w6: T,
+    pub w7: T,
+    pub w8: T,
+    pub w9: T,
+    pub w10: T,
 }
 
 
 // scalar_to_base_neg3_le(0xD201000000010000**2)
-const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
-const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) = (
+pub const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
+pub const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) = (
     49064175553473225114813626085204666029, 278052985706122803179667203045598799533, -1, -1,
 );
 
-const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 = u384 {
+pub const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 = u384 {
     limb0: 0x4f49fffd8bfd00000000aaac,
     limb1: 0x897d29650fb85f9b409427eb,
     limb2: 0x63d4de85aa0d857d89759ad4,
@@ -595,19 +596,19 @@ const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 = u384 {
 
 // From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
 #[derive(Drop, Debug, PartialEq)]
-struct BLSProcessedPair {
-    yInv: u384,
-    xNegOverY: u384,
+pub struct BLSProcessedPair {
+    pub yInv: u384,
+    pub xNegOverY: u384,
 }
 
 
 // From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py,-Qy0, -Qy1)
 #[derive(Drop, Debug, PartialEq)]
-struct BNProcessedPair {
-    yInv: u384,
-    xNegOverY: u384,
-    QyNeg0: u384,
-    QyNeg1: u384,
+pub struct BNProcessedPair {
+    pub yInv: u384,
+    pub xNegOverY: u384,
+    pub QyNeg0: u384,
+    pub QyNeg1: u384,
 }
 
 // curve_index 0: BN254
@@ -616,18 +617,18 @@ struct BNProcessedPair {
 // curve_index 3: SECP256R1
 // curve_index 4: ED25519
 
-struct Curve {
-    p: u384, // Prime modulus
-    n: u256, // Order of the curve
-    a: u384, // Weierstrass a parameter in eqn: y^2 = x^3 + ax + b
-    b: u384, // Weierstrass b parameter in eqn: y^2 = x^3 + ax + b
-    g: u384, // Generator of Fp. (Used to verify square roots)
-    min_one: u384 // (-1) % p
+pub struct Curve {
+    pub p: u384, // Prime modulus
+    pub n: u256, // Order of the curve
+    pub a: u384, // Weierstrass a parameter in eqn: y^2 = x^3 + ax + b
+    pub b: u384, // Weierstrass b parameter in eqn: y^2 = x^3 + ax + b
+    pub g: u384, // Generator of Fp. (Used to verify square roots)
+    pub min_one: u384 // (-1) % p
 }
 
 
 // Returns the prime modulus for a given curve index
-fn get_p(curve_index: usize) -> u384 {
+pub fn get_p(curve_index: usize) -> u384 {
     if curve_index == 0 {
         return BN254.p;
     }
@@ -647,7 +648,7 @@ fn get_p(curve_index: usize) -> u384 {
 }
 
 // Returns the Weierstrass 'a' parameter for a given curve index
-fn get_a(curve_index: usize) -> u384 {
+pub fn get_a(curve_index: usize) -> u384 {
     if curve_index == 0 {
         return BN254.a;
     }
@@ -667,7 +668,7 @@ fn get_a(curve_index: usize) -> u384 {
 }
 
 // Returns the Weierstrass 'b' parameter for a given curve index
-fn get_b(curve_index: usize) -> u384 {
+pub fn get_b(curve_index: usize) -> u384 {
     if curve_index == 0 {
         return BN254.b;
     }
@@ -686,7 +687,7 @@ fn get_b(curve_index: usize) -> u384 {
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
-fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
+pub fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
     if curve_index == 0 {
         return Result::Ok(
             (
@@ -718,7 +719,7 @@ fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
 }
 
 // Returns a generator of the curve base field for a given curve index
-fn get_g(curve_index: usize) -> u384 {
+pub fn get_g(curve_index: usize) -> u384 {
     if curve_index == 0 {
         return BN254.g;
     }
@@ -737,7 +738,7 @@ fn get_g(curve_index: usize) -> u384 {
     return u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 }
 
-fn get_n(curve_index: usize) -> u256 {
+pub fn get_n(curve_index: usize) -> u256 {
     if curve_index == 0 {
         return BN254.n;
     }
@@ -757,7 +758,7 @@ fn get_n(curve_index: usize) -> u256 {
 }
 
 // Returns (-1) % p for a given curve index
-fn get_min_one(curve_index: usize) -> u384 {
+pub fn get_min_one(curve_index: usize) -> u384 {
     if curve_index == 0 {
         return BN254.min_one;
     }
@@ -778,7 +779,7 @@ fn get_min_one(curve_index: usize) -> u384 {
 
 // Returns the modulus of BLS12_381
 #[inline(always)]
-fn get_BLS12_381_modulus() -> CircuitModulus {
+pub fn get_BLS12_381_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus,
     >::try_into(
@@ -793,7 +794,7 @@ fn get_BLS12_381_modulus() -> CircuitModulus {
 
 // Returns the modulus of BN254
 #[inline(always)]
-fn get_BN254_modulus() -> CircuitModulus {
+pub fn get_BN254_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus,
     >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
@@ -802,7 +803,7 @@ fn get_BN254_modulus() -> CircuitModulus {
 }
 // Returns the modulus of SECP256K1
 #[inline(always)]
-fn get_SECP256K1_modulus() -> CircuitModulus {
+pub fn get_SECP256K1_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus,
     >::try_into([0xfffffffffffffffefffffc2f, 0xffffffffffffffffffffffff, 0xffffffffffffffff, 0x0])
@@ -812,7 +813,7 @@ fn get_SECP256K1_modulus() -> CircuitModulus {
 
 // Returns the modulus of SECP256K1
 #[inline(always)]
-fn get_SECP256R1_modulus() -> CircuitModulus {
+pub fn get_SECP256R1_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus,
     >::try_into([0xffffffffffffffffffffffff, 0x0, 0xffffffff00000001, 0x0])
@@ -821,7 +822,7 @@ fn get_SECP256R1_modulus() -> CircuitModulus {
 }
 // Returns the modulus of SECP256K1
 #[inline(always)]
-fn get_ED25519_modulus() -> CircuitModulus {
+pub fn get_ED25519_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus,
     >::try_into([0xffffffffffffffffffffffed, 0xffffffffffffffffffffffff, 0x7fffffffffffffff, 0x0])
@@ -829,7 +830,7 @@ fn get_ED25519_modulus() -> CircuitModulus {
     modulus
 }
 
-const BN254: Curve = Curve {
+pub const BN254: Curve = Curve {
     p: u384 {
         limb0: 0x6871ca8d3c208c16d87cfd47,
         limb1: 0xb85045b68181585d97816a91,
@@ -848,7 +849,7 @@ const BN254: Curve = Curve {
     },
 };
 
-const BLS12_381: Curve = Curve {
+pub const BLS12_381: Curve = Curve {
     p: u384 {
         limb0: 0xb153ffffb9feffffffffaaab,
         limb1: 0x6730d2a0f6b0f6241eabfffe,
@@ -867,7 +868,7 @@ const BLS12_381: Curve = Curve {
     },
 };
 
-const SECP256K1: Curve = Curve {
+pub const SECP256K1: Curve = Curve {
     p: u384 {
         limb0: 0xfffffffffffffffefffffc2f,
         limb1: 0xffffffffffffffffffffffff,
@@ -886,7 +887,7 @@ const SECP256K1: Curve = Curve {
     },
 };
 
-const SECP256R1: Curve = Curve {
+pub const SECP256R1: Curve = Curve {
     p: u384 {
         limb0: 0xffffffffffffffffffffffff, limb1: 0x0, limb2: 0xffffffff00000001, limb3: 0x0,
     },
@@ -906,7 +907,7 @@ const SECP256R1: Curve = Curve {
     },
 };
 
-const ED25519: Curve = Curve {
+pub const ED25519: Curve = Curve {
     p: u384 {
         limb0: 0xffffffffffffffffffffffed,
         limb1: 0xffffffffffffffffffffffff,
@@ -935,7 +936,7 @@ const ED25519: Curve = Curve {
     },
 };
 
-const BLS_G2_GENERATOR: G2Point = G2Point {
+pub const BLS_G2_GENERATOR: G2Point = G2Point {
     x0: u384 {
         limb0: 0xa805bbefd48056c8c121bdb8,
         limb1: 0xb4510b647ae3d1770bac0326,
@@ -969,12 +970,12 @@ const BLS_G2_GENERATOR: G2Point = G2Point {
 // "-10" -> 2
 // "01" -> 3
 // "0-1" -> 4
-const bn_bits: [felt252; 32] = [
+pub const bn_bits: [felt252; 32] = [
     2, 1, 0, 2, 2, 0, 2, 3, 1, 4, 0, 0, 3, 0, 2, 1, 4, 0, 0, 2, 1, 0, 2, 2, 3, 0, 4, 0, 4, 4, 2, 0,
 ];
 
 // [int(x) for x in bin(0xD201000000010000)[2:]][2:] with two-consecutive zeros replaced by 3
-const bls_bits: [felt252; 34] = [
+pub const bls_bits: [felt252; 34] = [
     0, 1, 3, 1, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 1, 3, 3, 3, 3, 3, 3,
     3, 3,
 ];

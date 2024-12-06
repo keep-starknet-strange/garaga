@@ -63,14 +63,14 @@ mod Groth16VerifierBN254 {
                     let mut _vx_x_serialized = core::starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                         selector!("msm_g1"),
-                        msm_calldata.span()
+                        msm_calldata.span(),
                     )
                         .unwrap_syscall();
 
                     ec_safe_add(
-                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), 0
+                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), 0,
                     )
-                }
+                },
             };
             // Perform the pairing check.
             let check = multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
@@ -80,7 +80,7 @@ mod Groth16VerifierBN254 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
+                small_Q,
             );
             if check == true {
                 return Option::Some(groth16_proof.public_inputs);

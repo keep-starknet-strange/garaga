@@ -69,13 +69,13 @@ mod Risc0Groth16VerifierBN254 {
             let mut _msm_result_serialized = core::starknet::syscalls::library_call_syscall(
                 ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                 selector!("msm_g1_u128"),
-                msm_calldata.span()
+                msm_calldata.span(),
             )
                 .unwrap_syscall();
 
             // Finalize vk_x computation by adding the precomputed T point.
             let vk_x = ec_safe_add(
-                T, Serde::<G1Point>::deserialize(ref _msm_result_serialized).unwrap(), 0
+                T, Serde::<G1Point>::deserialize(ref _msm_result_serialized).unwrap(), 0,
             );
 
             // Perform the pairing check.
@@ -86,7 +86,7 @@ mod Risc0Groth16VerifierBN254 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
+                small_Q,
             );
             if check == true {
                 return Option::Some(journal);
