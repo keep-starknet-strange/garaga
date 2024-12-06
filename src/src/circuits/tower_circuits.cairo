@@ -1635,7 +1635,7 @@ pub fn run_BLS12_381_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BLS12_381_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u384) {
+pub fn run_BLS12_381_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -1648,7 +1648,7 @@ fn run_BLS12_381_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u38
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t2, t5,).new_inputs();
+    let mut circuit_inputs = (t2, t5).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -1662,6 +1662,7 @@ fn run_BLS12_381_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u38
     let res1: u384 = outputs.get_output(t5);
     return (res0, res1);
 }
+#[inline(always)]
 pub fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
     yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T,
 ) -> (G2Point, E12T) {
@@ -4362,7 +4363,7 @@ pub fn run_BN254_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BN254_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u384) {
+pub fn run_BN254_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -4375,7 +4376,7 @@ fn run_BN254_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t2, t5,).new_inputs();
+    let mut circuit_inputs = (t2, t5).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -6161,6 +6162,6 @@ mod tests {
         run_BN254_E12T_FROBENIUS_SQUARE_circuit, run_BN254_E12T_FROBENIUS_circuit,
         run_BN254_E12T_INVERSE_circuit, run_BN254_E12T_MUL_circuit, run_BN254_FP2_MUL_circuit,
         run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
-        run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit, run_FP6_NEG_circuit
+        run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit, run_FP6_NEG_circuit,
     };
 }
