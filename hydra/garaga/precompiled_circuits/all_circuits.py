@@ -33,6 +33,7 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import
     E12TFrobeniusSquareCircuit,
     E12TInverseCircuit,
     E12TMulCircuit,
+    FP2MulCircuit,
     FP6NegCircuit,
     TowerMillerBit0,
     TowerMillerBit1,
@@ -129,6 +130,7 @@ class CircuitID(Enum):
     )
     ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
     DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
+    FP2_MUL = int.from_bytes(b"fp2_mul", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -394,6 +396,12 @@ ALL_CAIRO_CIRCUITS = {
         "params": None,
         "filename": "tower_circuits",
         "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.FP2_MUL: {
+        "class": FP2MulCircuit,
+        "params": None,
+        "filename": "tower_circuits",
+        "curve_ids": [CurveID.BLS12_381, CurveID.BN254],
     },
 }
 
