@@ -79,7 +79,6 @@ mod Groth16Verifier{curve_id.name} {{
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-    use starknet::ContractAddress;
 
     #[storage]
     struct Storage {{}}
