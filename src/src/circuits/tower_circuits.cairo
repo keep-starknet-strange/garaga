@@ -2,7 +2,7 @@ use core::circuit::{
     RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    CircuitInputAccumulator,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
@@ -10,64 +10,14 @@ use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
     G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
-    get_BLS12_381_modulus, get_BN254_modulus
+    get_BLS12_381_modulus, get_BN254_modulus,
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 use garaga::single_pairing_tower::E12T;
 
-
-impl CircuitDefinition16<
-    E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
-> of core::circuit::CircuitDefinition<
-    (
-        CE<E0>,
-        CE<E1>,
-        CE<E2>,
-        CE<E3>,
-        CE<E4>,
-        CE<E5>,
-        CE<E6>,
-        CE<E7>,
-        CE<E8>,
-        CE<E9>,
-        CE<E10>,
-        CE<E11>,
-        CE<E12>,
-        CE<E13>,
-        CE<E14>,
-        CE<E15>
-    )
-> {
-    type CircuitType =
-        core::circuit::Circuit<
-            (E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15,)
-        >;
-}
-impl MyDrp_16<
-    E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15
-> of Drop<
-    (
-        CE<E0>,
-        CE<E1>,
-        CE<E2>,
-        CE<E3>,
-        CE<E4>,
-        CE<E5>,
-        CE<E6>,
-        CE<E7>,
-        CE<E8>,
-        CE<E9>,
-        CE<E10>,
-        CE<E11>,
-        CE<E12>,
-        CE<E13>,
-        CE<E14>,
-        CE<E15>
-    )
->;
 #[inline(always)]
-fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -201,7 +151,7 @@ fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t93, t94, t99, t100, t105, t106, t111, t112, t117, t118, t123, t124,)
+    let mut circuit_inputs = (t93, t94, t99, t100, t105, t106, t111, t112, t117, t118, t123, t124)
         .new_inputs();
     // Prefill constants:
 
@@ -237,7 +187,7 @@ fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
+pub fn run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
     xc0b1a0: u384,
     xc0b1a1: u384,
     xc0b2a0: u384,
@@ -245,7 +195,7 @@ fn run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
     xc1b0a0: u384,
     xc1b0a1: u384,
     xc1b2a0: u384,
-    xc1b2a1: u384
+    xc1b2a1: u384,
 ) -> (u384, u384, u384, u384, u384, u384, u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -339,7 +289,7 @@ fn run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t73, t74, t60, t61, t42, t43, t83, t84,).new_inputs();
+    let mut circuit_inputs = (t73, t74, t60, t61, t42, t43, t83, t84).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -364,7 +314,7 @@ fn run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
     return (xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit(
+pub fn run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit(
     t0a0: u384,
     t0a1: u384,
     t1a0: u384,
@@ -376,7 +326,7 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit(
     xc1b0a0: u384,
     xc1b0a1: u384,
     xc1b2a0: u384,
-    xc1b2a1: u384
+    xc1b2a1: u384,
 ) -> (u384, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -434,7 +384,7 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t43, t42, t9, t12,).new_inputs();
+    let mut circuit_inputs = (t43, t42, t9, t12).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
@@ -460,7 +410,7 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit(
     return (zc0b0a0, zc0b0a1, zc1b1a0, zc1b1a1);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
+pub fn run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
     xc0b1a0: u384,
     xc0b1a1: u384,
     xc0b2a0: u384,
@@ -468,7 +418,7 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
     xc1b0a0: u384,
     xc1b0a1: u384,
     xc1b2a0: u384,
-    xc1b2a1: u384
+    xc1b2a1: u384,
 ) -> (u384, u384, u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -504,7 +454,7 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t21, t22, t25, t26,).new_inputs();
+    let mut circuit_inputs = (t21, t22, t25, t26).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -525,8 +475,8 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
     return (t0a0, t0a1, t1a0, t1a1);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
-    xc0b1a0: u384, xc0b1a1: u384, xc1b2a0: u384, xc1b2a1: u384
+pub fn run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
+    xc0b1a0: u384, xc0b1a1: u384, xc1b2a0: u384, xc1b2a1: u384,
 ) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -542,7 +492,7 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t6, t7,).new_inputs();
+    let mut circuit_inputs = (t6, t7).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -557,16 +507,16 @@ fn run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
     return (res0, res1);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BLS12_381_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<CI<1>> {}; // 0x1
     let in2 = CE::<CI<2>> {}; // -0x1 % p
     let in3 = CE::<
-        CI<3>
+        CI<3>,
     > {}; // 0x135203e60180a68ee2e9c448d77a2cd91c3dedd930b1cf60ef396489f61eb45e304466cf3e67fa0af1ee7b04121bdea2
     let in4 = CE::<
-        CI<4>
+        CI<4>,
     > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
 
     // INPUT stack
@@ -610,37 +560,30 @@ fn run_BLS12_381_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t1, t0, t9, t12, t13, t14, t17, t20, t23, t26, t29, t32,)
-        .new_inputs();
+    let mut circuit_inputs = (t1, t0, t9, t12, t13, t14, t17, t20, t23, t26, t29, t32).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0xb153ffffb9feffffffffaaaa,
-                0x6730d2a0f6b0f6241eabfffe,
-                0x434bacd764774b84f38512bf,
-                0x1a0111ea397fe69a4b1ba7b6
-            ]
+                0xb153ffffb9feffffffffaaaa, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6,
+            ],
         ); // in2
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0x3e67fa0af1ee7b04121bdea2,
-                0xef396489f61eb45e304466cf,
-                0xd77a2cd91c3dedd930b1cf60,
-                0x135203e60180a68ee2e9c448
-            ]
+                0x3e67fa0af1ee7b04121bdea2, 0xef396489f61eb45e304466cf, 0xd77a2cd91c3dedd930b1cf60,
+                0x135203e60180a68ee2e9c448,
+            ],
         ); // in3
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0x72ec05f4c81084fbede3cc09,
-                0x77f76e17009241c5ee67992f,
-                0x6bd17ffe48395dabc2d3435e,
-                0x6af0e0437ff400b6831e36d
-            ]
+                0x72ec05f4c81084fbede3cc09, 0x77f76e17009241c5ee67992f, 0x6bd17ffe48395dabc2d3435e,
+                0x6af0e0437ff400b6831e36d,
+            ],
         ); // in4
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(M.c0b0a0); // in5
@@ -674,21 +617,21 @@ fn run_BLS12_381_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<
-        CI<1>
+        CI<1>,
     > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffefffe
     let in2 = CE::<
-        CI<2>
+        CI<2>,
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
     let in3 = CE::<
-        CI<3>
+        CI<3>,
     > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffeffff
     let in4 = CE::<CI<4>> {}; // -0x1 % p
     let in5 = CE::<
-        CI<5>
+        CI<5>,
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
 
     // INPUT stack
@@ -711,53 +654,43 @@ fn run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11,).new_inputs();
+    let mut circuit_inputs = (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0x620a00022e01fffffffefffe,
-                0xddb3a93be6f89688de17d813,
-                0xdf76ce51ba69c6076a0f77ea,
-                0x5f19672f
-            ]
+                0x620a00022e01fffffffefffe, 0xddb3a93be6f89688de17d813, 0xdf76ce51ba69c6076a0f77ea,
+                0x5f19672f,
+            ],
         ); // in1
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0x4f49fffd8bfd00000000aaac,
-                0x897d29650fb85f9b409427eb,
-                0x63d4de85aa0d857d89759ad4,
-                0x1a0111ea397fe699ec024086
-            ]
+                0x4f49fffd8bfd00000000aaac, 0x897d29650fb85f9b409427eb, 0x63d4de85aa0d857d89759ad4,
+                0x1a0111ea397fe699ec024086,
+            ],
         ); // in2
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0x620a00022e01fffffffeffff,
-                0xddb3a93be6f89688de17d813,
-                0xdf76ce51ba69c6076a0f77ea,
-                0x5f19672f
-            ]
+                0x620a00022e01fffffffeffff, 0xddb3a93be6f89688de17d813, 0xdf76ce51ba69c6076a0f77ea,
+                0x5f19672f,
+            ],
         ); // in3
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0xb153ffffb9feffffffffaaaa,
-                0x6730d2a0f6b0f6241eabfffe,
-                0x434bacd764774b84f38512bf,
-                0x1a0111ea397fe69a4b1ba7b6
-            ]
+                0xb153ffffb9feffffffffaaaa, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6,
+            ],
         ); // in4
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0x4f49fffd8bfd00000000aaad,
-                0x897d29650fb85f9b409427eb,
-                0x63d4de85aa0d857d89759ad4,
-                0x1a0111ea397fe699ec024086
-            ]
+                0x4f49fffd8bfd00000000aaad, 0x897d29650fb85f9b409427eb, 0x63d4de85aa0d857d89759ad4,
+                0x1a0111ea397fe699ec024086,
+            ],
         ); // in5
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(M.c0b0a0); // in6
@@ -791,29 +724,29 @@ fn run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
+pub fn run_BLS12_381_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<
-        CI<1>
+        CI<1>,
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
     let in2 = CE::<
-        CI<2>
+        CI<2>,
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
     let in3 = CE::<
-        CI<3>
+        CI<3>,
     > {}; // 0x1904d3bf02bb0667c231beb4202c0d1f0fd603fd3cbd5f4f7b2443d784bab9c4f67ea53d63e7813d8d0775ed92235fb8
     let in4 = CE::<
-        CI<4>
+        CI<4>,
     > {}; // 0xfc3e2b36c4e03288e9e902231f9fb854a14787b6c7b36fec0c8ec971f63c5f282d5ac14d6c7ec22cf78a126ddc4af3
     let in5 = CE::<
-        CI<5>
+        CI<5>,
     > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
     let in6 = CE::<
-        CI<6>
+        CI<6>,
     > {}; // 0x5b2cfd9013a5fd8df47fa6b48b1e045f39816240c0b8fee8beadf4d8e9c0566c63a3e6e257f87329b18fae980078116
     let in7 = CE::<
-        CI<7>
+        CI<7>,
     > {}; // 0x144e4211384586c16bd3ad4afa99cc9170df3560e77982d0db45f3536814f0bd5871c1908bd478cd1ee605167ff82995
 
     // INPUT stack
@@ -857,8 +790,7 @@ fn run_BLS12_381_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t1, t0, t9, t12, t13, t14, t17, t20, t23, t26, t29, t32,)
-        .new_inputs();
+    let mut circuit_inputs = (t1, t0, t9, t12, t13, t14, t17, t20, t23, t26, t29, t32).new_inputs();
     // Prefill constants:
 
     circuit_inputs = circuit_inputs
@@ -895,55 +827,53 @@ fn run_BLS12_381_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     };
     return (res,);
 }
-const E12T_FROBENIUS_BLS12_381_CONSTANTS: [
-    u384
-    ; 8] = [
+const E12T_FROBENIUS_BLS12_381_CONSTANTS: [u384; 8] = [
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x4f49fffd8bfd00000000aaac,
         limb1: 0x897d29650fb85f9b409427eb,
         limb2: 0x63d4de85aa0d857d89759ad4,
-        limb3: 0x1a0111ea397fe699ec024086
+        limb3: 0x1a0111ea397fe699ec024086,
     },
     u384 {
         limb0: 0x4f49fffd8bfd00000000aaad,
         limb1: 0x897d29650fb85f9b409427eb,
         limb2: 0x63d4de85aa0d857d89759ad4,
-        limb3: 0x1a0111ea397fe699ec024086
+        limb3: 0x1a0111ea397fe699ec024086,
     },
     u384 {
         limb0: 0x63e7813d8d0775ed92235fb8,
         limb1: 0x7b2443d784bab9c4f67ea53d,
         limb2: 0x202c0d1f0fd603fd3cbd5f4f,
-        limb3: 0x1904d3bf02bb0667c231beb4
+        limb3: 0x1904d3bf02bb0667c231beb4,
     },
     u384 {
         limb0: 0x4d6c7ec22cf78a126ddc4af3,
         limb1: 0xec0c8ec971f63c5f282d5ac1,
         limb2: 0x231f9fb854a14787b6c7b36f,
-        limb3: 0xfc3e2b36c4e03288e9e902
+        limb3: 0xfc3e2b36c4e03288e9e902,
     },
     u384 {
         limb0: 0x72ec05f4c81084fbede3cc09,
         limb1: 0x77f76e17009241c5ee67992f,
         limb2: 0x6bd17ffe48395dabc2d3435e,
-        limb3: 0x6af0e0437ff400b6831e36d
+        limb3: 0x6af0e0437ff400b6831e36d,
     },
     u384 {
         limb0: 0x257f87329b18fae980078116,
         limb1: 0x8beadf4d8e9c0566c63a3e6e,
         limb2: 0x48b1e045f39816240c0b8fee,
-        limb3: 0x5b2cfd9013a5fd8df47fa6b
+        limb3: 0x5b2cfd9013a5fd8df47fa6b,
     },
     u384 {
         limb0: 0x8bd478cd1ee605167ff82995,
         limb1: 0xdb45f3536814f0bd5871c190,
         limb2: 0xfa99cc9170df3560e77982d0,
-        limb3: 0x144e4211384586c16bd3ad4a
-    }
+        limb3: 0x144e4211384586c16bd3ad4a,
+    },
 ];
 #[inline(always)]
-fn run_BLS12_381_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BLS12_381_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -1379,7 +1309,7 @@ fn run_BLS12_381_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BLS12_381_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
+pub fn run_BLS12_381_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -1732,9 +1662,8 @@ fn run_BLS12_381_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u38
     let res1: u384 = outputs.get_output(t5);
     return (res0, res1);
 }
-#[inline(always)]
-fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
-    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T
+pub fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
+    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T,
 ) -> (G2Point, E12T) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2196,7 +2125,7 @@ fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
         x0: outputs.get_output(t226),
         x1: outputs.get_output(t227),
         y0: outputs.get_output(t236),
-        y1: outputs.get_output(t237)
+        y1: outputs.get_output(t237),
     };
     let Mi_plus_one: E12T = E12T {
         c0b0a0: outputs.get_output(t389),
@@ -2215,8 +2144,8 @@ fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
     return (Q0, Mi_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit(
-    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, Q_or_Q_neg_0: G2Point, M_i: E12T
+pub fn run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit(
+    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, Q_or_Q_neg_0: G2Point, M_i: E12T,
 ) -> (G2Point, E12T) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2863,7 +2792,7 @@ fn run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit(
         x0: outputs.get_output(t260),
         x1: outputs.get_output(t261),
         y0: outputs.get_output(t270),
-        y1: outputs.get_output(t271)
+        y1: outputs.get_output(t271),
     };
     let Mi_plus_one: E12T = E12T {
         c0b0a0: outputs.get_output(t572),
@@ -2882,8 +2811,8 @@ fn run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit(
     return (Q0, Mi_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
-    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point
+pub fn run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
+    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point,
 ) -> (G2Point, u384, u384, u384, u384, u384, u384, u384, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -3046,7 +2975,7 @@ fn run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
         x0: outputs.get_output(t70),
         x1: outputs.get_output(t71),
         y0: outputs.get_output(t80),
-        y1: outputs.get_output(t81)
+        y1: outputs.get_output(t81),
     };
     let c0b0a0: u384 = outputs.get_output(t125);
     let c0b0a1: u384 = outputs.get_output(t126);
@@ -3061,7 +2990,7 @@ fn run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
     return (Q0, c0b0a0, c0b0a1, c0b1a0, c0b1a1, c0b2a0, c0b2a1, c1b1a0, c1b1a1, c1b2a0, c1b2a1);
 }
 #[inline(always)]
-fn run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0xa
     let in1 = CE::<CI<1>> {}; // 0x9
@@ -3203,7 +3132,7 @@ fn run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t97, t98, t103, t104, t109, t110, t115, t116, t121, t122, t127, t128,)
+    let mut circuit_inputs = (t97, t98, t103, t104, t109, t110, t115, t116, t121, t122, t127, t128)
         .new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0xa, 0x0, 0x0, 0x0]); // in0
@@ -3240,7 +3169,7 @@ fn run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BN254_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BN254_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<CI<1>> {}; // 0x856e078b755ef0abaff1c77959f25ac805ffd3d5d6942d37b746ee87bdcfb6d
@@ -3253,7 +3182,7 @@ fn run_BN254_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     let in8 = CE::<CI<8>> {}; // 0x28a411b634f09b8fb14b900e9507e9327600ecc7d8cf6ebab94d0cb3b2594c64
     let in9 = CE::<CI<9>> {}; // 0x13c49044952c0905711699fa3b4d3f692ed68098967c84a5ebde847076261b43
     let in10 = CE::<
-        CI<10>
+        CI<10>,
     > {}; // 0x16db366a59b1dd0b9fb1b2282a48633d3e2ddaea200280211f25041384282499
 
     // INPUT stack
@@ -3301,8 +3230,7 @@ fn run_BN254_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t1, t0, t9, t12, t15, t18, t21, t24, t27, t30, t33, t36,)
-        .new_inputs();
+    let mut circuit_inputs = (t1, t0, t9, t12, t15, t18, t21, t24, t27, t30, t33, t36).new_inputs();
     // Prefill constants:
 
     circuit_inputs = circuit_inputs
@@ -3339,73 +3267,71 @@ fn run_BN254_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     };
     return (res,);
 }
-const E12T_FROBENIUS_CUBE_BN254_CONSTANTS: [
-    u384
-    ; 11] = [
+const E12T_FROBENIUS_CUBE_BN254_CONSTANTS: [u384; 11] = [
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x5d6942d37b746ee87bdcfb6d,
         limb1: 0xbaff1c77959f25ac805ffd3d,
         limb2: 0x856e078b755ef0a,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x98ff2631380cab2baaa586de,
         limb1: 0xa9f30e6dec26094f0fdf31bf,
         limb2: 0x4f1de41b3d1766f,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x75b06bcb0e1a92bc3ccbf066,
         limb1: 0x19bee0f7b5b2444ee6330945,
         limb2: 0xbc58c6611c08dab,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x737f96e55fe3ed9d730c239f,
         limb1: 0xfeb0f6ef0cd21d04a44a9e08,
         limb2: 0x23d5e999e1910a12,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbe55d24ae86f7d391ed4a67f,
         limb1: 0xefe9608cd0acaa90894cb38d,
         limb2: 0x19dc81cfcc82e4bb,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x97d439ec7694aa2bf4c0c101,
         limb1: 0x6cbeee33576139d7f03a5e3,
         limb2: 0xabf8b60be77d73,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbea870f45fcc8ad066dce9ed,
         limb1: 0xdbf17f1dca9e5ea3bbd689a3,
         limb2: 0x2a275b6d9896aa4c,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xd8cf6ebab94d0cb3b2594c64,
         limb1: 0xb14b900e9507e9327600ecc7,
         limb2: 0x28a411b634f09b8f,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x967c84a5ebde847076261b43,
         limb1: 0x711699fa3b4d3f692ed68098,
         limb2: 0x13c49044952c0905,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x200280211f25041384282499,
         limb1: 0x9fb1b2282a48633d3e2ddaea,
         limb2: 0x16db366a59b1dd0b,
-        limb3: 0x0
-    }
+        limb3: 0x0,
+    },
 ];
 #[inline(always)]
-fn run_BN254_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BN254_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<CI<1>> {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
@@ -3434,22 +3360,22 @@ fn run_BN254_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11,).new_inputs();
+    let mut circuit_inputs = (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
         .next_2(
-            [0xbb966e3de4bd44e5607cfd48, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]
+            [0xbb966e3de4bd44e5607cfd48, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0],
         ); // in1
     circuit_inputs = circuit_inputs
         .next_2([0xacdb5c4f5763473177fffffe, 0x59e26bcea0d48bacd4f263f1, 0x0, 0x0]); // in2
     circuit_inputs = circuit_inputs
         .next_2(
-            [0xbb966e3de4bd44e5607cfd49, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0]
+            [0xbb966e3de4bd44e5607cfd49, 0x5e6dd9e7e0acccb0c28f069f, 0x30644e72e131a029, 0x0],
         ); // in3
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd46, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd46, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in4
     circuit_inputs = circuit_inputs
         .next_2([0xacdb5c4f5763473177ffffff, 0x59e26bcea0d48bacd4f263f1, 0x0, 0x0]); // in5
@@ -3485,7 +3411,7 @@ fn run_BN254_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BN254_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
+pub fn run_BN254_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<CI<1>> {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
@@ -3498,7 +3424,7 @@ fn run_BN254_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     let in8 = CE::<CI<8>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
     let in9 = CE::<CI<9>> {}; // 0x183c1e74f798649e93a3661a4353ff4425c459b55aa1bd32ea2c810eab7692f
     let in10 = CE::<
-        CI<10>
+        CI<10>,
     > {}; // 0x12acf2ca76fd0675a27fb246c7729f7db080cb99678e2ac024c6b8ee6e0c2c4b
 
     // INPUT stack
@@ -3546,8 +3472,7 @@ fn run_BN254_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t1, t0, t9, t12, t15, t18, t21, t24, t27, t30, t33, t36,)
-        .new_inputs();
+    let mut circuit_inputs = (t1, t0, t9, t12, t15, t18, t21, t24, t27, t30, t33, t36).new_inputs();
     // Prefill constants:
 
     circuit_inputs = circuit_inputs.next_span(E12T_FROBENIUS_BN254_CONSTANTS.span()); // in0 - in10
@@ -3583,73 +3508,71 @@ fn run_BN254_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     };
     return (res,);
 }
-const E12T_FROBENIUS_BN254_CONSTANTS: [
-    u384
-    ; 11] = [
+const E12T_FROBENIUS_BN254_CONSTANTS: [u384; 11] = [
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0xc2c3330c99e39557176f553d,
         limb1: 0x4c0bec3cf559b143b78cc310,
         limb2: 0x2fb347984f7911f7,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xb7c9dce1665d51c640fcba2,
         limb1: 0x4ba4cc8bd75a079432ae2a1d,
         limb2: 0x16c9e55061ebae20,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbe94ec72848a1f55921ea762,
         limb1: 0x80f3c0b75a181e84d33365f7,
         limb2: 0x5b54f5e64eea801,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x1bdec763c13b4711cd2b8126,
         limb1: 0x9f3a80b03b0b1c923685d2ea,
         limb2: 0x2c145edbe7fd8aee,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x292f2176d60b35dadcc9e470,
         limb1: 0xe8b99fdd76e68b605c521e08,
         limb2: 0x1284b71c2865a7df,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8eeec7e5ca5cf05f80f362ac,
         limb1: 0xa6327cfe12150b8e74799277,
         limb2: 0x246996f3b4fae7e6,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xa9c95998dc54014671a0135a,
         limb1: 0xdc5ec698b6e2f9b9dbaae0ed,
         limb2: 0x63cf305489af5dc,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8fa25bd282d37f632623b0e3,
         limb1: 0x704b5a7ec796f2b21807dc9,
         limb2: 0x7c03cbcac41049a,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x55aa1bd32ea2c810eab7692f,
         limb1: 0xe93a3661a4353ff4425c459b,
         limb2: 0x183c1e74f798649,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x678e2ac024c6b8ee6e0c2c4b,
         limb1: 0xa27fb246c7729f7db080cb99,
         limb2: 0x12acf2ca76fd0675,
-        limb3: 0x0
-    }
+        limb3: 0x0,
+    },
 ];
 #[inline(always)]
-fn run_BN254_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
+pub fn run_BN254_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0xa
     let in1 = CE::<CI<1>> {}; // 0x9
@@ -4101,7 +4024,7 @@ fn run_BN254_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
     return (res,);
 }
 #[inline(always)]
-fn run_BN254_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
+pub fn run_BN254_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0xa
     let in1 = CE::<CI<1>> {}; // 0x9
@@ -4467,8 +4390,8 @@ fn run_BN254_FP2_MUL_circuit(a0: u384, a1: u384, b0: u384, b1: u384) -> (u384, u
     return (res0, res1);
 }
 #[inline(always)]
-fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
-    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T
+pub fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
+    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, M_i: E12T,
 ) -> (G2Point, E12T) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0xa
@@ -4945,7 +4868,7 @@ fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
         x0: outputs.get_output(t232),
         x1: outputs.get_output(t233),
         y0: outputs.get_output(t242),
-        y1: outputs.get_output(t243)
+        y1: outputs.get_output(t243),
     };
     let Mi_plus_one: E12T = E12T {
         c0b0a0: outputs.get_output(t400),
@@ -4964,8 +4887,8 @@ fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
     return (Q0, Mi_plus_one);
 }
 #[inline(always)]
-fn run_BN254_TOWER_MILLER_BIT1_1P_circuit(
-    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, Q_or_Q_neg_0: G2Point, M_i: E12T
+pub fn run_BN254_TOWER_MILLER_BIT1_1P_circuit(
+    yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, Q_or_Q_neg_0: G2Point, M_i: E12T,
 ) -> (G2Point, E12T) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0xa
@@ -5632,7 +5555,7 @@ fn run_BN254_TOWER_MILLER_BIT1_1P_circuit(
         x0: outputs.get_output(t266),
         x1: outputs.get_output(t267),
         y0: outputs.get_output(t276),
-        y1: outputs.get_output(t277)
+        y1: outputs.get_output(t277),
     };
     let Mi_plus_one: E12T = E12T {
         c0b0a0: outputs.get_output(t588),
@@ -5651,8 +5574,8 @@ fn run_BN254_TOWER_MILLER_BIT1_1P_circuit(
     return (Q0, Mi_plus_one);
 }
 #[inline(always)]
-fn run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
-    original_Q0: G2Point, yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, Mi: E12T
+pub fn run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
+    original_Q0: G2Point, yInv_0: u384, xNegOverY_0: u384, Q_0: G2Point, Mi: E12T,
 ) -> (E12T,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
@@ -6129,47 +6052,45 @@ fn run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
     };
     return (Mi,);
 }
-const TOWER_MILLER_FINALIZE_BN_1P_BN254_CONSTANTS: [
-    u384
-    ; 9] = [
+const TOWER_MILLER_FINALIZE_BN_1P_BN254_CONSTANTS: [u384; 9] = [
     u384 {
         limb0: 0xc2c3330c99e39557176f553d,
         limb1: 0x4c0bec3cf559b143b78cc310,
         limb2: 0x2fb347984f7911f7,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xb7c9dce1665d51c640fcba2,
         limb1: 0x4ba4cc8bd75a079432ae2a1d,
         limb2: 0x16c9e55061ebae20,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xa9c95998dc54014671a0135a,
         limb1: 0xdc5ec698b6e2f9b9dbaae0ed,
         limb2: 0x63cf305489af5dc,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8fa25bd282d37f632623b0e3,
         limb1: 0x704b5a7ec796f2b21807dc9,
         limb2: 0x7c03cbcac41049a,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbb966e3de4bd44e5607cfd48,
         limb1: 0x5e6dd9e7e0acccb0c28f069f,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0xa, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x9, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+    u384 { limb0: 0x9, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
 ];
 #[inline(always)]
-fn run_FP6_NEG_circuit(
-    b0a0: u384, b0a1: u384, b1a0: u384, b1a1: u384, b2a0: u384, b2a1: u384, curve_index: usize
+pub fn run_FP6_NEG_circuit(
+    b0a0: u384, b0a1: u384, b1a0: u384, b1a1: u384, b2a0: u384, b2a1: u384, curve_index: usize,
 ) -> (u384, u384, u384, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -6186,11 +6107,11 @@ fn run_FP6_NEG_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t0, t1, t2, t3, t4, t5,).new_inputs();
+    let mut circuit_inputs = (t0, t1, t2, t3, t4, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -6218,11 +6139,11 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
     };
     use garaga::definitions::{
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line
+        MillerLoopResultScalingFactor, G2Line,
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 

@@ -20,13 +20,13 @@ use garaga::circuits::multi_pairing_check::{
 };
 use garaga::circuits::extf_mul::{
     run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit
+    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit,
 };
 use core::poseidon::hades_permutation;
-
+use core::circuit::u384;
 use garaga::definitions::{
-    G1Point, G2Point, G1G2Pair, u384, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, G2Line, u384Serde, u288Serde
+    G1Point, G2Point, G1G2Pair, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
+    BNProcessedPair, BLSProcessedPair, G2Line, u384Serde, u288Serde,
 };
 use core::option::Option;
 use core::num::traits::One;
@@ -38,20 +38,20 @@ use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY
 
 
 #[derive(Drop, Serde)]
-struct MPCheckHintBN254 {
-    lambda_root: E12D<u288>,
-    lambda_root_inverse: E12D<u288>,
-    w: MillerLoopResultScalingFactor<u288>,
-    Ris: Span<E12D<u288>>,
-    big_Q: Array<u288>,
+pub struct MPCheckHintBN254 {
+    pub lambda_root: E12D<u288>,
+    pub lambda_root_inverse: E12D<u288>,
+    pub w: MillerLoopResultScalingFactor<u288>,
+    pub Ris: Span<E12D<u288>>,
+    pub big_Q: Array<u288>,
 }
 
 #[derive(Drop, Serde)]
-struct MPCheckHintBLS12_381 {
-    lambda_root_inverse: E12D<u384>,
-    w: MillerLoopResultScalingFactor<u384>,
-    Ris: Span<E12D<u384>>,
-    big_Q: Array<u384>,
+pub struct MPCheckHintBLS12_381 {
+    pub lambda_root_inverse: E12D<u384>,
+    pub w: MillerLoopResultScalingFactor<u384>,
+    pub Ris: Span<E12D<u384>>,
+    pub big_Q: Array<u384>,
 }
 
 fn multi_pairing_check_bn254_2P_2F(
@@ -80,10 +80,10 @@ fn multi_pairing_check_bn254_2P_2F(
     let z: u384 = z_felt252.into();
 
     let (
-        c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z
+        c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
     ): (u384, u384, u384, u384, u384, u384, u384) =
         run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-        hint.lambda_root, z, hint.w, hint.lambda_root_inverse, c_i
+        hint.lambda_root, z, hint.w, hint.lambda_root_inverse, c_i,
     );
 
     // init bit for bn254 is 0:
@@ -100,7 +100,7 @@ fn multi_pairing_check_bn254_2P_2F(
         c_i,
         z,
         c_inv_of_z,
-        LHS
+        LHS,
     );
 
     let mut LHS = _lhs;
@@ -129,7 +129,7 @@ fn multi_pairing_check_bn254_2P_2F(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_i
+                    c_i,
                 )
             },
             1 |
@@ -212,7 +212,7 @@ fn multi_pairing_check_bn254_2P_2F(
         c_inv_frob_3_of_z,
         LHS,
         f_i_of_z,
-        hint.big_Q
+        hint.big_Q,
     );
 
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
@@ -222,7 +222,7 @@ fn multi_pairing_check_bn254_2P_2F(
 }
 
 fn multi_pairing_check_bls12_381_2P_2F(
-    pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381
+    pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 81);
     usize_assert_eq(hint.Ris.len(), 36);
@@ -250,7 +250,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1): (u384, u384, u384) =
         run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-        hint.lambda_root_inverse, z, hint.w
+        hint.lambda_root_inverse, z, hint.w,
     );
 
     // init bit for bls is 1:
@@ -268,7 +268,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
         R_0_of_Z,
         c_i,
         z,
-        conjugate_c_inv_of_z
+        conjugate_c_inv_of_z,
     );
 
     let mut LHS = _lhs;
@@ -297,7 +297,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_i
+                    c_i,
                 )
             },
             1 => {
@@ -316,7 +316,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
                     R_i_of_z,
                     conjugate_c_inv_of_z,
                     z,
-                    c_i
+                    c_i,
                 )
             },
             _ => {
@@ -334,9 +334,9 @@ fn multi_pairing_check_bls12_381_2P_2F(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_i
+                    c_i,
                 )
-            }
+            },
         };
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
@@ -345,7 +345,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
 
     let R_last = Ris.pop_front().unwrap();
     let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
-        *R_last, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q
+        *R_last, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
     );
 
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");

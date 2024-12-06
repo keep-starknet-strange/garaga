@@ -1,6 +1,7 @@
 [package]
 name = "garaga"
 version = "0.14.0"
+edition = "2023_10"
 licence = "MIT"
 keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet"
@@ -15,7 +16,7 @@ sierra-replace-ids = false
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.8.4"
+cairo_test = "2.9.1"
 
 #snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.30.0" }
 #assert_macros = "2.8."

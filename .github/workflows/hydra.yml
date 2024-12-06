@@ -54,7 +54,7 @@ jobs:
       - name: Set up Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.8.4"
+          scarb-version: "2.9.1"
       - name: Run make rewrite and check for unstaged changes
         run: |
           source venv/bin/activate
