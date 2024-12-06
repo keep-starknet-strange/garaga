@@ -110,9 +110,9 @@ def build_hash_to_curve_hint(message: bytes) -> HashToCurveHint:
     # print(f"cofactor: {cofactor}, hex :{hex(cofactor)}")
 
     msm_builder = MSMCalldataBuilder(
-        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor]
+        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
     )
-    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints(risc0_mode=True)
+    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
 
     return HashToCurveHint(
         f0_hint=f0_hint,

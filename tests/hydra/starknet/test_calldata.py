@@ -68,13 +68,13 @@ def test_msm_calldata_builder(
         points=points,
         scalars=scalars,
         curve_id=curve_id,
+        risc0_mode=risc0_mode,
     )
 
     calldata1 = msm.serialize_to_calldata(
         include_digits_decomposition=include_digits_decomposition,
         include_points_and_scalars=include_points_and_scalars,
         serialize_as_pure_felt252_array=serialize_as_pure_felt252_array,
-        risc0_mode=risc0_mode,
         use_rust=False,
     )
 
@@ -82,7 +82,6 @@ def test_msm_calldata_builder(
         include_digits_decomposition=include_digits_decomposition,
         include_points_and_scalars=include_points_and_scalars,
         serialize_as_pure_felt252_array=serialize_as_pure_felt252_array,
-        risc0_mode=risc0_mode,
         use_rust=True,
     )
 
