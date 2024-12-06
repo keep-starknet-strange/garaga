@@ -147,17 +147,29 @@ where
     let (q_high_shifted, sum_dlog_div_high_shifted) =
         run_ecip::<F>(&[q_high.clone()], &[BigUint::from(1usize) << 128]);
 
-    let x = retrieve_random_x_coordinate(
+    let mut transcript = hash_inputs_points_scalars_and_result_points(
         points,
         scalars,
+        [&q_low, &q_high, &q_high_shifted],
         curve_id,
         risc0_mode,
-        [&q_low, &q_high, &q_high_shifted],
-        [
-            (&sum_dlog_div_low, scalars.len()),
-            (&sum_dlog_div_high, scalars.len()),
-            (&sum_dlog_div_high_shifted, 1),
-        ],
+    );
+    let sum_dlog_div_maybe_batched = match risc0_mode {
+        true => &sum_dlog_div_low,
+        false => {
+            let c0 = felt252_to_element(&transcript.state[1]);
+            let c1 = c0.clone().square();
+            let c2 = c1.clone() * c0.clone();
+            &(sum_dlog_div_low.scale_by_coeff(c0)
+                + sum_dlog_div_high.scale_by_coeff(c1)
+                + sum_dlog_div_high_shifted.scale_by_coeff(c2))
+        }
+    };
+    let x = retrieve_random_x_coordinate(
+        &mut transcript,
+        sum_dlog_div_maybe_batched,
+        scalars.len(),
+        !risc0_mode,
     );
     let (point, roots) = derive_ec_point_from_x(&x);
 
@@ -231,22 +243,11 @@ where
             }
         }
 
-        // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
-        let f_n_list = [
-            (&sum_dlog_div_low, scalars.len()),
-            (&sum_dlog_div_high, scalars.len()),
-            (&sum_dlog_div_high_shifted, 1),
-        ];
-        for (f, n) in f_n_list {
-            let parts = padd_function_felt(f, n);
-            for coeffs in parts {
-                push(call_data_ref, coeffs.len());
-                for coeff in coeffs {
-                    push_element(call_data_ref, &coeff);
-                }
-            }
-            if risc0_mode {
-                break;
+        let ff_4_polys = padd_function_felt(sum_dlog_div_maybe_batched, scalars.len(), !risc0_mode);
+        for poly in ff_4_polys {
+            push(call_data_ref, poly.len());
+            for coeff in poly {
+                push_element(call_data_ref, &coeff);
             }
         }
     }
@@ -303,14 +304,13 @@ where
 const INIT_HASH: &str = "0x4D534D5F4731"; // "MSM_G1" in hex
 const INIT_HASH_U128: &str = "0x4D534D5F47315F55313238"; // "MSM_G1_U128" in hex
 
-fn retrieve_random_x_coordinate<F>(
+fn hash_inputs_points_scalars_and_result_points<F>(
     points: &[G1Point<F>],
     scalars: &[BigUint],
+    q_list: [&G1Point<F>; 3],
     curve_id: usize,
     risc0_mode: bool,
-    q_list: [&G1Point<F>; 3],
-    f_n_list: [(&FunctionFelt<F>, usize); 3],
-) -> FieldElement<Stark252PrimeField>
+) -> CairoPoseidonTranscript
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
@@ -322,23 +322,11 @@ where
     };
     let mut transcript = CairoPoseidonTranscript::new(FieldElement::from_hex_unchecked(init_hash));
     let transcript_ref = &mut transcript;
-
     // curve id, msm size
     transcript_ref.update_sponge_state(
         FieldElement::<Stark252PrimeField>::from(curve_id as u64),
         FieldElement::<Stark252PrimeField>::from(scalars.len() as u64),
     );
-
-    // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
-    for (f, msm_size) in f_n_list {
-        let parts = padd_function_felt(f, msm_size);
-        for coeffs in parts {
-            transcript_ref.hash_emulated_field_elements(&coeffs, Option::None);
-        }
-        if risc0_mode {
-            break;
-        }
-    }
 
     // points
     for point in points {
@@ -360,6 +348,25 @@ where
         transcript_ref.hash_u128_multi(scalars);
     } else {
         transcript_ref.hash_u256_multi(scalars);
+    }
+
+    return transcript;
+}
+
+fn retrieve_random_x_coordinate<F>(
+    transcript: &mut CairoPoseidonTranscript,
+    sum_dlog_div_maybe_batched: &FunctionFelt<F>,
+    msm_size: usize,
+    batched: bool,
+) -> FieldElement<Stark252PrimeField>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    // SumDlogDivLow, SumDlogDivHigh, SumDlogDivHighShifted
+    let parts = padd_function_felt(sum_dlog_div_maybe_batched, msm_size, batched);
+    for coeffs in parts {
+        transcript.hash_emulated_field_elements(&coeffs, Option::None);
     }
 
     transcript.state[0]
