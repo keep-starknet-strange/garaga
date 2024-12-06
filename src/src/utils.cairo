@@ -3,10 +3,10 @@ pub mod hashing;
 pub mod calldata;
 pub mod risc0;
 pub mod drand;
-use core::circuit::{u384, u96};
+use core::circuit::{u384};
+use core::panic_with_felt252;
 
-
-fn u384_assert_zero(x: u384) {
+pub fn u384_assert_zero(x: u384) {
     if x.limb0 != 0 {
         panic_with_felt252('not zero l0');
     }
@@ -21,7 +21,7 @@ fn u384_assert_zero(x: u384) {
     }
 }
 
-fn u384_assert_eq(x: u384, y: u384) {
+pub fn u384_assert_eq(x: u384, y: u384) {
     if x.limb0 != y.limb0 {
         panic_with_felt252('not equal l0');
     }
@@ -35,7 +35,7 @@ fn u384_assert_eq(x: u384, y: u384) {
         panic_with_felt252('not equal l3');
     }
 }
-fn usize_assert_eq(x: usize, y: usize) {
+pub fn usize_assert_eq(x: usize, y: usize) {
     if x != y {
         panic_with_felt252('not equal usize');
     }

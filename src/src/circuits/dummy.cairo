@@ -2,7 +2,7 @@ use core::circuit::{
     RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    CircuitInputAccumulator,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
@@ -10,14 +10,14 @@ use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
     G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
-    get_BLS12_381_modulus, get_BN254_modulus
+    get_BLS12_381_modulus, get_BN254_modulus,
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
-fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
+pub fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack
     let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
     let t0 = circuit_sub(in0, in1);
@@ -31,11 +31,11 @@ fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t0, t2, t3, t4, t5, t7,).new_inputs();
+    let mut circuit_inputs = (t0, t2, t3, t4, t5, t7).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -52,7 +52,7 @@ fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> 
         outputs.get_output(t3),
         outputs.get_output(t4),
         outputs.get_output(t5),
-        outputs.get_output(t7)
+        outputs.get_output(t7),
     ];
     return res;
 }
@@ -65,11 +65,11 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
     };
     use garaga::definitions::{
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line
+        MillerLoopResultScalingFactor, G2Line,
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 

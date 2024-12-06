@@ -599,7 +599,7 @@ def main(
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
     output_sizes_exceeding_limit = {filename: set() for filename in filenames_used}
-    limit = 15
+    limit = 16
     compile_circuits(
         CIRCUITS_TO_COMPILE,
         compilation_mode,

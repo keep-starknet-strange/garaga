@@ -2,7 +2,7 @@ use core::circuit::{
     RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    CircuitInputAccumulator,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
@@ -10,14 +10,14 @@ use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
     G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
-    get_BLS12_381_modulus, get_BN254_modulus
+    get_BLS12_381_modulus, get_BN254_modulus,
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
-fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
+pub fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     acc: u384,
     m: u384,
     b: u384,
@@ -27,7 +27,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     en: u384,
     sp: u384,
     sn: u384,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -56,7 +56,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -80,7 +80,7 @@ fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     return (res_acc,);
 }
 #[inline(always)]
-fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
+pub fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     f_a0_accs: FunctionFeltEvaluations,
     f_a1_accs: FunctionFeltEvaluations,
     xA0: u384,
@@ -91,7 +91,7 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
     next_a_den_coeff: u384,
     next_b_num_coeff: u384,
     next_b_den_coeff: u384,
-    curve_index: usize
+    curve_index: usize,
 ) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -127,11 +127,11 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t1, t4, t6, t11, t13, t16, t18, t23, t2, t14,).new_inputs();
+    let mut circuit_inputs = (t1, t4, t6, t11, t13, t16, t18, t23, t2, t14).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -157,20 +157,20 @@ fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
         a_num: outputs.get_output(t1),
         a_den: outputs.get_output(t4),
         b_num: outputs.get_output(t6),
-        b_den: outputs.get_output(t11)
+        b_den: outputs.get_output(t11),
     };
     let next_f_a1_accs: FunctionFeltEvaluations = FunctionFeltEvaluations {
         a_num: outputs.get_output(t13),
         a_den: outputs.get_output(t16),
         b_num: outputs.get_output(t18),
-        b_den: outputs.get_output(t23)
+        b_den: outputs.get_output(t23),
     };
     let next_xA0_power: u384 = outputs.get_output(t2);
     let next_xA2_power: u384 = outputs.get_output(t14);
     return (next_f_a0_accs, next_f_a1_accs, next_xA0_power, next_xA2_power);
 }
 #[inline(always)]
-fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (G2Point,) {
+pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (G2Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -217,11 +217,11 @@ fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t24, t25, t34, t35,).new_inputs();
+    let mut circuit_inputs = (t24, t25, t34, t35).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -239,12 +239,12 @@ fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (
         x0: outputs.get_output(t24),
         x1: outputs.get_output(t25),
         y0: outputs.get_output(t34),
-        y1: outputs.get_output(t35)
+        y1: outputs.get_output(t35),
     };
     return (result,);
 }
 #[inline(always)]
-fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Point,) {
+pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Point,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -261,11 +261,11 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t6, t9,).new_inputs();
+    let mut circuit_inputs = (t6, t9).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -279,7 +279,7 @@ fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Po
     return (r,);
 }
 #[inline(always)]
-fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2Point,) {
+pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
     let in1 = CE::<CI<1>> {}; // 0x0
@@ -331,11 +331,11 @@ fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2P
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t29, t30, t39, t40,).new_inputs();
+    let mut circuit_inputs = (t29, t30, t39, t40).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in1
@@ -350,12 +350,14 @@ fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2P
         x0: outputs.get_output(t29),
         x1: outputs.get_output(t30),
         y0: outputs.get_output(t39),
-        y1: outputs.get_output(t40)
+        y1: outputs.get_output(t40),
     };
     return (result,);
 }
 #[inline(always)]
-fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usize) -> (G1Point,) {
+pub fn run_DOUBLE_EC_POINT_circuit(
+    p: G1Point, A_weirstrass: u384, curve_index: usize,
+) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
 
@@ -376,11 +378,11 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t8, t11,).new_inputs();
+    let mut circuit_inputs = (t8, t11).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -393,13 +395,13 @@ fn run_DOUBLE_EC_POINT_circuit(p: G1Point, A_weirstrass: u384, curve_index: usiz
     return (r,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -658,7 +660,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -695,13 +697,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -804,7 +806,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -841,13 +843,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDiv: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -915,7 +917,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -952,13 +954,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -1078,7 +1080,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -1115,13 +1117,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDiv: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -1206,7 +1208,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -1243,13 +1245,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -1386,7 +1388,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -1423,13 +1425,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -1584,7 +1586,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -1621,13 +1623,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -1799,7 +1801,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -1836,13 +1838,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2031,7 +2033,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -2068,13 +2070,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2281,7 +2283,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -2318,13 +2320,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2548,7 +2550,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -2585,13 +2587,13 @@ fn run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
+pub fn run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,
     coeff2: u384,
     SumDlogDivBatched: FunctionFelt,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2832,7 +2834,7 @@ fn run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -2869,14 +2871,14 @@ fn run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
+pub fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     f_a0_accs: FunctionFeltEvaluations,
     f_a1_accs: FunctionFeltEvaluations,
     yA0: u384,
     yA2: u384,
     coeff_A0: u384,
     coeff_A2: u384,
-    curve_index: usize
+    curve_index: usize,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2901,7 +2903,7 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -2927,8 +2929,8 @@ fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
     return (res,);
 }
 #[inline(always)]
-fn run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
-    xA0: u384, xA2: u384, SumDlogDiv: FunctionFelt, curve_index: usize
+pub fn run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
+    xA0: u384, xA2: u384, SumDlogDiv: FunctionFelt, curve_index: usize,
 ) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -3220,11 +3222,11 @@ fn run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t57, t85, t113, t147, t173, t201, t229, t263, t24, t25,).new_inputs();
+    let mut circuit_inputs = (t57, t85, t113, t147, t173, t201, t229, t263, t24, t25).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -3253,21 +3255,21 @@ fn run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
         a_num: outputs.get_output(t57),
         a_den: outputs.get_output(t85),
         b_num: outputs.get_output(t113),
-        b_den: outputs.get_output(t147)
+        b_den: outputs.get_output(t147),
     };
     let A2_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
         a_num: outputs.get_output(t173),
         a_den: outputs.get_output(t201),
         b_num: outputs.get_output(t229),
-        b_den: outputs.get_output(t263)
+        b_den: outputs.get_output(t263),
     };
     let xA0_power: u384 = outputs.get_output(t24);
     let xA2_power: u384 = outputs.get_output(t25);
     return (A0_evals, A2_evals, xA0_power, xA2_power);
 }
 #[inline(always)]
-fn run_IS_ON_CURVE_G1_G2_circuit(
-    p: G1Point, q: G2Point, a: u384, b: u384, b20: u384, b21: u384, curve_index: usize
+pub fn run_IS_ON_CURVE_G1_G2_circuit(
+    p: G1Point, q: G2Point, a: u384, b: u384, b20: u384, b21: u384, curve_index: usize,
 ) -> (u384, u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -3306,11 +3308,11 @@ fn run_IS_ON_CURVE_G1_G2_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t26, t27, t28,).new_inputs();
+    let mut circuit_inputs = (t26, t27, t28).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -3332,7 +3334,7 @@ fn run_IS_ON_CURVE_G1_G2_circuit(
     return (zero_check_0, zero_check_1, zero_check_2);
 }
 #[inline(always)]
-fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) -> (u384,) {
+pub fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -3346,7 +3348,7 @@ fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) 
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -3364,8 +3366,8 @@ fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) 
     return (zero_check,);
 }
 #[inline(always)]
-fn run_IS_ON_CURVE_G2_circuit(
-    p: G2Point, a: u384, b20: u384, b21: u384, curve_index: usize
+pub fn run_IS_ON_CURVE_G2_circuit(
+    p: G2Point, a: u384, b20: u384, b21: u384, curve_index: usize,
 ) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -3398,11 +3400,11 @@ fn run_IS_ON_CURVE_G2_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t22, t23,).new_inputs();
+    let mut circuit_inputs = (t22, t23).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -3420,8 +3422,8 @@ fn run_IS_ON_CURVE_G2_circuit(
     return (zero_check_0, zero_check_1);
 }
 #[inline(always)]
-fn run_RHS_FINALIZE_ACC_circuit(
-    acc: u384, m: u384, b: u384, xA: u384, Q_result: G1Point, curve_index: usize
+pub fn run_RHS_FINALIZE_ACC_circuit(
+    acc: u384, m: u384, b: u384, xA: u384, Q_result: G1Point, curve_index: usize,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -3440,7 +3442,7 @@ fn run_RHS_FINALIZE_ACC_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
@@ -3460,8 +3462,8 @@ fn run_RHS_FINALIZE_ACC_circuit(
     return (rhs,);
 }
 #[inline(always)]
-fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-    p: G1Point, a: u384, curve_index: usize
+pub fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+    p: G1Point, a: u384, curve_index: usize,
 ) -> (SlopeInterceptOutput,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -3504,11 +3506,11 @@ fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
 
     let modulus = get_p(curve_index);
     let modulus = TryInto::<
-        _, CircuitModulus
+        _, CircuitModulus,
     >::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t5, t7, t10, t14, t31, t29,).new_inputs();
+    let mut circuit_inputs = (t5, t7, t10, t14, t31, t29).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in1
@@ -3536,11 +3538,11 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
     };
     use garaga::definitions::{
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line
+        MillerLoopResultScalingFactor, G2Line,
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
@@ -3556,6 +3558,6 @@ mod tests {
         run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit, run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit,
         run_FINALIZE_FN_CHALLENGE_DUPL_circuit, run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit,
         run_IS_ON_CURVE_G1_G2_circuit, run_IS_ON_CURVE_G1_circuit, run_IS_ON_CURVE_G2_circuit,
-        run_RHS_FINALIZE_ACC_circuit, run_SLOPE_INTERCEPT_SAME_POINT_circuit
+        run_RHS_FINALIZE_ACC_circuit, run_SLOPE_INTERCEPT_SAME_POINT_circuit,
     };
 }

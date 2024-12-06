@@ -2,7 +2,7 @@ use core::circuit::{
     RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    CircuitInputAccumulator,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
@@ -10,14 +10,14 @@ use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
     G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
-    get_BLS12_381_modulus, get_BN254_modulus
+    get_BLS12_381_modulus, get_BN254_modulus,
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
 use garaga::single_pairing_tower::E12T;
 
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u384>,
@@ -30,7 +30,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -77,7 +77,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     let t32 = circuit_add(t30, t31); // Eval sparse poly line_1p_1 step + coeff_8 * z^8
     let t33 = circuit_mul(t19, t32); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t34 = circuit_mul(
-        t33, t33
+        t33, t33,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t35 = circuit_sub(in14, in15);
     let t36 = circuit_mul(t35, in0); // eval bls line by yInv
@@ -113,7 +113,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t65, t4,).new_inputs();
+    let mut circuit_inputs = (t65, t4).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -149,7 +149,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     return (lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u384>,
@@ -165,7 +165,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -281,7 +281,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     let t94 = circuit_add(t92, t93); // Eval sparse poly line_2p_1 step + coeff_8 * z^8
     let t95 = circuit_mul(t33, t94); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t96 = circuit_mul(
-        t95, t95
+        t95, t95,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t97 = circuit_sub(in17, in18);
     let t98 = circuit_mul(t97, in3); // eval bls line by yInv
@@ -379,7 +379,7 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t153, t154, t163, t164, t189, t4,).new_inputs();
+    let mut circuit_inputs = (t153, t154, t163, t164, t189, t4).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
@@ -422,14 +422,14 @@ fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
         x0: outputs.get_output(t153),
         x1: outputs.get_output(t154),
         y0: outputs.get_output(t163),
-        y1: outputs.get_output(t164)
+        y1: outputs.get_output(t164),
     };
     let lhs_i_plus_one: u384 = outputs.get_output(t189);
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u384>,
@@ -440,7 +440,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -489,7 +489,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t36, t4,).new_inputs();
+    let mut circuit_inputs = (t36, t4).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -517,7 +517,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     return (lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u384>,
@@ -531,7 +531,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -649,7 +649,7 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t62, t63, t72, t73, t98, t4,).new_inputs();
+    let mut circuit_inputs = (t62, t63, t72, t73, t98, t4).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
@@ -684,14 +684,14 @@ fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
         x0: outputs.get_output(t62),
         x1: outputs.get_output(t63),
         y0: outputs.get_output(t72),
-        y1: outputs.get_output(t73)
+        y1: outputs.get_output(t73),
     };
     let lhs_i_plus_one: u384 = outputs.get_output(t98);
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u384>,
@@ -705,7 +705,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     f_i_plus_one_of_z: u384,
     c_or_cinv_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (u384, u384) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -786,7 +786,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t65, t4,).new_inputs();
+    let mut circuit_inputs = (t65, t4).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
@@ -823,7 +823,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     return (lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u384>,
@@ -841,7 +841,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     f_i_plus_one_of_z: u384,
     c_or_cinv_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -1038,7 +1038,7 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t124, t125, t134, t135, t175, t4,).new_inputs();
+    let mut circuit_inputs = (t124, t125, t134, t135, t175, t4).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -1084,14 +1084,14 @@ fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
         x0: outputs.get_output(t124),
         x1: outputs.get_output(t125),
         y0: outputs.get_output(t134),
-        y1: outputs.get_output(t135)
+        y1: outputs.get_output(t135),
     };
     let lhs_i_plus_one: u384 = outputs.get_output(t175);
     let ci_plus_one: u384 = outputs.get_output(t4);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
+pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     R_n_minus_1: E12D<u384>,
     c_n_minus_2: u384,
     w_of_z: u384,
@@ -1099,7 +1099,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     c_inv_frob_1_of_z: u384,
     previous_lhs: u384,
     R_n_minus_2_of_z: u384,
-    Q: Array<u384>
+    Q: Array<u384>,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2
@@ -1352,11 +1352,9 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0xb153ffffb9feffffffffaaa9,
-                0x6730d2a0f6b0f6241eabfffe,
-                0x434bacd764774b84f38512bf,
-                0x1a0111ea397fe69a4b1ba7b6
-            ]
+                0xb153ffffb9feffffffffaaa9, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6,
+            ],
         ); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w0); // in2
@@ -1389,7 +1387,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     return (final_check,);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
+pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     R_n_minus_1: E12D<u384>,
     c_n_minus_2: u384,
     w_of_z: u384,
@@ -1397,7 +1395,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     c_inv_frob_1_of_z: u384,
     previous_lhs: u384,
     R_n_minus_2_of_z: u384,
-    Q: Array<u384>
+    Q: Array<u384>,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2
@@ -1706,11 +1704,9 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0xb153ffffb9feffffffffaaa9,
-                0x6730d2a0f6b0f6241eabfffe,
-                0x434bacd764774b84f38512bf,
-                0x1a0111ea397fe69a4b1ba7b6
-            ]
+                0xb153ffffb9feffffffffaaa9, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6,
+            ],
         ); // in1
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(R_n_minus_1.w0); // in2
@@ -1743,7 +1739,7 @@ fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     return (final_check,);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_0: G2Line<u384>,
@@ -1755,7 +1751,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     R_i_of_z: u384,
     c0: u384,
     z: u384,
-    c_inv_of_z: u384
+    c_inv_of_z: u384,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -1867,7 +1863,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     return (new_lhs,);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
+pub fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_0: G2Line<u384>,
@@ -1882,7 +1878,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     R_i_of_z: u384,
     c0: u384,
     z: u384,
-    c_inv_of_z: u384
+    c_inv_of_z: u384,
 ) -> (G2Point, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -2077,7 +2073,7 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t132, t133, t142, t143, t173,).new_inputs();
+    let mut circuit_inputs = (t132, t133, t142, t143, t173).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs.next_2([0x6, 0x0, 0x0, 0x0]); // in1
@@ -2119,57 +2115,57 @@ fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
         x0: outputs.get_output(t132),
         x1: outputs.get_output(t133),
         y0: outputs.get_output(t142),
-        y1: outputs.get_output(t143)
+        y1: outputs.get_output(t143),
     };
     let new_lhs: u384 = outputs.get_output(t173);
     return (Q0, new_lhs);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor<u384>
+pub fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
+    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor<u384>,
 ) -> (u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
     let in1 = CE::<CI<1>> {}; // 0x2
     let in2 = CE::<
-        CI<2>
+        CI<2>,
     > {}; // 0x18089593cbf626353947d5b1fd0c6d66bb34bc7585f5abdf8f17b50e12c47d65ce514a7c167b027b600febdb244714c5
     let in3 = CE::<
-        CI<3>
+        CI<3>,
     > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffeffff
     let in4 = CE::<
-        CI<4>
+        CI<4>,
     > {}; // 0xd5e1c086ffe8016d063c6dad7a2fffc9072bb5785a686bcefeedc2e0124838bdccf325ee5d80be9902109f7dbc79812
     let in5 = CE::<
-        CI<5>
+        CI<5>,
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
     let in6 = CE::<
-        CI<6>
+        CI<6>,
     > {}; // 0x1a0111ea397fe6998ce8d956845e1033efa3bf761f6622e9abc9802928bfc912627c4fd7ed3ffffb5dfb00000001aaaf
     let in7 = CE::<
-        CI<7>
+        CI<7>,
     > {}; // 0xb659fb20274bfb1be8ff4d69163c08be7302c4818171fdd17d5be9b1d380acd8c747cdc4aff0e653631f5d3000f022c
     let in8 = CE::<CI<8>> {}; // -0x1 % p
     let in9 = CE::<
-        CI<9>
+        CI<9>,
     > {}; // 0xfc3e2b36c4e03288e9e902231f9fb854a14787b6c7b36fec0c8ec971f63c5f282d5ac14d6c7ec22cf78a126ddc4af3
     let in10 = CE::<
-        CI<10>
+        CI<10>,
     > {}; // 0x1f87c566d89c06511d3d204463f3f70a9428f0f6d8f66dfd8191d92e3ec78be505ab5829ad8fd8459ef1424dbb895e6
     let in11 = CE::<
-        CI<11>
+        CI<11>,
     > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
     let in12 = CE::<
-        CI<12>
+        CI<12>,
     > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
     let in13 = CE::<
-        CI<13>
+        CI<13>,
     > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffefffe
     let in14 = CE::<
-        CI<14>
+        CI<14>,
     > {}; // 0x144e4211384586c16bd3ad4afa99cc9170df3560e77982d0db45f3536814f0bd5871c1908bd478cd1ee605167ff82995
     let in15 = CE::<
-        CI<15>
+        CI<15>,
     > {}; // 0xe9b7238370b26e88c8bb2dfb1e7ec4b7d471f3cdb6df2e24f5b1405d978eb56923783226654f19a83cd0a2cfff0a87f
 
     // INPUT stack
@@ -2278,7 +2274,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t37, t47, t94,).new_inputs();
+    let mut circuit_inputs = (t37, t47, t94).new_inputs();
     // Prefill constants:
 
     circuit_inputs = circuit_inputs
@@ -2311,98 +2307,96 @@ fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let c_inv_frob_1_of_z: u384 = outputs.get_output(t94);
     return (c_inv_of_z, scaling_factor_of_z, c_inv_frob_1_of_z);
 }
-const MP_CHECK_PREPARE_LAMBDA_ROOT_BLS12_381_CONSTANTS: [
-    u384
-    ; 16] = [
+const MP_CHECK_PREPARE_LAMBDA_ROOT_BLS12_381_CONSTANTS: [u384; 16] = [
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x167b027b600febdb244714c5,
         limb1: 0x8f17b50e12c47d65ce514a7c,
         limb2: 0xfd0c6d66bb34bc7585f5abdf,
-        limb3: 0x18089593cbf626353947d5b1
+        limb3: 0x18089593cbf626353947d5b1,
     },
     u384 {
         limb0: 0x620a00022e01fffffffeffff,
         limb1: 0xddb3a93be6f89688de17d813,
         limb2: 0xdf76ce51ba69c6076a0f77ea,
-        limb3: 0x5f19672f
+        limb3: 0x5f19672f,
     },
     u384 {
         limb0: 0xe5d80be9902109f7dbc79812,
         limb1: 0xefeedc2e0124838bdccf325e,
         limb2: 0xd7a2fffc9072bb5785a686bc,
-        limb3: 0xd5e1c086ffe8016d063c6da
+        limb3: 0xd5e1c086ffe8016d063c6da,
     },
     u384 {
         limb0: 0x4f49fffd8bfd00000000aaad,
         limb1: 0x897d29650fb85f9b409427eb,
         limb2: 0x63d4de85aa0d857d89759ad4,
-        limb3: 0x1a0111ea397fe699ec024086
+        limb3: 0x1a0111ea397fe699ec024086,
     },
     u384 {
         limb0: 0xed3ffffb5dfb00000001aaaf,
         limb1: 0xabc9802928bfc912627c4fd7,
         limb2: 0x845e1033efa3bf761f6622e9,
-        limb3: 0x1a0111ea397fe6998ce8d956
+        limb3: 0x1a0111ea397fe6998ce8d956,
     },
     u384 {
         limb0: 0x4aff0e653631f5d3000f022c,
         limb1: 0x17d5be9b1d380acd8c747cdc,
         limb2: 0x9163c08be7302c4818171fdd,
-        limb3: 0xb659fb20274bfb1be8ff4d6
+        limb3: 0xb659fb20274bfb1be8ff4d6,
     },
     u384 {
         limb0: 0xb153ffffb9feffffffffaaaa,
         limb1: 0x6730d2a0f6b0f6241eabfffe,
         limb2: 0x434bacd764774b84f38512bf,
-        limb3: 0x1a0111ea397fe69a4b1ba7b6
+        limb3: 0x1a0111ea397fe69a4b1ba7b6,
     },
     u384 {
         limb0: 0x4d6c7ec22cf78a126ddc4af3,
         limb1: 0xec0c8ec971f63c5f282d5ac1,
         limb2: 0x231f9fb854a14787b6c7b36f,
-        limb3: 0xfc3e2b36c4e03288e9e902
+        limb3: 0xfc3e2b36c4e03288e9e902,
     },
     u384 {
         limb0: 0x9ad8fd8459ef1424dbb895e6,
         limb1: 0xd8191d92e3ec78be505ab582,
         limb2: 0x463f3f70a9428f0f6d8f66df,
-        limb3: 0x1f87c566d89c06511d3d204
+        limb3: 0x1f87c566d89c06511d3d204,
     },
     u384 {
         limb0: 0x4f49fffd8bfd00000000aaac,
         limb1: 0x897d29650fb85f9b409427eb,
         limb2: 0x63d4de85aa0d857d89759ad4,
-        limb3: 0x1a0111ea397fe699ec024086
+        limb3: 0x1a0111ea397fe699ec024086,
     },
     u384 {
         limb0: 0x72ec05f4c81084fbede3cc09,
         limb1: 0x77f76e17009241c5ee67992f,
         limb2: 0x6bd17ffe48395dabc2d3435e,
-        limb3: 0x6af0e0437ff400b6831e36d
+        limb3: 0x6af0e0437ff400b6831e36d,
     },
     u384 {
         limb0: 0x620a00022e01fffffffefffe,
         limb1: 0xddb3a93be6f89688de17d813,
         limb2: 0xdf76ce51ba69c6076a0f77ea,
-        limb3: 0x5f19672f
+        limb3: 0x5f19672f,
     },
     u384 {
         limb0: 0x8bd478cd1ee605167ff82995,
         limb1: 0xdb45f3536814f0bd5871c190,
         limb2: 0xfa99cc9170df3560e77982d0,
-        limb3: 0x144e4211384586c16bd3ad4a
+        limb3: 0x144e4211384586c16bd3ad4a,
     },
     u384 {
         limb0: 0x6654f19a83cd0a2cfff0a87f,
         limb1: 0x4f5b1405d978eb5692378322,
         limb2: 0xb1e7ec4b7d471f3cdb6df2e2,
-        limb3: 0xe9b7238370b26e88c8bb2df
-    }
+        limb3: 0xe9b7238370b26e88c8bb2df,
+    },
 ];
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcessedPair,) {
+pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcessedPair,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -2414,7 +2408,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcesse
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t0, t2,).new_inputs();
+    let mut circuit_inputs = (t0, t2).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -2423,13 +2417,13 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcesse
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BLSProcessedPair = BLSProcessedPair {
-        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
+        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2),
     };
     return (p_0,);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
-    p_0: G1Point, p_1: G1Point
+pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
+    p_0: G1Point, p_1: G1Point,
 ) -> (BLSProcessedPair, BLSProcessedPair) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2446,7 +2440,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t0, t2, t3, t5,).new_inputs();
+    let mut circuit_inputs = (t0, t2, t3, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -2457,16 +2451,16 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BLSProcessedPair = BLSProcessedPair {
-        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
+        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2),
     };
     let p_1: BLSProcessedPair = BLSProcessedPair {
-        yInv: outputs.get_output(t3), xNegOverY: outputs.get_output(t5)
+        yInv: outputs.get_output(t3), xNegOverY: outputs.get_output(t5),
     };
     return (p_0, p_1);
 }
 #[inline(always)]
-fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
-    p_0: G1Point, p_1: G1Point, p_2: G1Point
+pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
+    p_0: G1Point, p_1: G1Point, p_2: G1Point,
 ) -> (BLSProcessedPair, BLSProcessedPair, BLSProcessedPair) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2486,7 +2480,7 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
-    let mut circuit_inputs = (t0, t2, t3, t5, t6, t8,).new_inputs();
+    let mut circuit_inputs = (t0, t2, t3, t5, t6, t8).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -2499,18 +2493,18 @@ fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let p_0: BLSProcessedPair = BLSProcessedPair {
-        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2)
+        yInv: outputs.get_output(t0), xNegOverY: outputs.get_output(t2),
     };
     let p_1: BLSProcessedPair = BLSProcessedPair {
-        yInv: outputs.get_output(t3), xNegOverY: outputs.get_output(t5)
+        yInv: outputs.get_output(t3), xNegOverY: outputs.get_output(t5),
     };
     let p_2: BLSProcessedPair = BLSProcessedPair {
-        yInv: outputs.get_output(t6), xNegOverY: outputs.get_output(t8)
+        yInv: outputs.get_output(t6), xNegOverY: outputs.get_output(t8),
     };
     return (p_0, p_1, p_2);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
+pub fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u288>,
@@ -2523,7 +2517,7 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -2581,7 +2575,7 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     let t39 = circuit_add(t37, t38); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
     let t40 = circuit_mul(t23, t39); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t41 = circuit_mul(
-        t40, t40
+        t40, t40,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t42 = circuit_mul(in0, in15);
     let t43 = circuit_add(in14, t42);
@@ -2623,11 +2617,11 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t78, t5,).new_inputs();
+    let mut circuit_inputs = (t78, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
@@ -2663,7 +2657,7 @@ fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     return (lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
+pub fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u288>,
@@ -2679,7 +2673,7 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     f_i_of_z: u384,
     f_i_plus_one_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -2807,7 +2801,7 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let t104 = circuit_add(t102, t103); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
     let t105 = circuit_mul(t40, t104); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t106 = circuit_mul(
-        t105, t105
+        t105, t105,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t107 = circuit_mul(in0, in18);
     let t108 = circuit_add(in17, t107);
@@ -2914,11 +2908,11 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t169, t170, t179, t180, t208, t5,).new_inputs();
+    let mut circuit_inputs = (t169, t170, t179, t180, t208, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in2
@@ -2962,14 +2956,14 @@ fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
         x0: outputs.get_output(t169),
         x1: outputs.get_output(t170),
         y0: outputs.get_output(t179),
-        y1: outputs.get_output(t180)
+        y1: outputs.get_output(t180),
     };
     let lhs_i_plus_one: u384 = outputs.get_output(t208);
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
+pub fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u288>,
@@ -2985,7 +2979,7 @@ fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
     f_i_plus_one_of_z: u384,
     c_or_cinv_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -3046,7 +3040,7 @@ fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
     let t39 = circuit_add(t37, t38); // Eval sparse poly line_1p_1 step + coeff_9 * z^9
     let t40 = circuit_mul(t23, t39); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t41 = circuit_mul(
-        t40, t40
+        t40, t40,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t42 = circuit_mul(in0, in13);
     let t43 = circuit_add(in12, t42);
@@ -3123,11 +3117,11 @@ fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t113, t5,).new_inputs();
+    let mut circuit_inputs = (t113, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
@@ -3172,7 +3166,7 @@ fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
     return (lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
+pub fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u288>,
@@ -3192,7 +3186,7 @@ fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
     f_i_plus_one_of_z: u384,
     c_or_cinv_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -3324,7 +3318,7 @@ fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
     let t104 = circuit_add(t102, t103); // Eval sparse poly line_2p_1 step + coeff_9 * z^9
     let t105 = circuit_mul(t40, t104); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t106 = circuit_mul(
-        t105, t105
+        t105, t105,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t107 = circuit_mul(in0, in16);
     let t108 = circuit_add(in15, t107);
@@ -3517,11 +3511,11 @@ fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t237, t238, t247, t248, t294, t5,).new_inputs();
+    let mut circuit_inputs = (t237, t238, t247, t248, t294, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in2
@@ -3578,14 +3572,14 @@ fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
         x0: outputs.get_output(t237),
         x1: outputs.get_output(t238),
         y0: outputs.get_output(t247),
-        y1: outputs.get_output(t248)
+        y1: outputs.get_output(t248),
     };
     let lhs_i_plus_one: u384 = outputs.get_output(t294);
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
+pub fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u288>,
@@ -3601,7 +3595,7 @@ fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
     f_i_plus_one_of_z: u384,
     c_or_cinv_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -3696,7 +3690,7 @@ fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
     let t73 = circuit_add(t71, t72); // Eval sparse poly line_1p_2 step + coeff_9 * z^9
     let t74 = circuit_mul(t65, t73); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_1(z)
     let t75 = circuit_mul(
-        t74, t74
+        t74, t74,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t76 = circuit_mul(in0, in23);
     let t77 = circuit_add(in22, t76);
@@ -3740,11 +3734,11 @@ fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t114, t5,).new_inputs();
+    let mut circuit_inputs = (t114, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
@@ -3789,7 +3783,7 @@ fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
     return (lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
+pub fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_dbl_0: G2Line<u288>,
@@ -3809,7 +3803,7 @@ fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     f_i_plus_one_of_z: u384,
     c_or_cinv_of_z: u384,
     z: u384,
-    ci: u384
+    ci: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -4026,7 +4020,7 @@ fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     let t189 = circuit_add(t187, t188); // Eval sparse poly line_2p_2 step + coeff_9 * z^9
     let t190 = circuit_mul(t181, t189); // Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_2(z)
     let t191 = circuit_mul(
-        t190, t190
+        t190, t190,
     ); // Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2
     let t192 = circuit_mul(in0, in26);
     let t193 = circuit_add(in25, t192);
@@ -4135,11 +4129,11 @@ fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t254, t255, t264, t265, t295, t5,).new_inputs();
+    let mut circuit_inputs = (t254, t255, t264, t265, t295, t5).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in2
@@ -4196,14 +4190,14 @@ fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
         x0: outputs.get_output(t254),
         x1: outputs.get_output(t255),
         y0: outputs.get_output(t264),
-        y1: outputs.get_output(t265)
+        y1: outputs.get_output(t265),
     };
     let lhs_i_plus_one: u384 = outputs.get_output(t295);
     let ci_plus_one: u384 = outputs.get_output(t5);
     return (Q0, lhs_i_plus_one, ci_plus_one);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
+pub fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     line_1_0: G2Line<u288>,
@@ -4222,7 +4216,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     c_inv_frob_3_of_z: u384,
     previous_lhs: u384,
     R_n_minus_3_of_z: u384,
-    Q: Array<u288>
+    Q: Array<u288>,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -4732,13 +4726,13 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs.next_2([0x52, 0x0, 0x0, 0x0]); // in2
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in3
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(yInv_0); // in4
@@ -4805,7 +4799,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     return (final_check,);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
+pub fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     line_1_0: G2Line<u288>,
@@ -4828,7 +4822,7 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     c_inv_frob_3_of_z: u384,
     previous_lhs: u384,
     R_n_minus_3_of_z: u384,
-    Q: Array<u288>
+    Q: Array<u288>,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2fb347984f7911f74c0bec3cf559b143b78cc310c2c3330c99e39557176f553d
@@ -5649,38 +5643,36 @@ fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let final_check: u384 = outputs.get_output(t638);
     return (final_check,);
 }
-const MP_CHECK_FINALIZE_BN_3P_2F_BN254_CONSTANTS: [
-    u384
-    ; 10] = [
+const MP_CHECK_FINALIZE_BN_3P_2F_BN254_CONSTANTS: [u384; 10] = [
     u384 {
         limb0: 0xc2c3330c99e39557176f553d,
         limb1: 0x4c0bec3cf559b143b78cc310,
         limb2: 0x2fb347984f7911f7,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xb7c9dce1665d51c640fcba2,
         limb1: 0x4ba4cc8bd75a079432ae2a1d,
         limb2: 0x16c9e55061ebae20,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xa9c95998dc54014671a0135a,
         limb1: 0xdc5ec698b6e2f9b9dbaae0ed,
         limb2: 0x63cf305489af5dc,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8fa25bd282d37f632623b0e3,
         limb1: 0x704b5a7ec796f2b21807dc9,
         limb2: 0x7c03cbcac41049a,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbb966e3de4bd44e5607cfd48,
         limb1: 0x5e6dd9e7e0acccb0c28f069f,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -5688,18 +5680,18 @@ const MP_CHECK_FINALIZE_BN_3P_2F_BN254_CONSTANTS: [
         limb0: 0x6871ca8d3c208c16d87cfd3e,
         limb1: 0xb85045b68181585d97816a91,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x52, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x6871ca8d3c208c16d87cfd35,
         limb1: 0xb85045b68181585d97816a91,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
-    }
+        limb3: 0x0,
+    },
 ];
 #[inline(always)]
-fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
+pub fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_0: G2Line<u288>,
@@ -5710,7 +5702,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     c0: u384,
     z: u384,
     c_inv_of_z: u384,
-    previous_lhs: u384
+    previous_lhs: u384,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -5770,11 +5762,11 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t43, t6,).new_inputs();
+    let mut circuit_inputs = (t43, t6).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
@@ -5802,7 +5794,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     return (new_lhs, c_i);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
+pub fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
     G2_line_0: G2Line<u288>,
@@ -5816,7 +5808,7 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     c0: u384,
     z: u384,
     c_inv_of_z: u384,
-    previous_lhs: u384
+    previous_lhs: u384,
 ) -> (G2Point, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // -0x9 % p
@@ -5946,11 +5938,11 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t69, t70, t79, t80, t108, t6,).new_inputs();
+    let mut circuit_inputs = (t69, t70, t79, t80, t108, t6).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd3e, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in2
@@ -5986,19 +5978,19 @@ fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
         x0: outputs.get_output(t69),
         x1: outputs.get_output(t70),
         y0: outputs.get_output(t79),
-        y1: outputs.get_output(t80)
+        y1: outputs.get_output(t80),
     };
     let new_lhs: u384 = outputs.get_output(t108);
     let c_i: u384 = outputs.get_output(t6);
     return (Q0, new_lhs, c_i);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
+pub fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     lambda_root: E12D<u288>,
     z: u384,
     scaling_factor: MillerLoopResultScalingFactor<u288>,
     c_inv: E12D<u288>,
-    c_0: u384
+    c_0: u384,
 ) -> (u384, u384, u384, u384, u384, u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -6012,85 +6004,85 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let in8 = CE::<CI<8>> {}; // 0x2c84bbad27c3671562b7adefd44038ab3c0bbad96fc008e7d6998c82f7fc048b
     let in9 = CE::<CI<9>> {}; // 0xc33b1c70e4fd11b6d1eab6fcd18b99ad4afd096a8697e0c9c36d8ca3339a7b5
     let in10 = CE::<
-        CI<10>
+        CI<10>,
     > {}; // 0x1b007294a55accce13fe08bea73305ff6bdac77c5371c546d428780a6e3dcfa8
     let in11 = CE::<
-        CI<11>
+        CI<11>,
     > {}; // 0x215d42e7ac7bd17cefe88dd8e6965b3adae92c974f501fe811493d72543a3977
     let in12 = CE::<CI<12>> {}; // -0x1 % p
     let in13 = CE::<
-        CI<13>
+        CI<13>,
     > {}; // 0x246996f3b4fae7e6a6327cfe12150b8e747992778eeec7e5ca5cf05f80f362ac
     let in14 = CE::<
-        CI<14>
+        CI<14>,
     > {}; // 0x12d7c0c3ed42be419d2b22ca22ceca702eeb88c36a8b264dde75f4f798d6a3f2
     let in15 = CE::<
-        CI<15>
+        CI<15>,
     > {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
     let in16 = CE::<CI<16>> {}; // 0xc38dce27e3b2cae33ce738a184c89d94a0e78406b48f98a7b4f4463e3a7dba0
     let in17 = CE::<CI<17>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
     let in18 = CE::<CI<18>> {}; // 0xf20e129e47c9363aa7b569817e0966cba582096fa7a164080faed1f0d24275a
     let in19 = CE::<
-        CI<19>
+        CI<19>,
     > {}; // 0x2c145edbe7fd8aee9f3a80b03b0b1c923685d2ea1bdec763c13b4711cd2b8126
     let in20 = CE::<CI<20>> {}; // 0x3df92c5b96e3914559897c6ad411fb25b75afb7f8b1c1a56586ff93e080f8bc
     let in21 = CE::<
-        CI<21>
+        CI<21>,
     > {}; // 0x12acf2ca76fd0675a27fb246c7729f7db080cb99678e2ac024c6b8ee6e0c2c4b
     let in22 = CE::<
-        CI<22>
+        CI<22>,
     > {}; // 0x1563dbde3bd6d35ba4523cf7da4e525e2ba6a3151500054667f8140c6a3f2d9f
     let in23 = CE::<
-        CI<23>
+        CI<23>,
     > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd49
     let in24 = CE::<
-        CI<24>
+        CI<24>,
     > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
     let in25 = CE::<CI<25>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe
     let in26 = CE::<CI<26>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177ffffff
     let in27 = CE::<
-        CI<27>
+        CI<27>,
     > {}; // 0x13d0c369615f7bb0b2bdfa8fef85fa07122bde8d67dfc8fabd3581ad840ddd76
     let in28 = CE::<
-        CI<28>
+        CI<28>,
     > {}; // 0x18a0f4219f4fdff6fc2bf531eb331a053a35744cac285af5685d3f90eacf7a66
     let in29 = CE::<CI<29>> {}; // 0xc3a5e9c462a654779c3e050c9ca2a428908a81264e2b5a5bf22f67654883ae6
     let in30 = CE::<
-        CI<30>
+        CI<30>,
     > {}; // 0x2ce02aa5f9bf8cd65bdd2055c255cf9d9e08c1d9345582cc92fd973c74bd77f4
     let in31 = CE::<
-        CI<31>
+        CI<31>,
     > {}; // 0x17ded419ed7be4f97fac149bfaefbac11b155498de227b850aea3f23790405d6
     let in32 = CE::<
-        CI<32>
+        CI<32>,
     > {}; // 0x1bfe7b214c0294242fb81a8dccd8a9b4441d64f34150a79753fb0cd31cc99cc0
     let in33 = CE::<CI<33>> {}; // 0x697b9c523e0390ed15da0ec97a9b8346513297b9efaf0f0f1a228f0d5662fbd
     let in34 = CE::<CI<34>> {}; // 0x7a0e052f2b1c443b5186d6ac4c723b85d3f78a3182d2db0c413901c32b0c6fe
     let in35 = CE::<
-        CI<35>
+        CI<35>,
     > {}; // 0x1b76a37fba85f3cd5dc79824a3792597356c892c39c0d06b220500933945267f
     let in36 = CE::<CI<36>> {}; // 0xabf8b60be77d7306cbeee33576139d7f03a5e397d439ec7694aa2bf4c0c101
     let in37 = CE::<
-        CI<37>
+        CI<37>,
     > {}; // 0x1c938b097fd2247905924b2691fb5e5685558c04009201927eeb0a69546f1fd1
     let in38 = CE::<CI<38>> {}; // 0x4f1de41b3d1766fa9f30e6dec26094f0fdf31bf98ff2631380cab2baaa586de
     let in39 = CE::<
-        CI<39>
+        CI<39>,
     > {}; // 0x2429efd69b073ae23e8c6565b7b72e1b0e78c27f038f14e77cfd95a083f4c261
     let in40 = CE::<
-        CI<40>
+        CI<40>,
     > {}; // 0x28a411b634f09b8fb14b900e9507e9327600ecc7d8cf6ebab94d0cb3b2594c64
     let in41 = CE::<
-        CI<41>
+        CI<41>,
     > {}; // 0x23d5e999e1910a12feb0f6ef0cd21d04a44a9e08737f96e55fe3ed9d730c239f
     let in42 = CE::<
-        CI<42>
+        CI<42>,
     > {}; // 0x1465d351952f0c0588982b28b4a8aea95364059e272122f5e8257f43bbb36087
     let in43 = CE::<
-        CI<43>
+        CI<43>,
     > {}; // 0x16db366a59b1dd0b9fb1b2282a48633d3e2ddaea200280211f25041384282499
     let in44 = CE::<
-        CI<44>
+        CI<44>,
     > {}; // 0x28c36e1fee7fdbe60337d84bbcba34a53a41f1ee50449cdc780cfbfaa5cc3649
 
     // INPUT stack
@@ -6317,7 +6309,7 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208,).new_inputs();
+    let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208).new_inputs();
     // Prefill constants:
 
     circuit_inputs = circuit_inputs
@@ -6372,270 +6364,274 @@ fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
         lhs,
         c_inv_frob_1_of_z,
         c_frob_2_of_z,
-        c_inv_frob_3_of_z
+        c_inv_frob_3_of_z,
     );
 }
-const MP_CHECK_PREPARE_LAMBDA_ROOT_BN254_CONSTANTS: [
-    u384
-    ; 45] = [
+const MP_CHECK_PREPARE_LAMBDA_ROOT_BN254_CONSTANTS: [u384; 45] = [
     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x12, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0xfde6a43f5daa971f3fa65955,
         limb1: 0x1b2522ec5eb28ded6895e1cd,
         limb2: 0x1d8c8daef3eee1e8,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x42b29c567e9c385ce480a71a,
         limb1: 0x4e34e2ac06ead4000d14d1e2,
         limb2: 0x217e400dc9351e77,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xfd28d102c0d147b2f4d521a7,
         limb1: 0x8481d22c6934ce844d72f250,
         limb2: 0x242b719062f6737b,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x43ac198484b8d9094aa82536,
         limb1: 0x1b9c22d81246ffc2e794e176,
         limb2: 0x359809094bd5c8e,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x6df7b44cbb259ef7cb58d5ed,
         limb1: 0xdd4ef1e69a0c1f0dd2949fa,
         limb2: 0x21436d48fcb50cc6,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8a4f4f0831364cf35f78f771,
         limb1: 0x38a4311a86919d9c7c6c15f8,
         limb2: 0x18857a58f3b5bb30,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x6fc008e7d6998c82f7fc048b,
         limb1: 0x62b7adefd44038ab3c0bbad9,
         limb2: 0x2c84bbad27c36715,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xa8697e0c9c36d8ca3339a7b5,
         limb1: 0x6d1eab6fcd18b99ad4afd096,
         limb2: 0xc33b1c70e4fd11b,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x5371c546d428780a6e3dcfa8,
         limb1: 0x13fe08bea73305ff6bdac77c,
         limb2: 0x1b007294a55accce,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x4f501fe811493d72543a3977,
         limb1: 0xefe88dd8e6965b3adae92c97,
         limb2: 0x215d42e7ac7bd17c,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x6871ca8d3c208c16d87cfd46,
         limb1: 0xb85045b68181585d97816a91,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8eeec7e5ca5cf05f80f362ac,
         limb1: 0xa6327cfe12150b8e74799277,
         limb2: 0x246996f3b4fae7e6,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x6a8b264dde75f4f798d6a3f2,
         limb1: 0x9d2b22ca22ceca702eeb88c3,
         limb2: 0x12d7c0c3ed42be41,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xb7c9dce1665d51c640fcba2,
         limb1: 0x4ba4cc8bd75a079432ae2a1d,
         limb2: 0x16c9e55061ebae20,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x6b48f98a7b4f4463e3a7dba0,
         limb1: 0x33ce738a184c89d94a0e7840,
         limb2: 0xc38dce27e3b2cae,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x8fa25bd282d37f632623b0e3,
         limb1: 0x704b5a7ec796f2b21807dc9,
         limb2: 0x7c03cbcac41049a,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xfa7a164080faed1f0d24275a,
         limb1: 0xaa7b569817e0966cba582096,
         limb2: 0xf20e129e47c9363,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x1bdec763c13b4711cd2b8126,
         limb1: 0x9f3a80b03b0b1c923685d2ea,
         limb2: 0x2c145edbe7fd8aee,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xf8b1c1a56586ff93e080f8bc,
         limb1: 0x559897c6ad411fb25b75afb7,
         limb2: 0x3df92c5b96e3914,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x678e2ac024c6b8ee6e0c2c4b,
         limb1: 0xa27fb246c7729f7db080cb99,
         limb2: 0x12acf2ca76fd0675,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x1500054667f8140c6a3f2d9f,
         limb1: 0xa4523cf7da4e525e2ba6a315,
         limb2: 0x1563dbde3bd6d35b,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbb966e3de4bd44e5607cfd49,
         limb1: 0x5e6dd9e7e0acccb0c28f069f,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xbb966e3de4bd44e5607cfd48,
         limb1: 0x5e6dd9e7e0acccb0c28f069f,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
-        limb0: 0xacdb5c4f5763473177fffffe, limb1: 0x59e26bcea0d48bacd4f263f1, limb2: 0x0, limb3: 0x0
+        limb0: 0xacdb5c4f5763473177fffffe,
+        limb1: 0x59e26bcea0d48bacd4f263f1,
+        limb2: 0x0,
+        limb3: 0x0,
     },
     u384 {
-        limb0: 0xacdb5c4f5763473177ffffff, limb1: 0x59e26bcea0d48bacd4f263f1, limb2: 0x0, limb3: 0x0
+        limb0: 0xacdb5c4f5763473177ffffff,
+        limb1: 0x59e26bcea0d48bacd4f263f1,
+        limb2: 0x0,
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x67dfc8fabd3581ad840ddd76,
         limb1: 0xb2bdfa8fef85fa07122bde8d,
         limb2: 0x13d0c369615f7bb0,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xac285af5685d3f90eacf7a66,
         limb1: 0xfc2bf531eb331a053a35744c,
         limb2: 0x18a0f4219f4fdff6,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x64e2b5a5bf22f67654883ae6,
         limb1: 0x79c3e050c9ca2a428908a812,
         limb2: 0xc3a5e9c462a6547,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x345582cc92fd973c74bd77f4,
         limb1: 0x5bdd2055c255cf9d9e08c1d9,
         limb2: 0x2ce02aa5f9bf8cd6,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xde227b850aea3f23790405d6,
         limb1: 0x7fac149bfaefbac11b155498,
         limb2: 0x17ded419ed7be4f9,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x4150a79753fb0cd31cc99cc0,
         limb1: 0x2fb81a8dccd8a9b4441d64f3,
         limb2: 0x1bfe7b214c029424,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x9efaf0f0f1a228f0d5662fbd,
         limb1: 0xd15da0ec97a9b8346513297b,
         limb2: 0x697b9c523e0390e,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x182d2db0c413901c32b0c6fe,
         limb1: 0xb5186d6ac4c723b85d3f78a3,
         limb2: 0x7a0e052f2b1c443,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x39c0d06b220500933945267f,
         limb1: 0x5dc79824a3792597356c892c,
         limb2: 0x1b76a37fba85f3cd,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x97d439ec7694aa2bf4c0c101,
         limb1: 0x6cbeee33576139d7f03a5e3,
         limb2: 0xabf8b60be77d73,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x9201927eeb0a69546f1fd1,
         limb1: 0x5924b2691fb5e5685558c04,
         limb2: 0x1c938b097fd22479,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x98ff2631380cab2baaa586de,
         limb1: 0xa9f30e6dec26094f0fdf31bf,
         limb2: 0x4f1de41b3d1766f,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x38f14e77cfd95a083f4c261,
         limb1: 0x3e8c6565b7b72e1b0e78c27f,
         limb2: 0x2429efd69b073ae2,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xd8cf6ebab94d0cb3b2594c64,
         limb1: 0xb14b900e9507e9327600ecc7,
         limb2: 0x28a411b634f09b8f,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x737f96e55fe3ed9d730c239f,
         limb1: 0xfeb0f6ef0cd21d04a44a9e08,
         limb2: 0x23d5e999e1910a12,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x272122f5e8257f43bbb36087,
         limb1: 0x88982b28b4a8aea95364059e,
         limb2: 0x1465d351952f0c05,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x200280211f25041384282499,
         limb1: 0x9fb1b2282a48633d3e2ddaea,
         limb2: 0x16db366a59b1dd0b,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x50449cdc780cfbfaa5cc3649,
         limb1: 0x337d84bbcba34a53a41f1ee,
         limb2: 0x28c36e1fee7fdbe6,
-        limb3: 0x0
-    }
+        limb3: 0x0,
+    },
 ];
 #[inline(always)]
-fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
-    p_0: G1Point, Qy0_0: u384, Qy1_0: u384
+pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
+    p_0: G1Point, Qy0_0: u384, Qy1_0: u384,
 ) -> (BNProcessedPair,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -6651,7 +6647,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t0, t2, t3, t4,).new_inputs();
+    let mut circuit_inputs = (t0, t2, t3, t4).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -6665,13 +6661,13 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
         yInv: outputs.get_output(t0),
         xNegOverY: outputs.get_output(t2),
         QyNeg0: outputs.get_output(t3),
-        QyNeg1: outputs.get_output(t4)
+        QyNeg1: outputs.get_output(t4),
     };
     return (p_0,);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
-    p_0: G1Point, Qy0_0: u384, Qy1_0: u384, p_1: G1Point, Qy0_1: u384, Qy1_1: u384
+pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
+    p_0: G1Point, Qy0_0: u384, Qy1_0: u384, p_1: G1Point, Qy0_1: u384, Qy1_1: u384,
 ) -> (BNProcessedPair, BNProcessedPair) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -6693,7 +6689,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9,).new_inputs();
+    let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -6711,18 +6707,18 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
         yInv: outputs.get_output(t0),
         xNegOverY: outputs.get_output(t2),
         QyNeg0: outputs.get_output(t3),
-        QyNeg1: outputs.get_output(t4)
+        QyNeg1: outputs.get_output(t4),
     };
     let p_1: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t5),
         xNegOverY: outputs.get_output(t7),
         QyNeg0: outputs.get_output(t8),
-        QyNeg1: outputs.get_output(t9)
+        QyNeg1: outputs.get_output(t9),
     };
     return (p_0, p_1);
 }
 #[inline(always)]
-fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
+pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     p_0: G1Point,
     Qy0_0: u384,
     Qy1_0: u384,
@@ -6731,7 +6727,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     Qy1_1: u384,
     p_2: G1Point,
     Qy0_2: u384,
-    Qy1_2: u384
+    Qy1_2: u384,
 ) -> (BNProcessedPair, BNProcessedPair, BNProcessedPair) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -6759,7 +6755,7 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
-    let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9, t10, t12, t13, t14,).new_inputs();
+    let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9, t10, t12, t13, t14).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
@@ -6781,19 +6777,19 @@ fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
         yInv: outputs.get_output(t0),
         xNegOverY: outputs.get_output(t2),
         QyNeg0: outputs.get_output(t3),
-        QyNeg1: outputs.get_output(t4)
+        QyNeg1: outputs.get_output(t4),
     };
     let p_1: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t5),
         xNegOverY: outputs.get_output(t7),
         QyNeg0: outputs.get_output(t8),
-        QyNeg1: outputs.get_output(t9)
+        QyNeg1: outputs.get_output(t9),
     };
     let p_2: BNProcessedPair = BNProcessedPair {
         yInv: outputs.get_output(t10),
         xNegOverY: outputs.get_output(t12),
         QyNeg0: outputs.get_output(t13),
-        QyNeg1: outputs.get_output(t14)
+        QyNeg1: outputs.get_output(t14),
     };
     return (p_0, p_1, p_2);
 }
@@ -6805,11 +6801,11 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
     };
     use garaga::definitions::{
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line
+        MillerLoopResultScalingFactor, G2Line,
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
@@ -6831,6 +6827,6 @@ mod tests {
         run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
         run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
         run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-        run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit
+        run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
     };
 }

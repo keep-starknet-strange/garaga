@@ -3,13 +3,14 @@ use core::array::ArrayTrait;
 use core::circuit::{
     AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub, circuit_mul,
     circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait, CircuitModulus,
-    AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator
+    AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
 };
 use garaga::definitions::{
     get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
-    BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde
+    BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde,
 };
 use core::option::Option;
+use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
 use garaga::circuits::ec;
 use garaga::utils::hashing;
@@ -21,7 +22,7 @@ use garaga::utils::{u384_assert_zero, u384_assert_eq};
 impl G1PointImpl of G1PointTrait {
     fn assert_on_curve(self: @G1Point, curve_index: usize) {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
-            *self, get_a(curve_index), get_b(curve_index), curve_index
+            *self, get_a(curve_index), get_b(curve_index), curve_index,
         );
         u384_assert_zero(check);
     }
@@ -32,7 +33,7 @@ impl G1PointImpl of G1PointTrait {
         self: @G1Point,
         curve_index: usize,
         msm_hint: Option<MSMHintSmallScalar>,
-        derive_point_from_x_hint: Option<DerivePointFromXHint>
+        derive_point_from_x_hint: Option<DerivePointFromXHint>,
     ) {
         match curve_index {
             0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
@@ -41,13 +42,13 @@ impl G1PointImpl of G1PointTrait {
                 let p = get_p(curve_index);
                 let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
                     G1Point {
-                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, p), y: *self.y
+                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, p), y: *self.y,
                     },
                     BLS_X_SEED_SQ_EPNS,
                     BLS_X_SEED_SQ,
                     msm_hint.unwrap(),
                     derive_point_from_x_hint.unwrap(),
-                    curve_index
+                    curve_index,
                 );
                 if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
                     panic_with_felt252('g1 pt not in subgroup');
@@ -60,7 +61,7 @@ impl G1PointImpl of G1PointTrait {
         return self.is_zero();
     }
     fn update_hash_state(
-        self: @G1Point, s0: felt252, s1: felt252, s2: felt252
+        self: @G1Point, s0: felt252, s1: felt252, s2: felt252,
     ) -> (felt252, felt252, felt252) {
         let base: felt252 = 79228162514264337593543950336; // 2**96
         let self = *self;
@@ -76,7 +77,7 @@ impl G1PointImpl of G1PointTrait {
 
 // Adds two elliptic curve points on a given curve.
 // Does not check the input points are on the curve.
-fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
+pub fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
     if p.is_infinity() {
         return q;
     }
@@ -88,7 +89,7 @@ fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
 
     if same_x {
         let opposite_y = sub_mod_p(
-            p.y, neg_mod_p(q.y, modulus), modulus
+            p.y, neg_mod_p(q.y, modulus), modulus,
         ) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
         if opposite_y {
             return G1PointZero::zero();
@@ -103,15 +104,15 @@ fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
 }
 
 #[derive(Drop)]
-struct DerivePointFromXOutput {
-    rhs: u384,
-    g_rhs: u384,
-    should_be_rhs_or_g_rhs: u384,
+pub struct DerivePointFromXOutput {
+    pub rhs: u384,
+    pub g_rhs: u384,
+    pub should_be_rhs_or_g_rhs: u384,
 }
 
 #[inline(always)]
 fn get_DERIVE_POINT_FROM_X_circuit(
-    x: u384, sqrt_rhs_or_g_rhs: u384, curve_index: usize
+    x: u384, sqrt_rhs_or_g_rhs: u384, curve_index: usize,
 ) -> DerivePointFromXOutput {
     // INPUT stack
     let in0 = CircuitElement::<CircuitInput<0>> {}; // x - "random" x coordinate
@@ -133,7 +134,7 @@ fn get_DERIVE_POINT_FROM_X_circuit(
     let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
         .unwrap();
 
-    let mut circuit_inputs = (t4, t5, t6,).new_inputs();
+    let mut circuit_inputs = (t4, t5, t6).new_inputs();
 
     circuit_inputs = circuit_inputs.next(x);
     circuit_inputs = circuit_inputs.next(get_a(curve_index));
@@ -143,7 +144,7 @@ fn get_DERIVE_POINT_FROM_X_circuit(
 
     let outputs = match circuit_inputs.done().eval(modulus) {
         Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") }
+        Result::Err(_) => { panic!("Expected success") },
     };
     let rhs = outputs.get_output(t4); // rhs
     let g_rhs = outputs.get_output(t5); // g*rhs
@@ -181,10 +182,10 @@ fn derive_ec_point_from_X(
     while let Option::Some(root) = g_rhs_sqrt.pop_front() {
         let x_u384: u384 = x.into();
         let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-            x_u384, *root, curve_index
+            x_u384, *root, curve_index,
         );
         assert!(
-            res.should_be_rhs_or_g_rhs == res.g_rhs, "grhs!=(sqrt(g*rhs))^2 in attempt {attempt}"
+            res.should_be_rhs_or_g_rhs == res.g_rhs, "grhs!=(sqrt(g*rhs))^2 in attempt {attempt}",
         );
 
         let (new_x, _, _) = hades_permutation(x, attempt.into(), 2);
@@ -194,7 +195,7 @@ fn derive_ec_point_from_X(
 
     let x_u384: u384 = x.into();
     let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-        x_u384, y_last_attempt, curve_index
+        x_u384, y_last_attempt, curve_index,
     );
     assert!(res.should_be_rhs_or_g_rhs == res.rhs, "invalid y coordinate");
     return G1Point { x: x_u384, y: y_last_attempt };
@@ -208,28 +209,28 @@ fn derive_ec_point_from_X(
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
 #[derive(Drop, Debug, Copy, PartialEq, Serde)]
-struct FunctionFelt {
-    a_num: Span<u384>,
-    a_den: Span<u384>,
-    b_num: Span<u384>,
-    b_den: Span<u384>,
+pub struct FunctionFelt {
+    pub a_num: Span<u384>,
+    pub a_den: Span<u384>,
+    pub b_num: Span<u384>,
+    pub b_den: Span<u384>,
 }
 #[derive(Drop, Debug, Copy, PartialEq)]
-struct FunctionFeltEvaluations {
-    a_num: u384,
-    a_den: u384,
-    b_num: u384,
-    b_den: u384,
+pub struct FunctionFeltEvaluations {
+    pub a_num: u384,
+    pub a_den: u384,
+    pub b_num: u384,
+    pub b_den: u384,
 }
 
 #[derive(Drop, Debug, Copy, PartialEq)]
-struct SlopeInterceptOutput {
-    m_A0: u384,
-    b_A0: u384,
-    x_A2: u384,
-    y_A2: u384,
-    coeff0: u384,
-    coeff2: u384,
+pub struct SlopeInterceptOutput {
+    pub m_A0: u384,
+    pub b_A0: u384,
+    pub x_A2: u384,
+    pub y_A2: u384,
+    pub coeff0: u384,
+    pub coeff2: u384,
 }
 
 #[generate_trait]
@@ -247,7 +248,7 @@ impl FunctionFeltImpl of FunctionFeltTrait {
         assert!((*self.b_den).len() == msm_size + 7, "b_den wrong degree for given msm size");
     }
     fn update_hash_state(
-        self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252
+        self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252,
     ) -> (felt252, felt252, felt252) {
         let (s0, s1, s2) = hashing::hash_u384_transcript(*self.a_num, s0, s1, s2);
         let (s0, s1, s2) = hashing::hash_u384_transcript(*self.a_den, s0, s1, s2);
@@ -258,32 +259,32 @@ impl FunctionFeltImpl of FunctionFeltTrait {
 }
 
 #[derive(Drop, Debug, PartialEq, Serde, Copy)]
-struct MSMHint {
-    Q_low: G1Point,
-    Q_high: G1Point,
-    Q_high_shifted: G1Point,
-    RLCSumDlogDiv: FunctionFelt,
+pub struct MSMHint {
+    pub Q_low: G1Point,
+    pub Q_high: G1Point,
+    pub Q_high_shifted: G1Point,
+    pub RLCSumDlogDiv: FunctionFelt,
 }
 
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct MSMHintSmallScalar {
-    Q: G1Point,
-    SumDlogDiv: FunctionFelt,
+pub struct MSMHintSmallScalar {
+    pub Q: G1Point,
+    pub SumDlogDiv: FunctionFelt,
 }
 
 #[derive(Drop, Debug, PartialEq, Serde, Copy)]
-struct DerivePointFromXHint {
-    y_last_attempt: u384,
-    g_rhs_sqrt: Span<u384>,
+pub struct DerivePointFromXHint {
+    pub y_last_attempt: u384,
+    pub g_rhs_sqrt: Span<u384>,
 }
 
-fn scalar_mul_g1_fixed_small_scalar(
+pub fn scalar_mul_g1_fixed_small_scalar(
     point: G1Point,
     scalar_epns: (felt252, felt252, felt252, felt252),
     scalar: u128,
     hint: MSMHintSmallScalar,
     derive_point_from_x_hint: DerivePointFromXHint,
-    curve_index: usize
+    curve_index: usize,
 ) -> G1Point {
     // Check result points are either on curve or the point at infinity
     if !hint.Q.is_infinity() {
@@ -296,10 +297,10 @@ fn scalar_mul_g1_fixed_small_scalar(
     // Hash everything to obtain a x coordinate.
 
     let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1_U128', 0, 1
+        'MSM_G1_U128', 0, 1,
     ); // Init Sponge state
     let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + 1.into(), s2
+        s0 + curve_index.into(), s1 + 1.into(), s2,
     ); // Include curve_index and msm size
     // Check input points are on curve and hash them at the same time.
 
@@ -317,12 +318,12 @@ fn scalar_mul_g1_fixed_small_scalar(
         s0,
         derive_point_from_x_hint.y_last_attempt,
         derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index
+        curve_index,
     );
 
     // Get slope, intercept and other constant from random point
     let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index
+        random_point, get_a(curve_index), curve_index,
     );
     // Verify Q = scalar * P
 
@@ -332,7 +333,7 @@ fn scalar_mul_g1_fixed_small_scalar(
         coeff0: mb.coeff0,
         coeff2: mb.coeff2,
         SumDlogDiv: hint.SumDlogDiv,
-        curve_index: curve_index
+        curve_index: curve_index,
     );
     let rhs = compute_rhs_ecip(
         points: array![point].span(),
@@ -341,7 +342,7 @@ fn scalar_mul_g1_fixed_small_scalar(
         x_A0: random_point.x,
         epns: array![scalar_epns],
         Q_result: hint.Q,
-        curve_index: curve_index
+        curve_index: curve_index,
     );
 
     u384_assert_eq(lhs, rhs);
@@ -358,7 +359,7 @@ fn msm_g1(
     derive_point_from_x_hint: DerivePointFromXHint,
     points: Span<G1Point>,
     scalars: Span<u256>,
-    curve_index: usize
+    curve_index: usize,
 ) -> G1Point {
     let n = scalars.len();
     assert!(n == points.len(), "scalars and points length mismatch");
@@ -384,10 +385,10 @@ fn msm_g1(
 
     // Hash everything to obtain a x coordinate.
     let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1', 0, 1
+        'MSM_G1', 0, 1,
     ); // Init Sponge state
     let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2
+        s0 + curve_index.into(), s1 + n.into(), s2,
     ); // Include curve_index and msm size
 
     let mut s0 = s0;
@@ -416,7 +417,7 @@ fn msm_g1(
     for scalar in scalars {
         assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
         let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
+            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
         );
         s0 = _s0;
         s1 = _s1;
@@ -431,29 +432,29 @@ fn msm_g1(
         s0,
         derive_point_from_x_hint.y_last_attempt,
         derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index
+        curve_index,
     );
 
     // Get slope, intercept and other constant from random point
     let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index
+        random_point, get_a(curve_index), curve_index,
     );
 
     // Get positive and negative multiplicities of low and high part of scalars
     let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-        scalars, scalars_digits_decompositions
+        scalars, scalars_digits_decompositions,
     );
 
     // Hardcoded epns for 2**128
     let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
+        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1),
     ];
 
     let rhs_low = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index
+        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index,
     );
     let rhs_high = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index
+        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index,
     );
     let rhs_high_shifted = compute_rhs_ecip(
         array![hint.Q_high].span(),
@@ -462,13 +463,13 @@ fn msm_g1(
         random_point.x,
         epns_shifted,
         hint.Q_high_shifted,
-        curve_index
+        curve_index,
     );
 
     let p_curve = get_p(curve_index);
 
     let zk_ecip_batched_rhs = batch_3_mod_p(
-        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), p_curve
+        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), p_curve,
     );
 
     let batched_lhs = compute_lhs_ecip(
@@ -478,7 +479,7 @@ fn msm_g1(
         mb.coeff0,
         mb.coeff2,
         n,
-        curve_index
+        curve_index,
     );
 
     u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
@@ -497,7 +498,7 @@ fn msm_g1_u128(
     derive_point_from_x_hint: DerivePointFromXHint,
     points: Span<G1Point>,
     scalars: Span<u128>,
-    curve_index: usize
+    curve_index: usize,
 ) -> G1Point {
     let n = scalars.len();
     assert!(n == points.len(), "scalars and points length mismatch");
@@ -516,10 +517,10 @@ fn msm_g1_u128(
     // Hash everything to obtain a x coordinate.
 
     let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1_U128', 0, 1
+        'MSM_G1_U128', 0, 1,
     ); // Init Sponge state
     let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2
+        s0 + curve_index.into(), s1 + n.into(), s2,
     ); // Include curve_index and msm size
 
     let mut s0 = s0;
@@ -556,12 +557,12 @@ fn msm_g1_u128(
         s0,
         derive_point_from_x_hint.y_last_attempt,
         derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index
+        curve_index,
     );
 
     // Get slope, intercept and other constant from random point
     let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index
+        random_point, get_a(curve_index), curve_index,
     );
 
     // Get positive and negative multiplicities of low and high part of scalars
@@ -574,10 +575,10 @@ fn msm_g1_u128(
 
     let (lhs) = match case {
         0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
-            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index
+            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index,
         )),
         _ => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
-            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index
+            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index,
         ),
     };
 
@@ -598,7 +599,7 @@ fn zk_ecip_check(
     mb: SlopeInterceptOutput,
     sum_dlog_div: FunctionFelt,
     random_point: G1Point,
-    curve_index: usize
+    curve_index: usize,
 ) {
     let lhs = compute_lhs_ecip(
         sum_dlog_div: sum_dlog_div,
@@ -607,7 +608,7 @@ fn zk_ecip_check(
         coeff0: mb.coeff0,
         coeff2: mb.coeff2,
         msm_size: n,
-        curve_index: curve_index
+        curve_index: curve_index,
     );
     let rhs = compute_rhs_ecip(
         points: points,
@@ -616,7 +617,7 @@ fn zk_ecip_check(
         x_A0: random_point.x,
         epns: epns,
         Q_result: Q_result,
-        curve_index: curve_index
+        curve_index: curve_index,
     );
     u384_assert_eq(lhs, rhs);
 }
@@ -629,39 +630,39 @@ fn compute_lhs_ecip(
     coeff0: u384,
     coeff2: u384,
     msm_size: usize,
-    curve_index: usize
+    curve_index: usize,
 ) -> u384 {
     let case = msm_size - 1;
     let (res) = match case {
         0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         )),
         1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index
+            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
         ),
         _ => {
             let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
@@ -673,7 +674,7 @@ fn compute_lhs_ecip(
                     b_num: sum_dlog_div.b_num.slice(0, 11 + 4),
                     b_den: sum_dlog_div.b_den.slice(0, 11 + 7),
                 },
-                curve_index
+                curve_index,
             );
             let mut f_A0 = _f_A0;
             let mut f_A2 = _f_A2;
@@ -693,7 +694,7 @@ fn compute_lhs_ecip(
                     *sum_dlog_div.a_den.at(i + 4),
                     *sum_dlog_div.b_num.at(i + 4),
                     *sum_dlog_div.b_den.at(i + 7),
-                    curve_index
+                    curve_index,
                 );
                 f_A0 = _f_A0;
                 f_A2 = _f_A2;
@@ -703,9 +704,9 @@ fn compute_lhs_ecip(
             };
 
             ec::run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
-                f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index
+                f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index,
             )
-        }
+        },
     };
     return res;
 }
@@ -717,7 +718,7 @@ fn compute_rhs_ecip(
     x_A0: u384,
     mut epns: Array<(felt252, felt252, felt252, felt252)>,
     Q_result: G1Point,
-    curve_index: usize
+    curve_index: usize,
 ) -> u384 {
     let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
     while let Option::Some(point) = points.pop_front() {
@@ -734,7 +735,7 @@ fn compute_rhs_ecip(
                     en.into(),
                     neg_3::sign_to_u384(sp, curve_index),
                     neg_3::sign_to_u384(sn, curve_index),
-                    curve_index
+                    curve_index,
                 );
                 basis_sum = _basis_sum;
             }
@@ -745,7 +746,7 @@ fn compute_rhs_ecip(
         return basis_sum;
     } else {
         let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
-            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index
+            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index,
         );
         return rhs;
     }
@@ -767,15 +768,15 @@ mod tests {
             limb0: 0x598cfc33bd761e9f469d5cf1,
             limb1: 0x70aa740aee8c937ce5a652ed,
             limb2: 0x15150916fc849dd8,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0x70af0825548810253be61ac2,
                 limb1: 0xf5002d67b9fa4c1219c100a4,
                 limb2: 0x299198e451040cb,
-                limb3: 0x0
-            }
+                limb3: 0x0,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
         assert!(
@@ -784,8 +785,8 @@ mod tests {
                     limb0: 0xca77736f57333ec7243f64dc,
                     limb1: 0xed10c0cb48d824856b668918,
                     limb2: 0x2763f5473b1953e,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -799,15 +800,15 @@ mod tests {
             limb0: 0xda347f7c60a049c6d7bafb5b,
             limb1: 0xec21b937ef78861d979f0f50,
             limb2: 0x2ad1c01bba7ac189c78a1e86,
-            limb3: 0x1026dca24cfcadfb336698e
+            limb3: 0x1026dca24cfcadfb336698e,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0xdbca26cdf0c7aa11a90c641f,
                 limb1: 0x2e5c0209028615f11d0dc47e,
                 limb2: 0xb1add5551aa6b9c56333f02f,
-                limb3: 0x19972c66940a5bb4365da67
-            }
+                limb3: 0x19972c66940a5bb4365da67,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
         assert!(
@@ -816,8 +817,8 @@ mod tests {
                     limb0: 0xca77736f57333ec7243f64dc,
                     limb1: 0xed10c0cb48d824856b668918,
                     limb2: 0x2763f5473b1953e,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -831,33 +832,33 @@ mod tests {
             limb0: 0x6fd1f24224585b2f83a36f19,
             limb1: 0x6edcd937a50597e42acc02c4,
             limb2: 0x634a08e35a355a32,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0x5e1402d5a1794a2ba5113078,
                 limb1: 0xcebc2596ba2db2a201abd409,
                 limb2: 0x54a070a2d860e57f,
-                limb3: 0x0
+                limb3: 0x0,
             },
             u384 {
                 limb0: 0xd619858e2ea7e31cb17c33cb,
                 limb1: 0x4816924dd606b04c135bcfa3,
                 limb2: 0x13dc60324901f16f,
-                limb3: 0x0
+                limb3: 0x0,
             },
             u384 {
                 limb0: 0x6ae587737bb1f9839802fd91,
                 limb1: 0x4fc0f718bb7b3ca34f2cccb3,
                 limb2: 0x4071c850696772a1,
-                limb3: 0x0
+                limb3: 0x0,
             },
             u384 {
                 limb0: 0xd81a6ef8f7ee11a079f304e8,
                 limb1: 0xf765e8b9e097ca1bf0f3ea0e,
                 limb2: 0x459195cbdf16786a,
-                limb3: 0x0
-            }
+                limb3: 0x0,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
         assert!(
@@ -866,8 +867,8 @@ mod tests {
                     limb0: 0x8ab6a1b6714eb0afec427f11,
                     limb1: 0x774701c0acf48486afeb35d5,
                     limb2: 0x1a3e9f740bb8959,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -881,15 +882,15 @@ mod tests {
             limb0: 0x40cbfb35489307de40764c95,
             limb1: 0x67ad6ff08b304dc35ef9a319,
             limb2: 0x5ff5aff356baa1da,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0x145e66309035da0e73a4ed6,
                 limb1: 0x696ff6786cf7a86549a1b150,
                 limb2: 0x69e04ef11ab29ee8,
-                limb3: 0x0
-            }
+                limb3: 0x0,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
         assert!(
@@ -898,8 +899,8 @@ mod tests {
                     limb0: 0xca77736f57333ec7243f64dc,
                     limb1: 0xed10c0cb48d824856b668918,
                     limb2: 0x2763f5473b1953e,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -913,7 +914,7 @@ mod tests {
             limb0: 0xc329e0f3a716909d81ee695d,
             limb1: 0xac52065a46c058e2dd3da949,
             limb2: 0x81add1124b65c41,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
@@ -923,8 +924,8 @@ mod tests {
                     limb0: 0x9558867f5ba91faf7a024204,
                     limb1: 0x37ebdcd9e87a1613e443df78,
                     limb2: 0x23a771181332876,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -938,33 +939,33 @@ mod tests {
             limb0: 0x185ddfe68eca3df51ff4c645,
             limb1: 0x17b6ccbb6f4843c170dc2009,
             limb2: 0x171370980ed3ba91,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0xb6dca81bd6f041ae382202ae,
                 limb1: 0xfebe33fdfdc01232d27737ce,
                 limb2: 0x1031c8f96f566cea,
-                limb3: 0x0
+                limb3: 0x0,
             },
             u384 {
                 limb0: 0xcc497c90b1d5d736c46a619a,
                 limb1: 0xf08b3fe8157a259bf06d1c18,
                 limb2: 0x1329fd3ffe2dbe8e,
-                limb3: 0x0
+                limb3: 0x0,
             },
             u384 {
                 limb0: 0xa46d4f66ca22531865b67bf5,
                 limb1: 0xd5964d6b0c925503d596d887,
                 limb2: 0xa95d8f1df105f18,
-                limb3: 0x0
+                limb3: 0x0,
             },
             u384 {
                 limb0: 0x3b52382c9597a1fad8935560,
                 limb1: 0x3fa8d8a8174fc08c702332ce,
                 limb2: 0x23191b53d4b072b,
-                limb3: 0x0
-            }
+                limb3: 0x0,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
         assert!(
@@ -973,8 +974,8 @@ mod tests {
                     limb0: 0x4ed478dca9953c97aedb70f7,
                     limb1: 0xd98adb6e70e8f1580604709,
                     limb2: 0x4bea6d08411cc00,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -988,39 +989,39 @@ mod tests {
             limb0: 0x35d8a6fefdafaaaf5b29e897,
             limb1: 0x6f7727ee8543e37553eeb26f,
             limb2: 0x2f70791057cdbd90daf42308,
-            limb3: 0x75b09d110be5483f36e068
+            limb3: 0x75b09d110be5483f36e068,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0x5cf036935c9f06c3e0a0aa7c,
                 limb1: 0x79a5eb4e385146a0aa3c1de,
                 limb2: 0x6e20141582b8406d26dda065,
-                limb3: 0x3c3d605784954989e301c3c
+                limb3: 0x3c3d605784954989e301c3c,
             },
             u384 {
                 limb0: 0x77a98db8c9be953431659e97,
                 limb1: 0x214a25baa29b08ffc8bec3db,
                 limb2: 0xfe6a7b8656df401896f71787,
-                limb3: 0xa9152bcd397888aa9388bd8
+                limb3: 0xa9152bcd397888aa9388bd8,
             },
             u384 {
                 limb0: 0x4551a54de8fb23786fd1f2a0,
                 limb1: 0x2b19133889843628ea5fd520,
                 limb2: 0xb893ee8526ef349b780c0c24,
-                limb3: 0x50a551b0bd152405d128fc7
+                limb3: 0x50a551b0bd152405d128fc7,
             },
             u384 {
                 limb0: 0xf4ecd002f01cd7ee33519fd5,
                 limb1: 0xed3c61685851221c96d7592b,
                 limb2: 0x9f42fc7c025009a0247daafb,
-                limb3: 0x45d3eb549e2ff2d259ef50a
+                limb3: 0x45d3eb549e2ff2d259ef50a,
             },
             u384 {
                 limb0: 0xc71aa51c55a340c4b62ce4bb,
                 limb1: 0xc29f377906d89036689603a4,
                 limb2: 0x4dc8b1c21520b64e2101850,
-                limb3: 0x6de8fe79d9b161443b37f30
-            }
+                limb3: 0x6de8fe79d9b161443b37f30,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
         assert!(
@@ -1029,8 +1030,8 @@ mod tests {
                     limb0: 0x836d4610c564d82c11088e19,
                     limb1: 0x4801f5832d47c11bd2378845,
                     limb2: 0x75e11f8d50c3760,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -1044,15 +1045,15 @@ mod tests {
             limb0: 0xc6d067f5c5c6a580350c2471,
             limb1: 0x2ff4d91827cad9a2b11c1cff,
             limb2: 0x18917af46df8fc3f,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0x22d9db5344ce97b7eb160092,
                 limb1: 0x2747c16db787c85dcc773a44,
                 limb2: 0x18a010b6b674e456,
-                limb3: 0x0
-            }
+                limb3: 0x0,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
         assert!(
@@ -1061,8 +1062,8 @@ mod tests {
                     limb0: 0xbb4647393e0b7dd03ae7107f,
                     limb1: 0xcdc5afca778a37383350bcf8,
                     limb2: 0x3a81368ffad9e03,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -1076,15 +1077,15 @@ mod tests {
             limb0: 0x6e67fe45dcddd89cb69ce7ee,
             limb1: 0x36156ccb6884f75af70900f1,
             limb2: 0x30b6330c77234ef8,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![
             u384 {
                 limb0: 0xea8397d53edccf2ceda23ff0,
                 limb1: 0xa5a0c4098c25294b18a0f0f9,
                 limb2: 0x11722147901e6d89,
-                limb3: 0x0
-            }
+                limb3: 0x0,
+            },
         ];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
         assert!(
@@ -1093,8 +1094,8 @@ mod tests {
                     limb0: 0xbb4647393e0b7dd03ae7107f,
                     limb1: 0xcdc5afca778a37383350bcf8,
                     limb2: 0x3a81368ffad9e03,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }
@@ -1108,7 +1109,7 @@ mod tests {
             limb0: 0x33e9327c0c98794856bde22a,
             limb1: 0xdf89110f1e821a3112ce76bb,
             limb2: 0xacf925c82c4365f,
-            limb3: 0x0
+            limb3: 0x0,
         };
         let grhs_roots: Array<u384> = array![];
         let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
@@ -1118,8 +1119,8 @@ mod tests {
                     limb0: 0xfb97d43588561712e8e5216a,
                     limb1: 0x9a164106cf6a659eb4862b21,
                     limb2: 0x259f432e6f4590b,
-                    limb3: 0x0
-                }
+                    limb3: 0x0,
+                },
         );
         assert!(result.y == y);
     }

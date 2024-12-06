@@ -13,7 +13,7 @@ mod DrandQuicknet {
     use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::pairing_check::{multi_pairing_check_bls12_381_2P_2F, MPCheckHintBLS12_381};
     use garaga::utils::drand::{
-        round_to_curve_bls12_381, DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint
+        round_to_curve_bls12_381, DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint,
     };
     use super::{precomputed_lines, G2_GEN};
     use garaga::utils::hashing::hash_G1Point;
@@ -37,7 +37,7 @@ mod DrandQuicknet {
         ) -> Option<felt252> {
             let drand_hint: DrandHint = Serde::deserialize(ref full_proof_with_hints).unwrap();
             let message = round_to_curve_bls12_381(
-                drand_hint.round_number, drand_hint.hash_to_curve_hint
+                drand_hint.round_number, drand_hint.hash_to_curve_hint,
             );
 
             let check = multi_pairing_check_bls12_381_2P_2F(

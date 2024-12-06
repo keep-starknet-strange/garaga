@@ -164,7 +164,7 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.8.4"
+          scarb-version: "2.9.1"
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:

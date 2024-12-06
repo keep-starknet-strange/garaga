@@ -7,7 +7,7 @@ icon: wrench
 To work with Garaga, you need the following dependencies :&#x20;
 
 * Python 3.10.  The command `python3.10` should be available and working in your terminal.&#x20;
-* [Scarb](https://docs.swmansion.com/scarb/download.html) v2.8.4.&#x20;
+* [Scarb](https://docs.swmansion.com/scarb/download.html) v2.9.1.&#x20;
 * [Rust](https://www.rust-lang.org/tools/install)
 
 Simply clone the [repository](https://github.com/keep-starknet-strange/garaga) :
