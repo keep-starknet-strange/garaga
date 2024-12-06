@@ -188,6 +188,36 @@ fn mul_mod_p(a: u384, b: u384, p: u384) -> u384 {
     return outputs.get_output(mul);
 }
 
+
+fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, p: u384) -> u384 {
+    let _x = CircuitElement::<CircuitInput<0>> {};
+    let _y = CircuitElement::<CircuitInput<1>> {};
+    let _z = CircuitElement::<CircuitInput<2>> {};
+    let _c0 = CircuitElement::<CircuitInput<3>> {};
+    let _c1 = circuit_mul(_c0, _c0);
+    let _c2 = circuit_mul(_c1, _c0);
+    let _mul1 = circuit_mul(_x, _c0);
+    let _mul2 = circuit_mul(_y, _c1);
+    let _mul3 = circuit_mul(_z, _c2);
+    let res = circuit_add(circuit_add(_mul1, _mul2), _mul3);
+
+    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
+        .unwrap();
+
+    let outputs = (res,)
+        .new_inputs()
+        .next_2(x)
+        .next_2(y)
+        .next_2(z)
+        .next_2(c0)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return outputs.get_output(res);
+}
+
+
 fn inv_mod_p(a: u384, p: u384) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let inv = circuit_inverse(in1);
