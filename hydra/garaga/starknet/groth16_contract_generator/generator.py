@@ -159,7 +159,7 @@ mod Groth16Verifier{curve_id.name} {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
-        f.write("scarb 2.8.4\n")
+        f.write("scarb 2.9.1\n")
 
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
@@ -199,7 +199,7 @@ edition = "2024_07"
 
 [dependencies]
 garaga = {{ {dep} }}
-starknet = "2.8.4"
+starknet = "2.9.1"
 
 [cairo]
 sierra-replace-ids = false
