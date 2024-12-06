@@ -200,7 +200,7 @@ fn psi(pt: G2Point, curve_index: usize) -> G2Point {
             );
             return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
         },
-        _ => { panic_with_felt252('invalid curve id fp2mul') },
+        _ => { core::panic_with_felt252('invalid curve id fp2mul') },
     }
 }
 

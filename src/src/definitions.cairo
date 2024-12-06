@@ -785,7 +785,7 @@ fn get_modulus(curve_index: usize) -> CircuitModulus {
         2 => get_SECP256K1_modulus(),
         3 => get_SECP256R1_modulus(),
         4 => get_ED25519_modulus(),
-        _ => panic_with_felt252('Invalid curve index'),
+        _ => core::panic_with_felt252('Invalid curve index'),
     }
 }
 // Returns the modulus of BLS12_381
