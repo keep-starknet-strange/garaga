@@ -14,6 +14,8 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     FixedG2MPCheckBit0,
     FixedG2MPCheckBit00,
     FixedG2MPCheckBit1,
+    FixedG2MPCheckBit01,
+    FixedG2MPCheckBit10,
     FixedG2MPCheckFinalizeBN,
     FixedG2MPCheckInitBit,
     FP12MulAssertOne,
@@ -93,6 +95,8 @@ class CircuitID(Enum):
     MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
     MP_CHECK_BIT00_LOOP = int.from_bytes(b"mp_check_bit00_loop", "big")
     MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
+    MP_CHECK_BIT01_LOOP = int.from_bytes(b"mp_check_bit01_loop", "big")
+    MP_CHECK_BIT10_LOOP = int.from_bytes(b"mp_check_bit10_loop", "big")
     MP_CHECK_PREPARE_PAIRS = int.from_bytes(b"mp_check_prepare_pairs", "big")
     MP_CHECK_PREPARE_LAMBDA_ROOT = int.from_bytes(
         b"mp_check_prepare_lambda_root", "big"
@@ -169,12 +173,15 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
         "class": EvalFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]],
+        "params": [
+            {"n_points": k, "batched": True} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+        ]
+        + [{"n_points": k, "batched": False} for k in [1, 2]],
         "filename": "ec",
     },
     CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
         "class": InitFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k} for k in [11]],
+        "params": [{"n_points": k, "batched": True} for k in [11]],
         "filename": "ec",
     },
     CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
@@ -214,7 +221,7 @@ ALL_CAIRO_CIRCUITS = {
             {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
         ],
         "filename": "multi_pairing_check",
-        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+        "curve_ids": [CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_BIT00_LOOP: {
         "class": FixedG2MPCheckBit00,
@@ -232,7 +239,25 @@ ALL_CAIRO_CIRCUITS = {
             {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
         ],
         "filename": "multi_pairing_check",
-        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.MP_CHECK_BIT01_LOOP: {
+        "class": FixedG2MPCheckBit01,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254],
+    },
+    CircuitID.MP_CHECK_BIT10_LOOP: {
+        "class": FixedG2MPCheckBit10,
+        "params": [
+            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
+            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+        ],
+        "filename": "multi_pairing_check",
+        "curve_ids": [CurveID.BN254],
     },
     CircuitID.MP_CHECK_PREPARE_PAIRS: {
         "class": MPCheckPreparePairs,
@@ -631,7 +656,7 @@ def main(
         file_curve_ids[filename].update(curve_ids)
 
     output_sizes_exceeding_limit = {filename: set() for filename in filenames_used}
-    limit = 15
+    limit = 16
     compile_circuits(
         CIRCUITS_TO_COMPILE,
         compilation_mode,

@@ -18,8 +18,7 @@ mod Groth16VerifierBLS12_381 {
     use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x606a60ace3cdd2f99c84f841c9166d43f2e49e197ac5aed64779105af994105;
-    use starknet::ContractAddress;
+        0x2f2a107cee3e12d1fb6070d2ae30d18c1e412efdf8ef5c8dd278fc00862f952;
 
     #[storage]
     struct Storage {}
@@ -63,14 +62,14 @@ mod Groth16VerifierBLS12_381 {
                     let mut _vx_x_serialized = core::starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                         selector!("msm_g1"),
-                        msm_calldata.span()
+                        msm_calldata.span(),
                     )
                         .unwrap_syscall();
 
                     ec_safe_add(
-                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), 1
+                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), 1,
                     )
-                }
+                },
             };
             // Perform the pairing check.
             let check = multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
@@ -80,7 +79,7 @@ mod Groth16VerifierBLS12_381 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
+                small_Q,
             );
             if check == true {
                 return Option::Some(groth16_proof.public_inputs);

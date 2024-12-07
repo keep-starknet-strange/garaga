@@ -4,8 +4,8 @@ version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = { path = "../..", features = ["full"] }
-starknet = "2.8.4"
+garaga = { path = "../.." }
+starknet = "2.9.1"
 
 [cairo]
 sierra-replace-ids = false

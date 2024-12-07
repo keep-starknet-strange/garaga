@@ -1,11 +1,11 @@
-use core::poseidon::hades_permutation;
+pub use core::poseidon::hades_permutation;
 use core::circuit::{u384, u96};
 use garaga::definitions::{
-    E12D, u288, G1G2Pair, G1Point, E12DMulQuotient, MillerLoopResultScalingFactor
+    E12D, u288, G1G2Pair, G1Point, E12DMulQuotient, MillerLoopResultScalingFactor,
 };
 
 #[derive(Copy, Drop)]
-struct PoseidonState {
+pub struct PoseidonState {
     s0: felt252,
     s1: felt252,
     s2: felt252,
@@ -14,7 +14,7 @@ struct PoseidonState {
 // Apply sponge construction to a transcript of u384 elements
 #[inline(always)]
 pub fn hash_u384_transcript(
-    transcript: Span<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    transcript: Span<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     for elmt in transcript {
@@ -33,7 +33,7 @@ pub fn hash_u384_transcript(
 
 #[inline(always)]
 pub fn hash_u288_transcript(
-    transcript: Span<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    transcript: Span<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     for elmt in transcript {
@@ -50,7 +50,7 @@ pub fn hash_u288_transcript(
 
 #[inline(always)]
 pub fn hash_E12DMulQuotient_u384(
-    elmt: E12DMulQuotient<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    elmt: E12DMulQuotient<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -92,7 +92,7 @@ pub fn hash_E12DMulQuotient_u384(
 
 #[inline(always)]
 pub fn hash_E12DMulQuotient_u288(
-    elmt: E12DMulQuotient<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    elmt: E12DMulQuotient<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -136,7 +136,7 @@ pub fn hash_E12DMulQuotient_u288(
 // Apply sponge construction to a E12D element from an initial state (s0, s1, s2)
 #[inline(always)]
 pub fn hash_E12D_u384(
-    elmt: E12D<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    elmt: E12D<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -181,7 +181,7 @@ pub fn hash_E12D_u384(
 
 #[inline(always)]
 pub fn hash_E12D_u288(
-    elmt: E12D<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    elmt: E12D<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -228,7 +228,7 @@ pub fn hash_E12D_u288(
 // s1, s2)
 #[inline(always)]
 pub fn hash_MillerLoopResultScalingFactor_u384(
-    elmt: MillerLoopResultScalingFactor<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    elmt: MillerLoopResultScalingFactor<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -255,7 +255,7 @@ pub fn hash_MillerLoopResultScalingFactor_u384(
 
 #[inline(always)]
 pub fn hash_MillerLoopResultScalingFactor_u288(
-    elmt: MillerLoopResultScalingFactor<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    elmt: MillerLoopResultScalingFactor<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -283,7 +283,7 @@ pub fn hash_MillerLoopResultScalingFactor_u288(
 // Apply sponge construction to a sequence of E12D elements from an initial state (s0, s1, s2)
 #[inline(always)]
 pub fn hash_E12D_u384_transcript(
-    transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -334,7 +334,7 @@ pub fn hash_E12D_u384_transcript(
 
 #[inline(always)]
 pub fn hash_E12D_u288_transcript(
-    transcript: Span<E12D<u288>>, mut s0: felt252, mut s1: felt252, mut s2: felt252
+    transcript: Span<E12D<u288>>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 
@@ -387,7 +387,7 @@ pub fn hash_E12D_u288_transcript(
 // Apply sponge construction to a pair of G1 and G2 points from an initial state (s0, s1, s2)
 #[inline(always)]
 pub fn hash_G1G2Pair(
-    pair: G1G2Pair, s0: felt252, s1: felt252, s2: felt252
+    pair: G1G2Pair, s0: felt252, s1: felt252, s2: felt252,
 ) -> (felt252, felt252, felt252) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
 

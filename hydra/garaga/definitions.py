@@ -1246,3 +1246,37 @@ def replace_consecutive_zeros(lst):
             result.append(lst[i])
             i += 1
     return result
+
+
+def recode_naf_bits(lst):
+    result = []
+    i = 0
+    while i < len(lst):
+        if i < len(lst) - 1 and lst[i] == 0 and (lst[i + 1] == 1 or lst[i + 1] == -1):
+            # "01" or "0-1"
+            if lst[i + 1] == 1:
+                result.append(3)  # Replace "01" with 3
+            else:
+                result.append(4)  # Replace "0-1" with 4
+            i += 2
+        elif i < len(lst) - 1 and (lst[i] == 1 or lst[i] == -1) and lst[i + 1] == 0:
+            # "10" or "-10"
+            if lst[i] == 1:
+                result.append(1)  # Replace 10 with 6
+            else:
+                result.append(2)  # Replace -10 with 7
+            i += 2
+        elif i < len(lst) - 1 and lst[i] == 0 and lst[i + 1] == 0:
+            result.append(0)  # Replace consecutive zeros with 0
+            i += 2
+        else:
+            raise ValueError(f"Unexpected bit sequence at index {i}")
+    return result
+
+
+if __name__ == "__main__":
+    r = recode_naf_bits(jy00(6 * 0x44E992B44A6909F1 + 2)[2:])
+    print(r, len(r))
+
+    # bls = [int(x) for x in bin(0xD201000000010000)[2:]][2:]
+    # recode_naf_bits(bls)

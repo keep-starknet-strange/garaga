@@ -17,7 +17,7 @@ const NUMBER_OF_ENTITIES: usize = 44;
 
 impl ProofPointIntoPoint256 of Into<G1PointProof, G1Point256> {
     fn into(self: G1PointProof) -> G1Point256 {
-        G1Point256 { x: self.x0 + self.x1 * POW2_136, y: self.y0 + self.y1 * POW2_136, }
+        G1Point256 { x: self.x0 + self.x1 * POW2_136, y: self.y0 + self.y1 * POW2_136 }
     }
 }
 
@@ -69,21 +69,21 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
             honk_proof.public_inputs,
             honk_proof.w1.into(),
             honk_proof.w2.into(),
-            honk_proof.w3.into()
+            honk_proof.w3.into(),
         );
         let beta_gamma = get_beta_gamma_challenges(
             challenge,
             honk_proof.lookup_read_counts.into(),
             honk_proof.lookup_read_tags.into(),
-            honk_proof.w4.into()
+            honk_proof.w4.into(),
         );
         let (alphas, challenge) = generate_alpha_challenges(
-            beta_gamma, honk_proof.lookup_inverses.into(), honk_proof.z_perm.into()
+            beta_gamma, honk_proof.lookup_inverses.into(), honk_proof.z_perm.into(),
         );
         let (gate_challenges, challenge) = generate_gate_challenges(challenge);
 
         let (sum_check_u_challenges, challenge) = generate_sumcheck_u_challenges(
-            challenge, honk_proof.sumcheck_univariates
+            challenge, honk_proof.sumcheck_univariates,
         );
 
         let rho = generate_rho_challenge(challenge, honk_proof.sumcheck_evaluations);
@@ -153,7 +153,7 @@ mod tests {
                 0x14092616193e2bd6e5345403d64fcd59,
                 0x267ac64d556df27a9cc39032e8c7d6c3,
                 0xc14b848a58c80950545e4bf6dd284e1,
-                0xb09e53a5fb8c5308768299c33b143bd8
+                0xb09e53a5fb8c5308768299c33b143bd8,
             ],
             gate_challenges: array![
                 0xc172dd2450a5c43df9f45a102035f4aa,
@@ -183,7 +183,7 @@ mod tests {
                 0xabc55392a196f776e4e6c843c9076946,
                 0x609cc20bb22f811a3c24e0c1f20deb03,
                 0x15356ea3058bd02736fc6ee7fae12b0d,
-                0xdee13f4571cd5267161d943456bc803b
+                0xdee13f4571cd5267161d943456bc803b,
             ],
             sum_check_u_challenges: array![
                 0xe61948888da551fcbd6481a7af8cf0c0,
@@ -213,7 +213,7 @@ mod tests {
                 0x11e8bfbd21b91ca1bee77a21bbc35be8,
                 0x10a6c496ccd27e38f0b8649a9470389f,
                 0x48effcc28eda12ce3859196ddc398c76,
-                0xc44b6fe342b5502bf9b7416f1f257b2e
+                0xc44b6fe342b5502bf9b7416f1f257b2e,
             ],
             rho: 0xa4bb7935b0320a044f9a06e7ce23f501,
             gemini_r: 0x7f80d41613ee8455f306ecb97366f6fb,
@@ -252,7 +252,7 @@ fn u64_byte_reverse(word: u64) -> u64 {
 fn u256_byte_reverse(word: u256) -> u256 {
     u256 {
         low: core::integer::u128_byte_reverse(word.high),
-        high: core::integer::u128_byte_reverse(word.low)
+        high: core::integer::u128_byte_reverse(word.low),
     }
 }
 
@@ -291,7 +291,7 @@ pub fn get_eta_challenges(
     pub_inputs: Span<u256>,
     w1: G1PointProof,
     w2: G1PointProof,
-    w3: G1PointProof
+    w3: G1PointProof,
 ) -> (Etas, u256) {
     let mut k_input: Array<u64> = array![];
     append_u64_as_u256(ref k_input, circuit_size);
@@ -305,7 +305,7 @@ pub fn get_eta_challenges(
     append_proof_point(ref k_input, w3);
 
     let ke_out: u256 = keccak::cairo_keccak(
-        ref k_input, last_input_word: 0, last_input_num_bytes: 0
+        ref k_input, last_input_word: 0, last_input_num_bytes: 0,
     );
     let ch_be: u256 = ke_le_out_to_ch_be(ke_out);
 
@@ -313,12 +313,12 @@ pub fn get_eta_challenges(
     keccak::keccak_add_u256_be(ref k_input_2, ch_be);
 
     let ke_out_2: u256 = keccak::cairo_keccak(
-        ref k_input_2, last_input_word: 0, last_input_num_bytes: 0
+        ref k_input_2, last_input_word: 0, last_input_num_bytes: 0,
     );
 
     let ch_2_be: u256 = ke_le_out_to_ch_be(ke_out_2);
 
-    (Etas { eta: ch_be.low, eta2: ch_be.high, eta3: ch_2_be.low, }, ch_2_be,)
+    (Etas { eta: ch_be.low, eta2: ch_be.high, eta3: ch_2_be.low }, ch_2_be)
 }
 
 
@@ -339,7 +339,7 @@ pub fn get_beta_gamma_challenges(
     append_proof_point(ref k_input, w4);
 
     let ke_out: u256 = keccak::cairo_keccak(
-        ref k_input, last_input_word: 0, last_input_num_bytes: 0
+        ref k_input, last_input_word: 0, last_input_num_bytes: 0,
     );
     let ch_be: u256 = ke_le_out_to_ch_be(ke_out);
 
@@ -356,7 +356,7 @@ pub fn generate_alpha_challenges(
     append_proof_point(ref k_input, z_perm);
 
     let mut alpha_XY: u256 = ke_le_out_to_ch_be(
-        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
+        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
     );
 
     let mut alphas: Array<u128> = array![];
@@ -364,27 +364,25 @@ pub fn generate_alpha_challenges(
     alphas.append(alpha_XY.high);
 
     // Asumme N_alphas > 2 and N_alphas is odd.
-    for _ in 1
-        ..NUMBER_OF_ALPHAS
-            / 2 {
-                let mut k_input_i: Array<u64> = array![];
-                keccak::keccak_add_u256_be(ref k_input_i, alpha_XY);
-                let _alpha_XY: u256 = ke_le_out_to_ch_be(
-                    keccak::cairo_keccak(ref k_input_i, last_input_word: 0, last_input_num_bytes: 0)
-                );
+    for _ in 1..NUMBER_OF_ALPHAS / 2 {
+        let mut k_input_i: Array<u64> = array![];
+        keccak::keccak_add_u256_be(ref k_input_i, alpha_XY);
+        let _alpha_XY: u256 = ke_le_out_to_ch_be(
+            keccak::cairo_keccak(ref k_input_i, last_input_word: 0, last_input_num_bytes: 0),
+        );
 
-                alphas.append(_alpha_XY.low);
-                alphas.append(_alpha_XY.high);
+        alphas.append(_alpha_XY.low);
+        alphas.append(_alpha_XY.high);
 
-                alpha_XY = _alpha_XY;
-            };
+        alpha_XY = _alpha_XY;
+    };
 
     // Last alpha (odd number of alphas)
 
     let mut k_input_last: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input_last, alpha_XY);
     let alpha_last: u256 = ke_le_out_to_ch_be(
-        keccak::cairo_keccak(ref k_input_last, last_input_word: 0, last_input_num_bytes: 0)
+        keccak::cairo_keccak(ref k_input_last, last_input_word: 0, last_input_num_bytes: 0),
     );
 
     alphas.append(alpha_last.low);
@@ -395,45 +393,42 @@ pub fn generate_alpha_challenges(
 }
 
 
-pub fn generate_gate_challenges(prev_keccak_output: u256,) -> (Array<u128>, u256) {
+pub fn generate_gate_challenges(prev_keccak_output: u256) -> (Array<u128>, u256) {
     let mut gate_challenges: Array<u128> = array![];
 
     let mut gate_challenge: u256 = prev_keccak_output;
-    for _ in 0
-        ..CONST_PROOF_SIZE_LOG_N {
-            let mut k_input: Array<u64> = array![];
-            keccak::keccak_add_u256_be(ref k_input, gate_challenge);
-            let _gate_challenge: u256 = ke_le_out_to_ch_be(
-                keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
-            );
-            gate_challenges.append(_gate_challenge.low);
-            gate_challenge = _gate_challenge;
-        };
+    for _ in 0..CONST_PROOF_SIZE_LOG_N {
+        let mut k_input: Array<u64> = array![];
+        keccak::keccak_add_u256_be(ref k_input, gate_challenge);
+        let _gate_challenge: u256 = ke_le_out_to_ch_be(
+            keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
+        );
+        gate_challenges.append(_gate_challenge.low);
+        gate_challenge = _gate_challenge;
+    };
 
     (gate_challenges, gate_challenge)
 }
 
 
 pub fn generate_sumcheck_u_challenges(
-    prev_keccak_output: u256, sumcheck_univariates: Span<Span<u256>>
+    prev_keccak_output: u256, sumcheck_univariates: Span<Span<u256>>,
 ) -> (Array<u128>, u256) {
     let mut sum_check_u_challenges: Array<u128> = array![];
     let mut challenge: u256 = prev_keccak_output;
-    for i in 0
-        ..CONST_PROOF_SIZE_LOG_N {
-            let mut k_input: Array<u64> = array![];
-            keccak::keccak_add_u256_be(ref k_input, challenge);
-            for j in 0
-                ..BATCHED_RELATION_PARTIAL_LENGTH {
-                    keccak::keccak_add_u256_be(ref k_input, *(*sumcheck_univariates.at(i)).at(j));
-                };
-
-            challenge =
-                ke_le_out_to_ch_be(
-                    keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
-                );
-            sum_check_u_challenges.append(challenge.low);
+    for i in 0..CONST_PROOF_SIZE_LOG_N {
+        let mut k_input: Array<u64> = array![];
+        keccak::keccak_add_u256_be(ref k_input, challenge);
+        for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+            keccak::keccak_add_u256_be(ref k_input, *(*sumcheck_univariates.at(i)).at(j));
         };
+
+        challenge =
+            ke_le_out_to_ch_be(
+                keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
+            );
+        sum_check_u_challenges.append(challenge.low);
+    };
 
     (sum_check_u_challenges, challenge)
 }
@@ -442,44 +437,40 @@ pub fn generate_sumcheck_u_challenges(
 pub fn generate_rho_challenge(prev_keccak_output: u256, sumcheck_evaluations: Span<u256>) -> u256 {
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
-    for i in 0
-        ..NUMBER_OF_ENTITIES {
-            keccak::keccak_add_u256_be(ref k_input, *sumcheck_evaluations.at(i));
-        };
+    for i in 0..NUMBER_OF_ENTITIES {
+        keccak::keccak_add_u256_be(ref k_input, *sumcheck_evaluations.at(i));
+    };
 
     ke_le_out_to_ch_be(
-        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
+        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
     )
 }
 
 pub fn generate_gemini_r_challenge(
-    prev_keccak_output: u256, gemini_fold_comms: Span<G1Point256>
+    prev_keccak_output: u256, gemini_fold_comms: Span<G1Point256>,
 ) -> u256 {
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
-    for i in 0
-        ..CONST_PROOF_SIZE_LOG_N
-            - 1 {
-                append_proof_point(ref k_input, (*gemini_fold_comms.at(i)).into());
-            };
+    for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
+        append_proof_point(ref k_input, (*gemini_fold_comms.at(i)).into());
+    };
 
     ke_le_out_to_ch_be(
-        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
+        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
     )
 }
 
 pub fn generate_shplonk_nu_challenge(
-    prev_keccak_output: u256, gemini_a_evaluations: Span<u256>
+    prev_keccak_output: u256, gemini_a_evaluations: Span<u256>,
 ) -> u256 {
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
-    for i in 0
-        ..CONST_PROOF_SIZE_LOG_N {
-            keccak::keccak_add_u256_be(ref k_input, *gemini_a_evaluations.at(i));
-        };
+    for i in 0..CONST_PROOF_SIZE_LOG_N {
+        keccak::keccak_add_u256_be(ref k_input, *gemini_a_evaluations.at(i));
+    };
 
     ke_le_out_to_ch_be(
-        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
+        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
     )
 }
 
@@ -500,7 +491,7 @@ pub fn generate_shplonk_z_challenge(prev_keccak_output: u256, shplonk_q: G1Point
     append_proof_point(ref k_input, shplonk_q);
 
     ke_le_out_to_ch_be(
-        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0)
+        keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
     )
 }
 

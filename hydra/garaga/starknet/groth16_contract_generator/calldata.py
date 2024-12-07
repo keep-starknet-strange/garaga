@@ -9,7 +9,7 @@ from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 
 def groth16_calldata_from_vk_and_proof(
-    vk: Groth16VerifyingKey, proof: Groth16Proof, use_rust: bool = True
+    vk: Groth16VerifyingKey, proof: Groth16Proof, use_rust: bool = False
 ) -> list[int]:
     if use_rust:
         return _groth16_calldata_from_vk_and_proof_rust(vk, proof)
@@ -43,13 +43,13 @@ def groth16_calldata_from_vk_and_proof(
             curve_id=vk.curve_id,
             points=[vk.ic[3], vk.ic[4]],
             scalars=[proof.public_inputs[2], proof.public_inputs[3]],
+            risc0_mode=True,
         )
         calldata.extend(
             msm.serialize_to_calldata(
                 include_digits_decomposition=True,
                 include_points_and_scalars=False,
                 serialize_as_pure_felt252_array=True,
-                risc0_mode=True,
             )
         )
     else:
@@ -64,7 +64,6 @@ def groth16_calldata_from_vk_and_proof(
                 include_digits_decomposition=True,
                 include_points_and_scalars=False,
                 serialize_as_pure_felt252_array=True,
-                risc0_mode=False,
             )
         )
 

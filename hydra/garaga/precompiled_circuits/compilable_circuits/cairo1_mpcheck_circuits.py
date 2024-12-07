@@ -120,7 +120,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
     def _base_input_map(self, bit_type: str) -> dict:
         """
-        Base input map for the bit 0, 1, and 00 cases.
+        Base input map for the bit 0, 1, 00, 01, and 10 cases.
         """
         input_map = {}
 
@@ -128,9 +128,15 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         for k in range(self.n_fixed_g2):
             input_map[f"yInv_{k}"] = u384
             input_map[f"xNegOverY_{k}"] = u384
-            input_map[f"G2_line_{k}"] = G2Line
-            if bit_type == "1":
-                input_map[f"Q_or_Q_neg_line{k}"] = G2Line
+            input_map[f"G2_line_dbl_{k}"] = G2Line
+            if bit_type in ("1"):
+                input_map[f"G2_line_add_{k}"] = G2Line
+            if bit_type == "10":
+                input_map[f"G2_line_add_1_{k}"] = G2Line
+                input_map[f"G2_line_dbl_0_{k}"] = G2Line
+            if bit_type == "01":
+                input_map[f"G2_line_dbl_1{k}"] = G2Line
+                input_map[f"G2_line_add_1{k}"] = G2Line
             if bit_type == "00":
                 input_map[f"G2_line_2nd_0_{k}"] = G2Line
 
@@ -138,7 +144,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             input_map[f"yInv_{k}"] = u384
             input_map[f"xNegOverY_{k}"] = u384
             input_map[f"Q_{k}"] = G2PointCircuit
-            if bit_type == "1":
+            if bit_type in ("1", "01", "10"):
                 input_map[f"Q_or_Q_neg_{k}"] = G2PointCircuit
 
         # Add common inputs
@@ -147,7 +153,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         input_map["f_i_plus_one_of_z"] = u384
 
         # Add bit-specific inputs
-        if bit_type == "1":
+        if bit_type in ("1", "01", "10"):
             input_map["c_or_cinv_of_z"] = u384
 
         input_map["z"] = u384
@@ -235,12 +241,15 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         Implement the circuit logic using the processed input variables.
         """
 
-    def _execute_circuit_bit_logic_base(self, circuit, vars, bit_type):
+    def _execute_circuit_bit_logic_base(self, circuit: ModuloCircuit, vars, bit_type):
         n_pairs = self.n_pairs
         assert n_pairs >= 2, f"n_pairs must be >= 2, got {n_pairs}"
 
         current_points, q_or_q_neg_points = parse_precomputed_g1_consts_and_g2_points(
-            circuit, vars, n_pairs, bit_1=(bit_type == "1")
+            circuit,
+            vars,
+            n_pairs,
+            bit_1=(bit_type == "1" or bit_type == "01" or bit_type == "10"),
         )
 
         circuit.create_lines_z_powers(vars["z"])
@@ -256,8 +265,12 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             circuit, current_points, q_or_q_neg_points, sum_i_prod_k_P, bit_type
         )
 
-        if bit_type == "1":
+        if bit_type in ("1", "01"):
             sum_i_prod_k_P = circuit.mul(sum_i_prod_k_P, vars["c_or_cinv_of_z"])
+        elif bit_type == "10":
+            sum_i_prod_k_P = circuit.mul(
+                sum_i_prod_k_P, circuit.square(vars["c_or_cinv_of_z"])
+            )
 
         f_i_plus_one_of_z = vars["f_i_plus_one_of_z"]
         new_lhs = circuit.mul(
@@ -304,6 +317,55 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
                 )
                 new_new_points.append(T)
             return new_new_points, sum_i_prod_k_P
+        elif bit_type == "01":
+            for k in range(self.n_pairs):
+                T, l1 = circuit.double_step(current_points[k], k)
+                sum_i_prod_k_P = self._multiply_line_evaluations(
+                    circuit, sum_i_prod_k_P, [l1], k
+                )
+                new_points.append(T)
+
+            sum_i_prod_k_P = circuit.mul(
+                sum_i_prod_k_P,
+                sum_i_prod_k_P,
+                "Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2",
+            )
+
+            new_new_points = []
+            for k in range(self.n_pairs):
+                T, l1, l2 = circuit.double_and_add_step(
+                    new_points[k], q_or_q_neg_points[k], k
+                )
+                sum_i_prod_k_P = self._multiply_line_evaluations(
+                    circuit, sum_i_prod_k_P, [l1, l2], k
+                )
+                new_new_points.append(T)
+
+            return new_new_points, sum_i_prod_k_P
+
+        elif bit_type == "10":
+            for k in range(self.n_pairs):
+                T, l1, l2 = circuit.double_and_add_step(
+                    current_points[k], q_or_q_neg_points[k], k
+                )
+                sum_i_prod_k_P = self._multiply_line_evaluations(
+                    circuit, sum_i_prod_k_P, [l1, l2], k
+                )
+                new_points.append(T)
+
+            sum_i_prod_k_P = circuit.mul(
+                sum_i_prod_k_P,
+                sum_i_prod_k_P,
+                "Compute (f^2 * Π(i,k) (line_i,k(z))) ^ 2 = f^4 * (Π(i,k) (line_i,k(z)))^2",
+            )
+            new_new_points = []
+            for k in range(self.n_pairs):
+                T, l1 = circuit.double_step(new_points[k], k)
+                sum_i_prod_k_P = self._multiply_line_evaluations(
+                    circuit, sum_i_prod_k_P, [l1], k
+                )
+                new_new_points.append(T)
+            return new_new_points, sum_i_prod_k_P
         elif bit_type == "0":
             for k in range(self.n_pairs):
                 T, l1 = circuit.double_step(current_points[k], k)
@@ -320,9 +382,18 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
                     circuit, sum_i_prod_k_P, [l1, l2], k
                 )
                 new_points.append(T)
+
+        else:
+            raise ValueError(f"Invalid bit type: {bit_type}")
         return new_points, sum_i_prod_k_P
 
-    def _multiply_line_evaluations(self, circuit, sum_i_prod_k_P, lines, k):
+    def _multiply_line_evaluations(
+        self,
+        circuit: multi_pairing_check.MultiPairingCheckCircuit,
+        sum_i_prod_k_P,
+        lines,
+        k,
+    ):
         for i, l in enumerate(lines):
             sum_i_prod_k_P = circuit.mul(
                 sum_i_prod_k_P,
@@ -358,70 +429,27 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         circuit.extend_struct_output(u384(name="ci_plus_one", elmts=[ci_plus_one]))
 
 
-class FixedG2MPCheckBit0(BaseFixedG2PointsMPCheck):
+class FixedG2MPCheckBitBase(BaseFixedG2PointsMPCheck):
+    """Base class for bit checking circuits with default parameters."""
+
+    BIT_TYPE = None  # Override in subclasses
+    DEFAULT_PAIRS = 3
+    DEFAULT_FIXED_G2 = 2
+
     def __init__(
         self,
         curve_id: int,
-        n_pairs: int,
-        n_fixed_g2: int,
+        n_pairs: int = None,
+        n_fixed_g2: int = None,
         auto_run: bool = True,
-        compilation_mode: int = 1,
-    ):
-        super().__init__(
-            name=f"mp_check_bit0_{n_pairs}P_{n_fixed_g2}F",
-            curve_id=curve_id,
-            n_pairs=n_pairs,
-            n_fixed_g2=n_fixed_g2,
-            auto_run=auto_run,
-            compilation_mode=compilation_mode,
-        )
-
-    @property
-    def input_map(self):
-        return self._base_input_map("0")
-
-    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
-        return self._execute_circuit_bit_logic_base(circuit, vars, "0")
-
-
-class FixedG2MPCheckBit00(BaseFixedG2PointsMPCheck):
-    def __init__(
-        self,
-        curve_id: int,
-        auto_run: bool = True,
-        compilation_mode: int = 1,
-        n_pairs: int = 3,
-        n_fixed_g2: int = 2,
-    ):
-        super().__init__(
-            name=f"mp_check_bit00_{n_pairs}P_{n_fixed_g2}F",
-            curve_id=curve_id,
-            n_pairs=n_pairs,
-            n_fixed_g2=n_fixed_g2,
-            auto_run=auto_run,
-            compilation_mode=compilation_mode,
-        )
-
-    @property
-    def input_map(self):
-        return self._base_input_map("00")
-
-    def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
-        return self._execute_circuit_bit_logic_base(circuit, vars, "00")
-
-
-class FixedG2MPCheckBit1(BaseFixedG2PointsMPCheck):
-    def __init__(
-        self,
-        curve_id: int,
-        auto_run: bool = True,
-        n_pairs: int = 3,
-        n_fixed_g2: int = 2,
         compilation_mode: int = 1,
     ):
         assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
+        n_pairs = n_pairs if n_pairs is not None else self.DEFAULT_PAIRS
+        n_fixed_g2 = n_fixed_g2 if n_fixed_g2 is not None else self.DEFAULT_FIXED_G2
+
         super().__init__(
-            name=f"mp_check_bit1_{n_pairs}P_{n_fixed_g2}F",
+            name=f"mp_check_bit{self.BIT_TYPE}_{n_pairs}P_{n_fixed_g2}F",
             curve_id=curve_id,
             n_pairs=n_pairs,
             n_fixed_g2=n_fixed_g2,
@@ -431,10 +459,30 @@ class FixedG2MPCheckBit1(BaseFixedG2PointsMPCheck):
 
     @property
     def input_map(self):
-        return self._base_input_map("1")
+        return self._base_input_map(self.BIT_TYPE)
 
     def _execute_circuit_logic(self, circuit, vars) -> ModuloCircuit:
-        return self._execute_circuit_bit_logic_base(circuit, vars, "1")
+        return self._execute_circuit_bit_logic_base(circuit, vars, self.BIT_TYPE)
+
+
+class FixedG2MPCheckBit0(FixedG2MPCheckBitBase):
+    BIT_TYPE = "0"
+
+
+class FixedG2MPCheckBit00(FixedG2MPCheckBitBase):
+    BIT_TYPE = "00"
+
+
+class FixedG2MPCheckBit1(FixedG2MPCheckBitBase):
+    BIT_TYPE = "1"
+
+
+class FixedG2MPCheckBit01(FixedG2MPCheckBitBase):
+    BIT_TYPE = "01"
+
+
+class FixedG2MPCheckBit10(FixedG2MPCheckBitBase):
+    BIT_TYPE = "10"
 
 
 class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):

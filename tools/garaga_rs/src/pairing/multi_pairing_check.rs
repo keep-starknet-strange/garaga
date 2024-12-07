@@ -18,10 +18,26 @@ pub fn get_max_q_degree(curve_id: CurveID, n_pairs: usize) -> usize {
         CurveID::BLS12_381 => 8,
         _ => unimplemented!(),
     };
-    let f_degree = 11;
-    4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
-}
 
+    let f_degree = 11;
+    let lambda_root_degree = 11;
+
+    match curve_id {
+        CurveID::BN254 => {
+            // Largest degree happens in bit_10 case where we do (f*f*C * Π_n_pairs(line)^2 * Π_n_pairs(line))
+            4 * f_degree
+                + 2 * lambda_root_degree
+                + 4 * line_degree * n_pairs
+                + line_degree * n_pairs
+                - 12
+        }
+        CurveID::BLS12_381 => {
+            // Largest Q happens in bit_00 case where we do (f*f* Π_n_pairs(line)^2 * Π_n_pairs(line)
+            4 * f_degree + 2 * line_degree * n_pairs + line_degree * n_pairs - 12
+        }
+        _ => unimplemented!(),
+    }
+}
 fn get_final_exp_witness<F>(f: &[FieldElement<F>]) -> (Vec<FieldElement<F>>, Vec<FieldElement<F>>)
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -182,6 +198,82 @@ where
     (new_f, new_points)
 }
 
+fn bit_01_case<F, E2>(
+    f: &Polynomial<F>,
+    q: &[G2Point<F, E2>],
+    q_select: &[G2Point<F, E2>],
+    y_inv: &[FieldElement<F>],
+    x_neg_over_y: &[FieldElement<F>],
+    c_or_c_inv: &Polynomial<F>,
+    qis: &mut Vec<Polynomial<F>>,
+    ris: &mut Vec<Polynomial<F>>,
+) -> (Polynomial<F>, Vec<G2Point<F, E2>>)
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    let mut new_lines = vec![f.clone(), f.clone(), f.clone(), f.clone()];
+    let mut new_points = vec![];
+    for k in 0..q.len() {
+        let (t, l1) = double_step(&q[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.push(l1.clone());
+        new_lines.push(l1);
+        new_points.push(t);
+    }
+
+    let mut new_new_points = vec![];
+    for k in 0..q.len() {
+        let (t, l1, l2) =
+            double_and_add_step(&new_points[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.push(l1);
+        new_lines.push(l2);
+        new_new_points.push(t);
+    }
+
+    new_lines.push(c_or_c_inv.clone());
+    let new_f = extf_mul(new_lines, None, Some(qis), Some(ris));
+    (new_f, new_new_points)
+}
+
+fn bit_10_case<F, E2>(
+    f: &Polynomial<F>,
+    q: &[G2Point<F, E2>],
+    q_select: &[G2Point<F, E2>],
+    y_inv: &[FieldElement<F>],
+    x_neg_over_y: &[FieldElement<F>],
+    c_or_c_inv: &Polynomial<F>,
+    qis: &mut Vec<Polynomial<F>>,
+    ris: &mut Vec<Polynomial<F>>,
+) -> (Polynomial<F>, Vec<G2Point<F, E2>>)
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+{
+    let mut new_lines = vec![f.clone(), f.clone(), f.clone(), f.clone()];
+    new_lines.push(c_or_c_inv.clone());
+    new_lines.push(c_or_c_inv.clone());
+
+    let mut new_points = vec![];
+    for k in 0..q.len() {
+        let (t, l1, l2) = double_and_add_step(&q[k], &q_select[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.push(l1.clone());
+        new_lines.push(l1);
+        new_lines.push(l2.clone());
+        new_lines.push(l2);
+        new_points.push(t);
+    }
+
+    let mut new_new_points = vec![];
+    for k in 0..q.len() {
+        let (t, l1) = double_step(&new_points[k], &y_inv[k], &x_neg_over_y[k]);
+        new_lines.push(l1);
+        new_new_points.push(t);
+    }
+
+    let new_f = extf_mul(new_lines, None, Some(qis), Some(ris));
+    (new_f, new_new_points)
+}
+
 pub fn multi_pairing_check<F, E2, E6, E12>(
     p: &[G1Point<F>],
     q: &[G2Point<F, E2>],
@@ -202,7 +294,7 @@ where
     FieldElement<F>: ByteConversion,
 {
     assert_eq!(p.len(), q.len());
-    let n_pairs = p.len();
+    // let n_pairs: usize = p.len();
 
     let (y_inv, x_neg_over_y) = precompute_consts(p);
 
@@ -210,7 +302,7 @@ where
 
     let (mut qis, mut ris) = (vec![], vec![]);
 
-    let (mut c_or_c_inv, scaling_factor, scaling_factor_sparsity) =
+    let (c_or_c_inv, scaling_factor, scaling_factor_sparsity) =
         get_root_and_scaling_factor(p, q, m);
     let w = Polynomial::new(scaling_factor.clone());
     let compact_scaling_factor =
@@ -258,43 +350,123 @@ where
         unimplemented!();
     }
 
-    let mut i = start_index;
-    while i > 0 {
-        i -= 1;
-        if loop_counter[i] == 0 {
-            if i > 0 && loop_counter[i - 1] == 0 {
-                (f, qs) = bit_00_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
-                i -= 1;
-            } else {
-                (f, qs) = bit_0_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
-            }
-        } else if loop_counter[i] == 1 || loop_counter[i] == -1 {
-            let mut q_selects = vec![];
-            for k in 0..n_pairs {
-                q_selects.push(if loop_counter[i] == 1 {
-                    q[k].clone()
+    let mut i: i32 = (start_index - 1) as i32;
+    while i >= 0 {
+        let idx = i as usize;
+        if loop_counter[idx] == 0 {
+            if idx > 0 {
+                let next_bit = loop_counter[idx - 1];
+                if next_bit == 0 {
+                    // 00 case
+                    let (new_f, new_points) =
+                        bit_00_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
+                    f = new_f;
+                    qs = new_points;
+                    i -= 1; // Skip next bit
+                } else if (next_bit == 1 || next_bit == -1)
+                    && F::get_curve_params().curve_id == CurveID::BN254
+                {
+                    // 01 or 0(-1) case
+                    let q_select: Vec<G2Point<F, E2>> = qs
+                        .iter()
+                        .enumerate()
+                        .map(|(k, _)| {
+                            if next_bit == 1 {
+                                q[k].clone()
+                            } else {
+                                q_neg[k].clone()
+                            }
+                        })
+                        .collect();
+                    let c_or_c_inv = if next_bit == 1 {
+                        &c_inv
+                    } else {
+                        &c.as_ref().unwrap()
+                    };
+                    let (new_f, new_points) = bit_01_case(
+                        &f,
+                        &qs,
+                        &q_select,
+                        &y_inv,
+                        &x_neg_over_y,
+                        c_or_c_inv,
+                        &mut qis,
+                        &mut ris,
+                    );
+                    f = new_f;
+                    qs = new_points;
+                    i -= 1; // Skip next bit
                 } else {
-                    q_neg[k].clone()
-                });
-            }
-            c_or_c_inv = if loop_counter[i] == 1 {
-                c_inv.clone()
+                    // Single 0 (BLS only)
+                    let (new_f, new_points) =
+                        bit_0_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
+                    f = new_f;
+                    qs = new_points;
+                }
             } else {
-                c.clone().unwrap()
+                // Single 0 at the end
+                let (new_f, new_points) =
+                    bit_0_case(&f, &qs, &y_inv, &x_neg_over_y, &mut qis, &mut ris);
+                f = new_f;
+                qs = new_points;
+            }
+        } else if loop_counter[idx] == 1 || loop_counter[idx] == -1 {
+            let q_select: Vec<G2Point<F, E2>> = qs
+                .iter()
+                .enumerate()
+                .map(|(k, _)| {
+                    if loop_counter[idx] == 1 {
+                        q[k].clone()
+                    } else {
+                        q_neg[k].clone()
+                    }
+                })
+                .collect();
+            let c_or_c_inv = if loop_counter[idx] == 1 {
+                &c_inv
+            } else {
+                &c.clone().unwrap()
             };
-            (f, qs) = bit_1_case(
-                &f,
-                &qs,
-                &q_selects,
-                &y_inv,
-                &x_neg_over_y,
-                &c_or_c_inv,
-                &mut qis,
-                &mut ris,
-            );
+
+            if idx > 0
+                && loop_counter[idx - 1] == 0
+                && F::get_curve_params().curve_id == CurveID::BN254
+            {
+                // 10 or (-1)0 case
+                let (new_f, new_points) = bit_10_case(
+                    &f,
+                    &qs,
+                    &q_select,
+                    &y_inv,
+                    &x_neg_over_y,
+                    c_or_c_inv,
+                    &mut qis,
+                    &mut ris,
+                );
+                f = new_f;
+                qs = new_points;
+                i -= 1; // Skip next bit
+            } else if idx == 0 || F::get_curve_params().curve_id == CurveID::BLS12_381 {
+                // Single ±1 at the end
+                let (new_f, new_points) = bit_1_case(
+                    &f,
+                    &qs,
+                    &q_select,
+                    &y_inv,
+                    &x_neg_over_y,
+                    c_or_c_inv,
+                    &mut qis,
+                    &mut ris,
+                );
+                f = new_f;
+                qs = new_points;
+            } else {
+                panic!("Bit {} not implemented", loop_counter[idx]);
+            }
         } else {
-            unimplemented!();
+            panic!("Bit {} not implemented", loop_counter[idx]);
         }
+        i -= 1;
     }
 
     let final_r_sparsity = if m.is_some() {
@@ -314,7 +486,7 @@ where
             lines.insert(0, f);
             f = extf_mul(lines, None, Some(&mut qis), Some(&mut ris));
             let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-            let c_frob_2 = frobenius(&frobenius_maps, &c.unwrap(), 2, 12);
+            let c_frob_2 = frobenius(&frobenius_maps, &c.as_ref().unwrap(), 2, 12);
             let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3, 12);
             f = extf_mul(
                 vec![f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3],

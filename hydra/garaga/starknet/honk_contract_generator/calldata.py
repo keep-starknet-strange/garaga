@@ -13,9 +13,7 @@ from garaga.precompiled_circuits.honk import (
     ModuloCircuitElement,
 )
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
-from garaga.starknet.tests_and_calldata_generators.msm_batched import (
-    MSMCalldataBuilderBatched,
-)
+from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 
 def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list[int]:
@@ -98,10 +96,8 @@ def get_ultra_keccak_honk_calldata_from_vk_and_proof(
     points.append(G1Point.get_nG(CurveID.BN254, 1))
     points.append(proof.kzg_quotient)
 
-    msm_builder = MSMCalldataBuilderBatched(
-        CurveID.BN254,
-        points=points,
-        scalars=scalars_msm,
+    msm_builder = MSMCalldataBuilder(
+        CurveID.BN254, points=points, scalars=scalars_msm, risc0_mode=False
     )
 
     P_0 = G1Point.msm(points=points, scalars=scalars_msm).add(proof.shplonk_q)
@@ -116,7 +112,9 @@ def get_ultra_keccak_honk_calldata_from_vk_and_proof(
     cd.extend(proof.serialize_to_calldata())
     cd.extend(
         msm_builder.serialize_to_calldata(
-            include_points_and_scalars=False, serialize_as_pure_felt252_array=False
+            include_points_and_scalars=False,
+            serialize_as_pure_felt252_array=False,
+            include_digits_decomposition=None,
         )
     )
     cd.extend(mpc_builder.serialize_to_calldata())

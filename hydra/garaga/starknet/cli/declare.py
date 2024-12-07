@@ -18,7 +18,7 @@ from garaga.starknet.cli.utils import Network, complete_fee, voyager_link_class
 app = typer.Typer()
 
 
-def declare_project(
+def declare(
     project_path: Annotated[
         Path,
         typer.Option(

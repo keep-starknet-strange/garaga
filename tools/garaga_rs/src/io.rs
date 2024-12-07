@@ -100,6 +100,7 @@ where
 pub fn padd_function_felt<F: IsPrimeField>(
     f: &FunctionFelt<F>,
     n: usize,
+    batched: bool,
 ) -> [Vec<FieldElement<F>>; 4] {
     fn pad_vec<F: IsPrimeField>(v: &mut Vec<FieldElement<F>>, n: usize) {
         assert!(v.len() <= n);
@@ -112,10 +113,12 @@ pub fn padd_function_felt<F: IsPrimeField>(
     let mut a_den = f.a.denominator.coefficients.clone();
     let mut b_num = f.b.numerator.coefficients.clone();
     let mut b_den = f.b.denominator.coefficients.clone();
-    pad_vec(&mut a_num, n + 1);
-    pad_vec(&mut a_den, n + 2);
-    pad_vec(&mut b_num, n + 2);
-    pad_vec(&mut b_den, n + 5);
+
+    let extra_padding = if batched { 2 } else { 0 };
+    pad_vec(&mut a_num, n + 1 + extra_padding);
+    pad_vec(&mut a_den, n + 2 + extra_padding);
+    pad_vec(&mut b_num, n + 2 + extra_padding);
+    pad_vec(&mut b_den, n + 5 + extra_padding);
     [a_num, a_den, b_num, b_den]
 }
 

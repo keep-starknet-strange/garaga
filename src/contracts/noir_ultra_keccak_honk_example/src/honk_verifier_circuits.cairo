@@ -27,7 +27,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     tp_beta: u384,
     tp_gamma: u384,
     tp_base_rlc: u384,
-    tp_alphas: Span<u128>
+    tp_alphas: Span<u128>,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -48,7 +48,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let in15 = CE::<CI<15>> {}; // 0x6
     let in16 = CE::<CI<16>> {}; // 0x7
     let in17 = CE::<
-        CI<17>
+        CI<17>,
     > {}; // 0x183227397098d014dc2822db40c0ac2e9419f4243cdcb848a1f0fac9f8000000
     let in18 = CE::<CI<18>> {}; // -0x1 % p
     let in19 = CE::<CI<19>> {}; // -0x2 % p
@@ -58,12 +58,12 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let in23 = CE::<CI<23>> {}; // 0x100000000000000000
     let in24 = CE::<CI<24>> {}; // 0x4000
     let in25 = CE::<
-        CI<25>
+        CI<25>,
     > {}; // 0x10dc6e9c006ea38b04b1e03b4bd9490c0d03f98929ca1d7fb56821fd19d3b6e7
     let in26 = CE::<CI<26>> {}; // 0xc28145b6a44df3e0149b3d0a30b3bb599df9756d4dd9b84a86b38cfb45a740b
     let in27 = CE::<CI<27>> {}; // 0x544b8338791518b2c7645a50392798b21f75bb60e3596170067d00141cac15
     let in28 = CE::<
-        CI<28>
+        CI<28>,
     > {}; // 0x222c01175718386f2e2e82eb122789e352e105a3b8fa852613bc534433ee428b
 
     // INPUT stack
@@ -860,7 +860,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
 
     let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
 
-    let mut circuit_inputs = (t279, t748,).new_inputs();
+    let mut circuit_inputs = (t279, t748).new_inputs();
     // Prefill constants:
 
     circuit_inputs = circuit_inputs
@@ -932,9 +932,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let check: u384 = outputs.get_output(t748);
     return (check_rlc, check);
 }
-const HONK_SUMCHECK_SIZE_5_PUB_1_GRUMPKIN_CONSTANTS: [
-    u384
-    ; 29] = [
+const HONK_SUMCHECK_SIZE_5_PUB_1_GRUMPKIN_CONSTANTS: [u384; 29] = [
     u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x20, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -942,28 +940,28 @@ const HONK_SUMCHECK_SIZE_5_PUB_1_GRUMPKIN_CONSTANTS: [
         limb0: 0x79b9709143e1f593efffec51,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x2d0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x79b9709143e1f593efffff11,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x90, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x79b9709143e1f593efffff71,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0xf0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 {
         limb0: 0x79b9709143e1f593effffd31,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x13b0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -976,25 +974,25 @@ const HONK_SUMCHECK_SIZE_5_PUB_1_GRUMPKIN_CONSTANTS: [
         limb0: 0x3cdcb848a1f0fac9f8000000,
         limb1: 0xdc2822db40c0ac2e9419f424,
         limb2: 0x183227397098d014,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x79b9709143e1f593f0000000,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x79b9709143e1f593efffffff,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x79b9709143e1f593effffffe,
         limb1: 0xb85045b68181585d2833e848,
         limb2: 0x30644e72e131a029,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 { limb0: 0x11, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x9, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -1004,26 +1002,26 @@ const HONK_SUMCHECK_SIZE_5_PUB_1_GRUMPKIN_CONSTANTS: [
         limb0: 0x29ca1d7fb56821fd19d3b6e7,
         limb1: 0x4b1e03b4bd9490c0d03f989,
         limb2: 0x10dc6e9c006ea38b,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xd4dd9b84a86b38cfb45a740b,
         limb1: 0x149b3d0a30b3bb599df9756,
         limb2: 0xc28145b6a44df3e,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0x60e3596170067d00141cac15,
         limb1: 0xb2c7645a50392798b21f75bb,
         limb2: 0x544b8338791518,
-        limb3: 0x0
+        limb3: 0x0,
     },
     u384 {
         limb0: 0xb8fa852613bc534433ee428b,
         limb1: 0x2e2e82eb122789e352e105a3,
         limb2: 0x222c01175718386f,
-        limb3: 0x0
-    }
+        limb3: 0x0,
+    },
 ];
 #[inline(always)]
 pub fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
@@ -1033,7 +1031,7 @@ pub fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
     tp_rho: u384,
     tp_shplonk_z: u384,
     tp_shplonk_nu: u384,
-    tp_sum_check_u_challenges: Span<u128>
+    tp_sum_check_u_challenges: Span<u128>,
 ) -> (
     u384,
     u384,
@@ -1076,7 +1074,7 @@ pub fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
     u384,
     u384,
     u384,
-    u384
+    u384,
 ) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -1592,12 +1590,12 @@ pub fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
         scalar_47,
         scalar_48,
         scalar_72,
-        sum_scalars
+        sum_scalars,
     );
 }
 #[inline(always)]
 pub fn run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
-    A0: G1Point, A2: G1Point, coeff0: u384, coeff2: u384, SumDlogDivBatched: FunctionFelt
+    A0: G1Point, A2: G1Point, coeff0: u384, coeff2: u384, SumDlogDivBatched: FunctionFelt,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});

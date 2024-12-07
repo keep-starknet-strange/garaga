@@ -18,10 +18,10 @@ The Garaga CLI takes care of converting your proof to the correct calldata and c
 To do this, use the garaga `verify-onchain` command.&#x20;
 
 ```bash
- Usage: garaga verify-onchain [OPTIONS]                                                                                                
-                                                                                                                                       
- Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key.                                         
-                                                                                                                                       
+ Usage: garaga verify-onchain [OPTIONS]
+
+ Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key.
+
 ╭─ Options ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
 │ *  --system                    [groth16]          Proof system [default: None] [required]                                           │
 │ *  --contract-address          TEXT               Starknet contract address [default: None] [required]                              │
@@ -73,7 +73,7 @@ The command should look like this:
 
 {% code overflow="wrap" %}
 ```
-garaga verify-onchain --system groth16 --address 0x1234... --vk vk.json --proof proof.json --public-inputs public.json --env-file .secrets --network sepolia 
+garaga verify-onchain --system groth16 --contract-address 0x1234... --vk vk.json --proof proof.json --public-inputs public.json --env-file .secrets --network sepolia
 ```
 {% endcode %}
 

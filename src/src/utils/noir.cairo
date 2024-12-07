@@ -77,62 +77,60 @@ pub struct HonkVk {
 }
 
 
-pub const G2_POINT_KZG_1: G2Point =
-    G2Point {
-        x0: u384 {
-            limb0: 0xf75edadd46debd5cd992f6ed,
-            limb1: 0x426a00665e5c4479674322d4,
-            limb2: 0x1800deef121f1e76,
-            limb3: 0x0
-        },
-        x1: u384 {
-            limb0: 0x35a9e71297e485b7aef312c2,
-            limb1: 0x7260bfb731fb5d25f1aa4933,
-            limb2: 0x198e9393920d483a,
-            limb3: 0x0
-        },
-        y0: u384 {
-            limb0: 0xc43d37b4ce6cc0166fa7daa,
-            limb1: 0x4aab71808dcb408fe3d1e769,
-            limb2: 0x12c85ea5db8c6deb,
-            limb3: 0x0
-        },
-        y1: u384 {
-            limb0: 0x70b38ef355acdadcd122975b,
-            limb1: 0xec9e99ad690c3395bc4b3133,
-            limb2: 0x90689d0585ff075,
-            limb3: 0x0
-        }
-    };
+pub const G2_POINT_KZG_1: G2Point = G2Point {
+    x0: u384 {
+        limb0: 0xf75edadd46debd5cd992f6ed,
+        limb1: 0x426a00665e5c4479674322d4,
+        limb2: 0x1800deef121f1e76,
+        limb3: 0x0,
+    },
+    x1: u384 {
+        limb0: 0x35a9e71297e485b7aef312c2,
+        limb1: 0x7260bfb731fb5d25f1aa4933,
+        limb2: 0x198e9393920d483a,
+        limb3: 0x0,
+    },
+    y0: u384 {
+        limb0: 0xc43d37b4ce6cc0166fa7daa,
+        limb1: 0x4aab71808dcb408fe3d1e769,
+        limb2: 0x12c85ea5db8c6deb,
+        limb3: 0x0,
+    },
+    y1: u384 {
+        limb0: 0x70b38ef355acdadcd122975b,
+        limb1: 0xec9e99ad690c3395bc4b3133,
+        limb2: 0x90689d0585ff075,
+        limb3: 0x0,
+    },
+};
 
 
-pub const G2_POINT_KZG_2: G2Point =
-    G2Point {
-        x0: u384 {
-            limb0: 0x3b32078b7e231fec938883b0,
-            limb1: 0xbc89b5b398b5974e9f594407,
-            limb2: 0x118c4d5b837bcc2,
-            limb3: 0x0
-        },
-        x1: u384 {
-            limb0: 0x358e038b4efe30fac09383c1,
-            limb1: 0xe7ff4e580791dee8ea51d87a,
-            limb2: 0x260e01b251f6f1c7,
-            limb3: 0x0
-        },
-        y0: u384 {
-            limb0: 0x96e6cea2854a87d4dacc5e55,
-            limb1: 0x56475b4214e5615e11e6dd3f,
-            limb2: 0x22febda3c0c0632a,
-            limb3: 0x0
-        },
-        y1: u384 {
-            limb0: 0x41f99ba4ee413c80da6a5fe4,
-            limb1: 0xd25156c1bb9a72859cf2a046,
-            limb2: 0x4fc6369f7110fe3,
-            limb3: 0x0
-        }
-    };
+pub const G2_POINT_KZG_2: G2Point = G2Point {
+    x0: u384 {
+        limb0: 0x3b32078b7e231fec938883b0,
+        limb1: 0xbc89b5b398b5974e9f594407,
+        limb2: 0x118c4d5b837bcc2,
+        limb3: 0x0,
+    },
+    x1: u384 {
+        limb0: 0x358e038b4efe30fac09383c1,
+        limb1: 0xe7ff4e580791dee8ea51d87a,
+        limb2: 0x260e01b251f6f1c7,
+        limb3: 0x0,
+    },
+    y0: u384 {
+        limb0: 0x96e6cea2854a87d4dacc5e55,
+        limb1: 0x56475b4214e5615e11e6dd3f,
+        limb2: 0x22febda3c0c0632a,
+        limb3: 0x0,
+    },
+    y1: u384 {
+        limb0: 0x41f99ba4ee413c80da6a5fe4,
+        limb1: 0xd25156c1bb9a72859cf2a046,
+        limb2: 0x4fc6369f7110fe3,
+        limb3: 0x0,
+    },
+};
 
 
 pub fn get_proof() -> HonkProof {
@@ -143,35 +141,35 @@ pub fn get_proof() -> HonkProof {
         public_inputs: array![0x2].span(),
         w1: G1Point256 {
             x: 0x2465e9ff1629df572d7ae9fd1b9bd98946560392b669c03f9a4a496ae7e4cace,
-            y: 0x17bce8fc74ab3b9430b6485da928ea6951ebee411689e29dc324843ee1708142
+            y: 0x17bce8fc74ab3b9430b6485da928ea6951ebee411689e29dc324843ee1708142,
         },
         w2: G1Point256 {
             x: 0xeb93267e664634c1ae1a608b81785cfec11669ee95a1dbc6386717066310cb1,
-            y: 0x23169272f91d323ced584549d31020c12f7cbf314c309c0ee105c3bbfef28399
+            y: 0x23169272f91d323ced584549d31020c12f7cbf314c309c0ee105c3bbfef28399,
         },
         w3: G1Point256 {
             x: 0xd394ffb5eb2d33c6a2540db125d27fb60665db10ae3f80d91eb189b318d7d58,
-            y: 0xa325d606966d0ecbf514d787c3440de179ff8427f66be54fcabe05420fc14d0
+            y: 0xa325d606966d0ecbf514d787c3440de179ff8427f66be54fcabe05420fc14d0,
         },
         w4: G1Point256 {
             x: 0xca7365a8a7d92bd713e8625cde47db105835a557cf68ce01414ede87a1ce97b,
-            y: 0x26bf12dceab316d64651db4ea03663d3d9478d6ea9a1f20bbe215561e139c7f7
+            y: 0x26bf12dceab316d64651db4ea03663d3d9478d6ea9a1f20bbe215561e139c7f7,
         },
         z_perm: G1Point256 {
             x: 0x69b493db1ad1bcb140505bc5a806d425af4e78b20794bc813a7669eba382a02,
-            y: 0x2d6c35a33c91dd52432099ee20f87ed823919ed60347a56b4678b3a485e58197
+            y: 0x2d6c35a33c91dd52432099ee20f87ed823919ed60347a56b4678b3a485e58197,
         },
         lookup_read_counts: G1Point256 {
             x: 0xddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f,
-            y: 0xff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157
+            y: 0xff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157,
         },
         lookup_read_tags: G1Point256 {
             x: 0xddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f,
-            y: 0xff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157
+            y: 0xff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157,
         },
         lookup_inverses: G1Point256 {
             x: 0x1fad315eb3f489658734a3aff63bfb846255a077783e50444d60ac2b104b1ad4,
-            y: 0x1067a4d8157c660c69e7022dd32ab0e30dd9987dae02f54e15edab896b9469a2
+            y: 0x1067a4d8157c660c69e7022dd32ab0e30dd9987dae02f54e15edab896b9469a2,
         },
         sumcheck_univariates: array![
             array![
@@ -182,7 +180,7 @@ pub fn get_proof() -> HonkProof {
                 0x1907ec4e632967f4f16250f16fa97ec7c9e8d7b72fec50a60adf7f77e14fb1b5,
                 0x125582c3c04f25ef9b7c841edc3a461f112e792fed4296f2bcc67372e41bfaa3,
                 0x23f1075c04d207789c601197be8d38a22a11e5d035bce960f9dc69baa6af03c2,
-                0x12895dcc211378d9eb6614866aa0bb1a8cf720ee34451efcd92dc82c43504c13
+                0x12895dcc211378d9eb6614866aa0bb1a8cf720ee34451efcd92dc82c43504c13,
             ]
                 .span(),
             array![
@@ -193,7 +191,7 @@ pub fn get_proof() -> HonkProof {
                 0x2228b8dca9925fee72e5587e58bafbd45947c386446f3bdb63c4e010d72a0e56,
                 0x2bda190568fdecabb525a7745c2d7d5242f264daeef67f932268e72b5adcf6d1,
                 0x4266918448a9ec8cac8f881c0bc1ba9c42959111b9f2991c93b169f38dca51a,
-                0x1150a038bbadb896d080e0158f85e7b0df710c1910a6503774bdcf08ef39a393
+                0x1150a038bbadb896d080e0158f85e7b0df710c1910a6503774bdcf08ef39a393,
             ]
                 .span(),
             array![
@@ -204,7 +202,7 @@ pub fn get_proof() -> HonkProof {
                 0x13c08cf9426d1e2f7e132e9c6e13e8b93b6905ccc539cb357e69e0f5d66ddfd7,
                 0x1f1cc54b85b64db929daf476a572212d852ad2e7666921e603bb50a1097c870f,
                 0x17cfeb6ab26a28116fe3d4b5156c1512223d86e3528cd667536f1c170a4cb755,
-                0x1610c336fc031be68c629c990e755afcbb43e7630726af1dfb32ff7de2a1f903
+                0x1610c336fc031be68c629c990e755afcbb43e7630726af1dfb32ff7de2a1f903,
             ]
                 .span(),
             array![
@@ -215,7 +213,7 @@ pub fn get_proof() -> HonkProof {
                 0x25b39250035ebe1756ec1085919d0a90a973aafcdc1b4cc77844dc81c81f017e,
                 0x28b32ee8f4dd8c62de8140dd3730fc52de4abc0cab9289bceeffb1469484b318,
                 0x53b798117b11aee0c5bccfb2a8d926dd45c7b3f560f8d3133d42f4deab22d45,
-                0x9eacab815d72783fdf291121be7af695260916f8f9bd74b980317f9c6ff4cea
+                0x9eacab815d72783fdf291121be7af695260916f8f9bd74b980317f9c6ff4cea,
             ]
                 .span(),
             array![
@@ -226,7 +224,7 @@ pub fn get_proof() -> HonkProof {
                 0x90d1aabada01c6d1ef8e122169f88bc36d80462934ac786ed7f63568a815f72,
                 0x263a15eb7a5d4da20cd74bda64acd6bfd515fd57e001f571ee7f25dbbc819935,
                 0x1a6da135c8b1c95f0ebac3186421c4bf62c71f27fe9b2e34279afe65270e21a0,
-                0x2d928d40bc62836da72eadced3c96f846cf0440b939d746db2a987e41f8b7356
+                0x2d928d40bc62836da72eadced3c96f846cf0440b939d746db2a987e41f8b7356,
             ]
                 .span(),
             array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
@@ -251,7 +249,7 @@ pub fn get_proof() -> HonkProof {
             array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
             array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
             array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
-            array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span()
+            array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
         ]
             .span(),
         sumcheck_evaluations: array![
@@ -298,25 +296,25 @@ pub fn get_proof() -> HonkProof {
             0x13f4dbcb20e54a15649d2a911e55e4148fdfceb790222f87f2870ea0f2faea7a,
             0x182c615f4962dd5e9e2bcaa2148668c2967b30cbde78cdd953d5efa1ee7305e7,
             0x10e60eadf16da6ae5691b91f92bef89ba9c5a60574f6b23f8ac6fc39b0d73141,
-            0x12cebf3da6a166ed7f43f707c64cb377f4cf76063f8c5afe9fb5a52c612e4cae
+            0x12cebf3da6a166ed7f43f707c64cb377f4cf76063f8c5afe9fb5a52c612e4cae,
         ]
             .span(),
         gemini_fold_comms: array![
             G1Point256 {
                 x: 0x30f6ead299b812a9d0e34913e4897baa11cec4f4364333bd02c3ddb15b2796,
-                y: 0xe2c88de5ecff9e5e57f587f11a581f95e8311abc9cbc8b79f71f5043aa54178
+                y: 0xe2c88de5ecff9e5e57f587f11a581f95e8311abc9cbc8b79f71f5043aa54178,
             },
             G1Point256 {
                 x: 0x24c191be28e3c61bc03e45da0e82ef589a4e35476322229e437e049dbdf633a9,
-                y: 0x190ea556eee073ab057011ff249806fce345419ce1c38dc47e6eac312132d8c0
+                y: 0x190ea556eee073ab057011ff249806fce345419ce1c38dc47e6eac312132d8c0,
             },
             G1Point256 {
                 x: 0xdca2271951c15f10fe1bd6b142ae96d710cbe11e7f67b885ba8cf553f9b7a89,
-                y: 0x222d3b8adfc808eccc9b6be870295d686f2f78a47a20070faa67ac921a0d62ec
+                y: 0x222d3b8adfc808eccc9b6be870295d686f2f78a47a20070faa67ac921a0d62ec,
             },
             G1Point256 {
                 x: 0x3518fba7088a6f8103d8bc2f72a67a68cff759c9e8e70071a0c0d67a89bd684,
-                y: 0x2796e48e3909df2b389f68123329adb1994e35d6faad76671de81ead27b3bef0
+                y: 0x2796e48e3909df2b389f68123329adb1994e35d6faad76671de81ead27b3bef0,
             },
             G1Point256 { x: 0x1, y: 0x2 },
             G1Point256 { x: 0x1, y: 0x2 },
@@ -340,7 +338,7 @@ pub fn get_proof() -> HonkProof {
             G1Point256 { x: 0x1, y: 0x2 },
             G1Point256 { x: 0x1, y: 0x2 },
             G1Point256 { x: 0x1, y: 0x2 },
-            G1Point256 { x: 0x1, y: 0x2 }
+            G1Point256 { x: 0x1, y: 0x2 },
         ]
             .span(),
         gemini_a_evaluations: array![
@@ -371,16 +369,16 @@ pub fn get_proof() -> HonkProof {
             0x0,
             0x0,
             0x0,
-            0x0
+            0x0,
         ]
             .span(),
         shplonk_q: G1Point256 {
             x: 0x1e3ce2491c516e0e06eaa5dcad936bce2677c1867be2aeb5720375ffc79b6e21,
-            y: 0xd1133764157bc108c1e4e201a02968887c77e16afdbb635b2729af6424c9e9e
+            y: 0xd1133764157bc108c1e4e201a02968887c77e16afdbb635b2729af6424c9e9e,
         },
         kzg_quotient: G1Point256 {
             x: 0x1068dd1d211c8b30fdbfa561f69a4d062daa8998dd609fd7de22ed5babb86c4b,
-            y: 0x216af708e0184bcac66514720a6bffaa7fee53f2f7ae34dc374df8ede0c3c09b
+            y: 0x216af708e0184bcac66514720a6bffaa7fee53f2f7ae34dc374df8ede0c3c09b,
         },
     }
 }

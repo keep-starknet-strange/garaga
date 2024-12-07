@@ -22,6 +22,7 @@ from enum import Enum
 class CairoOption(Enum):
     SOME = 0
     NONE = 1
+    VOID = 2  # Special case to serialize nothing at all.
 
 
 @dataclass(slots=True)
@@ -219,6 +220,8 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
                 cd.append(0)
             elif option == CairoOption.NONE:
                 cd.append(1)
+                return cd
+            elif option == CairoOption.VOID:
                 return cd
             else:
                 raise ValueError(f"Invalid option: {option}")

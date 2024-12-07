@@ -852,7 +852,7 @@ class ModuloCircuit:
     def print_value_segment(self):
         self.values_segment.print()
 
-    def compile_circuit(self, function_name: str = None, pub: bool = False):
+    def compile_circuit(self, function_name: str = None, pub: bool = True):
         if self.is_empty_circuit():
             return "", ""
         self.values_segment = self.values_segment.non_interactive_transform()
