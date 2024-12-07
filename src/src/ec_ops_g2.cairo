@@ -7,9 +7,10 @@ use core::circuit::{
 };
 use core::option::Option;
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a};
+use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_b2, get_a, get_modulus};
 use garaga::circuits::ec;
 use garaga::utils::u384_assert_zero;
+use garaga::basic_field_ops::neg_mod_p;
 
 
 #[generate_trait]
@@ -28,6 +29,15 @@ impl G2PointImpl of G2PointTrait {
             *self, get_a(curve_index), b20, b21, curve_index,
         );
         return check0.is_zero() && check1.is_zero();
+    }
+    fn negate(self: @G2Point, curve_index: usize) -> G2Point {
+        let modulus = get_modulus(curve_index);
+        G2Point {
+            x0: *self.x0,
+            x1: *self.x1,
+            y0: neg_mod_p(*self.y0, modulus),
+            y1: neg_mod_p(*self.y1, modulus),
+        }
     }
 }
 

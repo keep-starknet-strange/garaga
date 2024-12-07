@@ -7,6 +7,13 @@ use garaga::definitions::{E12D, G2Line, u384, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
 
+impl U64IntoU384 of Into<u64, u384> {
+    fn into(self: u64) -> u384 {
+        let v128: u128 = self.into();
+        v128.into()
+    }
+}
+
 impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
         [
@@ -31,6 +38,16 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             ),
             AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
+    }
+    #[inline]
+    fn next_u256(self: AddInputResult<C>, value: u256) -> AddInputResult<C> {
+        let val_u384: u384 = value.into();
+        self.next_2(val_u384)
+    }
+    #[inline]
+    fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
+        let val_u384: u384 = value.into();
+        self.next_2(val_u384)
     }
     #[inline(always)]
     fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {

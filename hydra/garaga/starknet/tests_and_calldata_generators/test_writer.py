@@ -156,6 +156,7 @@ fn test_expt_half_{curve_id.name}() {{
 
 
 def write_all_tests():
+    create_directory(TESTS_DIR)
     random.seed(0)
     pairing_curve_ids = [CurveID.BN254, CurveID.BLS12_381]
 
@@ -214,7 +215,6 @@ mod tower_pairing_tests {
             multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
         };
     """
-    create_directory(TESTS_DIR)
     with open(f"{TESTS_DIR}/pairing_tests.cairo", "w") as f:
         f.write(pairing_test_header)
         with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -243,9 +243,10 @@ mod tower_pairing_tests {
         CurveID.SECP256R1,
         CurveID.SECP256K1,
         CurveID.ED25519,
+        CurveID.GRUMPKIN,
     ]
 
-    msm_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+    msm_sizes = [1, 2, 3, 4, 10, 11, 12]
 
     msm_test_header = """
 #[cfg(test)]

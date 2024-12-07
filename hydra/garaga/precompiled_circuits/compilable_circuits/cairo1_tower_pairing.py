@@ -264,9 +264,14 @@ class BaseTowerMillerLoop(BaseEXTFCircuit, ABC):
             sum_i_prod_k_P = circuit.mul_by_line_tower(sum_i_prod_k_P, l)
         return sum_i_prod_k_P
 
-    def _extend_output(self, circuit, new_points, Mi_plus_one):
-
+    def _extend_output(self, circuit: ModuloCircuit, new_points, Mi_plus_one):
+        circuit.exact_output_refs_needed = []
         for i, point in enumerate(new_points):
+            sum_coords = circuit.sum(
+                [point[0][0], point[0][1], point[1][0], point[1][1]]
+            )
+            circuit.exact_output_refs_needed.append(sum_coords)
+
             circuit.extend_struct_output(
                 G2PointCircuit(
                     name=f"Q{i}",
@@ -278,9 +283,11 @@ class BaseTowerMillerLoop(BaseEXTFCircuit, ABC):
                     ],
                 )
             )
+
         circuit.extend_struct_output(
             structs.E12T(name="Mi_plus_one", elmts=Mi_plus_one)
         )
+        circuit.exact_output_refs_needed.extend(Mi_plus_one)
 
 
 class TowerMillerBit0(BaseTowerMillerLoop):

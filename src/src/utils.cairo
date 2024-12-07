@@ -3,7 +3,9 @@ pub mod hashing;
 pub mod calldata;
 pub mod risc0;
 pub mod drand;
-use core::circuit::{u384};
+pub mod noir;
+
+use core::circuit::{u384, u96};
 use core::panic_with_felt252;
 
 pub fn u384_assert_zero(x: u384) {

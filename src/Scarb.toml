@@ -13,6 +13,9 @@ repository = "https://github.com/keep-starknet-strange/garaga"
 [cairo]
 sierra-replace-ids = false
 
+[features]
+full = []
+
 [dependencies]
 
 [dev-dependencies]

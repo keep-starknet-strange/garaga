@@ -2,10 +2,17 @@
 c1="bn254"
 c2="bls12_381"
 
+
+
 cd src/contracts/groth16_example_$c1
 scarb build
 bytecode_length=$(jq '.bytecode | length' ./target/dev/groth16_example_${c1}_Groth16Verifier${c1^^}.compiled_contract_class.json)
 echo "Bytecode length BN254: $bytecode_length"
+
+cd ../noir_ultra_keccak_honk_example
+scarb build
+bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_keccak_honk_example_UltraKeccakHonkVerifier.compiled_contract_class.json)
+echo "Bytecode length NOIR: $bytecode_length"
 
 
 cd ../groth16_example_$c2

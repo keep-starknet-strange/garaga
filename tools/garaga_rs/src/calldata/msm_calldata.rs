@@ -1,7 +1,7 @@
 use crate::algebra::{g1point::G1Point, rational_function::FunctionFelt};
 use crate::definitions::{
-    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, FieldElement, SECP256K1PrimeField,
-    SECP256R1PrimeField, Stark252PrimeField, X25519PrimeField,
+    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, FieldElement, GrumpkinPrimeField,
+    SECP256K1PrimeField, SECP256R1PrimeField, Stark252PrimeField, X25519PrimeField,
 };
 use crate::{
     ecip::core::{neg_3_base_le, run_ecip},
@@ -81,6 +81,15 @@ pub fn msm_calldata_builder(
             serialize_as_pure_felt252_array,
             risc0_mode,
         ),
+        CurveID::GRUMPKIN => handle_curve::<GrumpkinPrimeField>(
+            values,
+            scalars,
+            curve_id as usize,
+            include_digits_decomposition,
+            include_points_and_scalars,
+            serialize_as_pure_felt252_array,
+            risc0_mode,
+        ),
     }
 }
 
@@ -102,7 +111,7 @@ where
     let limit = if risc0_mode {
         &(BigUint::from(1usize) << 128)
     } else {
-        &element_to_biguint(&F::get_curve_params().n)
+        &F::get_curve_params().n
     };
     if !scalars.iter().all(|x| x < limit) {
         if risc0_mode {
