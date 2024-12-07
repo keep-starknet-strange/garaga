@@ -1,6 +1,6 @@
 import garaga.hints.io as io
 from garaga.definitions import G1G2Pair
-from hydra.garaga.precompiled_circuits.honk_new import (
+from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,

@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Dict, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
-import garaga.precompiled_circuits.honk_new as hk
+import garaga.precompiled_circuits.honk as hk
 from garaga.definitions import CurveID
 from garaga.modulo_circuit import ModuloCircuitElement
 from garaga.modulo_circuit_structs import u384
@@ -11,7 +11,7 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     ModuloCircuit,
     PyFelt,
 )
-from garaga.precompiled_circuits.honk_new import HonkVerifierCircuits, HonkVk, Wire
+from garaga.precompiled_circuits.honk import HonkVerifierCircuits, HonkVk, Wire
 
 
 class BaseUltraHonkCircuit(BaseModuloCircuit):

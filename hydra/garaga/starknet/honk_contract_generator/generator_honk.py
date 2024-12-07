@@ -11,7 +11,7 @@ from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     PrepareScalarsCircuit,
     SumCheckCircuit,
 )
-from garaga.precompiled_circuits.honk_new import G2_POINT_KZG_1, G2_POINT_KZG_2, HonkVk
+from garaga.precompiled_circuits.honk import G2_POINT_KZG_1, G2_POINT_KZG_2, HonkVk
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import (
