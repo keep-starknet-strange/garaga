@@ -109,7 +109,6 @@ jobs:
           name: npm-package
       - name: Publish to npm
         run: |
-          npm login
           npm publish --access=public *.tgz
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_API_TOKEN }}
