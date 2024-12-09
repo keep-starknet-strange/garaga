@@ -204,7 +204,7 @@ starknet = "2.9.1"
 sierra-replace-ids = false
 
 [dev-dependencies]
-cairo_test = "2.8.4"
+cairo_test = "2.9.1"
 
 [[target.starknet-contract]]
 casm = true

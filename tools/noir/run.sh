@@ -14,16 +14,11 @@ EOF
 reset
 
 
-# nargo version : nargo version = 0.36.0
-# noirc version = 0.36.0+801c71880ecf8386a26737a5d8bb5b4cb164b2ab
-# (git version hash: 801c71880ecf8386a26737a5d8bb5b4cb164b2ab, is dirty: false)
-# bb version : 0.58.0
-
-BB_PATH="/home/felt/PycharmProjects/aztec2/aztec-packages/barretenberg/cpp/build/bin/bb"
+BB_PATH="bb"
 
 
 echo "nargo version : $(nargo --version)" # 0.36.0
-echo "bb version : $($BB_PATH --version)" # 0.58.0
+echo "bb version : $($BB_PATH --version)" # 0.61.0
 
 
 run_noir_proof_basic() {

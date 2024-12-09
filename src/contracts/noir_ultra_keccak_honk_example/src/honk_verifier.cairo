@@ -7,7 +7,7 @@ use super::honk_verifier_circuits::{
 
 #[starknet::interface]
 trait IUltraKeccakHonkVerifier<TContractState> {
-    fn verify_ultra_keccak_honk(
+    fn verify_ultra_keccak_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
 }
@@ -37,9 +37,6 @@ mod UltraKeccakHonkVerifier {
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
-    const ECIP_OPS_CLASS_HASH: felt252 =
-        0xc4b7aa28a27b5fb8d7d43928b2a3ee960cf5b4e06cb9ae1ee3f102400b1700;
-
     #[storage]
     struct Storage {}
 
@@ -53,7 +50,7 @@ mod UltraKeccakHonkVerifier {
 
     #[abi(embed_v0)]
     impl IUltraKeccakHonkVerifier of super::IUltraKeccakHonkVerifier<ContractState> {
-        fn verify_ultra_keccak_honk(
+        fn verify_ultra_keccak_honk_proof(
             self: @ContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.

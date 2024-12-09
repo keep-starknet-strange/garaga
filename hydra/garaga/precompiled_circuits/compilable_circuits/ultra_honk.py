@@ -130,7 +130,7 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
                 temp_instance = struct_info(name, None)
                 total_elements += len(temp_instance)
 
-        print(f"Total elements: {total_elements}")
+        # print(f"Total elements: {total_elements}")
         return [self.field.random() for _ in range(total_elements)]
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:

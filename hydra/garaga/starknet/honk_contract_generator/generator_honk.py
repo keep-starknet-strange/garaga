@@ -14,10 +14,7 @@ from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
 from garaga.precompiled_circuits.honk import G2_POINT_KZG_1, G2_POINT_KZG_2, HonkVk
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
-from garaga.starknet.groth16_contract_generator.generator import (
-    ECIP_OPS_CLASS_HASH,
-    get_scarb_toml_file,
-)
+from garaga.starknet.groth16_contract_generator.generator import get_scarb_toml_file
 
 
 def precompute_lines_honk() -> StructArray:
@@ -106,7 +103,6 @@ def gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
     output_folder_name: str,
-    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
     cli_mode: bool = False,
 ) -> str:
     if isinstance(vk, (Path, str)):
@@ -152,7 +148,7 @@ use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_
 
 #[starknet::interface]
 trait IUltraKeccakHonkVerifier<TContractState> {{
-    fn verify_ultra_keccak_honk(
+    fn verify_ultra_keccak_honk_proof(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
@@ -174,8 +170,6 @@ mod UltraKeccakHonkVerifier {{
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
-    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-
     #[storage]
     struct Storage {{}}
 
@@ -189,7 +183,7 @@ mod UltraKeccakHonkVerifier {{
 
     #[abi(embed_v0)]
     impl IUltraKeccakHonkVerifier of super::IUltraKeccakHonkVerifier<ContractState> {{
-        fn verify_ultra_keccak_honk(
+        fn verify_ultra_keccak_honk_proof(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {{
@@ -431,7 +425,7 @@ mod UltraKeccakHonkVerifier {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
-        f.write("scarb 2.8.4\n")
+        f.write("scarb 2.9.1\n")
 
     with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
@@ -469,4 +463,4 @@ if __name__ == "__main__":
         "noir_ultra_keccak_honk_example"  # '_curve_id' is appended in the end.
     )
 
-    gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, ECIP_OPS_CLASS_HASH)
+    gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME)

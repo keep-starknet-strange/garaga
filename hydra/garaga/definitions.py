@@ -30,11 +30,14 @@ GRUMPKIN_ID = 5
 
 class ProofSystem(Enum):
     Groth16 = "groth16"
+    UltraKeccakHonk = "ultra_keccak_honk"
 
     @property
     def supported_curves(self) -> set[int]:
         if self == ProofSystem.Groth16:
             return {BN254_ID, BLS12_381_ID}
+        if self == ProofSystem.UltraKeccakHonk:
+            return {BN254_ID}
         return set()
 
 

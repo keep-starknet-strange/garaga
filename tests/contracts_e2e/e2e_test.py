@@ -135,7 +135,7 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
         print(f"Deployed contract: {contract.functions}")
 
         function_call: ContractFunction = find_item_from_key_patterns(
-            contract.functions, ["verify_groth16"]
+            contract.functions, ["verify"]
         )
 
         prepare_invoke = PreparedFunctionInvokeV3(
@@ -212,7 +212,7 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
     print(f"Deployed contract: {contract.functions}")
 
     function_call: ContractFunction = find_item_from_key_patterns(
-        contract.functions, ["verify_round_and_get_randomness"]
+        contract.functions, ["verify"]
     )
 
     for drand_round in range(1, 5):
@@ -294,7 +294,7 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     print(f"Deployed contract: {contract.functions}")
 
     function_call: ContractFunction = find_item_from_key_patterns(
-        contract.functions, ["verify_ultra_keccak_honk"]
+        contract.functions, ["verify"]
     )
 
     prepare_invoke = PreparedFunctionInvokeV3(

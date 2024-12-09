@@ -31,6 +31,11 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
     find_item_from_key_patterns,
 )
+from garaga.starknet.honk_contract_generator.calldata import (
+    HonkProof,
+    HonkVk,
+    get_ultra_keccak_honk_calldata_from_vk_and_proof,
+)
 
 app = typer.Typer()
 
@@ -109,19 +114,15 @@ def verify_onchain(
     ] = "eth",
 ):
     """Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key."""
-    vk_obj = Groth16VerifyingKey.from_json(vk)
-    proof_obj = Groth16Proof.from_json(proof, public_inputs)
 
     load_dotenv(env_file)
     account = load_account(network)
 
     contract = get_contract_iff_exists(account, to_int(contract_address))
-    if endpoint == "":
-        endpoint = f"verify_{system.value}_proof_{vk_obj.curve_id.name.lower()}"
 
     try:
         function_call: ContractFunction = find_item_from_key_patterns(
-            contract.functions, [endpoint]
+            contract.functions, ["verify"]
         )
     except ValueError:
         rich.print(
@@ -134,10 +135,8 @@ def verify_onchain(
     if public_inputs == "":
         public_inputs = None
 
-    calldata = groth16_calldata_from_vk_and_proof(
-        vk=vk_obj,
-        proof=proof_obj,
-    )
+    calldata = get_calldata_generic(system, vk, proof, public_inputs)
+
     if "eth" in fee.lower():
         prepare_invoke = PreparedFunctionInvokeV1(
             to_addr=function_call.contract_data.address,
@@ -176,6 +175,22 @@ class CalldataFormat(str, Enum):
     array = "array"
 
 
+def get_calldata_generic(
+    system: ProofSystem, vk: Path, proof: Path, public_inputs: Path | None
+) -> list[int]:
+    match system:
+        case ProofSystem.Groth16:
+            vk_obj = Groth16VerifyingKey.from_json(vk)
+            proof_obj = Groth16Proof.from_json(proof, public_inputs)
+            return groth16_calldata_from_vk_and_proof(vk, proof)
+        case ProofSystem.UltraKeccakHonk:
+            vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
+            proof_obj = HonkProof.from_bytes(open(proof, "rb").read())
+            return get_ultra_keccak_honk_calldata_from_vk_and_proof(vk_obj, proof_obj)
+        case _:
+            raise ValueError(f"Proof system {system} not supported")
+
+
 def calldata(
     system: Annotated[
         ProofSystem,
@@ -184,7 +199,7 @@ def calldata(
     vk: Annotated[
         Path,
         typer.Option(
-            help="Path to the verification key JSON file",
+            help="Path to the verification key file",
             file_okay=True,
             dir_okay=False,
             exists=True,
@@ -194,7 +209,7 @@ def calldata(
     proof: Annotated[
         Path,
         typer.Option(
-            help="Path to the proof JSON file",
+            help="Path to the proof file",
             file_okay=True,
             dir_okay=False,
             exists=True,
@@ -204,7 +219,7 @@ def calldata(
     public_inputs: Annotated[
         Path,
         typer.Option(
-            help="Path to the public inputs JSON file",
+            help="Path to the public inputs file. Optional, only used for Groth16 when pub inputs are not in the json proof (ex: SnarkJS)",
             file_okay=True,
             dir_okay=False,
             exists=True,
@@ -222,16 +237,7 @@ def calldata(
 ):
     """Generate Starknet verifier calldata given a proof and a verification key."""
 
-    if system == ProofSystem.Groth16:
-        vk_obj = Groth16VerifyingKey.from_json(vk)
-        proof_obj = Groth16Proof.from_json(proof, public_inputs)
-
-        calldata = groth16_calldata_from_vk_and_proof(
-            vk=vk_obj,
-            proof=proof_obj,
-        )
-    else:
-        raise ValueError(f"Proof system {system} not supported")
+    calldata = get_calldata_generic(system, vk, proof, public_inputs)
 
     if format == CalldataFormat.starkli:
         print(" ".join([str(x) for x in calldata]))
