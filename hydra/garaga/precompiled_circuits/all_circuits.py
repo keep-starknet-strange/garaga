@@ -1,4 +1,5 @@
 from enum import Enum
+from pathlib import Path
 
 from garaga.definitions import CurveID
 from garaga.precompiled_circuits.compilable_circuits.base import (
@@ -59,6 +60,8 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
 from garaga.precompiled_circuits.compilable_circuits.isogeny import ApplyIsogenyCircuit
 from garaga.starknet.cli.utils import create_directory
 
+STARKNET_DIR = Path(__file__).parent.parent / "starknet"
+
 
 class CircuitID(Enum):
     DUMMY = int.from_bytes(b"dummy", "big")
@@ -104,6 +107,10 @@ class CircuitID(Enum):
     FP12_MUL_ASSERT_ONE = int.from_bytes(b"fp12_mul_assert_one", "big")
     EVAL_E12D = int.from_bytes(b"eval_e12d", "big")
     APPLY_ISOGENY = int.from_bytes(b"apply_isogeny", "big")
+    HONK_SUMCHECK_CIRCUIT = int.from_bytes(b"honk_sumcheck_circuit", "big")
+    HONK_PREPARE_SCALARS_CIRCUIT = int.from_bytes(
+        b"honk_prepare_scalars_circuit", "big"
+    )
     TOWER_MILLER_BIT0 = int.from_bytes(b"tower_miller_bit0", "big")
     TOWER_MILLER_BIT1 = int.from_bytes(b"tower_miller_bit1", "big")
     TOWER_MILLER_INIT_BIT = int.from_bytes(b"tower_miller_init_bit", "big")
@@ -129,6 +136,7 @@ class CircuitID(Enum):
     )
     ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
     DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
+    FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -395,6 +403,42 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "tower_circuits",
         "curve_ids": [CurveID.BLS12_381],
     },
+    # CircuitID.HONK_SUMCHECK_CIRCUIT: {
+    #     "class": SumCheckCircuit,
+    #     "params": [
+    #         {
+    #             "vk": HonkVk.from_bytes(
+    #                 open(
+    #                     f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
+    #                     "rb",
+    #                 ).read()
+    #             )
+    #         }
+    #     ],
+    #     "filename": "honk_circuits",
+    #     "curve_ids": [CurveID.GRUMPKIN],
+    # },
+    # CircuitID.HONK_PREPARE_SCALARS_CIRCUIT: {
+    #     "class": PrepareScalarsCircuit,
+    #     "params": [
+    #         {
+    #             "vk": HonkVk.from_bytes(
+    #                 open(
+    #                     f"{STARKNET_DIR}/honk_contract_generator/examples/vk_ultra_keccak.bin",
+    #                     "rb",
+    #                 ).read()
+    #             )
+    #         }
+    #     ],
+    #     "filename": "honk_circuits",
+    #     "curve_ids": [CurveID.GRUMPKIN],
+    # },
+    # CircuitID.FULL_ECIP_BATCHED: {
+    #     "class": FullECIPCircuitBatched,
+    #     "params": [{"n_points": k} for k in [1]],
+    #     "filename": "ec_batched",
+    #     "curve_ids": [CurveID.BN254],
+    # },
 }
 
 
@@ -437,11 +481,15 @@ def write_headers(
     files: dict[str, open],
     compilation_mode: int,
     output_sizes_exceeding_limit: dict[str, set[int]],
+    file_curve_ids: dict[str, set[CurveID]],
 ) -> None:
     """
     Write the header to the files. Add a specific header if max output length exceeds the limit.
     """
-    HEADER = compilation_mode_to_file_header(compilation_mode)
+
+    for filename, curve_ids in file_curve_ids.items():
+        HEADER = compilation_mode_to_file_header(compilation_mode, curve_ids)
+        files[filename].write(HEADER)
 
     TEMPLATE = """
 impl CircuitDefinition{num_outputs}<
@@ -466,8 +514,6 @@ impl MyDrp_{num_outputs}<
 """
 
     for filename, file in files.items():
-        # Write the header first
-        file.write(HEADER)
 
         # Then write the template for each unique output size exceeding the limit
         for num_outputs in sorted(output_sizes_exceeding_limit[filename]):
@@ -511,7 +557,10 @@ def compile_circuits(
             codes[filename_key].update(compiled_circuits)
             for circuit_instance in circuit_instances:
                 output_length = len(circuit_instance.circuit.output)
-                if output_length > limit:
+                if (
+                    output_length > limit
+                    and circuit_instance.circuit.exact_output_refs_needed is None
+                ):
                     output_sizes_exceeding_limit[filename_key].add(output_length)
 
             if compilation_mode == 1:
@@ -598,6 +647,14 @@ def main(
     filenames_used, codes, cairo1_tests_functions, cairo1_full_function_names, files = (
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
+    file_curve_ids = {filename: set() for filename in filenames_used}
+
+    # Populate file_curve_ids with curve IDs
+    for circuit_info in CIRCUITS_TO_COMPILE.values():
+        filename = circuit_info["filename"]
+        curve_ids = circuit_info.get("curve_ids", [CurveID.BN254, CurveID.BLS12_381])
+        file_curve_ids[filename].update(curve_ids)
+
     output_sizes_exceeding_limit = {filename: set() for filename in filenames_used}
     limit = 16
     compile_circuits(
@@ -609,7 +666,7 @@ def main(
         output_sizes_exceeding_limit,
         limit,
     )
-    write_headers(files, compilation_mode, output_sizes_exceeding_limit)
+    write_headers(files, compilation_mode, output_sizes_exceeding_limit, file_curve_ids)
     write_compiled_circuits(
         files,
         codes,

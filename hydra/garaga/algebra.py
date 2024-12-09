@@ -145,6 +145,8 @@ class PyFelt:
         return self.__inv__().__mul__(left)
 
     def is_quad_residue(self) -> bool:
+        if self.value == 0:
+            return True
         return legendre_symbol(self.value, self.p) == 1
 
     def sqrt(self, min_root: bool = True) -> PyFelt:
@@ -389,6 +391,8 @@ class ModuloCircuitElement:
 
     emulated_felt: PyFelt
     offset: int
+
+    __repr__ = lambda self: f"ModuloCircuitElement({hex(self.value)}, {self.offset})"
 
     @property
     def value(self) -> int:

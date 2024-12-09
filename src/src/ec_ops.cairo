@@ -6,8 +6,8 @@ use core::circuit::{
     AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
 };
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, get_b2, get_n, G1Point, G2Point, BLS_X_SEED_SQ_EPNS,
-    BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde,
+    get_a, get_b, get_modulus, get_g, get_min_one, get_b2, get_n, G1Point, G2Point,
+    BLS_X_SEED_SQ_EPNS, BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde,
 };
 use core::option::Option;
 use core::panic_with_felt252;
@@ -27,7 +27,8 @@ impl G1PointImpl of G1PointTrait {
         u384_assert_zero(check);
     }
     fn negate(self: @G1Point, curve_index: usize) -> G1Point {
-        G1Point { x: *self.x, y: neg_mod_p(*self.y, get_p(curve_index)) }
+        let modulus = get_modulus(curve_index);
+        G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
     }
     fn assert_in_subgroup(
         self: @G1Point,
@@ -39,10 +40,11 @@ impl G1PointImpl of G1PointTrait {
             0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
             1 => {
                 // https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
-                let p = get_p(curve_index);
+                let modulus = get_modulus(curve_index);
                 let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
                     G1Point {
-                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, p), y: *self.y,
+                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, modulus),
+                        y: *self.y,
                     },
                     BLS_X_SEED_SQ_EPNS,
                     BLS_X_SEED_SQ,
@@ -84,7 +86,7 @@ pub fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
     if q.is_infinity() {
         return p;
     }
-    let modulus = get_p(curve_index);
+    let modulus = get_modulus(curve_index);
     let same_x = sub_mod_p(p.x, q.x, modulus) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
 
     if same_x {
@@ -130,9 +132,7 @@ fn get_DERIVE_POINT_FROM_X_circuit(
     let t5 = circuit_mul(in3, t4); // g * (x^3 + (a*x + b)) = g*rhs
     let t6 = circuit_mul(in4, in4); // should be rhs if sqrt(rhs) or g*rhs if sqrt(g*rhs) exists
 
-    let p = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
 
     let mut circuit_inputs = (t4, t5, t6).new_inputs();
 
@@ -270,6 +270,14 @@ pub struct MSMHint {
 pub struct MSMHintSmallScalar {
     pub Q: G1Point,
     pub SumDlogDiv: FunctionFelt,
+}
+
+#[derive(Drop, Debug, PartialEq, Serde)]
+struct MSMHintBatched {
+    Q_low: G1Point,
+    Q_high: G1Point,
+    Q_high_shifted: G1Point,
+    SumDlogDivBatched: FunctionFelt,
 }
 
 #[derive(Drop, Debug, PartialEq, Serde, Copy)]
@@ -466,10 +474,10 @@ fn msm_g1(
         curve_index,
     );
 
-    let p_curve = get_p(curve_index);
+    let modulus_curve = get_modulus(curve_index);
 
     let zk_ecip_batched_rhs = batch_3_mod_p(
-        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), p_curve,
+        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), modulus_curve,
     );
 
     let batched_lhs = compute_lhs_ecip(

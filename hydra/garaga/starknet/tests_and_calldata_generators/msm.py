@@ -337,7 +337,9 @@ class MSMCalldataBuilder:
             )
         return inputs
 
-    def to_cairo_1_test(self, test_name: str = None):
+    def to_cairo_1_test(
+        self, test_name: str = None, include_digits_decomposition=False
+    ):
         print(
             f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
         )
@@ -347,7 +349,11 @@ class MSMCalldataBuilder:
         input_code = ""
         for struct in inputs:
             if struct.name == "scalars_digits_decompositions":
-                input_code += struct.serialize(is_option=True)
+                if include_digits_decomposition:
+                    input_code += struct.serialize(is_option=True)
+                else:
+                    struct.elmts = None
+                    input_code += struct.serialize()
             else:
                 input_code += struct.serialize()
 
@@ -395,11 +401,14 @@ class MSMCalldataBuilder:
             )
 
         inputs = self._get_input_structs()
-        option = (
-            structs.CairoOption.SOME
-            if include_digits_decomposition
-            else structs.CairoOption.NONE
-        )
+
+        match include_digits_decomposition:
+            case True:
+                option = structs.CairoOption.SOME
+            case False:
+                option = structs.CairoOption.NONE
+            case None:
+                option = structs.CairoOption.VOID
 
         call_data: list[int] = []
         for e in inputs:

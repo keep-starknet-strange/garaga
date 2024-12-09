@@ -221,6 +221,12 @@ class ECIPCircuits(ModuloCircuit):
         sign_ep: ModuloCircuitElement,
         sign_en: ModuloCircuitElement,
     ) -> ModuloCircuitElement:
+        assert isinstance(ep, ModuloCircuitElement) and isinstance(
+            en, ModuloCircuitElement
+        )
+        assert isinstance(sign_ep, ModuloCircuitElement) and isinstance(
+            sign_en, ModuloCircuitElement
+        )
         m, b = slope_intercept
         xP, yP = P
         num = self.sub(xA, xP)
