@@ -8,6 +8,7 @@ icon: octopus
 
 * Noir 0.36.0 (install with \`noirup --version 0.36.0\`)
 * Barretenberg 0.61.0 (install with \`bbup --version 0.61.0\`)
+* Garaga CLI [python-package.md](../installation/python-package.md "mention")
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec ](https://noir-lang.org/docs/getting_started/quick_start):&#x20;
 
