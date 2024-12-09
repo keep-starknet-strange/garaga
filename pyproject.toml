@@ -12,7 +12,7 @@ dependencies = [
   "typer",
   "python-dotenv",
   "pysha3",
-  "starknet-py==0.24.2"
+  "starknet-py==0.24.3"
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 
