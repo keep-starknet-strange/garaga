@@ -500,7 +500,7 @@ class HonkTranscript:
             hasher.update(int.to_bytes(pub_input, 32, "big"))
 
         for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
-            print(f"g1_proof_point: {g1_proof_point.__repr__()}")
+            # print(f"g1_proof_point: {g1_proof_point.__repr__()}")
             x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
             hasher.update(int.to_bytes(x0, 32, "big"))
             hasher.update(int.to_bytes(x1, 32, "big"))
@@ -515,9 +515,9 @@ class HonkTranscript:
         ch0 = hasher.digest_reset()
         eta_three, _ = split_challenge(ch0)
 
-        print(f"eta: {hex(eta)}")
-        print(f"eta_two: {hex(eta_two)}")
-        print(f"eta_three: {hex(eta_three)}")
+        # print(f"eta: {hex(eta)}")
+        # print(f"eta_two: {hex(eta_two)}")
+        # print(f"eta_three: {hex(eta_three)}")
         # Round 1 : ch0, lookup_read_counts, lookup_read_tags, w4
 
         hasher.update(ch0)
@@ -570,16 +570,16 @@ class HonkTranscript:
             ch3 = hasher.digest_reset()
             gate_challenges[i], _ = split_challenge(ch3)
 
-        print(f"gate_challenges: {[hex(x) for x in gate_challenges]}")
-        print(f"len(gate_challenges): {len(gate_challenges)}")
+        # print(f"gate_challenges: {[hex(x) for x in gate_challenges]}")
+        # print(f"len(gate_challenges): {len(gate_challenges)}")
         # Round 4: Sumcheck u challenges
         ch4 = ch3
         sum_check_u_challenges = [None] * CONST_PROOF_SIZE_LOG_N
 
-        print(f"len(sumcheck_univariates): {len(proof.sumcheck_univariates)}")
-        print(
-            f"len(proof.sumcheck_univariates[0]): {len(proof.sumcheck_univariates[0])}"
-        )
+        # print(f"len(sumcheck_univariates): {len(proof.sumcheck_univariates)}")
+        # print(
+        #     f"len(proof.sumcheck_univariates[0]): {len(proof.sumcheck_univariates[0])}"
+        # )
 
         for i in range(CONST_PROOF_SIZE_LOG_N):
             # Create array of univariate challenges starting with previous challenge
@@ -601,8 +601,8 @@ class HonkTranscript:
             # Split challenge to get sumcheck challenge
             sum_check_u_challenges[i], _ = split_challenge(ch4)
 
-        print(f"sum_check_u_challenges: {[hex(x) for x in sum_check_u_challenges]}")
-        print(f"len(sum_check_u_challenges): {len(sum_check_u_challenges)}")
+        # print(f"sum_check_u_challenges: {[hex(x) for x in sum_check_u_challenges]}")
+        # print(f"len(sum_check_u_challenges): {len(sum_check_u_challenges)}")
 
         # Rho challenge :
         hasher.update(ch4)
@@ -612,7 +612,7 @@ class HonkTranscript:
         c5 = hasher.digest_reset()
         rho, _ = split_challenge(c5)
 
-        print(f"rho: {hex(rho)}")
+        # print(f"rho: {hex(rho)}")
 
         # Gemini R :
         hasher.update(c5)
@@ -626,7 +626,7 @@ class HonkTranscript:
         c6 = hasher.digest_reset()
         gemini_r, _ = split_challenge(c6)
 
-        print(f"gemini_r: {hex(gemini_r)}")
+        # print(f"gemini_r: {hex(gemini_r)}")
 
         # Shplonk Nu :
         hasher.update(c6)
@@ -636,7 +636,7 @@ class HonkTranscript:
         c7 = hasher.digest_reset()
         shplonk_nu, _ = split_challenge(c7)
 
-        print(f"shplonk_nu: {hex(shplonk_nu)}")
+        # print(f"shplonk_nu: {hex(shplonk_nu)}")
 
         # Shplonk Z :
         hasher.update(c7)
@@ -649,7 +649,7 @@ class HonkTranscript:
         c8 = hasher.digest_reset()
         shplonk_z, _ = split_challenge(c8)
 
-        print(f"shplonk_z: {hex(shplonk_z)}")
+        # print(f"shplonk_z: {hex(shplonk_z)}")
 
         return cls(
             eta=eta,
