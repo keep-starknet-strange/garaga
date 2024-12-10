@@ -766,16 +766,6 @@ pub fn get_modulus(curve_index: usize) -> CircuitModulus {
 }
 
 
-fn get_modulus(curve_index: usize) -> CircuitModulus {
-    match curve_index {
-        0 => get_BN254_modulus(),
-        1 => get_BLS12_381_modulus(),
-        2 => get_SECP256K1_modulus(),
-        3 => get_SECP256R1_modulus(),
-        4 => get_ED25519_modulus(),
-        _ => core::panic_with_felt252('Invalid curve index'),
-    }
-}
 // Returns the modulus of BLS12_381
 #[inline(always)]
 pub fn get_BLS12_381_modulus() -> CircuitModulus {
