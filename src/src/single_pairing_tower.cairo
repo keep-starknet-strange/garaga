@@ -1,6 +1,6 @@
 use garaga::definitions::{u384};
 use core::num::traits::{One, Zero};
-use garaga::definitions::{G1Point, G2Point, BNProcessedPair};
+use garaga::definitions::{G1Point, G2Point, BNProcessedPair, E12T};
 use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
@@ -10,24 +10,9 @@ use garaga::circuits::tower_circuits::{
     run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
     run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit,
 };
-use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
 use garaga::ec_ops_g2::G2PointTrait;
-// Fp12 tower struct.
-#[derive(Drop, Copy, Debug, PartialEq)]
-pub struct E12T {
-    pub c0b0a0: u384,
-    pub c0b0a1: u384,
-    pub c0b1a0: u384,
-    pub c0b1a1: u384,
-    pub c0b2a0: u384,
-    pub c0b2a1: u384,
-    pub c1b0a0: u384,
-    pub c1b0a1: u384,
-    pub c1b1a0: u384,
-    pub c1b1a1: u384,
-    pub c1b2a0: u384,
-    pub c1b2a1: u384,
-}
+
 
 impl E12TOne of One<E12T> {
     fn one() -> E12T {
@@ -494,13 +479,13 @@ pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
 }
 
 
-const bn_bits: [usize; 65] = [
+pub const bn_bits: [usize; 65] = [
     0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 1,
     0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 0, 0,
     0,
 ];
 
-const bls_bits: [usize; 62] = [
+pub const bls_bits: [usize; 62] = [
     0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];

@@ -9,6 +9,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
+use num_traits::Num;
 use std::cmp::PartialEq;
 use std::collections::HashMap;
 
@@ -21,6 +22,7 @@ pub enum CurveID {
     SECP256K1 = 2,
     SECP256R1 = 3,
     X25519 = 4,
+    GRUMPKIN = 5,
 }
 
 impl TryFrom<u8> for CurveID {
@@ -33,6 +35,7 @@ impl TryFrom<u8> for CurveID {
             2 => Ok(CurveID::SECP256K1),
             3 => Ok(CurveID::SECP256R1),
             4 => Ok(CurveID::X25519),
+            5 => Ok(CurveID::GRUMPKIN),
             _ => Err(format!("Invalid curve ID: {}", value)),
         }
     }
@@ -48,6 +51,7 @@ impl TryFrom<usize> for CurveID {
             2 => Ok(CurveID::SECP256K1),
             3 => Ok(CurveID::SECP256R1),
             4 => Ok(CurveID::X25519),
+            5 => Ok(CurveID::GRUMPKIN),
             _ => Err(format!("Invalid curve ID: {}", value)),
         }
     }
@@ -90,6 +94,17 @@ impl IsModulus<U256> for X25519FieldModulus {
 
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
+pub const GRUMPKIN_PRIME_FIELD_ORDER: U256 =
+    U256::from_hex_unchecked("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
+
+#[derive(Clone, Debug)]
+pub struct GrumpkinFieldModulus;
+impl IsModulus<U256> for GrumpkinFieldModulus {
+    const MODULUS: U256 = GRUMPKIN_PRIME_FIELD_ORDER;
+}
+
+pub type GrumpkinPrimeField = MontgomeryBackendPrimeField<GrumpkinFieldModulus, 4>;
+
 pub struct CurveParams<F: IsPrimeField> {
     pub curve_id: CurveID,
     pub a: FieldElement<F>,
@@ -98,8 +113,8 @@ pub struct CurveParams<F: IsPrimeField> {
     pub b21: FieldElement<F>,
     pub g_x: FieldElement<F>,
     pub g_y: FieldElement<F>,
-    pub n: FieldElement<F>, // Order of the curve
-    pub h: u32,             // Cofactor
+    pub n: BigUint, // Order of the curve
+    pub h: u32,     // Cofactor
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
@@ -144,9 +159,11 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
             ),
-            n: FieldElement::from_hex_unchecked(
+            n: BigUint::from_str_radix(
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
-            ),
+                16,
+            )
+            .unwrap(),
             h: 1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
@@ -174,9 +191,11 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162CBCE33576B315ECECBB6406837BF51F",
             ),
-            n: FieldElement::from_hex_unchecked(
+            n: BigUint::from_str_radix(
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
-            ),
+                16,
+            )
+            .unwrap(),
             h: 1,
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
@@ -202,11 +221,41 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
             ),
-            n: FieldElement::from_hex_unchecked(
+            n: BigUint::from_str_radix(
                 "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
-            ),
+                16,
+            )
+            .unwrap(),
             h: 8,
             fp_generator: FieldElement::from(6),
+            irreducible_polys: HashMap::from([]), // Provide appropriate values here
+            loop_counter: &[],                    // Provide appropriate values here
+            nr_a0: 0,                             // Provide appropriate values here
+        }
+    }
+}
+
+impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
+    fn get_curve_params() -> CurveParams<GrumpkinPrimeField> {
+        CurveParams {
+            curve_id: CurveID::GRUMPKIN,
+            a: FieldElement::from_hex_unchecked("0"),
+            b: FieldElement::from_hex_unchecked(
+                "0x30644e72e131a029b85045b68181585d2833e84879b9709143e1f593effffff0",
+            ),
+            b20: FieldElement::zero(),
+            b21: FieldElement::zero(),
+            g_x: FieldElement::from_hex_unchecked("0x1"),
+            g_y: FieldElement::from_hex_unchecked(
+                "0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C",
+            ),
+            n: BigUint::from_str_radix(
+                "30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47",
+                16,
+            )
+            .unwrap(),
+            h: 1,
+            fp_generator: FieldElement::from(5),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
@@ -228,9 +277,11 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             ),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
-            n: FieldElement::from_hex_unchecked(
+            n: BigUint::from_str_radix(
                 "30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001",
-            ),
+                16,
+            )
+            .unwrap(),
             h: 1, // Replace with actual 'h'
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
@@ -257,9 +308,11 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             b21: FieldElement::from_hex_unchecked("4"),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
-            n: FieldElement::from_hex_unchecked(
+            n: BigUint::from_str_radix(
                 "73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001",
-            ),
+                16,
+            )
+            .unwrap(),
             h: 1, // Replace with actual 'h'
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
@@ -368,6 +421,7 @@ pub fn get_modulus_from_curve_id(curve_id: CurveID) -> BigUint {
         CurveID::SECP256K1 => biguint_from_hex("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F"),
         CurveID::SECP256R1 => biguint_from_hex("0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"),
         CurveID::X25519 => biguint_from_hex("0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED"),
+        CurveID::GRUMPKIN => biguint_from_hex("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001"),
     }
 }
 

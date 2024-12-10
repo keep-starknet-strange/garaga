@@ -1,21 +1,18 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator,
+    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
+    EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait,
+    CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
+    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
     get_BLS12_381_modulus, get_BN254_modulus,
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-use garaga::single_pairing_tower::E12T;
-
 #[inline(always)]
 pub fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
@@ -1379,8 +1376,7 @@ pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_2(val);
-    };
-    // in20 - in100
+    }; // in20 - in100
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t203);
@@ -1731,8 +1727,7 @@ pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_2(val);
-    };
-    // in20 - in124
+    }; // in20 - in124
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t251);
@@ -4791,8 +4786,7 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_u288(val);
-    };
-    // in56 - in200
+    }; // in56 - in200
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t427);
@@ -5636,8 +5630,7 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let mut Q = Q;
     while let Option::Some(val) = Q.pop_front() {
         circuit_inputs = circuit_inputs.next_u288(val);
-    };
-    // in72 - in261
+    }; // in72 - in261
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let final_check: u384 = outputs.get_output(t638);

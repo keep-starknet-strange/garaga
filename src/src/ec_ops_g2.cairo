@@ -129,13 +129,13 @@ impl G2PointImpl of G2PointTrait {
         }
     }
     fn negate(self: @G2Point, curve_index: usize) -> G2Point {
-        let self = *self;
-        return G2Point {
-            x0: self.x0,
-            x1: self.x1,
-            y0: neg_mod_p(self.y0, get_p(curve_index)),
-            y1: neg_mod_p(self.y1, get_p(curve_index)),
-        };
+        let modulus = get_modulus(curve_index);
+        G2Point {
+            x0: *self.x0,
+            x1: *self.x1,
+            y0: neg_mod_p(*self.y0, modulus),
+            y1: neg_mod_p(*self.y1, modulus),
+        }
     }
 }
 
@@ -177,26 +177,22 @@ fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
 fn psi(pt: G2Point, curve_index: usize) -> G2Point {
     match curve_index {
         0 => {
+            let modulus = get_modulus(curve_index);
             let (px0, px1) = run_BN254_FP2_MUL_circuit(
-                pt.x0, neg_mod_p(pt.x1, get_p(curve_index)), ENDO_U_A0_BN254, ENDO_U_A1_BN254,
+                pt.x0, neg_mod_p(pt.x1, modulus), ENDO_U_A0_BN254, ENDO_U_A1_BN254,
             );
             let (py0, py1) = run_BN254_FP2_MUL_circuit(
-                pt.y0, neg_mod_p(pt.y1, get_p(curve_index)), ENDO_V_A0_BN254, ENDO_V_A1_BN254,
+                pt.y0, neg_mod_p(pt.y1, modulus), ENDO_V_A0_BN254, ENDO_V_A1_BN254,
             );
             return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
         },
         1 => {
+            let modulus = get_modulus(curve_index);
             let (px0, px1) = run_BLS12_381_FP2_MUL_circuit(
-                pt.x0,
-                neg_mod_p(pt.x1, get_p(curve_index)),
-                ENDO_U_A0_BLS12_381,
-                ENDO_U_A1_BLS12_381,
+                pt.x0, neg_mod_p(pt.x1, modulus), ENDO_U_A0_BLS12_381, ENDO_U_A1_BLS12_381,
             );
             let (py0, py1) = run_BLS12_381_FP2_MUL_circuit(
-                pt.y0,
-                neg_mod_p(pt.y1, get_p(curve_index)),
-                ENDO_V_A0_BLS12_381,
-                ENDO_V_A1_BLS12_381,
+                pt.y0, neg_mod_p(pt.y1, modulus), ENDO_V_A0_BLS12_381, ENDO_V_A1_BLS12_381,
             );
             return G2Point { x0: px0, x1: px1, y0: py0, y1: py1 };
         },

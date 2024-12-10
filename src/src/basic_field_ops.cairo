@@ -15,13 +15,10 @@ const POW_2_64_252: felt252 = 0x10000000000000000;
 const POW_2_256_384: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x10000000000000000, limb3: 0x0 };
 
 
-pub fn neg_mod_p(a: u384, p: u384) -> u384 {
+pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
     let neg = circuit_sub(in1, in2);
-
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
 
     let outputs = (neg,)
         .new_inputs()
@@ -147,39 +144,30 @@ pub fn u512_mod_bls12_381(a_high: [u32; 8], a_low: [u32; 8]) -> u384 {
     return outputs.get_output(res);
 }
 
-pub fn add_mod_p(a: u384, b: u384, p: u384) -> u384 {
+pub fn add_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
     let add = circuit_add(in1, in2);
-
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
 
     let outputs = (add,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(add);
 }
 
-pub fn sub_mod_p(a: u384, b: u384, p: u384) -> u384 {
+pub fn sub_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
     let sub = circuit_sub(in1, in2);
-
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
 
     let outputs = (sub,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(sub);
 }
 
-pub fn mul_mod_p(a: u384, b: u384, p: u384) -> u384 {
+pub fn mul_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
     let mul = circuit_mul(in1, in2);
-
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
 
     let outputs = (mul,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
@@ -187,7 +175,7 @@ pub fn mul_mod_p(a: u384, b: u384, p: u384) -> u384 {
 }
 
 
-pub fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, p: u384) -> u384 {
+pub fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, modulus: CircuitModulus) -> u384 {
     let _x = CircuitElement::<CircuitInput<0>> {};
     let _y = CircuitElement::<CircuitInput<1>> {};
     let _z = CircuitElement::<CircuitInput<2>> {};
@@ -198,9 +186,6 @@ pub fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, p: u384) -> u384 {
     let _mul2 = circuit_mul(_y, _c1);
     let _mul3 = circuit_mul(_z, _c2);
     let res = circuit_add(circuit_add(_mul1, _mul2), _mul3);
-
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
 
     let outputs = (res,)
         .new_inputs()
@@ -216,12 +201,9 @@ pub fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, p: u384) -> u384 {
 }
 
 
-pub fn inv_mod_p(a: u384, p: u384) -> u384 {
+fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let inv = circuit_inverse(in1);
-
-    let modulus = TryInto::<_, CircuitModulus>::try_into([p.limb0, p.limb1, p.limb2, p.limb3])
-        .unwrap();
 
     let outputs = (inv,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
 
