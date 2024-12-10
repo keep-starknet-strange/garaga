@@ -35,10 +35,7 @@ Garaga currently supports:
 - Scalar & Multi-scalar multiplication for any Weirstrass curve, including BN254, BLS12_381, SECP256/R1, and ED25519. You can add the one you need by specifying the curve parameters.
 - Pairing operations for BN254 and BLS12_381.
 - Groth16 smart contract verifiers generators for BN254 and BLS12_381.
-
-Following supported schemes will be
-- BLS signatures contract generators.
-- Plonk based SNARKs verifier, especially Noir.
+- Noir smart contract verifiers generators for ultra keccak honk flavour.
 
 
 ## Architecture overview
@@ -62,9 +59,9 @@ Currently, only Groth16 on BN254 and BLS12_381 is supported with automatic suppo
 6. Run the `garaga declare` command in your terminal to declare the smart contract on Starknet and obtain its class hash. Note that this is an expensive operation.
 7. Run the `garaga deploy` command in your terminal using the class hash obtained in the previous step to get the contract address.
 
-7. Run the `garaga verify-onchain` command in your terminal using the contract address, the verification key, the proof and the public inputs to verify the proof against the SNARK verifier contract.
+8. Run the `garaga verify-onchain` command in your terminal using the contract address, the verification key, the proof and the public inputs to verify the proof against the SNARK verifier contract.
 
-For more details, please refer to the [documentation](https://felt.gitbook.io/garaga/).
+For more details, please refer to the [documentation](https://garaga.gitbook.io/garaga/).
 
 ## Developer setup
 
