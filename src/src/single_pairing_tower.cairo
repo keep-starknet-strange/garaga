@@ -1,33 +1,18 @@
-use garaga::definitions::{u384, U384One, U384Zero};
+use garaga::definitions::{u384};
 use core::num::traits::{One, Zero};
-use garaga::definitions::{G1Point, G2Point, BNProcessedPair};
+use garaga::definitions::{G1Point, G2Point, BNProcessedPair, E12T};
 use garaga::circuits::multi_pairing_check::{
-    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit
+    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
 
 use garaga::circuits::tower_circuits as tw;
 use garaga::circuits::tower_circuits::{
     run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
-    run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit
+    run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit,
 };
-use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
 use garaga::ec_ops_g2::G2PointTrait;
-// Fp12 tower struct.
-#[derive(Drop, Copy, Debug, PartialEq)]
-struct E12T {
-    c0b0a0: u384,
-    c0b0a1: u384,
-    c0b1a0: u384,
-    c0b1a1: u384,
-    c0b2a0: u384,
-    c0b2a1: u384,
-    c1b0a0: u384,
-    c1b0a1: u384,
-    c1b1a0: u384,
-    c1b1a1: u384,
-    c1b2a0: u384,
-    c1b2a1: u384,
-}
+
 
 impl E12TOne of One<E12T> {
     fn one() -> E12T {
@@ -58,7 +43,7 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
     let bits = bn_bits.span();
 
     let (processed_pair): (BNProcessedPair,) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
-        P, Q.y0, Q.y1
+        P, Q.y0, Q.y1,
     );
 
     let mut Mi: E12T = E12TOne::one();
@@ -68,12 +53,12 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
         let (_Qi, _Mi) = match *bit {
             0 => {
                 run_BN254_TOWER_MILLER_BIT0_1P_circuit(
-                    processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi
+                    processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi,
                 )
             },
             1 => {
                 run_BN254_TOWER_MILLER_BIT1_1P_circuit(
-                    processed_pair.yInv, processed_pair.xNegOverY, Qi, Q, Mi
+                    processed_pair.yInv, processed_pair.xNegOverY, Qi, Q, Mi,
                 )
             },
             _ => {
@@ -82,9 +67,9 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
                     processed_pair.xNegOverY,
                     Qi,
                     G2Point {
-                        x0: Q.x0, x1: Q.x1, y0: processed_pair.QyNeg0, y1: processed_pair.QyNeg1
+                        x0: Q.x0, x1: Q.x1, y0: processed_pair.QyNeg0, y1: processed_pair.QyNeg1,
                     },
-                    Mi
+                    Mi,
                 )
             },
         };
@@ -93,7 +78,7 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
     };
 
     tw::run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
-        Q, processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi
+        Q, processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi,
     )
 }
 
@@ -228,7 +213,7 @@ pub fn final_exp_bn254_tower(M: E12T) -> E12T {
 #[inline]
 pub fn fp12_conjugate(X: E12T, curve_id: usize) -> (E12T,) {
     let (b0a0, b0a1, b1a0, b1a1, b2a0, b2a1) = tw::run_FP6_NEG_circuit(
-        X.c1b0a0, X.c1b0a1, X.c1b1a0, X.c1b1a1, X.c1b2a0, X.c1b2a1, curve_id
+        X.c1b0a0, X.c1b0a1, X.c1b1a0, X.c1b1a1, X.c1b2a0, X.c1b2a1, curve_id,
     );
     (
         E12T {
@@ -281,15 +266,15 @@ pub fn decompress_karabina_bls12_381(X: E12T) -> (E12T,) {
     let (t0a0, t0a1, t1a0, t1a1) = match (X.c1b2a0.is_zero() && X.c1b2a1.is_zero()) {
         true => {
             let (t0a0, t0a1) = tw::run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
-                X.c0b1a0, X.c0b1a1, X.c1b2a0, X.c1b2a1
+                X.c0b1a0, X.c0b1a1, X.c1b2a0, X.c1b2a1,
             );
             (t0a0, t0a1, X.c0b2a0, X.c0b2a1)
         },
         false => {
             tw::run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
-                X.c0b1a0, X.c0b1a1, X.c0b2a0, X.c0b2a1, X.c1b0a0, X.c1b0a1, X.c1b2a0, X.c1b2a1
+                X.c0b1a0, X.c0b1a1, X.c0b2a0, X.c0b2a1, X.c1b0a0, X.c1b0a1, X.c1b2a0, X.c1b2a1,
             )
-        }
+        },
     };
 
     if t1a0.is_zero() && t1a1.is_zero() {
@@ -308,7 +293,7 @@ pub fn decompress_karabina_bls12_381(X: E12T) -> (E12T,) {
         X.c1b0a0,
         X.c1b0a1,
         X.c1b2a0,
-        X.c1b2a1
+        X.c1b2a1,
     );
 
     (
@@ -337,26 +322,25 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
         mut xc1b0a0,
         mut xc1b0a1,
         mut xc1b2a0,
-        mut xc1b2a1
+        mut xc1b2a1,
     ) =
         (
-        M.c0b1a0, M.c0b1a1, M.c0b2a0, M.c0b2a1, M.c1b0a0, M.c1b0a1, M.c1b2a0, M.c1b2a1
+        M.c0b1a0, M.c0b1a1, M.c0b2a0, M.c0b2a1, M.c1b0a0, M.c1b0a1, M.c1b2a0, M.c1b2a1,
     );
-    for _ in 0
-        ..15_u32 {
-            let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
-                tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
-                xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
-            );
-            xc0b1a0 = _xc0b1a0;
-            xc0b1a1 = _xc0b1a1;
-            xc0b2a0 = _xc0b2a0;
-            xc0b2a1 = _xc0b2a1;
-            xc1b0a0 = _xc1b0a0;
-            xc1b0a1 = _xc1b0a1;
-            xc1b2a0 = _xc1b2a0;
-            xc1b2a1 = _xc1b2a1;
-        };
+    for _ in 0..15_u32 {
+        let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
+            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
+            xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1,
+        );
+        xc0b1a0 = _xc0b1a0;
+        xc0b1a1 = _xc0b1a1;
+        xc0b2a0 = _xc0b2a0;
+        xc0b2a1 = _xc0b2a1;
+        xc1b0a0 = _xc1b0a0;
+        xc1b0a1 = _xc1b0a1;
+        xc1b2a0 = _xc1b2a0;
+        xc1b2a1 = _xc1b2a1;
+    };
 
     let t0c0b1a0 = xc0b1a0;
     let t0c0b1a1 = xc0b1a1;
@@ -375,26 +359,25 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
         mut xc1b0a0,
         mut xc1b0a1,
         mut xc1b2a0,
-        mut xc1b2a1
+        mut xc1b2a1,
     ) =
         (
-        xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
+        xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1,
     );
-    for _ in 0
-        ..32_u32 {
-            let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
-                tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
-                xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1
-            );
-            xc0b1a0 = _xc0b1a0;
-            xc0b1a1 = _xc0b1a1;
-            xc0b2a0 = _xc0b2a0;
-            xc0b2a1 = _xc0b2a1;
-            xc1b0a0 = _xc1b0a0;
-            xc1b0a1 = _xc1b0a1;
-            xc1b2a0 = _xc1b2a0;
-            xc1b2a1 = _xc1b2a1;
-        };
+    for _ in 0..32_u32 {
+        let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
+            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
+            xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1,
+        );
+        xc0b1a0 = _xc0b1a0;
+        xc0b1a1 = _xc0b1a1;
+        xc0b2a0 = _xc0b2a0;
+        xc0b2a1 = _xc0b2a1;
+        xc1b0a0 = _xc1b0a0;
+        xc1b0a1 = _xc1b0a1;
+        xc1b2a0 = _xc1b2a0;
+        xc1b2a1 = _xc1b2a1;
+    };
 
     let (t0) = decompress_karabina_bls12_381(
         E12T {
@@ -410,7 +393,7 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
             c1b1a1: M.c1b1a1,
             c1b2a0: t0c1b2a0,
             c1b2a1: t0c1b2a1,
-        }
+        },
     );
 
     let (mut t1) = decompress_karabina_bls12_381(
@@ -427,22 +410,20 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
             c1b1a1: M.c1b1a1,
             c1b2a0: xc1b2a0,
             c1b2a1: xc1b2a1,
-        }
+        },
     );
 
     let (mut result) = tw::run_BLS12_381_E12T_MUL_circuit(t0, t1);
 
-    for _ in 0
-        ..9_u32 {
-            let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-            t1 = _t1;
-        };
+    for _ in 0..9_u32 {
+        let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
+        t1 = _t1;
+    };
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
-    for _ in 0
-        ..3_u32 {
-            let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-            t1 = _t1;
-        };
+    for _ in 0..3_u32 {
+        let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
+        t1 = _t1;
+    };
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
     // 2 sq
     let (t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
@@ -466,7 +447,7 @@ pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
 
     let (TripleQ, c0b0a0, c0b0a1, c0b1a0, c0b1a1, c0b2a0, c0b2a1, c1b1a0, c1b1a1, c1b2a0, c1b2a1) =
         tw::run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
-        yInv, xNegOverY, Q
+        yInv, xNegOverY, Q,
     );
 
     let mut Mi: E12T = E12T {
@@ -498,139 +479,13 @@ pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
 }
 
 
-const bn_bits: [
-    usize
-    ; 65] = [
+pub const bn_bits: [usize; 65] = [
+    0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 1,
+    0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 0, 0,
     0,
-    2,
-    0,
-    1,
-    0,
-    0,
-    0,
-    2,
-    0,
-    2,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    1,
-    1,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    2,
-    0,
-    1,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    0,
-    2,
-    0,
-    1,
-    0,
-    0,
-    0,
-    2,
-    0,
-    2,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    2,
-    0,
-    0,
-    0,
-    2,
-    0,
-    2,
-    2,
-    0,
-    0,
-    0
 ];
 
-const bls_bits: [
-    usize
-    ; 62] = [
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0
+pub const bls_bits: [usize; 62] = [
+    0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];

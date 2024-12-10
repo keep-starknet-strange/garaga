@@ -1,19 +1,24 @@
 use core::circuit::{
     add_circuit_input, AddInputResult, CircuitData, IntoCircuitInputValue, CircuitDefinition,
-    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee
+    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee,
 };
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u384, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
 
+impl U64IntoU384 of Into<u64, u384> {
+    fn into(self: u64) -> u384 {
+        let v128: u128 = self.into();
+        v128.into()
+    }
+}
+
 impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
         [
-            into_u96_guarantee(self.limb0),
-            into_u96_guarantee(self.limb1),
-            into_u96_guarantee(self.limb2),
-            into_u96_guarantee(0_u8),
+            into_u96_guarantee(self.limb0), into_u96_guarantee(self.limb1),
+            into_u96_guarantee(self.limb2), into_u96_guarantee(0_u8),
         ]
     }
 }
@@ -25,14 +30,24 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     // Inlining to make sure possibly huge `C` won't be in a user function name.
     #[inline]
     fn next_2<Value, +IntoCircuitInputValue<Value>, +Drop<Value>>(
-        self: AddInputResult<C>, value: Value
+        self: AddInputResult<C>, value: Value,
     ) -> AddInputResult<C> {
         match self {
             AddInputResult::More(accumulator) => add_circuit_input(
-                accumulator, value.into_circuit_input_value()
+                accumulator, value.into_circuit_input_value(),
             ),
             AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
+    }
+    #[inline]
+    fn next_u256(self: AddInputResult<C>, value: u256) -> AddInputResult<C> {
+        let val_u384: u384 = value.into();
+        self.next_2(val_u384)
+    }
+    #[inline]
+    fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
+        let val_u384: u384 = value.into();
+        self.next_2(val_u384)
     }
     #[inline(always)]
     fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {
@@ -40,11 +55,9 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             AddInputResult::More(accumulator) => add_circuit_input(
                 accumulator,
                 [
-                    into_u96_guarantee(value.limb0),
-                    into_u96_guarantee(value.limb1),
-                    into_u96_guarantee(value.limb2),
-                    into_u96_guarantee(0_u8)
-                ]
+                    into_u96_guarantee(value.limb0), into_u96_guarantee(value.limb1),
+                    into_u96_guarantee(value.limb2), into_u96_guarantee(0_u8),
+                ],
             ),
             AddInputResult::Done(_) => panic_with_felt252(0),
         };
@@ -153,7 +166,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                         AddInputResult::More(acc) => acc,
                         AddInputResult::Done(_) => panic_with_felt252('all inputs filled'),
                     },
-                    (*v).into_circuit_input_value()
+                    (*v).into_circuit_input_value(),
                 );
         };
         add_input_result

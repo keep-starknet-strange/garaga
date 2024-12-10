@@ -5,10 +5,13 @@ edition = "2024_07"
 
 [dependencies]
 garaga = { path = "../../" }
-starknet = "2.8.4"
+starknet = "2.9.1"
 
 [cairo]
 sierra-replace-ids = false
+
+[dev-dependencies]
+cairo_test = "2.9.1"
 
 [[target.starknet-contract]]
 casm = true

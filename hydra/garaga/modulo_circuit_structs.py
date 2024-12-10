@@ -22,6 +22,7 @@ from enum import Enum
 class CairoOption(Enum):
     SOME = 0
     NONE = 1
+    VOID = 2  # Special case to serialize nothing at all.
 
 
 @dataclass(slots=True)
@@ -177,9 +178,12 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
         return "Span<" + self.elmts[0].struct_name + ">"
 
     def dump_to_circuit_input(self) -> str:
-        code = ""
-        for struct in self.elmts:
-            code += struct.dump_to_circuit_input()
+        code = f"let mut {self.name} = {self.name};\n"
+        code += f"for val in {self.name} {{\n"
+
+        self.elmts[0].name = "*val"
+        code += self.elmts[0].dump_to_circuit_input()
+        code += "};\n"
         return code
 
     def __len__(self) -> int:
@@ -216,6 +220,8 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
                 cd.append(0)
             elif option == CairoOption.NONE:
                 cd.append(1)
+                return cd
+            elif option == CairoOption.VOID:
                 return cd
             else:
                 raise ValueError(f"Invalid option: {option}")
@@ -315,6 +321,43 @@ class u256(Cairo1SerializableStruct):
             return 1
 
 
+class u256Span(Cairo1SerializableStruct):
+    @property
+    def struct_name(self) -> str:
+        return "Span<u256>"
+
+    def serialize(self, raw: bool = False) -> str:
+        raw_struct = f"{io.int_array_to_u256_array(self.elmts)}.span()"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(
+            self.elmts, n_limbs=2, base=2**128, prepend_length=True
+        )
+
+    def dump_to_circuit_input(self) -> str:
+        code = f"""
+    let mut {self.name} = {self.name};
+    while let Option::Some(val) = {self.name}.pop_front() {{
+        circuit_inputs = circuit_inputs.next_u256(*val);
+    }};"""
+        return code
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            return len(self.elmts)
+        else:
+            return None
+
+
 class u128(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 1
@@ -344,6 +387,43 @@ class u128(Cairo1SerializableStruct):
             return 1
         else:
             return 1
+
+
+class u128Span(Cairo1SerializableStruct):
+    @property
+    def struct_name(self) -> str:
+        return "Span<u128>"
+
+    def serialize(self, raw: bool = False) -> str:
+        raw_struct = f"{io.int_array_to_u128_array(self.elmts)}.span()"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        return io.bigint_split_array(
+            self.elmts, n_limbs=1, base=2**128, prepend_length=True
+        )
+
+    def dump_to_circuit_input(self) -> str:
+        code = f"""
+    let mut {self.name} = {self.name};
+    while let Option::Some(val) = {self.name}.pop_front() {{
+        circuit_inputs = circuit_inputs.next_u128(*val);
+    }};"""
+        return code
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            return len(self.elmts)
+        else:
+            return None
 
 
 class Tuple(Cairo1SerializableStruct):
@@ -377,7 +457,17 @@ class Tuple(Cairo1SerializableStruct):
         raise NotImplementedError
 
     def dump_to_circuit_input(self) -> str:
-        raise NotImplementedError
+        code = ""
+        # Need to unpack the tuple  :
+        code = f"let ({','.join([self.members_names[i] for i in range(len(self.elmts))])}) = {self.name};\n"
+        # Now call dump_to_circuit_input for each member
+        # Names must correspond to the members names
+        for i, elmt in enumerate(self.elmts):
+            assert (
+                elmt.name == self.members_names[i]
+            ), f"Tuple member {i} has name {elmt.name} instead of {self.members_names[i]}"
+            code += elmt.dump_to_circuit_input()
+        return code
 
     def __len__(self) -> int:
         return sum(len(elmt) for elmt in self.elmts)
@@ -402,7 +492,9 @@ class felt252(Cairo1SerializableStruct):
         raise NotImplementedError
 
     def dump_to_circuit_input(self) -> str:
-        raise NotImplementedError
+        code = f"let {self.name}_384:u384 = {self.name}.into();\n"
+        code += f"circuit_inputs = circuit_inputs.next_2({self.name}_384);\n"
+        return code
 
     def __len__(self) -> int:
         if self.elmts is not None:
@@ -465,8 +557,7 @@ class u384Array(Cairo1SerializableStruct):
     let mut {self.name} = {self.name};
     while let Option::Some(val) = {self.name}.pop_front() {{
         circuit_inputs = circuit_inputs.{next_fn}(val);
-    }};
-    """
+    }};"""
         return code
 
     def __len__(self) -> int:
@@ -503,10 +594,10 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
 
     @staticmethod
     def from_FunctionFelt(
-        name: str, f: FunctionFelt, msm_size: int
+        name: str, f: FunctionFelt, msm_size: int, batched: bool = False
     ) -> "FunctionFeltCircuit":
         _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
-            f, msm_size, py_felt=True
+            f, msm_size, py_felt=True, batched=batched
         )
         return FunctionFeltCircuit(
             name=name,

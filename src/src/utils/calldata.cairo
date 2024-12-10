@@ -1,33 +1,34 @@
 use garaga::groth16::{Groth16Proof, Groth16ProofRaw, MPCheckHintBN254, MPCheckHintBLS12_381};
 use garaga::definitions::{
-    G1Point, G2Point, E12DMulQuotient, u384, u288, E12D, MillerLoopResultScalingFactor
+    G1Point, G2Point, E12DMulQuotient, u288, E12D, MillerLoopResultScalingFactor,
 };
-
+use core::RangeCheck;
+use core::circuit::u384;
 
 #[derive(Drop, Serde)]
-struct FullProofWithHintsBN254 {
-    groth16_proof: Groth16Proof,
-    mpcheck_hint: MPCheckHintBN254,
-    small_Q: E12DMulQuotient<u288>,
-    msm_hint: Array<felt252>,
+pub struct FullProofWithHintsBN254 {
+    pub groth16_proof: Groth16Proof,
+    pub mpcheck_hint: MPCheckHintBN254,
+    pub small_Q: E12DMulQuotient<u288>,
+    pub msm_hint: Array<felt252>,
 }
 
 #[derive(Drop, Serde)]
-struct FullProofWithHintsBLS12_381 {
-    groth16_proof: Groth16Proof,
-    mpcheck_hint: MPCheckHintBLS12_381,
-    small_Q: E12DMulQuotient<u384>,
-    msm_hint: Array<felt252>,
+pub struct FullProofWithHintsBLS12_381 {
+    pub groth16_proof: Groth16Proof,
+    pub mpcheck_hint: MPCheckHintBLS12_381,
+    pub small_Q: E12DMulQuotient<u384>,
+    pub msm_hint: Array<felt252>,
 }
 
 #[derive(Serde, Drop)]
-struct FullProofWithHintsRisc0 {
-    groth16_proof: Groth16ProofRaw,
-    image_id: Span<u32>,
-    journal: Span<u8>,
-    mpcheck_hint: MPCheckHintBN254,
-    small_Q: E12DMulQuotient<u288>,
-    msm_hint: Array<felt252>,
+pub struct FullProofWithHintsRisc0 {
+    pub groth16_proof: Groth16ProofRaw,
+    pub image_id: Span<u32>,
+    pub journal: Span<u8>,
+    pub mpcheck_hint: MPCheckHintBN254,
+    pub small_Q: E12DMulQuotient<u288>,
+    pub msm_hint: Array<felt252>,
 }
 
 const U288_N_LIMBS: usize = 3;
@@ -53,7 +54,7 @@ fn downcast_u384(l0: felt252, l1: felt252, l2: felt252, l3: felt252) -> u384 {
 
 
 fn deserialize_full_proof_with_hints_risc0(
-    mut serialized: Span<felt252>
+    mut serialized: Span<felt252>,
 ) -> FullProofWithHintsRisc0 {
     let [
         a_x_l0,
@@ -112,17 +113,15 @@ fn deserialize_full_proof_with_hints_risc0(
 
     let n_image_id: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut image_id: Array<u32> = array![];
-    for _ in 0
-        ..n_image_id {
-            image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-        };
+    for _ in 0..n_image_id {
+        image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+    };
 
     let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut journal: Array<u8> = array![];
-    for _ in 0
-        ..n_journal {
-            journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-        };
+    for _ in 0..n_journal {
+        journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+    };
 
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
     let [
@@ -262,7 +261,7 @@ fn deserialize_full_proof_with_hints_risc0(
         w8_l2,
         w10_l0,
         w10_l1,
-        w10_l2
+        w10_l2,
     ] =
         (*serialized
         .multi_pop_front::<18>()
@@ -280,13 +279,13 @@ fn deserialize_full_proof_with_hints_risc0(
         w8: downcast_u288(w8_l0, w8_l1, w8_l2),
         w10: downcast_u288(w10_l0, w10_l1, w10_l2),
     };
-    // usize_assert_eq(mpcheck_hint.Ris.len(), 52);
-    // 52 * 12 * 3 = 1872
-    let mut ris_slice = serialized.slice(1, 1872);
+    // usize_assert_eq(mpcheck_hint.Ris.len(), 35);
+    // 35 * 12 * 3 = 1260
+    let mut ris_slice = serialized.slice(1, 1260);
     // println!("ris_slice.len(): {}", ris_slice.len());
 
     let end = serialized.len();
-    let serialized = serialized.slice(1873, end - 1872 - 1);
+    let serialized = serialized.slice(1261, end - 1260 - 1);
     // println!("serialized.len(): {}", serialized.len());
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<36>() {
@@ -345,12 +344,12 @@ fn deserialize_full_proof_with_hints_risc0(
                     w9: downcast_u288(w9l0, w9l1, w9l2),
                     w10: downcast_u288(w10l0, w10l1, w10l2),
                     w11: downcast_u288(w11l0, w11l1, w11l2),
-                }
+                },
             )
     };
-    // usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
-    let mut big_q_slice = serialized.slice(1, 114 * 3);
-    let mut serialized = serialized.slice(114 * 3 + 1, serialized.len() - 114 * 3 - 1);
+    // usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
+    let mut big_q_slice = serialized.slice(1, 190 * 3);
+    let mut serialized = serialized.slice(190 * 3 + 1, serialized.len() - 190 * 3 - 1);
 
     let mut big_q = array![];
     while let Option::Some(q) = big_q_slice.multi_pop_front::<3>() {
@@ -432,12 +431,12 @@ fn deserialize_full_proof_with_hints_risc0(
         journal: journal.span(),
         mpcheck_hint: mpcheck_hint,
         small_Q: small_Q,
-        msm_hint: msm_hint
+        msm_hint: msm_hint,
     };
 }
 
 fn deserialize_full_proof_with_hints_bn254(
-    mut serialized: Span<felt252>
+    mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBN254 {
     let [
         a_x_l0,
@@ -496,16 +495,15 @@ fn deserialize_full_proof_with_hints_bn254(
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
-    for _ in 0
-        ..n_public_inputs {
-            public_inputs
-                .append(
-                    u256 {
-                        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-                        high: (*serialized.pop_front().unwrap()).try_into().unwrap()
-                    }
-                );
-        };
+    for _ in 0..n_public_inputs {
+        public_inputs
+            .append(
+                u256 {
+                    low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                    high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                },
+            );
+    };
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
     let [
@@ -642,7 +640,7 @@ fn deserialize_full_proof_with_hints_bn254(
         w8_l2,
         w10_l0,
         w10_l1,
-        w10_l2
+        w10_l2,
     ] =
         (*serialized
         .multi_pop_front::<18>()
@@ -660,13 +658,13 @@ fn deserialize_full_proof_with_hints_bn254(
         w8: downcast_u288(w8_l0, w8_l1, w8_l2),
         w10: downcast_u288(w10_l0, w10_l1, w10_l2),
     };
-    // usize_assert_eq(mpcheck_hint.Ris.len(), 52);
-    // 52 * 12 * 3 = 1872
-    let mut ris_slice = serialized.slice(1, 1872);
+    // usize_assert_eq(mpcheck_hint.Ris.len(), 35);
+    // 35 * 12 * 3 = 1260
+    let mut ris_slice = serialized.slice(1, 1260);
     // println!("ris_slice.len(): {}", ris_slice.len());
 
     let end = serialized.len();
-    let serialized = serialized.slice(1873, end - 1872 - 1);
+    let serialized = serialized.slice(1261, end - 1260 - 1);
     // println!("serialized.len(): {}", serialized.len());
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<36>() {
@@ -725,12 +723,12 @@ fn deserialize_full_proof_with_hints_bn254(
                     w9: downcast_u288(w9l0, w9l1, w9l2),
                     w10: downcast_u288(w10l0, w10l1, w10l2),
                     w11: downcast_u288(w11l0, w11l1, w11l2),
-                }
+                },
             )
     };
-    // usize_assert_eq(mpcheck_hint.big_Q.len(), 114);
-    let mut big_q_slice = serialized.slice(1, 114 * 3);
-    let mut serialized = serialized.slice(114 * 3 + 1, serialized.len() - 114 * 3 - 1);
+    // usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
+    let mut big_q_slice = serialized.slice(1, 190 * 3);
+    let mut serialized = serialized.slice(190 * 3 + 1, serialized.len() - 190 * 3 - 1);
 
     let mut big_q = array![];
     while let Option::Some(q) = big_q_slice.multi_pop_front::<3>() {
@@ -806,11 +804,11 @@ fn deserialize_full_proof_with_hints_bn254(
     for x in serialized {
         msm_hint.append(*x);
     };
-    return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, small_Q, msm_hint, };
+    return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }
 
 fn deserialize_full_proof_with_hints_bls12_381(
-    mut serialized: Span<felt252>
+    mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBLS12_381 {
     let [
         a_x_l0,
@@ -869,16 +867,15 @@ fn deserialize_full_proof_with_hints_bls12_381(
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
-    for _ in 0
-        ..n_public_inputs {
-            public_inputs
-                .append(
-                    u256 {
-                        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-                        high: (*serialized.pop_front().unwrap()).try_into().unwrap()
-                    }
-                );
-        };
+    for _ in 0..n_public_inputs {
+        public_inputs
+            .append(
+                u256 {
+                    low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                    high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                },
+            );
+    };
 
     // full_len -= (1 + 2 * n_public_inputs);
     // assert(full_len == serialized.len(), 'C');
@@ -1068,7 +1065,7 @@ fn deserialize_full_proof_with_hints_bls12_381(
                     w9: downcast_u384(w9l0, w9l1, w9l2, w9l3),
                     w10: downcast_u384(w10l0, w10l1, w10l2, w10l3),
                     w11: downcast_u384(w11l0, w11l1, w11l2, w11l3),
-                }
+                },
             )
     };
     // usize_assert_eq(mpcheck_hint.big_Q.len(), 105);
@@ -1156,5 +1153,5 @@ fn deserialize_full_proof_with_hints_bls12_381(
     for x in serialized {
         msm_hint.append(*x);
     };
-    return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, small_Q, msm_hint, };
+    return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }

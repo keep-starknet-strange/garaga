@@ -1,0 +1,18 @@
+[package]
+name = "noir_ultra_keccak_honk_example"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+garaga = { path = "../../" }
+starknet = "2.9.1"
+
+[cairo]
+sierra-replace-ids = false
+
+[dev-dependencies]
+cairo_test = "2.9.1"
+
+[[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true

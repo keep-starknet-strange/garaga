@@ -107,7 +107,6 @@ impl<F: IsPrimeField> Polynomial<F> {
 
         Polynomial::new(result_coeffs)
     }
-
     pub fn divmod(self, denominator: &Self) -> (Self, Self) {
         let den_deg = denominator.degree();
         if den_deg == -1 {
@@ -127,16 +126,21 @@ impl<F: IsPrimeField> Polynomial<F> {
             let shift = rem_deg - den_deg;
             let coefficient = &remainder.coefficients[rem_deg as usize] * &denom_lead_inv;
             quotient_coeffs[shift as usize] = coefficient.clone();
-
-            let mut subtractee_coeffs = vec![FieldElement::<F>::zero(); (shift) as usize];
-            subtractee_coeffs.push(coefficient);
-            let subtractee = Polynomial::new(subtractee_coeffs).mul_with_ref(denominator);
+            let subtractee = denominator
+                .scale_by_coeff(&coefficient)
+                .shift(shift as usize);
             remainder = remainder - subtractee;
             rem_deg = remainder.degree();
         }
 
         let quotient = Polynomial::new(quotient_coeffs);
         (quotient, remainder)
+    }
+
+    pub fn shift(&self, shift: usize) -> Self {
+        let mut shifted_coeffs = vec![FieldElement::<F>::zero(); shift];
+        shifted_coeffs.extend(self.coefficients.clone());
+        Self::new(shifted_coeffs)
     }
 
     pub fn divfloor(&self, denominator: &Self) -> Self {
