@@ -16,12 +16,12 @@ Those contracts:
   \
   &#x20;
 
-### Class hash for Garaga v0.15.0.
+### Class hash for Garaga v0.15.1.
 
 | Contract                                                                                                          | Class hash                                                          | Description                                                                                                   |
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | [Universal ECIP](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/universal_ecip)          | `0xc4b7aa28a27b5fb8d7d43928b2a3ee960cf5b4e06cb9ae1ee3f102400b1700`  | A contract allowing to compute elliptic curve multi scalar multiplication for all supported curve identifiers |
-| [RiscZero Verifier](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/risc0_verifier_bn254) | `0x17f652cddd526fbe4f9c9b0380985adbc5ea5ce82d6d06170a355a0540d4979` | A verifier for RiscZero Groth16-wrapped proofs.                                                               |
+| [RiscZero Verifier](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/risc0_verifier_bn254) | `0x34fda7d39c28c2fb0d8e876f1c51a38f9fa395023c3749a0ee793611baa6095` | A verifier for RiscZero Groth16-wrapped proofs.                                                               |
 | [Drand Quicknet Verifier](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/drand_quicknet) | `0x381e2dda664bb383a95b49bf83f04eef1a656aca8ab2e66c9499fa9a8079624` | A contract to verify Drand signatures. Soon with timelock encryption utilities.                               |
 
 
