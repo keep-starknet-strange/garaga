@@ -296,12 +296,12 @@ pub mod risc0_utils {
 
     pub fn get_risc0_constants() -> (BigUint, BigUint) {
         let risc0_control_root = BigUint::from_str_radix(
-            "8B6DCF11D463AC455361B41FB3ED053FEBB817491BDEA00FDB340E45013B852E",
+            "8CDAD9242664BE3112ABA377C5425A4DF735EB1C6966472B561D2855932C0469",
             16,
         )
         .unwrap();
         let risc0_bn254_control_id = BigUint::from_str_radix(
-            "05A022E1DB38457FB510BC347B30EB8F8CF3EDA95587653D0EAC19E1F10D164E",
+            "04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
             16,
         )
         .unwrap();
