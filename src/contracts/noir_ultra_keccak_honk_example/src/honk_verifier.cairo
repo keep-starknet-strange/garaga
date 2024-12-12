@@ -1,7 +1,7 @@
 use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-    run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
+    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
 };
 
@@ -26,7 +26,7 @@ mod UltraKeccakHonkVerifier {
     use garaga::utils::neg_3;
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-        run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,
+        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
     };
     use garaga::utils::noir::{
@@ -132,7 +132,7 @@ mod UltraKeccakHonkVerifier {
                 scalar_72,
                 _,
             ) =
-                run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
+                run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
                 tp_gemini_r: transcript.gemini_r.into(),
