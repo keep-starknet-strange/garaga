@@ -1024,7 +1024,7 @@ const HONK_SUMCHECK_SIZE_5_PUB_1_GRUMPKIN_CONSTANTS: [u384; 29] = [
     },
 ];
 #[inline(always)]
-pub fn run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit(
+pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
     p_sumcheck_evaluations: Span<u256>,
     p_gemini_a_evaluations: Span<u256>,
     tp_gemini_r: u384,
