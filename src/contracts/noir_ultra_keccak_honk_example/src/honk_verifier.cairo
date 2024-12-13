@@ -21,7 +21,7 @@ mod UltraKeccakHonkVerifier {
         MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
     };
     use garaga::ec_ops_g2::{G2PointTrait};
-    use garaga::basic_field_ops::{add_mod_p, mul_mod_p};
+    use garaga::basic_field_ops::{batch_3_mod_p};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{
@@ -32,7 +32,9 @@ mod UltraKeccakHonkVerifier {
     use garaga::utils::noir::{
         HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2,
     };
-    use garaga::utils::noir::keccak_transcript::{HonkTranscriptTrait, Point256IntoCircuitPoint};
+    use garaga::utils::noir::keccak_transcript::{
+        HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
+    };
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
@@ -69,11 +71,10 @@ mod UltraKeccakHonkVerifier {
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
                 p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
-                sumcheck_univariate_0: (*full_proof.proof.sumcheck_univariates.at(0)),
-                sumcheck_univariate_1: (*full_proof.proof.sumcheck_univariates.at(1)),
-                sumcheck_univariate_2: (*full_proof.proof.sumcheck_univariates.at(2)),
-                sumcheck_univariate_3: (*full_proof.proof.sumcheck_univariates.at(3)),
-                sumcheck_univariate_4: (*full_proof.proof.sumcheck_univariates.at(4)),
+                sumcheck_univariates_flat: full_proof
+                    .proof
+                    .sumcheck_univariates
+                    .slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
                     full_proof.proof.sumcheck_evaluations,
                 ),
@@ -365,14 +366,8 @@ mod UltraKeccakHonkVerifier {
             );
 
             let mod_bn = get_modulus(0);
-            let c0: u384 = base_rlc_coeff.into();
-            let c1: u384 = mul_mod_p(c0, c0, mod_bn);
-            let c2 = mul_mod_p(c1, c0, mod_bn);
-
-            let zk_ecip_batched_rhs = add_mod_p(
-                add_mod_p(mul_mod_p(rhs_low, c0, mod_bn), mul_mod_p(rhs_high, c1, mod_bn), mod_bn),
-                mul_mod_p(rhs_high_shifted, c2, mod_bn),
-                mod_bn,
+            let zk_ecip_batched_rhs = batch_3_mod_p(
+                rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn,
             );
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;

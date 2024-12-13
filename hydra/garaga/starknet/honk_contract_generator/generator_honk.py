@@ -165,7 +165,7 @@ mod UltraKeccakHonkVerifier {{
     use garaga::utils::neg_3;
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::keccak_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint}};
+    use garaga::utils::noir::keccak_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
@@ -202,7 +202,7 @@ mod UltraKeccakHonkVerifier {{
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
                 p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
-                {', '.join([f'sumcheck_univariate_{i}: (*full_proof.proof.sumcheck_univariates.at({i}))' for i in range(vk.log_circuit_size)])},
+                sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
                     full_proof.proof.sumcheck_evaluations
                 ),
@@ -383,7 +383,7 @@ mod UltraKeccakHonkVerifier {{
             );
 
             let mod_bn = get_modulus(0);
-            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, c0, mod_bn);
+            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
 
@@ -448,7 +448,9 @@ if __name__ == "__main__":
     VK_PATH = (
         "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
     )
-
+    VK_LARGE_PATH = (
+        "hydra/garaga/starknet/honk_contract_generator/examples/vk_large.bin"
+    )
     CONTRACTS_FOLDER = "src/contracts/"  # Do not change this
 
     FOLDER_NAME = (
@@ -456,3 +458,4 @@ if __name__ == "__main__":
     )
 
     gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME)
+    gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large")

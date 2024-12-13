@@ -13,11 +13,7 @@ use core::option::Option;
 pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     p_public_inputs: Span<u256>,
     p_public_inputs_offset: u384,
-    sumcheck_univariate_0: Span<u256>,
-    sumcheck_univariate_1: Span<u256>,
-    sumcheck_univariate_2: Span<u256>,
-    sumcheck_univariate_3: Span<u256>,
-    sumcheck_univariate_4: Span<u256>,
+    sumcheck_univariates_flat: Span<u256>,
     sumcheck_evaluations: Span<u256>,
     tp_sum_check_u_challenges: Span<u128>,
     tp_gate_challenges: Span<u128>,
@@ -875,30 +871,10 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
 
     circuit_inputs = circuit_inputs.next_2(p_public_inputs_offset); // in30
 
-    let mut sumcheck_univariate_0 = sumcheck_univariate_0;
-    while let Option::Some(val) = sumcheck_univariate_0.pop_front() {
+    let mut sumcheck_univariates_flat = sumcheck_univariates_flat;
+    while let Option::Some(val) = sumcheck_univariates_flat.pop_front() {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in31 - in38
-
-    let mut sumcheck_univariate_1 = sumcheck_univariate_1;
-    while let Option::Some(val) = sumcheck_univariate_1.pop_front() {
-        circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in39 - in46
-
-    let mut sumcheck_univariate_2 = sumcheck_univariate_2;
-    while let Option::Some(val) = sumcheck_univariate_2.pop_front() {
-        circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in47 - in54
-
-    let mut sumcheck_univariate_3 = sumcheck_univariate_3;
-    while let Option::Some(val) = sumcheck_univariate_3.pop_front() {
-        circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in55 - in62
-
-    let mut sumcheck_univariate_4 = sumcheck_univariate_4;
-    while let Option::Some(val) = sumcheck_univariate_4.pop_front() {
-        circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in63 - in70
+    }; // in31 - in70
 
     let mut sumcheck_evaluations = sumcheck_evaluations;
     while let Option::Some(val) = sumcheck_evaluations.pop_front() {

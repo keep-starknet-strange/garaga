@@ -243,14 +243,8 @@ class HonkProof:
         code += f"lookup_read_tags: {g1_to_g1point256(self.lookup_read_tags)},\n"
         code += f"lookup_inverses: {g1_to_g1point256(self.lookup_inverses)},\n"
 
-        # Format nested arrays for sumcheck_univariates
-        univariates_arrays = [
-            format_array(univariate, span=True)
-            for univariate in self.sumcheck_univariates
-        ]
-        code += (
-            f"sumcheck_univariates: array![{','.join(univariates_arrays)}].span(),\n"
-        )
+        # Flatten sumcheck_univariates array
+        code += f"sumcheck_univariates: {format_array(io.flatten(self.sumcheck_univariates), span=True)},\n"
 
         code += f"sumcheck_evaluations: {format_array(self.sumcheck_evaluations, span=True)},\n"
         code += f"gemini_fold_comms: array![{', '.join(g1_to_g1point256(comm) for comm in self.gemini_fold_comms)}].span(),\n"
@@ -283,13 +277,14 @@ class HonkProof:
         cd.extend(serialize_G1Point256(self.lookup_read_counts))
         cd.extend(serialize_G1Point256(self.lookup_read_tags))
         cd.extend(serialize_G1Point256(self.lookup_inverses))
-        cd.append(len(self.sumcheck_univariates))
-        for univariate in self.sumcheck_univariates:
-            cd.extend(
-                io.bigint_split_array(
-                    x=univariate, n_limbs=2, base=2**128, prepend_length=True
-                )
+        cd.extend(
+            io.bigint_split_array(
+                x=io.flatten(self.sumcheck_univariates),
+                n_limbs=2,
+                base=2**128,
+                prepend_length=True,
             )
+        )
 
         cd.extend(
             io.bigint_split_array(

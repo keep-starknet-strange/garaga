@@ -416,14 +416,16 @@ pub fn generate_gate_challenges(prev_keccak_output: u256) -> (Array<u128>, u256)
 
 #[inline]
 pub fn generate_sumcheck_u_challenges(
-    prev_keccak_output: u256, sumcheck_univariates: Span<Span<u256>>,
+    prev_keccak_output: u256, sumcheck_univariates: Span<u256>,
 ) -> (Array<u128>, u256) {
     let mut sum_check_u_challenges: Array<u128> = array![];
     let mut challenge: u256 = prev_keccak_output;
     for i in 0..CONST_PROOF_SIZE_LOG_N {
         let mut k_input: Array<u64> = array![];
         keccak::keccak_add_u256_be(ref k_input, challenge);
-        let sumcheck_univariates_i = *sumcheck_univariates.at(i);
+        let sumcheck_univariates_i = sumcheck_univariates
+            .slice(i * BATCHED_RELATION_PARTIAL_LENGTH, BATCHED_RELATION_PARTIAL_LENGTH);
+
         for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
             keccak::keccak_add_u256_be(ref k_input, *sumcheck_univariates_i.at(j));
         };
