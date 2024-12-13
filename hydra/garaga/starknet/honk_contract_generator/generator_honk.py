@@ -160,7 +160,7 @@ mod UltraKeccakHonkVerifier {{
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add, FunctionFelt,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
-    use garaga::basic_field_ops::{{add_mod_p, mul_mod_p}};
+    use garaga::basic_field_ops::{{batch_3_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
@@ -383,15 +383,7 @@ mod UltraKeccakHonkVerifier {{
             );
 
             let mod_bn = get_modulus(0);
-            let c0: u384 = base_rlc_coeff.into();
-            let c1: u384 = mul_mod_p(c0, c0, mod_bn);
-            let c2 = mul_mod_p(c1, c0, mod_bn);
-
-            let zk_ecip_batched_rhs = add_mod_p(
-                add_mod_p(mul_mod_p(rhs_low, c0, mod_bn), mul_mod_p(rhs_high, c1, mod_bn), mod_bn),
-                mul_mod_p(rhs_high_shifted, c2, mod_bn),
-                mod_bn
-            );
+            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, c0, mod_bn);
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
 
