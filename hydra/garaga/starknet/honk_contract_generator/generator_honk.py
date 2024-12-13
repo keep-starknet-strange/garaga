@@ -38,15 +38,14 @@ def gen_honk_circuits_code(vk: HonkVk) -> str:
     """
     header = """
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+    u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
+    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{
-    get_b, G1Point, u288, get_GRUMPKIN_modulus, get_BN254_modulus};
+use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};
 use core::option::Option;\n
 """
     code = header
@@ -121,7 +120,7 @@ def gen_honk_verifier(
     precomputed_lines = precompute_lines_honk()
 
     constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Point, G2Line, u384, u288}};
+    use garaga::definitions::{{G1Point, G2Line, u384, u288}};
     use garaga::utils::noir::HonkVk;
 
     {vk.serialize_to_cairo()}\n
@@ -156,10 +155,9 @@ trait IUltraKeccakHonkVerifier<TContractState> {{
 
 #[starknet::contract]
 mod UltraKeccakHonkVerifier {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus, u384}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add, FunctionFelt,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
-    use garaga::ec_ops_g2::{{G2PointTrait}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
@@ -458,4 +456,4 @@ if __name__ == "__main__":
     )
 
     gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME)
-    gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large")
+    # gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large")

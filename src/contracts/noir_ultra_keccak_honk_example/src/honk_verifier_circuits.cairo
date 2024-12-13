@@ -1,12 +1,12 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+    u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse, EvalCircuitTrait,
+    CircuitOutputsTrait, CircuitInputs,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{get_b, G1Point, u288, get_GRUMPKIN_modulus, get_BN254_modulus};
+use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};
 use core::option::Option;
 
 #[inline(always)]
