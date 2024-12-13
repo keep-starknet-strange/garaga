@@ -27,7 +27,7 @@ pub fn g2_add(
             Fq2::new(Fq::from(b_2), Fq::from(b_3)),
         );
         let c: G2Affine = (a + b).into();
-        let py_tuple = PyTuple::new_bound(
+        let py_tuple = PyTuple::new(
             py,
             [
                 BigUint::from(c.x.c0.into_bigint()),
@@ -36,7 +36,7 @@ pub fn g2_add(
                 BigUint::from(c.y.c1.into_bigint()),
             ],
         );
-        return Ok(py_tuple.into());
+        return Ok(py_tuple?.into_any().into());
     }
 
     if curve_id == CURVE_BLS12_381 {
@@ -50,7 +50,7 @@ pub fn g2_add(
             Fq2::new(Fq::from(b_2), Fq::from(b_3)),
         );
         let c: G2Affine = (a + b).into();
-        let py_tuple = PyTuple::new_bound(
+        let py_tuple = PyTuple::new(
             py,
             [
                 BigUint::from(c.x.c0.into_bigint()),
@@ -59,7 +59,7 @@ pub fn g2_add(
                 BigUint::from(c.y.c1.into_bigint()),
             ],
         );
-        return Ok(py_tuple.into());
+        return Ok(py_tuple?.into());
     }
 
     panic!("Curve ID {} not supported", curve_id);
@@ -85,7 +85,7 @@ pub fn g2_scalar_mul(
             Fq2::new(Fq::from(a_2), Fq::from(a_3)),
         );
         let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
-        let py_tuple = PyTuple::new_bound(
+        let py_tuple = PyTuple::new(
             py,
             [
                 BigUint::from(c.x.c0.into_bigint()),
@@ -94,7 +94,7 @@ pub fn g2_scalar_mul(
                 BigUint::from(c.y.c1.into_bigint()),
             ],
         );
-        return Ok(py_tuple.into());
+        return Ok(py_tuple?.into());
     }
 
     if curve_id == CURVE_BLS12_381 {
@@ -104,7 +104,7 @@ pub fn g2_scalar_mul(
             Fq2::new(Fq::from(a_2), Fq::from(a_3)),
         );
         let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
-        let py_tuple = PyTuple::new_bound(
+        let py_tuple = PyTuple::new(
             py,
             [
                 BigUint::from(c.x.c0.into_bigint()),
@@ -113,7 +113,7 @@ pub fn g2_scalar_mul(
                 BigUint::from(c.y.c1.into_bigint()),
             ],
         );
-        return Ok(py_tuple.into());
+        return Ok(py_tuple?.into());
     }
 
     panic!("Curve ID {} not supported", curve_id);

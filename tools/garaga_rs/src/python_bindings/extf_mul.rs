@@ -53,6 +53,8 @@ where
         .into_iter()
         .map(|x| BigUint::from_bytes_be(&x.to_bytes_be()))
         .collect::<Vec<BigUint>>();
-    let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, q), PyList::new_bound(py, r)]);
+    let q_list = PyList::new(py, q)?;
+    let r_list = PyList::new(py, r)?;
+    let py_tuple = PyTuple::new(py, [q_list, r_list])?;
     Ok(py_tuple.into())
 }
