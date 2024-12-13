@@ -259,7 +259,7 @@ fn u256_byte_reverse(word: u256) -> u256 {
 
 // Add u64 as u256 to keccak input
 // Expects u64 big endian.
-#[inline]
+// #[inline]
 fn append_u64_as_u256(ref arr: Array<u64>, val: u64) {
     arr.append(0);
     arr.append(0);
@@ -284,6 +284,7 @@ fn ke_le_out_to_ch_be(ke_le_out: u256) -> u256 {
 }
 
 // Return eta and last keccak output
+#[inline]
 pub fn get_eta_challenges(
     circuit_size: u64,
     pub_inputs_size: u64,
@@ -326,6 +327,7 @@ pub fn get_eta_challenges(
 // Outut :
 // ch_be.
 // beta = ch_be.low, gamma = ch_be.high, last_keccak_output = ch_be.
+#[inline]
 pub fn get_beta_gamma_challenges(
     prev_keccak_output: u256,
     lookup_read_counts: G1PointProof,
@@ -347,6 +349,7 @@ pub fn get_beta_gamma_challenges(
 }
 
 
+#[inline]
 pub fn generate_alpha_challenges(
     prev_keccak_output: u256, lookup_inverse: G1PointProof, z_perm: G1PointProof,
 ) -> (Array<u128>, u256) { // -> [u256; NUMBER_OF_ALPHAS]
@@ -392,7 +395,7 @@ pub fn generate_alpha_challenges(
     (alphas, alpha_last)
 }
 
-
+#[inline]
 pub fn generate_gate_challenges(prev_keccak_output: u256) -> (Array<u128>, u256) {
     let mut gate_challenges: Array<u128> = array![];
 
@@ -411,6 +414,7 @@ pub fn generate_gate_challenges(prev_keccak_output: u256) -> (Array<u128>, u256)
 }
 
 
+#[inline]
 pub fn generate_sumcheck_u_challenges(
     prev_keccak_output: u256, sumcheck_univariates: Span<Span<u256>>,
 ) -> (Array<u128>, u256) {
@@ -419,8 +423,9 @@ pub fn generate_sumcheck_u_challenges(
     for i in 0..CONST_PROOF_SIZE_LOG_N {
         let mut k_input: Array<u64> = array![];
         keccak::keccak_add_u256_be(ref k_input, challenge);
+        let sumcheck_univariates_i = *sumcheck_univariates.at(i);
         for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
-            keccak::keccak_add_u256_be(ref k_input, *(*sumcheck_univariates.at(i)).at(j));
+            keccak::keccak_add_u256_be(ref k_input, *sumcheck_univariates_i.at(j));
         };
 
         challenge =
@@ -434,6 +439,7 @@ pub fn generate_sumcheck_u_challenges(
 }
 
 
+#[inline]
 pub fn generate_rho_challenge(prev_keccak_output: u256, sumcheck_evaluations: Span<u256>) -> u256 {
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
@@ -446,6 +452,7 @@ pub fn generate_rho_challenge(prev_keccak_output: u256, sumcheck_evaluations: Sp
     )
 }
 
+#[inline]
 pub fn generate_gemini_r_challenge(
     prev_keccak_output: u256, gemini_fold_comms: Span<G1Point256>,
 ) -> u256 {
@@ -460,6 +467,7 @@ pub fn generate_gemini_r_challenge(
     )
 }
 
+#[inline]
 pub fn generate_shplonk_nu_challenge(
     prev_keccak_output: u256, gemini_a_evaluations: Span<u256>,
 ) -> u256 {
@@ -474,6 +482,7 @@ pub fn generate_shplonk_nu_challenge(
     )
 }
 
+#[inline]
 pub fn generate_shplonk_z_challenge(prev_keccak_output: u256, shplonk_q: G1PointProof) -> u256 {
     // # Shplonk Z :
     // hasher.update(c7)
