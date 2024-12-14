@@ -195,201 +195,82 @@ pub fn scalar_to_epns_with_digits(
     let sign_n = sign(sum_n);
     return (sign_p * sum_p, sign_n * sum_n, sign_p, sign_n);
 }
-// #[cfg(test)]
-// mod tests {
-//     use core::traits::TryInto;
-//     use core::circuit::{u384};
-//     use super::{scalar_to_epns, neg_3_base_le, u384_eq_zero};
 
-//     #[test]
-//     fn test_scalar_to_epns() {
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(12);
 
-//         assert_eq!(sum_p, 9);
-//         assert_eq!(sum_n, 3);
-//         assert_eq!(sign_p, 1);
-//         assert_eq!(sign_n, -1);
+#[cfg(test)]
+mod tests {
+    use core::traits::TryInto;
+    use core::circuit::{u384};
+    use super::{scalar_to_epns, neg_3_base_le};
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(35);
+    #[test]
+    fn test_scalar_to_epns() {
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(12);
 
-//         assert_eq!(sum_p, 9);
-//         assert_eq!(sum_n, 26);
-//         assert_eq!(sign_p, 1);
-//         assert_eq!(sign_n, -1);
+        assert_eq!(sum_p, 9);
+        assert_eq!(sum_n, 3);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, -1);
 
-//         let (sum_p, sum_n, _, _) = scalar_to_epns(0);
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(35);
 
-//         assert_eq!(sum_p, 0);
-//         assert_eq!(sum_n, 0);
+        assert_eq!(sum_p, 9);
+        assert_eq!(sum_n, 26);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, -1);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
-//             170141183460469231731687303715884105728
-//         ); //2**127
+        let (sum_p, sum_n, _, _) = scalar_to_epns(0);
 
-//         assert_eq!(sum_p, 164253760949568696627221936579612523510);
-//         assert_eq!(sum_n, 5887422510900535104465367136271582218); //using STARK field
-//         assert_eq!(sign_p, 1);
-//         assert_eq!(sign_n, -1);
+        assert_eq!(sum_p, 0);
+        assert_eq!(sum_n, 0);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
-//             85070591730234615865843651857942052864
-//         ); //2 **126
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+            170141183460469231731687303715884105728
+        ); //2**127
 
-//         assert_eq!(sum_p, 97865891762673628272143863189949020615);
-//         assert_eq!(sum_n, 12795300032439012406300211332006967751);
-//         assert_eq!(sign_p, 1);
-//         assert_eq!(sign_n, 1);
+        assert_eq!(sum_p, 164253760949568696627221936579612523510);
+        assert_eq!(sum_n, 5887422510900535104465367136271582218); //using STARK field
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, -1);
 
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
-//             85070591730234615865843651857942052874
-//         ); //2 **126 + 10
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+            85070591730234615865843651857942052864
+        ); //2 **126
 
-//         assert_eq!(sum_p, 97865891762673628272143863189949020623);
-//         assert_eq!(sum_n, 12795300032439012406300211332006967749);
-//         assert_eq!(sign_p, 1);
-//         assert_eq!(sign_n, 1);
-//     }
+        assert_eq!(sum_p, 97865891762673628272143863189949020615);
+        assert_eq!(sum_n, 12795300032439012406300211332006967751);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, 1);
 
-//     #[test]
-//     fn test_scalar_to_epns_single() {
-//         let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
-//             170141183460469231731687303715884105728
-//         ); //2**127
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+            85070591730234615865843651857942052874
+        ); //2 **126 + 10
 
-//         assert_eq!(sum_p, 164253760949568696627221936579612523510);
-//         assert_eq!(sum_n, 5887422510900535104465367136271582218);
-//         assert_eq!(sign_p, 1);
-//         assert_eq!(sign_n, -1);
-//     }
+        assert_eq!(sum_p, 97865891762673628272143863189949020623);
+        assert_eq!(sum_n, 12795300032439012406300211332006967749);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, 1);
+    }
 
-//     #[test]
-//     fn test_neg_3_base_le() {
-//         let digits: Array<felt252> = neg_3_base_le(12);
+    #[test]
+    fn test_scalar_to_epns_single() {
+        let (sum_p, sum_n, sign_p, sign_n) = scalar_to_epns(
+            170141183460469231731687303715884105728
+        ); //2**127
 
-//         let expected: Array<felt252> = array![0, -1, 1];
+        assert_eq!(sum_p, 164253760949568696627221936579612523510);
+        assert_eq!(sum_n, 5887422510900535104465367136271582218);
+        assert_eq!(sign_p, 1);
+        assert_eq!(sign_n, -1);
+    }
+    #[test]
+    fn test_neg_3_base_le_single() {
+        let digits: Array<felt252> = neg_3_base_le(16);
 
-//         assert_eq!(digits, expected);
+        let expected: Array<felt252> = array![1, 1, -1, -1];
 
-//         let digits: Array<felt252> = neg_3_base_le(0);
-//         let expected: Array<felt252> = array![0];
-
-//         assert_eq!(digits, expected);
-
-//         let digits: Array<felt252> = neg_3_base_le(35);
-
-//         let expected: Array<felt252> = array![-1, 0, 1, -1];
-
-//         assert_eq!(digits, expected);
-
-//         let digits: Array<felt252> = neg_3_base_le(22);
-//         let expected: Array<felt252> = array![1, -1, -1, -1];
-
-//         assert_eq!(digits, expected);
-
-//         let digits: Array<felt252> = neg_3_base_le(16);
-
-//         let expected: Array<felt252> = array![1, 1, -1, -1];
-
-//         assert_eq!(digits, expected);
-//         let digits: Array<felt252> = neg_3_base_le(
-//             170141183460469231731687303715884105728
-//         ); //2**127
-
-//         let expected: Array<felt252> = array![
-//             -1,
-//             -1,
-//             0,
-//             1,
-//             0,
-//             -1,
-//             0,
-//             0,
-//             -1,
-//             -1,
-//             1,
-//             0,
-//             0,
-//             1,
-//             -1,
-//             1,
-//             0,
-//             1,
-//             1,
-//             1,
-//             0,
-//             1,
-//             1,
-//             1,
-//             0,
-//             0,
-//             -1,
-//             -1,
-//             0,
-//             0,
-//             -1,
-//             -1,
-//             -1,
-//             -1,
-//             1,
-//             0,
-//             1,
-//             1,
-//             0,
-//             0,
-//             0,
-//             1,
-//             1,
-//             -1,
-//             1,
-//             1,
-//             0,
-//             1,
-//             1,
-//             1,
-//             -1,
-//             0,
-//             1,
-//             0,
-//             -1,
-//             -1,
-//             1,
-//             0,
-//             0,
-//             0,
-//             1,
-//             1,
-//             -1,
-//             -1,
-//             1,
-//             0,
-//             1,
-//             0,
-//             0,
-//             1,
-//             0,
-//             -1,
-//             1,
-//             0,
-//             -1,
-//             -1,
-//             0,
-//             -1,
-//             1,
-//             0,
-//             1
-//         ];
-
-//         assert_eq!(digits, expected);
-//     }
-
-//     #[test]
-//     fn test_neg_3_base_le_single() {
-//         let digits: Array<felt252> = neg_3_base_le(16);
-
-//         let expected: Array<felt252> = array![1, 1, -1, -1];
-
-//         assert_eq!(digits, expected);
-//     }
-// }
+        assert_eq!(digits, expected);
+    }
+}
 
 
