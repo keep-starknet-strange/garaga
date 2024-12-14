@@ -91,7 +91,6 @@ pub fn multi_pairing(
     panic!("Curve ID {} not supported", curve_id);
 }
 
-
 #[pyfunction]
 pub fn multi_miller_loop(
     py: Python,
