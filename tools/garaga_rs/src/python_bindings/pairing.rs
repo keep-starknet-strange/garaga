@@ -44,8 +44,8 @@ pub fn multi_pairing(
                 BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
-        let py_list = PyList::new_bound(py, to(c.0));
-        return Ok(py_list.into());
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list?.into());
     }
 
     if curve_id == CURVE_BLS12_381 {
@@ -84,8 +84,8 @@ pub fn multi_pairing(
                 BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
-        let py_list = PyList::new_bound(py, to(c.0));
-        return Ok(py_list.into());
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list?.into());
     }
 
     panic!("Curve ID {} not supported", curve_id);
@@ -135,8 +135,8 @@ pub fn multi_miller_loop(
                 BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
-        let py_list = PyList::new_bound(py, to(c.0));
-        return Ok(py_list.into());
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list?.into());
     }
 
     if curve_id == CURVE_BLS12_381 {
@@ -175,8 +175,8 @@ pub fn multi_miller_loop(
                 BigUint::from(v.c1.c2.c1.into_bigint()),
             ]
         }
-        let py_list = PyList::new_bound(py, to(c.0));
-        return Ok(py_list.into());
+        let py_list = PyList::new(py, to(c.0));
+        return Ok(py_list?.into());
     }
 
     panic!("Curve ID {} not supported", curve_id);
