@@ -276,6 +276,19 @@ pub fn get_groth16_calldata(
     Ok(groth16_calldata_js)
 }
 
+#[wasm_bindgen]
+pub fn get_risc0_constants() -> Result<Vec<JsValue>, JsValue> {
+    let (control_root, control_id) = crate::wasm_bindings::groth16::risc0_utils::get_risc0_constants();
+
+    // Convert BigUint values to JsValue
+    let result = vec![
+        biguint_to_jsvalue(control_root),
+        biguint_to_jsvalue(control_id),
+    ];
+
+    Ok(result)
+}
+
 #[allow(dead_code)]
 #[cfg(test)]
 mod tests {
