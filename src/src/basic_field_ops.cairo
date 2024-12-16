@@ -174,7 +174,7 @@ pub fn mul_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> u384 {
     return outputs.get_output(mul);
 }
 
-
+#[inline(always)]
 pub fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, modulus: CircuitModulus) -> u384 {
     let _x = CircuitElement::<CircuitInput<0>> {};
     let _y = CircuitElement::<CircuitInput<1>> {};
