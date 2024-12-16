@@ -1,9 +1,9 @@
 use core::circuit::{
     add_circuit_input, AddInputResult, CircuitData, IntoCircuitInputValue, CircuitDefinition,
-    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee,
+    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee, u384,
 };
 use core::panic_with_felt252;
-use garaga::definitions::{E12D, G2Line, u384, u288};
+use garaga::definitions::{E12D, G2Line, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
 
@@ -22,7 +22,6 @@ impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
         ]
     }
 }
-
 
 #[generate_trait]
 pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {

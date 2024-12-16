@@ -54,6 +54,7 @@ pub struct MPCheckHintBLS12_381 {
     pub big_Q: Array<u384>,
 }
 
+#[inline(always)]
 fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
 ) -> bool {
@@ -221,6 +222,7 @@ fn multi_pairing_check_bn254_2P_2F(
     return true;
 }
 
+#[inline(always)]
 fn multi_pairing_check_bls12_381_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381,
 ) -> bool {
