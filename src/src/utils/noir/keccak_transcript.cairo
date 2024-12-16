@@ -1,6 +1,7 @@
 use core::keccak;
 use core::traits::Into;
 use core::poseidon::hades_permutation;
+use core::array::array_slice;
 use garaga::definitions::G1Point;
 use garaga::utils::noir::{HonkProof, G1Point256, G1PointProof};
 
@@ -423,13 +424,27 @@ pub fn generate_sumcheck_u_challenges(
     for i in 0..CONST_PROOF_SIZE_LOG_N {
         let mut k_input: Array<u64> = array![];
         keccak::keccak_add_u256_be(ref k_input, challenge);
-        let sumcheck_univariates_i = sumcheck_univariates
-            .slice(i * BATCHED_RELATION_PARTIAL_LENGTH, BATCHED_RELATION_PARTIAL_LENGTH);
 
-        for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
-            keccak::keccak_add_u256_be(ref k_input, *sumcheck_univariates_i.at(j));
+        match array_slice(
+            sumcheck_univariates.snapshot,
+            i * BATCHED_RELATION_PARTIAL_LENGTH,
+            BATCHED_RELATION_PARTIAL_LENGTH,
+        ) {
+            Option::Some(slice) => {
+                let sumcheck_univariates_i = Span { snapshot: slice };
+                for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+                    keccak::keccak_add_u256_be(ref k_input, *sumcheck_univariates_i.at(j));
+                };
+            },
+            Option::None => {
+                for _ in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+                    k_input.append(0);
+                    k_input.append(0);
+                    k_input.append(0);
+                    k_input.append(0);
+                };
+            },
         };
-
         challenge =
             ke_le_out_to_ch_be(
                 keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
@@ -460,10 +475,32 @@ pub fn generate_gemini_r_challenge(
 ) -> u256 {
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
-    for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
-        append_proof_point(ref k_input, (*gemini_fold_comms.at(i)).into());
+    // Log_n - 1 points
+    for pt in gemini_fold_comms {
+        append_proof_point(ref k_input, (*pt).into());
     };
+    for _ in 0..(CONST_PROOF_SIZE_LOG_N - gemini_fold_comms.len() - 1) {
+        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for keccak.
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(72057594037927936);
 
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(144115188075855872);
+
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+    };
     ke_le_out_to_ch_be(
         keccak::cairo_keccak(ref k_input, last_input_word: 0, last_input_num_bytes: 0),
     )
@@ -475,8 +512,15 @@ pub fn generate_shplonk_nu_challenge(
 ) -> u256 {
     let mut k_input: Array<u64> = array![];
     keccak::keccak_add_u256_be(ref k_input, prev_keccak_output);
-    for i in 0..CONST_PROOF_SIZE_LOG_N {
-        keccak::keccak_add_u256_be(ref k_input, *gemini_a_evaluations.at(i));
+    for eval in gemini_a_evaluations {
+        keccak::keccak_add_u256_be(ref k_input, *eval);
+    };
+    let implied_log_n = gemini_a_evaluations.len();
+    for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
+        k_input.append(0);
     };
 
     ke_le_out_to_ch_be(

@@ -1,4 +1,5 @@
 import copy
+import math
 from dataclasses import dataclass, fields
 from enum import Enum, auto
 
@@ -57,6 +58,10 @@ class HonkProof:
     gemini_a_evaluations: list[int]
     shplonk_q: G1Point
     kzg_quotient: G1Point
+
+    @property
+    def log_circuit_size(self) -> int:
+        return int(math.log2(self.circuit_size))
 
     def __post_init__(self):
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
@@ -244,11 +249,11 @@ class HonkProof:
         code += f"lookup_inverses: {g1_to_g1point256(self.lookup_inverses)},\n"
 
         # Flatten sumcheck_univariates array
-        code += f"sumcheck_univariates: {format_array(io.flatten(self.sumcheck_univariates), span=True)},\n"
+        code += f"sumcheck_univariates: {format_array(io.flatten(self.sumcheck_univariates)[:self.log_circuit_size * BATCHED_RELATION_PARTIAL_LENGTH], span=True)},\n"
 
         code += f"sumcheck_evaluations: {format_array(self.sumcheck_evaluations, span=True)},\n"
-        code += f"gemini_fold_comms: array![{', '.join(g1_to_g1point256(comm) for comm in self.gemini_fold_comms)}].span(),\n"
-        code += f"gemini_a_evaluations: {format_array(self.gemini_a_evaluations, span=True)},\n"
+        code += f"gemini_fold_comms: array![{', '.join(g1_to_g1point256(comm) for comm in self.gemini_fold_comms[:self.log_circuit_size - 1])}].span(),\n"
+        code += f"gemini_a_evaluations: {format_array(self.gemini_a_evaluations[:self.log_circuit_size], span=True)},\n"
         code += f"shplonk_q: {g1_to_g1point256(self.shplonk_q)},\n"
         code += f"kzg_quotient: {g1_to_g1point256(self.kzg_quotient)},\n"
         code += "};"
@@ -279,7 +284,9 @@ class HonkProof:
         cd.extend(serialize_G1Point256(self.lookup_inverses))
         cd.extend(
             io.bigint_split_array(
-                x=io.flatten(self.sumcheck_univariates),
+                x=io.flatten(self.sumcheck_univariates)[
+                    : BATCHED_RELATION_PARTIAL_LENGTH * self.log_circuit_size
+                ],  # The rest is 0.
                 n_limbs=2,
                 base=2**128,
                 prepend_length=True,
@@ -292,13 +299,18 @@ class HonkProof:
             )
         )
 
-        cd.append(len(self.gemini_fold_comms))
-        for pt in self.gemini_fold_comms:
+        cd.append(self.log_circuit_size - 1)
+        for pt in self.gemini_fold_comms[
+            : self.log_circuit_size - 1
+        ]:  # The rest is G(1, 2)
             cd.extend(serialize_G1Point256(pt))
 
         cd.extend(
             io.bigint_split_array(
-                x=self.gemini_a_evaluations, n_limbs=2, base=2**128, prepend_length=True
+                x=self.gemini_a_evaluations[: self.log_circuit_size],
+                n_limbs=2,
+                base=2**128,
+                prepend_length=True,
             )
         )
         cd.extend(serialize_G1Point256(self.shplonk_q))
@@ -1680,16 +1692,16 @@ class HonkVerifierCircuits(ModuloCircuit):
                     batching_challenge, inverse_vanishing_evals[i + 2]
                 )
                 scalars[NUMBER_OF_ENTITIES + i + 1] = self.neg(scaling_factor)
+                constant_term_accumulator = self.add(
+                    constant_term_accumulator,
+                    self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
+                )
             else:
                 # print(
                 #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
                 # )
                 pass
 
-            constant_term_accumulator = self.add(
-                constant_term_accumulator,
-                self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
-            )
             # skip last round:
             if i < self.log_n - 2:
                 batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)

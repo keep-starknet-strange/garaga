@@ -269,9 +269,8 @@ mod UltraKeccakHonkVerifier {{
                                                     full_proof.proof.z_perm.into(),
                                                     ];
 
-            let n_gem_comms = vk.log_circuit_size-1;
-            for i in 0_u32..n_gem_comms {{
-                _points.append((*full_proof.proof.gemini_fold_comms.at(i)).into());
+            for gem_comm in full_proof.proof.gemini_fold_comms {{
+                _points.append((*gem_comm).into());
             }};
             _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());

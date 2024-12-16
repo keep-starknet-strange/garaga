@@ -267,7 +267,7 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
         imap = {}
 
         imap["p_sumcheck_evaluations"] = (structs.u256Span, hk.NUMBER_OF_ENTITIES)
-        imap["p_gemini_a_evaluations"] = (structs.u256Span, hk.CONST_PROOF_SIZE_LOG_N)
+        imap["p_gemini_a_evaluations"] = (structs.u256Span, self.vk.log_circuit_size)
         imap["tp_gemini_r"] = structs.u384
         imap["tp_rho"] = structs.u384
         imap["tp_shplonk_z"] = structs.u384
