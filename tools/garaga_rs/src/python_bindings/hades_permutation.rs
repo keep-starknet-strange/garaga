@@ -22,13 +22,12 @@ pub fn hades_permutation(
 
     PoseidonCairoStark252::hades_permutation(&mut state);
 
-    let py_tuple = PyTuple::new_bound(
+    let py_tuple = PyTuple::new(
         py,
         state.iter().map(|fe| {
             let fe_bytes = fe.to_bytes_be();
-            PyBytes::new_bound(py, &fe_bytes)
+            PyBytes::new(py, &fe_bytes)
         }),
     );
-
-    Ok(py_tuple.into())
+    Ok(py_tuple?.into())
 }

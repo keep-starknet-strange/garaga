@@ -26,14 +26,14 @@ wasm-bindgen-test = "0.3"
 
 # assumes python dependencies when not on wasm32-unknown-unknown
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pyo3 = { version = "0.22", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.23", features = ["extension-module", "num-bigint"] }
 
 # assumes wasm dependencies when on wasm32-unknown-unknown
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2"
 
 [dependencies]
-pyo3 = { version = "0.22", features = ["extension-module", "num-bigint"], optional = true }
+pyo3 = { version = "0.23", features = ["extension-module", "num-bigint"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
 num-bigint = "0.4"
 num-traits = "0.2"

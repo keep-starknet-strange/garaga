@@ -20,6 +20,8 @@ pub fn get_final_exp_witness(
     let f_11: BigUint = py_list.get_item(11)?.extract()?;
     let f = [f_0, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10, f_11];
     let (c, wi) = crate::pairing::final_exp_witness::get_final_exp_witness(curve_id, f);
-    let py_tuple = PyTuple::new_bound(py, [PyList::new_bound(py, c), PyList::new_bound(py, wi)]);
-    Ok(py_tuple.into())
+    let c_list = PyList::new(py, c)?;
+    let wi_list = PyList::new(py, wi)?;
+    let py_tuple = PyTuple::new(py, [c_list, wi_list])?;
+    Ok(Py::from(py_tuple))
 }
