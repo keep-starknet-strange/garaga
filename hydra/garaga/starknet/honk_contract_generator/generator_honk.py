@@ -38,15 +38,14 @@ def gen_honk_circuits_code(vk: HonkVk) -> str:
     """
     header = """
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+    u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
+    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{
-    get_b, G1Point, u288, get_GRUMPKIN_modulus, get_BN254_modulus};
+use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};
 use core::option::Option;\n
 """
     code = header
@@ -121,7 +120,7 @@ def gen_honk_verifier(
     precomputed_lines = precompute_lines_honk()
 
     constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Point, G2Line, u384, u288}};
+    use garaga::definitions::{{G1Point, G2Line, u384, u288}};
     use garaga::utils::noir::HonkVk;
 
     {vk.serialize_to_cairo()}\n
@@ -156,16 +155,15 @@ trait IUltraKeccakHonkVerifier<TContractState> {{
 
 #[starknet::contract]
 mod UltraKeccakHonkVerifier {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus, u384}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add, FunctionFelt,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
-    use garaga::ec_ops_g2::{{G2PointTrait}};
-    use garaga::basic_field_ops::{{add_mod_p, mul_mod_p}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
+    use garaga::basic_field_ops::{{batch_3_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::keccak_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint}};
+    use garaga::utils::noir::keccak_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
@@ -202,7 +200,7 @@ mod UltraKeccakHonkVerifier {{
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
                 p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
-                {', '.join([f'sumcheck_univariate_{i}: (*full_proof.proof.sumcheck_univariates.at({i}))' for i in range(vk.log_circuit_size)])},
+                sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
                     full_proof.proof.sumcheck_evaluations
                 ),
@@ -271,9 +269,8 @@ mod UltraKeccakHonkVerifier {{
                                                     full_proof.proof.z_perm.into(),
                                                     ];
 
-            let n_gem_comms = vk.log_circuit_size-1;
-            for i in 0_u32..n_gem_comms {{
-                _points.append((*full_proof.proof.gemini_fold_comms.at(i)).into());
+            for gem_comm in full_proof.proof.gemini_fold_comms {{
+                _points.append((*gem_comm).into());
             }};
             _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
@@ -383,15 +380,7 @@ mod UltraKeccakHonkVerifier {{
             );
 
             let mod_bn = get_modulus(0);
-            let c0: u384 = base_rlc_coeff.into();
-            let c1: u384 = mul_mod_p(c0, c0, mod_bn);
-            let c2 = mul_mod_p(c1, c0, mod_bn);
-
-            let zk_ecip_batched_rhs = add_mod_p(
-                add_mod_p(mul_mod_p(rhs_low, c0, mod_bn), mul_mod_p(rhs_high, c1, mod_bn), mod_bn),
-                mul_mod_p(rhs_high_shifted, c2, mod_bn),
-                mod_bn
-            );
+            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
 
@@ -456,7 +445,9 @@ if __name__ == "__main__":
     VK_PATH = (
         "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
     )
-
+    VK_LARGE_PATH = (
+        "hydra/garaga/starknet/honk_contract_generator/examples/vk_large.bin"
+    )
     CONTRACTS_FOLDER = "src/contracts/"  # Do not change this
 
     FOLDER_NAME = (
@@ -464,3 +455,4 @@ if __name__ == "__main__":
     )
 
     gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME)
+    # gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large")
