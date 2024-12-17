@@ -44,5 +44,13 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(msm::msm_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(mpc_calldata::mpc_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(groth16_calldata::get_groth16_calldata, m)?)?;
+    m.add_function(wrap_pyfunction!(get_risc0_constants, m)?)?;
     Ok(())
+}
+
+#[pyfunction]
+pub fn get_risc0_constants(py: Python) -> PyResult<PyObject> {
+    let (control_root, control_id) = crate::calldata::full_proof_with_hints::groth16::risc0_utils::get_risc0_constants();
+    let py_tuple = PyTuple::new(py, [control_root, control_id])?;
+    Ok(Py::from(py_tuple))
 }
