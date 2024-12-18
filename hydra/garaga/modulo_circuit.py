@@ -6,7 +6,7 @@ from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.extf_mul import nondeterministic_extension_field_div
 from garaga.hints.io import bigint_split
-from garaga.modulo_circuit_structs import Cairo1SerializableStruct
+from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u384
 
 BATCH_SIZE = 1  # Batch Size, only used in cairo 0 mode.
 
@@ -341,6 +341,7 @@ class ModuloCircuit:
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
         self.input_structs: list[Cairo1SerializableStruct] = []
+        self.do_not_inline = False
 
     @property
     def values_offset(self) -> int:
@@ -379,7 +380,7 @@ class ModuloCircuit:
 
     def write_element(
         self,
-        elmt: PyFelt,
+        elmt: PyFelt | int,
         write_source: WriteOps = WriteOps.INPUT,
         instruction: ModuloCircuitInstruction | None = None,
     ) -> ModuloCircuitElement:
@@ -387,7 +388,11 @@ class ModuloCircuit:
         Register an emulated field element to the circuit given its value and the write source.
         Returns a ModuloCircuitElement representing the written element with its offset as identifier.
         """
-        assert isinstance(elmt, PyFelt), f"Expected PyFelt, got {type(elmt)}"
+        assert isinstance(elmt, PyFelt) or isinstance(
+            elmt, int
+        ), f"Expected PyFelt or int, got {type(elmt)}"
+        if isinstance(elmt, int):
+            elmt = self.field(elmt)
         value_offset = self.values_segment.write_to_segment(
             ValueSegmentItem(
                 elmt,
@@ -417,7 +422,7 @@ class ModuloCircuit:
 
         if all_pyfelt:
             self.input_structs.append(struct)
-            if len(struct) == 1:
+            if len(struct) == 1 and isinstance(struct, u384):
                 return self.write_element(struct.elmts[0], write_source)
             else:
                 return self.write_elements(struct.elmts, write_source)
@@ -431,7 +436,10 @@ class ModuloCircuit:
             return result
 
     def write_elements(
-        self, elmts: list[PyFelt], operation: WriteOps, sparsity: list[int] = None
+        self,
+        elmts: list[PyFelt],
+        operation: WriteOps = WriteOps.INPUT,
+        sparsity: list[int] = None,
     ) -> list[ModuloCircuitElement]:
         if sparsity is not None:
             assert len(sparsity) == len(
@@ -508,6 +516,24 @@ class ModuloCircuit:
                 a.emulated_felt + b.emulated_felt, WriteOps.BUILTIN, instruction
             )
 
+    def sum(self, args: list[ModuloCircuitElement], comment: str | None = None):
+        if not args:
+            raise ValueError("The 'args' list cannot be empty.")
+        assert all(isinstance(elmt, ModuloCircuitElement) for elmt in args)
+        result = args[0]
+        for elmt in args[1:]:
+            result = self.add(result, elmt, comment)
+        return result
+
+    def product(self, args: list[ModuloCircuitElement], comment: str | None = None):
+        if not args:
+            raise ValueError("The 'args' list cannot be empty.")
+        assert all(isinstance(elmt, ModuloCircuitElement) for elmt in args)
+        result = args[0]
+        for elmt in args[1:]:
+            result = self.mul(result, elmt, comment)
+        return result
+
     def double(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
         return self.add(a, a)
 
@@ -523,7 +549,7 @@ class ModuloCircuit:
             return self.set_or_get_constant(0)
         assert isinstance(a, ModuloCircuitElement) and isinstance(
             b, ModuloCircuitElement
-        ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
+        ), f"Expected ModuloElement, got lhs {type(a)}, {a} and rhs {type(b)}, {b}"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.MUL, a.offset, b.offset, self.values_offset, comment
         )
@@ -629,6 +655,32 @@ class ModuloCircuit:
             ),
         ]
 
+    def fp2_mul_by_non_residue(self, X: list[ModuloCircuitElement]):
+        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
+        if self.curve_id == 1:
+            # Non residue (1,1)
+            # (a0 + i*a1) * (1 + i)
+            a_tmp = self.add(X[0], X[1])
+            a = self.add(a_tmp, a_tmp)
+            b = X[0]
+            z_a0 = self.sub(b, X[1])
+            z_a1 = self.sub(self.sub(a, b), X[1])
+            return [z_a0, z_a1]
+        elif self.curve_id == 0:
+            # Non residue (9, 1)
+            # (a0 + i*a1) * (9 + i)
+            a_tmp = self.add(X[0], X[1])
+            a = self.mul(a_tmp, self.set_or_get_constant(10))
+            b = self.mul(X[0], self.set_or_get_constant(9))
+            z_a0 = self.sub(b, X[1])
+            z_a1 = self.sub(self.sub(a, b), X[1])
+            return [z_a0, z_a1]
+
+        else:
+            raise ValueError(
+                f"Unsupported curve id for fp2 mul by non residue: {self.curve_id}"
+            )
+
     def fp2_square(self, X: list[ModuloCircuitElement]):
         # Assumes the irreducible poly is X^2 + 1.
         # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
@@ -638,6 +690,16 @@ class ModuloCircuit:
             self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
             self.double(self.mul(X[0], X[1])),
         ]
+
+    def fp2_inv(self, X: list[ModuloCircuitElement]):
+        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
+        t0 = self.mul(X[0], X[0], comment="Fp2 Inv start")
+        t1 = self.mul(X[1], X[1])
+        t0 = self.add(t0, t1)
+        t1 = self.inv(t0)
+        inv0 = self.mul(X[0], t1, comment="Fp2 Inv real part end")
+        inv1 = self.neg(self.mul(X[1], t1), comment="Fp2 Inv imag part end")
+        return [inv0, inv1]
 
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         assert len(X) == len(Y) == 2 and all(
@@ -659,13 +721,8 @@ class ModuloCircuit:
             return x_over_y
         elif self.compilation_mode == 1:
             # Todo : consider passing as calldata if possible.
-            t0 = self.mul(Y[0], Y[0], comment="Fp2 Div x/y start : Fp2 Inv y start")
-            t1 = self.mul(Y[1], Y[1])
-            t0 = self.add(t0, t1)
-            t1 = self.inv(t0)
-            inv0 = self.mul(Y[0], t1, comment="Fp2 Inv y real part end")
-            inv1 = self.neg(self.mul(Y[1], t1), comment="Fp2 Inv y imag part end")
-            return self.fp2_mul(X, [inv0, inv1])
+            inv = self.fp2_inv(Y)
+            return self.fp2_mul(X, inv)
 
     def sub_and_assert(
         self,
@@ -795,14 +852,14 @@ class ModuloCircuit:
     def print_value_segment(self):
         self.values_segment.print()
 
-    def compile_circuit(self, function_name: str = None):
+    def compile_circuit(self, function_name: str = None, pub: bool = True):
         if self.is_empty_circuit():
             return "", ""
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
-            return self.compile_circuit_cairo_1(function_name)
+            return self.compile_circuit_cairo_1(function_name, pub)
 
     def compile_circuit_cairo_zero(
         self,
@@ -1030,6 +1087,7 @@ class ModuloCircuit:
     def compile_circuit_cairo_1(
         self,
         function_name: str = None,
+        pub: bool = False,
     ) -> str:
         """
         Defines the Cairo 1 function code for the compiled circuit.
@@ -1065,10 +1123,14 @@ class ModuloCircuit:
         else:
             signature_input = "mut input: Array<u384>"
 
-        if self.generic_circuit:
-            code = f"#[inline(always)]\nfn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        if pub:
+            prefix = "pub "
         else:
-            code = f"#[inline(always)]\nfn {function_name}({signature_input})->{signature_output} {{\n"
+            prefix = ""
+        if self.generic_circuit:
+            code = f"#[inline(always)]\n{prefix}fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        else:
+            code = f"#[inline(always)]\n{prefix}fn {function_name}({signature_input})->{signature_output} {{\n"
 
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
@@ -1113,9 +1175,7 @@ class ModuloCircuit:
         """
         else:
             code += """
-    let modulus = get_p(curve_index);
-    let modulus = TryInto::<_, CircuitModulus>::try_into([modulus.limb0, modulus.limb1, modulus.limb2, modulus.limb3])
-        .unwrap();
+    let modulus = get_modulus(curve_index);
         """
 
         code += f"""
@@ -1143,7 +1203,7 @@ class ModuloCircuit:
                     )
                 else:
                     struct_code_with_counter = (
-                        struct_code + f" // in{acc_len} - in{acc_len+len(struct)-1}"
+                        struct_code + f" // in{acc_len} - in{acc_len+len(struct)-1}\n"
                     )
                 acc_len += len(struct)
                 code += struct_code_with_counter + "\n"

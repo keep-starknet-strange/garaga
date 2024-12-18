@@ -15,6 +15,8 @@ class MSMCalldataBuilder:
     curve_id: CurveID
     points: list[G1Point]
     scalars: list[int]
+    risc0_mode: bool = False
+    transcript: CairoPoseidonTranscript = None
 
     def __post_init__(self):
         assert all(
@@ -26,6 +28,16 @@ class MSMCalldataBuilder:
         assert all(
             0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
         ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
+
+        if self.risc0_mode:
+            assert all(
+                s < 2**128 for s in self.scalars
+            ), "Scalars must be in [0, 2^128) in risc0 mode."
+
+        init_bytes = b"MSM_G1" if not self.risc0_mode else b"MSM_G1_U128"
+        self.transcript = CairoPoseidonTranscript(
+            init_hash=int.from_bytes(init_bytes, "big")
+        )
 
     def __hash__(self) -> int:
         return hash((self.curve_id, tuple(self.points), tuple(self.scalars)))
@@ -56,66 +68,51 @@ class MSMCalldataBuilder:
         ], [neg_3_base_le(s) for s in scalars_high]
         return scalars_low_decompositions, scalars_high_decompositions
 
-    def _retrieve_random_x_coordinate(
+    def _hash_inputs_points_scalars_and_result_points(
         self,
         Q_low: G1Point,
         Q_high: G1Point,
         Q_high_shifted: G1Point,
-        SumDlogDivLow: FunctionFelt,
-        SumDlogDivHigh: FunctionFelt,
-        SumDlogDivHighShifted: FunctionFelt,
-        risc0_mode: bool = False,
     ):
-        init_bytes = b"MSM_G1" if not risc0_mode else b"MSM_G1_U128"
-        transcript = CairoPoseidonTranscript(
-            init_hash=int.from_bytes(init_bytes, "big")
-        )
-        transcript.update_sponge_state(self.curve_id.value, self.msm_size)
-
-        sum_dlog_divs = (
-            [SumDlogDivLow, SumDlogDivHigh] if not risc0_mode else [SumDlogDivLow]
-        )
-
-        for SumDlogDiv in sum_dlog_divs:
-            _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
-                SumDlogDiv, self.msm_size, py_felt=True
-            )
-            transcript.hash_limbs_multi(_a_num)
-            transcript.hash_limbs_multi(_a_den)
-            transcript.hash_limbs_multi(_b_num)
-            transcript.hash_limbs_multi(_b_den)
-
-        if not risc0_mode:
-            for SumDlogDiv in [SumDlogDivHighShifted]:
-                _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
-                    SumDlogDiv, 1, py_felt=True
-                )
-                transcript.hash_limbs_multi(_a_num)
-                transcript.hash_limbs_multi(_a_den)
-                transcript.hash_limbs_multi(_b_num)
-                transcript.hash_limbs_multi(_b_den)
-
+        self.transcript.update_sponge_state(self.curve_id.value, self.msm_size)
         for point in self.points:
-            transcript.hash_element(self.field(point.x))
-            transcript.hash_element(self.field(point.y))
+            self.transcript.hash_element(self.field(point.x))
+            self.transcript.hash_element(self.field(point.y))
 
-        results = [Q_low, Q_high, Q_high_shifted] if not risc0_mode else [Q_low]
-        if risc0_mode:
-            assert (
-                Q_high.is_infinity() and Q_high_shifted.is_infinity()
-            ), "Q_high and Q_high_shifted must be infinity in risc0 mode"
-        for result_point in results:
-            transcript.hash_element(self.field(result_point.x))
-            transcript.hash_element(self.field(result_point.y))
-
-        if not risc0_mode:
-            for scalar in self.scalars:
-                transcript.hash_u256(scalar)
+        if self.risc0_mode:
+            results = [Q_low]
         else:
-            for scalar in self.scalars:
-                transcript.hash_u128(scalar)
+            results = [Q_low, Q_high, Q_high_shifted]
 
-        return transcript.s0
+        for result_point in results:
+            self.transcript.hash_element(self.field(result_point.x))
+            self.transcript.hash_element(self.field(result_point.y))
+
+        for scalar in self.scalars:
+            if not self.risc0_mode:
+                self.transcript.hash_u256(scalar)
+            else:
+                self.transcript.hash_u128(scalar)
+
+        return self.transcript.s1
+
+    def _retrieve_random_x_coordinate(
+        self,
+        sum_dlog_div_maybe_batched: FunctionFelt,
+    ):
+
+        _a_num, _a_den, _b_num, _b_den = io.padd_function_felt(
+            sum_dlog_div_maybe_batched,
+            self.msm_size,
+            py_felt=True,
+            batched=not self.risc0_mode,
+        )
+        self.transcript.hash_limbs_multi(_a_num)
+        self.transcript.hash_limbs_multi(_a_den)
+        self.transcript.hash_limbs_multi(_b_num)
+        self.transcript.hash_limbs_multi(_b_den)
+
+        return self.transcript.s0
 
     def build_derive_point_from_x_hint(
         self, random_x_coordinate: int
@@ -131,27 +128,42 @@ class MSMCalldataBuilder:
         )
 
     @lru_cache(maxsize=2)
-    def build_msm_hints(
-        self, risc0_mode: bool = False
-    ) -> tuple[structs.Struct, structs.Struct]:
+    def build_msm_hints(self) -> tuple[structs.Struct, structs.Struct]:
         """
         Returns the MSMHint and the DerivePointFromXHint
         """
         scalars_low, scalars_high = self.scalars_split()
 
         _Q_low, _SumDlogDivLow = ecip.zk_ecip_hint(self.points, scalars_low)
+        _SumDlogDivLow.validate_degrees(
+            msm_size=self.msm_size, batched=not self.risc0_mode
+        )
+
         _Q_high, _SumDlogDivHigh = ecip.zk_ecip_hint(self.points, scalars_high)
+        _SumDlogDivHigh.validate_degrees(
+            msm_size=self.msm_size, batched=not self.risc0_mode
+        )
+
         _Q_high_shifted, _SumDlogDivHighShifted = ecip.zk_ecip_hint([_Q_high], [2**128])
-        _x_coordinate = self._retrieve_random_x_coordinate(
+        _SumDlogDivHighShifted.validate_degrees(msm_size=1, batched=not self.risc0_mode)
+
+        self._hash_inputs_points_scalars_and_result_points(
             _Q_low,
             _Q_high,
             _Q_high_shifted,
-            _SumDlogDivLow,
-            _SumDlogDivHigh,
-            _SumDlogDivHighShifted,
-            risc0_mode,
         )
 
+        if not self.risc0_mode:
+            rlc_coeff = self.transcript.s1
+            sum_dlog_div_maybe_batched = (
+                _SumDlogDivLow * rlc_coeff
+                + _SumDlogDivHigh * (rlc_coeff * rlc_coeff)
+                + _SumDlogDivHighShifted * (rlc_coeff * rlc_coeff * rlc_coeff)
+            )
+        else:
+            sum_dlog_div_maybe_batched = _SumDlogDivLow
+
+        _x_coordinate = self._retrieve_random_x_coordinate(sum_dlog_div_maybe_batched)
         derive_point_from_x_hint = self.build_derive_point_from_x_hint(_x_coordinate)
 
         #############################
@@ -180,7 +192,8 @@ class MSMCalldataBuilder:
             A0=_A0,
         )
         #############################
-        if not risc0_mode:
+
+        if not self.risc0_mode:
             return (
                 structs.Struct(
                     struct_name="MSMHint",
@@ -192,19 +205,10 @@ class MSMCalldataBuilder:
                             "Q_high_shifted", _Q_high_shifted
                         ),
                         structs.FunctionFeltCircuit.from_FunctionFelt(
-                            name="SumDlogDivLow",
-                            f=_SumDlogDivLow,
+                            name="RLCSumDlogDiv",
+                            f=sum_dlog_div_maybe_batched,
                             msm_size=self.msm_size,
-                        ),
-                        structs.FunctionFeltCircuit.from_FunctionFelt(
-                            name="SumDlogDivHigh",
-                            f=_SumDlogDivHigh,
-                            msm_size=self.msm_size,
-                        ),
-                        structs.FunctionFeltCircuit.from_FunctionFelt(
-                            name="SumDlogDivHighShifted",
-                            f=_SumDlogDivHighShifted,
-                            msm_size=1,
+                            batched=True,
                         ),
                     ],
                 ),
@@ -221,6 +225,7 @@ class MSMCalldataBuilder:
                             name="SumDlogDiv",
                             f=_SumDlogDivLow,
                             msm_size=self.msm_size,
+                            batched=False,
                         ),
                     ],
                 ),
@@ -228,7 +233,7 @@ class MSMCalldataBuilder:
             )
 
     def _get_input_structs(
-        self, risc0_mode: bool = False
+        self,
     ) -> list[structs.Cairo1SerializableStruct]:
         """
         Returns all the inputs used in the msm_g1 function :
@@ -240,7 +245,7 @@ class MSMCalldataBuilder:
             derive_point_from_x_hint: DerivePointFromXHint,
         """
         inputs = []
-        if risc0_mode:
+        if self.risc0_mode:
             inputs.append(
                 structs.StructSpan(
                     name="scalars_digits_decompositions",
@@ -299,8 +304,8 @@ class MSMCalldataBuilder:
                     ],
                 )
             )
-        inputs.append(self.build_msm_hints(risc0_mode)[0])
-        inputs.append(self.build_msm_hints(risc0_mode)[1])
+        inputs.append(self.build_msm_hints()[0])  # msm_hint
+        inputs.append(self.build_msm_hints()[1])  # derive_point_from_x_hint
         inputs.append(
             structs.StructSpan(
                 name="points",
@@ -310,7 +315,7 @@ class MSMCalldataBuilder:
                 ],
             )
         )
-        if not risc0_mode:
+        if not self.risc0_mode:
             inputs.append(
                 structs.StructSpan(
                     name="scalars",
@@ -332,7 +337,9 @@ class MSMCalldataBuilder:
             )
         return inputs
 
-    def to_cairo_1_test(self, test_name: str = None):
+    def to_cairo_1_test(
+        self, test_name: str = None, include_digits_decomposition=False
+    ):
         print(
             f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
         )
@@ -342,7 +349,11 @@ class MSMCalldataBuilder:
         input_code = ""
         for struct in inputs:
             if struct.name == "scalars_digits_decompositions":
-                input_code += struct.serialize(is_option=True)
+                if include_digits_decomposition:
+                    input_code += struct.serialize(is_option=True)
+                else:
+                    struct.elmts = None
+                    input_code += struct.serialize()
             else:
                 input_code += struct.serialize()
 
@@ -364,7 +375,6 @@ class MSMCalldataBuilder:
         include_digits_decomposition=True,
         include_points_and_scalars=True,
         serialize_as_pure_felt252_array=False,
-        risc0_mode=False,
     ) -> list[int]:
         return garaga_rs.msm_calldata_builder(
             [value for point in self.points for value in [point.x, point.y]],
@@ -373,7 +383,7 @@ class MSMCalldataBuilder:
             include_digits_decomposition,
             include_points_and_scalars,
             serialize_as_pure_felt252_array,
-            risc0_mode,
+            self.risc0_mode,
         )
 
     def serialize_to_calldata(
@@ -381,7 +391,6 @@ class MSMCalldataBuilder:
         include_digits_decomposition=True,
         include_points_and_scalars=True,
         serialize_as_pure_felt252_array=False,
-        risc0_mode=False,
         use_rust=False,
     ) -> list[int]:
         if use_rust:
@@ -389,15 +398,17 @@ class MSMCalldataBuilder:
                 include_digits_decomposition,
                 include_points_and_scalars,
                 serialize_as_pure_felt252_array,
-                risc0_mode,
             )
 
-        inputs = self._get_input_structs(risc0_mode)
-        option = (
-            structs.CairoOption.SOME
-            if include_digits_decomposition
-            else structs.CairoOption.NONE
-        )
+        inputs = self._get_input_structs()
+
+        match include_digits_decomposition:
+            case True:
+                option = structs.CairoOption.SOME
+            case False:
+                option = structs.CairoOption.NONE
+            case None:
+                option = structs.CairoOption.VOID
 
         call_data: list[int] = []
         for e in inputs:

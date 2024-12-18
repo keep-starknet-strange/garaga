@@ -661,6 +661,32 @@ def print_ff(ff: FF):
     return string
 
 
+def n_points_from_n_coeffs(n_coeffs: int, batched: bool) -> int:
+    if batched:
+        extra = 4 * 2
+    else:
+        extra = 0
+
+    # n_coeffs = 10 + 4n_points => 4n_points = n_coeffs - 10
+    assert n_coeffs >= 10 + extra
+    assert (n_coeffs - 10 - extra) % 4 == 0
+    return (n_coeffs - 10 - extra) // 4
+
+
+def n_coeffs_from_n_points(n_points: int, batched: bool) -> tuple[int, int, int, int]:
+    if batched:
+        extra = 2
+    else:
+        extra = 0
+
+    return (
+        1 + n_points + extra,
+        1 + n_points + 1 + extra,
+        1 + n_points + 1 + extra,
+        1 + n_points + 4 + extra,
+    )
+
+
 if __name__ == "__main__":
     import random
 

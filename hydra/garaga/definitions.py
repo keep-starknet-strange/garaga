@@ -25,15 +25,19 @@ BLS12_381_ID = 1
 SECP256K1_ID = 2
 SECP256R1_ID = 3
 ED25519_ID = 4
+GRUMPKIN_ID = 5
 
 
 class ProofSystem(Enum):
     Groth16 = "groth16"
+    UltraKeccakHonk = "ultra_keccak_honk"
 
     @property
     def supported_curves(self) -> set[int]:
         if self == ProofSystem.Groth16:
             return {BN254_ID, BLS12_381_ID}
+        if self == ProofSystem.UltraKeccakHonk:
+            return {BN254_ID}
         return set()
 
 
@@ -43,6 +47,7 @@ class CurveID(Enum):
     SECP256K1 = 2
     SECP256R1 = 3
     ED25519 = 4
+    GRUMPKIN = 5
 
     @staticmethod
     def from_str(s: str) -> "CurveID":
@@ -428,6 +433,19 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gy=0x6666666666666666666666666666666666666666666666666666666666666658,
         swu_params=None,
     ),
+    GRUMPKIN_ID: WeierstrassCurve(
+        cairo_zero_namespace_name="grumpkin",
+        id=GRUMPKIN_ID,
+        p=0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+        n=0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47,
+        h=1,
+        a=0,
+        b=-17 % 0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001,
+        fp_generator=5,
+        Gx=0x1,
+        Gy=0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C,
+        swu_params=None,
+    ),
 }
 
 
@@ -549,6 +567,9 @@ class G1Point:
     y: int
     curve_id: CurveID
     iso_point: bool = False
+
+    def __repr__(self) -> str:
+        return f"G1Point({hex(self.x)}, {hex(self.y)}) on {self.curve_id.value}"
 
     def __str__(self) -> str:
         return f"G1Point({self.x}, {self.y}) on curve {self.curve_id}"
@@ -831,6 +852,17 @@ class G1Point:
             self.iso_point,
         )
 
+    def to_pyfelt_list(self) -> list[PyFelt]:
+        field = get_base_field(self.curve_id.value)
+        return [field(self.x), field(self.y)]
+
+    def serialize_to_cairo(self, name: str, raw: bool = False) -> str:
+        import garaga.modulo_circuit_structs as structs
+
+        return structs.G1PointCircuit(name=name, elmts=self.to_pyfelt_list()).serialize(
+            raw
+        )
+
 
 @dataclass(frozen=True)
 class G2Point:
@@ -842,12 +874,15 @@ class G2Point:
     y: tuple[int, int]
     curve_id: CurveID
 
+    def __repr__(self):
+        return f"G2Point({hex(self.x[0])}, {hex(self.x[1])}, {hex(self.y[0])}, {hex(self.y[1])}, {self.curve_id})"
+
     def __post_init__(self):
         assert isinstance(CURVES[self.curve_id.value], PairingCurve)
         if self.is_infinity():
             return
         if not self.is_on_curve():
-            raise ValueError("G2 Point is not on the curve")
+            raise ValueError(f"G2 Point is not on the curve {self.curve_id}")
 
     @staticmethod
     def infinity(curve_id: CurveID) -> "G2Point":
@@ -955,6 +990,17 @@ class G2Point:
         muls = [P.scalar_mul(s) for P, s in zip(points, scalars)]
         scalar_mul = functools.reduce(lambda acc, p: acc.add(p), muls)
         return scalar_mul
+
+    def to_pyfelt_list(self) -> list[PyFelt]:
+        field = get_base_field(self.curve_id.value)
+        return [field(x) for x in self.x + self.y]
+
+    def serialize_to_cairo(self, name: str, raw: bool = False) -> str:
+        import garaga.modulo_circuit_structs as structs
+
+        return structs.G2PointCircuit(name=name, elmts=self.to_pyfelt_list()).serialize(
+            raw
+        )
 
 
 @dataclass(slots=True)
@@ -1205,5 +1251,35 @@ def replace_consecutive_zeros(lst):
     return result
 
 
+def recode_naf_bits(lst):
+    result = []
+    i = 0
+    while i < len(lst):
+        if i < len(lst) - 1 and lst[i] == 0 and (lst[i + 1] == 1 or lst[i + 1] == -1):
+            # "01" or "0-1"
+            if lst[i + 1] == 1:
+                result.append(3)  # Replace "01" with 3
+            else:
+                result.append(4)  # Replace "0-1" with 4
+            i += 2
+        elif i < len(lst) - 1 and (lst[i] == 1 or lst[i] == -1) and lst[i + 1] == 0:
+            # "10" or "-10"
+            if lst[i] == 1:
+                result.append(1)  # Replace 10 with 6
+            else:
+                result.append(2)  # Replace -10 with 7
+            i += 2
+        elif i < len(lst) - 1 and lst[i] == 0 and lst[i + 1] == 0:
+            result.append(0)  # Replace consecutive zeros with 0
+            i += 2
+        else:
+            raise ValueError(f"Unexpected bit sequence at index {i}")
+    return result
+
+
 if __name__ == "__main__":
-    pass
+    r = recode_naf_bits(jy00(6 * 0x44E992B44A6909F1 + 2)[2:])
+    print(r, len(r))
+
+    # bls = [int(x) for x in bin(0xD201000000010000)[2:]][2:]
+    # recode_naf_bits(bls)
