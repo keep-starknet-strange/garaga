@@ -1,19 +1,16 @@
 use core::sha256::{compute_sha256_u32_array, compute_sha256_byte_array};
 use garaga::utils::usize_assert_eq;
+use core::integer;
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
-const TAG_DIGEST: [
-    u32
-    ; 8] = [
+const TAG_DIGEST: [u32; 8] = [
     0xcb1fefcd, 0x1f2d9a64, 0x975cbbbf, 0x6e161e29, 0x14434b0c, 0xbb9960b8, 0x4df5d717, 0xe86b48af,
 ];
 
 // 0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2
 // https://github.com/risc0/risc0-ethereum/blob/34d2fee4ca6b5fb354a8a1a00c43f8945097bfe5/contracts/src/IRiscZeroVerifier.sol#L60
-const SYSTEM_STATE_ZERO_DIGEST: [
-    u32
-    ; 8] = [
+const SYSTEM_STATE_ZERO_DIGEST: [u32; 8] = [
     0xa3acc271, 0x17418996, 0x340b84e5, 0xa90f3ef4, 0xc49d22c7, 0x9e44aad8, 0x22ec9c31, 0x3e1eb8e2,
 ];
 
@@ -21,9 +18,7 @@ const INPUT_ZERO: [u32; 8] = [0, 0, 0, 0, 0, 0, 0, 0];
 
 // sha256(b"risc0.Output") =
 // 0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4
-const RISC0_OUTPUT_TAG: [
-    u32
-    ; 8] = [
+const RISC0_OUTPUT_TAG: [u32; 8] = [
     0x77eafeb3, 0x66a78b47, 0x747de0d7, 0xbb176284, 0x85ff556, 0x4887009a, 0x5be63da3, 0x2d3559d4,
 ];
 
@@ -84,7 +79,7 @@ pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> 
 
     // Append 4 << 8 = 1024 to the end of the array (2 bytes)
     let res_u32 = compute_sha256_u32_array(
-        input: array, last_input_word: 1024, last_input_num_bytes: 2
+        input: array, last_input_word: 1024, last_input_num_bytes: 2,
     )
         .span();
 
@@ -99,7 +94,7 @@ pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> 
         + (*res_u32[0]).into() * 0x1000000000000000000000000;
 
     return uint256_byte_reverse(
-        u256 { low: res_low.try_into().unwrap(), high: res_high.try_into().unwrap() }
+        u256 { low: res_low.try_into().unwrap(), high: res_high.try_into().unwrap() },
     );
 }
 
@@ -131,56 +126,34 @@ mod risc0_utils_tests {
     #[test]
     fn test_receipt_claim() {
         let image_id: [u32; 8] = [
-            3491501487,
-            2808651867,
-            557489759,
-            3452720932,
-            2727640576,
-            160202435,
-            1288430228,
-            1807482899
+            3491501487, 2808651867, 557489759, 3452720932, 2727640576, 160202435, 1288430228,
+            1807482899,
         ];
         let journal_digest: [u32; 8] = [
-            998783442,
-            2641348904,
-            1804572153,
-            3329687312,
-            3249394632,
-            3219372246,
-            356247808,
-            552440254
+            998783442, 2641348904, 1804572153, 3329687312, 3249394632, 3219372246, 356247808,
+            552440254,
         ];
         let receipt_claim = compute_receipt_claim(image_id.span(), journal_digest.span());
         assert_eq!(
             receipt_claim,
-            uint256_byte_reverse(0xe58e40abecebcfa4af85692fca5ed77d4ccb4b3f640f5e684e4faf3a36b0c4e0)
+            uint256_byte_reverse(
+                0xe58e40abecebcfa4af85692fca5ed77d4ccb4b3f640f5e684e4faf3a36b0c4e0,
+            ),
         );
     }
     #[test]
     fn test_output_digest() {
         let journal_digest: [u32; 8] = [
-            998783442,
-            2641348904,
-            1804572153,
-            3329687312,
-            3249394632,
-            3219372246,
-            356247808,
-            552440254
+            998783442, 2641348904, 1804572153, 3329687312, 3249394632, 3219372246, 356247808,
+            552440254,
         ];
         let out = output_digest(journal_digest.span());
         assert_eq!(
             out,
             [
-                0x6293f84a,
-                0xf9e28fcc,
-                0x43eb4d3d,
-                0xf962d8d8,
-                0x1364db76,
-                0x22a407a1,
-                0xab5be010,
-                0x1a1f0a26
-            ]
+                0x6293f84a, 0xf9e28fcc, 0x43eb4d3d, 0xf962d8d8, 0x1364db76, 0x22a407a1, 0xab5be010,
+                0x1a1f0a26,
+            ],
         );
     }
 }

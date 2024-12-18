@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "garaga",
-  "version": "0.13.3",
+  "version": "0.15.3",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -19,6 +19,8 @@
     "test:watch": "jest --watch"
   },
   "devDependencies": {
+    "@babel/preset-env": "^7.26.0",
+    "@babel/preset-typescript": "^7.26.0",
     "@rollup/plugin-typescript": "^11.1.6",
     "@types/jest": "^29.5.13",
     "@types/node": "^22.7.4",

@@ -13,6 +13,8 @@ use crate::io::{
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint, Sign};
+use sha2::{Digest, Sha256};
+use starknet_types_core::felt::Felt;
 
 pub struct Groth16Proof {
     pub a: G1PointBigUint,
@@ -87,6 +89,50 @@ impl Groth16Proof {
         }
         cd
     }
+
+    pub fn from_risc0(seal: Vec<u8>, image_id: Vec<u8>, journal: Vec<u8>) -> Self {
+        assert!(image_id.len() <= 32, "image_id must be 32 bytes");
+
+        let (control_root, bn254_control_id) = risc0_utils::get_risc0_constants();
+
+        let (control_root_0, control_root_1) = risc0_utils::split_digest(&control_root);
+
+        let proof = &seal[4..];
+
+        let mut hasher = Sha256::new();
+        hasher.update(&journal);
+        let journal_digest = hasher.finalize();
+
+        let claim_digest = risc0_utils::ok_digest(&image_id, &journal_digest);
+        let claim_digest_biguint = BigUint::from_bytes_be(&claim_digest);
+        let (claim0, claim1) = risc0_utils::split_digest(&claim_digest_biguint);
+
+        Groth16Proof {
+            a: G1PointBigUint {
+                x: BigUint::from_bytes_be(&proof[0..32]),
+                y: BigUint::from_bytes_be(&proof[32..64]),
+            },
+            b: G2PointBigUint {
+                x0: BigUint::from_bytes_be(&proof[96..128]),
+                x1: BigUint::from_bytes_be(&proof[64..96]),
+                y0: BigUint::from_bytes_be(&proof[160..192]),
+                y1: BigUint::from_bytes_be(&proof[128..160]),
+            },
+            c: G1PointBigUint {
+                x: BigUint::from_bytes_be(&proof[192..224]),
+                y: BigUint::from_bytes_be(&proof[224..256]),
+            },
+            public_inputs: vec![
+                control_root_0,
+                control_root_1,
+                claim0,
+                claim1,
+                bn254_control_id,
+            ],
+            image_id: Some(image_id),
+            journal: Some(journal),
+        }
+    }
 }
 
 pub struct Groth16VerificationKey {
@@ -116,6 +162,16 @@ impl Groth16VerificationKey {
             ic,
         }
     }
+}
+
+pub fn get_groth16_calldata_felt(
+    proof: &Groth16Proof,
+    vk: &Groth16VerificationKey,
+    curve_id: CurveID,
+) -> Result<Vec<Felt>, String> {
+    let calldata = get_groth16_calldata(proof, vk, curve_id)?;
+
+    Ok(calldata.into_iter().map(|x| Felt::from(x)).collect())
 }
 
 pub fn get_groth16_calldata(
@@ -228,5 +284,143 @@ where
     G1PointBigUint {
         x: element_to_biguint(&vk_x.x),
         y: element_to_biguint(&vk_x.y),
+    }
+}
+
+pub mod risc0_utils {
+    use super::Groth16VerificationKey;
+    use hex;
+    use num_bigint::BigUint;
+    use num_traits::Num;
+    use sha2::{Digest, Sha256};
+
+    pub fn get_risc0_constants() -> (BigUint, BigUint) {
+        let risc0_control_root = BigUint::from_str_radix(
+            "8CDAD9242664BE3112ABA377C5425A4DF735EB1C6966472B561D2855932C0469",
+            16,
+        )
+        .unwrap();
+        let risc0_bn254_control_id = BigUint::from_str_radix(
+            "04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
+            16,
+        )
+        .unwrap();
+
+        (risc0_control_root, risc0_bn254_control_id)
+    }
+
+    pub fn get_risc0_vk() -> Groth16VerificationKey {
+        let vk_hex = [
+            "2d4d9aa7e302d9df41749d5507949d05dbea33fbb16c643b22f599a2be6df2e2",
+            "14bedd503c37ceb061d8ec60209fe345ce89830a19230301f076caff004d1926",
+            "e187847ad4c798374d0d6732bf501847dd68bc0e071241e0213bc7fc13db7ab",
+            "967032fcbf776d1afc985f88877f182d38480a653f2decaa9794cbc3bf3060c",
+            "1739c1b1a457a8c7313123d24d2f9192f896b7c63eea05a9d57f06547ad0cec8",
+            "304cfbd1e08a704a99f5e847d93f8c3caafddec46b7a0d379da69a4d112346a7",
+            "1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
+            "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
+            "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
+            "90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
+            "1aa085ff28179a12d922dba0547057ccaae94b9d69cfaa4e60401fea7f3e0333",
+            "3b03cd5effa95ac9bee94f1f5ef907157bda4812ccf0b4c91f42bb629f83a1c",
+            "1e60f31fcbf757e837e867178318832d0b2d74d59e2fea1c7142df187d3fc6d3",
+            "110c10134f200b19f6490846d518c9aea868366efb7228ca5c91d2940d030762",
+            "12ac9a25dcd5e1a832a9061a082c15dd1d61aa9c4d553505739d0f5d65dc3be4",
+            "25aa744581ebe7ad91731911c898569106ff5a2d30f3eee2b23c60ee980acd4",
+            "707b920bc978c02f292fae2036e057be54294114ccc3c8769d883f688a1423f",
+            "2e32a094b7589554f7bc357bf63481acd2d55555c203383782a4650787ff6642",
+            "bca36e2cbe6394b3e249751853f961511011c7148e336f4fd974644850fc347",
+            "2ede7c9acf48cf3a3729fa3d68714e2a8435d4fa6db8f7f409c153b1fcdf9b8b",
+            "1b8af999dbfbb3927c091cc2aaf201e488cbacc3e2c6b6fb5a25f9112e04f2a7",
+            "2b91a26aa92e1b6f5722949f192a81c850d586d81a60157f3e9cf04f679cccd6",
+            "2b5f494ed674235b8ac1750bdfd5a7615f002d4a1dcefeddd06eda5a076ccd0d",
+            "2fe520ad2020aab9cbba817fcbb9a863b8a76ff88f14f912c5e71665b2ad5e82",
+            "f1c3c0d5d9da0fa03666843cde4e82e869ba5252fce3c25d5940320b1c4d493",
+            "214bfcff74f425f6fe8c0d07b307482d8bc8bb2f3608f68287aa01bd0b69e809",
+        ];
+
+        Groth16VerificationKey::from(
+            vk_hex
+                .iter()
+                .map(|s| BigUint::from_str_radix(s, 16).unwrap())
+                .collect::<Vec<BigUint>>(),
+        )
+    }
+
+    pub fn split_digest(digest: &BigUint) -> (BigUint, BigUint) {
+        // Convert to bytes, ensure 32 bytes, and reverse
+        let mut bytes = digest.to_bytes_be();
+        bytes.resize(32, 0);
+        bytes.reverse();
+
+        // Split into two 128-bit parts
+        let lower = BigUint::from_bytes_be(&bytes[0..16]);
+        let upper = BigUint::from_bytes_be(&bytes[16..32]);
+
+        (upper, lower)
+    }
+
+    struct ExitCode {
+        system: u32,
+        user: u32,
+    }
+
+    struct Output {
+        journal_digest: Vec<u8>,
+        assumptions_digest: Vec<u8>,
+    }
+
+    impl Output {
+        fn digest(&self) -> Vec<u8> {
+            let mut hasher = Sha256::new();
+            hasher.update(Sha256::digest(b"risc0.Output"));
+            hasher.update(&self.journal_digest);
+            hasher.update(&self.assumptions_digest);
+            hasher.update((2u16 << 8).to_be_bytes());
+            hasher.finalize().to_vec()
+        }
+    }
+
+    struct ReceiptClaim {
+        pre_state_digest: Vec<u8>,
+        post_state_digest: Vec<u8>,
+        exit_code: ExitCode,
+        input: Vec<u8>,
+        output: Vec<u8>,
+        tag_digest: Vec<u8>,
+    }
+
+    impl ReceiptClaim {
+        fn digest(&self) -> Vec<u8> {
+            let mut hasher = Sha256::new();
+            hasher.update(&self.tag_digest);
+            hasher.update(&self.input);
+            hasher.update(&self.pre_state_digest);
+            hasher.update(&self.post_state_digest);
+            hasher.update(&self.output);
+            hasher.update((self.exit_code.system << 24).to_be_bytes());
+            hasher.update((self.exit_code.user << 24).to_be_bytes());
+            hasher.update((4u16 << 8).to_be_bytes());
+            hasher.finalize().to_vec()
+        }
+    }
+
+    pub fn ok_digest(image_id: &[u8], journal_digest: &[u8]) -> Vec<u8> {
+        let system_state_zero_digest =
+            hex::decode("A3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2")
+                .unwrap();
+        let output = Output {
+            journal_digest: journal_digest.to_vec(),
+            assumptions_digest: vec![0; 32],
+        };
+        let receipt_claim = ReceiptClaim {
+            pre_state_digest: image_id.to_vec(),
+            post_state_digest: system_state_zero_digest,
+            exit_code: ExitCode { system: 0, user: 0 },
+            input: vec![0; 32],
+            output: output.digest(),
+            tag_digest: Sha256::digest(b"risc0.ReceiptClaim").to_vec(),
+        };
+        receipt_claim.digest()
     }
 }

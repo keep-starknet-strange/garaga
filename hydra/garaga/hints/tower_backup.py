@@ -414,6 +414,9 @@ class E12:
         z0 = c + b
         return E12([z0, z1], self.curve_id)
 
+    def conjugate(self):
+        return E12([self.c0, -self.c1], self.curve_id)
+
     def square(self):
         c0 = self.c0 - self.c1
         c3 = -(self.c1.mul_by_non_residue()) + self.c0
@@ -471,6 +474,16 @@ class E12:
             temp = temp.square()
 
         return result
+
+    def serialize(self) -> bytes:
+        # Implement serialization like ark-ff:
+        serialized = bytearray()
+        bit_size = CURVES[self.curve_id].p.bit_length()
+        byte_size = (bit_size + 7) // 8
+        for c in self.value_coeffs[::-1]:
+            serialized.extend(c.to_bytes(byte_size, byteorder="big"))
+
+        return bytes(serialized)
 
 
 def get_tower_object(x: list[PyFelt], curve_id: int, extension_degree: int):

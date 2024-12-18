@@ -1,22 +1,20 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData,
-    CircuitInputAccumulator
+    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
+    EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait,
+    CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{
-    get_a, get_b, get_p, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line,
-    get_BLS12_381_modulus, get_BN254_modulus
+    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
+    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
+    get_BLS12_381_modulus, get_BN254_modulus,
 };
 use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
-
 #[inline(always)]
-fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
+pub fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -71,8 +69,8 @@ fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     return (f_of_z,);
 }
 #[inline(always)]
-fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
-    X: E12D<u384>, Y: E12D<u384>, Q: E12DMulQuotient<u384>, z: u384
+pub fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
+    X: E12D<u384>, Y: E12D<u384>, Q: E12DMulQuotient<u384>, z: u384,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x2
@@ -183,11 +181,9 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     circuit_inputs = circuit_inputs
         .next_2(
             [
-                0xb153ffffb9feffffffffaaa9,
-                0x6730d2a0f6b0f6241eabfffe,
-                0x434bacd764774b84f38512bf,
-                0x1a0111ea397fe69a4b1ba7b6
-            ]
+                0xb153ffffb9feffffffffaaa9, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
+                0x1a0111ea397fe69a4b1ba7b6,
+            ],
         ); // in1
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
@@ -233,7 +229,7 @@ fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     return (check,);
 }
 #[inline(always)]
-fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
+pub fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -288,8 +284,8 @@ fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     return (f_of_z,);
 }
 #[inline(always)]
-fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
-    X: E12D<u288>, Y: E12D<u288>, Q: E12DMulQuotient<u288>, z: u384
+pub fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
+    X: E12D<u288>, Y: E12D<u288>, Q: E12DMulQuotient<u288>, z: u384,
 ) -> (u384,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x52
@@ -399,7 +395,7 @@ fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
     circuit_inputs = circuit_inputs.next_2([0x52, 0x0, 0x0, 0x0]); // in0
     circuit_inputs = circuit_inputs
         .next_2(
-            [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0]
+            [0x6871ca8d3c208c16d87cfd35, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0],
         ); // in1
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
@@ -452,16 +448,16 @@ mod tests {
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
+        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
     };
     use garaga::definitions::{
         G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line
+        MillerLoopResultScalingFactor, G2Line,
     };
     use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 
     use super::{
         run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
-        run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit
+        run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
     };
 }

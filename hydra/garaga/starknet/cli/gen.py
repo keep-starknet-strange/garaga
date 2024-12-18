@@ -10,9 +10,9 @@ from garaga.definitions import ProofSystem
 from garaga.starknet.cli.utils import complete_proof_system
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
-    Groth16VerifyingKey,
     gen_groth16_verifier,
 )
+from garaga.starknet.honk_contract_generator.generator_honk import gen_honk_verifier
 
 
 def gen(
@@ -23,7 +23,7 @@ def gen(
     vk: Annotated[
         Path,
         typer.Option(
-            help="Path to the verification key JSON file",
+            help="Path to the verification key file. Expects a JSON for groth16, binary format for Honk.",
             file_okay=True,
             dir_okay=False,
             exists=True,
@@ -43,11 +43,6 @@ def gen(
     Generate a Cairo verifier for a given proof system.
     Automatically detects the curve from the verification key.
     """
-    verifying_key = Groth16VerifyingKey.from_json(vk)
-    print(
-        f"[bold cyan]Detected curve: [bold yellow]{verifying_key.curve_id}[/bold yellow][/bold cyan]"
-    )
-
     cwd = Path.cwd()
     with Progress(
         SpinnerColumn(),
@@ -58,13 +53,24 @@ def gen(
             f"[bold cyan]Generating Smart Contract project for [bold yellow]{system}[/bold yellow] using [bold yellow]{Path(vk).name}[/bold yellow]...[/bold cyan]",
             total=None,
         )
-        gen_groth16_verifier(
-            vk=verifying_key,
-            output_folder_path=cwd,
-            output_folder_name=project_name,
-            ecip_class_hash=ECIP_OPS_CLASS_HASH,
-            cli_mode=True,
-        )
+        match system:
+            case ProofSystem.Groth16:
+                gen_groth16_verifier(
+                    vk=vk,
+                    output_folder_path=cwd,
+                    output_folder_name=project_name,
+                    ecip_class_hash=ECIP_OPS_CLASS_HASH,
+                    cli_mode=True,
+                )
+            case ProofSystem.UltraKeccakHonk:
+                gen_honk_verifier(
+                    vk=vk,
+                    output_folder_path=cwd,
+                    output_folder_name=project_name,
+                    cli_mode=True,
+                )
+            case _:
+                raise ValueError(f"Unsupported proof system: {system}")
 
     print("[bold green]Done![/bold green]")
     print("[bold cyan]Smart Contract project created:[/bold cyan]")
@@ -82,5 +88,5 @@ def gen(
     print(root)
 
     print(
-        "[bold]You can now modify the [bold yellow]groth16_verifier.cairo[/bold yellow] file to adapt the verifier to your use case.[/bold]"
+        f"[bold]You can now test the main endpoint of the verifier using a proof and `garaga calldata` command.[/bold]"
     )
