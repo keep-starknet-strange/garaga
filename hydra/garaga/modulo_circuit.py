@@ -864,27 +864,6 @@ class ModuloCircuit:
             self.sub(X[1], Y[1], comment="Fp2 sub imag part"),
         ]
 
-    def fp2_inv(
-        self, element: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        assert len(element) == 2 and all(
-            isinstance(x, ModuloCircuitElement) for x in element
-        )
-        # For element a + bi, compute (a - bi)/(a² + b²)
-        a, b = element[0], element[1]
-        # Compute conjugate (a - bi)
-        conj = [a, self.neg(b)]
-        # Compute norm (a² + b²)
-        a_squared = self.mul(a, a)
-        b_squared = self.mul(b, b)
-        norm = self.add(a_squared, b_squared)
-
-        # Compute 1/norm
-        norm_inv = self.inv(norm)
-
-        # Multiply conjugate by inverse of norm
-        return [self.mul(conj[0], norm_inv), self.mul(conj[1], norm_inv)]
-
     def fp2_parity(
         self, element: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:

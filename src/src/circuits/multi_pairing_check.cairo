@@ -108,15 +108,7 @@ pub fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     let t64 = circuit_mul(t4, t63); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t65 = circuit_add(in20, t64); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t65, t4).new_inputs();
     // Prefill constants:
@@ -231,18 +223,18 @@ pub fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     let t39 = circuit_mul(t37, in1); // Doubling slope numerator end
     let t40 = circuit_add(in27, in27); // Fp2 add coeff 0/1
     let t41 = circuit_add(in28, in28); // Fp2 add coeff 1/1
-    let t42 = circuit_sub(in2, t41);
-    let t43 = circuit_mul(t40, t40);
-    let t44 = circuit_mul(t41, t41);
-    let t45 = circuit_add(t43, t44);
-    let t46 = circuit_inverse(t45);
-    let t47 = circuit_mul(t40, t46);
-    let t48 = circuit_mul(t42, t46);
-    let t49 = circuit_mul(t38, t47); // Fp2 mul start
+    let t42 = circuit_mul(t40, t40); // Fp2 Inv start
+    let t43 = circuit_mul(t41, t41);
+    let t44 = circuit_add(t42, t43);
+    let t45 = circuit_inverse(t44);
+    let t46 = circuit_mul(t40, t45); // Fp2 Inv real part end
+    let t47 = circuit_mul(t41, t45);
+    let t48 = circuit_sub(in2, t47); // Fp2 Inv imag part end
+    let t49 = circuit_mul(t38, t46); // Fp2 mul start
     let t50 = circuit_mul(t39, t48);
     let t51 = circuit_sub(t49, t50); // Fp2 mul real part end
     let t52 = circuit_mul(t38, t48);
-    let t53 = circuit_mul(t39, t47);
+    let t53 = circuit_mul(t39, t46);
     let t54 = circuit_add(t52, t53); // Fp2 mul imag part end
     let t55 = circuit_add(t51, t54);
     let t56 = circuit_sub(t51, t54);
@@ -324,18 +316,18 @@ pub fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     let t130 = circuit_mul(t128, in1); // Doubling slope numerator end
     let t131 = circuit_add(t72, t72); // Fp2 add coeff 0/1
     let t132 = circuit_add(t73, t73); // Fp2 add coeff 1/1
-    let t133 = circuit_sub(in2, t132);
-    let t134 = circuit_mul(t131, t131);
-    let t135 = circuit_mul(t132, t132);
-    let t136 = circuit_add(t134, t135);
-    let t137 = circuit_inverse(t136);
-    let t138 = circuit_mul(t131, t137);
-    let t139 = circuit_mul(t133, t137);
-    let t140 = circuit_mul(t129, t138); // Fp2 mul start
+    let t133 = circuit_mul(t131, t131); // Fp2 Inv start
+    let t134 = circuit_mul(t132, t132);
+    let t135 = circuit_add(t133, t134);
+    let t136 = circuit_inverse(t135);
+    let t137 = circuit_mul(t131, t136); // Fp2 Inv real part end
+    let t138 = circuit_mul(t132, t136);
+    let t139 = circuit_sub(in2, t138); // Fp2 Inv imag part end
+    let t140 = circuit_mul(t129, t137); // Fp2 mul start
     let t141 = circuit_mul(t130, t139);
     let t142 = circuit_sub(t140, t141); // Fp2 mul real part end
     let t143 = circuit_mul(t129, t139);
-    let t144 = circuit_mul(t130, t138);
+    let t144 = circuit_mul(t130, t137);
     let t145 = circuit_add(t143, t144); // Fp2 mul imag part end
     let t146 = circuit_add(t142, t145);
     let t147 = circuit_sub(t142, t145);
@@ -382,15 +374,7 @@ pub fn run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit(
     let t188 = circuit_mul(t4, t187); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t189 = circuit_add(in29, t188); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t153, t154, t163, t164, t189, t4).new_inputs();
     // Prefill constants:
@@ -500,15 +484,7 @@ pub fn run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
     let t35 = circuit_mul(t4, t34); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t36 = circuit_add(in12, t35); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t36, t4).new_inputs();
     // Prefill constants:
@@ -610,18 +586,18 @@ pub fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     let t39 = circuit_mul(t37, in1); // Doubling slope numerator end
     let t40 = circuit_add(in19, in19); // Fp2 add coeff 0/1
     let t41 = circuit_add(in20, in20); // Fp2 add coeff 1/1
-    let t42 = circuit_sub(in2, t41);
-    let t43 = circuit_mul(t40, t40);
-    let t44 = circuit_mul(t41, t41);
-    let t45 = circuit_add(t43, t44);
-    let t46 = circuit_inverse(t45);
-    let t47 = circuit_mul(t40, t46);
-    let t48 = circuit_mul(t42, t46);
-    let t49 = circuit_mul(t38, t47); // Fp2 mul start
+    let t42 = circuit_mul(t40, t40); // Fp2 Inv start
+    let t43 = circuit_mul(t41, t41);
+    let t44 = circuit_add(t42, t43);
+    let t45 = circuit_inverse(t44);
+    let t46 = circuit_mul(t40, t45); // Fp2 Inv real part end
+    let t47 = circuit_mul(t41, t45);
+    let t48 = circuit_sub(in2, t47); // Fp2 Inv imag part end
+    let t49 = circuit_mul(t38, t46); // Fp2 mul start
     let t50 = circuit_mul(t39, t48);
     let t51 = circuit_sub(t49, t50); // Fp2 mul real part end
     let t52 = circuit_mul(t38, t48);
-    let t53 = circuit_mul(t39, t47);
+    let t53 = circuit_mul(t39, t46);
     let t54 = circuit_add(t52, t53); // Fp2 mul imag part end
     let t55 = circuit_add(t51, t54);
     let t56 = circuit_sub(t51, t54);
@@ -668,15 +644,7 @@ pub fn run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit(
     let t97 = circuit_mul(t4, t96); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t98 = circuit_add(in21, t97); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t62, t63, t72, t73, t98, t4).new_inputs();
     // Prefill constants:
@@ -813,15 +781,7 @@ pub fn run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit(
     let t64 = circuit_mul(t4, t63); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t65 = circuit_add(in20, t64); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t65, t4).new_inputs();
     // Prefill constants:
@@ -962,18 +922,18 @@ pub fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     let t63 = circuit_sub(in26, in30); // Fp2 sub coeff 1/1
     let t64 = circuit_sub(in23, in27); // Fp2 sub coeff 0/1
     let t65 = circuit_sub(in24, in28); // Fp2 sub coeff 1/1
-    let t66 = circuit_sub(in0, t65);
-    let t67 = circuit_mul(t64, t64);
-    let t68 = circuit_mul(t65, t65);
-    let t69 = circuit_add(t67, t68);
-    let t70 = circuit_inverse(t69);
-    let t71 = circuit_mul(t64, t70);
-    let t72 = circuit_mul(t66, t70);
-    let t73 = circuit_mul(t62, t71); // Fp2 mul start
+    let t66 = circuit_mul(t64, t64); // Fp2 Inv start
+    let t67 = circuit_mul(t65, t65);
+    let t68 = circuit_add(t66, t67);
+    let t69 = circuit_inverse(t68);
+    let t70 = circuit_mul(t64, t69); // Fp2 Inv real part end
+    let t71 = circuit_mul(t65, t69);
+    let t72 = circuit_sub(in0, t71); // Fp2 Inv imag part end
+    let t73 = circuit_mul(t62, t70); // Fp2 mul start
     let t74 = circuit_mul(t63, t72);
     let t75 = circuit_sub(t73, t74); // Fp2 mul real part end
     let t76 = circuit_mul(t62, t72);
-    let t77 = circuit_mul(t63, t71);
+    let t77 = circuit_mul(t63, t70);
     let t78 = circuit_add(t76, t77); // Fp2 mul imag part end
     let t79 = circuit_add(t75, t78);
     let t80 = circuit_sub(t75, t78);
@@ -996,18 +956,18 @@ pub fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     let t97 = circuit_add(in26, in26); // Fp2 add coeff 1/1
     let t98 = circuit_sub(t86, in23); // Fp2 sub coeff 0/1
     let t99 = circuit_sub(t87, in24); // Fp2 sub coeff 1/1
-    let t100 = circuit_sub(in0, t99);
-    let t101 = circuit_mul(t98, t98);
-    let t102 = circuit_mul(t99, t99);
-    let t103 = circuit_add(t101, t102);
-    let t104 = circuit_inverse(t103);
-    let t105 = circuit_mul(t98, t104);
-    let t106 = circuit_mul(t100, t104);
-    let t107 = circuit_mul(t96, t105); // Fp2 mul start
+    let t100 = circuit_mul(t98, t98); // Fp2 Inv start
+    let t101 = circuit_mul(t99, t99);
+    let t102 = circuit_add(t100, t101);
+    let t103 = circuit_inverse(t102);
+    let t104 = circuit_mul(t98, t103); // Fp2 Inv real part end
+    let t105 = circuit_mul(t99, t103);
+    let t106 = circuit_sub(in0, t105); // Fp2 Inv imag part end
+    let t107 = circuit_mul(t96, t104); // Fp2 mul start
     let t108 = circuit_mul(t97, t106);
     let t109 = circuit_sub(t107, t108); // Fp2 mul real part end
     let t110 = circuit_mul(t96, t106);
-    let t111 = circuit_mul(t97, t105);
+    let t111 = circuit_mul(t97, t104);
     let t112 = circuit_add(t110, t111); // Fp2 mul imag part end
     let t113 = circuit_add(t75, t109); // Fp2 add coeff 0/1
     let t114 = circuit_add(t78, t112); // Fp2 add coeff 1/1
@@ -1073,15 +1033,7 @@ pub fn run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit(
     let t174 = circuit_mul(t4, t173); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t175 = circuit_add(in31, t174); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t124, t125, t134, t135, t175, t4).new_inputs();
     // Prefill constants:
@@ -1389,15 +1341,7 @@ pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     let t202 = circuit_mul(t201, t41); // Q(z) * P(z)
     let t203 = circuit_sub(t38, t202); // final_lhs - Q(z) * P(z)
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t203,).new_inputs();
     // Prefill constants:
@@ -1748,15 +1692,7 @@ pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     let t250 = circuit_mul(t249, t41); // Q(z) * P(z)
     let t251 = circuit_sub(t38, t250); // final_lhs - Q(z) * P(z)
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t251,).new_inputs();
     // Prefill constants:
@@ -1886,15 +1822,7 @@ pub fn run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let t62 = circuit_sub(t61, in20);
     let t63 = circuit_mul(in21, t62); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t63,).new_inputs();
     // Prefill constants:
@@ -2033,18 +1961,18 @@ pub fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t67 = circuit_mul(t65, in1);
     let t68 = circuit_add(in27, in27); // Fp2 add coeff 0/1
     let t69 = circuit_add(in28, in28); // Fp2 add coeff 1/1
-    let t70 = circuit_sub(in2, t69);
-    let t71 = circuit_mul(t68, t68);
-    let t72 = circuit_mul(t69, t69);
-    let t73 = circuit_add(t71, t72);
-    let t74 = circuit_inverse(t73);
-    let t75 = circuit_mul(t68, t74);
-    let t76 = circuit_mul(t70, t74);
-    let t77 = circuit_mul(t66, t75); // Fp2 mul start
+    let t70 = circuit_mul(t68, t68); // Fp2 Inv start
+    let t71 = circuit_mul(t69, t69);
+    let t72 = circuit_add(t70, t71);
+    let t73 = circuit_inverse(t72);
+    let t74 = circuit_mul(t68, t73); // Fp2 Inv real part end
+    let t75 = circuit_mul(t69, t73);
+    let t76 = circuit_sub(in2, t75); // Fp2 Inv imag part end
+    let t77 = circuit_mul(t66, t74); // Fp2 mul start
     let t78 = circuit_mul(t67, t76);
     let t79 = circuit_sub(t77, t78); // Fp2 mul real part end
     let t80 = circuit_mul(t66, t76);
-    let t81 = circuit_mul(t67, t75);
+    let t81 = circuit_mul(t67, t74);
     let t82 = circuit_add(t80, t81); // Fp2 mul imag part end
     let t83 = circuit_mul(t79, in25); // Fp2 mul start
     let t84 = circuit_mul(t82, in26);
@@ -2065,18 +1993,18 @@ pub fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t99 = circuit_sub(t95, t97); // Fp2 sub coeff 1/1
     let t100 = circuit_sub(in25, t98); // Fp2 sub coeff 0/1
     let t101 = circuit_sub(in26, t99); // Fp2 sub coeff 1/1
-    let t102 = circuit_sub(in2, t101);
-    let t103 = circuit_mul(t100, t100);
-    let t104 = circuit_mul(t101, t101);
-    let t105 = circuit_add(t103, t104);
-    let t106 = circuit_inverse(t105);
-    let t107 = circuit_mul(t100, t106);
-    let t108 = circuit_mul(t102, t106);
-    let t109 = circuit_mul(t68, t107); // Fp2 mul start
+    let t102 = circuit_mul(t100, t100); // Fp2 Inv start
+    let t103 = circuit_mul(t101, t101);
+    let t104 = circuit_add(t102, t103);
+    let t105 = circuit_inverse(t104);
+    let t106 = circuit_mul(t100, t105); // Fp2 Inv real part end
+    let t107 = circuit_mul(t101, t105);
+    let t108 = circuit_sub(in2, t107); // Fp2 Inv imag part end
+    let t109 = circuit_mul(t68, t106); // Fp2 mul start
     let t110 = circuit_mul(t69, t108);
     let t111 = circuit_sub(t109, t110); // Fp2 mul real part end
     let t112 = circuit_mul(t68, t108);
-    let t113 = circuit_mul(t69, t107);
+    let t113 = circuit_mul(t69, t106);
     let t114 = circuit_add(t112, t113); // Fp2 mul imag part end
     let t115 = circuit_sub(t111, t79); // Fp2 sub coeff 0/1
     let t116 = circuit_sub(t114, t82); // Fp2 sub coeff 1/1
@@ -2138,15 +2066,7 @@ pub fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t172 = circuit_sub(t171, in29);
     let t173 = circuit_mul(in30, t172); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t132, t133, t142, t143, t173).new_inputs();
     // Prefill constants:
@@ -2347,15 +2267,7 @@ pub fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t93 = circuit_mul(t72, t9); // Eval C_inv_frob_1 step coeff_11 * z^11
     let t94 = circuit_add(t92, t93); // Eval C_inv_frob_1 step + (coeff_11 * z^11)
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t37, t47, t94).new_inputs();
     // Prefill constants:
@@ -2489,15 +2401,7 @@ pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProc
     let t1 = circuit_mul(in1, t0);
     let t2 = circuit_sub(in0, t1);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t2).new_inputs();
     // Prefill constants:
@@ -2529,15 +2433,7 @@ pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     let t4 = circuit_mul(in3, t3);
     let t5 = circuit_sub(in0, t4);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t5).new_inputs();
     // Prefill constants:
@@ -2577,15 +2473,7 @@ pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     let t7 = circuit_mul(in5, t6);
     let t8 = circuit_sub(in0, t7);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t5, t6, t8).new_inputs();
     // Prefill constants:
@@ -2722,10 +2610,7 @@ pub fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     let t77 = circuit_mul(t5, t76); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t78 = circuit_add(in22, t77); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t78, t5).new_inputs();
     // Prefill constants:
@@ -2853,18 +2738,18 @@ pub fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let t46 = circuit_mul(t44, in3); // Doubling slope numerator end
     let t47 = circuit_add(in29, in29); // Fp2 add coeff 0/1
     let t48 = circuit_add(in30, in30); // Fp2 add coeff 1/1
-    let t49 = circuit_sub(in4, t48);
-    let t50 = circuit_mul(t47, t47);
-    let t51 = circuit_mul(t48, t48);
-    let t52 = circuit_add(t50, t51);
-    let t53 = circuit_inverse(t52);
-    let t54 = circuit_mul(t47, t53);
-    let t55 = circuit_mul(t49, t53);
-    let t56 = circuit_mul(t45, t54); // Fp2 mul start
+    let t49 = circuit_mul(t47, t47); // Fp2 Inv start
+    let t50 = circuit_mul(t48, t48);
+    let t51 = circuit_add(t49, t50);
+    let t52 = circuit_inverse(t51);
+    let t53 = circuit_mul(t47, t52); // Fp2 Inv real part end
+    let t54 = circuit_mul(t48, t52);
+    let t55 = circuit_sub(in4, t54); // Fp2 Inv imag part end
+    let t56 = circuit_mul(t45, t53); // Fp2 mul start
     let t57 = circuit_mul(t46, t55);
     let t58 = circuit_sub(t56, t57); // Fp2 mul real part end
     let t59 = circuit_mul(t45, t55);
-    let t60 = circuit_mul(t46, t54);
+    let t60 = circuit_mul(t46, t53);
     let t61 = circuit_add(t59, t60); // Fp2 mul imag part end
     let t62 = circuit_add(t58, t61);
     let t63 = circuit_sub(t58, t61);
@@ -2955,18 +2840,18 @@ pub fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let t146 = circuit_mul(t144, in3); // Doubling slope numerator end
     let t147 = circuit_add(t79, t79); // Fp2 add coeff 0/1
     let t148 = circuit_add(t80, t80); // Fp2 add coeff 1/1
-    let t149 = circuit_sub(in4, t148);
-    let t150 = circuit_mul(t147, t147);
-    let t151 = circuit_mul(t148, t148);
-    let t152 = circuit_add(t150, t151);
-    let t153 = circuit_inverse(t152);
-    let t154 = circuit_mul(t147, t153);
-    let t155 = circuit_mul(t149, t153);
-    let t156 = circuit_mul(t145, t154); // Fp2 mul start
+    let t149 = circuit_mul(t147, t147); // Fp2 Inv start
+    let t150 = circuit_mul(t148, t148);
+    let t151 = circuit_add(t149, t150);
+    let t152 = circuit_inverse(t151);
+    let t153 = circuit_mul(t147, t152); // Fp2 Inv real part end
+    let t154 = circuit_mul(t148, t152);
+    let t155 = circuit_sub(in4, t154); // Fp2 Inv imag part end
+    let t156 = circuit_mul(t145, t153); // Fp2 mul start
     let t157 = circuit_mul(t146, t155);
     let t158 = circuit_sub(t156, t157); // Fp2 mul real part end
     let t159 = circuit_mul(t145, t155);
-    let t160 = circuit_mul(t146, t154);
+    let t160 = circuit_mul(t146, t153);
     let t161 = circuit_add(t159, t160); // Fp2 mul imag part end
     let t162 = circuit_add(t158, t161);
     let t163 = circuit_sub(t158, t161);
@@ -3016,10 +2901,7 @@ pub fn run_BN254_MP_CHECK_BIT00_3P_2F_circuit(
     let t207 = circuit_mul(t5, t206); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t208 = circuit_add(in31, t207); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t169, t170, t179, t180, t208, t5).new_inputs();
     // Prefill constants:
@@ -3228,10 +3110,7 @@ pub fn run_BN254_MP_CHECK_BIT01_2P_2F_circuit(
     let t112 = circuit_mul(t5, t111); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t113 = circuit_add(in30, t112); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t113, t5).new_inputs();
     // Prefill constants:
@@ -3387,7 +3266,7 @@ pub fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
     let t57 = circuit_mul(t46, t55);
     let t58 = circuit_sub(t56, t57); // Fp2 mul real part end
     let t59 = circuit_mul(t45, t55);
-    let t60 = circuit_mul(t46, t54);
+    let t60 = circuit_mul(t46, t53);
     let t61 = circuit_add(t59, t60); // Fp2 mul imag part end
     let t62 = circuit_add(t58, t61);
     let t63 = circuit_sub(t58, t61);
@@ -3625,10 +3504,7 @@ pub fn run_BN254_MP_CHECK_BIT01_3P_2F_circuit(
     let t293 = circuit_mul(t5, t292); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t294 = circuit_add(in43, t293); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t237, t238, t247, t248, t294, t5).new_inputs();
     // Prefill constants:
@@ -3851,10 +3727,7 @@ pub fn run_BN254_MP_CHECK_BIT10_2P_2F_circuit(
     let t113 = circuit_mul(t5, t112); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t114 = circuit_add(in30, t113); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t114, t5).new_inputs();
     // Prefill constants:
@@ -4040,7 +3913,7 @@ pub fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     let t87 = circuit_mul(t76, t85);
     let t88 = circuit_sub(t86, t87); // Fp2 mul real part end
     let t89 = circuit_mul(t75, t85);
-    let t90 = circuit_mul(t76, t84);
+    let t90 = circuit_mul(t76, t83);
     let t91 = circuit_add(t89, t90); // Fp2 mul imag part end
     let t92 = circuit_add(t88, t91);
     let t93 = circuit_sub(t88, t91);
@@ -4074,7 +3947,7 @@ pub fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     let t121 = circuit_mul(t110, t119);
     let t122 = circuit_sub(t120, t121); // Fp2 mul real part end
     let t123 = circuit_mul(t109, t119);
-    let t124 = circuit_mul(t110, t118);
+    let t124 = circuit_mul(t110, t117);
     let t125 = circuit_add(t123, t124); // Fp2 mul imag part end
     let t126 = circuit_add(t88, t122); // Fp2 add coeff 0/1
     let t127 = circuit_add(t91, t125); // Fp2 add coeff 1/1
@@ -4249,10 +4122,7 @@ pub fn run_BN254_MP_CHECK_BIT10_3P_2F_circuit(
     let t294 = circuit_mul(t5, t293); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t295 = circuit_add(in43, t294); // LHS = LHS + ci * ((Π(i,k) (Pk(z)) - Ri(z))
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t254, t255, t264, t265, t295, t5).new_inputs();
     // Prefill constants:
@@ -4845,10 +4715,7 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     let t426 = circuit_mul(t422, t425);
     let t427 = circuit_sub(t134, t426);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t427,).new_inputs();
     // Prefill constants:
@@ -5127,18 +4994,18 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let t76 = circuit_sub(in39, t70); // Fp2 sub coeff 1/1
     let t77 = circuit_sub(in36, t61); // Fp2 sub coeff 0/1
     let t78 = circuit_sub(in37, t64); // Fp2 sub coeff 1/1
-    let t79 = circuit_sub(in6, t78);
-    let t80 = circuit_mul(t77, t77);
-    let t81 = circuit_mul(t78, t78);
-    let t82 = circuit_add(t80, t81);
-    let t83 = circuit_inverse(t82);
-    let t84 = circuit_mul(t77, t83);
-    let t85 = circuit_mul(t79, t83);
-    let t86 = circuit_mul(t75, t84); // Fp2 mul start
+    let t79 = circuit_mul(t77, t77); // Fp2 Inv start
+    let t80 = circuit_mul(t78, t78);
+    let t81 = circuit_add(t79, t80);
+    let t82 = circuit_inverse(t81);
+    let t83 = circuit_mul(t77, t82); // Fp2 Inv real part end
+    let t84 = circuit_mul(t78, t82);
+    let t85 = circuit_sub(in6, t84); // Fp2 Inv imag part end
+    let t86 = circuit_mul(t75, t83); // Fp2 mul start
     let t87 = circuit_mul(t76, t85);
     let t88 = circuit_sub(t86, t87); // Fp2 mul real part end
     let t89 = circuit_mul(t75, t85);
-    let t90 = circuit_mul(t76, t84);
+    let t90 = circuit_mul(t76, t83);
     let t91 = circuit_add(t89, t90); // Fp2 mul imag part end
     let t92 = circuit_add(t88, t91);
     let t93 = circuit_sub(t88, t91);
@@ -5171,18 +5038,18 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let t120 = circuit_sub(t110, t74); // Fp2 sub coeff 1/1
     let t121 = circuit_sub(t99, t71); // Fp2 sub coeff 0/1
     let t122 = circuit_sub(t100, t72); // Fp2 sub coeff 1/1
-    let t123 = circuit_sub(in6, t122);
-    let t124 = circuit_mul(t121, t121);
-    let t125 = circuit_mul(t122, t122);
-    let t126 = circuit_add(t124, t125);
-    let t127 = circuit_inverse(t126);
-    let t128 = circuit_mul(t121, t127);
-    let t129 = circuit_mul(t123, t127);
-    let t130 = circuit_mul(t119, t128); // Fp2 mul start
+    let t123 = circuit_mul(t121, t121); // Fp2 Inv start
+    let t124 = circuit_mul(t122, t122);
+    let t125 = circuit_add(t123, t124);
+    let t126 = circuit_inverse(t125);
+    let t127 = circuit_mul(t121, t126); // Fp2 Inv real part end
+    let t128 = circuit_mul(t122, t126);
+    let t129 = circuit_sub(in6, t128); // Fp2 Inv imag part end
+    let t130 = circuit_mul(t119, t127); // Fp2 mul start
     let t131 = circuit_mul(t120, t129);
     let t132 = circuit_sub(t130, t131); // Fp2 mul real part end
     let t133 = circuit_mul(t119, t129);
-    let t134 = circuit_mul(t120, t128);
+    let t134 = circuit_mul(t120, t127);
     let t135 = circuit_add(t133, t134); // Fp2 mul imag part end
     let t136 = circuit_mul(t132, t99); // Fp2 mul start
     let t137 = circuit_mul(t135, t100);
@@ -5688,10 +5555,7 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     let t637 = circuit_mul(t633, t636);
     let t638 = circuit_sub(t255, t637);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t638,).new_inputs();
     // Prefill constants:
@@ -5889,10 +5753,7 @@ pub fn run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
     let t42 = circuit_mul(t6, t41); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t43 = circuit_add(t42, in18);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t43, t6).new_inputs();
     // Prefill constants:
@@ -6007,18 +5868,18 @@ pub fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t46 = circuit_mul(t44, in3); // Doubling slope numerator end
     let t47 = circuit_add(in21, in21); // Fp2 add coeff 0/1
     let t48 = circuit_add(in22, in22); // Fp2 add coeff 1/1
-    let t49 = circuit_sub(in4, t48);
-    let t50 = circuit_mul(t47, t47);
-    let t51 = circuit_mul(t48, t48);
-    let t52 = circuit_add(t50, t51);
-    let t53 = circuit_inverse(t52);
-    let t54 = circuit_mul(t47, t53);
-    let t55 = circuit_mul(t49, t53);
-    let t56 = circuit_mul(t45, t54); // Fp2 mul start
+    let t49 = circuit_mul(t47, t47); // Fp2 Inv start
+    let t50 = circuit_mul(t48, t48);
+    let t51 = circuit_add(t49, t50);
+    let t52 = circuit_inverse(t51);
+    let t53 = circuit_mul(t47, t52); // Fp2 Inv real part end
+    let t54 = circuit_mul(t48, t52);
+    let t55 = circuit_sub(in4, t54); // Fp2 Inv imag part end
+    let t56 = circuit_mul(t45, t53); // Fp2 mul start
     let t57 = circuit_mul(t46, t55);
     let t58 = circuit_sub(t56, t57); // Fp2 mul real part end
     let t59 = circuit_mul(t45, t55);
-    let t60 = circuit_mul(t46, t54);
+    let t60 = circuit_mul(t46, t53);
     let t61 = circuit_add(t59, t60); // Fp2 mul imag part end
     let t62 = circuit_add(t58, t61);
     let t63 = circuit_sub(t58, t61);
@@ -6068,10 +5929,7 @@ pub fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let t107 = circuit_mul(t6, t106); // ci * ((Π(i,k) (Pk(z)) - Ri(z))
     let t108 = circuit_add(t107, in27);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t69, t70, t79, t80, t108, t6).new_inputs();
     // Prefill constants:
@@ -6442,10 +6300,7 @@ pub fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
     let t207 = circuit_mul(t142, t9); // Eval C_inv_frob_3 step coeff_11 * z^11
     let t208 = circuit_add(t206, t207); // Eval C_inv_frob_3 step + (coeff_11 * z^11)
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208).new_inputs();
     // Prefill constants:
@@ -6783,10 +6638,7 @@ pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
     let t3 = circuit_sub(in0, in3);
     let t4 = circuit_sub(in0, in4);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t4).new_inputs();
     // Prefill constants:
@@ -6828,10 +6680,7 @@ pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit(
     let t8 = circuit_sub(in0, in7);
     let t9 = circuit_sub(in0, in8);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9).new_inputs();
     // Prefill constants:
@@ -6897,10 +6746,7 @@ pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     let t13 = circuit_sub(in0, in11);
     let t14 = circuit_sub(in0, in12);
 
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
-        .unwrap(); // BN254 prime field modulus
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t2, t3, t4, t5, t7, t8, t9, t10, t12, t13, t14).new_inputs();
     // Prefill constants:
