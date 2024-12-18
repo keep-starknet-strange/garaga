@@ -879,8 +879,6 @@ class FullECIPCircuitBatched(BaseModuloCircuit):
             )
         )
 
-        print(f"epns_low: {epns_low} (n_points: {self.n_points})")
-
         epns_high = circuit.write_struct(
             structs.StructSpan(
                 "epns_high",
