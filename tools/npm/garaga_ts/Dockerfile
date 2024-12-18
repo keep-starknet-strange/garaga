@@ -3,7 +3,7 @@
 # - It will update the code generated under src/wasm/pkg
 # Usage: docker compose up --build && docker compose down
 
-FROM rust:1.80.1
+FROM rust:1.81.0
 
 RUN cargo install wasm-pack
 
