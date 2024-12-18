@@ -5,6 +5,7 @@
 
 services:
   app:
+    platform: linux/amd64
     build: .
     volumes:
       - "../../..:/garaga"
