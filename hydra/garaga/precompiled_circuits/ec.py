@@ -7,6 +7,7 @@ from garaga.extension_field_modulo_circuit import (
     ModuloCircuitElement,
     PyFelt,
 )
+from garaga.hints.neg_3 import scalar_to_base_neg3_le
 from garaga.modulo_circuit import WriteOps
 
 
@@ -246,6 +247,37 @@ class ECIPCircuits(ModuloCircuit):
         eval_signed = self.add(eval_pos, eval_neg)
         res = self.add(eval_accumulator, eval_signed)
         return res
+
+    def _compute_eval_point_challenge_signed_same_point_2_pow_128(
+        self,
+        slope_intercept: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        xA: ModuloCircuitElement,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> ModuloCircuitElement:
+        ep, en, sp, sn = scalar_to_base_neg3_le(2**128)
+        assert sp == sn == -1
+
+        ep = self.set_or_get_constant(ep)
+        en = self.set_or_get_constant(en)
+
+        m, b = slope_intercept
+        xP, yP = P
+        num = self.sub(xA, xP)
+
+        # den_tmp = m*xP + b
+        den_tmp = self.add(self.mul(m, xP), b)
+
+        # den_pos = yP - (m*xP + b) = yP - m*xP - b
+        den_pos = self.sub(yP, den_tmp)
+
+        # den_neg = -yP - m*xP -b
+        den_neg = self.sub(self.neg(yP), den_tmp)
+
+        eval_pos = self.mul(self.neg(ep), self.div(num, den_pos))
+        eval_neg = self.mul(en, self.div(num, den_neg))
+
+        eval_signed = self.sub(eval_pos, eval_neg)
+        return eval_signed
 
     def _RHS_finalize_acc(
         self,

@@ -963,11 +963,6 @@ class FullECIPCircuitBatched(BaseModuloCircuit):
             acc = circuit.set_or_get_constant(0)
             for pt, _epns in zip(points, epns):
                 _epns = io.flatten(_epns)
-                print(f"epns: {_epns}")
-                print(f"epns[0]: {_epns[0]}")
-                print(f"epns[1]: {_epns[1]}")
-                print(f"epns[2]: {_epns[2]}")
-                print(f"epns[3]: {_epns[3]}")
                 acc = circuit._accumulate_eval_point_challenge_signed_same_point(
                     eval_accumulator=acc,
                     slope_intercept=(m_A0, b_A0),
@@ -989,22 +984,13 @@ class FullECIPCircuitBatched(BaseModuloCircuit):
         rhs_high = circuit._RHS_finalize_acc(
             base_rhs_high, (m_A0, b_A0), xA0, (q_high[0], q_high[1])
         )
-        base_rhs_high_shifted = compute_base_rhs(
-            circuit,
-            [q_high_shifted],
-            [
-                [
-                    circuit.set_or_get_constant(5279154705627724249993186093248666011),
-                    circuit.set_or_get_constant(
-                        345561521626566187713367793525016877467
-                    ),
-                    circuit.set_or_get_constant(-1),
-                    circuit.set_or_get_constant(-1),
-                ]
-            ],
-            m_A0,
-            b_A0,
-            xA0,
+
+        base_rhs_high_shifted = (
+            circuit._compute_eval_point_challenge_signed_same_point_2_pow_128(
+                (m_A0, b_A0),
+                xA0,
+                q_high,
+            )
         )
         rhs_high_shifted = circuit._RHS_finalize_acc(
             base_rhs_high_shifted,
