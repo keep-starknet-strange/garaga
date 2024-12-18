@@ -1,10 +1,12 @@
 pub mod definitions;
 pub mod utils;
 pub mod ec_ops;
+pub mod ec_ops_g2;
 pub mod pairing_check;
 pub mod circuits;
 pub mod groth16;
 pub mod basic_field_ops;
+pub mod single_pairing_tower;
 mod tests;
 pub mod core;
 
@@ -49,7 +51,7 @@ mod tests_lib {
                 .done()
                 .eval(modulus) {
             Result::Ok(outputs) => { outputs },
-            Result::Err(_) => { panic!("Expected success") }
+            Result::Err(_) => { panic!("Expected success") },
         };
 
         assert_eq!(outputs.get_output(add), u384 { limb0: 2, limb1: 0, limb2: 0, limb3: 0 });

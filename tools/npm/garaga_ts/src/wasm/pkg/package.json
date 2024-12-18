@@ -1,7 +1,7 @@
 {
   "name": "garaga_rs",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.15.3",
   "files": [
     "garaga_rs_bg.wasm",
     "garaga_rs.js",

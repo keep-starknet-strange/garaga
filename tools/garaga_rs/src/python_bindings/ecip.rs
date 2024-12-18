@@ -20,7 +20,10 @@ pub fn zk_ecip_hint(
     let v = ecip::core::zk_ecip_hint(list_values, list_scalars, curve_id)
         .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
-    let py_list = PyList::new_bound(py, v.into_iter().map(|x| PyList::new_bound(py, x)));
-
+    let inner_lists: Vec<_> = v
+        .into_iter()
+        .map(|x| PyList::new(py, x))
+        .collect::<PyResult<_>>()?;
+    let py_list = PyList::new(py, inner_lists)?;
     Ok(py_list.into())
 }

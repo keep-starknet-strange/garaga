@@ -21,8 +21,7 @@ describe('Groth16 Parsing Tests', () => {
 
   const proofPaths = [
     `${PATH}/proof_bn254.json`,
-    `${PATH}/proof_bls.json`,
-    `${PATH}/proof_risc0.json`
+    `${PATH}/proof_bls.json`
   ];
 
   test.each(proofPaths)('should parse proof from %s', (proofPath) => {

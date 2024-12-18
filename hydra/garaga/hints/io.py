@@ -135,8 +135,17 @@ def int_to_u256(x: int | PyFelt) -> str:
     return f"u256{{low:{hex(limbs[0])}, high:{hex(limbs[1])}}}"
 
 
+def int_to_u128(x: int | PyFelt) -> str:
+    assert 0 <= x < 2**128, f"Value {x} is too large to fit in a u128"
+    return hex(x)
+
+
 def int_array_to_u256_array(x: list[int] | list[PyFelt]) -> str:
     return f"array![{', '.join([int_to_u256(i) for i in x])}]"
+
+
+def int_array_to_u128_array(x: list[int] | list[PyFelt]) -> str:
+    return f"array![{', '.join([int_to_u128(i) for i in x])}]"
 
 
 def int_array_to_u384_array(x: list[int] | list[PyFelt], const=False) -> str:
@@ -288,7 +297,7 @@ def fill_uint256(x: int, ids: object):
 
 
 def padd_function_felt(
-    f: FunctionFelt, n: int, py_felt: bool = False
+    f: FunctionFelt, n: int, py_felt: bool = False, batched: bool = False
 ) -> tuple[list[int], list[int], list[int], list[int]]:
     a_num = f.a.numerator.get_coeffs() if py_felt else f.a.numerator.get_value_coeffs()
     a_den = (
@@ -298,15 +307,23 @@ def padd_function_felt(
     b_den = (
         f.b.denominator.get_coeffs() if py_felt else f.b.denominator.get_value_coeffs()
     )
-    assert len(a_num) <= n + 1
-    assert len(a_den) <= n + 2
-    assert len(b_num) <= n + 2
-    assert len(b_den) <= n + 5
+    assert len(a_num) <= n + 1 + (
+        2 if batched else 0
+    ), f"a_num has {len(a_num)} limbs, expected at most {n + 1 + (2 if batched else 0)}"
+    assert len(a_den) <= n + 2 + (
+        2 if batched else 0
+    ), f"a_den has {len(a_den)} limbs, expected at most {n + 2 + (2 if batched else 0)}"
+    assert len(b_num) <= n + 2 + (
+        2 if batched else 0
+    ), f"b_num has {len(b_num)} limbs, expected at most {n + 2 + (2 if batched else 0)}"
+    assert len(b_den) <= n + 5 + (
+        2 if batched else 0
+    ), f"b_den has {len(b_den)} limbs, expected at most {n + 5 + (2 if batched else 0)}"
     zero = [f.a.numerator.field.zero()] if py_felt else [0]
-    a_num = a_num + zero * (n + 1 - len(a_num))
-    a_den = a_den + zero * (n + 2 - len(a_den))
-    b_num = b_num + zero * (n + 2 - len(b_num))
-    b_den = b_den + zero * (n + 5 - len(b_den))
+    a_num = a_num + zero * (n + 1 + (2 if batched else 0) - len(a_num))
+    a_den = a_den + zero * (n + 2 + (2 if batched else 0) - len(a_den))
+    b_num = b_num + zero * (n + 2 + (2 if batched else 0) - len(b_num))
+    b_den = b_den + zero * (n + 5 + (2 if batched else 0) - len(b_den))
     return (a_num, a_den, b_num, b_den)
 
 
