@@ -662,52 +662,6 @@ class BasicECG2(ModuloCircuit):
         )
         self.curve = CURVES[curve_id]
 
-    def extf_sub(
-        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        return [
-            self.sub(x, y, comment=f"Fp{len(X)} sub coeff {i}/{len(X)-1}")
-            for i, (x, y) in enumerate(zip(X, Y))
-        ]
-
-    def extf_scalar_mul(
-        self, X: list[ModuloCircuitElement], c: ModuloCircuitElement
-    ) -> list[ModuloCircuitElement]:
-        """
-        Multiplies a polynomial with coefficients `X` by a scalar `c`.
-        Input : I(x) = i0 + i1*x + i2*x^2 + ... + in-1*x^n-1
-        Output : O(x) = ci0 + ci1*x + ci2*x^2 + ... + cin-1*x^n-1.
-        This is done in the circuit.
-        """
-        assert isinstance(c, ModuloCircuitElement), "c must be a ModuloCircuitElement"
-        return [
-            self.mul(x_i, c, comment=f"Fp{len(X)} scalar mul coeff {i}/{len(X)-1}")
-            for i, x_i in enumerate(X)
-        ]
-
-    def extf_add(
-        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        """
-        Adds two polynomials with coefficients `X` and `Y`.
-        Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
-        """
-        assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
-        return [
-            self.add(x_i, y_i, comment=f"Fp{len(X)} add coeff {i}/{len(X)-1}")
-            for i, (x_i, y_i) in enumerate(zip(X, Y))
-        ]
-
-    def extf_neg(self, X: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
-        """
-        Negates a polynomial with coefficients `X`.
-        Returns R = [-x0, -x1, -x2, ... -xn-1] mod p
-        """
-        return [
-            self.neg(x_i, comment=f"Fp{len(X)} neg coeff {i}/{len(X)-1}")
-            for i, x_i in enumerate(X)
-        ]
-
     def _compute_adding_slope(
         self,
         P: tuple[
@@ -721,7 +675,7 @@ class BasicECG2(ModuloCircuit):
     ):
         xP, yP = P
         xQ, yQ = Q
-        slope = self.fp2_div(self.extf_sub(yP, yQ), self.extf_sub(xP, xQ))
+        slope = self.fp2_div(self.vector_sub(yP, yQ), self.vector_sub(xP, xQ))
         return slope
 
     def _compute_doubling_slope_a_eq_0(
@@ -733,8 +687,8 @@ class BasicECG2(ModuloCircuit):
         # Compute doubling slope m = (3x^2 + A) / 2y
         three = self.set_or_get_constant(self.field(3))
 
-        m_num = self.extf_scalar_mul(self.fp2_square(xP), three)
-        m_den = self.extf_add(yP, yP)
+        m_num = self.vector_scale(self.fp2_square(xP), three)
+        m_den = self.vector_add(yP, yP)
         m = self.fp2_div(m_num, m_den)
         return m
 
@@ -747,8 +701,8 @@ class BasicECG2(ModuloCircuit):
         xQ, yQ = Q
         slope = self._compute_adding_slope(P, Q)
         slope_sqr = self.fp2_square(slope)
-        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xQ)
-        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
+        nx = self.vector_sub(self.vector_sub(slope_sqr, xP), xQ)
+        ny = self.vector_sub(self.fp2_mul(slope, self.vector_sub(xP, nx)), yP)
         return (nx, ny)
 
     def double_point_a_eq_0(
@@ -758,8 +712,8 @@ class BasicECG2(ModuloCircuit):
         xP, yP = P
         slope = self._compute_doubling_slope_a_eq_0(P)
         slope_sqr = self.fp2_square(slope)
-        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
-        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
+        nx = self.vector_sub(self.vector_sub(slope_sqr, xP), xP)
+        ny = self.vector_sub(self.fp2_mul(slope, self.vector_sub(xP, nx)), yP)
         return (nx, ny)
 
     def double_n_times(self, P, n):
@@ -772,4 +726,4 @@ class BasicECG2(ModuloCircuit):
         self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
     ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
         x, y = P
-        return (x, self.extf_neg(y))
+        return (x, self.vector_neg(y))

@@ -142,7 +142,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         if -1 in self.loop_counter:
             self.Qneg = [
-                (self.Q[i][0], self.extf_neg(self.Q[i][1])) for i in range(n_pairs)
+                (self.Q[i][0], self.vector_neg(self.Q[i][1])) for i in range(n_pairs)
             ]
         else:
             self.Qneg = None
@@ -177,7 +177,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 comment="Doubling slope numerator end",
             ),
         ]
-        den = self.extf_add(Q[1], Q[1])
+        den = self.vector_add(Q[1], Q[1])
         return self.fp2_div(num, den)
 
     def compute_adding_slope(
@@ -193,8 +193,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
     ) -> list[ModuloCircuitElement]:
         # num = ya - yb
         # den = xa - xb
-        num = self.extf_sub(Qa[1], Qb[1])
-        den = self.extf_sub(Qa[0], Qb[0])
+        num = self.vector_sub(Qa[1], Qb[1])
+        den = self.vector_sub(Qa[0], Qb[0])
         return self.fp2_div(num, den)
 
     def build_sparse_line_eval(
@@ -267,14 +267,14 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         if self.precompute_lines and (k + 1) <= self.n_points_precomputed_lines:
             return (None, None), self.get_next_precomputed_line()
         λ = self.compute_adding_slope(Qa, Qb)
-        xr = self.extf_sub(X=self.fp2_square(X=λ), Y=self.extf_add(Qa[0], Qb[0]))
-        yr = self.extf_sub(
-            X=self.fp2_mul(X=λ, Y=self.extf_sub(Qa[0], xr)),
+        xr = self.vector_sub(X=self.fp2_square(X=λ), Y=self.vector_add(Qa[0], Qb[0]))
+        yr = self.vector_sub(
+            X=self.fp2_mul(X=λ, Y=self.vector_sub(Qa[0], xr)),
             Y=Qa[1],
         )
         p = (xr, yr)
         lineR0 = λ
-        lineR1 = self.extf_sub(self.fp2_mul(λ, Qa[0]), Qa[1])
+        lineR1 = self.vector_sub(self.fp2_mul(λ, Qa[0]), Qa[1])
 
         return p, (lineR0, lineR1)
 
@@ -303,7 +303,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             return self.get_next_precomputed_line()
         λ = self.compute_adding_slope(Qa, Qb)
         lineR0 = λ
-        lineR1 = self.extf_sub(self.fp2_mul(λ, Qa[0]), Qa[1])
+        lineR1 = self.vector_sub(self.fp2_mul(λ, Qa[0]), Qa[1])
         return lineR0, lineR1
 
     def line_compute(
@@ -337,15 +337,15 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         λ = self.compute_doubling_slope(Q)  # Compute λ = 3x² / 2y
 
         # Compute xr = λ² - 2x
-        xr = self.extf_sub(X=self.fp2_square(X=λ), Y=self.extf_add(Q[0], Q[0]))
+        xr = self.vector_sub(X=self.fp2_square(X=λ), Y=self.vector_add(Q[0], Q[0]))
 
         # Compute yr = λ(x - xr) - y
-        yr = self.extf_sub(X=self.fp2_mul(λ, self.extf_sub(Q[0], xr)), Y=Q[1])
+        yr = self.vector_sub(X=self.fp2_mul(λ, self.vector_sub(Q[0], xr)), Y=Q[1])
 
         p = (xr, yr)
 
         lineR0 = λ
-        lineR1 = self.extf_sub(self.fp2_mul(λ, Q[0]), Q[1])
+        lineR1 = self.vector_sub(self.fp2_mul(λ, Q[0]), Q[1])
 
         return p, (lineR0, lineR1)
 
@@ -382,26 +382,26 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
 
         # compute x3 = λ1²-x1-x2
 
-        x3 = self.extf_sub(X=self.fp2_square(X=λ1), Y=self.extf_add(Qa[0], Qb[0]))
+        x3 = self.vector_sub(X=self.fp2_square(X=λ1), Y=self.vector_add(Qa[0], Qb[0]))
 
         # omit y3 computation
         line1R0 = λ1
-        line1R1 = self.extf_sub(self.fp2_mul(λ1, Qa[0]), Qa[1])
+        line1R1 = self.vector_sub(self.fp2_mul(λ1, Qa[0]), Qa[1])
 
         # compute λ2 = -λ1-2y1/(x3-x1)
 
-        num = self.extf_add(Qa[1], Qa[1])
-        den = self.extf_sub(x3, Qa[0])
-        λ2 = self.extf_neg(self.extf_add(λ1, self.fp2_div(num, den)))
+        num = self.vector_add(Qa[1], Qa[1])
+        den = self.vector_sub(x3, Qa[0])
+        λ2 = self.vector_neg(self.vector_add(λ1, self.fp2_div(num, den)))
 
         # compute xr = λ2²-x1-x3
-        x4 = self.extf_sub(self.extf_sub(self.fp2_square(λ2), Qa[0]), x3)
+        x4 = self.vector_sub(self.vector_sub(self.fp2_square(λ2), Qa[0]), x3)
 
         # compute y4 = λ2(x1 - x4)-y1
-        y4 = self.extf_sub(self.fp2_mul(λ2, self.extf_sub(Qa[0], x4)), Qa[1])
+        y4 = self.vector_sub(self.fp2_mul(λ2, self.vector_sub(Qa[0], x4)), Qa[1])
 
         line2R0 = λ2
-        line2R1 = self.extf_sub(self.fp2_mul(λ2, Qa[0]), Qa[1])
+        line2R1 = self.vector_sub(self.fp2_mul(λ2, Qa[0]), Qa[1])
 
         return (x4, y4), (line1R0, line1R1), (line2R0, line2R1)
 
@@ -448,30 +448,30 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             self.mul(num_tmp[0], self.set_or_get_constant(3)),
             self.mul(num_tmp[1], self.set_or_get_constant(6)),
         ]
-        den = self.extf_add(Q[1], Q[1])
+        den = self.vector_add(Q[1], Q[1])
         λ1 = self.fp2_div(num, den)
 
         line1R0 = λ1
-        line1R1 = self.extf_sub(self.fp2_mul(λ1, Q[0]), Q[1])
+        line1R1 = self.vector_sub(self.fp2_mul(λ1, Q[0]), Q[1])
 
         # x2 = λ1^2 - 2x
-        x2 = self.extf_sub(self.fp2_square(λ1), self.extf_add(Q[0], Q[0]))
+        x2 = self.vector_sub(self.fp2_square(λ1), self.vector_add(Q[0], Q[0]))
         # ommit yr computation, and
 
         # compute λ2 = 2y/(x2 − x) − λ1.
         # However in https://github.com/Consensys/gnark/blob/7cfcd5a723b0726dcfe75a5fc7249a23d690b00b/std/algebra/emulated/sw_bls12381/pairing.go#L548
         # It's coded as x - x2.
-        λ2 = self.extf_sub(self.fp2_div(den, self.extf_sub(Q[0], x2)), λ1)
+        λ2 = self.vector_sub(self.fp2_div(den, self.vector_sub(Q[0], x2)), λ1)
 
         line2R0 = λ2
-        line2R1 = self.extf_sub(self.fp2_mul(λ2, Q[0]), Q[1])
+        line2R1 = self.vector_sub(self.fp2_mul(λ2, Q[0]), Q[1])
 
         # // xr = λ²-p.x-x2
 
-        xr = self.extf_sub(self.fp2_square(λ2), self.extf_add(Q[0], x2))
+        xr = self.vector_sub(self.fp2_square(λ2), self.vector_add(Q[0], x2))
 
         # // yr = λ(p.x-xr) - p.y
-        yr = self.extf_sub(self.fp2_mul(λ2, self.extf_sub(Q[0], xr)), Q[1])
+        yr = self.vector_sub(self.fp2_mul(λ2, self.vector_sub(Q[0], xr)), Q[1])
 
         return (xr, yr), (line1R0, line1R1), (line2R0, line2R1)
 
@@ -644,11 +644,11 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                     q1y,
                     nr1p3,
                 )
-                q2x = self.extf_scalar_mul(
+                q2x = self.vector_scale(
                     self.Q[k][0],
                     nr2p2,
                 )
-                q2y = self.extf_scalar_mul(
+                q2y = self.vector_scale(
                     self.Q[k][1],
                     nr2p3,
                 )
