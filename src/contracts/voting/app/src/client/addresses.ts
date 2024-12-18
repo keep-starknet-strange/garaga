@@ -2,7 +2,7 @@ import { Network } from './networks';
 
 type Address = `0x${string}`;
 
-type NetworkAddressMap = { [key in Network]: Address };
+type NetworkAddressMap = Readonly<{ [key in Network]: Address }>;
 
 export const ZERO_ADDRESS: Address = '0x0000000000000000000000000000000000000000000000000000000000000000';
 

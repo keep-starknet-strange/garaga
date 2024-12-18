@@ -44,7 +44,8 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "starknet": "^6.11.0",
-    "swr": "^2.2.5"
+    "swr": "^2.2.5",
+    "tlock-js": "^0.9.0"
   },
   "devDependencies": {
     "@types/node": "20.5.7",
