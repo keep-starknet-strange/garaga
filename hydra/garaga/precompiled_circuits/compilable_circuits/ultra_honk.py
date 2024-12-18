@@ -168,11 +168,10 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         imap["p_public_inputs"] = (structs.u256Span, self.vk.public_inputs_size)
         imap["p_public_inputs_offset"] = structs.u384
 
-        for i in range(self.vk.log_circuit_size):
-            imap[f"sumcheck_univariate_{i}"] = (
-                structs.u256Span,
-                hk.BATCHED_RELATION_PARTIAL_LENGTH,
-            )
+        imap["sumcheck_univariates_flat"] = (
+            structs.u256Span,
+            self.vk.log_circuit_size * hk.BATCHED_RELATION_PARTIAL_LENGTH,
+        )
 
         imap["sumcheck_evaluations"] = (
             structs.u256Span,
@@ -208,9 +207,16 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
             vars["p_public_inputs_offset"],
         )
 
+        sumcheck_univariates_flat = vars["sumcheck_univariates_flat"]
         sumcheck_univariates = []
         for i in range(self.vk.log_circuit_size):
-            sumcheck_univariates.append(vars[f"sumcheck_univariate_{i}"])
+            sumcheck_univariates.append(
+                sumcheck_univariates_flat[
+                    i
+                    * hk.BATCHED_RELATION_PARTIAL_LENGTH : (i + 1)
+                    * hk.BATCHED_RELATION_PARTIAL_LENGTH
+                ]
+            )
 
         assert len(sumcheck_univariates) == self.vk.log_circuit_size
         assert len(sumcheck_univariates[0]) == hk.BATCHED_RELATION_PARTIAL_LENGTH
@@ -249,7 +255,7 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
         auto_run: bool = True,
         compilation_mode: int = 1,
     ) -> None:
-        name = f"honk_prepare_msm_scalars_size_{vk.log_circuit_size}"
+        name = f"honk_prep_msm_scalars_size_{vk.log_circuit_size}"
         self.vk = vk
         self.scalar_indexes = []
         super().__init__(
@@ -261,7 +267,7 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
         imap = {}
 
         imap["p_sumcheck_evaluations"] = (structs.u256Span, hk.NUMBER_OF_ENTITIES)
-        imap["p_gemini_a_evaluations"] = (structs.u256Span, hk.CONST_PROOF_SIZE_LOG_N)
+        imap["p_gemini_a_evaluations"] = (structs.u256Span, self.vk.log_circuit_size)
         imap["tp_gemini_r"] = structs.u384
         imap["tp_rho"] = structs.u384
         imap["tp_shplonk_z"] = structs.u384
