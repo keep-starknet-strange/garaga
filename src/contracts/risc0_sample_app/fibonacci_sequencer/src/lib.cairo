@@ -1,6 +1,8 @@
 #[starknet::interface]
 pub trait IFibonacciSequencer<TContractState> {
-    fn verify_and_submit_fibonacci_number(ref self: TContractState, full_proof_with_hints: Span<felt252>);
+    fn verify_and_submit_fibonacci_number(
+        ref self: TContractState, full_proof_with_hints: Span<felt252>,
+    );
 }
 
 #[starknet::contract]
@@ -18,7 +20,9 @@ mod FibonacciSequencer {
 
     #[abi(embed_v0)]
     impl FibonacciSequencerImpl of super::IFibonacciSequencer<ContractState> {
-        fn verify_and_submit_fibonacci_number(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
+        fn verify_and_submit_fibonacci_number(
+            ref self: ContractState, full_proof_with_hints: Span<felt252>,
+        ) {
             // sets the class hash for the RiscZero verifier already declared on-chain
             // by the Garaga team
             let class_hash: ClassHash = RISC_ZERO_VERIFIER_CLASS_HASH.try_into().unwrap();
