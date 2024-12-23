@@ -20,6 +20,7 @@ from garaga.starknet.cli.utils import (
     complete_fee,
     complete_proof_system,
     get_contract_iff_exists,
+    get_default_vk_path,
     load_account,
     voyager_link_tx,
 )
@@ -51,16 +52,6 @@ def verify_onchain(
             help="Starknet contract address",
         ),
     ],
-    vk: Annotated[
-        Path,
-        typer.Option(
-            help="Path to the verification key JSON file",
-            file_okay=True,
-            dir_okay=False,
-            exists=True,
-            autocompletion=lambda: [],
-        ),
-    ],
     proof: Annotated[
         Path,
         typer.Option(
@@ -71,6 +62,16 @@ def verify_onchain(
             autocompletion=lambda: [],
         ),
     ],
+    vk: Annotated[
+        Path,
+        typer.Option(
+            help="Path to the verification key file. Expects a JSON for groth16, binary format for Honk. Must be provided, except when the system supports an universal key (ex: Risc0)",
+            file_okay=True,
+            dir_okay=False,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ] = None,
     public_inputs: Annotated[
         Path,
         typer.Option(
@@ -132,6 +133,9 @@ def verify_onchain(
             f"Function {endpoint} not found on contract {contract_address}"
         )
 
+    if vk == None:
+        vk = get_default_vk_path(system)
+
     if public_inputs == "":
         public_inputs = None
 
@@ -179,7 +183,7 @@ def get_calldata_generic(
     system: ProofSystem, vk: Path, proof: Path, public_inputs: Path | None
 ) -> list[int]:
     match system:
-        case ProofSystem.Groth16:
+        case ProofSystem.Groth16 | ProofSystem.Risc0Groth16:
             vk_obj = Groth16VerifyingKey.from_json(vk)
             proof_obj = Groth16Proof.from_json(proof, public_inputs)
             return groth16_calldata_from_vk_and_proof(vk_obj, proof_obj)
@@ -196,16 +200,6 @@ def calldata(
         ProofSystem,
         typer.Option(help="Proof system", autocompletion=complete_proof_system),
     ],
-    vk: Annotated[
-        Path,
-        typer.Option(
-            help="Path to the verification key file",
-            file_okay=True,
-            dir_okay=False,
-            exists=True,
-            autocompletion=lambda: [],
-        ),
-    ],
     proof: Annotated[
         Path,
         typer.Option(
@@ -216,6 +210,16 @@ def calldata(
             autocompletion=lambda: [],
         ),
     ],
+    vk: Annotated[
+        Path,
+        typer.Option(
+            help="Path to the verification key file. Expects a JSON for groth16, binary format for Honk. Must be provided, except when the system supports an universal key (ex: Risc0)",
+            file_okay=True,
+            dir_okay=False,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ] = None,
     public_inputs: Annotated[
         Path,
         typer.Option(
@@ -236,6 +240,9 @@ def calldata(
     ] = CalldataFormat.starkli,
 ):
     """Generate Starknet verifier calldata given a proof and a verification key."""
+
+    if vk == None:
+        vk = get_default_vk_path(system)
 
     calldata = get_calldata_generic(system, vk, proof, public_inputs)
 
