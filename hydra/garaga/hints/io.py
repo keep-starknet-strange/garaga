@@ -327,8 +327,10 @@ def padd_function_felt(
     return (a_num, a_den, b_num, b_den)
 
 
-def fill_sum_dlog_div(f: FunctionFelt, n: int, ref: object, segments: object):
-    a_num, a_den, b_num, b_den = padd_function_felt(f, n)
+def fill_sum_dlog_div(
+    f: FunctionFelt, n: int, ref: object, segments: object, batched: bool = False
+):
+    a_num, a_den, b_num, b_den = padd_function_felt(f, n, batched=batched)
 
     ref.a_num = segments.gen_arg(bigint_split_array(a_num, 4, 2**96))
     ref.a_den = segments.gen_arg(bigint_split_array(a_den, 4, 2**96))
