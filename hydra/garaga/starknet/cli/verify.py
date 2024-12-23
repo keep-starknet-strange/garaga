@@ -182,7 +182,7 @@ def get_calldata_generic(
         case ProofSystem.Groth16:
             vk_obj = Groth16VerifyingKey.from_json(vk)
             proof_obj = Groth16Proof.from_json(proof, public_inputs)
-            return groth16_calldata_from_vk_and_proof(vk, proof)
+            return groth16_calldata_from_vk_and_proof(vk_obj, proof_obj)
         case ProofSystem.UltraKeccakHonk:
             vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
             proof_obj = HonkProof.from_bytes(open(proof, "rb").read())
