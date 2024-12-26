@@ -38,10 +38,10 @@ mod FibonacciSequencer {
             assert(optional_journal != Option::None, 'Invalid proof');
 
             // parses the public inputs and output from the journal
-            let journal = optional_journal.unwrap();
-            let l = decode_u32_le(journal, 0);
-            let u = decode_u32_le(journal, 4);
-            let fib_n = decode_u32_le(journal, 8);
+            let mut journal = optional_journal.unwrap();
+            let l = pop_front_u32_le(ref journal);
+            let u = pop_front_u32_le(ref journal);
+            let fib_n = pop_front_u32_le(ref journal);
 
             // performs the necessary state update check, updates the state,
             // and emits an event with the new fibnoacci number submitted
@@ -57,11 +57,12 @@ mod FibonacciSequencer {
         }
     }
 
-    fn decode_u32_le(bytes: Span<u8>, i: usize) -> u32 {
-        let b0: u32 = (*bytes[i]).into();
-        let b1: u32 = (*bytes[i + 1]).into();
-        let b2: u32 = (*bytes[i + 2]).into();
-        let b3: u32 = (*bytes[i + 3]).into();
+    fn pop_front_u32_le(ref bytes: Span<u8>) -> u32 {
+        let [b0, b1, b2, b3] = (*bytes.multi_pop_front::<4>().unwrap()).unbox();
+        let b0: u32 = b0.into();
+        let b1: u32 = b1.into();
+        let b2: u32 = b2.into();
+        let b3: u32 = b3.into();
         b0 + 256 * (b1 + 256 * (b2 + 256 * b3))
     }
 
