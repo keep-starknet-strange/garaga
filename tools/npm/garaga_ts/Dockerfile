@@ -5,7 +5,7 @@
 
 FROM rust:1.80.1
 
-RUN cargo install wasm-pack
+RUN cargo install --locked wasm-pack
 
 RUN curl -L https://bit.ly/n-install | bash -s -- -y 20.17.0
 

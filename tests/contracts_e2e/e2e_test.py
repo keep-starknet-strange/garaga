@@ -316,3 +316,107 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
 
     receipt = await account.client.get_transaction_receipt(invoke_result.hash)
     print(receipt.execution_resources)
+
+
+@pytest.mark.asyncio
+async def test_risc0_sample_app(account_devnet: BaseAccount):
+    account = account_devnet
+
+    lib_contract_project = Groth16SmartContract(
+        smart_contract_folder=CONTRACTS_PATH / "risc0_verifier_bn254",
+        vk_path=GROTH16_EXAMPLES_PATH / "vk_risc0.json",
+    )
+
+    contract_project = SmartContractProject(
+        smart_contract_folder=CONTRACTS_PATH
+        / "risc0_sample_app"
+        / "fibonacci_sequencer",
+    )
+
+    proof_path = CONTRACTS_PATH / "risc0_sample_app" / "fibonacci_prover" / "proof.json"
+
+    src_path = (
+        CONTRACTS_PATH
+        / "risc0_sample_app"
+        / "fibonacci_sequencer"
+        / "src"
+        / "lib.cairo"
+    )
+
+    print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
+
+    # Declare the ECIP contract
+    ecip_class_hash, _ = await ECIP_CONTRACT.declare_class_hash(account)
+
+    assert (
+        ecip_class_hash == ECIP_OPS_CLASS_HASH
+    ), f"ECIP hardcoded class hash is not up to date, got {hex(ecip_class_hash)}, expected {hex(ECIP_OPS_CLASS_HASH)}"
+
+    # Declare the risc0 verifier contract
+    lib_groth16_class_hash, _ = await lib_contract_project.declare_class_hash(account)
+
+    print(f"Declared contract class hash: {hex(lib_groth16_class_hash)}")
+
+    assert (
+        hex(lib_groth16_class_hash) in open(src_path).read()
+    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date in {src_path}"
+
+    # Declare the risc0 sample app contract
+    groth16_class_hash, groth16_abi = await contract_project.declare_class_hash(account)
+
+    print(f"Declared contract class hash: {hex(groth16_class_hash)}")
+
+    # Deploy the risc0 sample app contract
+    precomputed_address = compute_address(
+        class_hash=groth16_class_hash,
+        constructor_calldata=[],
+        salt=pedersen_hash(to_int(account.address), 1),
+        deployer_address=DEPLOYER_ADDRESS,
+    )
+
+    try_contract = await get_contract_if_exists(account, precomputed_address)
+    if try_contract is None:
+        deploy_result = await Contract.deploy_contract_v1(
+            account=account,
+            class_hash=groth16_class_hash,
+            abi=groth16_abi,
+            deployer_address=DEPLOYER_ADDRESS,
+            auto_estimate=True,
+            salt=1,
+            cairo_version=1,
+        )
+        await deploy_result.wait_for_acceptance()
+
+        contract = deploy_result.deployed_contract
+    else:
+        print(f"Contract already deployed at {hex(precomputed_address)}")
+        contract = try_contract
+
+    print(f"Deployed contract address: {hex(contract.address)}")
+    print(f"Deployed contract: {contract.functions}")
+
+    function_call: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["verify"]
+    )
+
+    prepare_invoke = PreparedFunctionInvokeV3(
+        to_addr=function_call.contract_data.address,
+        calldata=lib_contract_project.generate_calldata(
+            proof_path=proof_path, public_inputs_path=None
+        ),
+        selector=function_call.get_selector(function_call.name),
+        l1_resource_bounds=None,
+        _contract_data=function_call.contract_data,
+        _client=function_call.client,
+        _account=function_call.account,
+        _payload_transformer=function_call._payload_transformer,
+    )
+
+    invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
+
+    await invoke_result.wait_for_acceptance()
+
+    print(f"Invoke result : {invoke_result.status}")
+
+    receipt = await account.client.get_transaction_receipt(invoke_result.hash)
+    print(receipt.execution_resources)
