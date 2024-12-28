@@ -12,7 +12,7 @@ A Zero-Knowledge proof is a mathematical construct that guarantees that a given 
 
 This is achieved in two steps:
 
-1- A Prover performs the computation and constructs the proof artifact. The proof artifact contains the computational journal which is, in simple terms, the list of public inputs and the output value. The proof artifact attests the integrity of the computation, which means the prover ran the computation properly and the output value registered in the journal corresponds to the result of such computation given the public inputs, also registered in the jornal, an some undisclosed private inputs. Here the Verifier is a RiscZero user-defined program that implements the desired computation and is augmented to produce the desired proof artifact.
+1- A Prover performs the computation and constructs the proof artifact. The proof artifact contains the computational journal which is, in simple terms, the list of public inputs and the output value. The proof artifact attests the integrity of the computation, which means the prover ran the computation properly and the output value registered in the journal corresponds to the result of such computation given the public inputs, also registered in the jornal, an some undisclosed private inputs. Here the Prover is a RiscZero user-defined program that implements the desired computation and is augmented to produce the desired proof artifact.
 
 2- Given the proof artifact, a Verifier must check its integrity before processing the output as valid. Here the Verifier is a Starknet smart contract written in Cairo and Garaga acts as a library to which the verification is delegated to.
 
@@ -57,7 +57,7 @@ sudo apt install -y python3
 
 In order to implement the Verifier one needs to install the tooling for Cairo development and Garaga:
 
-4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.9.2)
+4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.9.1)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
@@ -74,7 +74,7 @@ snfoundryup
 
 ### Create or configure the RiscZero project
 
-1. If you are setting up a new RiscZero project, run the command below, it will create a new project folder and define the Guest program name. The Guest program is the program that is compiled to and will run in the RiscZero VM. The project setup also creates a Host program that runs outside the RiscZero VM and interacts with the Guest, providing inputs and collecting outputs, to produce the ZK proof. Here we set up a sample project called `fibonacci_prover` with a Guest called `fibonacci_guest`
+1. If you are setting up a new RiscZero project, run the command below, it will create a new project folder and define the Guest program name. The Guest program is the program that is compiled to and will run in the RiscZero VM. The project setup also creates a Host program that runs outside the RiscZero VM and interacts with the Guest, providing inputs and collecting outputs, to produce the ZK proof. Here we set up a sample project called `fibonacci_prover` with a Guest called `fibonacci_guest` (for reference, the complete RiscZero app presented here is available in [Garaga's GitHub repository](https://github.com/keep-starknet-strange/garaga/tree/main/src/contracts/risc0_sample_app))
 
 ```
 cargo risczero new fibonacci_prover --guest-name fibonacci_guest
@@ -91,7 +91,7 @@ hex = "0.4"
 ...
 ```
 
-Optionally, if you intend to explicitly generate and handle the call data, also add the following dependency to `host/Cargo.toml`
+Optionally, if you intend to explicitly generate and handle the call-data, also add the following dependency to `host/Cargo.toml`. Make sure to use a Garaga version tag that is consistent with your setup.
 
 <pre class="language-toml"><code class="lang-toml">[dependencies]
 <strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.15.3" }
@@ -107,7 +107,7 @@ use risc0_zkvm::{
 use risc0_ethereum_contracts::encode_seal;
 ```
 
-Optionally, if you intend to generate the call data explicitly, add the following imports
+Optionally, if you intend to generate the call-data explicitly, add the following imports
 
 ```rust
 use garaga_rs::definitions::CurveID;
@@ -137,6 +137,8 @@ let env = ExecutorEnv::builder()
     .build()
     .unwrap();
 ```
+
+_As a note, the sample app provided here exists only to demonstrate how to setup a ZK project using Garaga/RiscZero. It is clear that datatype `u32` is not appropriate datatype to host a secret Fibonacci number as it can be easily discovered by brute force checking all possibilities between the bounds._
 
 Next we modify the default Prover setup to explicitly use Groth16
 
@@ -170,7 +172,7 @@ fn to_bytes&#x3C;T: AsRef&#x3C;[u8]>>(obj: T) -> Vec&#x3C;u8> {
 }
 </code></pre>
 
-Optionally, if you also intend to handle the call data explicitly, it can be computed and output as a JSON as well. This produces a large array that encodes the full RiscZero proof wih hints
+Optionally, if you also intend to handle the call-data explicitly, it can be computed and output as a JSON as well. This produces a large array that encodes the full RiscZero proof wih hints
 
 ```rust
 let proof = Groth16Proof::from_risc0(seal, image_id, journal);
@@ -250,7 +252,7 @@ The `verify_groth16_proof_bn254` function takes the call data that encodes the p
 Here is how to verify the RiscZero proof and update the smart contract state for our Fibonacci sequencer example:
 
 ```rust
-fn submit_fibonacci_number(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
+fn verify_and_submit_fibonacci_number(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
     // sets the class hash for the RiscZero verifier already declared on-chain
     // by the Garaga team
     let class_hash: ClassHash = RISC_ZERO_VERIFIER_CLASS_HASH.try_into().unwrap();
@@ -266,10 +268,10 @@ fn submit_fibonacci_number(ref self: ContractState, full_proof_with_hints: Span<
     assert(optional_journal != Option::None, 'Invalid proof');
 
     // parses the public inputs and output from the journal
-    let journal = optional_journal.unwrap();
-    let l = decode_u32_le(journal, 0);
-    let u = decode_u32_le(journal, 4);
-    let fib_n = decode_u32_le(journal, 8);
+    let mut journal = optional_journal.unwrap();
+    let l = pop_front_u32_le(ref journal);
+    let u = pop_front_u32_le(ref journal);
+    let fib_n = pop_front_u32_le(ref journal);
 
     // performs the necessary state update check, updates the state,
     // and emits an event with the new fibnoacci number submitted
@@ -285,7 +287,7 @@ fn submit_fibonacci_number(ref self: ContractState, full_proof_with_hints: Span<
 }
 ```
 
-Along with the `submit_fibonacci_number` contract method,  we need to define the RiscZero Verifier class hash, which can be obtained [here](./)
+Along with the `verify_and_submit_fibonacci_number` contract method,  we need to define the RiscZero Verifier class hash, which can be obtained [here](./)
 
 ```rust
 use core::starknet::ClassHash;
@@ -306,11 +308,12 @@ struct Storage {
 And also the helper function used to decode the journal values
 
 ```rust
-fn decode_u32_le(bytes: Span<u8>, i: usize) -> u32 {
-    let b0: u32 = (*bytes[i]).into();
-    let b1: u32 = (*bytes[i + 1]).into();
-    let b2: u32 = (*bytes[i + 2]).into();
-    let b3: u32 = (*bytes[i + 3]).into();
+fn pop_front_u32_le(ref bytes: Span<u8>) -> u32 {
+    let [b0, b1, b2, b3] = (*bytes.multi_pop_front::<4>().unwrap()).unbox();
+    let b0: u32 = b0.into();
+    let b1: u32 = b1.into();
+    let b2: u32 = b2.into();
+    let b3: u32 = b3.into();
     b0 + 256 * (b1 + 256 * (b2 + 256 * b3))
 }
 ```
@@ -338,9 +341,9 @@ struct LowerBoundUpdated {
 }
 ```
 
-It is important to note that the `submit_fibonacci_number` function defined in this sample contract has a signature that takes a single argument: the proof artifact. This is useful because we can then submit the transaction to the blockchain directly, simply using the Garaga CLI passing along the JSON file output by the RiscZero Host program. This avoids the need to encode the proof as a customized call data. It also spares us from dealing with the transaction submission details which is handled internally by the Garaga CLI.
+It is important to note that the `verify_and_submit_fibonacci_number` function defined in this sample contract has a signature that takes a single argument: the proof artifact. This is useful because we can then submit the transaction to the blockchain directly, simply using the Garaga CLI passing along the JSON file output by the RiscZero Host program. This avoids the need to encode the proof as a customized call data. It also spares us from dealing with the transaction submission details which is handled internally by the Garaga CLI.
 
-This is an approach that makes sense when all the information required to validate and update the smart contract state can be extracted from the journal, exempting us from the need of passing additional parameters to the function which would deem it incompatible with the interface expected by the CLI.
+This is an approach that makes sense when all the information required to validate and update the smart contract state can be extracted from the journal, exempting us from the need of passing additional parameters to the function which would deem it incompatible with the interface expected by the CLI. The CLI also requires the contract method processing the proof (referred to as endpoint) to have the word `verify` as part of it.
 
 Once the Cairo smart contract is ready, it can be deployed in three steps:
 
@@ -398,15 +401,12 @@ As mentioned before, the JSON proof artifact generated by the RiscZero execution
 
 ```bash
 garaga verify-onchain \
-  --system groth16 \
-  --vk <RISC_ZERO_VERIFYING_KEY> \
+  --system risc0_groth16 \
   --network <mainnet_OR_sepolia> \
   --contract-address <CONTRACT_ADDRESS> \
   --endpoint <SMART_CONTRACT_FUNCTION_NAME> \
   --proof <PATH_TO_PROOF_ARTIFACT_JSON>
 ```
-
-The RiscZero verifying key is shipped along Garaga and is located at `hydra/garaga/starknet/groth16_contract_generator/examples/vk_risc0.json`.
 
 In order to run the Garaga `verify-onchain` command you will need to provide a .`secrets` file in the current folder, or elsewhere using the `--env-file` option. Here is the format for the `.secrets` file
 
