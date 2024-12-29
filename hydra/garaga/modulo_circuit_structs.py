@@ -47,6 +47,9 @@ class Cairo1SerializableStruct(ABC):
         else:
             assert self.elmts is None, f"Elmts must be a list or None, got {self.elmts}"
 
+    def __getitem__(self, index: int):
+        return self.elmts[index]
+
     @property
     def struct_name(self) -> str:
         return self.__class__.__name__
