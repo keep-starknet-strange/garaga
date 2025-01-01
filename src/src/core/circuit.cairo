@@ -5,8 +5,8 @@ use core::circuit::{
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
-// use core::panics::panic;
 
+/// Implementation of conversion from u64 to u384
 impl U64IntoU384 of Into<u64, u384> {
     fn into(self: u64) -> u384 {
         let v128: u128 = self.into();
@@ -14,6 +14,7 @@ impl U64IntoU384 of Into<u64, u384> {
     }
 }
 
+/// Implementation of circuit input value conversion for u288
 impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
         [
@@ -23,10 +24,11 @@ impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     }
 }
 
+/// Trait implementation for handling circuit input operations
 #[generate_trait]
 pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
-    /// Adds an input to the accumulator.
-    // Inlining to make sure possibly huge `C` won't be in a user function name.
+    /// Adds a generic input value to the accumulator
+    /// Returns AddInputResult containing the updated accumulator state
     #[inline]
     fn next_2<Value, +IntoCircuitInputValue<Value>, +Drop<Value>>(
         self: AddInputResult<C>, value: Value,
@@ -38,16 +40,22 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
     }
+
+    /// Adds a u256 value to the accumulator
     #[inline]
     fn next_u256(self: AddInputResult<C>, value: u256) -> AddInputResult<C> {
         let val_u384: u384 = value.into();
         self.next_2(val_u384)
     }
+
+    /// Adds a u128 value to the accumulator
     #[inline]
     fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
         let val_u384: u384 = value.into();
         self.next_2(val_u384)
     }
+
+    /// Adds a u288 value to the accumulator
     #[inline(always)]
     fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {
         let c = match self {
@@ -58,103 +66,12 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                     into_u96_guarantee(value.limb2), into_u96_guarantee(0_u8),
                 ],
             ),
-            AddInputResult::Done(_) => panic_with_felt252(0),
+            AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         };
         c
     }
-    // fn next_e12d(self: AddInputResult<C>, value: E12D<u384>) -> AddInputResult<C> {
-    //     let c = match self {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w0.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w1.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w2.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w3.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w4.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w5.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w6.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w7.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w8.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w9.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w10.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     let c = match c {
-    //         AddInputResult::More(accumulator) => add_circuit_input(
-    //             accumulator, value.w11.into_circuit_input_value()
-    //         ),
-    //         AddInputResult::Done(_) => panic_with_felt252(0),
-    //     };
-    //     c
-    // }
 
-    // #[inline]
-    // fn next_array<Value, +IntoCircuitInputValue<Value>, +Drop<Value>>(
-    //     self: AddInputResult<C>, value: Array<Value>
-    // ) -> AddInputResult<C> {
-    //     let mut add_input_result = self;
-    //     for v in value {
-    //         add_input_result =
-    //             add_circuit_input(
-    //                 match add_input_result {
-    //                     AddInputResult::More(acc) => acc,
-    //                     AddInputResult::Done(_) => panic_with_felt252(0),
-    //                 },
-    //                 v.into_circuit_input_value()
-    //             );
-    //     };
-    //     add_input_result
-    // }
+    /// Adds a span of u384 values to the accumulator
     #[inline]
     fn next_span(self: AddInputResult<C>, value: Span<u384>) -> AddInputResult<C> {
         let mut add_input_result = self;
@@ -170,7 +87,9 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
         };
         add_input_result
     }
-    // Inlining to make sure possibly huge `C` won't be in a user function name.
+
+    /// Finalizes the input process and returns the circuit data
+    /// Panics if not all inputs have been filled
     #[inline(always)]
     fn done_2(self: AddInputResult<C>) -> CircuitData<C> {
         match self {
