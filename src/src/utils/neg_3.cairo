@@ -140,23 +140,37 @@ pub fn u128_array_to_epns(
 // Where sum_p = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==1)
 // And sum_n = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==-1)
 // Returns (abs(sum_p), abs(sum_n), p_sign, n_sign)
-pub fn scalar_to_epns(scalar: u128) -> (felt252, felt252, felt252, felt252) {
-    let mut digits: Array<felt252> = neg_3_base_le(scalar);
-
+pub fn scalar_to_epns(mut scalar: u128) -> (felt252, felt252, felt252, felt252) {
     let mut sum_p = 0;
     let mut sum_n = 0;
 
     let mut base_power = 1; // Init to (-3)^0
 
-    while let Option::Some(digit) = digits.pop_front() {
-        if digit != 0 {
-            if digit == 1 {
+    let mut scalar_negative: bool = false;
+
+    while scalar != 0 {
+        let (q, r) = core::traits::DivRem::div_rem(scalar, 3);
+        let r: felt252 = r.into();
+        if r == 0 {
+            scalar = q;
+        } else if r == 2 {
+            if scalar_negative {
+                scalar = q + 1;
                 sum_p += base_power;
             } else {
+                scalar = q + 1;
                 sum_n += base_power;
             }
+        } else {
+            if scalar_negative {
+                scalar = q;
+                sum_n += base_power;
+            } else {
+                scalar = q;
+                sum_p += base_power;
+            }
         }
-
+        scalar_negative = !scalar_negative;
         base_power = base_power * (-3);
     };
 
