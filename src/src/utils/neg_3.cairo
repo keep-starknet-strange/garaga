@@ -43,6 +43,7 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
 
     while scalar != 0 {
         let (q, r) = core::traits::DivRem::div_rem(scalar, 3);
+        let r: felt252 = r.into();
 
         if r == 2 {
             if scalar_negative {
@@ -55,10 +56,10 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
         } else {
             if scalar_negative {
                 scalar = q;
-                digits.append(-r.into());
+                digits.append(-r);
             } else {
                 scalar = q;
-                digits.append(r.into());
+                digits.append(r);
             }
         }
         scalar_negative = !scalar_negative;
