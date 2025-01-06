@@ -96,7 +96,7 @@ Onces changes are in place they can be made permanent into the repository by com
     npm pack
     ```
 
-5. However, before commiting changes, it is necessary to generate the WASM interoperability code in a reproducible manner using docker:
+5. However, before committing changes, it is necessary to generate the WASM interoperability code in a reproducible manner using docker:
 
     ```bash
     docker compose up --build
