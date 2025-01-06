@@ -2,7 +2,7 @@
 
 ## Installation via NPM Registry (recommended)
 
-The easiest way to install Garaga is via your prefered Node.js package manager, such as `npm` or `yarn`.
+The easiest way to install Garaga is via your preferred Node.js package manager, such as `npm` or `yarn`.
 
 1. Open your terminal or command prompt.
 2. Run the following command:
