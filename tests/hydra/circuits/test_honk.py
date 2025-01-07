@@ -21,7 +21,7 @@ PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
 @pytest.mark.parametrize(
     "system", [ProofSystem.UltraKeccakHonk, ProofSystem.UltraStarknetHonk]
 )
-def test_sumcheck_circuit(system: ProofSystem):
+def test_verify_honk_proof(system: ProofSystem):
     vk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
     flavor = "keccak" if system == ProofSystem.UltraKeccakHonk else "starknet"
     proof = HonkProof.from_bytes(open(f"{PATH}/proof_ultra_{flavor}.bin", "rb").read())
