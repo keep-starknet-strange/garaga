@@ -497,7 +497,7 @@ class StarknetPoseidonTranscript(Transcript):
         assert val < 2**256
         high, low = divmod(val, 2**128)
         self.s0, self.s1, self.s2 = hades_permutation(
-            self.s0 + low, self.s0 + high, self.s2
+            self.s0 + low, self.s1 + high, self.s2
         )
 
 
