@@ -488,9 +488,8 @@ class StarknetPoseidonTranscript(Transcript):
             int.from_bytes(b"StarknetHonk", "big"), 0, 1
         )
 
-    def digest_reset(self) -> bytes:
+    def digest(self) -> bytes:
         res_bytes = self.s0.to_bytes(32, "big")
-        self.reset()
         return res_bytes
 
     def update(self, data: bytes):
