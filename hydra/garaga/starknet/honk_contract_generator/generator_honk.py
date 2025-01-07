@@ -2,7 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from garaga.definitions import CurveID
+from garaga.definitions import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     EvalFunctionChallengeDuplCircuit,
@@ -102,8 +102,13 @@ def gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
     output_folder_name: str,
+    system: ProofSystem = ProofSystem.UltraKeccakHonk,
     cli_mode: bool = False,
 ) -> str:
+    assert (
+        system == ProofSystem.UltraKeccakHonk
+    )  # TODO implement also for UltraStarknetHonk system
+
     if isinstance(vk, (Path, str)):
         vk = HonkVk.from_bytes(open(vk, "rb").read())
     elif isinstance(vk, bytes):
