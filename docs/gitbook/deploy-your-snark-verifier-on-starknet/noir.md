@@ -95,7 +95,7 @@ nargo execute witness
 bb prove_ultra_keccak_honk -b target/hello.json -w target/witness.gz -o target/proof.bin
 ```
 
-Finally, you can obtain the `full_proof_with_hints` array using the garaga CLI :&#x20;
+Finally, you can obtain the `full_proof_with_hints` array using the garaga CLI. From within the "target" directory:&#x20;
 
 ```bash
 garaga calldata --system ultra_keccak_honk --vk vk.bin --proof proof.bin --format array
