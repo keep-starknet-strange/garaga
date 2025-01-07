@@ -1,3 +1,5 @@
+import pytest
+
 import garaga.hints.io as io
 from garaga.definitions import G1G2Pair, ProofSystem
 from garaga.precompiled_circuits.honk import (
