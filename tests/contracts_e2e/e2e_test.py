@@ -12,6 +12,7 @@ from starknet_py.hash.utils import pedersen_hash
 from starknet_py.net.account.account import Account, BaseAccount
 from starknet_py.net.client_errors import ContractNotFoundError
 
+from garaga.definitions import ProofSystem
 from garaga.hints.io import to_int
 from garaga.starknet.cli.smart_contract_project import (
     Groth16SmartContract,
@@ -24,7 +25,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 from garaga.starknet.honk_contract_generator.calldata import (
     HonkProof,
     HonkVk,
-    get_ultra_keccak_honk_calldata_from_vk_and_proof,
+    get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
     drand_round_to_calldata,
@@ -299,7 +300,9 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
 
     prepare_invoke = PreparedFunctionInvokeV3(
         to_addr=function_call.contract_data.address,
-        calldata=get_ultra_keccak_honk_calldata_from_vk_and_proof(vk=vk, proof=proof),
+        calldata=get_ultra_flavor_honk_calldata_from_vk_and_proof(
+            vk=vk, proof=proof, system=ProofSystem.UltraKeccakHonk
+        ),
         selector=function_call.get_selector(function_call.name),
         l1_resource_bounds=None,
         _contract_data=function_call.contract_data,
