@@ -74,7 +74,9 @@ impl KeccakHasher of IHasher<KeccakHasherState> {
     }
     #[inline]
     fn digest(ref self: KeccakHasherState) -> u256 {
-        keccak::cairo_keccak(ref self.arr, last_input_word: 0, last_input_num_bytes: 0)
+        ke_le_out_to_ch_be(
+            keccak::cairo_keccak(ref self.arr, last_input_word: 0, last_input_num_bytes: 0),
+        )
     }
 }
 
@@ -375,15 +377,12 @@ pub fn get_eta_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     append_proof_point(ref hasher, w2);
     append_proof_point(ref hasher, w3);
 
-    let ke_out: u256 = hasher.digest();
-    let ch_be: u256 = ke_le_out_to_ch_be(ke_out);
+    let ch_be: u256 = hasher.digest();
 
     let mut hasher_2 = Hasher::new();
     hasher_2.update(ch_be);
 
-    let ke_out_2: u256 = hasher_2.digest();
-
-    let ch_2_be: u256 = ke_le_out_to_ch_be(ke_out_2);
+    let ch_2_be: u256 = hasher_2.digest();
 
     (Etas { eta: ch_be.low, eta2: ch_be.high, eta3: ch_2_be.low }, ch_2_be)
 }
@@ -406,8 +405,7 @@ pub fn get_beta_gamma_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>
     append_proof_point(ref hasher, lookup_read_tags);
     append_proof_point(ref hasher, w4);
 
-    let ke_out: u256 = hasher.digest();
-    let ch_be: u256 = ke_le_out_to_ch_be(ke_out);
+    let ch_be: u256 = hasher.digest();
 
     ch_be
 }
@@ -422,7 +420,7 @@ pub fn generate_alpha_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>
     append_proof_point(ref hasher, lookup_inverse);
     append_proof_point(ref hasher, z_perm);
 
-    let mut alpha_XY: u256 = ke_le_out_to_ch_be(hasher.digest());
+    let mut alpha_XY: u256 = hasher.digest();
 
     let mut alphas: Array<u128> = array![];
     alphas.append(alpha_XY.low);
@@ -432,7 +430,7 @@ pub fn generate_alpha_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>
     for _ in 1..NUMBER_OF_ALPHAS / 2 {
         let mut hasher_i = Hasher::new();
         hasher_i.update(alpha_XY);
-        let _alpha_XY: u256 = ke_le_out_to_ch_be(hasher_i.digest());
+        let _alpha_XY: u256 = hasher_i.digest();
 
         alphas.append(_alpha_XY.low);
         alphas.append(_alpha_XY.high);
@@ -444,7 +442,7 @@ pub fn generate_alpha_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>
 
     let mut hasher_last = Hasher::new();
     hasher_last.update(alpha_XY);
-    let alpha_last: u256 = ke_le_out_to_ch_be(hasher_last.digest());
+    let alpha_last: u256 = hasher_last.digest();
 
     alphas.append(alpha_last.low);
 
@@ -463,7 +461,7 @@ pub fn generate_gate_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     for _ in 0..CONST_PROOF_SIZE_LOG_N {
         let mut hasher = Hasher::new();
         hasher.update(gate_challenge);
-        let _gate_challenge: u256 = ke_le_out_to_ch_be(hasher.digest());
+        let _gate_challenge: u256 = hasher.digest();
         gate_challenges.append(_gate_challenge.low);
         gate_challenge = _gate_challenge;
     };
@@ -499,7 +497,7 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
                 };
             },
         };
-        challenge = ke_le_out_to_ch_be(hasher.digest());
+        challenge = hasher.digest();
         sum_check_u_challenges.append(challenge.low);
     };
 
@@ -517,7 +515,7 @@ pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
         hasher.update(*sumcheck_evaluations.at(i));
     };
 
-    ke_le_out_to_ch_be(hasher.digest())
+    hasher.digest()
 }
 
 #[inline]
@@ -537,7 +535,7 @@ pub fn generate_gemini_r_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T
         hasher.update_u64_as_u256(2);
         hasher.update_u64_as_u256(0);
     };
-    ke_le_out_to_ch_be(hasher.digest())
+    hasher.digest()
 }
 
 #[inline]
@@ -554,7 +552,7 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
         hasher.update_u64_as_u256(0);
     };
 
-    ke_le_out_to_ch_be(hasher.digest())
+    hasher.digest()
 }
 
 #[inline]
@@ -576,6 +574,6 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
     hasher.update(prev_hasher_output);
     append_proof_point(ref hasher, shplonk_q);
 
-    ke_le_out_to_ch_be(hasher.digest())
+    hasher.digest()
 }
 
