@@ -451,17 +451,21 @@ mod honk_verifier_circuits;
 
 if __name__ == "__main__":
 
-    VK_PATH = (
-        "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
-    )
-    VK_LARGE_PATH = (
-        "hydra/garaga/starknet/honk_contract_generator/examples/vk_large.bin"
-    )
-    CONTRACTS_FOLDER = "src/contracts/"  # Do not change this
+    for system in [ProofSystem.UltraKeccakHonk, ProofSystem.UltraStarknetHonk]:
 
-    FOLDER_NAME = (
-        "noir_ultra_keccak_honk_example"  # '_curve_id' is appended in the end.
-    )
+        flavor = "keccak" if system == ProofSystem.UltraKeccakHonk else "starknet"
 
-    gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME)
-    # gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large")
+        VK_PATH = (
+            "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
+        )
+        VK_LARGE_PATH = (
+            "hydra/garaga/starknet/honk_contract_generator/examples/vk_large.bin"
+        )
+        CONTRACTS_FOLDER = "src/contracts/"  # Do not change this
+
+        FOLDER_NAME = (
+            f"noir_ultra_{flavor}_honk_example"  # '_curve_id' is appended in the end.
+        )
+
+        gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, system=system)
+        # gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large", system=system)
