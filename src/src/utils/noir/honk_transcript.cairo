@@ -429,7 +429,7 @@ mod tests {
         assert_eq!(transcript.gemini_r, expected.gemini_r);
         assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
         assert_eq!(transcript.shplonk_z, expected.shplonk_z);
-  }
+    }
 }
 
 
