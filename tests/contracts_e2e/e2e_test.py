@@ -240,6 +240,15 @@ HONK_CONTRACTS = [
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak.bin",
+        "system": ProofSystem.UltraKeccakHonk,
+    },
+    {
+        "contract_project": SmartContractProject(
+            smart_contract_folder=CONTRACTS_PATH / "noir_ultra_starknet_honk_example",
+        ),
+        "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet.bin",
+        "system": ProofSystem.UltraStarknetHonk,
     },
 ]
 
@@ -251,6 +260,7 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     contract_project: SmartContractProject = contract_info["contract_project"]
     vk_path: Path = contract_info["vk_path"]
     proof_path: Path = contract_info["proof_path"]
+    system: ProofSystem = contract_info["system"]
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
     proof = HonkProof.from_bytes(open(proof_path, "rb").read())
@@ -301,7 +311,7 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     prepare_invoke = PreparedFunctionInvokeV3(
         to_addr=function_call.contract_data.address,
         calldata=get_ultra_flavor_honk_calldata_from_vk_and_proof(
-            vk=vk, proof=proof, system=ProofSystem.UltraKeccakHonk
+            vk=vk, proof=proof, system=system
         ),
         selector=function_call.get_selector(function_call.name),
         l1_resource_bounds=None,
