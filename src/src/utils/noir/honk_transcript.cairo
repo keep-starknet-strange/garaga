@@ -199,10 +199,10 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
 #[cfg(test)]
 mod tests {
     use super::{HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState};
-    use garaga::utils::noir::get_proof;
+    use garaga::utils::noir::{get_proof_keccak, get_proof_starknet};
     #[test]
-    fn test_transcript() {
-        let proof = get_proof();
+    fn test_transcript_keccak() {
+        let proof = get_proof_keccak();
         let (transcript, _) = HonkTranscriptTrait::from_proof::<KeccakHasherState>(proof);
         let expected = HonkTranscript {
             eta: 0xb39d3e94753aae04abee4a2d8bcf33c8,
@@ -315,6 +315,121 @@ mod tests {
         assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
         assert_eq!(transcript.shplonk_z, expected.shplonk_z);
     }
+    #[test]
+    fn test_transcript_starknet() {
+        let proof = get_proof_starknet();
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<StarknetHasherState>(proof);
+        let expected = HonkTranscript {
+            eta: 0x8d62fa626b0215df3457353b47a287e5,
+            eta_two: 0x4b9b6c9a15135b2d651f4e2228408d,
+            eta_three: 0x4c9e3011dc5fc8f7b584eb556ca07fb3,
+            beta: 0x7e049aabcc4a616d61c682d9e096c311,
+            gamma: 0xd1f6a1faa817d4a5170e6f4b0e3cd8,
+            alphas: array![
+                0x7c43a16cb16bbd8d6e34c2f3fcd623c2,
+                0x3fb7cc6537b4cee951965b5145c5217,
+                0x9e9db094ffd67ee16cacdbd6f526f938,
+                0x29ff7c6b6a0df46aed403932b5c54c9,
+                0x664d1059d6153cd83af7835d83f22b1f,
+                0x6f83cda5ec55576a529aa32b65b5e59,
+                0x790ba0d1a136e9a18eacd03ef5cfcfdd,
+                0x434a591dcf6bad9b609f5d2b95e9496,
+                0x7766d2236e52dc490cef3bf086ab859d,
+                0x54b555faa875254871ea7e105e86099,
+                0x728351cf4c11d3f2c30159e6f9ea2b8c,
+                0x5adb63c27fcdab83dedc147c19ceb12,
+                0xf5db09cddab499209631debde4dd0a64,
+                0x6f42bb71ce6acfd432be3a68ef8b030,
+                0xb86c76b871c875b464c24340d26d589a,
+                0x54c297fd8f31556141805668061c793,
+                0x523d17f31d13539e738761aae09e871,
+                0x1dc74af1805b47576ba2bd721bb9129,
+                0xc0130e45e00b8f07554464ed654e105,
+                0x13cf3280b619a5a4ac06478f4ce3a91,
+                0x6afc7b725780328c0e3c94df35faba8b,
+                0x3a4dc81a83ad1fa7943ea2bdb19f2c6,
+                0x285bb05427eea929e8636d7d8d23bb03,
+                0x71e67a98a5a51dc28e822ac5e1a0635,
+                0x7042c6485a402309db1e325fcee65c6b,
+            ],
+            gate_challenges: array![
+                0xacf62a607e9d75c16f9f6e0760b4c081,
+                0x19bf8ffa7e18f027a13c2a6586d358d4,
+                0x398aad1b24996093894d1dbc912b7883,
+                0xb70ac91b170c1f2be67fdaa0e35eca5a,
+                0xada2c914c19809bc4b65bb82e2ded8d4,
+                0x75fc609bab0d4897defec16a265c2ead,
+                0x312e51425f6633f5c877c4dda2b725cd,
+                0x702742dddd7ee8221ad96d635b4aaa5e,
+                0xfd9ab08eec7aab06ef0a836175aa1b4e,
+                0x74485a73ea55075e4c7af7371ad16bbf,
+                0x8dd6ed4c05a4d80ebc83005f733056a1,
+                0x7075ba43a1b1e792a579419ec898c70a,
+                0xcf247dc180ed19bda4375b9518cbea7b,
+                0x748cb0197cdbc79047031ac740ca35a3,
+                0xe351de3fd525d6c0a5d060ba121c58aa,
+                0x22385a2f73c555c02ad3822f9da49123,
+                0xe44997fb1096bbab64e0f75c63d4ba8,
+                0xf83f25d9f319b69176efc959e3ba4ba4,
+                0xf16dbc035f95ba710d31781f20968b94,
+                0xd5f46e82a4e6cbab9fad3dedc4bdc0fb,
+                0x3543eb1a44d82125098b352d96f35d3d,
+                0x92a0bea556835f89c30ec68176b4440b,
+                0xfe4fa39306c09716bcb2b398c52004d4,
+                0x7ebcf7e718a6acc18b9ee7f5daf2bf9,
+                0xcaa0cb0e47083608a7db5780e7964ab2,
+                0x8a73302bd092802ddb85c6a154da6490,
+                0xaa4eece5f278eebdec75b26be030b0fb,
+                0xbde0e253c73ac587fda997e26d74202a,
+            ],
+            sum_check_u_challenges: array![
+                0xb3c1b9ce08f7ad8cb3f28b08d7a340b0,
+                0x58f7eb2809901903a80ea44347f33818,
+                0x1087d31d1865f902144fcf5b263179b7,
+                0x9ed48047261aa6ddee6c59d9af255a6a,
+                0x9855e445bb25c342b818494aaf2866da,
+                0x481267b62801f459cae078725321aac4,
+                0x203b8e4e883e4f583ba64f5529a5f260,
+                0x981bb83cc0f6c22a96a02418a6a1db68,
+                0x934350f6c78f351be248c4830532eac6,
+                0x76d75cbff138930574be3674bda62b10,
+                0x8dee3c1d876e34385f2a3b790f0960fb,
+                0x2fdba9ab85de0dccfc1fdb03452201d3,
+                0x19ab696c3ea01016fb8752341f2c1da2,
+                0x6ada7b39517e04460c37abce016ce362,
+                0x23c00d876ce95526c624b5f72ac4ab28,
+                0x1294147f27174dd0edb94a2c792bd2d8,
+                0xf51f9e068801df5de8f8c3991d636dff,
+                0x447b92a99e2d657b55ab804ee922dece,
+                0x6755f8726b4013b28e54025ea161a099,
+                0xcb18b4b5a2a389b0be63211c8a5a4ca1,
+                0x3b7329a27f7b3602a38de53172f47748,
+                0x225a76cb6154745721002c6c67d324cd,
+                0xdfc7e8088d4af287a80d04d4a95025f5,
+                0xbc78b7493c4e5b969973c48ef198ebc7,
+                0x33a86a99babe96defa1fce1a26809c25,
+                0xd2ebfb45c400af2732231061cfc57ab3,
+                0x6654cad2dd3c178cd125d63365a51d03,
+                0x8fdcf918155dd80f3d70cced9a12bea9,
+            ],
+            rho: 0x66400965b0047a9bfeff21e0c0d69251,
+            gemini_r: 0x3697d3f7d3620874f90fc1484c6f0caa,
+            shplonk_nu: 0x152fdcd8a881f7db6563bdc7f9bfd11a,
+            shplonk_z: 0x25df684d1e5524eed1bdf9da069d3a14,
+        };
+        assert_eq!(transcript.eta, expected.eta);
+        assert_eq!(transcript.eta_two, expected.eta_two);
+        assert_eq!(transcript.eta_three, expected.eta_three);
+        assert_eq!(transcript.beta, expected.beta);
+        assert_eq!(transcript.gamma, expected.gamma);
+        assert_eq!(transcript.alphas, expected.alphas);
+        assert_eq!(transcript.gate_challenges, expected.gate_challenges);
+        assert_eq!(transcript.sum_check_u_challenges, expected.sum_check_u_challenges);
+        assert_eq!(transcript.rho, expected.rho);
+        assert_eq!(transcript.gemini_r, expected.gemini_r);
+        assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
+        assert_eq!(transcript.shplonk_z, expected.shplonk_z);
+  }
 }
 
 

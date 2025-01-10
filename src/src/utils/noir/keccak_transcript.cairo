@@ -118,10 +118,10 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
 #[cfg(test)]
 mod tests {
     use super::{HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait};
-    use garaga::utils::noir::get_proof;
+    use garaga::utils::noir::get_proof_keccak;
     #[test]
     fn test_transcript() {
-        let proof = get_proof();
+        let proof = get_proof_keccak();
         let (transcript, _) = HonkTranscriptTrait::from_proof(proof);
         let expected = HonkTranscript {
             eta: 0xb39d3e94753aae04abee4a2d8bcf33c8,
