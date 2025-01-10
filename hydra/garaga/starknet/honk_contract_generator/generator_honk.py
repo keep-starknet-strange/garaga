@@ -105,9 +105,13 @@ def gen_honk_verifier(
     system: ProofSystem = ProofSystem.UltraKeccakHonk,
     cli_mode: bool = False,
 ) -> str:
-    assert (
-        system == ProofSystem.UltraKeccakHonk
-    )  # TODO implement also for UltraStarknetHonk system
+    match system:
+        case ProofSystem.UltraKeccakHonk:
+            flavor = "Keccak"
+        case ProofSystem.UltraStarknetHonk:
+            flavor = "Starknet"
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
 
     if isinstance(vk, (Path, str)):
         vk = HonkVk.from_bytes(open(vk, "rb").read())
@@ -151,15 +155,15 @@ use super::honk_verifier_constants::{{vk, precomputed_lines}};
 use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
 
 #[starknet::interface]
-trait IUltraKeccakHonkVerifier<TContractState> {{
-    fn verify_ultra_keccak_honk_proof(
+trait IUltra{flavor}HonkVerifier<TContractState> {{
+    fn verify_ultra_{flavor.lower()}_honk_proof(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
 }}
 
 #[starknet::contract]
-mod UltraKeccakHonkVerifier {{
+mod Ultra{flavor}HonkVerifier {{
     use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
@@ -168,7 +172,7 @@ mod UltraKeccakHonkVerifier {{
     use garaga::utils::neg_3;
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::keccak_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH}};
+    use garaga::utils::noir::honk_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH, {flavor}HasherState}};
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
@@ -185,8 +189,8 @@ mod UltraKeccakHonkVerifier {{
     }}
 
     #[abi(embed_v0)]
-    impl IUltraKeccakHonkVerifier of super::IUltraKeccakHonkVerifier<ContractState> {{
-        fn verify_ultra_keccak_honk_proof(
+    impl IUltra{flavor}HonkVerifier of super::IUltra{flavor}HonkVerifier<ContractState> {{
+        fn verify_ultra_{flavor.lower()}_honk_proof(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {{
@@ -200,7 +204,7 @@ mod UltraKeccakHonkVerifier {{
             // let msm_hint = fph.msm_hint;
 
 
-            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(full_proof.proof);
+            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
