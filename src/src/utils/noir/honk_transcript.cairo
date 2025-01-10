@@ -198,7 +198,10 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
 
 #[cfg(test)]
 mod tests {
-    use super::{HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState};
+    use super::{
+        HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
+        StarknetHasherState,
+    };
     use garaga::utils::noir::{get_proof_keccak, get_proof_starknet};
     #[test]
     fn test_transcript_keccak() {
