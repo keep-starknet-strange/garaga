@@ -123,8 +123,13 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     #[inline]
     fn new() -> StarknetHasherState {
         // "StarknetHonk", 0, 1
-        let (s0, s1, s2) = hades_permutation(0x537461726b6e6574486f6e6b, 0, 1);
-        StarknetHasherState { s0, s1, s2 }
+        // let (s0, s1, s2) = hades_permutation(0x537461726b6e6574486f6e6b, 0, 1);
+        // StarknetHasherState { s0, s1, s2 }
+        StarknetHasherState {
+            s0: 2583770218478457022175556443398335703519197626205536693866888990886940410111,
+            s1: 1058918495029539251166273500359216657108371230450049671154888943560936263793,
+            s2: 2612238833264321791418659390799326049759227019974323472543752797390858749685,
+        }
     }
     #[inline]
     fn update_u64_as_u256(ref self: StarknetHasherState, v: u64) {
