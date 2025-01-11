@@ -47,6 +47,8 @@ pub impl Point256IntoCircuitPoint of Into<G1Point256, G1Point> {
 trait IHasher<T> {
     fn new() -> T;
     fn update_u64_as_u256(ref self: T, v: u64);
+    fn update_0_256(ref self: T);
+    fn update_gen_point(ref self: T);
     fn update(ref self: T, v: u256);
     fn digest(ref self: T) -> u256;
 }
@@ -69,8 +71,38 @@ impl KeccakHasher of IHasher<KeccakHasherState> {
         self.arr.append(u64_byte_reverse(v));
     }
     #[inline]
+    fn update_gen_point(ref self: KeccakHasherState) {
+        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for keccak.
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(72057594037927936);
+
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(144115188075855872);
+
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+    }
+    #[inline]
     fn update(ref self: KeccakHasherState, v: u256) {
         keccak::keccak_add_u256_be(ref self.arr, v);
+    }
+    #[inline]
+    fn update_0_256(ref self: KeccakHasherState) {
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
+        self.arr.append(0);
     }
     #[inline]
     fn digest(ref self: KeccakHasherState) -> u256 {
@@ -98,6 +130,24 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     fn update_u64_as_u256(ref self: StarknetHasherState, v: u64) {
         let low: felt252 = v.into();
         let (s0, s1, s2) = hades_permutation(self.s0 + low, self.s1, self.s2);
+        self.s0 = s0;
+        self.s1 = s1;
+        self.s2 = s2;
+    }
+    #[inline]
+    fn update_gen_point(ref self: StarknetHasherState) {
+        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for keccak.
+        let (s0, s1, s2) = hades_permutation(self.s0 + 1, self.s1, self.s2);
+        let (s0, s1, s2) = hades_permutation(s0, s1, s2);
+        let (s0, s1, s2) = hades_permutation(s0 + 2, s1, s2);
+        let (s0, s1, s2) = hades_permutation(s0, s1, s2);
+        self.s0 = s0;
+        self.s1 = s1;
+        self.s2 = s2;
+    }
+    #[inline]
+    fn update_0_256(ref self: StarknetHasherState) {
+        let (s0, s1, s2) = hades_permutation(self.s0, self.s1, self.s2);
         self.s0 = s0;
         self.s1 = s1;
         self.s2 = s2;
@@ -611,7 +661,7 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
             },
             Option::None => {
                 for _ in 0..BATCHED_RELATION_PARTIAL_LENGTH {
-                    hasher.update_u64_as_u256(0);
+                    hasher.update_0_256();
                 };
             },
         };
@@ -648,10 +698,7 @@ pub fn generate_gemini_r_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T
     };
     for _ in 0..(CONST_PROOF_SIZE_LOG_N - gemini_fold_comms.len() - 1) {
         // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for hasher.
-        hasher.update_u64_as_u256(1);
-        hasher.update_u64_as_u256(0);
-        hasher.update_u64_as_u256(2);
-        hasher.update_u64_as_u256(0);
+        hasher.update_gen_point();
     };
     hasher.digest()
 }
@@ -667,7 +714,7 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
     };
     let implied_log_n = gemini_a_evaluations.len();
     for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
-        hasher.update_u64_as_u256(0);
+        hasher.update_0_256();
     };
 
     hasher.digest()
