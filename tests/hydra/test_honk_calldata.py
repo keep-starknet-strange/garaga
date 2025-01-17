@@ -1,6 +1,6 @@
 import math
 from abc import ABC, abstractmethod
-from dataclasses import dataclass, fields
+from dataclasses import dataclass
 from pathlib import Path
 
 import sha3
@@ -139,52 +139,6 @@ NUMBER_OF_ENTITIES = 44
 NUMBER_UNSHIFTED = 35
 
 
-def mul(a: PyFelt, b: PyFelt) -> PyFelt:
-    assert isinstance(a, PyFelt)
-    assert isinstance(b, PyFelt)
-    return a * b
-
-
-def add(a: PyFelt, b: PyFelt) -> PyFelt:
-    assert isinstance(a, PyFelt)
-    assert isinstance(b, PyFelt)
-    return a + b
-
-
-def sub(a: PyFelt, b: PyFelt):
-    assert isinstance(a, PyFelt)
-    assert isinstance(b, PyFelt)
-    return a.felt - b.felt
-
-
-def double(a: PyFelt) -> PyFelt:
-    assert isinstance(a, PyFelt)
-    return a + a
-
-
-def square(a: PyFelt) -> PyFelt:
-    assert isinstance(a, PyFelt)
-    return a * a
-
-
-def neg(a: PyFelt) -> PyFelt:
-    assert isinstance(a, PyFelt)
-    return -a
-
-
-def inv(a: PyFelt):
-    assert isinstance(a, PyFelt)
-    return a.felt.__inv__()
-
-
-def product(args: list[PyFelt]):
-    assert len(args) > 0 and all(isinstance(elmt, PyFelt) for elmt in args)
-    result = args[0]
-    for elmt in args[1:]:
-        result *= elmt
-    return result
-
-
 @dataclass
 class HonkVk:
     circuit_size: int
@@ -254,18 +208,18 @@ class HonkProof:
 
 @dataclass
 class HonkTranscript:
-    eta: int | PyFelt
-    etaTwo: int | PyFelt
-    etaThree: int | PyFelt
-    beta: int | PyFelt
-    gamma: int | PyFelt
-    alphas: list[int | PyFelt]
-    gate_challenges: list[int | PyFelt]
+    eta: PyFelt
+    etaTwo: PyFelt
+    etaThree: PyFelt
+    beta: PyFelt
+    gamma: PyFelt
+    alphas: list[PyFelt]
+    gate_challenges: list[PyFelt]
     sum_check_u_challenges: list[PyFelt]
-    rho: int | PyFelt
-    gemini_r: int | PyFelt
-    shplonk_nu: int | PyFelt
-    shplonk_z: int | PyFelt
+    rho: PyFelt
+    gemini_r: PyFelt
+    shplonk_nu: PyFelt
+    shplonk_z: PyFelt
 
     def __post_init__(self):
         assert len(self.alphas) == NUMBER_OF_ALPHAS
@@ -333,9 +287,9 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
     return cd
 
 
-def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript":
+def honk_transcript_from_proof(system: str, proof: HonkProof) -> HonkTranscript:
 
-    class Transcript(ABC):
+    class Hasher(ABC):
         def __init__(self):
             self.reset()
 
@@ -356,7 +310,7 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript
             self.reset()
             return res_bytes
 
-    class Sha3Transcript(Transcript):
+    class KeccakHasher(Hasher):
         def reset(self):
             self.hasher = sha3.keccak_256()
 
@@ -370,7 +324,7 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript
         def update(self, data: bytes):
             self.hasher.update(data)
 
-    class StarknetPoseidonTranscript(Transcript):
+    class StarknetHasher(Hasher):
         def reset(self):
             self.s0, self.s1, self.s2 = hades_permutation(
                 int.from_bytes(b"StarknetHonk", "big"), 0, 1
@@ -401,9 +355,9 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript
 
     match system:
         case "UltraKeccakHonk":
-            hasher = Sha3Transcript()
+            hasher = KeccakHasher()
         case "UltraStarknetHonk":
-            hasher = StarknetPoseidonTranscript()
+            hasher = StarknetHasher()
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
@@ -415,7 +369,6 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript
         hasher.update(int.to_bytes(pub_input, 32, "big"))
 
     for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
-        # print(f"g1_proof_point: {g1_proof_point.__repr__()}")
         x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
         hasher.update(int.to_bytes(x0, 32, "big"))
         hasher.update(int.to_bytes(x1, 32, "big"))
@@ -545,19 +498,23 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript
     c8 = hasher.digest_reset()
     shplonk_z, _ = split_challenge(c8)
 
+    field = get_base_field(CurveID.GRUMPKIN)
     return HonkTranscript(
-        eta=eta,
-        etaTwo=eta_two,
-        etaThree=eta_three,
-        beta=beta,
-        gamma=gamma,
-        alphas=alphas,
-        gate_challenges=gate_challenges,
-        sum_check_u_challenges=sum_check_u_challenges,
-        rho=rho,
-        gemini_r=gemini_r,
-        shplonk_nu=shplonk_nu,
-        shplonk_z=shplonk_z,
+        eta=field(eta),
+        etaTwo=field(eta_two),
+        etaThree=field(eta_three),
+        beta=field(beta),
+        gamma=field(gamma),
+        alphas=[field(alpha) for alpha in alphas],
+        gate_challenges=[field(gate_challenge) for gate_challenge in gate_challenges],
+        sum_check_u_challenges=[
+            field(sum_check_u_challenge)
+            for sum_check_u_challenge in sum_check_u_challenges
+        ],
+        rho=field(rho),
+        gemini_r=field(gemini_r),
+        shplonk_nu=field(shplonk_nu),
+        shplonk_z=field(shplonk_z),
     )
 
 
@@ -573,14 +530,20 @@ def circuit_compute_shplemini_msm_scalars(
 ) -> list[PyFelt]:
     field = get_base_field(CurveID.GRUMPKIN)
 
+    assert all(elem.p == field.p for elem in p_sumcheck_evaluations)
+    assert all(elem.p == field.p for elem in p_gemini_a_evaluations)
+    assert tp_gemini_r.p == field.p
+    assert tp_rho.p == field.p
+    assert tp_shplonk_z.p == field.p
+    assert tp_shplonk_nu.p == field.p
+    assert all(elem.p == field.p for elem in tp_sumcheck_u_challenges)
+
     assert all(isinstance(i, PyFelt) for i in p_sumcheck_evaluations)
     powers_of_evaluations_challenge = [tp_gemini_r]
     for i in range(1, log_n):
         powers_of_evaluations_challenge.append(
-            mul(
-                powers_of_evaluations_challenge[i - 1],
-                powers_of_evaluations_challenge[i - 1],
-            )
+            powers_of_evaluations_challenge[i - 1]
+            * powers_of_evaluations_challenge[i - 1]
         )
 
     scalars = [field(0)] * (NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2)
@@ -588,30 +551,22 @@ def circuit_compute_shplemini_msm_scalars(
     # computeInvertedGeminiDenominators
 
     inverse_vanishing_evals = [None] * (CONST_PROOF_SIZE_LOG_N + 1)
-    inverse_vanishing_evals[0] = inv(
-        sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
-    )
+    inverse_vanishing_evals[0] = (
+        tp_shplonk_z - powers_of_evaluations_challenge[0]
+    ).__inv__()
     for i in range(log_n):
-        inverse_vanishing_evals[i + 1] = inv(
-            add(tp_shplonk_z, powers_of_evaluations_challenge[i])
-        )
+        inverse_vanishing_evals[i + 1] = (
+            tp_shplonk_z + powers_of_evaluations_challenge[i]
+        ).__inv__()
     assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
 
-    unshifted_scalar = neg(
-        add(
-            inverse_vanishing_evals[0],
-            mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
-        )
+    unshifted_scalar = -(
+        inverse_vanishing_evals[0] + tp_shplonk_nu * inverse_vanishing_evals[1]
     )
 
-    shifted_scalar = neg(
-        mul(
-            inv(tp_gemini_r),
-            sub(
-                inverse_vanishing_evals[0],
-                mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
-            ),
-        )
+    shifted_scalar = -(
+        tp_gemini_r.__inv__()
+        * (inverse_vanishing_evals[0] - tp_shplonk_nu * inverse_vanishing_evals[1])
     )
 
     scalars[0] = field(1)
@@ -620,43 +575,39 @@ def circuit_compute_shplemini_msm_scalars(
     batched_evaluation = field(0)
 
     for i in range(1, NUMBER_UNSHIFTED + 1):
-        scalars[i] = mul(unshifted_scalar, batching_challenge)
-        batched_evaluation = add(
-            batched_evaluation,
-            mul(p_sumcheck_evaluations[i - 1], batching_challenge),
+        scalars[i] = unshifted_scalar * batching_challenge
+        batched_evaluation = (
+            batched_evaluation + p_sumcheck_evaluations[i - 1] * batching_challenge
         )
-        batching_challenge = mul(batching_challenge, tp_rho)
+        batching_challenge = batching_challenge * tp_rho
 
     for i in range(NUMBER_UNSHIFTED + 1, NUMBER_OF_ENTITIES + 1):
-        scalars[i] = mul(shifted_scalar, batching_challenge)
-        batched_evaluation = add(
-            batched_evaluation,
-            mul(p_sumcheck_evaluations[i - 1], batching_challenge),
+        scalars[i] = shifted_scalar * batching_challenge
+        batched_evaluation = (
+            batched_evaluation + p_sumcheck_evaluations[i - 1] * batching_challenge
         )
         # skip last round:
         if i < NUMBER_OF_ENTITIES:
-            batching_challenge = mul(batching_challenge, tp_rho)
+            batching_challenge = batching_challenge * tp_rho
 
     constant_term_accumulator = field(0)
-    batching_challenge = square(tp_shplonk_nu)
+    batching_challenge = tp_shplonk_nu * tp_shplonk_nu
 
     for i in range(CONST_PROOF_SIZE_LOG_N - 1):
         dummy_round = i >= (log_n - 1)
 
         scaling_factor = field(0)
         if not dummy_round:
-            scaling_factor = mul(batching_challenge, inverse_vanishing_evals[i + 2])
-            scalars[NUMBER_OF_ENTITIES + i + 1] = neg(scaling_factor)
-            constant_term_accumulator = add(
-                constant_term_accumulator,
-                mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
+            scaling_factor = batching_challenge * inverse_vanishing_evals[i + 2]
+            scalars[NUMBER_OF_ENTITIES + i + 1] = -scaling_factor
+            constant_term_accumulator = (
+                constant_term_accumulator
+                + scaling_factor * p_gemini_a_evaluations[i + 1]
             )
-        else:
-            pass
 
         # skip last round:
         if i < log_n - 2:
-            batching_challenge = mul(batching_challenge, tp_shplonk_nu)
+            batching_challenge = batching_challenge * tp_shplonk_nu
 
     # computeGeminiBatchedUnivariateEvaluation
     def compute_gemini_batched_univariate_evaluation(
@@ -670,16 +621,15 @@ def circuit_compute_shplemini_msm_scalars(
             u = tp_sumcheck_u_challenges[i - 1]
             eval_neg = gemini_evaluations[i - 1]
 
-            term = mul(challenge_power, sub(field(1), u))
+            term = challenge_power * (field(1) - u)
 
-            batched_eval_round_acc = sub(
-                double(mul(challenge_power, batched_eval_accumulator)),
-                mul(eval_neg, sub(term, u)),
-            )
+            batched_eval_round_acc = (
+                field(2) * challenge_power * batched_eval_accumulator
+            ) - (eval_neg * (term - u))
 
-            den = add(term, u)
+            den = term + u
 
-            batched_eval_round_acc = mul(batched_eval_round_acc, inv(den))
+            batched_eval_round_acc = batched_eval_round_acc * den.__inv__()
             batched_eval_accumulator = batched_eval_round_acc
 
         return batched_eval_accumulator
@@ -691,20 +641,13 @@ def circuit_compute_shplemini_msm_scalars(
         powers_of_evaluations_challenge,
     )
 
-    constant_term_accumulator = add(
-        constant_term_accumulator,
-        mul(a_0_pos, inverse_vanishing_evals[0]),
+    constant_term_accumulator = (
+        constant_term_accumulator + a_0_pos * inverse_vanishing_evals[0]
     )
 
-    constant_term_accumulator = add(
-        constant_term_accumulator,
-        product(
-            [
-                p_gemini_a_evaluations[0],
-                tp_shplonk_nu,
-                inverse_vanishing_evals[1],
-            ]
-        ),
+    constant_term_accumulator = (
+        constant_term_accumulator
+        + p_gemini_a_evaluations[0] * tp_shplonk_nu * inverse_vanishing_evals[1]
     )
 
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
@@ -720,15 +663,15 @@ def circuit_compute_shplemini_msm_scalars(
     # proof.w3 : 30 + 42
     # proof.w4 : 31 + 43
 
-    scalars[22] = add(scalars[22], scalars[36])
-    scalars[23] = add(scalars[23], scalars[37])
-    scalars[24] = add(scalars[24], scalars[38])
-    scalars[25] = add(scalars[25], scalars[39])
+    scalars[22] = scalars[22] + scalars[36]
+    scalars[23] = scalars[23] + scalars[37]
+    scalars[24] = scalars[24] + scalars[38]
+    scalars[25] = scalars[25] + scalars[39]
 
-    scalars[28] = add(scalars[28], scalars[40])
-    scalars[29] = add(scalars[29], scalars[41])
-    scalars[30] = add(scalars[30], scalars[42])
-    scalars[31] = add(scalars[31], scalars[43])
+    scalars[28] = scalars[28] + scalars[40]
+    scalars[29] = scalars[29] + scalars[41]
+    scalars[30] = scalars[30] + scalars[42]
+    scalars[31] = scalars[31] + scalars[43]
 
     scalars[36] = None
     scalars[37] = None
@@ -766,90 +709,10 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         field = get_base_field(CurveID.GRUMPKIN.value)
         return field(elmt) if isinstance(elmt, int) else elmt
 
-    def circuit_write_elements(elmts: list[PyFelt]) -> list[PyFelt]:
-        return [circuit_write_element(elmt) for elmt in elmts]
-
-    def from_G1Point(point: G1Point) -> list[PyFelt]:
-        field = get_base_field(point.curve_id)
-        return [field(point.x), field(point.y)]
-
-    vk_circuit = HonkVk(
-        circuit_size=vk.circuit_size,
-        log_circuit_size=vk.log_circuit_size,
-        public_inputs_size=vk.public_inputs_size,
-        public_inputs_offset=circuit_write_element(vk.public_inputs_offset),
-        qm=from_G1Point(vk.qm),
-        qc=from_G1Point(vk.qc),
-        ql=from_G1Point(vk.ql),
-        qr=from_G1Point(vk.qr),
-        qo=from_G1Point(vk.qo),
-        q4=from_G1Point(vk.q4),
-        qArith=from_G1Point(vk.qArith),
-        qDeltaRange=from_G1Point(vk.qDeltaRange),
-        qElliptic=from_G1Point(vk.qElliptic),
-        qAux=from_G1Point(vk.qAux),
-        qLookup=from_G1Point(vk.qLookup),
-        qPoseidon2External=from_G1Point(vk.qPoseidon2External),
-        qPoseidon2Internal=from_G1Point(vk.qPoseidon2Internal),
-        s1=from_G1Point(vk.s1),
-        s2=from_G1Point(vk.s2),
-        s3=from_G1Point(vk.s3),
-        s4=from_G1Point(vk.s4),
-        id1=from_G1Point(vk.id1),
-        id2=from_G1Point(vk.id2),
-        id3=from_G1Point(vk.id3),
-        id4=from_G1Point(vk.id4),
-        t1=from_G1Point(vk.t1),
-        t2=from_G1Point(vk.t2),
-        t3=from_G1Point(vk.t3),
-        t4=from_G1Point(vk.t4),
-        lagrange_first=from_G1Point(vk.lagrange_first),
-        lagrange_last=from_G1Point(vk.lagrange_last),
-    )
-
-    proof_circuit = HonkProof(
-        circuit_size=proof.circuit_size,
-        public_inputs_size=proof.public_inputs_size,
-        public_inputs_offset=circuit_write_element(proof.public_inputs_offset),
-        public_inputs=circuit_write_elements(proof.public_inputs),
-        w1=from_G1Point(proof.w1),
-        w2=from_G1Point(proof.w2),
-        w3=from_G1Point(proof.w3),
-        w4=from_G1Point(proof.w4),
-        z_perm=from_G1Point(proof.z_perm),
-        lookup_read_counts=from_G1Point(proof.lookup_read_counts),
-        lookup_read_tags=from_G1Point(proof.lookup_read_tags),
-        lookup_inverses=from_G1Point(proof.lookup_inverses),
-        sumcheck_univariates=[
-            circuit_write_elements(univariate)
-            for univariate in proof.sumcheck_univariates
-        ],
-        sumcheck_evaluations=circuit_write_elements(proof.sumcheck_evaluations),
-        gemini_fold_comms=[from_G1Point(comm) for comm in proof.gemini_fold_comms],
-        gemini_a_evaluations=circuit_write_elements(proof.gemini_a_evaluations),
-        shplonk_q=from_G1Point(proof.shplonk_q),
-        kzg_quotient=from_G1Point(proof.kzg_quotient),
-    )
-
-    tp = HonkTranscript(
-        eta=circuit_write_element(tp.eta),
-        etaTwo=circuit_write_element(tp.etaTwo),
-        etaThree=circuit_write_element(tp.etaThree),
-        beta=circuit_write_element(tp.beta),
-        gamma=circuit_write_element(tp.gamma),
-        alphas=circuit_write_elements(tp.alphas),
-        gate_challenges=circuit_write_elements(tp.gate_challenges),
-        sum_check_u_challenges=circuit_write_elements(tp.sum_check_u_challenges),
-        rho=circuit_write_element(tp.rho),
-        gemini_r=circuit_write_element(tp.gemini_r),
-        shplonk_nu=circuit_write_element(tp.shplonk_nu),
-        shplonk_z=circuit_write_element(tp.shplonk_z),
-    )
-
     scalars = circuit_compute_shplemini_msm_scalars(
         vk.log_circuit_size,
-        proof_circuit.sumcheck_evaluations,
-        proof_circuit.gemini_a_evaluations,
+        [circuit_write_element(elmt) for elmt in proof.sumcheck_evaluations],
+        [circuit_write_element(elmt) for elmt in proof.gemini_a_evaluations],
         tp.gemini_r,
         tp.rho,
         tp.shplonk_z,
@@ -949,57 +812,71 @@ def get_honk_calldata(system: str, vk: Path, proof: Path) -> list[int]:
 
 
 def honk_vk_from_bytes(bytes: bytes) -> HonkVk:
+    assert len(bytes) == 4 * 8 + 54 * 32
     circuit_size = int.from_bytes(bytes[0:8], "big")
     log_circuit_size = int.from_bytes(bytes[8:16], "big")
     public_inputs_size = int.from_bytes(bytes[16:24], "big")
     public_inputs_offset = int.from_bytes(bytes[24:32], "big")
-
+    points = []
     cursor = 32
-
-    rest = bytes[cursor:]
-    assert len(rest) % 32 == 0
-
-    # Get all fields that are G1Points from the dataclass
-    g1_fields = [field.name for field in fields(HonkVk) if field.type == G1Point]
-
-    # Parse all G1Points into a dictionary
-    points = {}
-    for field_name in g1_fields:
+    for i in range(27):
         x = int.from_bytes(bytes[cursor : cursor + 32], "big")
         y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
-        points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
+        points.append(G1Point(x=x, y=y, curve_id=CurveID.BN254))
         cursor += 64
-
-    # Create instance with all parsed values
     return HonkVk(
         circuit_size=circuit_size,
         log_circuit_size=log_circuit_size,
         public_inputs_size=public_inputs_size,
         public_inputs_offset=public_inputs_offset,
-        **points,
+        qm=points[0],
+        qc=points[1],
+        ql=points[2],
+        qr=points[3],
+        qo=points[4],
+        q4=points[5],
+        qArith=points[6],
+        qDeltaRange=points[7],
+        qElliptic=points[8],
+        qAux=points[9],
+        qLookup=points[10],
+        qPoseidon2External=points[11],
+        qPoseidon2Internal=points[12],
+        s1=points[13],
+        s2=points[14],
+        s3=points[15],
+        s4=points[16],
+        id1=points[17],
+        id2=points[18],
+        id3=points[19],
+        id4=points[20],
+        t1=points[21],
+        t2=points[22],
+        t3=points[23],
+        t4=points[24],
+        lagrange_first=points[25],
+        lagrange_last=points[26],
     )
 
 
 def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
     n_elements = int.from_bytes(bytes[:4], "big")
-    assert len(bytes[4:]) % 32 == 0
+    assert len(bytes) == 4 + 32 * n_elements
     elements = [
         int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
     ]
-    assert len(elements) == n_elements
-
+    cursor = 0
     circuit_size = elements[0]
     public_inputs_size = elements[1]
     public_inputs_offset = elements[2]
+    cursor += 3
 
     MAX_LOG_N = 23  # 2^23 = 8388608
     assert circuit_size <= 2**MAX_LOG_N
 
     public_inputs = []
-    cursor = 3
     for i in range(public_inputs_size):
         public_inputs.append(elements[cursor + i])
-
     cursor += public_inputs_size
 
     def parse_g1_proof_point(i: int) -> G1Point:
@@ -1036,7 +913,6 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
 
     # Parse sumcheck_evaluations
     sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
-
     cursor += NUMBER_OF_ENTITIES
 
     # Parse gemini fold comms
@@ -1044,20 +920,15 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
         parse_g1_proof_point(cursor + i * G1_PROOF_POINT_SIZE)
         for i in range(CONST_PROOF_SIZE_LOG_N - 1)
     ]
-
     cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
 
     # Parse gemini a evaluations
     gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
-
     cursor += CONST_PROOF_SIZE_LOG_N
 
     shplonk_q = parse_g1_proof_point(cursor)
     kzg_quotient = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
-
     cursor += 2 * G1_PROOF_POINT_SIZE
-
-    assert cursor == len(elements)
 
     return HonkProof(
         circuit_size=circuit_size,
