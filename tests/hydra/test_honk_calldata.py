@@ -179,7 +179,7 @@ class HonkProof:
     circuit_size: int
     public_inputs_size: int
     public_inputs_offset: int
-    public_inputs: list[int]
+    public_inputs: list[PyFelt]
     w1: G1Point
     w2: G1Point
     w3: G1Point
@@ -188,10 +188,10 @@ class HonkProof:
     lookup_read_counts: G1Point
     lookup_read_tags: G1Point
     lookup_inverses: G1Point
-    sumcheck_univariates: list[list[int]]
-    sumcheck_evaluations: list[int]
+    sumcheck_univariates: list[list[PyFelt]]
+    sumcheck_evaluations: list[PyFelt]
     gemini_fold_comms: list[G1Point]
-    gemini_a_evaluations: list[int]
+    gemini_a_evaluations: list[PyFelt]
     shplonk_q: G1Point
     kzg_quotient: G1Point
 
@@ -241,7 +241,7 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
     cd.append(proof.public_inputs_offset)
     cd.extend(
         bigint_split_array(
-            x=proof.public_inputs, n_limbs=2, base=2**128, prepend_length=True
+            x=[elem.value for elem in proof.public_inputs], n_limbs=2, base=2**128, prepend_length=True
         )
     )
     cd.extend(serialize_G1Point256(proof.w1))
@@ -254,7 +254,7 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
     cd.extend(serialize_G1Point256(proof.lookup_inverses))
     cd.extend(
         bigint_split_array(
-            x=flatten(proof.sumcheck_univariates)[
+            x=[elem.value for elem in flatten(proof.sumcheck_univariates)][
                 : BATCHED_RELATION_PARTIAL_LENGTH * log_circuit_size
             ],  # The rest is 0.
             n_limbs=2,
@@ -265,7 +265,7 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
 
     cd.extend(
         bigint_split_array(
-            x=proof.sumcheck_evaluations, n_limbs=2, base=2**128, prepend_length=True
+            x=[elem.value for elem in proof.sumcheck_evaluations], n_limbs=2, base=2**128, prepend_length=True
         )
     )
 
@@ -275,7 +275,7 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
 
     cd.extend(
         bigint_split_array(
-            x=proof.gemini_a_evaluations[:log_circuit_size],
+            x=[elem.value for elem in proof.gemini_a_evaluations[:log_circuit_size]],
             n_limbs=2,
             base=2**128,
             prepend_length=True,
@@ -366,7 +366,7 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> HonkTranscript:
     hasher.update(int.to_bytes(proof.public_inputs_offset, 32, "big"))
 
     for pub_input in proof.public_inputs:
-        hasher.update(int.to_bytes(pub_input, 32, "big"))
+        hasher.update(int.to_bytes(pub_input.value, 32, "big"))
 
     for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
         x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
@@ -446,7 +446,7 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> HonkTranscript:
         # Add the sumcheck univariates for this round
         for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
             univariate_chal.append(
-                int.to_bytes(proof.sumcheck_univariates[i][j], 32, "big")
+                int.to_bytes(proof.sumcheck_univariates[i][j].value, 32, "big")
             )
 
         # Update hasher with all univariate challenges
@@ -462,7 +462,7 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> HonkTranscript:
     # Rho challenge :
     hasher.update(ch4)
     for i in range(NUMBER_OF_ENTITIES):
-        hasher.update(int.to_bytes(proof.sumcheck_evaluations[i], 32, "big"))
+        hasher.update(int.to_bytes(proof.sumcheck_evaluations[i].value, 32, "big"))
 
     c5 = hasher.digest_reset()
     rho, _ = split_challenge(c5)
@@ -482,7 +482,7 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> HonkTranscript:
     # Shplonk Nu :
     hasher.update(c6)
     for i in range(CONST_PROOF_SIZE_LOG_N):
-        hasher.update(int.to_bytes(proof.gemini_a_evaluations[i], 32, "big"))
+        hasher.update(int.to_bytes(proof.gemini_a_evaluations[i].value, 32, "big"))
 
     c7 = hasher.digest_reset()
     shplonk_nu, _ = split_challenge(c7)
@@ -711,8 +711,8 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 
     scalars = circuit_compute_shplemini_msm_scalars(
         vk.log_circuit_size,
-        [circuit_write_element(elmt) for elmt in proof.sumcheck_evaluations],
-        [circuit_write_element(elmt) for elmt in proof.gemini_a_evaluations],
+        proof.sumcheck_evaluations,
+        proof.gemini_a_evaluations,
         tp.gemini_r,
         tp.rho,
         tp.shplonk_z,
@@ -874,9 +874,11 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
     MAX_LOG_N = 23  # 2^23 = 8388608
     assert circuit_size <= 2**MAX_LOG_N
 
+    field = get_base_field(CurveID.GRUMPKIN.value)
+
     public_inputs = []
     for i in range(public_inputs_size):
-        public_inputs.append(elements[cursor + i])
+        public_inputs.append(field(elements[cursor + i]))
     cursor += public_inputs_size
 
     def parse_g1_proof_point(i: int) -> G1Point:
@@ -905,14 +907,14 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
     for i in range(CONST_PROOF_SIZE_LOG_N):
         sumcheck_univariates.append(
             [
-                elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j]
+                field(elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j])
                 for j in range(BATCHED_RELATION_PARTIAL_LENGTH)
             ]
         )
     cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
 
     # Parse sumcheck_evaluations
-    sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
+    sumcheck_evaluations = [field(elem) for elem in elements[cursor : cursor + NUMBER_OF_ENTITIES]]
     cursor += NUMBER_OF_ENTITIES
 
     # Parse gemini fold comms
@@ -923,7 +925,7 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
     cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
 
     # Parse gemini a evaluations
-    gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
+    gemini_a_evaluations = [field(elem) for elem in elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]]
     cursor += CONST_PROOF_SIZE_LOG_N
 
     shplonk_q = parse_g1_proof_point(cursor)
