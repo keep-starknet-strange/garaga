@@ -2,12 +2,11 @@ import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from pathlib import Path
-from typing import List, Union
 
 import sha3
 
 from garaga import garaga_rs
-from garaga.algebra import BaseField, PyFelt
+from garaga.algebra import PyFelt
 from garaga.definitions import (
     CURVES,
     STARK,
@@ -17,27 +16,6 @@ from garaga.definitions import (
     G2Point,
     get_base_field,
 )
-
-BATCHED_RELATION_PARTIAL_LENGTH = 8
-CONST_PROOF_SIZE_LOG_N = 28
-G1_PROOF_POINT_SHIFT = 2**136
-G2_POINT_KZG_1 = G2Point.get_nG(CurveID.BN254, 1)
-G2_POINT_KZG_2 = G2Point(
-    x=(
-        0x0118C4D5B837BCC2BC89B5B398B5974E9F5944073B32078B7E231FEC938883B0,
-        0x260E01B251F6F1C7E7FF4E580791DEE8EA51D87A358E038B4EFE30FAC09383C1,
-    ),
-    y=(
-        0x22FEBDA3C0C0632A56475B4214E5615E11E6DD3F96E6CEA2854A87D4DACC5E55,
-        0x04FC6369F7110FE3D25156C1BB9A72859CF2A04641F99BA4EE413C80DA6A5FE4,
-    ),
-    curve_id=CurveID.BN254,
-)
-MAX_LOG_N = 23  # 2^23 = 8388608
-NUMBER_OF_SUBRELATIONS = 26
-NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
-NUMBER_OF_ENTITIES = 44
-NUMBER_UNSHIFTED = 35
 
 
 def flatten(t):
@@ -66,7 +44,6 @@ def bigint_split(
         x = int.from_bytes(x, byteorder="big")
     else:
         raise ValueError(f"Invalid type for bigint_split: {type(x)}")
-
     coeffs = []
     degree = n_limbs - 1
     for n in range(degree, 0, -1):
@@ -91,192 +68,6 @@ def bigint_split_array(
     return xs
 
 
-@dataclass(slots=True)
-class Cairo1SerializableStruct(ABC):
-    name: str
-    elmts: list[Union[PyFelt, "Cairo1SerializableStruct"]]
-
-    def __post_init__(self):
-        assert type(self.name) == str
-        if isinstance(self.elmts, (list, tuple)):
-            if len(self.elmts) > 0:
-                if isinstance(self.elmts[0], Cairo1SerializableStruct):
-                    assert all(
-                        isinstance(elmt, self.elmts[0].__class__) for elmt in self.elmts
-                    ), f"All elements of {self.name} must be of the same type"
-
-                else:
-                    assert all(
-                        isinstance(elmt, PyFelt) for elmt in self.elmts
-                    ), f"All elements of {self.name} must be of type PyFelt, got {type(self.elmts[0])}"
-        else:
-            assert self.elmts is None, f"Elmts must be a list or None, got {self.elmts}"
-
-    @property
-    def struct_name(self) -> str:
-        return self.__class__.__name__
-
-    @abstractmethod
-    def __len__(self) -> int:
-        pass
-
-    @abstractmethod
-    def _serialize_to_calldata(self) -> list[int]:
-        pass
-
-    def serialize_to_calldata(self, *args, **kwargs) -> list[int]:
-        return self._serialize_to_calldata(*args, **kwargs)
-
-
-class ModuloCircuit:
-    def __init__(
-        self,
-        curve_id: int,
-    ) -> None:
-        self.field = BaseField(CURVES[curve_id].p)
-        self.constants: dict[int, PyFelt] = dict()
-        self.input_structs: list[Cairo1SerializableStruct] = []
-
-    def write_element(
-        self,
-        elmt: PyFelt | int,
-    ) -> PyFelt:
-        if isinstance(elmt, int):
-            elmt = self.field(elmt)
-        return elmt
-
-    def write_elements(
-        self,
-        elmts: list[PyFelt],
-    ) -> list[PyFelt]:
-        return [self.write_element(elmt) for elmt in elmts]
-
-    def write_struct(
-        self,
-        struct: Cairo1SerializableStruct,
-    ) -> Union[
-        PyFelt,
-        List[PyFelt],
-        List[List[Union[PyFelt, List[PyFelt]]]],
-    ]:
-        all_pyfelt = all(type(elmt) == PyFelt for elmt in struct.elmts)
-        all_cairo1serializablestruct = all(
-            isinstance(elmt, Cairo1SerializableStruct) for elmt in struct.elmts
-        )
-        assert (
-            all_pyfelt or all_cairo1serializablestruct
-        ), f"Expected list of PyFelt or Cairo1SerializableStruct, got {[type(elmt) for elmt in struct.elmts]}"
-
-        if all_pyfelt:
-            self.input_structs.append(struct)
-            if len(struct) == 1 and isinstance(struct, u384):
-                return self.write_element(struct.elmts[0])
-            else:
-                return self.write_elements(struct.elmts)
-        elif all_cairo1serializablestruct:
-            result = [self.write_struct(elmt, write_source) for elmt in struct.elmts]
-            # Ensure only the larger struct is appended
-            self.input_structs = [
-                s for s in self.input_structs if s not in struct.elmts
-            ]
-            self.input_structs.append(struct)
-            return result
-
-    def mul(
-        self,
-        a: PyFelt,
-        b: PyFelt,
-    ) -> PyFelt:
-        if a is None and isinstance(b, PyFelt):
-            return self.set_or_get_constant(0)
-        elif b is None and isinstance(a, PyFelt):
-            return self.set_or_get_constant(0)
-        assert isinstance(a, PyFelt) and isinstance(
-            b, PyFelt
-        ), f"Expected ModuloElement, got lhs {type(a)}, {a} and rhs {type(b)}, {b}"
-        return self.write_element(a * b)
-
-    def add(
-        self,
-        a: PyFelt,
-        b: PyFelt,
-    ) -> PyFelt:
-        if a is None and isinstance(b, PyFelt):
-            return b
-        elif b is None and isinstance(a, PyFelt):
-            return a
-        else:
-            assert isinstance(a, PyFelt) and isinstance(
-                b, PyFelt
-            ), f"Expected ModuloElement, got {type(a)}, {a} and {type(b)}, {b}"
-
-            return self.write_element(a + b)
-
-    def sub(
-        self,
-        a: PyFelt,
-        b: PyFelt,
-    ):
-        return self.write_element(a.felt - b.felt)
-
-    def double(self, a: PyFelt) -> PyFelt:
-        return self.add(a, a)
-
-    def square(self, a: PyFelt) -> PyFelt:
-        return self.mul(a, a)
-
-    def neg(self, a: PyFelt) -> PyFelt:
-        return self.sub(self.set_or_get_constant(self.field.zero()), a)
-
-    def inv(
-        self,
-        a: PyFelt,
-    ):
-        return self.write_element(a.felt.__inv__())
-
-    def product(self, args: list[PyFelt]):
-        if not args:
-            raise ValueError("The 'args' list cannot be empty.")
-        assert all(isinstance(elmt, PyFelt) for elmt in args)
-        result = args[0]
-        for elmt in args[1:]:
-            result = self.mul(result, elmt)
-        return result
-
-    def set_or_get_constant(self, val: PyFelt | int) -> PyFelt:
-        if isinstance(val, int):
-            val = self.field(val)
-        if val.value in self.constants:
-            return self.constants[val.value]
-        self.constants[val.value] = self.write_element(val)
-        return self.constants[val.value]
-
-
-class G1PointCircuit(Cairo1SerializableStruct):
-    def __init__(self, name: str, elmts: list[PyFelt]):
-        super().__init__(name, elmts)
-        self.members_names = ("x", "y")
-
-    @staticmethod
-    def from_G1Point(name: str, point: G1Point) -> "G1PointCircuit":
-        field = get_base_field(point.curve_id)
-        return G1PointCircuit(name=name, elmts=[field(point.x), field(point.y)])
-
-    @property
-    def struct_name(self) -> str:
-        return "G1Point"
-
-    def _serialize_to_calldata(self) -> list[int]:
-        return bigint_split_array(self.elmts, prepend_length=False)
-
-    def __len__(self) -> int:
-        if self.elmts is not None:
-            assert len(self.elmts) == 2
-            return 2
-        else:
-            return 2
-
-
 def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
     r0, r1, r2 = garaga_rs.hades_permutation(
         (s0 % STARK).to_bytes(32, "big"),
@@ -290,65 +81,112 @@ def hades_permutation(s0: int, s1: int, s2: int) -> tuple[int, int, int]:
     )
 
 
-class Transcript(ABC):
-    def __init__(self):
-        self.reset()
-
-    @abstractmethod
-    def reset(self):
-        pass
-
-    @abstractmethod
-    def update(self, data: bytes):
-        pass
-
-    @abstractmethod
-    def digest(self) -> bytes:
-        pass
-
-    def digest_reset(self) -> bytes:
-        res_bytes = self.digest()
-        self.reset()
-        return res_bytes
-
-
-class Sha3Transcript(Transcript):
-    def reset(self):
-        self.hasher = sha3.keccak_256()
-
-    def digest(self) -> bytes:
-        res = self.hasher.digest()
-        res_int = int.from_bytes(res, "big")
-        res_mod = res_int % CURVES[CurveID.GRUMPKIN.value].p
-        res_bytes = res_mod.to_bytes(32, "big")
-        return res_bytes
-
-    def update(self, data: bytes):
-        self.hasher.update(data)
+def mpc_calldata_builder(
+    curve_id: CurveID,
+    pairs: list[G1G2Pair],
+    n_fixed_g2: int,
+    public_pair: G1G2Pair | None,
+) -> list[int]:
+    assert isinstance(pairs, list)
+    assert all(isinstance(pair, G1G2Pair) for pair in pairs)
+    assert all(curve_id == pair.curve_id == pairs[0].curve_id for pair in pairs)
+    assert isinstance(public_pair, G1G2Pair) or public_pair is None
+    assert len(pairs) >= 2
+    assert 0 <= n_fixed_g2 <= len(pairs)
+    return garaga_rs.mpc_calldata_builder(
+        curve_id.value,
+        [element.value for pair in pairs for element in pair.to_pyfelt_list()],
+        n_fixed_g2,
+        (
+            [element.value for element in public_pair.to_pyfelt_list()]
+            if public_pair is not None
+            else []
+        ),
+    )
 
 
-class StarknetPoseidonTranscript(Transcript):
-    def reset(self):
-        self.s0, self.s1, self.s2 = hades_permutation(
-            int.from_bytes(b"StarknetHonk", "big"), 0, 1
-        )
+def msm_calldata_builder(
+    points: list[G1Point],
+    scalars: list[int],
+    curve_id: CurveID,
+    include_digits_decomposition=True,
+    include_points_and_scalars=True,
+    serialize_as_pure_felt252_array=False,
+) -> list[int]:
+    assert all(point.curve_id == curve_id for point in points)
+    assert len(points) == len(scalars)
+    assert all(0 <= s <= CURVES[curve_id.value].n for s in scalars)
+    calldata = garaga_rs.msm_calldata_builder(
+        [value for point in points for value in [point.x, point.y]],
+        scalars,
+        curve_id.value,
+        include_digits_decomposition if include_digits_decomposition != None else False,
+        include_points_and_scalars,
+        serialize_as_pure_felt252_array,
+        False,
+    )
+    if include_digits_decomposition == None:
+        calldata = calldata[1:]
+    return calldata
 
-    def digest(self) -> bytes:
-        res_bytes = self.s0.to_bytes(32, "big")
-        return res_bytes
 
-    def update(self, data: bytes):
-        val = int.from_bytes(data, "big")
-        assert val < 2**256
-        high, low = divmod(val, 2**128)
-        self.s0, self.s1, self.s2 = hades_permutation(
-            self.s0 + low, self.s1 + high, self.s2
-        )
+BATCHED_RELATION_PARTIAL_LENGTH = 8
+CONST_PROOF_SIZE_LOG_N = 28
+G1_PROOF_POINT_SHIFT = 2**136
+NUMBER_OF_SUBRELATIONS = 26
+NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
+NUMBER_OF_ENTITIES = 44
+NUMBER_UNSHIFTED = 35
+
+
+def mul(a: PyFelt, b: PyFelt) -> PyFelt:
+    assert isinstance(a, PyFelt)
+    assert isinstance(b, PyFelt)
+    return a * b
+
+
+def add(a: PyFelt, b: PyFelt) -> PyFelt:
+    assert isinstance(a, PyFelt)
+    assert isinstance(b, PyFelt)
+    return a + b
+
+
+def sub(a: PyFelt, b: PyFelt):
+    assert isinstance(a, PyFelt)
+    assert isinstance(b, PyFelt)
+    return a.felt - b.felt
+
+
+def double(a: PyFelt) -> PyFelt:
+    assert isinstance(a, PyFelt)
+    return a + a
+
+
+def square(a: PyFelt) -> PyFelt:
+    assert isinstance(a, PyFelt)
+    return a * a
+
+
+def neg(a: PyFelt) -> PyFelt:
+    assert isinstance(a, PyFelt)
+    return -a
+
+
+def inv(a: PyFelt):
+    assert isinstance(a, PyFelt)
+    return a.felt.__inv__()
+
+
+def product(args: list[PyFelt]):
+    assert len(args) > 0 and all(isinstance(elmt, PyFelt) for elmt in args)
+    result = args[0]
+    for elmt in args[1:]:
+        result *= elmt
+    return result
 
 
 @dataclass
 class HonkVk:
-    name: str
     circuit_size: int
     log_circuit_size: int
     public_inputs_size: int
@@ -381,59 +219,6 @@ class HonkVk:
     lagrange_first: G1Point
     lagrange_last: G1Point
 
-    @classmethod
-    def from_bytes(cls, bytes: bytes) -> "HonkVk":
-        circuit_size = int.from_bytes(bytes[0:8], "big")
-        log_circuit_size = int.from_bytes(bytes[8:16], "big")
-        public_inputs_size = int.from_bytes(bytes[16:24], "big")
-        public_inputs_offset = int.from_bytes(bytes[24:32], "big")
-
-        cursor = 32
-
-        rest = bytes[cursor:]
-        assert len(rest) % 32 == 0
-
-        # Get all fields that are G1Points from the dataclass
-        g1_fields = [
-            field.name
-            for field in fields(cls)
-            if field.type == G1Point and field.name != "name"
-        ]
-
-        # Parse all G1Points into a dictionary
-        points = {}
-        for field_name in g1_fields:
-            x = int.from_bytes(bytes[cursor : cursor + 32], "big")
-            y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
-            points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
-            cursor += 64
-
-        # Create instance with all parsed values
-        return cls(
-            name="",
-            circuit_size=circuit_size,
-            log_circuit_size=log_circuit_size,
-            public_inputs_size=public_inputs_size,
-            public_inputs_offset=public_inputs_offset,
-            **points,
-        )
-
-    def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkVk":
-        return HonkVk(
-            name=self.name,
-            circuit_size=self.circuit_size,
-            log_circuit_size=self.log_circuit_size,
-            public_inputs_size=self.public_inputs_size,
-            public_inputs_offset=circuit.write_element(self.public_inputs_offset),
-            **{
-                field.name: circuit.write_struct(
-                    G1PointCircuit.from_G1Point(field.name, getattr(self, field.name))
-                )
-                for field in fields(self)
-                if field.type == G1Point and field.name != "name"
-            },
-        )
-
 
 @dataclass
 class HonkProof:
@@ -456,10 +241,6 @@ class HonkProof:
     shplonk_q: G1Point
     kzg_quotient: G1Point
 
-    @property
-    def log_circuit_size(self) -> int:
-        return int(math.log2(self.circuit_size))
-
     def __post_init__(self):
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
@@ -469,210 +250,6 @@ class HonkProof:
         assert len(self.sumcheck_evaluations) == NUMBER_OF_ENTITIES
         assert len(self.gemini_fold_comms) == CONST_PROOF_SIZE_LOG_N - 1
         assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
-
-    @classmethod
-    def from_bytes(cls, bytes: bytes) -> "HonkProof":
-        n_elements = int.from_bytes(bytes[:4], "big")
-        assert len(bytes[4:]) % 32 == 0
-        elements = [
-            int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
-        ]
-        assert len(elements) == n_elements
-
-        circuit_size = elements[0]
-        public_inputs_size = elements[1]
-        public_inputs_offset = elements[2]
-
-        assert circuit_size <= 2**MAX_LOG_N
-
-        public_inputs = []
-        cursor = 3
-        for i in range(public_inputs_size):
-            public_inputs.append(elements[cursor + i])
-
-        cursor += public_inputs_size
-
-        def parse_g1_proof_point(i: int) -> G1Point:
-            return G1Point(
-                x=elements[i] + G1_PROOF_POINT_SHIFT * elements[i + 1],
-                y=elements[i + 2] + G1_PROOF_POINT_SHIFT * elements[i + 3],
-                curve_id=CurveID.BN254,
-            )
-
-        G1_PROOF_POINT_SIZE = 4
-
-        w1 = parse_g1_proof_point(cursor)
-        w2 = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
-        w3 = parse_g1_proof_point(cursor + 2 * G1_PROOF_POINT_SIZE)
-
-        lookup_read_counts = parse_g1_proof_point(cursor + 3 * G1_PROOF_POINT_SIZE)
-        lookup_read_tags = parse_g1_proof_point(cursor + 4 * G1_PROOF_POINT_SIZE)
-        w4 = parse_g1_proof_point(cursor + 5 * G1_PROOF_POINT_SIZE)
-        lookup_inverses = parse_g1_proof_point(cursor + 6 * G1_PROOF_POINT_SIZE)
-        z_perm = parse_g1_proof_point(cursor + 7 * G1_PROOF_POINT_SIZE)
-
-        cursor += 8 * G1_PROOF_POINT_SIZE
-
-        # Parse sumcheck univariates.
-        sumcheck_univariates = []
-        for i in range(CONST_PROOF_SIZE_LOG_N):
-            sumcheck_univariates.append(
-                [
-                    elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j]
-                    for j in range(BATCHED_RELATION_PARTIAL_LENGTH)
-                ]
-            )
-        cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
-
-        # Parse sumcheck_evaluations
-        sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
-
-        cursor += NUMBER_OF_ENTITIES
-
-        # Parse gemini fold comms
-        gemini_fold_comms = [
-            parse_g1_proof_point(cursor + i * G1_PROOF_POINT_SIZE)
-            for i in range(CONST_PROOF_SIZE_LOG_N - 1)
-        ]
-
-        cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
-
-        # Parse gemini a evaluations
-        gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
-
-        cursor += CONST_PROOF_SIZE_LOG_N
-
-        shplonk_q = parse_g1_proof_point(cursor)
-        kzg_quotient = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
-
-        cursor += 2 * G1_PROOF_POINT_SIZE
-
-        assert cursor == len(elements)
-
-        return HonkProof(
-            circuit_size=circuit_size,
-            public_inputs_size=public_inputs_size,
-            public_inputs_offset=public_inputs_offset,
-            public_inputs=public_inputs,
-            w1=w1,
-            w2=w2,
-            w3=w3,
-            w4=w4,
-            z_perm=z_perm,
-            lookup_read_counts=lookup_read_counts,
-            lookup_read_tags=lookup_read_tags,
-            lookup_inverses=lookup_inverses,
-            sumcheck_univariates=sumcheck_univariates,
-            sumcheck_evaluations=sumcheck_evaluations,
-            gemini_fold_comms=gemini_fold_comms,
-            gemini_a_evaluations=gemini_a_evaluations,
-            shplonk_q=shplonk_q,
-            kzg_quotient=kzg_quotient,
-        )
-
-    def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkProof":
-        """Convert everything to PyFelts given a circuit."""
-        return HonkProof(
-            circuit_size=self.circuit_size,
-            public_inputs_size=self.public_inputs_size,
-            public_inputs_offset=circuit.write_element(self.public_inputs_offset),
-            public_inputs=circuit.write_elements(self.public_inputs),
-            w1=circuit.write_struct(G1PointCircuit.from_G1Point("w1", self.w1)),
-            w2=circuit.write_struct(G1PointCircuit.from_G1Point("w2", self.w2)),
-            w3=circuit.write_struct(G1PointCircuit.from_G1Point("w3", self.w3)),
-            w4=circuit.write_struct(G1PointCircuit.from_G1Point("w4", self.w4)),
-            z_perm=circuit.write_struct(
-                G1PointCircuit.from_G1Point("z_perm", self.z_perm)
-            ),
-            lookup_read_counts=circuit.write_struct(
-                G1PointCircuit.from_G1Point(
-                    "lookup_read_counts", self.lookup_read_counts
-                )
-            ),
-            lookup_read_tags=circuit.write_struct(
-                G1PointCircuit.from_G1Point("lookup_read_tags", self.lookup_read_tags)
-            ),
-            lookup_inverses=circuit.write_struct(
-                G1PointCircuit.from_G1Point("lookup_inverses", self.lookup_inverses)
-            ),
-            sumcheck_univariates=[
-                circuit.write_elements(univariate)
-                for univariate in self.sumcheck_univariates
-            ],
-            sumcheck_evaluations=circuit.write_elements(self.sumcheck_evaluations),
-            gemini_fold_comms=[
-                circuit.write_struct(
-                    G1PointCircuit.from_G1Point(f"gemini_fold_comm_{i}", comm)
-                )
-                for i, comm in enumerate(self.gemini_fold_comms)
-            ],
-            gemini_a_evaluations=circuit.write_elements(self.gemini_a_evaluations),
-            shplonk_q=circuit.write_struct(
-                G1PointCircuit.from_G1Point("shplonk_q", self.shplonk_q)
-            ),
-            kzg_quotient=circuit.write_struct(
-                G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
-            ),
-        )
-
-    def serialize_to_calldata(self) -> list[int]:
-        def serialize_G1Point256(g1_point: G1Point) -> list[int]:
-            xl, xh = split_128(g1_point.x)
-            yl, yh = split_128(g1_point.y)
-            return [xl, xh, yl, yh]
-
-        cd = []
-        cd.append(self.circuit_size)
-        cd.append(self.public_inputs_size)
-        cd.append(self.public_inputs_offset)
-        cd.extend(
-            bigint_split_array(
-                x=self.public_inputs, n_limbs=2, base=2**128, prepend_length=True
-            )
-        )
-        cd.extend(serialize_G1Point256(self.w1))
-        cd.extend(serialize_G1Point256(self.w2))
-        cd.extend(serialize_G1Point256(self.w3))
-        cd.extend(serialize_G1Point256(self.w4))
-        cd.extend(serialize_G1Point256(self.z_perm))
-        cd.extend(serialize_G1Point256(self.lookup_read_counts))
-        cd.extend(serialize_G1Point256(self.lookup_read_tags))
-        cd.extend(serialize_G1Point256(self.lookup_inverses))
-        cd.extend(
-            bigint_split_array(
-                x=flatten(self.sumcheck_univariates)[
-                    : BATCHED_RELATION_PARTIAL_LENGTH * self.log_circuit_size
-                ],  # The rest is 0.
-                n_limbs=2,
-                base=2**128,
-                prepend_length=True,
-            )
-        )
-
-        cd.extend(
-            bigint_split_array(
-                x=self.sumcheck_evaluations, n_limbs=2, base=2**128, prepend_length=True
-            )
-        )
-
-        cd.append(self.log_circuit_size - 1)
-        for pt in self.gemini_fold_comms[
-            : self.log_circuit_size - 1
-        ]:  # The rest is G(1, 2)
-            cd.extend(serialize_G1Point256(pt))
-
-        cd.extend(
-            bigint_split_array(
-                x=self.gemini_a_evaluations[: self.log_circuit_size],
-                n_limbs=2,
-                base=2**128,
-                prepend_length=True,
-            )
-        )
-        cd.extend(serialize_G1Point256(self.shplonk_q))
-        cd.extend(serialize_G1Point256(self.kzg_quotient))
-
-        return cd
 
 
 @dataclass
@@ -689,492 +266,480 @@ class HonkTranscript:
     gemini_r: int | PyFelt
     shplonk_nu: int | PyFelt
     shplonk_z: int | PyFelt
-    public_inputs_delta: int | None = None  # Derived.
 
     def __post_init__(self):
         assert len(self.alphas) == NUMBER_OF_ALPHAS
         assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
         assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
 
-    @classmethod
-    def from_proof(cls, proof: HonkProof, system="UltraKeccakHonk") -> "HonkTranscript":
-        def g1_to_g1_proof_point(g1_proof_point: G1Point) -> tuple[int, int, int, int]:
-            x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
-            y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
-            return (x_low, x_high, y_low, y_high)
 
-        def split_challenge(ch: bytes) -> tuple[int, int]:
-            ch_int = int.from_bytes(ch, "big")
-            high_128, low_128 = divmod(ch_int, 2**128)
-            return (low_128, high_128)
+def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
+    def serialize_G1Point256(g1_point: G1Point) -> list[int]:
+        xl, xh = split_128(g1_point.x)
+        yl, yh = split_128(g1_point.y)
+        return [xl, xh, yl, yh]
 
-        # Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
-        FR = CURVES[CurveID.GRUMPKIN.value].p
+    log_circuit_size = int(math.log2(proof.circuit_size))
 
-        match system:
-            case "UltraKeccakHonk":
-                hasher = Sha3Transcript()
-            case "UltraStarknetHonk":
-                hasher = StarknetPoseidonTranscript()
-            case _:
-                raise ValueError(f"Proof system {system} not compatible")
+    cd = []
+    cd.append(proof.circuit_size)
+    cd.append(proof.public_inputs_size)
+    cd.append(proof.public_inputs_offset)
+    cd.extend(
+        bigint_split_array(
+            x=proof.public_inputs, n_limbs=2, base=2**128, prepend_length=True
+        )
+    )
+    cd.extend(serialize_G1Point256(proof.w1))
+    cd.extend(serialize_G1Point256(proof.w2))
+    cd.extend(serialize_G1Point256(proof.w3))
+    cd.extend(serialize_G1Point256(proof.w4))
+    cd.extend(serialize_G1Point256(proof.z_perm))
+    cd.extend(serialize_G1Point256(proof.lookup_read_counts))
+    cd.extend(serialize_G1Point256(proof.lookup_read_tags))
+    cd.extend(serialize_G1Point256(proof.lookup_inverses))
+    cd.extend(
+        bigint_split_array(
+            x=flatten(proof.sumcheck_univariates)[
+                : BATCHED_RELATION_PARTIAL_LENGTH * log_circuit_size
+            ],  # The rest is 0.
+            n_limbs=2,
+            base=2**128,
+            prepend_length=True,
+        )
+    )
 
-        hasher.update(int.to_bytes(proof.circuit_size, 32, "big"))
-        hasher.update(int.to_bytes(proof.public_inputs_size, 32, "big"))
-        hasher.update(int.to_bytes(proof.public_inputs_offset, 32, "big"))
+    cd.extend(
+        bigint_split_array(
+            x=proof.sumcheck_evaluations, n_limbs=2, base=2**128, prepend_length=True
+        )
+    )
 
-        for pub_input in proof.public_inputs:
-            hasher.update(int.to_bytes(pub_input, 32, "big"))
+    cd.append(log_circuit_size - 1)
+    for pt in proof.gemini_fold_comms[: log_circuit_size - 1]:  # The rest is G(1, 2)
+        cd.extend(serialize_G1Point256(pt))
 
-        for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
-            # print(f"g1_proof_point: {g1_proof_point.__repr__()}")
-            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
-            hasher.update(int.to_bytes(x0, 32, "big"))
-            hasher.update(int.to_bytes(x1, 32, "big"))
-            hasher.update(int.to_bytes(y0, 32, "big"))
-            hasher.update(int.to_bytes(y1, 32, "big"))
+    cd.extend(
+        bigint_split_array(
+            x=proof.gemini_a_evaluations[:log_circuit_size],
+            n_limbs=2,
+            base=2**128,
+            prepend_length=True,
+        )
+    )
+    cd.extend(serialize_G1Point256(proof.shplonk_q))
+    cd.extend(serialize_G1Point256(proof.kzg_quotient))
 
-        ch0 = hasher.digest_reset()
+    return cd
 
-        eta, eta_two = split_challenge(ch0)
 
-        hasher.update(ch0)
-        ch0 = hasher.digest_reset()
-        eta_three, _ = split_challenge(ch0)
+def honk_transcript_from_proof(system: str, proof: HonkProof) -> "HonkTranscript":
 
-        # Round 1 : ch0, lookup_read_counts, lookup_read_tags, w4
+    class Transcript(ABC):
+        def __init__(self):
+            self.reset()
 
-        hasher.update(ch0)
+        @abstractmethod
+        def reset(self):
+            pass
 
-        for g1_proof_point in [
-            proof.lookup_read_counts,
-            proof.lookup_read_tags,
-            proof.w4,
-        ]:
-            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
-            hasher.update(int.to_bytes(x0, 32, "big"))
-            hasher.update(int.to_bytes(x1, 32, "big"))
-            hasher.update(int.to_bytes(y0, 32, "big"))
-            hasher.update(int.to_bytes(y1, 32, "big"))
+        @abstractmethod
+        def update(self, data: bytes):
+            pass
 
-        ch1 = hasher.digest_reset()
-        beta, gamma = split_challenge(ch1)
+        @abstractmethod
+        def digest(self) -> bytes:
+            pass
 
-        # Round 2: ch1, lookup_inverses, z_perm
+        def digest_reset(self) -> bytes:
+            res_bytes = self.digest()
+            self.reset()
+            return res_bytes
 
-        hasher.update(ch1)
+    class Sha3Transcript(Transcript):
+        def reset(self):
+            self.hasher = sha3.keccak_256()
 
-        for g1_proof_point in [proof.lookup_inverses, proof.z_perm]:
-            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
-            hasher.update(int.to_bytes(x0, 32, "big"))
-            hasher.update(int.to_bytes(x1, 32, "big"))
-            hasher.update(int.to_bytes(y0, 32, "big"))
-            hasher.update(int.to_bytes(y1, 32, "big"))
+        def digest(self) -> bytes:
+            res = self.hasher.digest()
+            res_int = int.from_bytes(res, "big")
+            res_mod = res_int % CURVES[CurveID.GRUMPKIN.value].p
+            res_bytes = res_mod.to_bytes(32, "big")
+            return res_bytes
 
-        ch2 = hasher.digest_reset()
+        def update(self, data: bytes):
+            self.hasher.update(data)
 
-        alphas = [None] * NUMBER_OF_ALPHAS
-        alphas[0], alphas[1] = split_challenge(ch2)
+    class StarknetPoseidonTranscript(Transcript):
+        def reset(self):
+            self.s0, self.s1, self.s2 = hades_permutation(
+                int.from_bytes(b"StarknetHonk", "big"), 0, 1
+            )
 
-        for i in range(1, NUMBER_OF_ALPHAS // 2):
-            hasher.update(ch2)
-            ch2 = hasher.digest_reset()
-            alphas[i * 2], alphas[i * 2 + 1] = split_challenge(ch2)
+        def digest(self) -> bytes:
+            return self.s0.to_bytes(32, "big")
 
-        if NUMBER_OF_ALPHAS % 2 == 1:
-            hasher.update(ch2)
-            ch2 = hasher.digest_reset()
-            alphas[-1], _ = split_challenge(ch2)
+        def update(self, data: bytes):
+            val = int.from_bytes(data, "big")
+            assert val < 2**256
+            high, low = divmod(val, 2**128)
+            self.s0, self.s1, self.s2 = hades_permutation(
+                self.s0 + low, self.s1 + high, self.s2
+            )
 
-        # Round 3: Gate Challenges :
-        ch3 = ch2
-        gate_challenges = [None] * CONST_PROOF_SIZE_LOG_N
-        for i in range(CONST_PROOF_SIZE_LOG_N):
-            hasher.update(ch3)
-            ch3 = hasher.digest_reset()
-            gate_challenges[i], _ = split_challenge(ch3)
+    def g1_to_g1_proof_point(g1_proof_point: G1Point) -> tuple[int, int, int, int]:
+        x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
+        y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
+        return (x_low, x_high, y_low, y_high)
 
-        # Round 4: Sumcheck u challenges
-        ch4 = ch3
-        sum_check_u_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+    def split_challenge(ch: bytes) -> tuple[int, int]:
+        ch_int = int.from_bytes(ch, "big")
+        high_128, low_128 = divmod(ch_int, 2**128)
+        return (low_128, high_128)
 
-        for i in range(CONST_PROOF_SIZE_LOG_N):
-            # Create array of univariate challenges starting with previous challenge
-            univariate_chal = [ch4]
+    # Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
 
-            # Add the sumcheck univariates for this round
-            for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
-                univariate_chal.append(
-                    int.to_bytes(proof.sumcheck_univariates[i][j], 32, "big")
-                )
+    match system:
+        case "UltraKeccakHonk":
+            hasher = Sha3Transcript()
+        case "UltraStarknetHonk":
+            hasher = StarknetPoseidonTranscript()
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
 
-            # Update hasher with all univariate challenges
-            for chal in univariate_chal:
-                hasher.update(chal)
+    hasher.update(int.to_bytes(proof.circuit_size, 32, "big"))
+    hasher.update(int.to_bytes(proof.public_inputs_size, 32, "big"))
+    hasher.update(int.to_bytes(proof.public_inputs_offset, 32, "big"))
 
-            # Get next challenge
-            ch4 = hasher.digest_reset()
+    for pub_input in proof.public_inputs:
+        hasher.update(int.to_bytes(pub_input, 32, "big"))
 
-            # Split challenge to get sumcheck challenge
-            sum_check_u_challenges[i], _ = split_challenge(ch4)
-
-        # Rho challenge :
-        hasher.update(ch4)
-        for i in range(NUMBER_OF_ENTITIES):
-            hasher.update(int.to_bytes(proof.sumcheck_evaluations[i], 32, "big"))
-
-        c5 = hasher.digest_reset()
-        rho, _ = split_challenge(c5)
-
-        # Gemini R :
-        hasher.update(c5)
-        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
-            x0, x1, y0, y1 = g1_to_g1_proof_point(proof.gemini_fold_comms[i])
-            hasher.update(int.to_bytes(x0, 32, "big"))
-            hasher.update(int.to_bytes(x1, 32, "big"))
-            hasher.update(int.to_bytes(y0, 32, "big"))
-            hasher.update(int.to_bytes(y1, 32, "big"))
-
-        c6 = hasher.digest_reset()
-        gemini_r, _ = split_challenge(c6)
-
-        # Shplonk Nu :
-        hasher.update(c6)
-        for i in range(CONST_PROOF_SIZE_LOG_N):
-            hasher.update(int.to_bytes(proof.gemini_a_evaluations[i], 32, "big"))
-
-        c7 = hasher.digest_reset()
-        shplonk_nu, _ = split_challenge(c7)
-
-        # Shplonk Z :
-        hasher.update(c7)
-        x0, x1, y0, y1 = g1_to_g1_proof_point(proof.shplonk_q)
+    for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
+        # print(f"g1_proof_point: {g1_proof_point.__repr__()}")
+        x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
         hasher.update(int.to_bytes(x0, 32, "big"))
         hasher.update(int.to_bytes(x1, 32, "big"))
         hasher.update(int.to_bytes(y0, 32, "big"))
         hasher.update(int.to_bytes(y1, 32, "big"))
 
-        c8 = hasher.digest_reset()
-        shplonk_z, _ = split_challenge(c8)
+    ch0 = hasher.digest_reset()
 
-        return cls(
-            eta=eta,
-            etaTwo=eta_two,
-            etaThree=eta_three,
-            beta=beta,
-            gamma=gamma,
-            alphas=alphas,
-            gate_challenges=gate_challenges,
-            sum_check_u_challenges=sum_check_u_challenges,
-            rho=rho,
-            gemini_r=gemini_r,
-            shplonk_nu=shplonk_nu,
-            shplonk_z=shplonk_z,
-            public_inputs_delta=None,
-        )
+    eta, eta_two = split_challenge(ch0)
 
-    def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkTranscript":
-        return HonkTranscript(
-            eta=circuit.write_element(self.eta),
-            etaTwo=circuit.write_element(self.etaTwo),
-            etaThree=circuit.write_element(self.etaThree),
-            beta=circuit.write_element(self.beta),
-            gamma=circuit.write_element(self.gamma),
-            alphas=circuit.write_elements(self.alphas),
-            gate_challenges=circuit.write_elements(self.gate_challenges),
-            sum_check_u_challenges=circuit.write_elements(self.sum_check_u_challenges),
-            rho=circuit.write_element(self.rho),
-            gemini_r=circuit.write_element(self.gemini_r),
-            shplonk_nu=circuit.write_element(self.shplonk_nu),
-            shplonk_z=circuit.write_element(self.shplonk_z),
-            public_inputs_delta=None,
-        )
+    hasher.update(ch0)
+    ch0 = hasher.digest_reset()
+    eta_three, _ = split_challenge(ch0)
 
+    # Round 1 : ch0, lookup_read_counts, lookup_read_tags, w4
 
-class HonkVerifierCircuits(ModuloCircuit):
-    def __init__(
-        self,
-        log_n: int,
-        curve_id: int = CurveID.GRUMPKIN.value,
-    ):
-        super().__init__(
-            curve_id=curve_id,
-        )
-        self.log_n = log_n
+    hasher.update(ch0)
 
-    def compute_shplemini_msm_scalars(
-        self,
-        p_sumcheck_evaluations: list[PyFelt],  # Full evaluations, not replaced.
-        p_gemini_a_evaluations: list[PyFelt],
-        tp_gemini_r: PyFelt,
-        tp_rho: PyFelt,
-        tp_shplonk_z: PyFelt,
-        tp_shplonk_nu: PyFelt,
-        tp_sumcheck_u_challenges: list[PyFelt],
-    ) -> list[PyFelt]:
-        assert all(isinstance(i, PyFelt) for i in p_sumcheck_evaluations)
-        #         function computeSquares(Fr r) internal pure returns (Fr[CONST_PROOF_SIZE_LOG_N] memory squares) {
-        #     squares[0] = r;
-        #     for (uint256 i = 1; i < CONST_PROOF_SIZE_LOG_N; ++i) {
-        #         squares[i] = squares[i - 1].sqr();
-        #     }
-        # }
-        powers_of_evaluations_challenge = [tp_gemini_r]
-        for i in range(1, self.log_n):
-            powers_of_evaluations_challenge.append(
-                self.mul(
-                    powers_of_evaluations_challenge[i - 1],
-                    powers_of_evaluations_challenge[i - 1],
-                )
+    for g1_proof_point in [
+        proof.lookup_read_counts,
+        proof.lookup_read_tags,
+        proof.w4,
+    ]:
+        x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+        hasher.update(int.to_bytes(x0, 32, "big"))
+        hasher.update(int.to_bytes(x1, 32, "big"))
+        hasher.update(int.to_bytes(y0, 32, "big"))
+        hasher.update(int.to_bytes(y1, 32, "big"))
+
+    ch1 = hasher.digest_reset()
+    beta, gamma = split_challenge(ch1)
+
+    # Round 2: ch1, lookup_inverses, z_perm
+
+    hasher.update(ch1)
+
+    for g1_proof_point in [proof.lookup_inverses, proof.z_perm]:
+        x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+        hasher.update(int.to_bytes(x0, 32, "big"))
+        hasher.update(int.to_bytes(x1, 32, "big"))
+        hasher.update(int.to_bytes(y0, 32, "big"))
+        hasher.update(int.to_bytes(y1, 32, "big"))
+
+    ch2 = hasher.digest_reset()
+
+    alphas = [None] * NUMBER_OF_ALPHAS
+    alphas[0], alphas[1] = split_challenge(ch2)
+
+    for i in range(1, NUMBER_OF_ALPHAS // 2):
+        hasher.update(ch2)
+        ch2 = hasher.digest_reset()
+        alphas[i * 2], alphas[i * 2 + 1] = split_challenge(ch2)
+
+    if NUMBER_OF_ALPHAS % 2 == 1:
+        hasher.update(ch2)
+        ch2 = hasher.digest_reset()
+        alphas[-1], _ = split_challenge(ch2)
+
+    # Round 3: Gate Challenges :
+    ch3 = ch2
+    gate_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+    for i in range(CONST_PROOF_SIZE_LOG_N):
+        hasher.update(ch3)
+        ch3 = hasher.digest_reset()
+        gate_challenges[i], _ = split_challenge(ch3)
+
+    # Round 4: Sumcheck u challenges
+    ch4 = ch3
+    sum_check_u_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+
+    for i in range(CONST_PROOF_SIZE_LOG_N):
+        # Create array of univariate challenges starting with previous challenge
+        univariate_chal = [ch4]
+
+        # Add the sumcheck univariates for this round
+        for j in range(BATCHED_RELATION_PARTIAL_LENGTH):
+            univariate_chal.append(
+                int.to_bytes(proof.sumcheck_univariates[i][j], 32, "big")
             )
 
-        scalars = [self.set_or_get_constant(0)] * (
-            NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2
-        )
+        # Update hasher with all univariate challenges
+        for chal in univariate_chal:
+            hasher.update(chal)
 
-        # computeInvertedGeminiDenominators
+        # Get next challenge
+        ch4 = hasher.digest_reset()
 
-        inverse_vanishing_evals = [None] * (CONST_PROOF_SIZE_LOG_N + 1)
-        inverse_vanishing_evals[0] = self.inv(
-            self.sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
-        )
-        for i in range(self.log_n):
-            inverse_vanishing_evals[i + 1] = self.inv(
-                self.add(tp_shplonk_z, powers_of_evaluations_challenge[i])
+        # Split challenge to get sumcheck challenge
+        sum_check_u_challenges[i], _ = split_challenge(ch4)
+
+    # Rho challenge :
+    hasher.update(ch4)
+    for i in range(NUMBER_OF_ENTITIES):
+        hasher.update(int.to_bytes(proof.sumcheck_evaluations[i], 32, "big"))
+
+    c5 = hasher.digest_reset()
+    rho, _ = split_challenge(c5)
+
+    # Gemini R :
+    hasher.update(c5)
+    for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+        x0, x1, y0, y1 = g1_to_g1_proof_point(proof.gemini_fold_comms[i])
+        hasher.update(int.to_bytes(x0, 32, "big"))
+        hasher.update(int.to_bytes(x1, 32, "big"))
+        hasher.update(int.to_bytes(y0, 32, "big"))
+        hasher.update(int.to_bytes(y1, 32, "big"))
+
+    c6 = hasher.digest_reset()
+    gemini_r, _ = split_challenge(c6)
+
+    # Shplonk Nu :
+    hasher.update(c6)
+    for i in range(CONST_PROOF_SIZE_LOG_N):
+        hasher.update(int.to_bytes(proof.gemini_a_evaluations[i], 32, "big"))
+
+    c7 = hasher.digest_reset()
+    shplonk_nu, _ = split_challenge(c7)
+
+    # Shplonk Z :
+    hasher.update(c7)
+    x0, x1, y0, y1 = g1_to_g1_proof_point(proof.shplonk_q)
+    hasher.update(int.to_bytes(x0, 32, "big"))
+    hasher.update(int.to_bytes(x1, 32, "big"))
+    hasher.update(int.to_bytes(y0, 32, "big"))
+    hasher.update(int.to_bytes(y1, 32, "big"))
+
+    c8 = hasher.digest_reset()
+    shplonk_z, _ = split_challenge(c8)
+
+    return HonkTranscript(
+        eta=eta,
+        etaTwo=eta_two,
+        etaThree=eta_three,
+        beta=beta,
+        gamma=gamma,
+        alphas=alphas,
+        gate_challenges=gate_challenges,
+        sum_check_u_challenges=sum_check_u_challenges,
+        rho=rho,
+        gemini_r=gemini_r,
+        shplonk_nu=shplonk_nu,
+        shplonk_z=shplonk_z,
+    )
+
+
+def circuit_compute_shplemini_msm_scalars(
+    log_n: int,
+    p_sumcheck_evaluations: list[PyFelt],  # Full evaluations, not replaced.
+    p_gemini_a_evaluations: list[PyFelt],
+    tp_gemini_r: PyFelt,
+    tp_rho: PyFelt,
+    tp_shplonk_z: PyFelt,
+    tp_shplonk_nu: PyFelt,
+    tp_sumcheck_u_challenges: list[PyFelt],
+) -> list[PyFelt]:
+    field = get_base_field(CurveID.GRUMPKIN)
+
+    assert all(isinstance(i, PyFelt) for i in p_sumcheck_evaluations)
+    powers_of_evaluations_challenge = [tp_gemini_r]
+    for i in range(1, log_n):
+        powers_of_evaluations_challenge.append(
+            mul(
+                powers_of_evaluations_challenge[i - 1],
+                powers_of_evaluations_challenge[i - 1],
             )
-        assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
+        )
 
-        # mem.unshiftedScalar = inverse_vanishing_evals[0] + (tp.shplonkNu * inverse_vanishing_evals[1]);
-        # mem.shiftedScalar =
-        #     tp.geminiR.invert() * (inverse_vanishing_evals[0] - (tp.shplonkNu * inverse_vanishing_evals[1]));
+    scalars = [field(0)] * (NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2)
 
-        unshifted_scalar = self.neg(
-            self.add(
+    # computeInvertedGeminiDenominators
+
+    inverse_vanishing_evals = [None] * (CONST_PROOF_SIZE_LOG_N + 1)
+    inverse_vanishing_evals[0] = inv(
+        sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
+    )
+    for i in range(log_n):
+        inverse_vanishing_evals[i + 1] = inv(
+            add(tp_shplonk_z, powers_of_evaluations_challenge[i])
+        )
+    assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
+
+    unshifted_scalar = neg(
+        add(
+            inverse_vanishing_evals[0],
+            mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
+        )
+    )
+
+    shifted_scalar = neg(
+        mul(
+            inv(tp_gemini_r),
+            sub(
                 inverse_vanishing_evals[0],
-                self.mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
-            )
+                mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
+            ),
         )
+    )
 
-        shifted_scalar = self.neg(
-            self.mul(
-                self.inv(tp_gemini_r),
-                self.sub(
-                    inverse_vanishing_evals[0],
-                    self.mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
-                ),
-            )
-        )
+    scalars[0] = field(1)
 
-        scalars[0] = self.set_or_get_constant(1)
+    batching_challenge = field(1)
+    batched_evaluation = field(0)
 
-        batching_challenge = self.set_or_get_constant(1)
-        batched_evaluation = self.set_or_get_constant(0)
-
-        for i in range(1, NUMBER_UNSHIFTED + 1):
-            scalars[i] = self.mul(unshifted_scalar, batching_challenge)
-            batched_evaluation = self.add(
-                batched_evaluation,
-                self.mul(p_sumcheck_evaluations[i - 1], batching_challenge),
-            )
-            batching_challenge = self.mul(batching_challenge, tp_rho)
-
-        for i in range(NUMBER_UNSHIFTED + 1, NUMBER_OF_ENTITIES + 1):
-            scalars[i] = self.mul(shifted_scalar, batching_challenge)
-            batched_evaluation = self.add(
-                batched_evaluation,
-                self.mul(p_sumcheck_evaluations[i - 1], batching_challenge),
-            )
-            # skip last round:
-            if i < NUMBER_OF_ENTITIES:
-                batching_challenge = self.mul(batching_challenge, tp_rho)
-
-        constant_term_accumulator = self.set_or_get_constant(0)
-        batching_challenge = self.square(tp_shplonk_nu)
-
-        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
-            dummy_round = i >= (self.log_n - 1)
-
-            scaling_factor = self.set_or_get_constant(0)
-            if not dummy_round:
-                scaling_factor = self.mul(
-                    batching_challenge, inverse_vanishing_evals[i + 2]
-                )
-                scalars[NUMBER_OF_ENTITIES + i + 1] = self.neg(scaling_factor)
-                constant_term_accumulator = self.add(
-                    constant_term_accumulator,
-                    self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
-                )
-            else:
-                # print(
-                #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
-                # )
-                pass
-
-            # skip last round:
-            if i < self.log_n - 2:
-                batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
-
-        # computeGeminiBatchedUnivariateEvaluation
-        def compute_gemini_batched_univariate_evaluation(
-            tp_sumcheck_u_challenges,
-            batched_eval_accumulator,
-            gemini_evaluations,
-            gemini_eval_challenge_powers,
-        ):
-            for i in range(self.log_n, 0, -1):
-                challenge_power = gemini_eval_challenge_powers[i - 1]
-                u = tp_sumcheck_u_challenges[i - 1]
-                eval_neg = gemini_evaluations[i - 1]
-
-                # (challengePower * batchedEvalAccumulator * Fr.wrap(2)) - evalNeg * (challengePower * (Fr.wrap(1) - u) - u))
-                # (challengePower * (Fr.wrap(1) - u)
-                term = self.mul(
-                    challenge_power, self.sub(self.set_or_get_constant(1), u)
-                )
-
-                batched_eval_round_acc = self.sub(
-                    self.double(self.mul(challenge_power, batched_eval_accumulator)),
-                    self.mul(eval_neg, self.sub(term, u)),
-                )
-
-                # (challengePower * (Fr.wrap(1) - u) + u).invert()
-                den = self.add(term, u)
-
-                batched_eval_round_acc = self.mul(batched_eval_round_acc, self.inv(den))
-                batched_eval_accumulator = batched_eval_round_acc
-
-            return batched_eval_accumulator
-
-        a_0_pos = compute_gemini_batched_univariate_evaluation(
-            tp_sumcheck_u_challenges,
+    for i in range(1, NUMBER_UNSHIFTED + 1):
+        scalars[i] = mul(unshifted_scalar, batching_challenge)
+        batched_evaluation = add(
             batched_evaluation,
-            p_gemini_a_evaluations,
-            powers_of_evaluations_challenge,
+            mul(p_sumcheck_evaluations[i - 1], batching_challenge),
         )
+        batching_challenge = mul(batching_challenge, tp_rho)
 
-        # mem.constantTermAccumulator = mem.constantTermAccumulator + (a_0_pos * inverse_vanishing_evals[0]);
-        # mem.constantTermAccumulator =
-        #     mem.constantTermAccumulator + (proof.geminiAEvaluations[0] * tp.shplonkNu * inverse_vanishing_evals[1]);
-
-        constant_term_accumulator = self.add(
-            constant_term_accumulator,
-            self.mul(a_0_pos, inverse_vanishing_evals[0]),
+    for i in range(NUMBER_UNSHIFTED + 1, NUMBER_OF_ENTITIES + 1):
+        scalars[i] = mul(shifted_scalar, batching_challenge)
+        batched_evaluation = add(
+            batched_evaluation,
+            mul(p_sumcheck_evaluations[i - 1], batching_challenge),
         )
+        # skip last round:
+        if i < NUMBER_OF_ENTITIES:
+            batching_challenge = mul(batching_challenge, tp_rho)
 
-        constant_term_accumulator = self.add(
-            constant_term_accumulator,
-            self.product(
-                [
-                    p_gemini_a_evaluations[0],
-                    tp_shplonk_nu,
-                    inverse_vanishing_evals[1],
-                ]
-            ),
-        )
+    constant_term_accumulator = field(0)
+    batching_challenge = square(tp_shplonk_nu)
 
-        scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
-        scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = tp_shplonk_z
+    for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+        dummy_round = i >= (log_n - 1)
 
-        # vk.t1 : 22 + 36
-        # vk.t2 : 23 + 37
-        # vk.t3 : 24 + 38
-        # vk.t4 : 25 + 39
+        scaling_factor = field(0)
+        if not dummy_round:
+            scaling_factor = mul(batching_challenge, inverse_vanishing_evals[i + 2])
+            scalars[NUMBER_OF_ENTITIES + i + 1] = neg(scaling_factor)
+            constant_term_accumulator = add(
+                constant_term_accumulator,
+                mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
+            )
+        else:
+            pass
 
-        # proof.w1 : 28 + 40
-        # proof.w2 : 29 + 41
-        # proof.w3 : 30 + 42
-        # proof.w4 : 31 + 43
+        # skip last round:
+        if i < log_n - 2:
+            batching_challenge = mul(batching_challenge, tp_shplonk_nu)
 
-        scalars[22] = self.add(scalars[22], scalars[36])
-        scalars[23] = self.add(scalars[23], scalars[37])
-        scalars[24] = self.add(scalars[24], scalars[38])
-        scalars[25] = self.add(scalars[25], scalars[39])
+    # computeGeminiBatchedUnivariateEvaluation
+    def compute_gemini_batched_univariate_evaluation(
+        tp_sumcheck_u_challenges,
+        batched_eval_accumulator,
+        gemini_evaluations,
+        gemini_eval_challenge_powers,
+    ):
+        for i in range(log_n, 0, -1):
+            challenge_power = gemini_eval_challenge_powers[i - 1]
+            u = tp_sumcheck_u_challenges[i - 1]
+            eval_neg = gemini_evaluations[i - 1]
 
-        scalars[28] = self.add(scalars[28], scalars[40])
-        scalars[29] = self.add(scalars[29], scalars[41])
-        scalars[30] = self.add(scalars[30], scalars[42])
-        scalars[31] = self.add(scalars[31], scalars[43])
+            term = mul(challenge_power, sub(field(1), u))
 
-        scalars[36] = None
-        scalars[37] = None
-        scalars[38] = None
-        scalars[39] = None
-        scalars[40] = None
-        scalars[41] = None
-        scalars[42] = None
-        scalars[43] = None
+            batched_eval_round_acc = sub(
+                double(mul(challenge_power, batched_eval_accumulator)),
+                mul(eval_neg, sub(term, u)),
+            )
 
-        return scalars
+            den = add(term, u)
 
+            batched_eval_round_acc = mul(batched_eval_round_acc, inv(den))
+            batched_eval_accumulator = batched_eval_round_acc
 
-@dataclass(slots=True)
-class MPCheckCalldataBuilder:
-    curve_id: CurveID
-    pairs: list[G1G2Pair]
-    n_fixed_g2: int
-    public_pair: G1G2Pair | None
+        return batched_eval_accumulator
 
-    def __post_init__(self):
-        # Validate input
-        assert isinstance(self.pairs, (list, tuple))
-        assert all(
-            isinstance(pair, G1G2Pair) for pair in self.pairs
-        ), f"All pairs must be G1G2Pair, got {[type(pair) for pair in self.pairs]}"
-        assert all(
-            self.curve_id == pair.curve_id == self.pairs[0].curve_id
-            for pair in self.pairs
-        ), f"All pairs must be on the same curve, got {[pair.curve_id for pair in self.pairs]}"
-        assert (
-            isinstance(self.public_pair, G1G2Pair) or self.public_pair is None
-        ), f"Extra pair must be G1G2Pair or None, got {self.public_pair}"
-        assert len(self.pairs) >= 2
-        assert 0 <= self.n_fixed_g2 <= len(self.pairs)
+    a_0_pos = compute_gemini_batched_univariate_evaluation(
+        tp_sumcheck_u_challenges,
+        batched_evaluation,
+        p_gemini_a_evaluations,
+        powers_of_evaluations_challenge,
+    )
 
-    def serialize_to_calldata(self) -> list[int]:
-        return garaga_rs.mpc_calldata_builder(
-            self.curve_id.value,
-            [element.value for pair in self.pairs for element in pair.to_pyfelt_list()],
-            self.n_fixed_g2,
-            (
-                [element.value for element in self.public_pair.to_pyfelt_list()]
-                if self.public_pair is not None
-                else []
-            ),
-        )
+    constant_term_accumulator = add(
+        constant_term_accumulator,
+        mul(a_0_pos, inverse_vanishing_evals[0]),
+    )
 
+    constant_term_accumulator = add(
+        constant_term_accumulator,
+        product(
+            [
+                p_gemini_a_evaluations[0],
+                tp_shplonk_nu,
+                inverse_vanishing_evals[1],
+            ]
+        ),
+    )
 
-@dataclass(slots=True)
-class MSMCalldataBuilder:
-    curve_id: CurveID
-    points: list[G1Point]
-    scalars: list[int]
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = tp_shplonk_z
 
-    def __post_init__(self):
-        assert all(
-            point.curve_id == self.curve_id for point in self.points
-        ), "All points must be on the same curve."
-        assert len(self.points) == len(
-            self.scalars
-        ), "Number of points and scalars must be equal."
-        assert all(
-            0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
-        ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
+    # vk.t1 : 22 + 36
+    # vk.t2 : 23 + 37
+    # vk.t3 : 24 + 38
+    # vk.t4 : 25 + 39
 
-    def serialize_to_calldata(
-        self,
-        include_digits_decomposition=True,
-        include_points_and_scalars=True,
-        serialize_as_pure_felt252_array=False,
-    ) -> list[int]:
-        return garaga_rs.msm_calldata_builder(
-            [value for point in self.points for value in [point.x, point.y]],
-            self.scalars,
-            self.curve_id.value,
-            include_digits_decomposition,
-            include_points_and_scalars,
-            serialize_as_pure_felt252_array,
-            False,
-        )
+    # proof.w1 : 28 + 40
+    # proof.w2 : 29 + 41
+    # proof.w3 : 30 + 42
+    # proof.w4 : 31 + 43
+
+    scalars[22] = add(scalars[22], scalars[36])
+    scalars[23] = add(scalars[23], scalars[37])
+    scalars[24] = add(scalars[24], scalars[38])
+    scalars[25] = add(scalars[25], scalars[39])
+
+    scalars[28] = add(scalars[28], scalars[40])
+    scalars[29] = add(scalars[29], scalars[41])
+    scalars[30] = add(scalars[30], scalars[42])
+    scalars[31] = add(scalars[31], scalars[43])
+
+    scalars[36] = None
+    scalars[37] = None
+    scalars[38] = None
+    scalars[39] = None
+    scalars[40] = None
+    scalars[41] = None
+    scalars[42] = None
+    scalars[43] = None
+
+    return scalars
 
 
 def extract_msm_scalars(scalars: list[PyFelt], log_n: int) -> list[int]:
@@ -1195,15 +760,94 @@ def extract_msm_scalars(scalars: list[PyFelt], log_n: int) -> list[int]:
 def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     system: str, vk: HonkVk, proof: HonkProof
 ) -> list[int]:
-    tp = HonkTranscript.from_proof(proof, system)
+    tp = honk_transcript_from_proof(system, proof)
 
-    circuit = HonkVerifierCircuits(log_n=vk.log_circuit_size)
+    def circuit_write_element(elmt: PyFelt | int) -> PyFelt:
+        field = get_base_field(CurveID.GRUMPKIN.value)
+        return field(elmt) if isinstance(elmt, int) else elmt
 
-    vk_circuit = vk.to_circuit_elements(circuit)
-    proof_circuit = proof.to_circuit_elements(circuit)
-    tp = tp.to_circuit_elements(circuit)
+    def circuit_write_elements(elmts: list[PyFelt]) -> list[PyFelt]:
+        return [circuit_write_element(elmt) for elmt in elmts]
 
-    scalars = circuit.compute_shplemini_msm_scalars(
+    def from_G1Point(point: G1Point) -> list[PyFelt]:
+        field = get_base_field(point.curve_id)
+        return [field(point.x), field(point.y)]
+
+    vk_circuit = HonkVk(
+        circuit_size=vk.circuit_size,
+        log_circuit_size=vk.log_circuit_size,
+        public_inputs_size=vk.public_inputs_size,
+        public_inputs_offset=circuit_write_element(vk.public_inputs_offset),
+        qm=from_G1Point(vk.qm),
+        qc=from_G1Point(vk.qc),
+        ql=from_G1Point(vk.ql),
+        qr=from_G1Point(vk.qr),
+        qo=from_G1Point(vk.qo),
+        q4=from_G1Point(vk.q4),
+        qArith=from_G1Point(vk.qArith),
+        qDeltaRange=from_G1Point(vk.qDeltaRange),
+        qElliptic=from_G1Point(vk.qElliptic),
+        qAux=from_G1Point(vk.qAux),
+        qLookup=from_G1Point(vk.qLookup),
+        qPoseidon2External=from_G1Point(vk.qPoseidon2External),
+        qPoseidon2Internal=from_G1Point(vk.qPoseidon2Internal),
+        s1=from_G1Point(vk.s1),
+        s2=from_G1Point(vk.s2),
+        s3=from_G1Point(vk.s3),
+        s4=from_G1Point(vk.s4),
+        id1=from_G1Point(vk.id1),
+        id2=from_G1Point(vk.id2),
+        id3=from_G1Point(vk.id3),
+        id4=from_G1Point(vk.id4),
+        t1=from_G1Point(vk.t1),
+        t2=from_G1Point(vk.t2),
+        t3=from_G1Point(vk.t3),
+        t4=from_G1Point(vk.t4),
+        lagrange_first=from_G1Point(vk.lagrange_first),
+        lagrange_last=from_G1Point(vk.lagrange_last),
+    )
+
+    proof_circuit = HonkProof(
+        circuit_size=proof.circuit_size,
+        public_inputs_size=proof.public_inputs_size,
+        public_inputs_offset=circuit_write_element(proof.public_inputs_offset),
+        public_inputs=circuit_write_elements(proof.public_inputs),
+        w1=from_G1Point(proof.w1),
+        w2=from_G1Point(proof.w2),
+        w3=from_G1Point(proof.w3),
+        w4=from_G1Point(proof.w4),
+        z_perm=from_G1Point(proof.z_perm),
+        lookup_read_counts=from_G1Point(proof.lookup_read_counts),
+        lookup_read_tags=from_G1Point(proof.lookup_read_tags),
+        lookup_inverses=from_G1Point(proof.lookup_inverses),
+        sumcheck_univariates=[
+            circuit_write_elements(univariate)
+            for univariate in proof.sumcheck_univariates
+        ],
+        sumcheck_evaluations=circuit_write_elements(proof.sumcheck_evaluations),
+        gemini_fold_comms=[from_G1Point(comm) for comm in proof.gemini_fold_comms],
+        gemini_a_evaluations=circuit_write_elements(proof.gemini_a_evaluations),
+        shplonk_q=from_G1Point(proof.shplonk_q),
+        kzg_quotient=from_G1Point(proof.kzg_quotient),
+    )
+
+    tp = HonkTranscript(
+        eta=circuit_write_element(tp.eta),
+        etaTwo=circuit_write_element(tp.etaTwo),
+        etaThree=circuit_write_element(tp.etaThree),
+        beta=circuit_write_element(tp.beta),
+        gamma=circuit_write_element(tp.gamma),
+        alphas=circuit_write_elements(tp.alphas),
+        gate_challenges=circuit_write_elements(tp.gate_challenges),
+        sum_check_u_challenges=circuit_write_elements(tp.sum_check_u_challenges),
+        rho=circuit_write_element(tp.rho),
+        gemini_r=circuit_write_element(tp.gemini_r),
+        shplonk_nu=circuit_write_element(tp.shplonk_nu),
+        shplonk_z=circuit_write_element(tp.shplonk_z),
+    )
+
+    scalars = circuit_compute_shplemini_msm_scalars(
+        vk.log_circuit_size,
         proof_circuit.sumcheck_evaluations,
         proof_circuit.gemini_a_evaluations,
         tp.gemini_r,
@@ -1257,39 +901,184 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     points.append(G1Point.get_nG(CurveID.BN254, 1))
     points.append(proof.kzg_quotient)
 
-    msm_builder = MSMCalldataBuilder(CurveID.BN254, points=points, scalars=scalars_msm)
+    msm_data = msm_calldata_builder(
+        points,
+        scalars_msm,
+        CurveID.BN254,
+        include_digits_decomposition=None,
+        include_points_and_scalars=False,
+        serialize_as_pure_felt252_array=False,
+    )
+
+    G2_POINT_KZG_1 = G2Point.get_nG(CurveID.BN254, 1)
+    G2_POINT_KZG_2 = G2Point(
+        x=(
+            0x0118C4D5B837BCC2BC89B5B398B5974E9F5944073B32078B7E231FEC938883B0,
+            0x260E01B251F6F1C7E7FF4E580791DEE8EA51D87A358E038B4EFE30FAC09383C1,
+        ),
+        y=(
+            0x22FEBDA3C0C0632A56475B4214E5615E11E6DD3F96E6CEA2854A87D4DACC5E55,
+            0x04FC6369F7110FE3D25156C1BB9A72859CF2A04641F99BA4EE413C80DA6A5FE4,
+        ),
+        curve_id=CurveID.BN254,
+    )
 
     P_0 = G1Point.msm(points=points, scalars=scalars_msm).add(proof.shplonk_q)
     P_1 = -proof.kzg_quotient
 
     pairs = [G1G2Pair(P_0, G2_POINT_KZG_1), G1G2Pair(P_1, G2_POINT_KZG_2)]
 
-    mpc_builder = MPCheckCalldataBuilder(
-        curve_id=CurveID.BN254, pairs=pairs, n_fixed_g2=2, public_pair=None
+    mpc_data = mpc_calldata_builder(
+        curve_id=CurveID.BN254,
+        pairs=pairs,
+        n_fixed_g2=2,
+        public_pair=None,
     )
+
     cd = []
-    cd.extend(proof.serialize_to_calldata())
-    cd.extend(
-        msm_builder.serialize_to_calldata(
-            include_points_and_scalars=False,
-            serialize_as_pure_felt252_array=False,
-            include_digits_decomposition=False,
-        )
-    )
-    cd.extend(mpc_builder.serialize_to_calldata())
-
-    res = [len(cd)] + cd
-
-    # print(f"HONK CALLDATA: {res}")
-    # print(f"HONK CALLDATA LENGTH: {len(res)}")
-
-    return res
+    cd.extend(serialize_honk_proof_to_calldata(proof))
+    cd.extend(msm_data)
+    cd.extend(mpc_data)
+    return [len(cd)] + cd
 
 
 def get_honk_calldata(system: str, vk: Path, proof: Path) -> list[int]:
-    vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
-    proof_obj = HonkProof.from_bytes(open(proof, "rb").read())
+    vk_obj = honk_vk_from_bytes(open(vk, "rb").read())
+    proof_obj = honk_proof_from_bytes(open(proof, "rb").read())
     return get_ultra_flavor_honk_calldata_from_vk_and_proof(system, vk_obj, proof_obj)
+
+
+def honk_vk_from_bytes(bytes: bytes) -> HonkVk:
+    circuit_size = int.from_bytes(bytes[0:8], "big")
+    log_circuit_size = int.from_bytes(bytes[8:16], "big")
+    public_inputs_size = int.from_bytes(bytes[16:24], "big")
+    public_inputs_offset = int.from_bytes(bytes[24:32], "big")
+
+    cursor = 32
+
+    rest = bytes[cursor:]
+    assert len(rest) % 32 == 0
+
+    # Get all fields that are G1Points from the dataclass
+    g1_fields = [field.name for field in fields(HonkVk) if field.type == G1Point]
+
+    # Parse all G1Points into a dictionary
+    points = {}
+    for field_name in g1_fields:
+        x = int.from_bytes(bytes[cursor : cursor + 32], "big")
+        y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
+        points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
+        cursor += 64
+
+    # Create instance with all parsed values
+    return HonkVk(
+        circuit_size=circuit_size,
+        log_circuit_size=log_circuit_size,
+        public_inputs_size=public_inputs_size,
+        public_inputs_offset=public_inputs_offset,
+        **points,
+    )
+
+
+def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
+    n_elements = int.from_bytes(bytes[:4], "big")
+    assert len(bytes[4:]) % 32 == 0
+    elements = [
+        int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
+    ]
+    assert len(elements) == n_elements
+
+    circuit_size = elements[0]
+    public_inputs_size = elements[1]
+    public_inputs_offset = elements[2]
+
+    MAX_LOG_N = 23  # 2^23 = 8388608
+    assert circuit_size <= 2**MAX_LOG_N
+
+    public_inputs = []
+    cursor = 3
+    for i in range(public_inputs_size):
+        public_inputs.append(elements[cursor + i])
+
+    cursor += public_inputs_size
+
+    def parse_g1_proof_point(i: int) -> G1Point:
+        return G1Point(
+            x=elements[i] + G1_PROOF_POINT_SHIFT * elements[i + 1],
+            y=elements[i + 2] + G1_PROOF_POINT_SHIFT * elements[i + 3],
+            curve_id=CurveID.BN254,
+        )
+
+    G1_PROOF_POINT_SIZE = 4
+
+    w1 = parse_g1_proof_point(cursor)
+    w2 = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
+    w3 = parse_g1_proof_point(cursor + 2 * G1_PROOF_POINT_SIZE)
+
+    lookup_read_counts = parse_g1_proof_point(cursor + 3 * G1_PROOF_POINT_SIZE)
+    lookup_read_tags = parse_g1_proof_point(cursor + 4 * G1_PROOF_POINT_SIZE)
+    w4 = parse_g1_proof_point(cursor + 5 * G1_PROOF_POINT_SIZE)
+    lookup_inverses = parse_g1_proof_point(cursor + 6 * G1_PROOF_POINT_SIZE)
+    z_perm = parse_g1_proof_point(cursor + 7 * G1_PROOF_POINT_SIZE)
+
+    cursor += 8 * G1_PROOF_POINT_SIZE
+
+    # Parse sumcheck univariates.
+    sumcheck_univariates = []
+    for i in range(CONST_PROOF_SIZE_LOG_N):
+        sumcheck_univariates.append(
+            [
+                elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j]
+                for j in range(BATCHED_RELATION_PARTIAL_LENGTH)
+            ]
+        )
+    cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
+
+    # Parse sumcheck_evaluations
+    sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
+
+    cursor += NUMBER_OF_ENTITIES
+
+    # Parse gemini fold comms
+    gemini_fold_comms = [
+        parse_g1_proof_point(cursor + i * G1_PROOF_POINT_SIZE)
+        for i in range(CONST_PROOF_SIZE_LOG_N - 1)
+    ]
+
+    cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
+
+    # Parse gemini a evaluations
+    gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
+
+    cursor += CONST_PROOF_SIZE_LOG_N
+
+    shplonk_q = parse_g1_proof_point(cursor)
+    kzg_quotient = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
+
+    cursor += 2 * G1_PROOF_POINT_SIZE
+
+    assert cursor == len(elements)
+
+    return HonkProof(
+        circuit_size=circuit_size,
+        public_inputs_size=public_inputs_size,
+        public_inputs_offset=public_inputs_offset,
+        public_inputs=public_inputs,
+        w1=w1,
+        w2=w2,
+        w3=w3,
+        w4=w4,
+        z_perm=z_perm,
+        lookup_read_counts=lookup_read_counts,
+        lookup_read_tags=lookup_read_tags,
+        lookup_inverses=lookup_inverses,
+        sumcheck_univariates=sumcheck_univariates,
+        sumcheck_evaluations=sumcheck_evaluations,
+        gemini_fold_comms=gemini_fold_comms,
+        gemini_a_evaluations=gemini_a_evaluations,
+        shplonk_q=shplonk_q,
+        kzg_quotient=kzg_quotient,
+    )
 
 
 def main():
@@ -1306,17 +1095,11 @@ def main():
     vk = examples_folder_path / "vk_ultra_keccak.bin"
     proof = examples_folder_path / "proof_ultra_keccak.bin"
     calldata = get_honk_calldata("UltraKeccakHonk", vk, proof)
-    # fix for garaga_rs.msm
-    calldata = calldata[:245] + calldata[246:]
-    calldata[0] -= 1
     assert calldata == ULTRA_KECCAK_CALLDATA
 
     vk = examples_folder_path / "vk_ultra_keccak.bin"
     proof = examples_folder_path / "proof_ultra_starknet.bin"
     calldata = get_honk_calldata("UltraStarknetHonk", vk, proof)
-    # fix for garaga_rs.msm
-    calldata = calldata[:245] + calldata[246:]
-    calldata[0] -= 1
     assert calldata == ULTRA_STARKNET_CALLDATA
 
     print("success")
