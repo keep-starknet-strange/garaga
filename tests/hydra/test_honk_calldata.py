@@ -241,7 +241,10 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
     cd.append(proof.public_inputs_offset)
     cd.extend(
         bigint_split_array(
-            x=[elem.value for elem in proof.public_inputs], n_limbs=2, base=2**128, prepend_length=True
+            x=[elem.value for elem in proof.public_inputs],
+            n_limbs=2,
+            base=2**128,
+            prepend_length=True,
         )
     )
     cd.extend(serialize_G1Point256(proof.w1))
@@ -265,7 +268,10 @@ def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
 
     cd.extend(
         bigint_split_array(
-            x=[elem.value for elem in proof.sumcheck_evaluations], n_limbs=2, base=2**128, prepend_length=True
+            x=[elem.value for elem in proof.sumcheck_evaluations],
+            n_limbs=2,
+            base=2**128,
+            prepend_length=True,
         )
     )
 
@@ -705,10 +711,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 ) -> list[int]:
     tp = honk_transcript_from_proof(system, proof)
 
-    def circuit_write_element(elmt: PyFelt | int) -> PyFelt:
-        field = get_base_field(CurveID.GRUMPKIN.value)
-        return field(elmt) if isinstance(elmt, int) else elmt
-
     scalars = circuit_compute_shplemini_msm_scalars(
         vk.log_circuit_size,
         proof.sumcheck_evaluations,
@@ -914,7 +916,9 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
     cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
 
     # Parse sumcheck_evaluations
-    sumcheck_evaluations = [field(elem) for elem in elements[cursor : cursor + NUMBER_OF_ENTITIES]]
+    sumcheck_evaluations = [
+        field(elem) for elem in elements[cursor : cursor + NUMBER_OF_ENTITIES]
+    ]
     cursor += NUMBER_OF_ENTITIES
 
     # Parse gemini fold comms
@@ -925,7 +929,9 @@ def honk_proof_from_bytes(bytes: bytes) -> HonkProof:
     cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
 
     # Parse gemini a evaluations
-    gemini_a_evaluations = [field(elem) for elem in elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]]
+    gemini_a_evaluations = [
+        field(elem) for elem in elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
+    ]
     cursor += CONST_PROOF_SIZE_LOG_N
 
     shplonk_q = parse_g1_proof_point(cursor)
