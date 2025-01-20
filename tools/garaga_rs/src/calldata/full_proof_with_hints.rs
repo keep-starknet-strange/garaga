@@ -2,11 +2,8 @@ pub mod groth16;
 
 #[cfg(test)]
 mod tests_risc0_utils {
-    use super::groth16::risc0_utils::{get_risc0_vk, ok_digest, split_digest};
-    use super::groth16::{get_groth16_calldata, Groth16Proof};
-    use crate::definitions::CurveID;
+    use super::groth16::risc0_utils::{ok_digest, split_digest};
     use num_bigint::BigUint;
-    use num_traits::Num;
     use sha2::{Digest, Sha256};
     #[test]
     fn test_ok_digest_1() {

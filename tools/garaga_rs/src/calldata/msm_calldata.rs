@@ -430,7 +430,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
 
     #[test]
     fn test_init_hashes() {

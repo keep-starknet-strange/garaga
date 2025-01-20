@@ -1,4 +1,3 @@
-import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
@@ -227,13 +226,13 @@ class HonkTranscript:
         assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
 
 
-def serialize_honk_proof_to_calldata(proof: HonkProof) -> list[int]:
+def serialize_honk_proof_to_calldata(
+    proof: HonkProof, log_circuit_size: int
+) -> list[int]:
     def serialize_G1Point256(g1_point: G1Point) -> list[int]:
         xl, xh = split_128(g1_point.x)
         yl, yh = split_128(g1_point.y)
         return [xl, xh, yl, yh]
-
-    log_circuit_size = int(math.log2(proof.circuit_size))
 
     cd = []
     cd.append(proof.circuit_size)
@@ -524,6 +523,34 @@ def honk_transcript_from_proof(system: str, proof: HonkProof) -> HonkTranscript:
     )
 
 
+# computeGeminiBatchedUnivariateEvaluation
+def compute_gemini_batched_univariate_evaluation(
+    tp_sumcheck_u_challenges,
+    batched_eval_accumulator,
+    gemini_evaluations,
+    gemini_eval_challenge_powers,
+    log_n,
+):
+    field = get_base_field(CurveID.GRUMPKIN)
+    for i in range(log_n, 0, -1):
+        challenge_power = gemini_eval_challenge_powers[i - 1]
+        u = tp_sumcheck_u_challenges[i - 1]
+        eval_neg = gemini_evaluations[i - 1]
+
+        term = challenge_power * (field(1) - u)
+
+        batched_eval_round_acc = (
+            field(2) * challenge_power * batched_eval_accumulator
+        ) - (eval_neg * (term - u))
+
+        den = term + u
+
+        batched_eval_round_acc = batched_eval_round_acc * den.__inv__()
+        batched_eval_accumulator = batched_eval_round_acc
+
+    return batched_eval_accumulator
+
+
 def circuit_compute_shplemini_msm_scalars(
     log_n: int,
     p_sumcheck_evaluations: list[PyFelt],  # Full evaluations, not replaced.
@@ -615,36 +642,12 @@ def circuit_compute_shplemini_msm_scalars(
         if i < log_n - 2:
             batching_challenge = batching_challenge * tp_shplonk_nu
 
-    # computeGeminiBatchedUnivariateEvaluation
-    def compute_gemini_batched_univariate_evaluation(
-        tp_sumcheck_u_challenges,
-        batched_eval_accumulator,
-        gemini_evaluations,
-        gemini_eval_challenge_powers,
-    ):
-        for i in range(log_n, 0, -1):
-            challenge_power = gemini_eval_challenge_powers[i - 1]
-            u = tp_sumcheck_u_challenges[i - 1]
-            eval_neg = gemini_evaluations[i - 1]
-
-            term = challenge_power * (field(1) - u)
-
-            batched_eval_round_acc = (
-                field(2) * challenge_power * batched_eval_accumulator
-            ) - (eval_neg * (term - u))
-
-            den = term + u
-
-            batched_eval_round_acc = batched_eval_round_acc * den.__inv__()
-            batched_eval_accumulator = batched_eval_round_acc
-
-        return batched_eval_accumulator
-
     a_0_pos = compute_gemini_batched_univariate_evaluation(
         tp_sumcheck_u_challenges,
         batched_evaluation,
         p_gemini_a_evaluations,
         powers_of_evaluations_challenge,
+        log_n,
     )
 
     constant_term_accumulator = (
@@ -801,7 +804,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     )
 
     cd = []
-    cd.extend(serialize_honk_proof_to_calldata(proof))
+    cd.extend(serialize_honk_proof_to_calldata(proof, vk.log_circuit_size))
     cd.extend(msm_data)
     cd.extend(mpc_data)
     return [len(cd)] + cd
