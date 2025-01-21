@@ -810,6 +810,65 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     return [len(cd)] + cd
 
 
+def FE_to_rust(e: PyFelt) -> str:
+    v = "%x" % e.value
+    return 'FieldElement::from_hex_unchecked("' + v + '")'
+
+
+def G1_to_rust(p: G1Point) -> str:
+    x = "%x" % p.x
+    y = "%x" % p.y
+    return (
+        'G1Point::<BN254PrimeField>::new(FieldElement::from_hex_unchecked("'
+        + x
+        + '"),FieldElement::from_hex_unchecked("'
+        + y
+        + '")).unwrap()'
+    )
+
+
+def print_proof_to_rust(p: HonkProof):
+    print("HonkProof {")
+    print("circuit_size: " + str(p.circuit_size) + ",")
+    print("public_inputs_size: " + str(p.public_inputs_size) + ",")
+    print("public_inputs_offset: " + str(p.public_inputs_offset) + ",")
+    print("public_inputs: vec![" + ",".join(map(FE_to_rust, p.public_inputs)) + "],")
+    print("w1: " + G1_to_rust(p.w1) + ",")
+    print("w2: " + G1_to_rust(p.w2) + ",")
+    print("w3: " + G1_to_rust(p.w3) + ",")
+    print("w4: " + G1_to_rust(p.w4) + ",")
+    print("z_perm: " + G1_to_rust(p.z_perm) + ",")
+    print("lookup_read_counts: " + G1_to_rust(p.lookup_read_counts) + ",")
+    print("lookup_read_tags: " + G1_to_rust(p.lookup_read_tags) + ",")
+    print("lookup_inverses: " + G1_to_rust(p.lookup_inverses) + ",")
+    print(
+        "sumcheck_univariates: ["
+        + ",".join(
+            map(
+                lambda a: "[" + ",".join(map(FE_to_rust, a)) + "]",
+                p.sumcheck_univariates,
+            )
+        )
+        + "],"
+    )
+    print(
+        "sumcheck_evaluations: ["
+        + ",".join(map(FE_to_rust, p.sumcheck_evaluations))
+        + "],"
+    )
+    print(
+        "gemini_fold_comms: [" + ",".join(map(G1_to_rust, p.gemini_fold_comms)) + "],"
+    )
+    print(
+        "gemini_a_evaluations: ["
+        + ",".join(map(FE_to_rust, p.gemini_a_evaluations))
+        + "],"
+    )
+    print("shplonk_q: " + G1_to_rust(p.shplonk_q) + ",")
+    print("kzg_quotient: " + G1_to_rust(p.kzg_quotient) + ",")
+    print("}")
+
+
 def get_honk_calldata(system: str, vk: Path, proof: Path) -> list[int]:
     vk_obj = honk_vk_from_bytes(open(vk, "rb").read())
     proof_obj = honk_proof_from_bytes(open(proof, "rb").read())
