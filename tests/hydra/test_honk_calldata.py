@@ -714,6 +714,8 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 ) -> list[int]:
     tp = honk_transcript_from_proof(system, proof)
 
+    proof_data = serialize_honk_proof_to_calldata(proof, vk.log_circuit_size)
+
     scalars = circuit_compute_shplemini_msm_scalars(
         vk.log_circuit_size,
         proof.sumcheck_evaluations,
@@ -804,7 +806,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     )
 
     cd = []
-    cd.extend(serialize_honk_proof_to_calldata(proof, vk.log_circuit_size))
+    cd.extend(proof_data)
     cd.extend(msm_data)
     cd.extend(mpc_data)
     return [len(cd)] + cd

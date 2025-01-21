@@ -622,6 +622,9 @@ fn circuit_compute_shplemini_msm_scalars(
             - tp_shplonk_nu * inverse_vanishing_evals[1].clone().unwrap()));
 
     let mut scalars = [NONE_F; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2];
+    for i in 0..scalars.len() {
+        scalars[i] = Some(FieldElement::zero());
+    }
 
     scalars[0] = Some(FieldElement::<GrumpkinPrimeField>::one());
 
@@ -645,7 +648,7 @@ fn circuit_compute_shplemini_msm_scalars(
         }
     }
 
-    let mut constant_term_accumulator = FieldElement::<GrumpkinPrimeField>::one();
+    let mut constant_term_accumulator = FieldElement::<GrumpkinPrimeField>::zero();
     let mut batching_challenge = tp_shplonk_nu * tp_shplonk_nu;
 
     for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
