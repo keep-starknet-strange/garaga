@@ -16,7 +16,7 @@ use lambdaworks_crypto::hash::poseidon::Poseidon;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
-use sha3::{Digest, Sha3_256};
+use sha3::{Digest, Keccak256};
 
 const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
 const CONST_PROOF_SIZE_LOG_N: usize = 28;
@@ -336,12 +336,13 @@ pub trait Hasher {
     }
     fn update_element(&mut self, element: &FieldElement<GrumpkinPrimeField>);
     fn update_point(&mut self, point: &G1Point<BN254PrimeField>) {
-        let [v0, v1] = field_element_to_u256_limbs(&point.x);
-        let [v2, v3] = field_element_to_u256_limbs(&point.y);
-        let v0 = element_from_biguint(&BigUint::from(v0));
-        let v1 = element_from_biguint(&BigUint::from(v1));
-        let v2 = element_from_biguint(&BigUint::from(v2));
-        let v3 = element_from_biguint(&BigUint::from(v3));
+        let mask: BigUint = (BigUint::from(1usize) << 136) - 1usize;
+        let x = element_to_biguint(&point.x);
+        let y = element_to_biguint(&point.y);
+        let v0 = element_from_biguint(&(x.clone() & mask.clone()));
+        let v1 = element_from_biguint(&(x >> 136));
+        let v2 = element_from_biguint(&(y.clone() & mask));
+        let v3 = element_from_biguint(&(y >> 136));
         self.update_element(&v0);
         self.update_element(&v1);
         self.update_element(&v2);
@@ -372,7 +373,7 @@ impl Hasher for KeccakHasher {
         self.data.extend(b);
     }
     fn digest(&self) -> FieldElement<GrumpkinPrimeField> {
-        element_from_bytes_be(&Sha3_256::digest(&self.data).to_vec())
+        element_from_bytes_be(&Keccak256::digest(&self.data).to_vec())
     }
 }
 
