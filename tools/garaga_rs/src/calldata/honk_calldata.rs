@@ -30,6 +30,7 @@ pub enum HonkFlavor {
     STARKNET = 1,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct HonkVk {
     pub circuit_size: u64,
     pub log_circuit_size: u64,
@@ -64,6 +65,7 @@ pub struct HonkVk {
     pub lagrange_last: G1Point<BN254PrimeField>,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct HonkProof {
     pub circuit_size: u64,
     pub public_inputs_size: u64,
@@ -745,1848 +747,237 @@ fn compute_gemini_batched_univariate_evaluation(
     batched_eval_accumulator
 }
 
+pub fn honk_vk_from_bytes(bytes: &[u8]) -> HonkVk {
+    assert_eq!(bytes.len(), 4 * 8 + 54 * 32);
+    let circuit_size = u64::from_be_bytes(bytes[0..8].try_into().unwrap());
+    let log_circuit_size = u64::from_be_bytes(bytes[8..16].try_into().unwrap());
+    let public_inputs_size = u64::from_be_bytes(bytes[16..24].try_into().unwrap());
+    let public_inputs_offset = u64::from_be_bytes(bytes[24..32].try_into().unwrap());
+    let mut points = vec![];
+    let mut cursor = 32;
+    for _ in 0..27 {
+        let x = element_from_bytes_be(&bytes[cursor..cursor + 32]);
+        let y = element_from_bytes_be(&bytes[cursor + 32..cursor + 64]);
+        points.push(G1Point::new(x, y).unwrap());
+        cursor += 64;
+    }
+    HonkVk {
+        circuit_size,
+        log_circuit_size,
+        public_inputs_size,
+        public_inputs_offset,
+        qm: points[0].clone(),
+        qc: points[1].clone(),
+        ql: points[2].clone(),
+        qr: points[3].clone(),
+        qo: points[4].clone(),
+        q4: points[5].clone(),
+        q_arith: points[6].clone(),
+        q_delta_range: points[7].clone(),
+        q_elliptic: points[8].clone(),
+        q_aux: points[9].clone(),
+        q_lookup: points[10].clone(),
+        q_poseidon2_external: points[11].clone(),
+        q_poseidon2_internal: points[12].clone(),
+        s1: points[13].clone(),
+        s2: points[14].clone(),
+        s3: points[15].clone(),
+        s4: points[16].clone(),
+        id1: points[17].clone(),
+        id2: points[18].clone(),
+        id3: points[19].clone(),
+        id4: points[20].clone(),
+        t1: points[21].clone(),
+        t2: points[22].clone(),
+        t3: points[23].clone(),
+        t4: points[24].clone(),
+        lagrange_first: points[25].clone(),
+        lagrange_last: points[26].clone(),
+    }
+}
+
+pub fn honk_proof_from_bytes(bytes: &[u8]) -> HonkProof {
+    let n_elements = u32::from_be_bytes(bytes[0..4].try_into().unwrap());
+    assert_eq!(bytes.len(), 4 + 32 * n_elements as usize);
+    let mut elements: Vec<FieldElement<GrumpkinPrimeField>> = vec![];
+    for i in 0..n_elements {
+        let offset = 4 + 32 * i as usize;
+        let e = element_from_bytes_be(&bytes[offset..offset + 32]);
+        elements.push(e);
+    }
+    let mut cursor = 0;
+    let circuit_size: u64 = element_to_biguint(&elements[0]).try_into().unwrap();
+    let public_inputs_size: u64 = element_to_biguint(&elements[1]).try_into().unwrap();
+    let public_inputs_offset: u64 = element_to_biguint(&elements[2]).try_into().unwrap();
+    cursor += 3;
+
+    const MAX_LOG_N: usize = 23; // 2^23 = 8388608
+    assert!(circuit_size <= 1 << MAX_LOG_N);
+
+    let mut public_inputs = vec![];
+    for i in 0..public_inputs_size as usize {
+        public_inputs.push(elements[cursor + i].clone());
+    }
+    cursor += public_inputs_size as usize;
+
+    fn parse_g1_proof_point(
+        elements: &[FieldElement<GrumpkinPrimeField>],
+        i: usize,
+    ) -> G1Point<BN254PrimeField> {
+        let x0 = element_to_biguint(&elements[i]);
+        let x1 = element_to_biguint(&elements[i + 1]);
+        let y0 = element_to_biguint(&elements[i + 2]);
+        let y1 = element_to_biguint(&elements[i + 3]);
+        let x = element_from_biguint(&((x1 << 136) + x0));
+        let y = element_from_biguint(&((y1 << 136) + y0));
+        G1Point::new(x, y).unwrap()
+    }
+
+    const G1_PROOF_POINT_SIZE: usize = 4;
+
+    let w1 = parse_g1_proof_point(&elements, cursor);
+    let w2 = parse_g1_proof_point(&elements, cursor + G1_PROOF_POINT_SIZE);
+    let w3 = parse_g1_proof_point(&elements, cursor + 2 * G1_PROOF_POINT_SIZE);
+
+    let lookup_read_counts = parse_g1_proof_point(&elements, cursor + 3 * G1_PROOF_POINT_SIZE);
+    let lookup_read_tags = parse_g1_proof_point(&elements, cursor + 4 * G1_PROOF_POINT_SIZE);
+    let w4 = parse_g1_proof_point(&elements, cursor + 5 * G1_PROOF_POINT_SIZE);
+    let lookup_inverses = parse_g1_proof_point(&elements, cursor + 6 * G1_PROOF_POINT_SIZE);
+    let z_perm = parse_g1_proof_point(&elements, cursor + 7 * G1_PROOF_POINT_SIZE);
+
+    cursor += 8 * G1_PROOF_POINT_SIZE;
+
+    // Parse sumcheck univariates.
+    let mut sumcheck_univariates = vec![];
+    for i in 0..CONST_PROOF_SIZE_LOG_N {
+        let mut sumcheck_univariate = vec![];
+        for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+            sumcheck_univariate
+                .push(elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j].clone());
+        }
+        let sumcheck_univariate: [FieldElement<GrumpkinPrimeField>;
+            BATCHED_RELATION_PARTIAL_LENGTH] = sumcheck_univariate.try_into().unwrap();
+        sumcheck_univariates.push(sumcheck_univariate);
+    }
+    let sumcheck_univariates: [[FieldElement<GrumpkinPrimeField>; BATCHED_RELATION_PARTIAL_LENGTH];
+        CONST_PROOF_SIZE_LOG_N] = sumcheck_univariates.try_into().unwrap();
+    cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N;
+
+    // Parse sumcheck_evaluations
+    let mut sumcheck_evaluations = vec![];
+    for i in 0..NUMBER_OF_ENTITIES {
+        sumcheck_evaluations.push(elements[cursor + i].clone());
+    }
+    let sumcheck_evaluations: [FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES] =
+        sumcheck_evaluations.try_into().unwrap();
+    cursor += NUMBER_OF_ENTITIES;
+
+    // Parse gemini fold comms
+    let mut gemini_fold_comms = vec![];
+    for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
+        gemini_fold_comms.push(parse_g1_proof_point(
+            &elements,
+            cursor + i * G1_PROOF_POINT_SIZE,
+        ));
+    }
+    let gemini_fold_comms: [G1Point<BN254PrimeField>; CONST_PROOF_SIZE_LOG_N - 1] =
+        gemini_fold_comms.try_into().unwrap();
+    cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE;
+
+    // Parse gemini a evaluations
+    let mut gemini_a_evaluations = vec![];
+    for i in 0..CONST_PROOF_SIZE_LOG_N {
+        gemini_a_evaluations.push(elements[cursor + i].clone());
+    }
+    let gemini_a_evaluations: [FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N] =
+        gemini_a_evaluations.try_into().unwrap();
+    cursor += CONST_PROOF_SIZE_LOG_N;
+
+    let shplonk_q = parse_g1_proof_point(&elements, cursor);
+    let kzg_quotient = parse_g1_proof_point(&elements, cursor + G1_PROOF_POINT_SIZE);
+
+    HonkProof {
+        circuit_size,
+        public_inputs_size,
+        public_inputs_offset,
+        public_inputs,
+        w1,
+        w2,
+        w3,
+        w4,
+        z_perm,
+        lookup_read_counts,
+        lookup_read_tags,
+        lookup_inverses,
+        sumcheck_univariates,
+        sumcheck_evaluations,
+        gemini_fold_comms,
+        gemini_a_evaluations,
+        shplonk_q,
+        kzg_quotient,
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn get_honk_vk() -> std::io::Result<HonkVk> {
+        use std::fs::File;
+        use std::io::Read;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin",
+        )?;
+        let mut bytes = vec![];
+        file.read_to_end(&mut bytes)?;
+        let vk = honk_vk_from_bytes(&bytes);
+        Ok(vk)
+    }
+
+    fn get_honk_keccak_proof() -> std::io::Result<HonkProof> {
+        use std::fs::File;
+        use std::io::Read;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak.bin",
+        )?;
+        let mut bytes = vec![];
+        file.read_to_end(&mut bytes)?;
+        let proof = honk_proof_from_bytes(&bytes);
+        Ok(proof)
+    }
+
+    fn get_honk_starknet_proof() -> std::io::Result<HonkProof> {
+        use std::fs::File;
+        use std::io::Read;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_starknet.bin",
+        )?;
+        let mut bytes = vec![];
+        file.read_to_end(&mut bytes)?;
+        let proof = honk_proof_from_bytes(&bytes);
+        Ok(proof)
+    }
+
     #[test]
-    fn test_honk_keccak_calldata() {
-        let vk = get_honk_vk();
-        let proof = get_honk_keccak_proof();
+    fn test_honk_keccak_calldata() -> std::io::Result<()> {
+        let vk = get_honk_vk()?;
+        let proof = get_honk_keccak_proof()?;
         let call_data =
             get_ultra_flavor_honk_calldata_from_vk_and_proof(HonkFlavor::KECCAK, vk, proof);
         let expected_call_data = get_honk_keccak_expected_calldata();
         assert_eq!(call_data, expected_call_data);
+        Ok(())
     }
 
     #[test]
-    fn test_honk_starknet_calldata() {
-        let vk = get_honk_vk();
-        let proof = get_honk_starknet_proof();
+    fn test_honk_starknet_calldata() -> std::io::Result<()> {
+        let vk = get_honk_vk()?;
+        let proof = get_honk_starknet_proof()?;
         let call_data =
             get_ultra_flavor_honk_calldata_from_vk_and_proof(HonkFlavor::STARKNET, vk, proof);
         let expected_call_data = get_honk_starknet_expected_calldata();
         assert_eq!(call_data, expected_call_data);
-    }
-
-    fn get_honk_vk() -> HonkVk {
-        HonkVk {
-            circuit_size: 32,
-            log_circuit_size: 5,
-            public_inputs_size: 1,
-            public_inputs_offset: 1,
-            qm: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "415666cb60796632caf35af5543a21e67a579d04b4a44a243c68df3f358c697",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "13cfcaddb617e8f25669052529424eb317e1aac8221768e740f92361b30c2d62",
-                ),
-            )
-            .unwrap(),
-            qc: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "c5f79c354ff1aed5809ac290a982776516b8c609d99fb66b26ccca2668ae6a8",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "e50425d1b09a4fe3ee886d57c3f18044dd8b7570205ce031ec8bb3ffa1999a4",
-                ),
-            )
-            .unwrap(),
-            ql: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "276ed9e001db810f4011bf5c5de9f0d417ce67e6f241677faff2882cb6d3e72d",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "8eb9210acaa389635855693b62013016015f094460254d4d7e89a4f280678c1",
-                ),
-            )
-            .unwrap(),
-            qr: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "9dfb00e38302724d39a5ce2f98cad6e37c844dda2adc9afbeafb70c39377af8",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "219cf659f31a3eeb57f0acbc1742c0934413b1be8dfed3329b09c829ee03808b",
-                ),
-            )
-            .unwrap(),
-            qo: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1f63cfcf82c517242efb019aa53af0331bb4077ad38845a1c80f915e96c49ea3",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23351d7bd3ff9c2a712b705ee1281d7e8de7567e0430ae1157ef1b6e89bf926d",
-                ),
-            )
-            .unwrap(),
-            q4: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "b2cdce018f3cad9df1152784c16d22ad2cce4cae72d4776353451da817f2a2b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "219f88713efa809de71c478b02e81ba39e6ea655fd811bb4492143712bb9a461",
-                ),
-            )
-            .unwrap(),
-            q_arith: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1405e253bf25766c7bca1b209db74fcb6f331dd2ed036a09ff10a25e00430aee",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "89d58e8fb2152deaf529acee678e4cdbb8d660b7bf0e438229204f58dde9e02",
-                ),
-            )
-            .unwrap(),
-            q_delta_range: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1618ea679c4ee1467267e50bb898148ef78d5de08341b5afdc0c863a59ab7e70",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23268ad7678b97fba97cc3e75da6cff9a3659c3b8a49046cce4062820e5c1116",
-                ),
-            )
-            .unwrap(),
-            q_elliptic: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1a11684e6c135cbe0b0ccdb27df1434557e054c65df3af7487468bdfa2fd8325",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2a8f4fba8e6893b6d523e9572d7f4c60cadfef00619e58d7db7f2b28cec21202",
-                ),
-            )
-            .unwrap(),
-            q_aux: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1469006b8b61c8d79301dfeeed1b752548d2ebff7ed60a3cda0c7db10c955c8a",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "19c2b11ddeff8ffe68ab919e345670ab029bcbce4a91df6570722995d636f037",
-                ),
-            )
-            .unwrap(),
-            q_lookup: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1dd04a8b68480307aebfa87e81eb08f45b112ec313618ac61a190b1313984c41",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "246a2b5e4a48922abc23f807bbc3ae334494a7def076d517537a97baa29dc9b5",
-                ),
-            )
-            .unwrap(),
-            q_poseidon2_external: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1aebf53057be467f5c3ed0f88d90604a4c8d6886256adeca293661e04f1a3ddf",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2bb5fcc21332b83521c63599557c6473249908a160efa4921bc0e5c16da58b6f",
-                ),
-            )
-            .unwrap(),
-            q_poseidon2_internal: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2d855b5b9eda31247e5c717ce51db5b7b0f74ed8027eddb28bb72f061415e49e",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1e857d997cc8bd0b6558b670690358ad63520266c81078227f33651c341b7704",
-                ),
-            )
-            .unwrap(),
-            s1: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "f028430324245ce213d543b19fb4b060ada6440d19a392b193a4a55591f2f58",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "18d26b321ef43284d6136addf0a86dee6079d0931c2865f2c6b06d9e136c0c1f",
-                ),
-            )
-            .unwrap(),
-            s2: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2eef5de41b9a7b0e52b3c6c9dc6dd63618ac18f0e5e70930e406816ace62fb2b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "144a24e7e4fa7e858b7092f7c37881572a651d710a7bcb6657a61fcb8fbaea4f",
-                ),
-            )
-            .unwrap(),
-            s3: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2e7e532e1656ed4ce34257a9297b836215ebec6edb1cadf52a0aca08d15ee810",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1a08f5a547b8cb5991bfff7e039b6fbc26883adb6451db4646e706b8d5d551cb",
-                ),
-            )
-            .unwrap(),
-            s4: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "17fc90a343ca94a33fab8895250839249e9f72d521271e8f84bacd5539310bda",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "18bce7273e69eef07e1be2a79612f14746f91ee47aa75f26d60b9882f20d1d7c",
-                ),
-            )
-            .unwrap(),
-            id1: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "23129a571c8e2e730f98c0941608d13c8927366c526d79e2bdcb2ee35eb436a7",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "9b08681f6335d38b30728b02e23ac9b5d3a4416ecc457ca9600e1181fecf090",
-                ),
-            )
-            .unwrap(),
-            id2: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2480a28e74a1f17b3b1c218d26fa88cd2d9464699599c298120453636906284d",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "14ab9cdff943bf65ad395135d6c53a665319e307acf88637c1425fa4a583b6c7",
-                ),
-            )
-            .unwrap(),
-            id3: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1e3912058c25e529fb6c651d048e34d640b94efa080b9bef7b9a54c80a208a87",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2f17a75505c3035b9ea1fffb0f430f5225a6bd8d55da5a9446187d0ee9f6723d",
-                ),
-            )
-            .unwrap(),
-            id4: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2493c99a3d068b03f8f2b8d28b57cea3ee22dd60456277b86c32a18982dcb185",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1ded39c4c8366469843cd63f09ecacf6c3731486320082c20ec71bbdc92196c1",
-                ),
-            )
-            .unwrap(),
-            t1: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2e0cddbc5712d79b59cb3b41ebbcdd494997477ab161763e46601d95844837ef",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "303126892f664d8d505964d14315ec426db4c64531d350750df62dbbc41a1bd9",
-                ),
-            )
-            .unwrap(),
-            t2: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "874a5ad262eecc6b565e0b08507476a6b2c6040c0c62bd59acfe3e3e125672",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "127b2a745a1b74968c3edc18982b9bef082fb517183c9c6841c2b8ef2ca1df04",
-                ),
-            )
-            .unwrap(),
-            t3: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "15a18748490ff4c2b1871081954e86c9efd4f8c3d56e1eb23d789a8f710d5be6",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2097c84955059442a95df075833071a0011ef987dc016ab110eacd554a1d8bbf",
-                ),
-            )
-            .unwrap(),
-            t4: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2aecd48089890ea0798eb952c66824d38e9426ad3085b68b00a93c17897c2877",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1216bdb2f0d961bb8a7a23331d215078d8a9ce405ce559f441f2e71477ff3ddb",
-                ),
-            )
-            .unwrap(),
-            lagrange_first: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked("1"),
-                FieldElement::from_hex_unchecked("2"),
-            )
-            .unwrap(),
-            lagrange_last: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "140b0936c323fd2471155617b6af56ee40d90bea71fba7a412dd61fcf34e8ceb",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2b6c10790a5f6631c87d652e059df42b90071823185c5ff8e440fd3d73b6fefc",
-                ),
-            )
-            .unwrap(),
-        }
-    }
-
-    fn get_honk_keccak_proof() -> HonkProof {
-        HonkProof {
-            circuit_size: 32,
-            public_inputs_size: 1,
-            public_inputs_offset: 1,
-            public_inputs: vec![FieldElement::from_hex_unchecked("2")],
-            w1: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2465e9ff1629df572d7ae9fd1b9bd98946560392b669c03f9a4a496ae7e4cace",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "17bce8fc74ab3b9430b6485da928ea6951ebee411689e29dc324843ee1708142",
-                ),
-            )
-            .unwrap(),
-            w2: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "eb93267e664634c1ae1a608b81785cfec11669ee95a1dbc6386717066310cb1",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23169272f91d323ced584549d31020c12f7cbf314c309c0ee105c3bbfef28399",
-                ),
-            )
-            .unwrap(),
-            w3: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "d394ffb5eb2d33c6a2540db125d27fb60665db10ae3f80d91eb189b318d7d58",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "a325d606966d0ecbf514d787c3440de179ff8427f66be54fcabe05420fc14d0",
-                ),
-            )
-            .unwrap(),
-            w4: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "ca7365a8a7d92bd713e8625cde47db105835a557cf68ce01414ede87a1ce97b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "26bf12dceab316d64651db4ea03663d3d9478d6ea9a1f20bbe215561e139c7f7",
-                ),
-            )
-            .unwrap(),
-            z_perm: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "69b493db1ad1bcb140505bc5a806d425af4e78b20794bc813a7669eba382a02",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2d6c35a33c91dd52432099ee20f87ed823919ed60347a56b4678b3a485e58197",
-                ),
-            )
-            .unwrap(),
-            lookup_read_counts: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "ddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157",
-                ),
-            )
-            .unwrap(),
-            lookup_read_tags: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "ddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157",
-                ),
-            )
-            .unwrap(),
-            lookup_inverses: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1fad315eb3f489658734a3aff63bfb846255a077783e50444d60ac2b104b1ad4",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1067a4d8157c660c69e7022dd32ab0e30dd9987dae02f54e15edab896b9469a2",
-                ),
-            )
-            .unwrap(),
-            sumcheck_univariates: [
-                [
-                    FieldElement::from_hex_unchecked(
-                        "285e5ff7d3c0d15f59c2761a965696bf749065fe4cac90b7c5310afb3df3b3b",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2dde687363f59313c2b41e54d81beef130eae1e894eea785c78ee4e43c20c4c6",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "13c19d3e42c8b355492f1d756884dea3957b5bf6e2e8193ffb4e7fc3f158efc",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1e4d71cffdc20a5a19dd68d4cfe2cdf067a2aa1f44b89cecab6caaf55dae3417",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1907ec4e632967f4f16250f16fa97ec7c9e8d7b72fec50a60adf7f77e14fb1b5",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "125582c3c04f25ef9b7c841edc3a461f112e792fed4296f2bcc67372e41bfaa3",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "23f1075c04d207789c601197be8d38a22a11e5d035bce960f9dc69baa6af03c2",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "12895dcc211378d9eb6614866aa0bb1a8cf720ee34451efcd92dc82c43504c13",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "2280f8067080c8f83123f8d052b5a181c0a5f3baa905f42d4549057585e69821",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "78dc17e403e81e7abb5353b62a897955e9596f56744cd931e7063f7937418d9",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1e2c998e66e78dbfb4bb9658d8637f618baf885995fbd76d7922cc4e26dba669",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "262cd1b8fdc741c2073c3c669b12e6deac6705f6214410306a8ecc6bdbec8d71",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2228b8dca9925fee72e5587e58bafbd45947c386446f3bdb63c4e010d72a0e56",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2bda190568fdecabb525a7745c2d7d5242f264daeef67f932268e72b5adcf6d1",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "4266918448a9ec8cac8f881c0bc1ba9c42959111b9f2991c93b169f38dca51a",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1150a038bbadb896d080e0158f85e7b0df710c1910a6503774bdcf08ef39a393",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "92a9fd6fe59243760042ddcaf85dcf2c9268e52c5208d75cb9125b2daa42700",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "123d711e98a50c8eef600161bc486d62069e13ad4d12064603d30e8f2d6e5265",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "25b58d132934afdccc480a8c964e477b88cbafdf91370ee9b4b4a1cc2e4e1a8e",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1537803983a0459d1e3ed61aa59cbf0856a2a510df7901046b79a4257a9fcb30",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "13c08cf9426d1e2f7e132e9c6e13e8b93b6905ccc539cb357e69e0f5d66ddfd7",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1f1cc54b85b64db929daf476a572212d852ad2e7666921e603bb50a1097c870f",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "17cfeb6ab26a28116fe3d4b5156c1512223d86e3528cd667536f1c170a4cb755",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1610c336fc031be68c629c990e755afcbb43e7630726af1dfb32ff7de2a1f903",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "78c2e9fcb11a9ff1dabdc022f77c29a52ff10e9bfc25a8e1c2f38eeb9a7b314",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "24df74453b540fc68c0a5bd1c618d3ccf49e7513983cd8fd4cf0899ad5cef4e2",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "252ed9cd7ef0d0e60aa1b3fed302a1314450edf6ebce5036cc81b5f21f166a35",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "27b4ef390baa1c9773a170ac64b0dea0dfd02fbe3a43d8061e77c487ef097245",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "25b39250035ebe1756ec1085919d0a90a973aafcdc1b4cc77844dc81c81f017e",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "28b32ee8f4dd8c62de8140dd3730fc52de4abc0cab9289bceeffb1469484b318",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "53b798117b11aee0c5bccfb2a8d926dd45c7b3f560f8d3133d42f4deab22d45",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "9eacab815d72783fdf291121be7af695260916f8f9bd74b980317f9c6ff4cea",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "22fd30a934d68c2b3d1763e038f5f41eaaefa2311abbe8e38f00a4edc500b322",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "62e1857e2ed5546ce6ec7b4e2210329eb169f5695e3a04d48acf52f5359e55d",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "ba09b18683d296cf830d2da7515d381e431fe1ac792c3117007dd2e7ad8de35",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "16bf0a5f2abce1fdc44461687d611ef8b4a2b538249fec1d8d32f25c3325ae4f",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "90d1aabada01c6d1ef8e122169f88bc36d80462934ac786ed7f63568a815f72",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "263a15eb7a5d4da20cd74bda64acd6bfd515fd57e001f571ee7f25dbbc819935",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1a6da135c8b1c95f0ebac3186421c4bf62c71f27fe9b2e34279afe65270e21a0",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2d928d40bc62836da72eadced3c96f846cf0440b939d746db2a987e41f8b7356",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-            ],
-            sumcheck_evaluations: [
-                FieldElement::from_hex_unchecked(
-                    "1a06a87012710fd1c416ee0a81de014dc12da6bd44c812868d4d8d91705294f3",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2012afa46741d05cb85c40093907abdb7574bf246de6693c0bcb500c024bed49",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "16d2dcca0c4c5dd38a1cbdf00f94cc0f41954ae8a21b2ef2bafb8007f380ef1",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1d767c5dbac46ebf8a7013691ea0891882b5007674b35bbfde9cd4bc2e527a32",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2072966d339011498d1331276eee58f2716229236f13d7ac10775b81a2c70271",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "29615adfdc896c3c4bc11a471fddea935de1dbcc34695acb83bc52c1535a1fc7",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1cbd3abddb824aab725a3e87f5202aecf7a87932dd8cd8aa01e86841f2025a5b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2197c5a29e67ebce890221a058378114009b563c25a66c334de5a6f8dcc53094",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "109d8838a44b820b35b284797baa972b32ecac1e785c28bf6fd46f538ef657cb",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "c5ce9a7dba32f117596969c584075ba0be089b3179250b54b4de0f8b82306c9",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "136b79129f5cbbee2ac685099e0182bbf1b19d1a71ce8e1c988b096f63e63c9b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "9ebda9fbb822762ed663d8f2900916556fd179eaaa9ea934b7e8a7d20e3e63b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "219f37dedd2feb7e2fc8732ff3a4f9744a0ade748cc5ded5871788b08161f1ba",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1cbe60346abb4bb1e5a18f5a3ae1bebb0131281bc771e514646801bcaaaa7b19",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "25c6182d057785e9974b649d809ba61f02f1b57f0285524f7fcfd846dae74449",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ec9d62836acb4405a03d4b6de597612ab38a7d4d7db95c84b63ac9fed6e8e64",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "b7c8f939f6fa71843efcea2c04a8039a8f7b8fdd6626709c4aa17ab385349d9",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1654259afe3affe4832121f56a178087dbccabb19b86c25505a81befe75c45fe",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "172c26ec9dc7ba6a44a801982a38df0d66e7f0fba528d13f8044e081bc42b50f",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "28119325d0559d33e0ebd0d8a0da55ff95092c22605a33b36cf68b61d065f7b0",
-                ),
-                FieldElement::from_hex_unchecked("f8af0669a895c3c83d38e2a2d8d91df30"),
-                FieldElement::from_hex_unchecked(
-                    "a30795ccb3a688c8fa73e641b6b9378c6b16ee60e343b7956d76425403ac5e7",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2b0bb083ab6d90ddd5e5a21825f3a617262bc47aa93f52a20d3264284b311bb4",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1eb2d76140d9256752ba21ef4ed4ee8ef021591a723b15889a1e188e2333f3a9",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "370704ed29ed5ba64b5690f3bac66b1fd991f58b9df2d5485c44a2880717ab2",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "26f2ff7fc2b01cef7d34571cf0e6c1efabb0f52fa3abc4e240ac5b74ec777aeb",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2d545b9152db90404ecfaa00e4afe0d028f91370f587e97944335cf752030eea",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "182530062026dca5e7f8fae24ac91eefbaa64cadd9fd5ce77edb9a993aad6024",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2334e657023ebe2d46fd71af9ca0d42089ae8b1b3025926e1e090e6425232ed4",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "4880bbfa8d664f43a1987a81d17c5346eb08bf4e2471146e1f501b38a6ef8a8",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23426d30a8d4e7874c7835e9d8b5365bfc06a64aeea18fcedb89271b35a1b490",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "177ab630e0a4fb877db50b2a8a06e7dbc4b5ee690ed3276e50cdeb10c53fa882",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1d288d5d4bb236954164d2db3bb053a79a18bdf2e29d1a0d148feba5e6807a9e",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "6ba070d3082e755a2f0477735bcd07d421b38db6babb576cac465d1524cccaf",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "6ba070d3082e755a2f0477735bcd07d421b38db6babb576cac465d1524cccaf",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "27c81bc615a22abf1fac518dd5e5989568a6c1a9e01c232dce80fcaae6d2483d",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "161ffed97d6de369ad85a1f0ece8a2b78c2ad4c18e3ce0aa68970a210fc8cdac",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "f4ab79878c744dc417e449d77d865f631040751c61751f26a5c47cc6103394c",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "104a5d1f1fcddce2daa6e7f1ab0c26493e2a01e32dedf0fb4fe5e1330eb8298f",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "185aa4d67dfc4877aea3c4019cdc087b504d06bdb54709c5a9e535e0a1001f6",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "13f4dbcb20e54a15649d2a911e55e4148fdfceb790222f87f2870ea0f2faea7a",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "182c615f4962dd5e9e2bcaa2148668c2967b30cbde78cdd953d5efa1ee7305e7",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "10e60eadf16da6ae5691b91f92bef89ba9c5a60574f6b23f8ac6fc39b0d73141",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "12cebf3da6a166ed7f43f707c64cb377f4cf76063f8c5afe9fb5a52c612e4cae",
-                ),
-            ],
-            gemini_fold_comms: [
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "30f6ead299b812a9d0e34913e4897baa11cec4f4364333bd02c3ddb15b2796",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "e2c88de5ecff9e5e57f587f11a581f95e8311abc9cbc8b79f71f5043aa54178",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "24c191be28e3c61bc03e45da0e82ef589a4e35476322229e437e049dbdf633a9",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "190ea556eee073ab057011ff249806fce345419ce1c38dc47e6eac312132d8c0",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "dca2271951c15f10fe1bd6b142ae96d710cbe11e7f67b885ba8cf553f9b7a89",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "222d3b8adfc808eccc9b6be870295d686f2f78a47a20070faa67ac921a0d62ec",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "3518fba7088a6f8103d8bc2f72a67a68cff759c9e8e70071a0c0d67a89bd684",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2796e48e3909df2b389f68123329adb1994e35d6faad76671de81ead27b3bef0",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-            ],
-            gemini_a_evaluations: [
-                FieldElement::from_hex_unchecked(
-                    "6d88005bac7d50eaf47b0321f0075d0892f453254935ef79c503047f177ac3c",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1f22b729740dcd28043721670fa5c3f6ec7c6e8f7150848eb590a57bb2c774a1",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "27af7bd3cb339be63a51d2305fc2ddf2c887b0a59511ec160aacec44308c9ffd",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "16368d4a8fc2dee62530847567ad8d75ecd96aaa541c487628f56c47c5bb1771",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "e405cd6caac953006162d7c72468986e014792ee1e09e041c69bea39def7c6d",
-                ),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-            ],
-            shplonk_q: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1e3ce2491c516e0e06eaa5dcad936bce2677c1867be2aeb5720375ffc79b6e21",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "d1133764157bc108c1e4e201a02968887c77e16afdbb635b2729af6424c9e9e",
-                ),
-            )
-            .unwrap(),
-            kzg_quotient: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "1068dd1d211c8b30fdbfa561f69a4d062daa8998dd609fd7de22ed5babb86c4b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "216af708e0184bcac66514720a6bffaa7fee53f2f7ae34dc374df8ede0c3c09b",
-                ),
-            )
-            .unwrap(),
-        }
-    }
-
-    fn get_honk_starknet_proof() -> HonkProof {
-        HonkProof {
-            circuit_size: 32,
-            public_inputs_size: 1,
-            public_inputs_offset: 1,
-            public_inputs: vec![FieldElement::from_hex_unchecked("2")],
-            w1: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2465e9ff1629df572d7ae9fd1b9bd98946560392b669c03f9a4a496ae7e4cace",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "17bce8fc74ab3b9430b6485da928ea6951ebee411689e29dc324843ee1708142",
-                ),
-            )
-            .unwrap(),
-            w2: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "eb93267e664634c1ae1a608b81785cfec11669ee95a1dbc6386717066310cb1",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23169272f91d323ced584549d31020c12f7cbf314c309c0ee105c3bbfef28399",
-                ),
-            )
-            .unwrap(),
-            w3: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "d394ffb5eb2d33c6a2540db125d27fb60665db10ae3f80d91eb189b318d7d58",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "a325d606966d0ecbf514d787c3440de179ff8427f66be54fcabe05420fc14d0",
-                ),
-            )
-            .unwrap(),
-            w4: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "ca7365a8a7d92bd713e8625cde47db105835a557cf68ce01414ede87a1ce97b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "26bf12dceab316d64651db4ea03663d3d9478d6ea9a1f20bbe215561e139c7f7",
-                ),
-            )
-            .unwrap(),
-            z_perm: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "150fee8516b41d650326c31309a4990d8ffc1b3a749d231ce5bb32a2fe9a3aca",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "253ecaac9258d26629480e0c790afed3ac3ba708f2f6ee2a6f42d24ad6a195f5",
-                ),
-            )
-            .unwrap(),
-            lookup_read_counts: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "ddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157",
-                ),
-            )
-            .unwrap(),
-            lookup_read_tags: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "ddfdbbdefc4ac1580ed38e12cfa490d9d719a8b9f020ad3642d60fe704e696f",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ff3e0896bdea021253b3d360fa6788289fe9754ce48cd01b7be96a861b5e157",
-                ),
-            )
-            .unwrap(),
-            lookup_inverses: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2976428ed585fd630d88a802f53ac1ccf6241ee16f6552777382d8da75bd669c",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23170a48b029c15749f0d6be25e27afb568e2d8329391ae43cc06f08dd2bc7fb",
-                ),
-            )
-            .unwrap(),
-            sumcheck_univariates: [
-                [
-                    FieldElement::from_hex_unchecked(
-                        "2ea568bb9b0fbad96bfab4cdd5ec5d4d6acf36b3721917c0d01e577fa3e9d811",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1bee5b74621e5504c5590e8ab94fb0fbd64b19507a058d073c39e144c1627f0",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "789e70b4c730b2717596fa41f260996aa0e5c2370049dabe0049bc3524278da",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2bce60300eb0b50ec0dcfdc42ff8e5cd613a0a83f23f5b0d10d5c0285f0d9643",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "547868237392ffd023f0636977c23a69686d6be9fbdbf0a5c1e40ed50ca8735",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "23aad9163424b04b4f2b05213691eebb3ad097747b128c6ce63e8ae1bae8feb5",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "204d718e855d811257b64622c3ac27e077d366c3f446cdd3512d5eab749ecaed",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "f1e57a9a89025764acf15b96e5554716c7ffb445f23c47cee102c4a06d2433e",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "3931c67a31ba186ea2599cf44721c3832a6589234338ea9e0580e3f3777d7a2",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "9a17d2fa6a68fe655427598b550d302e3ca747e0bb07dd23d85ad9f18d0491f",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "419f4204c5bcf66fce8e51a9910778c456bafe928c496513c48a6409d3f2382",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1a9f4961894483f102b9e365d6a0660c42d9d7d95cf78809131e8be51cea3203",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2e95d687a1343c3abd940508f004159ffca5c828d272b0ee7e1fd3c254ac0436",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "180dc3ebbc1a28c2ed66e0e2f019a180cf643c62471bdc4059ceae8d7ca1325e",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "8f96bf2cd3a1394ac56be2cf23645b7704ad3a4515fe951e71ec5d34a5c5147",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "782754b0a905921f9d8ccc31f4c5c90bbee5a54ed3d1bacc9b0bbe95679681",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "18da8c879daaf7552621847dbdbb5e781060bb3159423d4a75f87ae8788229f",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1030e1d053a0b86604eab833039d606a12cdfaa27dc63983d521a3de0aee8aed",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "94f0198c3a49efbe2cdf434d3809fd69cf19468cdd20fd440eb38539f65ffd1",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "a5f1bde53992046cf1623c620f0aa3a77e92fce5d864bff1da94113f3693b3b",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "aae7029f0f1406a9bb0810c300659ab777e214e8ae711d1520d7884e0a13bf0",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "13c1f7492ee1804173ed20afc695733ec4464a889d9fc6c184b2b3d959ed1e37",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1876cd36840a96b1071cbca6048f6c4dd4b40a102fd341712d1a8b1b9622756a",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "f612d2ce4c4fadecc5e2004aa5b25104c626e086ea8efc83cd37d8aebe7c559",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "1a37690745698bcf44987631804190883f6f1262131f3e8b87f26667b546209e",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "12f5f65d48a4933db1ba5e79f7014e4ddfc8769d55034a381902e54633355498",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2b5752f2757a4d366d7fe6d2dc9650c256fd0498e766802e8ad7131648859b8f",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1387b796fa652735bb25ff7f66dd1e9f8e85c2dad6738d2f57f49cf8b08c92d1",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2c56640dfc030b0402c6ed933d3e22cbfd31a4668d5dabce34ab4f339b288b69",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "81269d5929689a821d57d046a7a80d9f86333bbfba9286f6b5ee5d84a582cd6",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "303714945505a0408b75b3acfd052fae091246e63739243540ae83d31c3ed0c0",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2057bd6c5d31e93f6ee040b2d5c1548253eb1488494d1828f685603644993f29",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked(
-                        "ff4660852e7509c8ea14921bb5c0a2571a6ebbe1cccb5454c260e02fd10fbf5",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "271069c06697ca2dd75496cf2a1c81f243cdf6696614795afdfb159788386578",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2a6dba557b498548796543811b3628ab015f83e291fe0ca0735bd637d82082d5",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "a10e755d72fab73bd6caed9fea5a9cf426b1511e956c2231e2e71afa0a2a14b",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1d96f788a09152d1b417b381c3d6f7d22d5e38ab5b681d8d5d204a37234ba305",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "12eaaf80bd409036fcbfc5a3390e9fa0d28af481fb037baa3ff91d7b6c6b5a83",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "9c2ed63977fd13f79c98a73dbbc5c9a6e36714f52ef80417d99b6c17f9422ab",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "1b6db7a1d82d27b12a01cc88607a942a8c84fdc2b886282cbccac57d2902cf32",
-                    ),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-                [
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                    FieldElement::from_hex_unchecked("0"),
-                ],
-            ],
-            sumcheck_evaluations: [
-                FieldElement::from_hex_unchecked(
-                    "12129a295fef237ab0808cbbb57bc176e23f71ca8d849f3dbd0146652f034652",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1cd9c3cdcdb5a1800412059c9f39404a27b750089d3ab92a79579a8e04dd1a66",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "85e3e5b7fb43aba55444b2cf33abfb0adace416a64f7cbcd99d4a528076c0ad",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "173ede5d6ef962eea65211b0fdbceef8d981d1b9a660afbe39bc1be3df829619",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "21b3e62454879b5556124f8290ed3a11b348104f56c78b976a9a7a29b867b7db",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "87801594922749f76bd560595a5eb5caa9554cff632e1bfb84ab85361fa9d8a",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "c051a8488b1b98546c820767d6b315c8745ecb3f274ac05290c58e3c72a446d",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ba60476729055f92c84dc48f95e6bba77a358ce4b4ad1bdac31f892ef6dc98a",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "293683138fd84355f1eaee4b6411bf0f4b710145d51dfab0776cfd670ddfc3b0",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2a2d7c45e5c9c5d3109746bbdb4e489b6bc96caf88740971661a3158b2326e60",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1b245f5fd57628881e8e285475929faa58ccd1bd8fd2e45745908d5ce30802f5",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2e18a4e8749d68ba8f7c362e637229a32f16ebab05c9727722ea236b26ab2112",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "29f8bcc9b38742f8c4e631087aa2aae8fba1922fe56eb0b100263bf8d65ab8d6",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "b934ff8b92f12dcf518f2a053d018f118f62a9967ba94e854c0bebff912aa9c",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2dcecce1882d21015fe8236121e038efd7b1802ae3ae0cf1ce8c5147340ed433",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "284f413418a2a672e10a255a6d094164ab11c50847371ff55a3b17eb49339643",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "84f60a4ef98ee298438f79ed14c167f6ed3cb0c72fd1ec47300e95e51fb6ed",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "82ed2696f8ce381d9709846159db076da70b0aa46ee0843f811cfb4ad8c103a",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2244d2b184047bd1596186e5dedf216cd495458f123a0aec2cb1822fa1008c75",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "583c81b10cdc904fd8733b2a187924da47078e29b6e67ce855d21a85cd7d98b",
-                ),
-                FieldElement::from_hex_unchecked("1023d3232760e12eb74a3674746c00d90c"),
-                FieldElement::from_hex_unchecked(
-                    "315decd89bffb2b2e2f7d5fe29b9367fa0d893f0b1f9a0f65591294bafb9151",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "20ff0aabf5552bbc25341af0a2dc265e12648452c2f0f96fecb387771a8e60f8",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "18776af43c3f4e51e18895b39f60406fa33de7341453a86a83c871f19e7d08fe",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2041595bca5f22b5f4b27e6631e0537f3c83aec3bb251f25bcab1dcfab302381",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "13bf9a24f7eff979c9274c893f99e5d155c7d4bd0a919843e1dcc4b1a853e2d8",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "202fe32640b58f5e5fd35f22c80423cfdb19be03c27c5975026866c174aa1e28",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "22e5889930b36ae1600f3beef934d05c40cfe6d88311aade255d350ade0fb551",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "241a932d8be63f1bf780feef7b2891fd84837da1c2e3311911b353bb302afbaa",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "23cabd123d2bf57343cfbbed09bbe6d8291ffa56f4c02269ae223f7b497c78ad",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "303b3ddc56754fa60b35d44bb5e2b7340cf2ee7fb10224159a1fca7de6fb4eb",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "3358fbb92f150d19fa40bd30765b5e8244b45f8ea97846dccf74effc166fe12",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "7c2e49b96b30e8b1d20f778215e50152a2eb480436c273c700f43fda4351516",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2311f5df84872648fa8231a6abc1d1064716fab12a9fc81c5960b380c83c8de4",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2311f5df84872648fa8231a6abc1d1064716fab12a9fc81c5960b380c83c8de4",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "e554c2d57387a7f16af7ab9af757016a6780077f28a73d7e32d289e3510d682",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "d201d3a855b46b4175dcc8a281508b593a96fd26b3bcc03cdbe056593d6d94b",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "524c21fddeb53c0448476b94790cc4d821f90cd7f3be8109dc0dcdbb419b26e",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2f388eecd7b2a422f8df1c74d99dce5cd672d6d60cc3458113b03cd8a187515",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "2ec53f36fa98be6bd0cfc45f79b1852e1df2b93859d3b668a4c10e0fcb2b19d2",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "919036e7fafe604f0282acf4794048395f117814324143a617641faf9aee057",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "180ce6d9947436c8a3f1fe3541aad6753526eb0e4239c1f6f9f5a3ea01bfa370",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "ae11898960a2b8841acaa68a98ed275c3ae7859d934851c1f9b2e3df3c78409",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1977202af229c164da00062ab84c02759e1d63de54b16fbac40c00dd65926013",
-                ),
-            ],
-            gemini_fold_comms: [
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "131335e562ea07768c277feb4d6eb8f7b7af1b54750d2b5f4d9c2be232742aa9",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "17725d9326a07035794db7873349c73191eabd07797d244b0df79fadac5f3e5",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "2bef2a045cf4fe270b6959bd8cce00442932c719462f9e81043dd97ae046de5b",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2d38f5010e2dd307b58238f1778d899286d58585c3bdce030716dacf6d5048a8",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "2785ea2bfb5beaf966d566c62156f5f83960e1f66d52ab4313bedb98ef2c0e14",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "2f807b2004fde269f7471f066f7b0a52b79896af64e3534781a8d84ef42ebb20",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked(
-                        "270b7f5c4098ca567bbe23c5841ba11c3f7e7dd8faea21b8f8d9ff1fe806517e",
-                    ),
-                    FieldElement::from_hex_unchecked(
-                        "24b9408f097208fce6efff2eed43eb9d2f4c0931af1315079cec49eebbd7ebb",
-                    ),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-                G1Point::<BN254PrimeField>::new(
-                    FieldElement::from_hex_unchecked("1"),
-                    FieldElement::from_hex_unchecked("2"),
-                )
-                .unwrap(),
-            ],
-            gemini_a_evaluations: [
-                FieldElement::from_hex_unchecked(
-                    "2a889af0ef53999c33ba661285b50fbe2ab9f39b2b3ee8bc5da0d3c74e5bca2",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1c8d55c763ef3ee2a5c1912abd33515a6f7b56045bc96e3a2882bf1aa7cf8869",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "f423ee8586299bd7b6c2a973e2d11fe49a77b1bbb5b442e1f7cf9e735dcc3a4",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "6b7a5fafdc77cd0ca3829a00daf0846423c5bbbd19db6f079c99e8166c50f4c",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "1fa8842ce6f4b8fa2cd726960dfe6c8410fb2f0dffc61c6a8e479bf299c61195",
-                ),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-                FieldElement::from_hex_unchecked("0"),
-            ],
-            shplonk_q: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "261d94b543307b990c7012ee99d59389eedffd63316ee5566b61751222bbf179",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "442d055b59de2f6e3bb48227e556ea5e74d482df194e927bd9a2208a9c72bfc",
-                ),
-            )
-            .unwrap(),
-            kzg_quotient: G1Point::<BN254PrimeField>::new(
-                FieldElement::from_hex_unchecked(
-                    "2ff7c8a737b2f8053af6488a7c198a80a7d77acbed6bbcca3a067c1240b57408",
-                ),
-                FieldElement::from_hex_unchecked(
-                    "f7c09e0288411f190a74908673704ab786d553f2c91c9668e1942a5fa212d4f",
-                ),
-            )
-            .unwrap(),
-        }
+        Ok(())
     }
 
     fn get_honk_keccak_expected_calldata() -> Vec<BigUint> {
