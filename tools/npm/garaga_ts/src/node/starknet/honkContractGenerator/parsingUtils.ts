@@ -214,7 +214,7 @@ export const parseHonkVerifyingKeyFromBytes = (vkPath: string): HonkVerifyingKey
 }
 
 function parseBigIntFromBytesBE(bytes: Uint8Array, offset: number, length: number): bigint {
-  if (offset + length >= bytes.length) throw new Error('Invalid range');
+  if (offset + length > bytes.length) throw new Error('Invalid range');
   let value = 0n;
   for (let i = 0; i < length; i++) {
     value = (value << 8n) | BigInt(bytes[offset + i]!);
