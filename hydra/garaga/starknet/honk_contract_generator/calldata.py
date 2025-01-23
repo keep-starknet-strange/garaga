@@ -1,3 +1,4 @@
+from garaga import garaga_rs
 from garaga.definitions import G1G2Pair
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
@@ -32,8 +33,11 @@ def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list
 
 
 def get_ultra_keccak_honk_calldata_from_vk_and_proof(
-    vk: HonkVk, proof: HonkProof
+    vk: HonkVk, proof: HonkProof, use_rust: bool = False
 ) -> list[int]:
+    if use_rust:
+        return _honk_calldata_from_vk_and_proof_rust(vk, proof)
+
     tp = HonkTranscript.from_proof(proof)
 
     circuit = HonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
@@ -125,3 +129,14 @@ def get_ultra_keccak_honk_calldata_from_vk_and_proof(
     # print(f"HONK CALLDATA LENGTH: {len(res)}")
 
     return res
+
+
+def _honk_calldata_from_vk_and_proof_rust(
+    vk: HonkVk,
+    proof: HonkProof,
+) -> list[int]:
+    return garaga_rs.get_honk_calldata(
+        proof.flatten(),
+        vk.flatten(),
+        0,  # 0 - keccak | 1 - starknet
+    )

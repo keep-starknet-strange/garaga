@@ -318,6 +318,35 @@ class HonkProof:
 
         return cd
 
+    def flatten(self) -> list[int]:
+        def g1_to_g1_proof_point(g1_proof_point: G1Point) -> list[int]:
+            x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
+            y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
+            return [x_low, x_high, y_low, y_high]
+
+        lst = []
+        lst.append(self.circuit_size)
+        lst.append(self.public_inputs_size)
+        lst.append(self.public_inputs_offset)
+        lst.extend(self.public_inputs)
+        lst.extend(g1_to_g1_proof_point(self.w1))
+        lst.extend(g1_to_g1_proof_point(self.w2))
+        lst.extend(g1_to_g1_proof_point(self.w3))
+        lst.extend(g1_to_g1_proof_point(self.lookup_read_counts))
+        lst.extend(g1_to_g1_proof_point(self.lookup_read_tags))
+        lst.extend(g1_to_g1_proof_point(self.w4))
+        lst.extend(g1_to_g1_proof_point(self.lookup_inverses))
+        lst.extend(g1_to_g1_proof_point(self.z_perm))
+        for line in self.sumcheck_univariates:
+            lst.extend(line)
+        lst.extend(self.sumcheck_evaluations)
+        for point in self.gemini_fold_comms:
+            lst.extend(g1_to_g1_proof_point(point))
+        lst.extend(self.gemini_a_evaluations)
+        lst.extend(g1_to_g1_proof_point(self.shplonk_q))
+        lst.extend(g1_to_g1_proof_point(self.kzg_quotient))
+        return lst
+
 
 @dataclass
 class HonkVk:
@@ -441,6 +470,18 @@ class HonkVk:
                 if field.type == G1Point and field.name != "name"
             },
         )
+
+    def flatten(self) -> list[int]:
+        lst = []
+        lst.append(self.circuit_size)
+        lst.append(self.log_circuit_size)
+        lst.append(self.public_inputs_size)
+        lst.append(self.public_inputs_offset)
+        for field in fields(self):
+            if field.type == G1Point and field.name != "name":
+                point = getattr(self, field.name)
+                lst.extend([point.x, point.y])
+        return lst
 
 
 class Sha3Transcript:

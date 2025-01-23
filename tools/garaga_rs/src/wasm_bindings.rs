@@ -318,11 +318,11 @@ pub fn get_honk_calldata(
     values.extend([w1.x, w1.y]);
     values.extend([w2.x, w2.y]);
     values.extend([w3.x, w3.y]);
-    values.extend([w4.x, w4.y]);
-    values.extend([z_perm.x, z_perm.y]);
     values.extend([lookup_read_counts.x, lookup_read_counts.y]);
     values.extend([lookup_read_tags.x, lookup_read_tags.y]);
+    values.extend([w4.x, w4.y]);
     values.extend([lookup_inverses.x, lookup_inverses.y]);
+    values.extend([z_perm.x, z_perm.y]);
     values.extend(sumcheck_univariates);
     values.extend(sumcheck_evaluations);
     for gemini_fold_comm in gemini_fold_comms {
