@@ -3,7 +3,7 @@
 import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata, get_honk_calldata } from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
-import { HonkFlavor, HonkProof, HonkVerifyingKey } from './starknet/honkContractGenerator/honk';
+import { HonkFlavor, HonkProof, HonkVerifyingKey } from './starknet/honkContractGenerator/parsingUtils';
 
 export type G1Point = [bigint, bigint];
 export type G2Point = [[bigint, bigint], [bigint, bigint]];
