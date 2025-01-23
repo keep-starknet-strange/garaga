@@ -1,7 +1,7 @@
 use crate::calldata::full_proof_with_hints::groth16;
 use crate::calldata::full_proof_with_hints::groth16::{Groth16Proof, Groth16VerificationKey};
 use crate::calldata::full_proof_with_hints::honk;
-use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof_, HonkVerificationKey_};
+use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof, HonkVerificationKey};
 use crate::calldata::{G1PointBigUint, G2PointBigUint};
 use crate::definitions::CurveID;
 use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
@@ -310,26 +310,28 @@ pub fn get_honk_calldata(
     let shplonk_q = parse_g1_point(get_property(&proof_obj, "shplonkQ")?)?;
     let kzg_quotient = parse_g1_point(get_property(&proof_obj, "kzgQuotient")?)?;
 
-    let proof = HonkProof_ {
-        circuit_size,
-        public_inputs_size,
-        public_inputs_offset,
-        public_inputs,
-        w1,
-        w2,
-        w3,
-        w4,
-        z_perm,
-        lookup_read_counts,
-        lookup_read_tags,
-        lookup_inverses,
-        sumcheck_univariates,
-        sumcheck_evaluations,
-        gemini_fold_comms,
-        gemini_a_evaluations,
-        shplonk_q,
-        kzg_quotient,
-    };
+    let mut values = vec![];
+    values.push(circuit_size);
+    values.push(public_inputs_size);
+    values.push(public_inputs_offset);
+    values.extend(public_inputs);
+    values.extend([w1.x, w1.y]);
+    values.extend([w2.x, w2.y]);
+    values.extend([w3.x, w3.y]);
+    values.extend([w4.x, w4.y]);
+    values.extend([z_perm.x, z_perm.y]);
+    values.extend([lookup_read_counts.x, lookup_read_counts.y]);
+    values.extend([lookup_read_tags.x, lookup_read_tags.y]);
+    values.extend([lookup_inverses.x, lookup_inverses.y]);
+    values.extend(sumcheck_univariates);
+    values.extend(sumcheck_evaluations);
+    for gemini_fold_comm in gemini_fold_comms {
+        values.extend([gemini_fold_comm.x, gemini_fold_comm.y]);
+    }
+    values.extend(gemini_a_evaluations);
+    values.extend([shplonk_q.x, shplonk_q.y]);
+    values.extend([kzg_quotient.x, kzg_quotient.y]);
+    let proof = HonkProof::from(values);
 
     let vk_obj = vk_js
         .dyn_into::<js_sys::Object>()
@@ -367,39 +369,39 @@ pub fn get_honk_calldata(
     let lagrange_first = parse_g1_point(get_property(&vk_obj, "lagrangeFirst")?)?;
     let lagrange_last = parse_g1_point(get_property(&vk_obj, "lagrangeLast")?)?;
 
-    let vk = HonkVerificationKey_ {
-        circuit_size,
-        log_circuit_size,
-        public_inputs_size,
-        public_inputs_offset,
-        qm,
-        qc,
-        ql,
-        qr,
-        qo,
-        q4,
-        q_arith,
-        q_delta_range,
-        q_elliptic,
-        q_aux,
-        q_lookup,
-        q_poseidon2_external,
-        q_poseidon2_internal,
-        s1,
-        s2,
-        s3,
-        s4,
-        id1,
-        id2,
-        id3,
-        id4,
-        t1,
-        t2,
-        t3,
-        t4,
-        lagrange_first,
-        lagrange_last,
-    };
+    let mut values = vec![];
+    values.push(circuit_size);
+    values.push(log_circuit_size);
+    values.push(public_inputs_size);
+    values.push(public_inputs_offset);
+    values.extend([qm.x, qm.y]);
+    values.extend([qc.x, qc.y]);
+    values.extend([ql.x, ql.y]);
+    values.extend([qr.x, qr.y]);
+    values.extend([qo.x, qo.y]);
+    values.extend([q4.x, q4.y]);
+    values.extend([q_arith.x, q_arith.y]);
+    values.extend([q_delta_range.x, q_delta_range.y]);
+    values.extend([q_elliptic.x, q_elliptic.y]);
+    values.extend([q_aux.x, q_aux.y]);
+    values.extend([q_lookup.x, q_lookup.y]);
+    values.extend([q_poseidon2_external.x, q_poseidon2_external.y]);
+    values.extend([q_poseidon2_internal.x, q_poseidon2_internal.y]);
+    values.extend([s1.x, s1.y]);
+    values.extend([s2.x, s2.y]);
+    values.extend([s3.x, s3.y]);
+    values.extend([s4.x, s4.y]);
+    values.extend([id1.x, id1.y]);
+    values.extend([id2.x, id2.y]);
+    values.extend([id3.x, id3.y]);
+    values.extend([id4.x, id4.y]);
+    values.extend([t1.x, t1.y]);
+    values.extend([t2.x, t2.y]);
+    values.extend([t3.x, t3.y]);
+    values.extend([t4.x, t4.y]);
+    values.extend([lagrange_first.x, lagrange_first.y]);
+    values.extend([lagrange_last.x, lagrange_last.y]);
+    let vk = HonkVerificationKey::from(values);
 
     //Parse flavor_js into usize
     let flavor_num = flavor_js
@@ -410,7 +412,7 @@ pub fn get_honk_calldata(
     // Convert usize to HonkFlavor using TryFrom
     let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
 
-    let honk_calldata_biguint = honk::get_honk_calldata_(&proof, &vk, flavor);
+    let honk_calldata_biguint = honk::get_honk_calldata(&proof, &vk, flavor);
 
     let honk_calldata_js = honk_calldata_biguint?
         .into_iter()
