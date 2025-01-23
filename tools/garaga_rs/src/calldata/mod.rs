@@ -1,5 +1,4 @@
 pub mod full_proof_with_hints;
-pub mod honk_calldata;
 pub mod mpc_calldata;
 pub mod msm_calldata;
 

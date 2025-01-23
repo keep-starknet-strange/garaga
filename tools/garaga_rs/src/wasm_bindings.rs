@@ -1,5 +1,7 @@
 use crate::calldata::full_proof_with_hints::groth16;
 use crate::calldata::full_proof_with_hints::groth16::{Groth16Proof, Groth16VerificationKey};
+use crate::calldata::full_proof_with_hints::honk;
+use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof_, HonkVerificationKey_};
 use crate::calldata::{G1PointBigUint, G2PointBigUint};
 use crate::definitions::CurveID;
 use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
@@ -241,7 +243,7 @@ pub fn get_groth16_calldata(
 
     let vk_obj = vk_js
         .dyn_into::<js_sys::Object>()
-        .map_err(|_| JsValue::from_str("proof_js is not an object"))?;
+        .map_err(|_| JsValue::from_str("vk_js is not an object"))?;
 
     let alpha = parse_g1_point(get_property(&vk_obj, "alpha")?)?;
     let beta = parse_g2_point(get_property(&vk_obj, "beta")?)?;
@@ -274,6 +276,148 @@ pub fn get_groth16_calldata(
         .collect::<Vec<_>>();
 
     Ok(groth16_calldata_js)
+}
+
+#[wasm_bindgen]
+pub fn get_honk_calldata(
+    proof_js: JsValue,
+    vk_js: JsValue,
+    flavor_js: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
+    let proof_obj = proof_js
+        .dyn_into::<js_sys::Object>()
+        .map_err(|_| JsValue::from_str("proof_js is not an object"))?;
+
+    let circuit_size = jsvalue_to_biguint(get_property(&proof_obj, "circuitSize")?)?;
+    let public_inputs_size = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsSize")?)?;
+    let public_inputs_offset = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsOffset")?)?;
+    let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
+    let w1 = parse_g1_point(get_property(&proof_obj, "w1")?)?;
+    let w2 = parse_g1_point(get_property(&proof_obj, "w2")?)?;
+    let w3 = parse_g1_point(get_property(&proof_obj, "w3")?)?;
+    let w4 = parse_g1_point(get_property(&proof_obj, "w4")?)?;
+    let z_perm = parse_g1_point(get_property(&proof_obj, "zPerm")?)?;
+    let lookup_read_counts = parse_g1_point(get_property(&proof_obj, "lookupReadCounts")?)?;
+    let lookup_read_tags = parse_g1_point(get_property(&proof_obj, "lookupReadTags")?)?;
+    let lookup_inverses = parse_g1_point(get_property(&proof_obj, "lookupInverses")?)?;
+    let sumcheck_univariates =
+        parse_biguint_array(get_property(&proof_obj, "sumcheckUnivariates")?)?;
+    let sumcheck_evaluations =
+        parse_biguint_array(get_property(&proof_obj, "sumcheckEvaluations")?)?;
+    let gemini_fold_comms = parse_g1_point_array(get_property(&proof_obj, "geminiFoldComms")?)?;
+    let gemini_a_evaluations =
+        parse_biguint_array(get_property(&proof_obj, "geminiAEvaluations")?)?;
+    let shplonk_q = parse_g1_point(get_property(&proof_obj, "shplonkQ")?)?;
+    let kzg_quotient = parse_g1_point(get_property(&proof_obj, "kzgQuotient")?)?;
+
+    let proof = HonkProof_ {
+        circuit_size,
+        public_inputs_size,
+        public_inputs_offset,
+        public_inputs,
+        w1,
+        w2,
+        w3,
+        w4,
+        z_perm,
+        lookup_read_counts,
+        lookup_read_tags,
+        lookup_inverses,
+        sumcheck_univariates,
+        sumcheck_evaluations,
+        gemini_fold_comms,
+        gemini_a_evaluations,
+        shplonk_q,
+        kzg_quotient,
+    };
+
+    let vk_obj = vk_js
+        .dyn_into::<js_sys::Object>()
+        .map_err(|_| JsValue::from_str("vk_js is not an object"))?;
+
+    let circuit_size = jsvalue_to_biguint(get_property(&vk_obj, "circuitSize")?)?;
+    let log_circuit_size = jsvalue_to_biguint(get_property(&vk_obj, "logCircuitSize")?)?;
+    let public_inputs_size = jsvalue_to_biguint(get_property(&vk_obj, "publicInputsSize")?)?;
+    let public_inputs_offset = jsvalue_to_biguint(get_property(&vk_obj, "publicInputsOffset")?)?;
+    let qm = parse_g1_point(get_property(&vk_obj, "qm")?)?;
+    let qc = parse_g1_point(get_property(&vk_obj, "qc")?)?;
+    let ql = parse_g1_point(get_property(&vk_obj, "ql")?)?;
+    let qr = parse_g1_point(get_property(&vk_obj, "qr")?)?;
+    let qo = parse_g1_point(get_property(&vk_obj, "qo")?)?;
+    let q4 = parse_g1_point(get_property(&vk_obj, "q4")?)?;
+    let q_arith = parse_g1_point(get_property(&vk_obj, "qArith")?)?;
+    let q_delta_range = parse_g1_point(get_property(&vk_obj, "qDeltaRange")?)?;
+    let q_elliptic = parse_g1_point(get_property(&vk_obj, "qElliptic")?)?;
+    let q_aux = parse_g1_point(get_property(&vk_obj, "qAux")?)?;
+    let q_lookup = parse_g1_point(get_property(&vk_obj, "qLookup")?)?;
+    let q_poseidon2_external = parse_g1_point(get_property(&vk_obj, "qPoseidon2External")?)?;
+    let q_poseidon2_internal = parse_g1_point(get_property(&vk_obj, "qPoseidon2Internal")?)?;
+    let s1 = parse_g1_point(get_property(&vk_obj, "s1")?)?;
+    let s2 = parse_g1_point(get_property(&vk_obj, "s2")?)?;
+    let s3 = parse_g1_point(get_property(&vk_obj, "s3")?)?;
+    let s4 = parse_g1_point(get_property(&vk_obj, "s4")?)?;
+    let id1 = parse_g1_point(get_property(&vk_obj, "id1")?)?;
+    let id2 = parse_g1_point(get_property(&vk_obj, "id2")?)?;
+    let id3 = parse_g1_point(get_property(&vk_obj, "id3")?)?;
+    let id4 = parse_g1_point(get_property(&vk_obj, "id4")?)?;
+    let t1 = parse_g1_point(get_property(&vk_obj, "t1")?)?;
+    let t2 = parse_g1_point(get_property(&vk_obj, "t2")?)?;
+    let t3 = parse_g1_point(get_property(&vk_obj, "t3")?)?;
+    let t4 = parse_g1_point(get_property(&vk_obj, "t4")?)?;
+    let lagrange_first = parse_g1_point(get_property(&vk_obj, "lagrangeFirst")?)?;
+    let lagrange_last = parse_g1_point(get_property(&vk_obj, "lagrangeLast")?)?;
+
+    let vk = HonkVerificationKey_ {
+        circuit_size,
+        log_circuit_size,
+        public_inputs_size,
+        public_inputs_offset,
+        qm,
+        qc,
+        ql,
+        qr,
+        qo,
+        q4,
+        q_arith,
+        q_delta_range,
+        q_elliptic,
+        q_aux,
+        q_lookup,
+        q_poseidon2_external,
+        q_poseidon2_internal,
+        s1,
+        s2,
+        s3,
+        s4,
+        id1,
+        id2,
+        id3,
+        id4,
+        t1,
+        t2,
+        t3,
+        t4,
+        lagrange_first,
+        lagrange_last,
+    };
+
+    //Parse flavor_js into usize
+    let flavor_num = flavor_js
+        .as_f64()
+        .ok_or_else(|| JsValue::from_str("flavor_js is not a number"))?
+        as usize;
+
+    // Convert usize to HonkFlavor using TryFrom
+    let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
+
+    let honk_calldata_biguint = honk::get_honk_calldata_(&proof, &vk, flavor);
+
+    let honk_calldata_js = honk_calldata_biguint?
+        .into_iter()
+        .map(biguint_to_jsvalue)
+        .collect::<Vec<_>>();
+
+    Ok(honk_calldata_js)
 }
 
 #[allow(dead_code)]

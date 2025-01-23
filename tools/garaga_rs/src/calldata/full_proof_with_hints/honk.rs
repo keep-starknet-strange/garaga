@@ -3,6 +3,7 @@ use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
+use crate::calldata::G1PointBigUint;
 use crate::definitions::BN254PrimeField;
 use crate::definitions::CurveID;
 use crate::definitions::FieldElement;
@@ -30,8 +31,20 @@ pub enum HonkFlavor {
     STARKNET = 1,
 }
 
+impl TryFrom<usize> for HonkFlavor {
+    type Error = String;
+
+    fn try_from(value: usize) -> Result<Self, Self::Error> {
+        match value {
+            0 => Ok(HonkFlavor::KECCAK),
+            1 => Ok(HonkFlavor::STARKNET),
+            _ => Err(format!("Invalid honk flavor: {}", value)),
+        }
+    }
+}
+
 #[derive(Debug, PartialEq)]
-pub struct HonkVk {
+pub struct HonkVerificationKey {
     pub circuit_size: u64,
     pub log_circuit_size: u64,
     pub public_inputs_size: u64,
@@ -65,6 +78,91 @@ pub struct HonkVk {
     pub lagrange_last: G1Point<BN254PrimeField>,
 }
 
+impl HonkVerificationKey {
+    pub fn from(values: Vec<BigUint>) -> Self {
+        assert_eq!(values.len(), 4 + 27 * 2);
+        let circuit_size = values[0].clone().try_into().unwrap();
+        let log_circuit_size = values[1].clone().try_into().unwrap();
+        let public_inputs_size = values[2].clone().try_into().unwrap();
+        let public_inputs_offset = values[3].clone().try_into().unwrap();
+        let mut points = vec![];
+        let mut cursor = 4;
+        for _ in 0..27 {
+            let x = element_from_biguint(&values[cursor]);
+            let y = element_from_biguint(&values[cursor + 1]);
+            points.push(G1Point::new(x, y).unwrap());
+            cursor += 2;
+        }
+        HonkVerificationKey {
+            circuit_size,
+            log_circuit_size,
+            public_inputs_size,
+            public_inputs_offset,
+            qm: points[0].clone(),
+            qc: points[1].clone(),
+            ql: points[2].clone(),
+            qr: points[3].clone(),
+            qo: points[4].clone(),
+            q4: points[5].clone(),
+            q_arith: points[6].clone(),
+            q_delta_range: points[7].clone(),
+            q_elliptic: points[8].clone(),
+            q_aux: points[9].clone(),
+            q_lookup: points[10].clone(),
+            q_poseidon2_external: points[11].clone(),
+            q_poseidon2_internal: points[12].clone(),
+            s1: points[13].clone(),
+            s2: points[14].clone(),
+            s3: points[15].clone(),
+            s4: points[16].clone(),
+            id1: points[17].clone(),
+            id2: points[18].clone(),
+            id3: points[19].clone(),
+            id4: points[20].clone(),
+            t1: points[21].clone(),
+            t2: points[22].clone(),
+            t3: points[23].clone(),
+            t4: points[24].clone(),
+            lagrange_first: points[25].clone(),
+            lagrange_last: points[26].clone(),
+        }
+    }
+}
+
+pub struct HonkVerificationKey_ {
+    pub circuit_size: BigUint,
+    pub log_circuit_size: BigUint,
+    pub public_inputs_size: BigUint,
+    pub public_inputs_offset: BigUint,
+    pub qm: G1PointBigUint,
+    pub qc: G1PointBigUint,
+    pub ql: G1PointBigUint,
+    pub qr: G1PointBigUint,
+    pub qo: G1PointBigUint,
+    pub q4: G1PointBigUint,
+    pub q_arith: G1PointBigUint,
+    pub q_delta_range: G1PointBigUint,
+    pub q_elliptic: G1PointBigUint,
+    pub q_aux: G1PointBigUint,
+    pub q_lookup: G1PointBigUint,
+    pub q_poseidon2_external: G1PointBigUint,
+    pub q_poseidon2_internal: G1PointBigUint,
+    pub s1: G1PointBigUint,
+    pub s2: G1PointBigUint,
+    pub s3: G1PointBigUint,
+    pub s4: G1PointBigUint,
+    pub id1: G1PointBigUint,
+    pub id2: G1PointBigUint,
+    pub id3: G1PointBigUint,
+    pub id4: G1PointBigUint,
+    pub t1: G1PointBigUint,
+    pub t2: G1PointBigUint,
+    pub t3: G1PointBigUint,
+    pub t4: G1PointBigUint,
+    pub lagrange_first: G1PointBigUint,
+    pub lagrange_last: G1PointBigUint,
+}
+
 #[derive(Debug, PartialEq)]
 pub struct HonkProof {
     pub circuit_size: u64,
@@ -88,6 +186,145 @@ pub struct HonkProof {
     pub kzg_quotient: G1Point<BN254PrimeField>,
 }
 
+impl HonkProof {
+    pub fn from(values: Vec<BigUint>) -> Self {
+        let elements = values.iter().map(element_from_biguint).collect::<Vec<_>>();
+        let mut cursor = 0;
+        let circuit_size: u64 = element_to_biguint(&elements[0]).try_into().unwrap();
+        let public_inputs_size: u64 = element_to_biguint(&elements[1]).try_into().unwrap();
+        let public_inputs_offset: u64 = element_to_biguint(&elements[2]).try_into().unwrap();
+        cursor += 3;
+
+        const MAX_LOG_N: usize = 23; // 2^23 = 8388608
+        assert!(circuit_size <= 1 << MAX_LOG_N);
+
+        let mut public_inputs = vec![];
+        for i in 0..public_inputs_size as usize {
+            public_inputs.push(elements[cursor + i].clone());
+        }
+        cursor += public_inputs_size as usize;
+
+        fn parse_g1_proof_point(
+            elements: &[FieldElement<GrumpkinPrimeField>],
+            i: usize,
+        ) -> G1Point<BN254PrimeField> {
+            let x0 = element_to_biguint(&elements[i]);
+            let x1 = element_to_biguint(&elements[i + 1]);
+            let y0 = element_to_biguint(&elements[i + 2]);
+            let y1 = element_to_biguint(&elements[i + 3]);
+            let x = element_from_biguint(&((x1 << 136) + x0));
+            let y = element_from_biguint(&((y1 << 136) + y0));
+            G1Point::new(x, y).unwrap()
+        }
+
+        const G1_PROOF_POINT_SIZE: usize = 4;
+
+        let w1 = parse_g1_proof_point(&elements, cursor);
+        let w2 = parse_g1_proof_point(&elements, cursor + G1_PROOF_POINT_SIZE);
+        let w3 = parse_g1_proof_point(&elements, cursor + 2 * G1_PROOF_POINT_SIZE);
+
+        let lookup_read_counts = parse_g1_proof_point(&elements, cursor + 3 * G1_PROOF_POINT_SIZE);
+        let lookup_read_tags = parse_g1_proof_point(&elements, cursor + 4 * G1_PROOF_POINT_SIZE);
+        let w4 = parse_g1_proof_point(&elements, cursor + 5 * G1_PROOF_POINT_SIZE);
+        let lookup_inverses = parse_g1_proof_point(&elements, cursor + 6 * G1_PROOF_POINT_SIZE);
+        let z_perm = parse_g1_proof_point(&elements, cursor + 7 * G1_PROOF_POINT_SIZE);
+
+        cursor += 8 * G1_PROOF_POINT_SIZE;
+
+        // Parse sumcheck univariates.
+        let mut sumcheck_univariates = vec![];
+        for i in 0..CONST_PROOF_SIZE_LOG_N {
+            let mut sumcheck_univariate = vec![];
+            for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+                sumcheck_univariate
+                    .push(elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j].clone());
+            }
+            let sumcheck_univariate: [FieldElement<GrumpkinPrimeField>;
+                BATCHED_RELATION_PARTIAL_LENGTH] = sumcheck_univariate.try_into().unwrap();
+            sumcheck_univariates.push(sumcheck_univariate);
+        }
+        let sumcheck_univariates: [[FieldElement<GrumpkinPrimeField>;
+            BATCHED_RELATION_PARTIAL_LENGTH];
+            CONST_PROOF_SIZE_LOG_N] = sumcheck_univariates.try_into().unwrap();
+        cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N;
+
+        // Parse sumcheck_evaluations
+        let mut sumcheck_evaluations = vec![];
+        for i in 0..NUMBER_OF_ENTITIES {
+            sumcheck_evaluations.push(elements[cursor + i].clone());
+        }
+        let sumcheck_evaluations: [FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES] =
+            sumcheck_evaluations.try_into().unwrap();
+        cursor += NUMBER_OF_ENTITIES;
+
+        // Parse gemini fold comms
+        let mut gemini_fold_comms = vec![];
+        for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
+            gemini_fold_comms.push(parse_g1_proof_point(
+                &elements,
+                cursor + i * G1_PROOF_POINT_SIZE,
+            ));
+        }
+        let gemini_fold_comms: [G1Point<BN254PrimeField>; CONST_PROOF_SIZE_LOG_N - 1] =
+            gemini_fold_comms.try_into().unwrap();
+        cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE;
+
+        // Parse gemini a evaluations
+        let mut gemini_a_evaluations = vec![];
+        for i in 0..CONST_PROOF_SIZE_LOG_N {
+            gemini_a_evaluations.push(elements[cursor + i].clone());
+        }
+        let gemini_a_evaluations: [FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N] =
+            gemini_a_evaluations.try_into().unwrap();
+        cursor += CONST_PROOF_SIZE_LOG_N;
+
+        let shplonk_q = parse_g1_proof_point(&elements, cursor);
+        let kzg_quotient = parse_g1_proof_point(&elements, cursor + G1_PROOF_POINT_SIZE);
+
+        HonkProof {
+            circuit_size,
+            public_inputs_size,
+            public_inputs_offset,
+            public_inputs,
+            w1,
+            w2,
+            w3,
+            w4,
+            z_perm,
+            lookup_read_counts,
+            lookup_read_tags,
+            lookup_inverses,
+            sumcheck_univariates,
+            sumcheck_evaluations,
+            gemini_fold_comms,
+            gemini_a_evaluations,
+            shplonk_q,
+            kzg_quotient,
+        }
+    }
+}
+
+pub struct HonkProof_ {
+    pub circuit_size: BigUint,
+    pub public_inputs_size: BigUint,
+    pub public_inputs_offset: BigUint,
+    pub public_inputs: Vec<BigUint>,
+    pub w1: G1PointBigUint,
+    pub w2: G1PointBigUint,
+    pub w3: G1PointBigUint,
+    pub w4: G1PointBigUint,
+    pub z_perm: G1PointBigUint,
+    pub lookup_read_counts: G1PointBigUint,
+    pub lookup_read_tags: G1PointBigUint,
+    pub lookup_inverses: G1PointBigUint,
+    pub sumcheck_univariates: Vec<BigUint>,
+    pub sumcheck_evaluations: Vec<BigUint>,
+    pub gemini_fold_comms: Vec<G1PointBigUint>,
+    pub gemini_a_evaluations: Vec<BigUint>,
+    pub shplonk_q: G1PointBigUint,
+    pub kzg_quotient: G1PointBigUint,
+}
+
 pub struct HonkTranscript {
     pub eta: FieldElement<GrumpkinPrimeField>,
     pub eta_two: FieldElement<GrumpkinPrimeField>,
@@ -105,10 +342,10 @@ pub struct HonkTranscript {
 
 pub fn get_ultra_flavor_honk_calldata_from_vk_and_proof(
     flavor: HonkFlavor,
-    vk: HonkVk,
-    proof: HonkProof,
+    vk: &HonkVerificationKey,
+    proof: &HonkProof,
 ) -> Vec<BigUint> {
-    let tp = honk_transcript_from_proof(flavor, &proof);
+    let tp = honk_transcript_from_proof(flavor, proof);
 
     let proof_data =
         serialize_honk_proof_to_calldata(&proof, vk.log_circuit_size.try_into().unwrap());
@@ -127,42 +364,42 @@ pub fn get_ultra_flavor_honk_calldata_from_vk_and_proof(
     let scalars_msm = extract_msm_scalars(&scalars, vk.log_circuit_size.try_into().unwrap());
 
     let mut points = vec![
-        vk.qm,                    // 1
-        vk.qc,                    // 2
-        vk.ql,                    // 3
-        vk.qr,                    // 4
-        vk.qo,                    // 5
-        vk.q4,                    // 6
-        vk.q_arith,               // 7
-        vk.q_delta_range,         // 8
-        vk.q_elliptic,            // 9
-        vk.q_aux,                 // 10
-        vk.q_lookup,              // 11
-        vk.q_poseidon2_external,  // 12
-        vk.q_poseidon2_internal,  // 13
-        vk.s1,                    // 14
-        vk.s2,                    // 15
-        vk.s3,                    // 16
-        vk.s4,                    // 17
-        vk.id1,                   // 18
-        vk.id2,                   // 19
-        vk.id3,                   // 20
-        vk.id4,                   // 21
-        vk.t1,                    // 22
-        vk.t2,                    // 23
-        vk.t3,                    // 24
-        vk.t4,                    // 25
-        vk.lagrange_first,        // 26
-        vk.lagrange_last,         // 27
-        proof.w1,                 // 28
-        proof.w2,                 // 29
-        proof.w3,                 // 30
-        proof.w4,                 // 31
-        proof.z_perm.clone(),     // 32
-        proof.lookup_inverses,    // 33
-        proof.lookup_read_counts, // 34
-        proof.lookup_read_tags,   // 35
-        proof.z_perm,             // 44
+        vk.qm.clone(),                    // 1
+        vk.qc.clone(),                    // 2
+        vk.ql.clone(),                    // 3
+        vk.qr.clone(),                    // 4
+        vk.qo.clone(),                    // 5
+        vk.q4.clone(),                    // 6
+        vk.q_arith.clone(),               // 7
+        vk.q_delta_range.clone(),         // 8
+        vk.q_elliptic.clone(),            // 9
+        vk.q_aux.clone(),                 // 10
+        vk.q_lookup.clone(),              // 11
+        vk.q_poseidon2_external.clone(),  // 12
+        vk.q_poseidon2_internal.clone(),  // 13
+        vk.s1.clone(),                    // 14
+        vk.s2.clone(),                    // 15
+        vk.s3.clone(),                    // 16
+        vk.s4.clone(),                    // 17
+        vk.id1.clone(),                   // 18
+        vk.id2.clone(),                   // 19
+        vk.id3.clone(),                   // 20
+        vk.id4.clone(),                   // 21
+        vk.t1.clone(),                    // 22
+        vk.t2.clone(),                    // 23
+        vk.t3.clone(),                    // 24
+        vk.t4.clone(),                    // 25
+        vk.lagrange_first.clone(),        // 26
+        vk.lagrange_last.clone(),         // 27
+        proof.w1.clone(),                 // 28
+        proof.w2.clone(),                 // 29
+        proof.w3.clone(),                 // 30
+        proof.w4.clone(),                 // 31
+        proof.z_perm.clone(),             // 32
+        proof.lookup_inverses.clone(),    // 33
+        proof.lookup_read_counts.clone(), // 34
+        proof.lookup_read_tags.clone(),   // 35
+        proof.z_perm.clone(),             // 44
     ];
     points.extend(proof.gemini_fold_comms[0..(vk.log_circuit_size - 1) as usize].to_vec());
     points.push(G1Point::generator());
@@ -747,7 +984,7 @@ fn compute_gemini_batched_univariate_evaluation(
     batched_eval_accumulator
 }
 
-pub fn honk_vk_from_bytes(bytes: &[u8]) -> HonkVk {
+pub fn honk_vk_from_bytes(bytes: &[u8]) -> HonkVerificationKey {
     assert_eq!(bytes.len(), 4 * 8 + 54 * 32);
     let circuit_size = u64::from_be_bytes(bytes[0..8].try_into().unwrap());
     let log_circuit_size = u64::from_be_bytes(bytes[8..16].try_into().unwrap());
@@ -761,7 +998,7 @@ pub fn honk_vk_from_bytes(bytes: &[u8]) -> HonkVk {
         points.push(G1Point::new(x, y).unwrap());
         cursor += 64;
     }
-    HonkVk {
+    HonkVerificationKey {
         circuit_size,
         log_circuit_size,
         public_inputs_size,
@@ -918,11 +1155,31 @@ pub fn honk_proof_from_bytes(bytes: &[u8]) -> HonkProof {
     }
 }
 
+pub fn get_honk_calldata_(
+    proof: &HonkProof_,
+    vk: &HonkVerificationKey_,
+    flavor: HonkFlavor,
+) -> Result<Vec<BigUint>, String> {
+    todo!()
+    //let call_data =
+    //    get_ultra_flavor_honk_calldata_from_vk_and_proof(flavor, vk.clone(), proof.clone());
+    //Ok(call_data)
+}
+
+pub fn get_honk_calldata(
+    proof: &HonkProof,
+    vk: &HonkVerificationKey,
+    flavor: HonkFlavor,
+) -> Result<Vec<BigUint>, String> {
+    let call_data = get_ultra_flavor_honk_calldata_from_vk_and_proof(flavor, vk, proof);
+    Ok(call_data)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    fn get_honk_vk() -> std::io::Result<HonkVk> {
+    fn get_honk_vk() -> std::io::Result<HonkVerificationKey> {
         use std::fs::File;
         use std::io::Read;
         let mut file = File::open(
@@ -963,7 +1220,7 @@ mod tests {
         let vk = get_honk_vk()?;
         let proof = get_honk_keccak_proof()?;
         let call_data =
-            get_ultra_flavor_honk_calldata_from_vk_and_proof(HonkFlavor::KECCAK, vk, proof);
+            get_ultra_flavor_honk_calldata_from_vk_and_proof(HonkFlavor::KECCAK, &vk, &proof);
         let expected_call_data = get_honk_keccak_expected_calldata();
         assert_eq!(call_data, expected_call_data);
         Ok(())
@@ -974,7 +1231,7 @@ mod tests {
         let vk = get_honk_vk()?;
         let proof = get_honk_starknet_proof()?;
         let call_data =
-            get_ultra_flavor_honk_calldata_from_vk_and_proof(HonkFlavor::STARKNET, vk, proof);
+            get_ultra_flavor_honk_calldata_from_vk_and_proof(HonkFlavor::STARKNET, &vk, &proof);
         let expected_call_data = get_honk_starknet_expected_calldata();
         assert_eq!(call_data, expected_call_data);
         Ok(())
