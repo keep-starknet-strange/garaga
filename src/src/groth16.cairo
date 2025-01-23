@@ -8,7 +8,7 @@
 /// MultiPairing checks circuit in the "3P_2F" mode is used for triple pairs and double fixed G2
 /// points
 ///
-/// Qf1 and Qf2 are represented by their pre-computed line functions for the specifc miller loop
+/// Qf1 and Qf2 are represented by their pre-computed line functions for the specific miller loop
 /// implementation.
 ///
 /// Two functions are provided for BN254 and BLS12-381 respectively.
