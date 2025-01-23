@@ -1,8 +1,9 @@
 // This files provides a ts-like interface for garaga_rs
 
-import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata } from '../wasm/pkg/garaga_rs';
+import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata, get_honk_calldata } from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
+import { HonkFlavor, HonkProof, HonkVerifyingKey } from './starknet/honkContractGenerator/honk';
 
 export type G1Point = [bigint, bigint];
 export type G2Point = [[bigint, bigint], [bigint, bigint]];
@@ -62,5 +63,11 @@ export function toTwistedEdwards(x_weierstrass: bigint, y_weierstrass: bigint): 
 export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16VerifyingKey, curveId: CurveId){
 
   return get_groth16_calldata(proof, verifyingKey, curveId);
+
+}
+
+export function getHonkCallData(proof: HonkProof, verifyingKey: HonkVerifyingKey, flavor: HonkFlavor){
+
+  return get_honk_calldata(proof, verifyingKey, flavor);
 
 }
