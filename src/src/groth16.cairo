@@ -5,7 +5,7 @@
 /// The result of e(Pf4, Qf4) is precomputed and provided to the circuit as a the miller loop result
 /// precomputed_miller_loop_result = MillerLoop(Pf4, Qf4) ∈ Gt/Fp12.
 ///
-/// MultiPairing chekcs circuit in the "3P_2F" mode is used for triple pairs and double fixed G2
+/// MultiPairing checks circuit in the "3P_2F" mode is used for triple pairs and double fixed G2
 /// points
 ///
 /// Qf1 and Qf2 are represented by their pre-computed line functions for the specifc miller loop
