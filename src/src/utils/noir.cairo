@@ -1,5 +1,4 @@
 pub mod honk_transcript;
-pub mod keccak_transcript;
 
 use garaga::definitions::{G1Point, G2Point};
 use garaga::definitions::{u288, u384};
