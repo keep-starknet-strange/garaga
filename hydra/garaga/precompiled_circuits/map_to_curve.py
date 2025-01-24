@@ -1,5 +1,5 @@
 from garaga.definitions import CURVES
-from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
+from garaga.extension_field_modulo_circuit import ModuloCircuitElement
 from garaga.modulo_circuit import ModuloCircuit, PyFelt, WriteOps
 
 
