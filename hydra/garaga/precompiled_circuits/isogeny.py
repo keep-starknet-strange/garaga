@@ -1,10 +1,11 @@
 from garaga.definitions import CURVES, CurveID
 from garaga.extension_field_modulo_circuit import ModuloCircuitElement
 from garaga.modulo_circuit import ModuloCircuit, WriteOps
+from garaga.precompiled_circuits.fp2 import Fp2Circuits
 from garaga.signature import get_isogeny_to_g1_map, get_isogeny_to_g2_map
 
 
-class IsogenyG2(ModuloCircuit):
+class IsogenyG2(Fp2Circuits):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,

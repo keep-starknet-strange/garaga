@@ -1,5 +1,5 @@
 from garaga.modulo_circuit import WriteOps
-from hydra.garaga.precompiled_circuits.map_to_curve import MapToCurveG1, MapToCurveG2
+from garaga.precompiled_circuits.map_to_curve import MapToCurveG1, MapToCurveG2
 
 
 def test_bls18_381_map_to_curve_g2_non_quadratic():
