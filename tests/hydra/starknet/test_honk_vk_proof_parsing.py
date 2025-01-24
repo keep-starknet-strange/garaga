@@ -1,5 +1,6 @@
 import pytest
 
+from garaga.definitions import ProofSystem
 from garaga.precompiled_circuits.honk import HonkProof, HonkVk
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_keccak_honk_calldata_from_vk_and_proof,
@@ -29,13 +30,21 @@ def test_proof_parsing(proof_path: str):
 
 
 @pytest.mark.parametrize(
-    "proof_path, vk_path",
+    "proof_path, vk_path, system",
     [
-        (f"{PATH}/proof_ultra_keccak.bin", f"{PATH}/vk_ultra_keccak.bin"),
-        # (f"{PATH}/proof_ultra_starknet.bin", f"{PATH}/vk_ultra_keccak.bin"),
+        (
+            f"{PATH}/proof_ultra_keccak.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_starknet.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraStarknetHonk,
+        ),
     ],
 )
-def test_calldata_generation(proof_path: str, vk_path: str):
+def test_calldata_generation(proof_path: str, vk_path: str, system: ProofSystem):
     import time
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
@@ -43,14 +52,14 @@ def test_calldata_generation(proof_path: str, vk_path: str):
 
     start = time.time()
     calldata = get_ultra_keccak_honk_calldata_from_vk_and_proof(
-        vk, proof, use_rust=False
+        vk, proof, system, use_rust=False
     )
     end = time.time()
     print(f"Python time: {end - start}")
 
     start = time.time()
     calldata_rust = get_ultra_keccak_honk_calldata_from_vk_and_proof(
-        vk, proof, use_rust=True
+        vk, proof, system, use_rust=True
     )
     end = time.time()
     print(f"Rust time: {end - start}")
