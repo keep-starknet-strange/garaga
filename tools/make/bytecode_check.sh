@@ -12,13 +12,13 @@ echo "Bytecode length BN254: $bytecode_length"
 cd ../noir_ultra_keccak_honk_example
 scarb build
 bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_keccak_honk_example_UltraKeccakHonkVerifier.compiled_contract_class.json)
-echo "Bytecode length NOIR: $bytecode_length"
+echo "Bytecode length NOIR KECCAK: $bytecode_length"
 
 
 cd ../noir_ultra_starknet_honk_example
 scarb build
 bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_starknet_honk_example_UltraStarknetHonkVerifier.compiled_contract_class.json)
-echo "Bytecode length NOIR: $bytecode_length"
+echo "Bytecode length NOIR POSEIDON: $bytecode_length"
 
 
 cd ../groth16_example_$c2
