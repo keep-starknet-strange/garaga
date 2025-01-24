@@ -31,8 +31,9 @@ mod UltraKeccakHonkVerifier {
     use garaga::utils::noir::{
         HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2,
     };
-    use garaga::utils::noir::keccak_transcript::{
+    use garaga::utils::noir::honk_transcript::{
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
+        KeccakHasherState,
     };
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
@@ -65,7 +66,9 @@ mod UltraKeccakHonkVerifier {
             // let mpcheck_hint = fph.mpcheck_hint;
             // let msm_hint = fph.msm_hint;
 
-            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof(full_proof.proof);
+            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
+                KeccakHasherState,
+            >(full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,

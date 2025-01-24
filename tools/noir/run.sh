@@ -66,6 +66,23 @@ run_noir_proof_ultra_keccak() {
     cd ../
 }
 
+run_noir_proof_ultra_starknet() {
+    cd hello
+    local suffix="_ultra_starknet"
+
+    $BB_PATH prove_ultra_starknet_honk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
+    $BB_PATH write_vk_ultra_starknet_honk -b target/hello.json -o target/vk${suffix}.bin
+    $BB_PATH vk_as_fields_ultra_starknet_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+
+    if $BB_PATH verify_ultra_starknet_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+        echo "ok $suffix"
+    else
+        echo "Verification failed $suffix"
+    fi
+    # $BB_PATH contract_ultra_honk -k target/vk${suffix}.bin -o target/contract${suffix}.sol # contract_ultra_keccak_honk does not exist
+    cd ../
+}
+
 
 
 
@@ -80,6 +97,10 @@ run_noir_proof_ultra
 echo $'\n ultra keccak honk'
 # reset
 run_noir_proof_ultra_keccak
+
+# echo $'\n ultra starknet honk'
+# reset
+# run_noir_proof_ultra_starknet
 
 
 echo $'\n'
