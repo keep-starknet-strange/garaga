@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from enum import Enum
 from importlib.metadata import PackageNotFoundError, version
+from pathlib import Path
 
 import rich
 from starknet_py.contract import Contract
@@ -179,3 +180,20 @@ def get_sierra_casm_artifacts(
     with open(casm_path, "r") as f:
         casm = f.read()
     return sierra, casm
+
+
+def get_default_vk_path(system: ProofSystem) -> Path:
+    script_path = Path(__file__).resolve()
+    script_folder_path = script_path.parent
+    match system:
+        case ProofSystem.Risc0Groth16:
+            return (
+                script_folder_path.parent
+                / "groth16_contract_generator"
+                / "examples"
+                / "vk_risc0.json"
+            )
+        case _:
+            raise ValueError(
+                f"Proof system {system} requires an user-provided verification key"
+            )
