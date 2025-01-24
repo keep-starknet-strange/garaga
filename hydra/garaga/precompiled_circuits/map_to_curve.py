@@ -1,6 +1,6 @@
 from garaga.definitions import CURVES
 from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
-from garaga.modulo_circuit import ModuloCircuit
+from garaga.modulo_circuit import ModuloCircuit, PyFelt, WriteOps
 
 
 class MapToCurveG2(ModuloCircuit):
@@ -40,6 +40,82 @@ class MapToCurveG2(ModuloCircuit):
             self.set_or_get_constant(0),  # real part
             self.set_or_get_constant(0),  # imaginary part
         ]
+
+    def fp2_parity(
+        self, element: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Computes the parity of the first non-zero coefficient of the Fp2 element (element[0], element[1])
+        Returns [parity, 0]
+
+        For an Fp2 element a + bi:
+        1. If a ≠ 0, returns parity of a
+        2. If a = 0 and b ≠ 0, returns parity of b
+        3. If both are 0, returns [0, 0] (even)
+
+        Implements sgn0_m_eq_2 from RFC9380 using witness variables for validation.
+        """
+        assert len(element) == 2 and all(
+            isinstance(x, ModuloCircuitElement) for x in element
+        )
+
+        two = self.set_or_get_constant(2)
+        one = self.set_or_get_constant(1)
+        zero = self.set_or_get_constant(0)
+
+        # For element[0] (real part)
+        # Witnesses: q0 (quotient), r0 (remainder)
+        q0 = self.write_element(
+            PyFelt(element[0].value // 2, element[0].p), WriteOps.WITNESS
+        )  # Witness for q0
+        r0 = self.write_element(
+            PyFelt(element[0].value % 2, element[0].p), WriteOps.WITNESS
+        )  # Witness for r0 (parity of x0)
+
+        # Enforce that r0 ∈ {0, 1}
+        r0_sub_1 = self.sub(r0, one)
+        r0_times_r0_sub_1 = self.mul(r0, r0_sub_1)
+        self.sub_and_assert(r0_times_r0_sub_1, zero, zero, comment="Ensure r0 ∈ {0,1}")
+
+        # Enforce x0 = 2 * q0 + r0
+        two_q0 = self.mul(q0, two)
+        self.add_and_assert(two_q0, r0, element[0], comment="Validate x0 decomposition")
+
+        # Similarly for element[1] (imaginary part)
+        q1 = self.write_element(
+            PyFelt(element[1].value // 2, element[1].p), WriteOps.WITNESS
+        )  # Witness for q1
+        r1 = self.write_element(
+            PyFelt((element[1].value % 2), element[1].p), WriteOps.WITNESS
+        )  # Witness for r1 (parity of x1)
+
+        # Enforce that r1 ∈ {0, 1}
+        r1_sub_1 = self.sub(r1, one)
+        r1_times_r1_sub_1 = self.mul(r1, r1_sub_1)
+        self.sub_and_assert(r1_times_r1_sub_1, zero, zero, comment="Ensure r1 ∈ {0,1}")
+
+        # Enforce x1 = 2 * q1 + r1
+        two_q1 = self.mul(q1, two)
+        self.add_and_assert(two_q1, r1, element[1], comment="Validate x1 decomposition")
+
+        # Compute zero_0 = 1 - fp_is_non_zero(x0)
+        real_is_non_zero = self.fp_is_non_zero(
+            element[0]
+        )  # Returns 1 if x0 ≠ 0, else 0
+        zero_0 = self.sub(one, real_is_non_zero)
+
+        # Compute s = r0 OR (zero_0 AND r1)
+        # Implementing logical operations using arithmetic operations
+        # zero_0 AND r1
+        zero_0_and_r1 = self.mul(zero_0, r1)
+
+        # r0 OR (zero_0 AND r1)
+        # OR(a, b) = a + b - a * b
+        or_input = self.sub(self.add(r0, zero_0_and_r1), self.mul(r0, zero_0_and_r1))
+        s = or_input  # Since values are in {0,1}, this computes the logical OR
+
+        # Return parity as [s, 0]
+        return [s, zero]
 
     def map_to_curve_part_1(self, input_value: list[ModuloCircuitElement]):
         """
