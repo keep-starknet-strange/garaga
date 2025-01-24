@@ -1,4 +1,4 @@
-from garaga.definitions import G1G2Pair
+from garaga.definitions import G1G2Pair, ProofSystem
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
@@ -31,10 +31,10 @@ def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list
     return [s.value for s in scalars_filtered_no_nones]
 
 
-def get_ultra_keccak_honk_calldata_from_vk_and_proof(
-    vk: HonkVk, proof: HonkProof
+def get_ultra_flavor_honk_calldata_from_vk_and_proof(
+    vk: HonkVk, proof: HonkProof, system: ProofSystem = ProofSystem.UltraKeccakHonk
 ) -> list[int]:
-    tp = HonkTranscript.from_proof(proof)
+    tp = HonkTranscript.from_proof(proof, system)
 
     circuit = HonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
 
