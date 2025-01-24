@@ -1,5 +1,6 @@
 import copy
 import math
+from abc import ABC, abstractmethod
 from dataclasses import dataclass, fields
 from enum import Enum, auto
 
@@ -7,8 +8,9 @@ import sha3
 
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
-from garaga.definitions import CURVES, CurveID, G1Point, G2Point
+from garaga.definitions import CURVES, CurveID, G1Point, G2Point, ProofSystem
 from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
+from garaga.poseidon_transcript import hades_permutation
 
 NUMBER_OF_SUBRELATIONS = 26
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
@@ -484,21 +486,60 @@ class HonkVk:
         return lst
 
 
-class Sha3Transcript:
+class Transcript(ABC):
     def __init__(self):
-        self.hasher = sha3.keccak_256()
+        self.reset()
+
+    @abstractmethod
+    def reset(self):
+        pass
+
+    @abstractmethod
+    def update(self, data: bytes):
+        pass
+
+    @abstractmethod
+    def digest(self) -> bytes:
+        pass
 
     def digest_reset(self) -> bytes:
+        res_bytes = self.digest()
+        self.reset()
+        return res_bytes
+
+
+class Sha3Transcript(Transcript):
+    def reset(self):
+        self.hasher = sha3.keccak_256()
+
+    def digest(self) -> bytes:
         res = self.hasher.digest()
         res_int = int.from_bytes(res, "big")
         res_mod = res_int % CURVES[CurveID.GRUMPKIN.value].p
         res_bytes = res_mod.to_bytes(32, "big")
-
-        self.hasher = sha3.keccak_256()
         return res_bytes
 
     def update(self, data: bytes):
         self.hasher.update(data)
+
+
+class StarknetPoseidonTranscript(Transcript):
+    def reset(self):
+        self.s0, self.s1, self.s2 = hades_permutation(
+            int.from_bytes(b"StarknetHonk", "big"), 0, 1
+        )
+
+    def digest(self) -> bytes:
+        res_bytes = self.s0.to_bytes(32, "big")
+        return res_bytes
+
+    def update(self, data: bytes):
+        val = int.from_bytes(data, "big")
+        assert val < 2**256
+        high, low = divmod(val, 2**128)
+        self.s0, self.s1, self.s2 = hades_permutation(
+            self.s0 + low, self.s1 + high, self.s2
+        )
 
 
 @dataclass
@@ -521,10 +562,11 @@ class HonkTranscript:
         assert len(self.alphas) == NUMBER_OF_ALPHAS
         assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
         assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
-        self.hasher = sha3.keccak_256()
 
     @classmethod
-    def from_proof(cls, proof: HonkProof) -> "HonkTranscript":
+    def from_proof(
+        cls, proof: HonkProof, system: ProofSystem = ProofSystem.UltraKeccakHonk
+    ) -> "HonkTranscript":
         def g1_to_g1_proof_point(g1_proof_point: G1Point) -> tuple[int, int, int, int]:
             x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
             y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
@@ -538,7 +580,13 @@ class HonkTranscript:
         # Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
         FR = CURVES[CurveID.GRUMPKIN.value].p
 
-        hasher = Sha3Transcript()
+        match system:
+            case ProofSystem.UltraKeccakHonk:
+                hasher = Sha3Transcript()
+            case ProofSystem.UltraStarknetHonk:
+                hasher = StarknetPoseidonTranscript()
+            case _:
+                raise ValueError(f"Proof system {system} not compatible")
 
         hasher.update(int.to_bytes(proof.circuit_size, 32, "big"))
         hasher.update(int.to_bytes(proof.public_inputs_size, 32, "big"))
@@ -1942,7 +1990,7 @@ if __name__ == "__main__":
     print(proof.to_cairo())
     print(f"\n\n")
 
-    tp = HonkTranscript.from_proof(proof)
+    tp = HonkTranscript.from_proof(proof, ProofSystem.UltraKeccakHonk)
     print(f"\n\n")
     print(tp.to_cairo())
 

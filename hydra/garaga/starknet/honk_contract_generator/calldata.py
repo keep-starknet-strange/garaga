@@ -1,5 +1,5 @@
 from garaga import garaga_rs
-from garaga.definitions import G1G2Pair
+from garaga.definitions import G1G2Pair, ProofSystem
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
@@ -32,13 +32,13 @@ def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list
     return [s.value for s in scalars_filtered_no_nones]
 
 
-def get_ultra_keccak_honk_calldata_from_vk_and_proof(
-    vk: HonkVk, proof: HonkProof, use_rust: bool = False
+def get_ultra_flavor_honk_calldata_from_vk_and_proof(
+    vk: HonkVk, proof: HonkProof, system: ProofSystem = ProofSystem.UltraKeccakHonk, use_rust: bool = False
 ) -> list[int]:
     if use_rust:
-        return _honk_calldata_from_vk_and_proof_rust(vk, proof)
+        return _honk_calldata_from_vk_and_proof_rust(vk, proof, system)
 
-    tp = HonkTranscript.from_proof(proof)
+    tp = HonkTranscript.from_proof(proof, system)
 
     circuit = HonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
 
@@ -134,9 +134,18 @@ def get_ultra_keccak_honk_calldata_from_vk_and_proof(
 def _honk_calldata_from_vk_and_proof_rust(
     vk: HonkVk,
     proof: HonkProof,
+    system: ProofSystem = ProofSystem.UltraKeccakHonk,
 ) -> list[int]:
+    match system:
+        case ProofSystem.UltraKeccakHonk:
+            flavor = 0
+        case ProofSystem.UltraStarknetHonk:
+            flavor = 1
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
+
     return garaga_rs.get_honk_calldata(
         proof.flatten(),
         vk.flatten(),
-        0,  # 0 - keccak | 1 - starknet
+        flavor
     )
