@@ -310,27 +310,34 @@ pub fn get_honk_calldata(
     let shplonk_q = parse_g1_point(get_property(&proof_obj, "shplonkQ")?)?;
     let kzg_quotient = parse_g1_point(get_property(&proof_obj, "kzgQuotient")?)?;
 
+    fn g1_point_split(point: G1PointBigUint) -> [BigUint; 4] {
+        let x = &point.x;
+        let y = &point.y;
+        let mask = &((BigUint::from(1usize) << 136) - 1usize);
+        [x & mask, x >> 136, y & mask, y >> 136]
+    }
+
     let mut values = vec![];
     values.push(circuit_size);
     values.push(public_inputs_size);
     values.push(public_inputs_offset);
     values.extend(public_inputs);
-    values.extend([w1.x, w1.y]);
-    values.extend([w2.x, w2.y]);
-    values.extend([w3.x, w3.y]);
-    values.extend([lookup_read_counts.x, lookup_read_counts.y]);
-    values.extend([lookup_read_tags.x, lookup_read_tags.y]);
-    values.extend([w4.x, w4.y]);
-    values.extend([lookup_inverses.x, lookup_inverses.y]);
-    values.extend([z_perm.x, z_perm.y]);
+    values.extend(g1_point_split(w1));
+    values.extend(g1_point_split(w2));
+    values.extend(g1_point_split(w3));
+    values.extend(g1_point_split(lookup_read_counts));
+    values.extend(g1_point_split(lookup_read_tags));
+    values.extend(g1_point_split(w4));
+    values.extend(g1_point_split(lookup_inverses));
+    values.extend(g1_point_split(z_perm));
     values.extend(sumcheck_univariates);
     values.extend(sumcheck_evaluations);
     for gemini_fold_comm in gemini_fold_comms {
-        values.extend([gemini_fold_comm.x, gemini_fold_comm.y]);
+        values.extend(g1_point_split(gemini_fold_comm));
     }
     values.extend(gemini_a_evaluations);
-    values.extend([shplonk_q.x, shplonk_q.y]);
-    values.extend([kzg_quotient.x, kzg_quotient.y]);
+    values.extend(g1_point_split(shplonk_q));
+    values.extend(g1_point_split(kzg_quotient));
     let proof = HonkProof::from(values);
 
     let vk_obj = vk_js
