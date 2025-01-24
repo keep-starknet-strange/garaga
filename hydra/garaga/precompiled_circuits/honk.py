@@ -8,7 +8,7 @@ import sha3
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point
-from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
+from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement
 
 NUMBER_OF_SUBRELATIONS = 26
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1

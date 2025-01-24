@@ -41,6 +41,38 @@ class MapToCurveG2(ModuloCircuit):
             self.set_or_get_constant(0),  # imaginary part
         ]
 
+    def fp_parity(self, element: ModuloCircuitElement) -> ModuloCircuitElement:
+        """
+        Computes the parity of a field element.
+        Returns 0 if element is even, 1 if odd.
+
+        Implements sgn0_m_eq_1 from RFC9380 using witness variables for validation.
+        """
+        assert isinstance(element, ModuloCircuitElement)
+
+        two = self.set_or_get_constant(2)
+        one = self.set_or_get_constant(1)
+        zero = self.set_or_get_constant(0)
+
+        # Witnesses: q (quotient), r (remainder)
+        q = self.write_element(
+            PyFelt(element.value // 2, element.p), WriteOps.WITNESS
+        )  # Witness for quotient
+        r = self.write_element(
+            PyFelt(element.value % 2, element.p), WriteOps.WITNESS
+        )  # Witness for remainder (parity)
+
+        # Enforce that r ∈ {0, 1}
+        r_sub_1 = self.sub(r, one)
+        r_times_r_sub_1 = self.mul(r, r_sub_1)
+        self.sub_and_assert(r_times_r_sub_1, zero, zero, comment="Ensure r ∈ {0,1}")
+
+        # Enforce element = 2 * q + r
+        two_q = self.mul(q, two)
+        self.add_and_assert(two_q, r, element, comment="Validate element decomposition")
+
+        return r
+
     def fp2_parity(
         self, element: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:

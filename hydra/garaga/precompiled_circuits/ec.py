@@ -1,12 +1,8 @@
 import sympy
 
 from garaga.definitions import CURVES
-from garaga.extension_field_modulo_circuit import (
-    ModuloCircuit,
-    ModuloCircuitElement,
-    PyFelt,
-)
-from garaga.modulo_circuit import WriteOps
+from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt, WriteOps
+from garaga.precompiled_circuits.fp2 import Fp2Circuits
 
 
 def is_quad_residue(n, p):
@@ -23,7 +19,7 @@ def sqrt_mod_p(n, p):
     return min(sympy.ntheory.residue_ntheory.sqrt_mod(n, p, all_roots=True))
 
 
-class IsOnCurveCircuit(ModuloCircuit):
+class IsOnCurveCircuit(Fp2Circuits):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,
@@ -639,29 +635,6 @@ class BasicEC(ModuloCircuit):
         x3_ax_b = self.add(x3, self.add(ax, b))
         return y2, x3_ax_b
 
-    def _is_on_curve_G2_weirstrass(
-        self,
-        x0: ModuloCircuitElement,
-        x1: ModuloCircuitElement,
-        y0: ModuloCircuitElement,
-        y1: ModuloCircuitElement,
-        a: ModuloCircuitElement,
-        b0: ModuloCircuitElement,
-        b1: ModuloCircuitElement,
-    ):
-        # y^2 = x^3 + ax + b [Fp2]
-
-        y2 = self.fp2_square([y0, y1])
-        x2 = self.fp2_square([x0, x1])
-        x3 = self.fp2_mul([x0, x1], x2)
-
-        ax = [self.mul(a, x0), self.mul(a, x1)]
-        ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
-
-        x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
-
-        return y2, x3_ax_b
-
     def negate_point(
         self, P: tuple[ModuloCircuitElement, ModuloCircuitElement]
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
@@ -708,7 +681,7 @@ class BasicEC(ModuloCircuit):
         return Q
 
 
-class BasicECG2(ModuloCircuit):
+class BasicECG2(Fp2Circuits):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,
@@ -717,6 +690,29 @@ class BasicECG2(ModuloCircuit):
             compilation_mode=compilation_mode,
         )
         self.curve = CURVES[curve_id]
+
+    def _is_on_curve_G2_weirstrass(
+        self,
+        x0: ModuloCircuitElement,
+        x1: ModuloCircuitElement,
+        y0: ModuloCircuitElement,
+        y1: ModuloCircuitElement,
+        a: ModuloCircuitElement,
+        b0: ModuloCircuitElement,
+        b1: ModuloCircuitElement,
+    ):
+        # y^2 = x^3 + ax + b [Fp2]
+
+        y2 = self.fp2_square([y0, y1])
+        x2 = self.fp2_square([x0, x1])
+        x3 = self.fp2_mul([x0, x1], x2)
+
+        ax = [self.mul(a, x0), self.mul(a, x1)]
+        ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
+
+        x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
+
+        return y2, x3_ax_b
 
     def _compute_adding_slope(
         self,

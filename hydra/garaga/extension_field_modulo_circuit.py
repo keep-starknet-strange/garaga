@@ -7,13 +7,9 @@ from garaga.hints.extf_mul import (
     nondeterministic_extension_field_div,
     nondeterministic_extension_field_mul_divmod,
 )
-from garaga.modulo_circuit import (
-    BATCH_SIZE,
-    ModuloCircuit,
-    ModuloCircuitElement,
-    WriteOps,
-)
+from garaga.modulo_circuit import BATCH_SIZE, ModuloCircuitElement, WriteOps
 from garaga.poseidon_transcript import CairoPoseidonTranscript
+from garaga.precompiled_circuits.fp2 import Fp2Circuits
 
 POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4
@@ -67,7 +63,7 @@ class AccumulatePolyInstructions:
         self.n += 1
 
 
-class ExtensionFieldModuloCircuit(ModuloCircuit):
+class ExtensionFieldModuloCircuit(Fp2Circuits):
     def __init__(
         self,
         name: str,
