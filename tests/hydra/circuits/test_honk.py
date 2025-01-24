@@ -1,5 +1,7 @@
+import pytest
+
 import garaga.hints.io as io
-from garaga.definitions import G1G2Pair
+from garaga.definitions import G1G2Pair, ProofSystem
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
@@ -16,10 +18,14 @@ from garaga.precompiled_circuits.honk import (
 PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
 
 
-def test_sumcheck_circuit():
+@pytest.mark.parametrize(
+    "system", [ProofSystem.UltraKeccakHonk, ProofSystem.UltraStarknetHonk]
+)
+def test_verify_honk_proof(system: ProofSystem):
     vk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
-    proof = HonkProof.from_bytes(open(f"{PATH}/proof_ultra_keccak.bin", "rb").read())
-    tp = HonkTranscript.from_proof(proof)
+    flavor = "keccak" if system == ProofSystem.UltraKeccakHonk else "starknet"
+    proof = HonkProof.from_bytes(open(f"{PATH}/proof_ultra_{flavor}.bin", "rb").read())
+    tp = HonkTranscript.from_proof(proof, system)
 
     circuit = HonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
 

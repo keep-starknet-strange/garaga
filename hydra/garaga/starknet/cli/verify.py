@@ -35,7 +35,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 from garaga.starknet.honk_contract_generator.calldata import (
     HonkProof,
     HonkVk,
-    get_ultra_keccak_honk_calldata_from_vk_and_proof,
+    get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
 
 app = typer.Typer()
@@ -187,10 +187,12 @@ def get_calldata_generic(
             vk_obj = Groth16VerifyingKey.from_json(vk)
             proof_obj = Groth16Proof.from_json(proof, public_inputs)
             return groth16_calldata_from_vk_and_proof(vk_obj, proof_obj)
-        case ProofSystem.UltraKeccakHonk:
+        case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
             vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
             proof_obj = HonkProof.from_bytes(open(proof, "rb").read())
-            return get_ultra_keccak_honk_calldata_from_vk_and_proof(vk_obj, proof_obj)
+            return get_ultra_flavor_honk_calldata_from_vk_and_proof(
+                vk_obj, proof_obj, system
+            )
         case _:
             raise ValueError(f"Proof system {system} not supported")
 

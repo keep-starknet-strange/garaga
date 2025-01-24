@@ -64,11 +64,12 @@ def gen(
                     ecip_class_hash=ECIP_OPS_CLASS_HASH,
                     cli_mode=True,
                 )
-            case ProofSystem.UltraKeccakHonk:
+            case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
                 gen_honk_verifier(
                     vk=vk,
                     output_folder_path=cwd,
                     output_folder_name=project_name,
+                    system=system,
                     cli_mode=True,
                 )
             case _:

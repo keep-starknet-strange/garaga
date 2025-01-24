@@ -6,14 +6,14 @@ use super::honk_verifier_circuits::{
 };
 
 #[starknet::interface]
-trait IUltraKeccakHonkVerifier<TContractState> {
-    fn verify_ultra_keccak_honk_proof(
+trait IUltraStarknetHonkVerifier<TContractState> {
+    fn verify_ultra_starknet_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
 }
 
 #[starknet::contract]
-mod UltraKeccakHonkVerifier {
+mod UltraStarknetHonkVerifier {
     use garaga::definitions::{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus};
     use garaga::pairing_check::{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254};
     use garaga::ec_ops::{
@@ -33,7 +33,7 @@ mod UltraKeccakHonkVerifier {
     };
     use garaga::utils::noir::honk_transcript::{
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
-        KeccakHasherState,
+        StarknetHasherState,
     };
     use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
@@ -51,8 +51,8 @@ mod UltraKeccakHonkVerifier {
     }
 
     #[abi(embed_v0)]
-    impl IUltraKeccakHonkVerifier of super::IUltraKeccakHonkVerifier<ContractState> {
-        fn verify_ultra_keccak_honk_proof(
+    impl IUltraStarknetHonkVerifier of super::IUltraStarknetHonkVerifier<ContractState> {
+        fn verify_ultra_starknet_honk_proof(
             self: @ContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
@@ -67,7 +67,7 @@ mod UltraKeccakHonkVerifier {
             // let msm_hint = fph.msm_hint;
 
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
-                KeccakHasherState,
+                StarknetHasherState,
             >(full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
