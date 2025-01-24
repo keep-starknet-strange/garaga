@@ -33,7 +33,10 @@ def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list
 
 
 def get_ultra_flavor_honk_calldata_from_vk_and_proof(
-    vk: HonkVk, proof: HonkProof, system: ProofSystem = ProofSystem.UltraKeccakHonk, use_rust: bool = False
+    vk: HonkVk,
+    proof: HonkProof,
+    system: ProofSystem = ProofSystem.UltraKeccakHonk,
+    use_rust: bool = False,
 ) -> list[int]:
     if use_rust:
         return _honk_calldata_from_vk_and_proof_rust(vk, proof, system)
@@ -144,8 +147,4 @@ def _honk_calldata_from_vk_and_proof_rust(
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
-    return garaga_rs.get_honk_calldata(
-        proof.flatten(),
-        vk.flatten(),
-        flavor
-    )
+    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor)
