@@ -338,7 +338,7 @@ pub fn get_honk_calldata(
     values.extend(gemini_a_evaluations);
     values.extend(g1_point_split(shplonk_q));
     values.extend(g1_point_split(kzg_quotient));
-    let proof = HonkProof::from(values);
+    let proof = HonkProof::from(values).map_err(|s| JsValue::from_str(&s))?;
 
     let vk_obj = vk_js
         .dyn_into::<js_sys::Object>()
@@ -408,7 +408,7 @@ pub fn get_honk_calldata(
     values.extend([t4.x, t4.y]);
     values.extend([lagrange_first.x, lagrange_first.y]);
     values.extend([lagrange_last.x, lagrange_last.y]);
-    let vk = HonkVerificationKey::from(values);
+    let vk = HonkVerificationKey::from(values).map_err(|s| JsValue::from_str(&s))?;
 
     //Parse flavor_js into usize
     let flavor_num = flavor_js

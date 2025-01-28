@@ -21,8 +21,9 @@ pub fn get_honk_calldata(
         .collect::<Result<Vec<BigUint>, _>>()?;
 
     let result = honk::get_honk_calldata(
-        &HonkProof::from(proof_values),
-        &HonkVerificationKey::from(vk_values),
+        &HonkProof::from(proof_values).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?,
+        &HonkVerificationKey::from(vk_values)
+            .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?,
         HonkFlavor::try_from(flavor).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?,
     )
     .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
