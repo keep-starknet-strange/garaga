@@ -98,6 +98,17 @@ fn get_property(obj: &js_sys::Object, key: &str) -> Result<JsValue, JsValue> {
     js_sys::Reflect::get(obj, &JsValue::from_str(key))
 }
 
+fn set_property(obj: &js_sys::Object, key: &str, value: &JsValue) -> Result<(), JsValue> {
+    let success = js_sys::Reflect::set(obj, &JsValue::from_str(key), value)?;
+    if !success {
+        return Err(JsValue::from_str(&format!(
+            "Failed to set property: {}",
+            key
+        )));
+    }
+    Ok(())
+}
+
 // Parsing helper for G1PointBigUint
 fn parse_g1_point(value: JsValue) -> Result<G1PointBigUint, JsValue> {
     let obj = value
@@ -109,6 +120,14 @@ fn parse_g1_point(value: JsValue) -> Result<G1PointBigUint, JsValue> {
     let y = jsvalue_to_biguint(get_property(&obj, "y")?)?;
 
     Ok(G1PointBigUint { x, y })
+}
+
+fn jsvalue_from_g1_point(point: &G1PointBigUint, curve_id: usize) -> Result<JsValue, JsValue> {
+    let point_obj = js_sys::Object::new();
+    set_property(&point_obj, "x", &biguint_to_jsvalue(point.x.clone()))?;
+    set_property(&point_obj, "y", &biguint_to_jsvalue(point.y.clone()))?;
+    set_property(&point_obj, "curveId", &curve_id.into())?;
+    Ok(point_obj.into())
 }
 
 // Parsing helper for G2PointBigUint
@@ -151,6 +170,15 @@ fn parse_biguint_array(value: JsValue) -> Result<Vec<BigUint>, JsValue> {
         .collect()
 }
 
+fn jsvalue_from_biguint_array(values: &[BigUint]) -> Result<JsValue, JsValue> {
+    let values = values
+        .to_vec()
+        .into_iter()
+        .map(biguint_to_jsvalue)
+        .collect::<Vec<_>>();
+    Ok(values.into())
+}
+
 // Parses an array of G1 points from JsValue
 fn parse_g1_point_array(value: JsValue) -> Result<Vec<G1PointBigUint>, JsValue> {
     let array = value
@@ -162,6 +190,17 @@ fn parse_g1_point_array(value: JsValue) -> Result<Vec<G1PointBigUint>, JsValue> 
         points.push(point);
     }
     Ok(points)
+}
+
+fn jsvalue_from_g1_point_array(
+    points: &[G1PointBigUint],
+    curve_id: usize,
+) -> Result<JsValue, JsValue> {
+    let points = points
+        .iter()
+        .map(|point| jsvalue_from_g1_point(point, curve_id))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(points.into())
 }
 
 // Optional parsing helper for Uint8Array
@@ -276,6 +315,198 @@ pub fn get_groth16_calldata(
         .collect::<Vec<_>>();
 
     Ok(groth16_calldata_js)
+}
+
+#[wasm_bindgen]
+pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
+    let bytes = uint8_array
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
+
+    let proof = HonkProof::from_bytes(&bytes).map_err(|s| JsValue::from_str(&s))?;
+
+    let curve_id = CurveID::BN254 as usize;
+
+    let proof_obj = js_sys::Object::new();
+    set_property(&proof_obj, "circuitSize", &proof.circuit_size.into())?;
+    set_property(
+        &proof_obj,
+        "publicInputsSize",
+        &proof.public_inputs_size.into(),
+    )?;
+    set_property(
+        &proof_obj,
+        "publicInputsOffset",
+        &proof.public_inputs_offset.into(),
+    )?;
+    set_property(
+        &proof_obj,
+        "publicInputs",
+        &jsvalue_from_biguint_array(&proof.public_inputs)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w1",
+        &jsvalue_from_g1_point(&proof.w1, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w2",
+        &jsvalue_from_g1_point(&proof.w2, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w3",
+        &jsvalue_from_g1_point(&proof.w3, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w4",
+        &jsvalue_from_g1_point(&proof.w4, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "zPerm",
+        &jsvalue_from_g1_point(&proof.z_perm, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupReadCounts",
+        &jsvalue_from_g1_point(&proof.lookup_read_counts, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupReadTags",
+        &jsvalue_from_g1_point(&proof.lookup_read_tags, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupInverses",
+        &jsvalue_from_g1_point(&proof.lookup_inverses, curve_id)?,
+    )?;
+    let sumcheck_univariates = proof
+        .sumcheck_univariates
+        .iter()
+        .flat_map(|v| v.clone())
+        .collect::<Vec<_>>();
+    set_property(
+        &proof_obj,
+        "sumcheckUnivariates",
+        &jsvalue_from_biguint_array(&sumcheck_univariates)?,
+    )?; // flattened
+    set_property(
+        &proof_obj,
+        "sumcheckEvaluations",
+        &jsvalue_from_biguint_array(&proof.sumcheck_evaluations)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiFoldComms",
+        &jsvalue_from_g1_point_array(&proof.gemini_fold_comms, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiAEvaluations",
+        &jsvalue_from_biguint_array(&proof.gemini_a_evaluations)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "shplonkQ",
+        &jsvalue_from_g1_point(&proof.shplonk_q, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "kzgQuotient",
+        &jsvalue_from_g1_point(&proof.kzg_quotient, curve_id)?,
+    )?;
+
+    Ok(proof_obj.into())
+}
+
+#[wasm_bindgen]
+pub fn parse_honk_vk(uint8_array: JsValue) -> Result<JsValue, JsValue> {
+    let bytes = uint8_array
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
+
+    let vk = HonkVerificationKey::from_bytes(&bytes).map_err(|s| JsValue::from_str(&s))?;
+
+    let curve_id = CurveID::BN254 as usize;
+
+    let vk_obj = js_sys::Object::new();
+    set_property(&vk_obj, "circuitSize", &vk.circuit_size.into())?;
+    set_property(&vk_obj, "logCircuitSize", &vk.log_circuit_size.into())?;
+    set_property(&vk_obj, "publicInputsSize", &vk.public_inputs_size.into())?;
+    set_property(
+        &vk_obj,
+        "publicInputsOffset",
+        &vk.public_inputs_offset.into(),
+    )?;
+    set_property(&vk_obj, "qm", &jsvalue_from_g1_point(&vk.qm, curve_id)?)?;
+    set_property(&vk_obj, "qc", &jsvalue_from_g1_point(&vk.qc, curve_id)?)?;
+    set_property(&vk_obj, "ql", &jsvalue_from_g1_point(&vk.ql, curve_id)?)?;
+    set_property(&vk_obj, "qr", &jsvalue_from_g1_point(&vk.qr, curve_id)?)?;
+    set_property(&vk_obj, "qo", &jsvalue_from_g1_point(&vk.qo, curve_id)?)?;
+    set_property(&vk_obj, "q4", &jsvalue_from_g1_point(&vk.q4, curve_id)?)?;
+    set_property(
+        &vk_obj,
+        "qArith",
+        &jsvalue_from_g1_point(&vk.q_arith, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "qDeltaRange",
+        &jsvalue_from_g1_point(&vk.q_delta_range, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "qElliptic",
+        &jsvalue_from_g1_point(&vk.q_elliptic, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "qAux",
+        &jsvalue_from_g1_point(&vk.q_aux, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "qLookup",
+        &jsvalue_from_g1_point(&vk.q_lookup, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "qPoseidon2External",
+        &jsvalue_from_g1_point(&vk.q_poseidon2_external, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "qPoseidon2Internal",
+        &jsvalue_from_g1_point(&vk.q_poseidon2_internal, curve_id)?,
+    )?;
+    set_property(&vk_obj, "s1", &jsvalue_from_g1_point(&vk.s1, curve_id)?)?;
+    set_property(&vk_obj, "s2", &jsvalue_from_g1_point(&vk.s2, curve_id)?)?;
+    set_property(&vk_obj, "s3", &jsvalue_from_g1_point(&vk.s3, curve_id)?)?;
+    set_property(&vk_obj, "s4", &jsvalue_from_g1_point(&vk.s4, curve_id)?)?;
+    set_property(&vk_obj, "id1", &jsvalue_from_g1_point(&vk.id1, curve_id)?)?;
+    set_property(&vk_obj, "id2", &jsvalue_from_g1_point(&vk.id2, curve_id)?)?;
+    set_property(&vk_obj, "id3", &jsvalue_from_g1_point(&vk.id3, curve_id)?)?;
+    set_property(&vk_obj, "id4", &jsvalue_from_g1_point(&vk.id4, curve_id)?)?;
+    set_property(&vk_obj, "t1", &jsvalue_from_g1_point(&vk.t1, curve_id)?)?;
+    set_property(&vk_obj, "t2", &jsvalue_from_g1_point(&vk.t2, curve_id)?)?;
+    set_property(&vk_obj, "t3", &jsvalue_from_g1_point(&vk.t3, curve_id)?)?;
+    set_property(&vk_obj, "t4", &jsvalue_from_g1_point(&vk.t4, curve_id)?)?;
+    set_property(
+        &vk_obj,
+        "lagrange_first",
+        &jsvalue_from_g1_point(&vk.lagrange_first, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
+        "lagrange_last",
+        &jsvalue_from_g1_point(&vk.lagrange_last, curve_id)?,
+    )?;
+
+    Ok(vk_obj.into())
 }
 
 #[wasm_bindgen]
