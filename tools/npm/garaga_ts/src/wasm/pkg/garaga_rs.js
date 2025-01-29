@@ -337,6 +337,46 @@ export function get_groth16_calldata(proof_js, vk_js, curve_id_js) {
 }
 
 /**
+ * @param {any} uint8_array
+ * @returns {any}
+ */
+export function parse_honk_proof(uint8_array) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.parse_honk_proof(retptr, addHeapObject(uint8_array));
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
+ * @param {any} uint8_array
+ * @returns {any}
+ */
+export function parse_honk_vk(uint8_array) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.parse_honk_vk(retptr, addHeapObject(uint8_array));
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        if (r2) {
+            throw takeObject(r1);
+        }
+        return takeObject(r0);
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
  * @param {any} proof_js
  * @param {any} vk_js
  * @param {any} flavor_js
@@ -426,6 +466,10 @@ function __wbg_get_imports() {
         const ret = BigInt(getStringFromWasm0(arg0, arg1));
         return addHeapObject(ret);
     };
+    imports.wbg.__wbindgen_number_new = function(arg0) {
+        const ret = arg0;
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbindgen_number_get = function(arg0, arg1) {
         const obj = getObject(arg1);
         const ret = typeof(obj) === 'number' ? obj : undefined;
@@ -444,6 +488,10 @@ function __wbg_get_imports() {
         const ret = Reflect.get(getObject(arg0), getObject(arg1));
         return addHeapObject(ret);
     }, arguments) };
+    imports.wbg.__wbg_new_e69b5f66fda8f13c = function() {
+        const ret = new Object();
+        return addHeapObject(ret);
+    };
     imports.wbg.__wbg_isArray_6f3b47f09adb61b5 = function(arg0) {
         const ret = Array.isArray(getObject(arg0));
         return ret;
@@ -482,6 +530,17 @@ function __wbg_get_imports() {
         }
         const ret = result;
         return ret;
+    };
+    imports.wbg.__wbg_set_e864d25d9b399c9f = function() { return handleError(function (arg0, arg1, arg2) {
+        const ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
+        return ret;
+    }, arguments) };
+    imports.wbg.__wbindgen_array_new = function() {
+        const ret = [];
+        return addHeapObject(ret);
+    };
+    imports.wbg.__wbindgen_array_push = function(arg0, arg1) {
+        getObject(arg0).push(takeObject(arg1));
     };
     imports.wbg.__wbindgen_debug_string = function(arg0, arg1) {
         const ret = debugString(getObject(arg1));

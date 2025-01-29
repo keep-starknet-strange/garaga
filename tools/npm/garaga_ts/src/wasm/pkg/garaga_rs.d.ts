@@ -39,6 +39,16 @@ export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
  */
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
 /**
+ * @param {any} uint8_array
+ * @returns {any}
+ */
+export function parse_honk_proof(uint8_array: any): any;
+/**
+ * @param {any} uint8_array
+ * @returns {any}
+ */
+export function parse_honk_vk(uint8_array: any): any;
+/**
  * @param {any} proof_js
  * @param {any} vk_js
  * @param {any} flavor_js
@@ -55,6 +65,8 @@ export interface InitOutput {
   readonly to_weirstrass: (a: number, b: number, c: number) => void;
   readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;
+  readonly parse_honk_proof: (a: number, b: number) => void;
+  readonly parse_honk_vk: (a: number, b: number) => void;
   readonly get_honk_calldata: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
