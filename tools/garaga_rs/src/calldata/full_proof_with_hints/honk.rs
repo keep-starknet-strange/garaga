@@ -14,6 +14,7 @@ use crate::io::{
 };
 use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
 use lambdaworks_crypto::hash::poseidon::Poseidon;
+use lambdaworks_math::field::errors::FieldError;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
@@ -120,6 +121,10 @@ impl HonkVerificationKey {
 
         let [qm, qc, ql, qr, qo, q4, q_arith, q_delta_range, q_elliptic, q_aux, q_lookup, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
             points.try_into().unwrap();
+
+        if !(log_circuit_size <= CONST_PROOF_SIZE_LOG_N) {
+            return Err(format!("Invalid log circuit size: {}", log_circuit_size));
+        }
 
         let vk = Self {
             circuit_size,
@@ -338,11 +343,20 @@ pub struct HonkTranscript {
     pub gamma: BigUint,
     pub alphas: [BigUint; NUMBER_OF_ALPHAS],
     pub gate_challenges: [BigUint; CONST_PROOF_SIZE_LOG_N],
-    pub sum_check_u_challenges: [BigUint; CONST_PROOF_SIZE_LOG_N],
+    pub sumcheck_u_challenges: [BigUint; CONST_PROOF_SIZE_LOG_N],
     pub rho: BigUint,
     pub gemini_r: BigUint,
     pub shplonk_nu: BigUint,
     pub shplonk_z: BigUint,
+}
+
+impl HonkTranscript {
+    pub fn from_proof(proof: &HonkProof, flavor: HonkFlavor) -> Self {
+        match flavor {
+            HonkFlavor::KECCAK => compute_transcript(proof, KeccakHasher::new()),
+            HonkFlavor::STARKNET => compute_transcript(proof, StarknetHasher::new()),
+        }
+    }
 }
 
 pub fn get_honk_calldata(
@@ -350,81 +364,233 @@ pub fn get_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let tp = honk_transcript_from_proof(flavor, proof);
+    let transcript = HonkTranscript::from_proof(proof, flavor);
 
-    let proof_data = serialize_honk_proof_to_calldata(proof, vk.log_circuit_size);
-
-    let scalars = circuit_compute_shplemini_msm_scalars_(
-        vk.log_circuit_size,
-        &proof.sumcheck_evaluations,
-        &proof.gemini_a_evaluations,
-        &tp.gemini_r,
-        &tp.rho,
-        &tp.shplonk_z,
-        &tp.shplonk_nu,
-        &tp.sum_check_u_challenges,
-    );
-
-    let scalars_msm = extract_msm_scalars(&scalars, vk.log_circuit_size);
-
-    let mut points = vec![
-        vk.qm.clone(),                    // 1
-        vk.qc.clone(),                    // 2
-        vk.ql.clone(),                    // 3
-        vk.qr.clone(),                    // 4
-        vk.qo.clone(),                    // 5
-        vk.q4.clone(),                    // 6
-        vk.q_arith.clone(),               // 7
-        vk.q_delta_range.clone(),         // 8
-        vk.q_elliptic.clone(),            // 9
-        vk.q_aux.clone(),                 // 10
-        vk.q_lookup.clone(),              // 11
-        vk.q_poseidon2_external.clone(),  // 12
-        vk.q_poseidon2_internal.clone(),  // 13
-        vk.s1.clone(),                    // 14
-        vk.s2.clone(),                    // 15
-        vk.s3.clone(),                    // 16
-        vk.s4.clone(),                    // 17
-        vk.id1.clone(),                   // 18
-        vk.id2.clone(),                   // 19
-        vk.id3.clone(),                   // 20
-        vk.id4.clone(),                   // 21
-        vk.t1.clone(),                    // 22
-        vk.t2.clone(),                    // 23
-        vk.t3.clone(),                    // 24
-        vk.t4.clone(),                    // 25
-        vk.lagrange_first.clone(),        // 26
-        vk.lagrange_last.clone(),         // 27
-        proof.w1.clone(),                 // 28
-        proof.w2.clone(),                 // 29
-        proof.w3.clone(),                 // 30
-        proof.w4.clone(),                 // 31
-        proof.z_perm.clone(),             // 32
-        proof.lookup_inverses.clone(),    // 33
-        proof.lookup_read_counts.clone(), // 34
-        proof.lookup_read_tags.clone(),   // 35
-        proof.z_perm.clone(),             // 44
-    ];
-    points.extend(proof.gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
-    let g: G1Point<BN254PrimeField> = G1Point::generator();
-    points.push(G1PointBigUint::from(vec![
-        element_to_biguint(&g.x),
-        element_to_biguint(&g.y),
-    ]));
-    points.push(proof.kzg_quotient.clone());
-
-    fn g1_point_from_g1_point_biguint(p: &G1PointBigUint) -> G1Point<BN254PrimeField> {
-        G1Point::new(element_from_biguint(&p.x), element_from_biguint(&p.y)).unwrap()
+    fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
+        element_from_biguint(element)
     }
 
-    let points = points
+    fn g1_point_on_curve(point: &G1PointBigUint) -> Result<G1Point<BN254PrimeField>, String> {
+        G1Point::new(
+            element_from_biguint(&point.x),
+            element_from_biguint(&point.y),
+        )
+    }
+
+    let public_inputs = proof
+        .public_inputs
         .iter()
-        .map(g1_point_from_g1_point_biguint)
+        .map(element_on_curve)
         .collect::<Vec<_>>();
+    let w1 = g1_point_on_curve(&proof.w1)?;
+    let w2 = g1_point_on_curve(&proof.w2)?;
+    let w3 = g1_point_on_curve(&proof.w3)?;
+    let w4 = g1_point_on_curve(&proof.w4)?;
+    let z_perm = g1_point_on_curve(&proof.z_perm)?;
+    let lookup_read_counts = g1_point_on_curve(&proof.lookup_read_counts)?;
+    let lookup_read_tags = g1_point_on_curve(&proof.lookup_read_tags)?;
+    let lookup_inverses = g1_point_on_curve(&proof.lookup_inverses)?;
+    let sumcheck_univariates = proof
+        .sumcheck_univariates
+        .iter()
+        .map(|v| v.iter().map(element_on_curve).collect::<Vec<_>>())
+        .collect::<Vec<_>>();
+    let sumcheck_evaluations = proof
+        .sumcheck_evaluations
+        .iter()
+        .map(element_on_curve)
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap();
+    let gemini_fold_comms = proof
+        .gemini_fold_comms
+        .iter()
+        .map(g1_point_on_curve)
+        .collect::<Result<Vec<_>, _>>()?;
+    let gemini_a_evaluations = proof
+        .gemini_a_evaluations
+        .iter()
+        .map(element_on_curve)
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap();
+    let shplonk_q = g1_point_on_curve(&proof.shplonk_q)?;
+    let kzg_quotient = g1_point_on_curve(&proof.kzg_quotient)?;
+
+    let qm = g1_point_on_curve(&vk.qm)?;
+    let qc = g1_point_on_curve(&vk.qc)?;
+    let ql = g1_point_on_curve(&vk.ql)?;
+    let qr = g1_point_on_curve(&vk.qr)?;
+    let qo = g1_point_on_curve(&vk.qo)?;
+    let q4 = g1_point_on_curve(&vk.q4)?;
+    let q_arith = g1_point_on_curve(&vk.q_arith)?;
+    let q_delta_range = g1_point_on_curve(&vk.q_delta_range)?;
+    let q_elliptic = g1_point_on_curve(&vk.q_elliptic)?;
+    let q_aux = g1_point_on_curve(&vk.q_aux)?;
+    let q_lookup = g1_point_on_curve(&vk.q_lookup)?;
+    let q_poseidon2_external = g1_point_on_curve(&vk.q_poseidon2_external)?;
+    let q_poseidon2_internal = g1_point_on_curve(&vk.q_poseidon2_internal)?;
+    let s1 = g1_point_on_curve(&vk.s1)?;
+    let s2 = g1_point_on_curve(&vk.s2)?;
+    let s3 = g1_point_on_curve(&vk.s3)?;
+    let s4 = g1_point_on_curve(&vk.s4)?;
+    let id1 = g1_point_on_curve(&vk.id1)?;
+    let id2 = g1_point_on_curve(&vk.id2)?;
+    let id3 = g1_point_on_curve(&vk.id3)?;
+    let id4 = g1_point_on_curve(&vk.id4)?;
+    let t1 = g1_point_on_curve(&vk.t1)?;
+    let t2 = g1_point_on_curve(&vk.t2)?;
+    let t3 = g1_point_on_curve(&vk.t3)?;
+    let t4 = g1_point_on_curve(&vk.t4)?;
+    let lagrange_first = g1_point_on_curve(&vk.lagrange_first)?;
+    let lagrange_last = g1_point_on_curve(&vk.lagrange_last)?;
+
+    let sumcheck_u_challenges = transcript
+        .sumcheck_u_challenges
+        .iter()
+        .map(element_on_curve)
+        .collect::<Vec<_>>()
+        .try_into()
+        .unwrap();
+    let rho = element_on_curve(&transcript.rho);
+    let gemini_r = element_on_curve(&transcript.gemini_r);
+    let shplonk_nu = element_on_curve(&transcript.shplonk_nu);
+    let shplonk_z = element_on_curve(&transcript.shplonk_z);
+
+    let scalars = extract_msm_scalars(
+        vk.log_circuit_size,
+        compute_shplemini_msm_scalars(
+            vk.log_circuit_size,
+            &sumcheck_evaluations,
+            &gemini_a_evaluations,
+            &gemini_r,
+            &rho,
+            &shplonk_z,
+            &shplonk_nu,
+            &sumcheck_u_challenges,
+        )
+        .map_err(|e| format!("Field error: {:?}", e))?,
+    );
+
+    let proof_data = {
+        let mut call_data = vec![];
+        let call_data_ref = &mut call_data;
+
+        fn push<T>(call_data_ref: &mut Vec<BigUint>, value: T)
+        where
+            BigUint: From<T>,
+        {
+            call_data_ref.push(value.into());
+        }
+
+        fn push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
+        where
+            F: IsPrimeField,
+            FieldElement<F>: ByteConversion,
+        {
+            let limbs = field_element_to_u256_limbs(element);
+            for limb in limbs {
+                push(call_data_ref, limb);
+            }
+        }
+
+        fn push_elements(
+            call_data_ref: &mut Vec<BigUint>,
+            elements: &[FieldElement<GrumpkinPrimeField>],
+            prepend_length: bool,
+        ) {
+            if prepend_length {
+                push(call_data_ref, elements.len());
+            }
+            for element in elements {
+                push_element(call_data_ref, &element);
+            }
+        }
+
+        fn push_point(call_data_ref: &mut Vec<BigUint>, point: &G1Point<BN254PrimeField>) {
+            push_element(call_data_ref, &point.x);
+            push_element(call_data_ref, &point.y);
+        }
+
+        push(call_data_ref, proof.circuit_size);
+        push(call_data_ref, proof.public_inputs_size);
+        push(call_data_ref, proof.public_inputs_offset);
+        push_elements(call_data_ref, &public_inputs, true);
+        push_point(call_data_ref, &w1);
+        push_point(call_data_ref, &w2);
+        push_point(call_data_ref, &w3);
+        push_point(call_data_ref, &w4);
+        push_point(call_data_ref, &z_perm);
+        push_point(call_data_ref, &lookup_read_counts);
+        push_point(call_data_ref, &lookup_read_tags);
+        push_point(call_data_ref, &lookup_inverses);
+        push_elements(
+            call_data_ref,
+            &(0..vk.log_circuit_size)
+                .flat_map(|i| sumcheck_univariates[i].clone())
+                .collect::<Vec<_>>(),
+            true,
+        );
+        push_elements(call_data_ref, &sumcheck_evaluations, true);
+        push(call_data_ref, vk.log_circuit_size - 1);
+        for point in &gemini_fold_comms[..vk.log_circuit_size - 1] {
+            push_point(call_data_ref, point);
+        }
+        push_elements(
+            call_data_ref,
+            &gemini_a_evaluations[..vk.log_circuit_size],
+            true,
+        );
+        push_point(call_data_ref, &shplonk_q);
+        push_point(call_data_ref, &kzg_quotient);
+
+        call_data
+    };
+
+    let mut points = vec![];
+    points.push(qm); // 1
+    points.push(qc); // 2
+    points.push(ql); // 3
+    points.push(qr); // 4
+    points.push(qo); // 5
+    points.push(q4); // 6
+    points.push(q_arith); // 7
+    points.push(q_delta_range); // 8
+    points.push(q_elliptic); // 9
+    points.push(q_aux); // 10
+    points.push(q_lookup); // 11
+    points.push(q_poseidon2_external); // 12
+    points.push(q_poseidon2_internal); // 13
+    points.push(s1); // 14
+    points.push(s2); // 15
+    points.push(s3); // 16
+    points.push(s4); // 17
+    points.push(id1); // 18
+    points.push(id2); // 19
+    points.push(id3); // 20
+    points.push(id4); // 21
+    points.push(t1); // 22
+    points.push(t2); // 23
+    points.push(t3); // 24
+    points.push(t4); // 25
+    points.push(lagrange_first); // 26
+    points.push(lagrange_last); // 27
+    points.push(w1); // 28
+    points.push(w2); // 29
+    points.push(w3); // 30
+    points.push(w4); // 31
+    points.push(z_perm.clone()); // 32
+    points.push(lookup_inverses); // 33
+    points.push(lookup_read_counts); // 34
+    points.push(lookup_read_tags); // 35
+    points.push(z_perm); // 44
+    points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
+    points.push(G1Point::generator());
+    points.push(kzg_quotient.clone());
 
     let msm_data = msm_calldata::calldata_builder(
         &points,
-        &scalars_msm,
+        &scalars,
         CurveID::BN254 as usize,
         None,
         false,
@@ -432,6 +598,8 @@ pub fn get_honk_calldata(
         false,
     );
 
+    let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
+    let p_1 = kzg_quotient.neg();
     let g2_point_kzg_1 = G2Point::generator();
     let g2_point_kzg_2 = G2Point::new(
         [
@@ -451,16 +619,10 @@ pub fn get_honk_calldata(
             ),
         ],
     )?;
-
-    let p_0 =
-        G1Point::msm(&points, &scalars_msm).add(&g1_point_from_g1_point_biguint(&proof.shplonk_q));
-    let p_1 = g1_point_from_g1_point_biguint(&proof.kzg_quotient).neg();
-
     let pairs = [
         G1G2Pair::new(p_0, g2_point_kzg_1),
         G1G2Pair::new(p_1, g2_point_kzg_2),
     ];
-
     let mpc_data = {
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree2ExtensionField;
@@ -475,104 +637,11 @@ pub fn get_honk_calldata(
     };
 
     let size = proof_data.len() + msm_data.len() + mpc_data.len();
-    let mut call_data: Vec<BigUint> = vec![size.into()];
+    let mut call_data = vec![size.into()];
     call_data.extend(proof_data);
     call_data.extend(msm_data);
     call_data.extend(mpc_data);
     Ok(call_data)
-}
-
-fn serialize_honk_proof_to_calldata(proof: &HonkProof, log_circuit_size: usize) -> Vec<BigUint> {
-    let mut call_data = vec![];
-    let call_data_ref = &mut call_data;
-
-    fn push<T>(call_data_ref: &mut Vec<BigUint>, value: T)
-    where
-        BigUint: From<T>,
-    {
-        call_data_ref.push(value.into());
-    }
-
-    fn push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
-    where
-        F: IsPrimeField,
-        FieldElement<F>: ByteConversion,
-    {
-        let limbs = field_element_to_u256_limbs(element);
-        for limb in limbs {
-            push(call_data_ref, limb);
-        }
-    }
-
-    fn push_elements(call_data_ref: &mut Vec<BigUint>, elements: &[BigUint], prepend_length: bool) {
-        if prepend_length {
-            push(call_data_ref, elements.len());
-        }
-        for element in elements {
-            let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(element);
-            push_element(call_data_ref, &element);
-        }
-    }
-
-    fn push_point(call_data_ref: &mut Vec<BigUint>, point: &G1PointBigUint) {
-        let point: G1Point<BN254PrimeField> = G1Point::new(
-            element_from_biguint(&point.x),
-            element_from_biguint(&point.y),
-        )
-        .unwrap();
-        push_element(call_data_ref, &point.x);
-        push_element(call_data_ref, &point.y);
-    }
-
-    push(call_data_ref, proof.circuit_size);
-    push(call_data_ref, proof.public_inputs_size);
-    push(call_data_ref, proof.public_inputs_offset);
-    push_elements(call_data_ref, &proof.public_inputs, true);
-    push_point(call_data_ref, &proof.w1);
-    push_point(call_data_ref, &proof.w2);
-    push_point(call_data_ref, &proof.w3);
-    push_point(call_data_ref, &proof.w4);
-    push_point(call_data_ref, &proof.z_perm);
-    push_point(call_data_ref, &proof.lookup_read_counts);
-    push_point(call_data_ref, &proof.lookup_read_tags);
-    push_point(call_data_ref, &proof.lookup_inverses);
-    push_elements(
-        call_data_ref,
-        &(0..log_circuit_size)
-            .flat_map(|i| proof.sumcheck_univariates[i].clone())
-            .collect::<Vec<_>>(),
-        true,
-    );
-    push_elements(call_data_ref, &proof.sumcheck_evaluations, true);
-    push(call_data_ref, log_circuit_size - 1);
-    for point in &proof.gemini_fold_comms[..log_circuit_size - 1] {
-        push_point(call_data_ref, point);
-    }
-    push_elements(
-        call_data_ref,
-        &proof.gemini_a_evaluations[..log_circuit_size],
-        true,
-    );
-    push_point(call_data_ref, &proof.shplonk_q);
-    push_point(call_data_ref, &proof.kzg_quotient);
-
-    call_data
-}
-
-fn extract_msm_scalars(
-    scalars: &[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2],
-    log_n: usize,
-) -> Vec<BigUint> {
-    let start_dummy = NUMBER_OF_ENTITIES + log_n;
-    let end_dummy = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N;
-    let scalars_no_dummy = [&scalars[..start_dummy], &scalars[end_dummy..]].concat();
-    let scalars_filtered = scalars_no_dummy[1..].to_vec();
-    let scalars_filtered_no_nones = scalars_filtered
-        .iter()
-        .filter_map(|y| y.as_ref())
-        .cloned()
-        .collect();
-    return scalars_filtered_no_nones;
 }
 
 trait Hasher {
@@ -665,17 +734,7 @@ impl Hasher for StarknetHasher {
     }
 }
 
-fn honk_transcript_from_proof(flavor: HonkFlavor, proof: &HonkProof) -> HonkTranscript {
-    match flavor {
-        HonkFlavor::KECCAK => compute_honk_transcript_from_proof(KeccakHasher::new(), proof),
-        HonkFlavor::STARKNET => compute_honk_transcript_from_proof(StarknetHasher::new(), proof),
-    }
-}
-
-fn compute_honk_transcript_from_proof<T: Hasher>(
-    mut hasher: T,
-    proof: &HonkProof,
-) -> HonkTranscript {
+fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTranscript {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -746,7 +805,7 @@ fn compute_honk_transcript_from_proof<T: Hasher>(
     }
 
     // Round 4: Sumcheck u challenges
-    let mut sum_check_u_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(|v| BigUint::from(v));
+    let mut sumcheck_u_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(|v| BigUint::from(v));
 
     let mut ch4 = ch3;
     for i in 0..CONST_PROOF_SIZE_LOG_N {
@@ -756,7 +815,7 @@ fn compute_honk_transcript_from_proof<T: Hasher>(
         }
 
         ch4 = hasher.digest_reset();
-        [sum_check_u_challenges[i], _] = split(&ch4);
+        [sumcheck_u_challenges[i], _] = split(&ch4);
     }
 
     // Rho challenge :
@@ -801,7 +860,7 @@ fn compute_honk_transcript_from_proof<T: Hasher>(
         gamma,
         alphas,
         gate_challenges,
-        sum_check_u_challenges,
+        sumcheck_u_challenges,
         rho,
         gemini_r,
         shplonk_nu,
@@ -809,168 +868,134 @@ fn compute_honk_transcript_from_proof<T: Hasher>(
     }
 }
 
-fn circuit_compute_shplemini_msm_scalars_(
-    log_n: usize,
-    p_sumcheck_evaluations: &[BigUint; NUMBER_OF_ENTITIES],
-    p_gemini_a_evaluations: &[BigUint; CONST_PROOF_SIZE_LOG_N],
-    tp_gemini_r: &BigUint,
-    tp_rho: &BigUint,
-    tp_shplonk_z: &BigUint,
-    tp_shplonk_nu: &BigUint,
-    tp_sumcheck_u_challenges: &[BigUint; CONST_PROOF_SIZE_LOG_N],
-) -> [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2] {
-    let p_sumcheck_evaluations = p_sumcheck_evaluations
-        .iter()
-        .map(element_from_biguint)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-    let p_gemini_a_evaluations = p_gemini_a_evaluations
-        .iter()
-        .map(element_from_biguint)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-    let tp_gemini_r = element_from_biguint(tp_gemini_r);
-    let tp_rho = element_from_biguint(tp_rho);
-    let tp_shplonk_z = element_from_biguint(tp_shplonk_z);
-    let tp_shplonk_nu = element_from_biguint(tp_shplonk_nu);
-    let tp_sumcheck_u_challenges = tp_sumcheck_u_challenges
-        .iter()
-        .map(element_from_biguint)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-    circuit_compute_shplemini_msm_scalars(
-        log_n,
-        &p_sumcheck_evaluations,
-        &p_gemini_a_evaluations,
-        &tp_gemini_r,
-        &tp_rho,
-        &tp_shplonk_z,
-        &tp_shplonk_nu,
-        &tp_sumcheck_u_challenges,
-    )
-}
+fn compute_shplemini_msm_scalars(
+    log_circuit_size: usize,
+    sumcheck_evaluations: &[FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES],
+    gemini_a_evaluations: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
+    gemini_r: &FieldElement<GrumpkinPrimeField>,
+    rho: &FieldElement<GrumpkinPrimeField>,
+    shplonk_z: &FieldElement<GrumpkinPrimeField>,
+    shplonk_nu: &FieldElement<GrumpkinPrimeField>,
+    sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
+) -> Result<[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2], FieldError> {
+    let powers_of_evaluations_challenge = {
+        let mut values = vec![];
+        let mut value = gemini_r.clone();
+        for _ in 0..log_circuit_size {
+            values.push(value.clone());
+            value = &value * &value;
+        }
+        values
+    };
 
-fn circuit_compute_shplemini_msm_scalars(
-    log_n: usize,
-    p_sumcheck_evaluations: &[FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES],
-    p_gemini_a_evaluations: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-    tp_gemini_r: &FieldElement<GrumpkinPrimeField>,
-    tp_rho: &FieldElement<GrumpkinPrimeField>,
-    tp_shplonk_z: &FieldElement<GrumpkinPrimeField>,
-    tp_shplonk_nu: &FieldElement<GrumpkinPrimeField>,
-    tp_sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-) -> [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2] {
-    let mut powers_of_evaluations_challenge = vec![tp_gemini_r.clone()];
-    for i in 1..log_n {
-        let v = &powers_of_evaluations_challenge[i - 1];
-        powers_of_evaluations_challenge.push(v * v);
-    }
+    let inverse_vanishing_evals = {
+        let mut values = vec![];
+        {
+            values.push((shplonk_z - &powers_of_evaluations_challenge[0]).inv()?);
+        }
+        for i in 0..log_circuit_size {
+            values.push((shplonk_z + &powers_of_evaluations_challenge[i]).inv()?);
+        }
+        values
+    };
 
-    // computeInvertedGeminiDenominators
+    let mut scalars = {
+        const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
+        let mut values = [NONE; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2];
+        for i in 0..values.len() {
+            values[i] = Some(FieldElement::zero());
+        }
+        values
+    };
 
-    const NONE_F: Option<FieldElement<GrumpkinPrimeField>> = None;
-    let mut inverse_vanishing_evals = [NONE_F; CONST_PROOF_SIZE_LOG_N + 1];
-    inverse_vanishing_evals[0] = Some(
-        (tp_shplonk_z - &powers_of_evaluations_challenge[0])
-            .inv()
-            .unwrap(),
-    );
-    for i in 0..log_n {
-        inverse_vanishing_evals[i + 1] = Some(
-            (tp_shplonk_z + &powers_of_evaluations_challenge[i])
-                .inv()
-                .unwrap(),
-        );
-    }
+    scalars[0] = Some(FieldElement::one());
 
-    let unshifted_scalar = -(inverse_vanishing_evals[0].clone().unwrap()
-        + tp_shplonk_nu * inverse_vanishing_evals[1].clone().unwrap());
+    let mut batched_evaluation = FieldElement::zero();
 
-    let shifted_scalar = -(tp_gemini_r.inv().unwrap()
-        * (inverse_vanishing_evals[0].clone().unwrap()
-            - tp_shplonk_nu * inverse_vanishing_evals[1].clone().unwrap()));
+    {
+        let mut batching_challenge = FieldElement::one();
 
-    let mut scalars = [NONE_F; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2];
-    for i in 0..scalars.len() {
-        scalars[i] = Some(FieldElement::zero());
-    }
+        {
+            let unshifted_scalar =
+                -(&inverse_vanishing_evals[0] + shplonk_nu * &inverse_vanishing_evals[1]);
+            for i in 1..NUMBER_UNSHIFTED + 1 {
+                scalars[i] = Some(&unshifted_scalar * &batching_challenge);
+                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                batching_challenge *= rho;
+            }
+        }
 
-    scalars[0] = Some(FieldElement::<GrumpkinPrimeField>::one());
-
-    let mut batching_challenge = FieldElement::<GrumpkinPrimeField>::one();
-    let mut batched_evaluation = FieldElement::<GrumpkinPrimeField>::zero();
-
-    for i in 1..NUMBER_UNSHIFTED + 1 {
-        scalars[i] = Some(unshifted_scalar.clone() * batching_challenge.clone());
-        batched_evaluation =
-            batched_evaluation + p_sumcheck_evaluations[i - 1].clone() * batching_challenge.clone();
-        batching_challenge = batching_challenge * tp_rho;
-    }
-
-    for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
-        scalars[i] = Some(shifted_scalar.clone() * batching_challenge.clone());
-        batched_evaluation =
-            batched_evaluation + p_sumcheck_evaluations[i - 1].clone() * batching_challenge.clone();
-        // skip last round:
-        if i < NUMBER_OF_ENTITIES {
-            batching_challenge = batching_challenge * tp_rho;
+        {
+            let shifted_scalar = -(gemini_r.inv()?
+                * (&inverse_vanishing_evals[0] - shplonk_nu * &inverse_vanishing_evals[1]));
+            for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
+                scalars[i] = Some(&shifted_scalar * &batching_challenge);
+                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                // skip last round:
+                if i < NUMBER_OF_ENTITIES {
+                    batching_challenge *= rho;
+                }
+            }
         }
     }
 
-    let mut constant_term_accumulator = FieldElement::<GrumpkinPrimeField>::zero();
-    let mut batching_challenge = tp_shplonk_nu * tp_shplonk_nu;
+    let mut constant_term_accumulator = FieldElement::zero();
 
-    for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
-        let dummy_round = i >= (log_n - 1);
-        if !dummy_round {
-            let scaling_factor =
-                batching_challenge.clone() * inverse_vanishing_evals[i + 2].clone().unwrap();
-            scalars[NUMBER_OF_ENTITIES + i + 1] = Some(-scaling_factor.clone());
-            constant_term_accumulator =
-                constant_term_accumulator + scaling_factor * p_gemini_a_evaluations[i + 1].clone();
-        }
-        // skip last round:
-        if i < log_n - 2 {
-            batching_challenge = batching_challenge * tp_shplonk_nu;
+    {
+        let mut batching_challenge = shplonk_nu * shplonk_nu;
+
+        for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
+            let dummy_round = i >= (log_circuit_size - 1);
+            if !dummy_round {
+                let scaling_factor = &batching_challenge * &inverse_vanishing_evals[i + 2];
+                scalars[NUMBER_OF_ENTITIES + i + 1] = Some(-scaling_factor.clone());
+                constant_term_accumulator += scaling_factor * &gemini_a_evaluations[i + 1];
+            }
+            // skip last round:
+            if i < log_circuit_size - 2 {
+                batching_challenge *= shplonk_nu;
+            }
         }
     }
 
-    let a_0_pos = compute_gemini_batched_univariate_evaluation(
-        tp_sumcheck_u_challenges,
-        batched_evaluation,
-        p_gemini_a_evaluations,
-        &powers_of_evaluations_challenge,
-        log_n,
-    );
+    let a_0_pos = {
+        let mut batched_eval_accumulator = batched_evaluation;
+        for i in (0..log_circuit_size).rev() {
+            let challenge_power = &powers_of_evaluations_challenge[i];
+            let u = &sumcheck_u_challenges[i];
+            let eval_neg = &gemini_a_evaluations[i];
+            let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
+            let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
+                * challenge_power
+                * &batched_eval_accumulator)
+                - (eval_neg * (&term - u));
+            let den = term + u;
+            batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
+        }
+        batched_eval_accumulator
+    };
 
-    constant_term_accumulator =
-        constant_term_accumulator + a_0_pos * inverse_vanishing_evals[0].clone().unwrap();
-
-    constant_term_accumulator = constant_term_accumulator
-        + p_gemini_a_evaluations[0].clone()
-            * tp_shplonk_nu
-            * inverse_vanishing_evals[1].clone().unwrap();
+    constant_term_accumulator += a_0_pos * &inverse_vanishing_evals[0];
+    constant_term_accumulator +=
+        &gemini_a_evaluations[0] * shplonk_nu * &inverse_vanishing_evals[1];
 
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator.clone());
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(tp_shplonk_z.clone());
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(shplonk_z.clone());
 
     // vk.t1 : 22 + 36
     // vk.t2 : 23 + 37
     // vk.t3 : 24 + 38
     // vk.t4 : 25 + 39
 
-    // proof.w1 : 28 + 40
-    // proof.w2 : 29 + 41
-    // proof.w3 : 30 + 42
-    // proof.w4 : 31 + 43
-
     scalars[22] = Some(scalars[22].clone().unwrap() + scalars[36].clone().unwrap());
     scalars[23] = Some(scalars[23].clone().unwrap() + scalars[37].clone().unwrap());
     scalars[24] = Some(scalars[24].clone().unwrap() + scalars[38].clone().unwrap());
     scalars[25] = Some(scalars[25].clone().unwrap() + scalars[39].clone().unwrap());
+
+    // proof.w1 : 28 + 40
+    // proof.w2 : 29 + 41
+    // proof.w3 : 30 + 42
+    // proof.w4 : 31 + 43
 
     scalars[28] = Some(scalars[28].clone().unwrap() + scalars[40].clone().unwrap());
     scalars[29] = Some(scalars[29].clone().unwrap() + scalars[41].clone().unwrap());
@@ -986,35 +1011,25 @@ fn circuit_compute_shplemini_msm_scalars(
     scalars[42] = None;
     scalars[43] = None;
 
-    scalars
-        .iter()
-        .map(|v| v.as_ref().map(|e| element_to_biguint(e)))
+    Ok(scalars
+        .into_iter()
+        .map(|v| v.map(|e| element_to_biguint(&e)))
         .collect::<Vec<_>>()
         .try_into()
-        .unwrap()
+        .unwrap())
 }
 
-fn compute_gemini_batched_univariate_evaluation(
-    tp_sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-    batched_eval_accumulator: FieldElement<GrumpkinPrimeField>,
-    gemini_evaluations: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-    gemini_eval_challenge_powers: &[FieldElement<GrumpkinPrimeField>],
-    log_n: usize,
-) -> FieldElement<GrumpkinPrimeField> {
-    let mut batched_eval_accumulator = batched_eval_accumulator;
-    for i in (0..log_n).rev() {
-        let challenge_power = &gemini_eval_challenge_powers[i];
-        let u = &tp_sumcheck_u_challenges[i];
-        let eval_neg = &gemini_evaluations[i];
-        let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
-        let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
-            * challenge_power
-            * batched_eval_accumulator.clone())
-            - (eval_neg * (term.clone() - u));
-        let den = term + u;
-        batched_eval_accumulator = batched_eval_round_acc * den.inv().unwrap();
-    }
-    batched_eval_accumulator
+fn extract_msm_scalars(
+    log_circuit_size: usize,
+    scalars: [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2],
+) -> Vec<BigUint> {
+    let i = NUMBER_OF_ENTITIES + log_circuit_size;
+    let j = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N;
+    [&scalars[1..i], &scalars[j..]]
+        .concat()
+        .into_iter()
+        .filter_map(|v| v)
+        .collect()
 }
 
 #[cfg(test)]
