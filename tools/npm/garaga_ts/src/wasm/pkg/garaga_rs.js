@@ -360,10 +360,10 @@ export function parse_honk_proof(uint8_array) {
  * @param {any} uint8_array
  * @returns {any}
  */
-export function parse_honk_vk(uint8_array) {
+export function parse_honk_verification_key(uint8_array) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.parse_honk_vk(retptr, addHeapObject(uint8_array));
+        wasm.parse_honk_verification_key(retptr, addHeapObject(uint8_array));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);

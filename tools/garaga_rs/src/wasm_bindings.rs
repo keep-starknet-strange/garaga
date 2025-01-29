@@ -424,7 +424,7 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
 }
 
 #[wasm_bindgen]
-pub fn parse_honk_vk(uint8_array: JsValue) -> Result<JsValue, JsValue> {
+pub fn parse_honk_verification_key(uint8_array: JsValue) -> Result<JsValue, JsValue> {
     let bytes = uint8_array
         .dyn_into::<Uint8Array>()
         .map(|arr| arr.to_vec())?;
@@ -497,12 +497,12 @@ pub fn parse_honk_vk(uint8_array: JsValue) -> Result<JsValue, JsValue> {
     set_property(&vk_obj, "t4", &jsvalue_from_g1_point(&vk.t4, curve_id)?)?;
     set_property(
         &vk_obj,
-        "lagrange_first",
+        "lagrangeFirst",
         &jsvalue_from_g1_point(&vk.lagrange_first, curve_id)?,
     )?;
     set_property(
         &vk_obj,
-        "lagrange_last",
+        "lagrangeLast",
         &jsvalue_from_g1_point(&vk.lagrange_last, curve_id)?,
     )?;
 

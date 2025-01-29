@@ -1,4 +1,5 @@
-import { HonkFlavor, parseHonkProofFromBytes, parseHonkVerifyingKeyFromBytes } from "../../src/node/starknet/honkContractGenerator/parsingUtils";
+import { HonkFlavor } from "../../src/node/starknet/honkContractGenerator/parsingUtils";
+import * as fs from 'fs';
 import * as garaga from "../../src/node/index";
 
 const PATH = '../../../hydra/garaga/starknet/honk_contract_generator/examples';
@@ -14,9 +15,11 @@ describe('Honk Getting calldata', () => {
 
     await garaga.init();
 
-    const vk = parseHonkVerifyingKeyFromBytes(vkPath as string);
+    const vkBytes = new Uint8Array(fs.readFileSync(vkPath as string));
+    const vk = garaga.parseHonkVerifyingKeyFromBytes(vkBytes);
 
-    const proof = parseHonkProofFromBytes(proofPath as string);
+    const proofBytes = new Uint8Array(fs.readFileSync(proofPath as string));
+    const proof = garaga.parseHonkProofFromBytes(proofBytes);
 
     console.log("proof", proof);
     console.log("vk", vk);

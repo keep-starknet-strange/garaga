@@ -47,7 +47,7 @@ export function parse_honk_proof(uint8_array: any): any;
  * @param {any} uint8_array
  * @returns {any}
  */
-export function parse_honk_vk(uint8_array: any): any;
+export function parse_honk_verification_key(uint8_array: any): any;
 /**
  * @param {any} proof_js
  * @param {any} vk_js
@@ -66,7 +66,7 @@ export interface InitOutput {
   readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;
   readonly parse_honk_proof: (a: number, b: number) => void;
-  readonly parse_honk_vk: (a: number, b: number) => void;
+  readonly parse_honk_verification_key: (a: number, b: number) => void;
   readonly get_honk_calldata: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
