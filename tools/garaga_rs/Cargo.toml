@@ -43,6 +43,7 @@ ark-ec = "0.4"
 ark-ff = "0.4"
 hex = "0.4"
 sha2 = "0.10"
+sha3 = "0.10"
 js-sys = "0.3"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
 lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }

@@ -282,6 +282,7 @@ dependencies = [
  "num-traits",
  "pyo3",
  "sha2",
+ "sha3",
  "starknet-types-core",
  "wasm-bindgen",
  "wasm-bindgen-test",
