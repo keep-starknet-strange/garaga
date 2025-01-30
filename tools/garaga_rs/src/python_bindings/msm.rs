@@ -24,7 +24,7 @@ pub fn msm_calldata_builder(
         &values,
         &scalars,
         curve_id,
-        include_digits_decomposition,
+        Some(include_digits_decomposition),
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
         risc0_mode,

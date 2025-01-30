@@ -287,7 +287,7 @@ where
     )
 }
 
-fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(
+pub fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F, E2>>,
