@@ -5,10 +5,10 @@
 /// The result of e(Pf4, Qf4) is precomputed and provided to the circuit as a the miller loop result
 /// precomputed_miller_loop_result = MillerLoop(Pf4, Qf4) ∈ Gt/Fp12.
 ///
-/// MultiPairing chekcs circuit in the "3P_2F" mode is used for triple pairs and double fixed G2
+/// MultiPairing checks circuit in the "3P_2F" mode is used for triple pairs and double fixed G2
 /// points
 ///
-/// Qf1 and Qf2 are represented by their pre-computed line functions for the specifc miller loop
+/// Qf1 and Qf2 are represented by their pre-computed line functions for the specific miller loop
 /// implementation.
 ///
 /// Two functions are provided for BN254 and BLS12-381 respectively.
@@ -47,7 +47,7 @@ use garaga::utils::{u384_assert_zero, usize_assert_eq};
 use garaga::utils::hashing;
 
 
-// Groth16 proof structure, genric for both BN254 and BLS12-381.
+// Groth16 proof structure, generic for both BN254 and BLS12-381.
 #[derive(Drop, Serde)]
 pub struct Groth16Proof {
     pub a: G1Point,
