@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import BLS12_381_ID
-from garaga.extension_field_modulo_circuit import ModuloCircuit, PyFelt
+from garaga.modulo_circuit import ModuloCircuit, PyFelt
 from garaga.modulo_circuit_structs import (
     Cairo1SerializableStruct,
     G2Line,

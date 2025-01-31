@@ -160,7 +160,7 @@ class IsOnCurveG2Circuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = BasicEC(
+        circuit = BasicECG2(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
         x0, x1, y0, y1 = circuit.write_struct(

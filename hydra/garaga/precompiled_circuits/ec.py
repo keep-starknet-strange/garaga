@@ -1,13 +1,8 @@
 import sympy
 
 from garaga.definitions import CURVES
-from garaga.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    ModuloCircuit,
-    ModuloCircuitElement,
-    PyFelt,
-)
-from garaga.modulo_circuit import WriteOps
+from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt, WriteOps
+from garaga.precompiled_circuits.fp2 import Fp2Circuits
 
 
 def is_quad_residue(n, p):
@@ -24,7 +19,7 @@ def sqrt_mod_p(n, p):
     return min(sympy.ntheory.residue_ntheory.sqrt_mod(n, p, all_roots=True))
 
 
-class IsOnCurveCircuit(ModuloCircuit):
+class IsOnCurveCircuit(Fp2Circuits):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
         super().__init__(
             name=name,
@@ -138,6 +133,62 @@ class DerivePointFromX(ModuloCircuit):
         should_be_grhs = self.mul(grhs_sqrt, grhs_sqrt)
 
         return (rhs, grhs, should_be_rhs, should_be_grhs, rhs_sqrt)
+
+
+class DeriveG1PointFromX(ModuloCircuit):
+    """
+    A class to derive the y-coordinate of a G1 point on an elliptic curve given the x-coordinate.
+
+    This class is a specialized ModuloCircuit that uses the curve parameters to compute the y-coordinate
+    from a given x-coordinate, ensuring that the point lies on the curve. The s_bit can be extracted from the compressed G1 point.
+    """
+
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
+        self.curve = CURVES[curve_id]
+
+    def derive_y_from_x(
+        self,
+        b: ModuloCircuitElement,
+        x: ModuloCircuitElement,
+        s_bit: ModuloCircuitElement,  # S bit to determine y-coordinate
+    ) -> ModuloCircuitElement:
+        """
+        Derive the y-coordinate from the given x-coordinate on the elliptic curve.
+
+        :param x: The x-coordinate as a ModuloCircuitElement.
+        :param s_bit: A bit to select which y-coordinate to use (0 for smaller, 1 for larger).
+        :return: The y-coordinate as a ModuloCircuitElement.
+        :raises AssertionError: If the x-coordinate does not lie on the curve.
+        """
+        # y^2 = x^3 + b
+        x3 = self.mul(x, self.mul(x, x))
+        rhs = self.add(x3, b)
+
+        # Ensure rhs is a quadratic residue
+        assert is_quad_residue(rhs.value, self.field.p), "x coordinate is not on curve"
+
+        # Compute both possible y values
+        y1 = self.field(sqrt_mod_p(rhs.value, self.field.p))
+        y2 = self.field.p - y1  # Negative of y1
+
+        # Select y based on s_bit - use larger value if s_bit=1, smaller value if s_bit=0
+        y = y2 if (y1 < y2) == s_bit.value else y1
+
+        y_coord = self.write_element(
+            y,
+            WriteOps.WITNESS,
+        )
+
+        # Validate the y-coordinate
+        self.mul_and_assert(y_coord, y_coord, rhs)
+
+        return y_coord
 
 
 class ECIPCircuits(ModuloCircuit):
@@ -584,6 +635,62 @@ class BasicEC(ModuloCircuit):
         x3_ax_b = self.add(x3, self.add(ax, b))
         return y2, x3_ax_b
 
+    def negate_point(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement]
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Negate a point in G1."""
+        x, y = P
+        return (x, self.neg(y))
+
+    def add_points(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        Q: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Add two points in G1."""
+        xP, yP = P
+        xQ, yQ = Q
+        slope = self._compute_adding_slope(P, Q)
+        slope_sqr = self.mul(slope, slope)
+        nx = self.sub(self.sub(slope_sqr, xP), xQ)
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_point_a_eq_0(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point in G1 when curve parameter a=0."""
+        xP, yP = P
+        three = self.set_or_get_constant(self.field(3))
+        slope = self.div(
+            self.mul(three, self.mul(xP, xP)), self.add(yP, yP)  # 3x^2  # 2y
+        )
+        slope_sqr = self.mul(slope, slope)
+        nx = self.sub(self.sub(slope_sqr, xP), xP)
+        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        return (nx, ny)
+
+    def double_n_times(
+        self, P: tuple[ModuloCircuitElement, ModuloCircuitElement], n: int
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point n times in G1."""
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
+
+class BasicECG2(Fp2Circuits):
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(
+            name=name,
+            curve_id=curve_id,
+            generic_circuit=True,
+            compilation_mode=compilation_mode,
+        )
+        self.curve = CURVES[curve_id]
+
     def _is_on_curve_G2_weirstrass(
         self,
         x0: ModuloCircuitElement,
@@ -607,18 +714,6 @@ class BasicEC(ModuloCircuit):
 
         return y2, x3_ax_b
 
-
-class BasicECG2(ExtensionFieldModuloCircuit):
-    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
-        super().__init__(
-            name=name,
-            curve_id=curve_id,
-            extension_degree=2,
-            generic_circuit=True,
-            compilation_mode=compilation_mode,
-        )
-        self.curve = CURVES[curve_id]
-
     def _compute_adding_slope(
         self,
         P: tuple[
@@ -632,7 +727,7 @@ class BasicECG2(ExtensionFieldModuloCircuit):
     ):
         xP, yP = P
         xQ, yQ = Q
-        slope = self.fp2_div(self.extf_sub(yP, yQ), self.extf_sub(xP, xQ))
+        slope = self.fp2_div(self.vector_sub(yP, yQ), self.vector_sub(xP, xQ))
         return slope
 
     def _compute_doubling_slope_a_eq_0(
@@ -644,8 +739,8 @@ class BasicECG2(ExtensionFieldModuloCircuit):
         # Compute doubling slope m = (3x^2 + A) / 2y
         three = self.set_or_get_constant(self.field(3))
 
-        m_num = self.extf_scalar_mul(self.fp2_square(xP), three)
-        m_den = self.extf_add(yP, yP)
+        m_num = self.vector_scale(self.fp2_square(xP), three)
+        m_den = self.vector_add(yP, yP)
         m = self.fp2_div(m_num, m_den)
         return m
 
@@ -658,8 +753,8 @@ class BasicECG2(ExtensionFieldModuloCircuit):
         xQ, yQ = Q
         slope = self._compute_adding_slope(P, Q)
         slope_sqr = self.fp2_square(slope)
-        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xQ)
-        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
+        nx = self.vector_sub(self.vector_sub(slope_sqr, xP), xQ)
+        ny = self.vector_sub(self.fp2_mul(slope, self.vector_sub(xP, nx)), yP)
         return (nx, ny)
 
     def double_point_a_eq_0(
@@ -669,6 +764,18 @@ class BasicECG2(ExtensionFieldModuloCircuit):
         xP, yP = P
         slope = self._compute_doubling_slope_a_eq_0(P)
         slope_sqr = self.fp2_square(slope)
-        nx = self.extf_sub(self.extf_sub(slope_sqr, xP), xP)
-        ny = self.extf_sub(self.fp2_mul(slope, self.extf_sub(xP, nx)), yP)
+        nx = self.vector_sub(self.vector_sub(slope_sqr, xP), xP)
+        ny = self.vector_sub(self.fp2_mul(slope, self.vector_sub(xP, nx)), yP)
         return (nx, ny)
+
+    def double_n_times(self, P, n):
+        Q = P
+        for _ in range(n):
+            Q = self.double_point_a_eq_0(Q)
+        return Q
+
+    def negate_point(
+        self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
+    ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
+        x, y = P
+        return (x, self.vector_neg(y))

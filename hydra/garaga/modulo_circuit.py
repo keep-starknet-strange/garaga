@@ -4,7 +4,6 @@ from typing import List, Union
 
 from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
-from garaga.hints.extf_mul import nondeterministic_extension_field_div
 from garaga.hints.io import bigint_split
 from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u384
 
@@ -635,94 +634,109 @@ class ModuloCircuit:
         else:
             return self.mul(a, self.inv(b))
 
-    def fp2_mul(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
-        # Assumes the irreducible poly is X^2 + 1.
-        assert len(X) == len(Y) == 2 and all(
-            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
-            for x, y in zip(X, Y)
-        )
-        # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
+    def fp_sqrt(self, element: ModuloCircuitElement) -> ModuloCircuitElement:
+        """
+        Computes the square root of a field element.
+        Returns the lexicographically largest square root.
+        Raises ValueError if the element is not a quadratic residue.
+        """
+        assert self.compilation_mode == 0, "fp_sqrt is not supported in cairo 1 mode"
+
+        root = element.felt.sqrt(False)
+
+        # Write the root as a witness and verify it
+        root = self.write_element(root, WriteOps.WITNESS)
+        self.mul_and_assert(root, root, element, comment="Fp sqrt")
+        return root
+
+    def fp_parity(self, element: ModuloCircuitElement) -> ModuloCircuitElement:
+        """
+        Computes the parity of a field element.
+        Returns 0 if element is even, 1 if odd.
+
+        Implements sgn0_m_eq_1 from RFC9380 using witness variables for validation.
+        """
+        assert isinstance(element, ModuloCircuitElement)
+
+        two = self.set_or_get_constant(2)
+        one = self.set_or_get_constant(1)
+        zero = self.set_or_get_constant(0)
+
+        # Witnesses: q (quotient), r (remainder)
+        q = self.write_element(
+            PyFelt(element.value // 2, element.p), WriteOps.WITNESS
+        )  # Witness for quotient
+        r = self.write_element(
+            PyFelt(element.value % 2, element.p), WriteOps.WITNESS
+        )  # Witness for remainder (parity)
+
+        # Enforce that r ∈ {0, 1}
+        r_sub_1 = self.sub(r, one)
+        r_times_r_sub_1 = self.mul(r, r_sub_1)
+        self.sub_and_assert(r_times_r_sub_1, zero, zero, comment="Ensure r ∈ {0,1}")
+
+        # Enforce element = 2 * q + r
+        two_q = self.mul(q, two)
+        self.add_and_assert(two_q, r, element, comment="Validate element decomposition")
+
+        return r
+
+    def fp_is_non_zero(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
+        """
+        Returns 1 if a ≠ 0, 0 if a == 0, working in the base field.
+        Uses the fact that a * a⁻¹ = 1 for any non-zero a, while 0 * 0⁻¹ = 0.
+        """
+        # Try to compute inverse of a. Will be 0 if a==0, 1/a if a!=0
+        inv = self.inv(a)
+
+        # Multiply a * inv. Will be 0 if a==0, 1 if a!=0
+        return self.mul(a, inv)
+
+    def vector_sub(
+        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
         return [
-            self.sub(
-                self.mul(X[0], Y[0], comment="Fp2 mul start"),
-                self.mul(X[1], Y[1]),
-                comment="Fp2 mul real part end",
-            ),
-            self.add(
-                self.mul(X[0], Y[1]),
-                self.mul(X[1], Y[0]),
-                comment="Fp2 mul imag part end",
-            ),
+            self.sub(x, y, comment=f"Fp{len(X)} sub coeff {i}/{len(X)-1}")
+            for i, (x, y) in enumerate(zip(X, Y))
         ]
 
-    def fp2_mul_by_non_residue(self, X: list[ModuloCircuitElement]):
-        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
-        if self.curve_id == 1:
-            # Non residue (1,1)
-            # (a0 + i*a1) * (1 + i)
-            a_tmp = self.add(X[0], X[1])
-            a = self.add(a_tmp, a_tmp)
-            b = X[0]
-            z_a0 = self.sub(b, X[1])
-            z_a1 = self.sub(self.sub(a, b), X[1])
-            return [z_a0, z_a1]
-        elif self.curve_id == 0:
-            # Non residue (9, 1)
-            # (a0 + i*a1) * (9 + i)
-            a_tmp = self.add(X[0], X[1])
-            a = self.mul(a_tmp, self.set_or_get_constant(10))
-            b = self.mul(X[0], self.set_or_get_constant(9))
-            z_a0 = self.sub(b, X[1])
-            z_a1 = self.sub(self.sub(a, b), X[1])
-            return [z_a0, z_a1]
-
-        else:
-            raise ValueError(
-                f"Unsupported curve id for fp2 mul by non residue: {self.curve_id}"
-            )
-
-    def fp2_square(self, X: list[ModuloCircuitElement]):
-        # Assumes the irreducible poly is X^2 + 1.
-        # x² = (x0 + i x1)² = (x0² - x1²) + 2 * i * x0 * x1 = (x0+x1)(x0-x1) + i * 2 * x0 * x1.
-        # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
-        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
+    def vector_scale(
+        self, X: list[ModuloCircuitElement], c: ModuloCircuitElement
+    ) -> list[ModuloCircuitElement]:
+        """
+        Multiplies a polynomial with coefficients `X` by a scalar `c`.
+        Input : I(x) = i0 + i1*x + i2*x^2 + ... + in-1*x^n-1
+        Output : O(x) = ci0 + ci1*x + ci2*x^2 + ... + cin-1*x^n-1.
+        This is done in the circuit.
+        """
+        assert isinstance(c, ModuloCircuitElement), "c must be a ModuloCircuitElement"
         return [
-            self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
-            self.double(self.mul(X[0], X[1])),
+            self.mul(x_i, c, comment=f"Fp{len(X)} scalar mul coeff {i}/{len(X)-1}")
+            for i, x_i in enumerate(X)
         ]
 
-    def fp2_inv(self, X: list[ModuloCircuitElement]):
-        assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
-        t0 = self.mul(X[0], X[0], comment="Fp2 Inv start")
-        t1 = self.mul(X[1], X[1])
-        t0 = self.add(t0, t1)
-        t1 = self.inv(t0)
-        inv0 = self.mul(X[0], t1, comment="Fp2 Inv real part end")
-        inv1 = self.neg(self.mul(X[1], t1), comment="Fp2 Inv imag part end")
-        return [inv0, inv1]
+    def vector_add(
+        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
+    ) -> list[ModuloCircuitElement]:
+        """
+        Adds two polynomials with coefficients `X` and `Y`.
+        Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
+        """
+        assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
+        return [
+            self.add(x_i, y_i, comment=f"Fp{len(X)} add coeff {i}/{len(X)-1}")
+            for i, (x_i, y_i) in enumerate(zip(X, Y))
+        ]
 
-    def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
-        assert len(X) == len(Y) == 2 and all(
-            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
-            for x, y in zip(X, Y)
-        )
-        if self.compilation_mode == 0:
-            x_over_y = nondeterministic_extension_field_div(X, Y, self.curve_id, 2)
-            x_over_y = self.write_elements(x_over_y, WriteOps.WITNESS)
-            # x_over_y = d0 + i * d1
-            # y = y0 + i * y1
-            # x = x_over_y*y = d0*y0 - d1*y1 + i * (d0*y1 + d1*y0)
-            self.sub_and_assert(
-                a=self.mul(x_over_y[0], Y[0]), b=self.mul(x_over_y[1], Y[1]), c=X[0]
-            )
-            self.add_and_assert(
-                a=self.mul(x_over_y[0], Y[1]), b=self.mul(x_over_y[1], Y[0]), c=X[1]
-            )
-            return x_over_y
-        elif self.compilation_mode == 1:
-            # Todo : consider passing as calldata if possible.
-            inv = self.fp2_inv(Y)
-            return self.fp2_mul(X, inv)
+    def vector_neg(self, X: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
+        """
+        Negates a polynomial with coefficients `X`.
+        Returns R = [-x0, -x1, -x2, ... -xn-1] mod p
+        """
+        return [
+            self.neg(x_i, comment=f"Fp{len(X)} neg coeff {i}/{len(X)-1}")
+            for i, x_i in enumerate(X)
+        ]
 
     def sub_and_assert(
         self,
@@ -764,6 +778,23 @@ class ModuloCircuit:
         ), "add_and_assert is not supported in cairo 1 mode"
         instruction = ModuloCircuitInstruction(
             ModBuiltinOps.ADD, a.offset, b.offset, c.offset, comment
+        )
+        self.values_segment.assert_eq_instructions.append(instruction)
+        return c
+
+    def mul_and_assert(
+        self,
+        a: ModuloCircuitElement,
+        b: ModuloCircuitElement,
+        c: ModuloCircuitElement,
+        comment: str | None = None,
+    ):
+        assert (
+            self.compilation_mode == 0
+        ), "mul_and_assert is not supported in cairo 1 mode"
+
+        instruction = ModuloCircuitInstruction(
+            ModBuiltinOps.MUL, a.offset, b.offset, c.offset, comment
         )
         self.values_segment.assert_eq_instructions.append(instruction)
         return c
