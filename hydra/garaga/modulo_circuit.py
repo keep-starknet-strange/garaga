@@ -642,7 +642,7 @@ class ModuloCircuit:
         """
         assert self.compilation_mode == 0, "fp_sqrt is not supported in cairo 1 mode"
 
-        root = element.felt.sqrt()
+        root = element.felt.sqrt(False)
 
         # Write the root as a witness and verify it
         root = self.write_element(root, WriteOps.WITNESS)
