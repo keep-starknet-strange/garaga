@@ -338,7 +338,7 @@ class MapToCurveG1(ModuloCircuit):
 
         return [g1x, div, num_x1, zeta_u2]
 
-    def finalize_map_to_curve_quadratic(
+    def compute_initial_coordinates_quadratic(
         self,
         field: ModuloCircuitElement,
         g1x: ModuloCircuitElement,
@@ -346,8 +346,9 @@ class MapToCurveG1(ModuloCircuit):
         num_x1: ModuloCircuitElement,
     ):
         """
-        Finalizes the map-to-curve operation when g1x is a quadratic residue.
-        This function computes the y-coordinate and ensures the point has the correct sign.
+        Computes the x and y coordinates for the map-to-curve operation when g1x is a
+        quadratic residue. This function computes the y-coordinate and ensures the point
+        has the correct sign.
 
         IMPORTANT: This function should only be called when g1x is a quadratic residue,
         meaning there exists a y such that y² = g1x in the field.
@@ -369,48 +370,24 @@ class MapToCurveG1(ModuloCircuit):
             num_x1: The numerator for x from the first part
 
         Returns:
-            list: [x_affine, y_affine] representing the final curve point
+            list: [x_affine, y_initial, field] where:
+                - x_affine: The final x-coordinate
+                - y_initial: The initial y-coordinate (needs sign adjustment)
+                - field: The original field element (needed for sign adjustment)
 
         Note:
             When g1x is not a quadratic residue, the alternative function
-            finalize_map_to_curve_non_quadratic should be used instead.
+            compute_initial_coordinates_non_quadratic should be used instead.
         """
         # Compute y-coordinate as the square root of g1x
-        y = self.fp_sqrt(g1x)
+        y_initial = self.fp_sqrt(g1x)
 
         # Convert x to affine coordinates
         x_affine = self.div(num_x1, div)
 
-        # Get parity (sign) of both y and input field element
-        y_parity = self.fp_parity(y)
-        element_parity = self.fp_parity(field)
+        return [x_affine, y_initial, field]
 
-        # Compute if parities are the same using XNOR (opposite of XOR)
-        # XNOR(a,b) = 1 - (a + b - 2ab) = 2ab - a - b + 1
-        same_parity = self.add(
-            self.sub(
-                self.mul(
-                    self.set_or_get_constant(2),
-                    self.mul(y_parity, element_parity),
-                ),
-                self.add(y_parity, element_parity),
-            ),
-            self.set_or_get_constant(1),
-        )
-
-        # Adjust y sign if parities don't match:
-        # y_affine = same_parity ? y : -y
-        y_affine = self.add(
-            self.mul(same_parity, y),  # Keep y if same parity
-            self.mul(
-                self.sub(self.one, same_parity),
-                self.sub(self.zero, y),  # -y
-            ),
-        )
-
-        return [x_affine, y_affine]
-
-    def finalize_map_to_curve_non_quadratic(
+    def compute_initial_coordinates_non_quadratic(
         self,
         field: ModuloCircuitElement,
         g1x: ModuloCircuitElement,
@@ -419,9 +396,9 @@ class MapToCurveG1(ModuloCircuit):
         zeta_u2: ModuloCircuitElement,
     ):
         """
-        Finalizes the map-to-curve operation when g1x is NOT a quadratic residue.
-        This function uses a clever mathematical property to compute a valid y-coordinate
-        when direct square root is impossible.
+        Computes the initial x and y coordinates for the map-to-curve operation when g1x
+        is NOT a quadratic residue. The y-coordinate will need further sign adjustment
+        using adjust_y_sign().
 
         Key Mathematical Insight:
         When g1x is not a quadratic residue, we use the SWU constant z (which is also
@@ -429,13 +406,12 @@ class MapToCurveG1(ModuloCircuit):
         1. If g1x is not a quadratic residue, then z·g1x IS a quadratic residue
            (product of two non-quadratic residues is a quadratic residue)
         2. We can then compute y₁ = √(z·g1x)
-        3. The final y is computed as y = zu·field·y₁
+        3. The initial y is computed as y = zu·field·y₁
 
         The algorithm:
         1. Compute y₁ = √(z·g1x)  [This is possible because z·g1x is a quadratic residue]
-        2. Compute y = zu·field·y₁
+        2. Compute initial y = zu·field·y₁
         3. Compute x = (zu·num_x1)/div
-        4. Adjust y sign to match input field element parity
 
         Args:
             field: The original input field element
@@ -445,26 +421,36 @@ class MapToCurveG1(ModuloCircuit):
             div: The denominator from the first part
 
         Returns:
-            tuple: (x_affine, y_affine) representing the final curve point
+            list: [x_affine, y_initial, field] where:
+                - x_affine: The final x-coordinate
+                - y_initial: The initial y-coordinate (needs sign adjustment)
+                - field: The original field element (needed for sign adjustment)
 
         Note:
-            This method relies on the careful selection of the SWU constant z as a
-            non-quadratic residue in the field Fp2.
+            The returned y_initial needs to be adjusted using adjust_y_sign() to ensure
+            it has the correct sign relative to the input field element.
         """
         # Since z·g1x is a quadratic residue (product of two non-quadratic residues),
         # this square root is guaranteed to exist
         y1 = self.fp_sqrt(self.mul(self.swu_z, g1x))
 
-        # Compute final y-coordinate
-        y = self.mul(zeta_u2, self.mul(field, y1))
+        # Compute initial y-coordinate
+        y_initial = self.mul(zeta_u2, self.mul(field, y1))
 
         # Compute x-coordinate in affine form
         num_x = self.mul(zeta_u2, num_x1)
         x_affine = self.div(num_x, div)
 
+        return [x_affine, y_initial, field]
+
+    def adjust_y_sign(
+        self,
+        field: ModuloCircuitElement,
+        y: ModuloCircuitElement,
+    ):
         # Handle sign adjustment as before
-        y_parity = self.fp_parity(y)
-        element_parity = self.fp_parity(field)
+        qy, y_parity = self.fp_parity(y)
+        qfield, element_parity = self.fp_parity(field)
 
         # Compute if parities are the same using XNOR (opposite of XOR)
         # XNOR(a,b) = 1 - (a + b - 2ab) = 2ab - a - b + 1
@@ -489,7 +475,7 @@ class MapToCurveG1(ModuloCircuit):
             ),
         )
 
-        return [x_affine, y_affine]
+        return [y_affine, qy, qfield]
 
 
 if __name__ == "__main__":
@@ -511,13 +497,19 @@ if __name__ == "__main__":
 
     if g1x.felt.is_quad_residue():
         print("Quadratic residue")
-        (x_affine, y) = circuit.finalize_map_to_curve_quadratic(field, g1x, div, num_x1)
+        (x_affine, y_initial, field) = circuit.compute_initial_coordinates_quadratic(
+            field, g1x, div, num_x1
+        )
     else:
         print("Non quadratic residue")
-        (x_affine, y) = circuit.finalize_map_to_curve_non_quadratic(
-            field, g1x, div, num_x1, zeta_u2
-        )  # circuit.field(1556800727266659224486307223710983989761661593776178353933175239605467918853638579207638742450628877266610077644019),
-        # circuit.field(2231413721970278425038638834062370180699174210864795385441649994565282274875534254514118105433862522641883533654145),
+        (x_affine, y_initial, field) = (
+            circuit.compute_initial_coordinates_non_quadratic(
+                field, g1x, div, num_x1, zeta_u2
+            )
+        )
+
+    # Adjust y sign
+    (y_affine, qy, qfield) = circuit.adjust_y_sign(field, y_initial)
 
     print("x_affine", x_affine)
-    print("y", y)
+    print("y_affine", y_affine)

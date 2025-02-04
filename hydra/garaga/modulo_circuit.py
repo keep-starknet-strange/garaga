@@ -679,7 +679,7 @@ class ModuloCircuit:
         two_q = self.mul(q, two)
         self.add_and_assert(two_q, r, element, comment="Validate element decomposition")
 
-        return r
+        return q, r
 
     def fp_is_non_zero(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
         """

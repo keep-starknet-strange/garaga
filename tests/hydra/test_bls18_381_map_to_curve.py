@@ -188,7 +188,11 @@ def test_bls18_381_map_to_curve_g1_quadratic():
         == 1458720157247399937074920312179320190319011370446888399995409372377477911247349655187476411795089883075347478260790
     )
 
-    (x_affine, y) = circuit.finalize_map_to_curve_quadratic(field, g1x, div, num_x1)
+    (x_affine, y_initial, field) = circuit.compute_initial_coordinates_quadratic(
+        field, g1x, div, num_x1
+    )
+
+    (y_affine, qy, qfield) = circuit.adjust_y_sign(field, y_initial)
 
     # Assert final results
     assert (
@@ -196,7 +200,7 @@ def test_bls18_381_map_to_curve_g1_quadratic():
         == 821680820282835312240647697969669528662337868557420531415876216710180320418897646214379495222032594074174798424202
     )
     assert (
-        y.emulated_felt.value
+        y_affine.emulated_felt.value
         == 2810929796268343801118836101228108033947242316820103062127644703467142871560955216144508646104360230898984292110363
     )
 
@@ -231,9 +235,11 @@ def test_bls18_381_map_to_curve_g1_non_quadratic():
         == 3595463469902610153619251584554498156597029272564817168764456841515827675239496939601340079478403412813212271353518
     )
 
-    (x_affine, y) = circuit.finalize_map_to_curve_non_quadratic(
+    (x_affine, y_initial, field) = circuit.compute_initial_coordinates_non_quadratic(
         field, g1x, div, num_x1, zeta_u2
     )
+
+    (y_affine, qy, qfield) = circuit.adjust_y_sign(field, y_initial)
 
     # Assert final results
     assert (
@@ -241,6 +247,6 @@ def test_bls18_381_map_to_curve_g1_non_quadratic():
         == 1412853964218444964438936699552956047210482383152224645596624291427056376487356261681298103080878386132407858666637
     )
     assert (
-        y.emulated_felt.value
+        y_affine.emulated_felt.value
         == 752734926215712395741522221355891264404138695398702662135908094550118515106801651502315795564392519475687558113863
     )
