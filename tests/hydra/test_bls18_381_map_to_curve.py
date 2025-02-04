@@ -57,9 +57,11 @@ def test_bls18_381_map_to_curve_g2_non_quadratic():
         == 1011496392125783422068061997226415746244229915320831072846626167000664891392171563621675612638222437312051389941143
     )
 
-    (x_affine, y) = circuit.finalize_map_to_curve_non_quadratic(
+    (x_affine, y, field) = circuit.compute_initial_coordinates_non_quadratic(
         field, g1x, div, num_x1, zeta_u2
     )
+
+    (y_affine, qfield, qy) = circuit.adjust_y_sign(field, y)
 
     # Assert final results
     assert (
@@ -72,11 +74,11 @@ def test_bls18_381_map_to_curve_g2_non_quadratic():
     )
 
     assert (
-        y[0].emulated_felt.value
+        y_affine[0].emulated_felt.value
         == 2345181275451808874246097791768578660839971403546046193253448677984295781774410213317345275973043584946083029690838
     )
     assert (
-        y[1].emulated_felt.value
+        y_affine[1].emulated_felt.value
         == 491718355885353185704655750809656447183587281146662745649897882009019112506313662303269809992594062560315039747134
     )
 
@@ -136,7 +138,11 @@ def test_bls18_381_map_to_curve_g2_quadratic():
         == 2186733141282187687524429079326838649285331456588145172920951615849025076744838489106511432055390831654029460361575
     )
 
-    (x_affine, y) = circuit.finalize_map_to_curve_quadratic(field, g1x, div, num_x1)
+    (x_affine, y_affine, field) = circuit.compute_initial_coordinates_quadratic(
+        field, g1x, div, num_x1
+    )
+
+    (y_affine, qfield, qy) = circuit.adjust_y_sign(field, y_affine)
 
     # Assert final results
     assert (
@@ -149,11 +155,11 @@ def test_bls18_381_map_to_curve_g2_quadratic():
     )
 
     assert (
-        y[0].emulated_felt.value
+        y_affine[0].emulated_felt.value
         == 2229899020770589661585214900480830515873415727829711460134445858387853696109925143060238999266818473086058450471795
     )
     assert (
-        y[1].emulated_felt.value
+        y_affine[1].emulated_felt.value
         == 3127664777588830509127251096086955764006894160737524705993294599144750103128110100147816255502757346871240956727581
     )
 
