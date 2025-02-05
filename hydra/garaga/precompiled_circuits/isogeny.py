@@ -1,6 +1,6 @@
 from garaga.definitions import CURVES, CurveID
 from garaga.extension_field_modulo_circuit import ModuloCircuitElement
-from garaga.modulo_circuit import ModuloCircuit, WriteOps
+from garaga.modulo_circuit import ModuloCircuit
 from garaga.precompiled_circuits.fp2 import Fp2Circuits
 from garaga.signature import get_isogeny_to_g1_map, get_isogeny_to_g2_map
 
@@ -11,35 +11,31 @@ class IsogenyG2(Fp2Circuits):
             name=name,
             curve_id=curve_id,
             compilation_mode=compilation_mode,
-            generic_circuit=True,
+            generic_circuit=False,
         )
         self.curve = CURVES[curve_id]
 
     def set_consts(self):
         x_rational, y_rational = get_isogeny_to_g2_map(CurveID(self.curve_id))
-        self.x_num = self.write_elements(
-            x_rational.numerator.coefficients, WriteOps.CONSTANT
-        )
-        self.x_den = self.write_elements(
-            x_rational.denominator.coefficients, WriteOps.CONSTANT
-        )
-        self.y_num = self.write_elements(
-            y_rational.numerator.coefficients, WriteOps.CONSTANT
-        )
-        self.y_den = self.write_elements(
-            y_rational.denominator.coefficients, WriteOps.CONSTANT
-        )
+        self.x_num = [
+            self.set_or_get_constant(c) for c in x_rational.numerator.coefficients
+        ]
+        self.x_den = [
+            self.set_or_get_constant(c) for c in x_rational.denominator.coefficients
+        ]
+        self.y_num = [
+            self.set_or_get_constant(c) for c in y_rational.numerator.coefficients
+        ]
+        self.y_den = [
+            self.set_or_get_constant(c) for c in y_rational.denominator.coefficients
+        ]
 
     def run_isogeny(
         self, x: list[ModuloCircuitElement], y: list[ModuloCircuitElement]
     ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
-        circuit = ModuloCircuit(
-            self.name,
-            self.curve_id,
-            generic_circuit=False,
-            compilation_mode=self.compilation_mode,
-        )
-
+        """
+        Runs the isogeny to G2 map.
+        """
         self.set_consts()
 
         x_affine_num = self.fp2_eval_horner(self.x_num, x, "x_num")
@@ -59,35 +55,35 @@ class IsogenyG1(ModuloCircuit):
             name=name,
             curve_id=curve_id,
             compilation_mode=compilation_mode,
-            generic_circuit=True,
+            generic_circuit=False,
         )
         self.curve = CURVES[curve_id]
 
     def set_consts(self):
+        """
+        Sets the constants for the isogeny to G1 map.
+        """
         x_rational, y_rational = get_isogeny_to_g1_map(CurveID(self.curve_id))
-        self.x_num = self.write_elements(
-            x_rational.numerator.coefficients, WriteOps.CONSTANT
-        )
-        self.x_den = self.write_elements(
-            x_rational.denominator.coefficients, WriteOps.CONSTANT
-        )
-        self.y_num = self.write_elements(
-            y_rational.numerator.coefficients, WriteOps.CONSTANT
-        )
-        self.y_den = self.write_elements(
-            y_rational.denominator.coefficients, WriteOps.CONSTANT
-        )
+        self.x_num = [
+            self.set_or_get_constant(c) for c in x_rational.numerator.coefficients
+        ]
+        self.x_den = [
+            self.set_or_get_constant(c) for c in x_rational.denominator.coefficients
+        ]
+
+        self.y_num = [
+            self.set_or_get_constant(c) for c in y_rational.numerator.coefficients
+        ]
+        self.y_den = [
+            self.set_or_get_constant(c) for c in y_rational.denominator.coefficients
+        ]
 
     def run_isogeny(
         self, x: ModuloCircuitElement, y: ModuloCircuitElement
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
-        circuit = ModuloCircuit(
-            self.name,
-            self.curve_id,
-            generic_circuit=False,
-            compilation_mode=self.compilation_mode,
-        )
-
+        """
+        Runs the isogeny to G1 map.
+        """
         self.set_consts()
 
         x_affine_num = self.eval_horner(self.x_num, x, "x_num")
