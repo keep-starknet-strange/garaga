@@ -161,7 +161,7 @@ class Fp2Circuits(ModuloCircuit):
         This is because:
         (a + bi)^p = a^p + (bi)^p = a^p + b^p * i^p
         In Fp: a^p = a, b^p = b
-        In Fp2: i^p = -i
+        In Fp2: i^p = -i (p is odd > 2)
         Therefore: (a + bi)^p = a - bi
         """
         a, b = element  # element = a + bi

@@ -1,4 +1,5 @@
 from garaga.algebra import ModuloCircuitElement
+from garaga.definitions import CurveID
 from garaga.precompiled_circuits.ec import BasicEC, BasicECG2
 
 
@@ -17,6 +18,10 @@ class SlowG2CofactorClearing(BasicECG2):
         Reference implementation:
         https://github.com/Consensys/teku/blob/55d04f87b422112312f79c1b4d662b3d58e3ca74/bls/src/main/java/tech/pegasys/teku/bls/impl/mikuli/hash2g2/Chains.java#L569
         """
+        assert (
+            self.curve_id == CurveID.BLS12_381.value
+        ), "This circuit is only supported for BLS12-381"
+
         # Initial point is t0 = P
         t0 = P
 
@@ -253,6 +258,10 @@ class SlowG2CofactorClearing(BasicECG2):
         Returns:
             A point in the correct subgroup after cofactor clearing
         """
+        assert (
+            self.curve_id == CurveID.BLS12_381.value
+        ), "This circuit is only supported for BLS12-381"
+
         # Step 1: Apply h2 chain
         work = self.h2_chain(P)
 
@@ -284,16 +293,6 @@ class FastG2CofactorClearing(BasicECG2):
     - ψ² (psi²): Double application of Frobenius
     - mul_by_x: Multiplication by BLS parameter x
     """
-
-    def fp2_frobenius_map(
-        self, element: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        """
-        Applies the Frobenius map to an element in F_{p^2}.
-        """
-        a, b = element
-        # For BLS12-381, the Frobenius map in F_{p^2} is (a, -b)
-        return [a, self.neg(b)]
 
     def psi(
         self, P: tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]
