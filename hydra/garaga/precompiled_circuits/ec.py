@@ -135,12 +135,14 @@ class DerivePointFromX(ModuloCircuit):
         return (rhs, grhs, should_be_rhs, should_be_grhs, rhs_sqrt)
 
 
-class DeriveG1PointFromX(ModuloCircuit):
+class DecompressG1Point(ModuloCircuit):
     """
-    A class to derive the y-coordinate of a G1 point on an elliptic curve given the x-coordinate.
+    A class to decompress a G1 point on an elliptic curve given the x-coordinate.
 
     This class is a specialized ModuloCircuit that uses the curve parameters to compute the y-coordinate
-    from a given x-coordinate, ensuring that the point lies on the curve. The s_bit can be extracted from the compressed G1 point.
+    from a given x-coordinate, ensuring that the point lies on the curve. The y-coordinate is determined
+    using the s_bit, which is extracted from the compressed G1 point. The s_bit indicates which of the two
+    possible y-coordinates (positive or negative) should be selected.
     """
 
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
@@ -160,12 +162,28 @@ class DeriveG1PointFromX(ModuloCircuit):
     ) -> ModuloCircuitElement:
         """
         Derive the y-coordinate from the given x-coordinate on the elliptic curve.
+        Ensures that the point lies on the curve.
+        Assumes that the curve equation is y^2 = x^3 + b.
+
+
+        /!\ Warning : This circuit is non deterministic /!\
+
+        /!\ MAKE SURE THE CHOSEN Y VALUE RELATIVE TO S_BIT is CORRECT in CairoZero /!\
 
         :param x: The x-coordinate as a ModuloCircuitElement.
+        :param b: The curve parameter b as a ModuloCircuitElement.
         :param s_bit: A bit to select which y-coordinate to use (0 for smaller, 1 for larger).
         :return: The y-coordinate as a ModuloCircuitElement.
         :raises AssertionError: If the x-coordinate does not lie on the curve.
         """
+
+        assert (
+            CURVES[self.curve_id].b == 0
+        ), "This circuit is only supported for curves with b = 0"
+        assert (
+            self.compilation_mode == 0
+        ), "This circuit is only supported for CairoZero"
+
         # y^2 = x^3 + b
         x3 = self.mul(x, self.mul(x, x))
         rhs = self.add(x3, b)
