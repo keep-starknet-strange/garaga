@@ -684,9 +684,11 @@ class ModuloCircuit:
         flag = self.write_element(is_non_zero_python_bool, WriteOps.WITNESS)
 
         # Step 2: Force the flag to be a single bit: flag * (1 - flag) == 0
+
+        one_minus_flag = self.sub(self.set_or_get_constant(1), flag)
         self.mul_and_assert(
             flag,
-            self.sub(self.set_or_get_constant(1), flag),
+            one_minus_flag,
             self.set_or_get_constant(0),
             comment="flag ∈ {0,1}",
         )
@@ -707,7 +709,7 @@ class ModuloCircuit:
 
         self.add_and_assert(
             self.mul(flag, flag_eq_1_branch),
-            self.mul(self.sub(self.set_or_get_constant(1), flag), flag_eq_0_branch),
+            self.mul(one_minus_flag, flag_eq_0_branch),
             self.set_or_get_constant(1),
         )
 
