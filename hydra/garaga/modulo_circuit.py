@@ -636,13 +636,14 @@ class ModuloCircuit:
 
     def fp_sqrt(self, element: ModuloCircuitElement) -> ModuloCircuitElement:
         """
-        Computes the square root of a field element.
-        Returns the lexicographically largest square root.
+        Computes "a" square root of a field element.
+        /!\ Warning : This circuit is non deterministic /!\
+        /!\ Two square roots exist for any non-zero element, and no constraint is enforced to select any of them /!\
         Raises ValueError if the element is not a quadratic residue.
         """
         assert self.compilation_mode == 0, "fp_sqrt is not supported in cairo 1 mode"
 
-        root = element.felt.sqrt(False)
+        root = element.felt.sqrt(min_root=False)
 
         # Write the root as a witness and verify it
         root = self.write_element(root, WriteOps.WITNESS)

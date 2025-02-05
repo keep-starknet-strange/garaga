@@ -104,13 +104,18 @@ class Fp2Circuits(ModuloCircuit):
     def fp2_sqrt(
         self, element: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
+        """
+        Computes "a" square root of a field element.
+        /!\ Warning : This circuit is non deterministic /!\
+        /!\ Two square roots exist for any non-zero element, and no constraint is enforced to select any of them /!\
+        Raises ValueError if the element is not a quadratic residue.
+        """
         assert self.compilation_mode == 0, "fp2_sqrt is not supported in cairo 1 mode"
 
         root = Fp2(element[0].felt, element[1].felt).sqrt()
         if root is None:
             raise ValueError("No square root found for the given element")
 
-        # ToDo: the selection of which root to select is an unvalidated hint. Not sure if this can stay like this
         if not root.lexicographically_largest:
             root = Fp2.zero(element[0].p).__sub__(root)
 
