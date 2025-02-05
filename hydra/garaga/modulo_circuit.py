@@ -651,14 +651,68 @@ class ModuloCircuit:
 
     def fp_is_non_zero(self, a: ModuloCircuitElement) -> ModuloCircuitElement:
         """
-        Returns 1 if a ≠ 0, 0 if a == 0, working in the base field.
-        Uses the fact that a * a⁻¹ = 1 for any non-zero a, while 0 * 0⁻¹ = 0.
-        """
-        # Try to compute inverse of a. Will be 0 if a==0, 1/a if a!=0
-        inv = self.inv(a)
+        Returns 1 if a != 0, 0 if a == 0.
+        Enforces soundness by forcing `flag` to be a true indicator of whether 'a' is non-zero.
 
-        # Multiply a * inv. Will be 0 if a==0, 1 if a!=0
-        return self.mul(a, inv)
+        Main Constraints:
+        1) flag * (1 - flag) = 0
+           - Ensures that `flag` ∈ {0,1}, i.e., it's a binary indicator.
+        2) Prover supplies a_inv as a “would-be” inverse of `a`.
+           - If a != 0, a_inv should be the genuine inverse, i.e. a * a_inv = 1.
+           - If a == 0, a_inv is irrelevant and effectively ignored.
+        3) flag*(a * a_inv) + (1 - flag)*(a + 1) == 1
+           - If a == 0 → the only way is flag=0, so:
+                 0 * (0 * a_inv) + 1 * (0 + 1) = 1
+             which is satisfied.
+           - If a != 0 → the only way is flag=1, so:
+                 1 * (a * a_inv) + 0 * (a + 1) = 1
+             forcing a_inv to be a true inverse of a.
+
+        Consequently:
+          • When a == 0, the circuit forces flag=0 and ignores a_inv.
+          • When a != 0, the circuit forces flag=1 and requires a_inv to be the correct inverse.
+
+        Overall, this design prevents cheating (e.g. claiming a != 0 when it's actually 0, or supplying a bogus inverse) because the single equation in step (3) couples a, a_inv, and flag in a way that only the correct assignments can satisfy all constraints.
+        """
+
+        assert (
+            self.compilation_mode == 0
+        ), "`fp_is_non_zero_flag` is only supported in cairo 0 mode."
+
+        # Step 1: Prover declares a boolean-labeled witness: 1 if a != 0, else 0
+        is_non_zero_python_bool = int(a.value != 0)
+        flag = self.write_element(is_non_zero_python_bool, WriteOps.WITNESS)
+
+        # Step 2: Force the flag to be a single bit: flag * (1 - flag) == 0
+        self.mul_and_assert(
+            flag,
+            self.sub(self.set_or_get_constant(1), flag),
+            self.set_or_get_constant(0),
+            comment="flag ∈ {0,1}",
+        )
+
+        # Step 3: The prover supplies a_inv as a witness.
+        #          If flag=1 (a != 0), a_inv must be the real inverse: a*a_inv = 1.
+        #          If flag=0 (a == 0), a_inv is irrelevant.
+        a_inv_val = 0
+        if is_non_zero_python_bool:
+            a_inv_val = a.felt.__inv__().value
+        a_inv = self.write_element(a_inv_val, WriteOps.WITNESS)
+
+        # Step 4: Combine them with the core check:
+        #         flag*(a*a_inv) + (1 - flag)*(a+1) == 1
+        #         => forces correct assignments for (flag, a_inv)
+        flag_eq_0_branch = self.add(a, self.set_or_get_constant(1))
+        flag_eq_1_branch = self.mul(a, a_inv)
+
+        self.add_and_assert(
+            self.mul(flag, flag_eq_1_branch),
+            self.mul(self.sub(self.set_or_get_constant(1), flag), flag_eq_0_branch),
+            self.set_or_get_constant(1),
+        )
+
+        # Return the final flag: 1 if a != 0, 0 if a == 0
+        return flag
 
     def vector_sub(
         self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
