@@ -171,27 +171,11 @@ class Fp2Circuits(ModuloCircuit):
         self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
     ) -> list[ModuloCircuitElement]:
         # Assumes elements are represented as pairs (a + bi)
-        assert len(X) == len(Y) == 2 and all(
-            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
-            for x, y in zip(X, Y)
-        )
-        # (x0 + i*x1) + (y0 + i*y1) = (x0 + y0) + i*(x1 + y1)
-        return [
-            self.add(X[0], Y[0], comment="Fp2 add real part"),
-            self.add(X[1], Y[1], comment="Fp2 add imag part"),
-        ]
+        return self.vector_add(X, Y)
 
     def fp2_sub(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
         # Assumes elements are represented as pairs (a + bi)
-        assert len(X) == len(Y) == 2 and all(
-            isinstance(x, ModuloCircuitElement) and isinstance(y, ModuloCircuitElement)
-            for x, y in zip(X, Y)
-        )
-        # (x0 + i*x1) - (y0 + i*y1) = (x0 - y0) + i*(x1 - y1)
-        return [
-            self.sub(X[0], Y[0], comment="Fp2 sub real part"),
-            self.sub(X[1], Y[1], comment="Fp2 sub imag part"),
-        ]
+        return self.vector_sub(X, Y)
 
     def fp2_mul_and_assert(
         self,
