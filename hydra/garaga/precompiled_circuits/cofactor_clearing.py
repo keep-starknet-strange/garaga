@@ -311,6 +311,10 @@ class FastG2CofactorClearing(BasicECG2):
         Returns:
             A new G2 point after applying the Frobenius endomorphism
         """
+        assert (
+            self.curve_id == CurveID.BLS12_381.value
+        ), "This circuit is only supported for BLS12-381"
+
         x, y = P  # x and y are lists [x0, x1] representing elements in Fp²
 
         # Apply the Frobenius map (conjugation in Fp2)
@@ -363,6 +367,10 @@ class FastG2CofactorClearing(BasicECG2):
         Returns:
             [-x]P: The point multiplied by the negation of x
         """
+        assert (
+            self.curve_id == CurveID.BLS12_381.value
+        ), "This circuit is only supported for BLS12-381"
+
         result = P  # 1: Start with P. As a result we skip the first bit.
         result = self.double_point_a_eq_0(result)  # 1: Double and add
         result = self.add_points(result, P)  # 2: Double and add
@@ -460,6 +468,12 @@ class G1CofactorClearing(BasicEC):
         Returns:
             [x]P: The point multiplied by x
         """
+
+        # Todo : Incude automatic addition chain for any number computed at runtime ?
+        assert (
+            self.curve_id == CurveID.BLS12_381.value
+        ), "This circuit is only supported for BLS12-381"
+
         result = P  # 1: Start with P. As a result we skip the first bit.
         result = self.double_point_a_eq_0(result)  # 1: Double and add
         result = self.add_points(result, P)  # 2: Double and add
@@ -498,6 +512,10 @@ class G1CofactorClearing(BasicEC):
         Returns:
             A point in the correct order-r subgroup of G1
         """
+        assert (
+            self.curve_id == CurveID.BLS12_381.value
+        ), "This circuit is only supported for BLS12-381"
+
         # Calculate [x]P using the existing mul_by_x method
         # As shown below, we can save negation
         xP = self.mul_by_x(P)
