@@ -2,11 +2,11 @@ import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from ".
 import * as fs from 'fs';
 import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
 import { createHash } from 'crypto';
+import { get_risc0_constants } from "../../../wasm/pkg/garaga_rs";
 
 
 //https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-const RISC0_CONTROL_ROOT = BigInt("0x8CDAD9242664BE3112ABA377C5425A4DF735EB1C6966472B561D2855932C0469");
-const RISC0_BN254_CONTROL_ID = BigInt("0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0");
+const [RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID] = get_risc0_constants();
 const SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from(
     "A3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2",
     "hex"
