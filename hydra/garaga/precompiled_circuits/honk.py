@@ -8,8 +8,9 @@ import sha3
 
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
+from garaga.algebra import ModuloCircuitElement
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point, ProofSystem
-from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
+from garaga.modulo_circuit import ModuloCircuit
 from garaga.poseidon_transcript import hades_permutation
 
 NUMBER_OF_SUBRELATIONS = 26
