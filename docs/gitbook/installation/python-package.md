@@ -4,6 +4,8 @@ icon: python
 
 # Python package
 
+## Install the latest released version of the CLI
+
 {% hint style="info" %}
 PyPi link : [https://pypi.org/project/garaga/](https://pypi.org/project/garaga/)
 {% endhint %}
@@ -12,7 +14,7 @@ The easiest way to install Garaga is via `pip`, which will fetch and install the
 
 1. Open your terminal or command prompt.
 2. (Optional) If you're using a [virtual environment (venv)](https://docs.python.org/3/library/venv.html),  simply activate your venv.
-3.  Run the following command:
+3.  Run the following command to install release:
 
     ```bash
     pip install garaga
@@ -34,3 +36,11 @@ Please, ensure that the directory containing Python's executable files is includ
 {% hint style="info" %}
 If your Python 3.10 installation is not supported by one of the pre-built binary wheels,  `pip` will attempt to install Garaga from its source distribution. In that case, please make sure to have [Rust installed](https://www.rust-lang.org/tools/install) and available.
 {% endhint %}
+
+## Install from a specific commit / from source
+
+To install a version at specific commit, pick a commit hash from the [github history](https://github.com/keep-starknet-strange/garaga/commits/main/) and use :&#x20;
+
+```bash
+pip install git+https://github.com/keep-starknet-strange/garaga.git@COMMIT_HASH
+```
