@@ -8,23 +8,6 @@ use core::RangeCheck;
 
 extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
 
-pub impl u384Serde of Serde<u384> {
-    fn serialize(self: @u384, ref output: Array<felt252>) {
-        output.append((*self.limb0).into());
-        output.append((*self.limb1).into());
-        output.append((*self.limb2).into());
-        output.append((*self.limb3).into());
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<u384> {
-        let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
-        let limb0 = downcast(l0).unwrap();
-        let limb1 = downcast(l1).unwrap();
-        let limb2 = downcast(l2).unwrap();
-        let limb3 = downcast(l3).unwrap();
-        return Option::Some(u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 });
-    }
-}
-
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct u288 {
     pub limb0: u96,

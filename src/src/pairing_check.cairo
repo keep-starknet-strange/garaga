@@ -26,7 +26,7 @@ use core::poseidon::hades_permutation;
 use core::circuit::u384;
 use garaga::definitions::{
     G1Point, G2Point, G1G2Pair, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, G2Line, u384Serde, u288Serde,
+    BNProcessedPair, BLSProcessedPair, G2Line, u288Serde,
 };
 use core::option::Option;
 use core::num::traits::One;

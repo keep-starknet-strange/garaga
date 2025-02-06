@@ -166,6 +166,18 @@ where
     byte_slice_split::<4, 96>(&x.to_bytes_be())
 }
 
+pub fn field_element_to_u384_limbs_compact<F>(x: &FieldElement<F>) -> [BigUint; 2]
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    let bytes = x.to_bytes_be();
+    let index = bytes.len() - 24;
+    let limb0 = BigUint::from_bytes_be(&bytes[index..]);
+    let limb1 = BigUint::from_bytes_be(&bytes[..index]);
+    [limb0, limb1]
+}
+
 pub fn scalar_to_limbs(x: &BigUint) -> [u128; 2] {
     byte_slice_split::<2, 128>(&x.to_bytes_be())
 }
