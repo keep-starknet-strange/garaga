@@ -2,6 +2,9 @@ from enum import Enum
 from pathlib import Path
 
 from garaga.definitions import CurveID
+from garaga.precompiled_circuits.compilable_circuits.apply_isogeny import (
+    ApplyIsogenyCircuit,
+)
 from garaga.precompiled_circuits.compilable_circuits.base import (
     cairo1_tests_header,
     compilation_mode_to_file_header,
@@ -58,7 +61,6 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     RHSFinalizeAccCircuit,
     SlopeInterceptSamePointCircuit,
 )
-from garaga.precompiled_circuits.compilable_circuits.isogeny import ApplyIsogenyCircuit
 from garaga.starknet.cli.utils import create_directory
 
 STARKNET_DIR = Path(__file__).parent.parent / "starknet"

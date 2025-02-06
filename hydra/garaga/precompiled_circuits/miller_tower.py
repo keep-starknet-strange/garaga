@@ -72,14 +72,14 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
             c3, c4 = line_evaluated[0:2], line_evaluated[2:4]
             b = self._fp6_by_01(b, c3, c4)
 
-            d0 = self.extf_add(
+            d0 = self.vector_add(
                 [self.set_or_get_constant(1), self.set_or_get_constant(0)], c3
             )
-            d = self.extf_add(c0_fp6, c1_fp6)
+            d = self.vector_add(c0_fp6, c1_fp6)
             d = self._fp6_by_01(d, d0, c4)
 
-            z_c1 = self.extf_add(self.extf_neg(self.extf_add(a, b)), d)
-            z_c0 = self.extf_add(self.fp6_mul_by_non_residue(b), a)
+            z_c1 = self.vector_add(self.vector_neg(self.vector_add(a, b)), d)
+            z_c0 = self.vector_add(self.fp6_mul_by_non_residue(b), a)
 
             return z_c0 + z_c1
         elif self.curve_id == 1:
@@ -113,13 +113,13 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
 
             d = [self.add(self.set_or_get_constant(1), c1[0]), c1[1]]
 
-            z_c1 = self.extf_add(c1_fp6, c0_fp6)
+            z_c1 = self.vector_add(c1_fp6, c0_fp6)
             z_c1 = self._fp6_by_01(z_c1, c0, d)
-            z_c1 = self.extf_sub(z_c1, a)
-            z_c1 = self.extf_sub(z_c1, b)
+            z_c1 = self.vector_sub(z_c1, a)
+            z_c1 = self.vector_sub(z_c1, b)
 
             z_c0 = self.fp6_mul_by_non_residue(b)
-            z_c0 = self.extf_add(z_c0, a)
+            z_c0 = self.vector_add(z_c0, a)
             return z_c0 + z_c1
 
     def mul_by_line_line_tower(self, tower_fp12, line_line):
@@ -136,11 +136,11 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
 
             x3 = self.fp2_mul(c3, d3)
             x4 = self.fp2_mul(c4, d4)
-            x04 = self.extf_add(c4, d4)
-            x03 = self.extf_add(c3, d3)
-            tmp = self.extf_add(c3, c4)
-            x34 = self.extf_sub(
-                self.extf_sub(self.fp2_mul(self.extf_add(d3, d4), tmp), x3), x4
+            x04 = self.vector_add(c4, d4)
+            x03 = self.vector_add(c3, d3)
+            tmp = self.vector_add(c3, c4)
+            x34 = self.vector_sub(
+                self.vector_sub(self.fp2_mul(self.vector_add(d3, d4), tmp), x3), x4
             )
             z00 = self.fp2_mul_by_non_residue(x4)
             z00 = [self.add(z00[0], self.set_or_get_constant(1)), z00[1]]
@@ -154,16 +154,16 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
             x0 = self.fp2_mul(c0, d0)
             x1 = self.fp2_mul(c1, d1)
 
-            x04 = self.extf_add(d0, c0)
-            tmp = self.extf_add(c0, c1)
-            x01 = self.extf_sub(
-                self.extf_sub(self.fp2_mul(self.extf_add(d0, d1), tmp), x0), x1
+            x04 = self.vector_add(d0, c0)
+            tmp = self.vector_add(c0, c1)
+            x01 = self.vector_sub(
+                self.vector_sub(self.fp2_mul(self.vector_add(d0, d1), tmp), x0), x1
             )
-            x14 = self.extf_add(d1, c1)
+            x14 = self.vector_add(d1, c1)
             z00 = self.fp2_mul_by_non_residue(
                 [self.set_or_get_constant(1), self.set_or_get_constant(0)]
             )
-            z00 = self.extf_add(z00, x0)
+            z00 = self.vector_add(z00, x0)
 
             # C0B0 + C0B1 + C0B2 + C1B1 + C1B2
             return z00 + x01 + x1 + x04 + x14
@@ -175,22 +175,22 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         b0, b1, b2 = e6[0:2], e6[2:4], e6[4:6]
         a = self.fp2_mul(b0, c0)
         b = self.fp2_mul(b1, c1)
-        tmp = self.extf_add(b1, b2)
+        tmp = self.vector_add(b1, b2)
         t0 = self.fp2_mul(c1, tmp)
-        t0 = self.extf_sub(t0, b)
+        t0 = self.vector_sub(t0, b)
         t0 = self.fp2_mul_by_non_residue(t0)
-        t0 = self.extf_add(t0, a)
+        t0 = self.vector_add(t0, a)
 
-        tmp = self.extf_add(b0, b2)
+        tmp = self.vector_add(b0, b2)
         t2 = self.fp2_mul(c0, tmp)
-        t2 = self.extf_sub(t2, a)
-        t2 = self.extf_add(t2, b)
+        t2 = self.vector_sub(t2, a)
+        t2 = self.vector_add(t2, b)
 
-        t1 = self.extf_add(c0, c1)
-        tmp = self.extf_add(b0, b1)
+        t1 = self.vector_add(c0, c1)
+        tmp = self.vector_add(b0, b1)
         t1 = self.fp2_mul(t1, tmp)
-        t1 = self.extf_sub(t1, a)
-        t1 = self.extf_sub(t1, b)
+        t1 = self.vector_sub(t1, a)
+        t1 = self.vector_sub(t1, b)
 
         b0 = t0
         b1 = t1
@@ -208,12 +208,12 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         assert len(a) == 12
 
         xc0, xc1 = a[0:6], a[6:12]
-        c0 = self.extf_sub(xc0, xc1)
-        c3 = self.extf_add(xc0, self.extf_neg(self.fp6_mul_by_non_residue(xc1)))
+        c0 = self.vector_sub(xc0, xc1)
+        c3 = self.vector_add(xc0, self.vector_neg(self.fp6_mul_by_non_residue(xc1)))
         c2 = self.fp6_mul(xc0, xc1)
-        c0 = self.extf_add(self.fp6_mul(c0, c3), c2)
-        z_c1 = self.extf_add(c2, c2)
-        z_c0 = self.extf_add(c0, self.fp6_mul_by_non_residue(c2))
+        c0 = self.vector_add(self.fp6_mul(c0, c3), c2)
+        z_c1 = self.vector_add(c2, c2)
+        z_c0 = self.vector_add(c0, self.fp6_mul_by_non_residue(c2))
 
         return z_c0 + z_c1
 
@@ -224,15 +224,15 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         x_c0, x_c1 = x[0:6], x[6:12]
         y_c0, y_c1 = y[0:6], y[6:12]
 
-        a = self.extf_add(x_c0, x_c1)
-        b = self.extf_add(y_c0, y_c1)
+        a = self.vector_add(x_c0, x_c1)
+        b = self.vector_add(y_c0, y_c1)
         a = self.fp6_mul(a, b)
         b = self.fp6_mul(x_c0, y_c0)
         c = self.fp6_mul(x_c1, y_c1)
-        z_c1 = self.extf_sub(a, b)
-        z_c1 = self.extf_sub(z_c1, c)
+        z_c1 = self.vector_sub(a, b)
+        z_c1 = self.vector_sub(z_c1, c)
         z_c0 = self.fp6_mul_by_non_residue(c)
-        z_c0 = self.extf_add(z_c0, b)
+        z_c0 = self.vector_add(z_c0, b)
 
         return z_c0 + z_c1
 
@@ -247,26 +247,26 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         t1 = self.fp2_mul(xb1, yb1)
         t2 = self.fp2_mul(xb2, yb2)
 
-        c0 = self.extf_add(xb1, xb2)
-        tmp = self.extf_add(yb1, yb2)
+        c0 = self.vector_add(xb1, xb2)
+        tmp = self.vector_add(yb1, yb2)
 
-        c0 = self.extf_add(
+        c0 = self.vector_add(
             self.fp2_mul_by_non_residue(
-                self.extf_sub(self.extf_sub(self.fp2_mul(c0, tmp), t1), t2)
+                self.vector_sub(self.vector_sub(self.fp2_mul(c0, tmp), t1), t2)
             ),
             t0,
         )
 
-        c1 = self.extf_add(xb0, xb1)
-        tmp = self.extf_add(yb0, yb1)
-        c1 = self.extf_sub(self.extf_sub(self.fp2_mul(c1, tmp), t0), t1)
+        c1 = self.vector_add(xb0, xb1)
+        tmp = self.vector_add(yb0, yb1)
+        c1 = self.vector_sub(self.vector_sub(self.fp2_mul(c1, tmp), t0), t1)
         tmp = self.fp2_mul_by_non_residue(t2)
-        c1 = self.extf_add(c1, tmp)
+        c1 = self.vector_add(c1, tmp)
 
-        tmp = self.extf_add(xb0, xb2)
-        c2 = self.extf_add(
-            self.extf_sub(
-                self.extf_sub(self.fp2_mul(self.extf_add(yb0, yb2), tmp), t0), t2
+        tmp = self.vector_add(xb0, xb2)
+        c2 = self.vector_add(
+            self.vector_sub(
+                self.vector_sub(self.fp2_mul(self.vector_add(yb0, yb2), tmp), t0), t2
             ),
             t1,
         )
@@ -282,11 +282,11 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         t0 = self.fp6_square(xc0)
         t1 = self.fp6_square(xc1)
         tmp = self.fp6_mul_by_non_residue(t1)
-        t0 = self.extf_sub(t0, tmp)
+        t0 = self.vector_sub(t0, tmp)
         t1 = self.fp6_inverse(t0)
         z_c0 = self.fp6_mul(xc0, t1)
         z_c1 = self.fp6_mul(xc1, t1)
-        z_c1 = self.extf_neg(z_c1)
+        z_c1 = self.vector_neg(z_c1)
 
         return z_c0 + z_c1
 
@@ -322,15 +322,15 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         t3 = self.fp2_mul(xb0, xb1)
         t4 = self.fp2_mul(xb0, xb2)
         t5 = self.fp2_mul(xb1, xb2)
-        c0 = self.extf_add(self.extf_neg(self.fp2_mul_by_non_residue(t5)), t0)
-        c1 = self.extf_sub(self.fp2_mul_by_non_residue(t2), t3)
-        c2 = self.extf_sub(t1, t4)
+        c0 = self.vector_add(self.vector_neg(self.fp2_mul_by_non_residue(t5)), t0)
+        c1 = self.vector_sub(self.fp2_mul_by_non_residue(t2), t3)
+        c2 = self.vector_sub(t1, t4)
 
         t6 = self.fp2_mul(xb0, c0)
         d1 = self.fp2_mul(xb2, c1)
         d2 = self.fp2_mul(xb1, c2)
-        d1 = self.fp2_mul_by_non_residue(self.extf_add(d1, d2))
-        t6 = self.extf_add(t6, d1)
+        d1 = self.fp2_mul_by_non_residue(self.vector_add(d1, d2))
+        t6 = self.vector_add(t6, d1)
         t6 = self.fp2_inv(t6)
         zb0 = self.fp2_mul(c0, t6)
         zb1 = self.fp2_mul(c1, t6)
@@ -343,18 +343,18 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
 
         xb0, xb1, xb2 = a[0:2], a[2:4], a[4:6]
         c4 = self.fp2_mul(xb0, xb1)
-        c4 = self.extf_add(c4, c4)
+        c4 = self.vector_add(c4, c4)
         c5 = self.fp2_square(xb2)
-        c1 = self.extf_add(self.fp2_mul_by_non_residue(c5), c4)
-        c2 = self.extf_sub(c4, c5)
+        c1 = self.vector_add(self.fp2_mul_by_non_residue(c5), c4)
+        c2 = self.vector_sub(c4, c5)
         c3 = self.fp2_square(xb0)
-        c4 = self.extf_add(self.extf_sub(xb0, xb1), xb2)
+        c4 = self.vector_add(self.vector_sub(xb0, xb1), xb2)
         c5 = self.fp2_mul(xb1, xb2)
-        c5 = self.extf_add(c5, c5)
+        c5 = self.vector_add(c5, c5)
 
         c4 = self.fp2_square(c4)
-        c0 = self.extf_add(self.fp2_mul_by_non_residue(c5), c3)
-        zb2 = self.extf_sub(self.extf_add(self.extf_add(c2, c4), c5), c3)
+        c0 = self.vector_add(self.fp2_mul_by_non_residue(c5), c3)
+        zb2 = self.vector_sub(self.vector_add(self.vector_add(c2, c4), c5), c3)
         zb0 = c0
         zb1 = c1
 
@@ -378,55 +378,55 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
 
         t0 = self.fp2_square(xc1b1)
         t1 = self.fp2_square(xc0b0)
-        t6 = self.extf_add(xc1b1, xc0b0)
+        t6 = self.vector_add(xc1b1, xc0b0)
         t6 = self.fp2_square(t6)
-        t6 = self.extf_sub(t6, t0)
-        t6 = self.extf_sub(t6, t1)
+        t6 = self.vector_sub(t6, t0)
+        t6 = self.vector_sub(t6, t1)
         t2 = self.fp2_square(xc0b2)
         t3 = self.fp2_square(xc1b0)
-        t7 = self.extf_add(xc0b2, xc1b0)
+        t7 = self.vector_add(xc0b2, xc1b0)
         t7 = self.fp2_square(t7)
-        t7 = self.extf_sub(t7, t2)
-        t7 = self.extf_sub(t7, t3)
+        t7 = self.vector_sub(t7, t2)
+        t7 = self.vector_sub(t7, t3)
 
         t4 = self.fp2_square(xc1b2)
         t5 = self.fp2_square(xc0b1)
-        t8 = self.extf_add(xc1b2, xc0b1)
+        t8 = self.vector_add(xc1b2, xc0b1)
         t8 = self.fp2_square(t8)
-        t8 = self.extf_sub(t8, t4)
-        t8 = self.extf_sub(t8, t5)
+        t8 = self.vector_sub(t8, t4)
+        t8 = self.vector_sub(t8, t5)
         t8 = self.fp2_mul_by_non_residue(t8)
 
         t0 = self.fp2_mul_by_non_residue(t0)
-        t0 = self.extf_add(t0, t1)
+        t0 = self.vector_add(t0, t1)
         t2 = self.fp2_mul_by_non_residue(t2)
-        t2 = self.extf_add(t2, t3)
+        t2 = self.vector_add(t2, t3)
         t4 = self.fp2_mul_by_non_residue(t4)
-        t4 = self.extf_add(t4, t5)
+        t4 = self.vector_add(t4, t5)
 
-        zc0b0 = self.extf_sub(t0, xc0b0)
-        zc0b0 = self.extf_add(zc0b0, zc0b0)
-        zc0b0 = self.extf_add(zc0b0, t0)
+        zc0b0 = self.vector_sub(t0, xc0b0)
+        zc0b0 = self.vector_add(zc0b0, zc0b0)
+        zc0b0 = self.vector_add(zc0b0, t0)
 
-        zc0b1 = self.extf_sub(t2, xc0b1)
-        zc0b1 = self.extf_add(zc0b1, zc0b1)
-        zc0b1 = self.extf_add(zc0b1, t2)
+        zc0b1 = self.vector_sub(t2, xc0b1)
+        zc0b1 = self.vector_add(zc0b1, zc0b1)
+        zc0b1 = self.vector_add(zc0b1, t2)
 
-        zc0b2 = self.extf_sub(t4, xc0b2)
-        zc0b2 = self.extf_add(zc0b2, zc0b2)
-        zc0b2 = self.extf_add(zc0b2, t4)
+        zc0b2 = self.vector_sub(t4, xc0b2)
+        zc0b2 = self.vector_add(zc0b2, zc0b2)
+        zc0b2 = self.vector_add(zc0b2, t4)
 
-        zc1b0 = self.extf_add(t8, xc1b0)
-        zc1b0 = self.extf_add(zc1b0, zc1b0)
-        zc1b0 = self.extf_add(zc1b0, t8)
+        zc1b0 = self.vector_add(t8, xc1b0)
+        zc1b0 = self.vector_add(zc1b0, zc1b0)
+        zc1b0 = self.vector_add(zc1b0, t8)
 
-        zc1b1 = self.extf_add(t6, xc1b1)
-        zc1b1 = self.extf_add(zc1b1, zc1b1)
-        zc1b1 = self.extf_add(zc1b1, t6)
+        zc1b1 = self.vector_add(t6, xc1b1)
+        zc1b1 = self.vector_add(zc1b1, zc1b1)
+        zc1b1 = self.vector_add(zc1b1, t6)
 
-        zc1b2 = self.extf_add(t7, xc1b2)
-        zc1b2 = self.extf_add(zc1b2, zc1b2)
-        zc1b2 = self.extf_add(zc1b2, t7)
+        zc1b2 = self.vector_add(t7, xc1b2)
+        zc1b2 = self.vector_add(zc1b2, zc1b2)
+        zc1b2 = self.vector_add(zc1b2, t7)
 
         return zc0b0 + zc0b1 + zc0b2 + zc1b0 + zc1b1 + zc1b2
 
@@ -521,41 +521,41 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
 
         t0 = self.fp2_square(xc0b1)
         t1 = self.fp2_square(xc1b2)
-        t5 = self.extf_add(xc0b1, xc1b2)
+        t5 = self.vector_add(xc0b1, xc1b2)
         t2 = self.fp2_square(t5)
 
-        t3 = self.extf_add(t0, t1)
-        t5 = self.extf_sub(t2, t3)
+        t3 = self.vector_add(t0, t1)
+        t5 = self.vector_sub(t2, t3)
 
-        t6 = self.extf_add(xc1b0, xc0b2)
+        t6 = self.vector_add(xc1b0, xc0b2)
         t3 = self.fp2_square(t6)
         t2 = self.fp2_square(xc1b0)
 
         t6 = self.fp2_mul_by_non_residue(t5)
-        t5 = self.extf_add(t6, xc1b0)
-        t5 = self.extf_add(t5, t5)
+        t5 = self.vector_add(t6, xc1b0)
+        t5 = self.vector_add(t5, t5)
 
-        zc1b0 = self.extf_add(t5, t6)
+        zc1b0 = self.vector_add(t5, t6)
 
         t4 = self.fp2_mul_by_non_residue(t1)
-        t5 = self.extf_add(t0, t4)
-        t6 = self.extf_sub(t5, xc0b2)
+        t5 = self.vector_add(t0, t4)
+        t6 = self.vector_sub(t5, xc0b2)
 
         t1 = self.fp2_square(xc0b2)
-        t6 = self.extf_add(t6, t6)
-        zc0b2 = self.extf_add(t6, t5)
+        t6 = self.vector_add(t6, t6)
+        zc0b2 = self.vector_add(t6, t5)
 
         t4 = self.fp2_mul_by_non_residue(t1)
-        t5 = self.extf_add(t2, t4)
-        t6 = self.extf_sub(t5, xc0b1)
-        t6 = self.extf_add(t6, t6)
-        zc0b1 = self.extf_add(t6, t5)
+        t5 = self.vector_add(t2, t4)
+        t6 = self.vector_sub(t5, xc0b1)
+        t6 = self.vector_add(t6, t6)
+        zc0b1 = self.vector_add(t6, t5)
 
-        t0 = self.extf_add(t2, t1)
-        t5 = self.extf_sub(t3, t0)
-        t6 = self.extf_add(t5, xc1b2)
-        t6 = self.extf_add(t6, t6)
-        zc1b2 = self.extf_add(t5, t6)
+        t0 = self.vector_add(t2, t1)
+        t5 = self.vector_sub(t3, t0)
+        t6 = self.vector_add(t5, xc1b2)
+        t6 = self.vector_add(t6, t6)
+        zc1b2 = self.vector_add(t5, t6)
 
         return zc0b1 + zc0b2 + zc1b0 + zc1b2
 
@@ -564,7 +564,7 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         assert len(xc0b1) == len(xc1b2) == 2
 
         t0 = self.fp2_mul(xc0b1, xc1b2)
-        t0 = self.extf_add(t0, t0)
+        t0 = self.vector_add(t0, t0)
 
         # t1 = xc0b2
 
@@ -580,14 +580,14 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         assert len(xc0b1) == len(xc0b2) == len(xc1b0) == len(xc1b2) == 2
 
         t0 = self.fp2_square(xc0b1)
-        t1 = self.extf_sub(t0, xc0b2)
-        t1 = self.extf_add(t1, t1)
-        t1 = self.extf_add(t1, t0)
+        t1 = self.vector_sub(t0, xc0b2)
+        t1 = self.vector_add(t1, t1)
+        t1 = self.vector_add(t1, t0)
 
         t2 = self.fp2_square(xc1b2)
-        t0 = self.extf_add(self.fp2_mul_by_non_residue(t2), t1)
-        t1 = self.extf_add(xc1b0, xc1b0)
-        t1 = self.extf_add(t1, t1)
+        t0 = self.vector_add(self.fp2_mul_by_non_residue(t2), t1)
+        t1 = self.vector_add(xc1b0, xc1b0)
+        t1 = self.vector_add(t1, t1)
 
         return t0, t1
 
@@ -606,11 +606,11 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         zc1b1 = self.fp2_div(t0, t1)
 
         t1 = self.fp2_mul(xc0b2, xc0b1)
-        t2 = self.extf_sub(self.fp2_square(zc1b1), t1)
-        t2 = self.extf_add(t2, t2)
-        t2 = self.extf_sub(t2, t1)
+        t2 = self.vector_sub(self.fp2_square(zc1b1), t1)
+        t2 = self.vector_add(t2, t2)
+        t2 = self.vector_sub(t2, t1)
         t1 = self.fp2_mul(xc1b0, xc1b2)
-        t2 = self.extf_add(t2, t1)
+        t2 = self.vector_add(t2, t1)
         zc0b0 = self.fp2_mul_by_non_residue(t2)
         zc0b0 = [
             self.add(zc0b0[0], self.set_or_get_constant(1)),
