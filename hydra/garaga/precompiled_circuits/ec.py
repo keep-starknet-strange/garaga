@@ -178,8 +178,8 @@ class DecompressG1Point(ModuloCircuit):
         """
 
         assert (
-            CURVES[self.curve_id].b == 0
-        ), "This circuit is only supported for curves with b = 0"
+            CURVES[self.curve_id].a == 0
+        ), "This circuit is only supported for curves with a = 0"
         assert (
             self.compilation_mode == 0
         ), "This circuit is only supported for CairoZero"
