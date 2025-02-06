@@ -158,22 +158,16 @@ class DecompressG1Point(ModuloCircuit):
         self,
         b: ModuloCircuitElement,
         x: ModuloCircuitElement,
-        s_bit: ModuloCircuitElement,  # S bit to determine y-coordinate
-    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+    ) -> ModuloCircuitElement:
         """
-        Derive the y-coordinate from the given x-coordinate on the elliptic curve.
+        Derive the two possible y-coordinates from the given x-coordinate on the elliptic curve.
         Ensures that the point lies on the curve.
         Assumes that the curve equation is y^2 = x^3 + b.
 
-
-        /!\ Warning : This circuit is non deterministic /!\
-
-        /!\ MAKE SURE THE CHOSEN Y VALUE RELATIVE TO S_BIT is CORRECT in CairoZero /!\
-
         :param x: The x-coordinate as a ModuloCircuitElement.
         :param b: The curve parameter b as a ModuloCircuitElement.
-        :param s_bit: A bit to select which y-coordinate to use (0 for smaller, 1 for larger).
-        :return: The y-coordinate as a ModuloCircuitElement.
+        :return: The two possible y-coordinates as a ModuloCircuitElement.
+                    No assumption on the order of the two y-coordinates.
         :raises AssertionError: If the x-coordinate does not lie on the curve.
         """
 
@@ -188,26 +182,10 @@ class DecompressG1Point(ModuloCircuit):
         x3 = self.mul(x, self.mul(x, x))
         rhs = self.add(x3, b)
 
-        # Ensure rhs is a quadratic residue
-        assert is_quad_residue(rhs.value, self.field.p), "x coordinate is not on curve"
+        y = self.fp_sqrt(rhs)
+        neg_y = self.neg(y)
 
-        # Compute both possible y values
-        y1 = self.field(sqrt_mod_p(rhs.value, self.field.p))
-        y2 = self.field.p - y1  # Negative of y1
-
-        # Select y based on s_bit - use larger value if s_bit=1, smaller value if s_bit=0
-        selected_y = y2 if (y1 < y2) == s_bit.value else y1
-        other_y = y1 if (y1 < y2) == s_bit.value else y2
-
-        y_coord = self.write_element(
-            selected_y,
-            WriteOps.WITNESS,
-        )
-
-        # Validate the y-coordinate
-        self.mul_and_assert(y_coord, y_coord, rhs)
-
-        return y_coord, self.write_element(other_y, WriteOps.WITNESS)
+        return (y, neg_y)
 
 
 class ECIPCircuits(ModuloCircuit):
