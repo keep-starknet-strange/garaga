@@ -69,8 +69,12 @@ where
 
     pub fn generator() -> Self {
         let curve_params = F::get_curve_params();
-        let generator_x = curve_params.g2_x;
-        let generator_y = curve_params.g2_y;
+        let generator_x = curve_params
+            .g2_x
+            .expect("G2 generator coordinates not defined for this curve");
+        let generator_y = curve_params
+            .g2_y
+            .expect("G2 generator coordinates not defined for this curve");
         G2Point::new(generator_x, generator_y).unwrap()
     }
 
