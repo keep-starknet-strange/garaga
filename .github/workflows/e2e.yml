@@ -46,4 +46,4 @@ jobs:
         run: ./tests/contracts_e2e/install_devnet.sh
 
       - name: Run tests
-        run: source venv/bin/activate && pytest -s -x tests/contracts_e2e/e2e_test.py
+        run: source venv/bin/activate && pytest -n auto -s -x tests/contracts_e2e/e2e_test.py

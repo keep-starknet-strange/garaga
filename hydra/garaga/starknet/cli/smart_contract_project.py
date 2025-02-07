@@ -2,6 +2,7 @@ import functools
 from dataclasses import dataclass
 from pathlib import Path
 
+import filelock
 import starknet_py
 from starknet_py.common import create_casm_class, create_sierra_compiled_contract
 from starknet_py.contract import Contract, DeclareResult
@@ -32,7 +33,15 @@ import rich
 @lru_cache(maxsize=32)
 def _get_cached_artifacts(folder: Path) -> tuple[str, str]:
     """Module level cache for scarb build artifacts"""
-    return get_sierra_casm_artifacts(folder)
+    # Create lock file in the target directory of the contract
+    lock_file = folder / "target" / ".build.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use a timeout to prevent deadlocks
+    lock = filelock.FileLock(str(lock_file), timeout=300)  # 5 minute timeout
+
+    with lock:
+        return get_sierra_casm_artifacts(folder)
 
 
 @dataclass
