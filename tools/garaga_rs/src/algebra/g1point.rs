@@ -142,7 +142,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         for i in 0..points.len() {
             result = result.add(&points[i].scalar_mul(scalars[i].clone().into()));
         }
-        return result;
+        result
     }
 }
 

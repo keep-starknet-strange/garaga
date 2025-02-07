@@ -105,9 +105,9 @@ impl HonkVerificationKey {
 
         let mut consts = vec![];
 
-        for i in 0..4 {
+        for value in values.iter().take(4) {
             let err_fn = |e: num_bigint::TryFromBigIntError<BigUint>| e.to_string();
-            consts.push(values[i].clone().try_into().map_err(err_fn)?);
+            consts.push(value.clone().try_into().map_err(err_fn)?);
         }
 
         let mut points = vec![];
@@ -122,7 +122,7 @@ impl HonkVerificationKey {
         let [qm, qc, ql, qr, qo, q4, q_arith, q_delta_range, q_elliptic, q_aux, q_lookup, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
             points.try_into().unwrap();
 
-        if !(log_circuit_size <= CONST_PROOF_SIZE_LOG_N) {
+        if log_circuit_size > CONST_PROOF_SIZE_LOG_N {
             return Err(format!("Invalid log circuit size: {}", log_circuit_size));
         }
 
@@ -503,7 +503,7 @@ pub fn get_honk_calldata(
                 push(call_data_ref, elements.len());
             }
             for element in elements {
-                push_element(call_data_ref, &element);
+                push_element(call_data_ref, element);
             }
         }
 
@@ -547,43 +547,45 @@ pub fn get_honk_calldata(
         call_data
     };
 
-    let mut points = vec![];
-    points.push(qm); // 1
-    points.push(qc); // 2
-    points.push(ql); // 3
-    points.push(qr); // 4
-    points.push(qo); // 5
-    points.push(q4); // 6
-    points.push(q_arith); // 7
-    points.push(q_delta_range); // 8
-    points.push(q_elliptic); // 9
-    points.push(q_aux); // 10
-    points.push(q_lookup); // 11
-    points.push(q_poseidon2_external); // 12
-    points.push(q_poseidon2_internal); // 13
-    points.push(s1); // 14
-    points.push(s2); // 15
-    points.push(s3); // 16
-    points.push(s4); // 17
-    points.push(id1); // 18
-    points.push(id2); // 19
-    points.push(id3); // 20
-    points.push(id4); // 21
-    points.push(t1); // 22
-    points.push(t2); // 23
-    points.push(t3); // 24
-    points.push(t4); // 25
-    points.push(lagrange_first); // 26
-    points.push(lagrange_last); // 27
-    points.push(w1); // 28
-    points.push(w2); // 29
-    points.push(w3); // 30
-    points.push(w4); // 31
-    points.push(z_perm.clone()); // 32
-    points.push(lookup_inverses); // 33
-    points.push(lookup_read_counts); // 34
-    points.push(lookup_read_tags); // 35
-    points.push(z_perm); // 44
+    let mut points = vec![
+        qm,                   // 1
+        qc,                   // 2
+        ql,                   // 3
+        qr,                   // 4
+        qo,                   // 5
+        q4,                   // 6
+        q_arith,              // 7
+        q_delta_range,        // 8
+        q_elliptic,           // 9
+        q_aux,                // 10
+        q_lookup,             // 11
+        q_poseidon2_external, // 12
+        q_poseidon2_internal, // 13
+        s1,                   // 14
+        s2,                   // 15
+        s3,                   // 16
+        s4,                   // 17
+        id1,                  // 18
+        id2,                  // 19
+        id3,                  // 20
+        id4,                  // 21
+        t1,                   // 22
+        t2,                   // 23
+        t3,                   // 24
+        t4,                   // 25
+        lagrange_first,       // 26
+        lagrange_last,        // 27
+        w1,                   // 28
+        w2,                   // 29
+        w3,                   // 30
+        w4,                   // 31
+        z_perm.clone(),       // 32
+        lookup_inverses,      // 33
+        lookup_read_counts,   // 34
+        lookup_read_tags,     // 35
+        z_perm,               // 44
+    ];
+
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
     points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
@@ -654,7 +656,7 @@ trait Hasher {
     fn digest_reset(&mut self) -> BigUint {
         let result = self.digest();
         self.reset();
-        return result;
+        result
     }
     fn update(&mut self, value: &BigUint) {
         self.update_as_element(&element_from_biguint(value));
@@ -695,7 +697,7 @@ impl Hasher for KeccakHasher {
         self.data.extend(bytes);
     }
     fn digest_as_element(&self) -> FieldElement<GrumpkinPrimeField> {
-        element_from_bytes_be(&Keccak256::digest(&self.data).to_vec())
+        element_from_bytes_be(&Keccak256::digest(&self.data))
     }
 }
 
@@ -709,7 +711,7 @@ impl StarknetHasher {
             state: [FieldElement::zero(); 3],
         };
         hasher.reset();
-        return hasher;
+        hasher
     }
 }
 
@@ -734,11 +736,12 @@ impl Hasher for StarknetHasher {
     }
 }
 
+#[allow(clippy::needless_range_loop)]
 fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTranscript {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
-        limbs.map(|value| BigUint::from(value))
+        limbs.map(BigUint::from)
     }
 
     // Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
@@ -774,7 +777,7 @@ fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTransc
     hasher.update_as_point(&proof.lookup_inverses);
     hasher.update_as_point(&proof.z_perm);
 
-    let mut alphas = [0u8; NUMBER_OF_ALPHAS].map(|v| BigUint::from(v));
+    let mut alphas = [0u8; NUMBER_OF_ALPHAS].map(BigUint::from);
 
     let mut ch2 = hasher.digest_reset();
     [alphas[0], alphas[1]] = split(&ch2);
@@ -794,7 +797,7 @@ fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTransc
     }
 
     // Round 3: Gate Challenges :
-    let mut gate_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(|v| BigUint::from(v));
+    let mut gate_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(BigUint::from);
 
     let mut ch3 = ch2;
     for i in 0..CONST_PROOF_SIZE_LOG_N {
@@ -805,7 +808,7 @@ fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTransc
     }
 
     // Round 4: Sumcheck u challenges
-    let mut sumcheck_u_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(|v| BigUint::from(v));
+    let mut sumcheck_u_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(BigUint::from);
 
     let mut ch4 = ch3;
     for i in 0..CONST_PROOF_SIZE_LOG_N {
@@ -868,6 +871,7 @@ fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTransc
     }
 }
 
+#[allow(clippy::needless_range_loop, clippy::too_many_arguments)]
 fn compute_shplemini_msm_scalars(
     log_circuit_size: usize,
     sumcheck_evaluations: &[FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES],
@@ -1028,7 +1032,7 @@ fn extract_msm_scalars(
     [&scalars[1..i], &scalars[j..]]
         .concat()
         .into_iter()
-        .filter_map(|v| v)
+        .flatten()
         .collect()
 }
 
