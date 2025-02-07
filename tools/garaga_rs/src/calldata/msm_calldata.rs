@@ -359,7 +359,7 @@ where
         transcript_ref.hash_u256_multi(scalars);
     }
 
-    return transcript;
+    transcript
 }
 
 fn retrieve_random_x_coordinate<F>(

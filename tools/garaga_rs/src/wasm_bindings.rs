@@ -172,8 +172,8 @@ fn parse_biguint_array(value: JsValue) -> Result<Vec<BigUint>, JsValue> {
 
 fn jsvalue_from_biguint_array(values: &[BigUint]) -> Result<JsValue, JsValue> {
     let values = values
-        .to_vec()
-        .into_iter()
+        .iter()
+        .cloned()
         .map(biguint_to_jsvalue)
         .collect::<Vec<_>>();
     Ok(values.into())

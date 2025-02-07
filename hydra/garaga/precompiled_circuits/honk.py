@@ -8,8 +8,9 @@ import sha3
 
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
+from garaga.algebra import ModuloCircuitElement
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point, ProofSystem
-from garaga.extension_field_modulo_circuit import ModuloCircuit, ModuloCircuitElement
+from garaga.modulo_circuit import ModuloCircuit
 from garaga.poseidon_transcript import hades_permutation
 
 NUMBER_OF_SUBRELATIONS = 26
@@ -38,6 +39,13 @@ G2_POINT_KZG_2 = G2Point(
     ),
     curve_id=CurveID.BN254,
 )
+
+
+def g1_to_g1_proof_point(g1_proof_point: G1Point) -> list[int]:
+    """Noir way of serializing a G1Point inside their proofs"""
+    x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
+    y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
+    return [x_low, x_high, y_low, y_high]
 
 
 @dataclass
@@ -321,10 +329,7 @@ class HonkProof:
         return cd
 
     def flatten(self) -> list[int]:
-        def g1_to_g1_proof_point(g1_proof_point: G1Point) -> list[int]:
-            x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
-            y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
-            return [x_low, x_high, y_low, y_high]
+        """Used to pass data to Rust"""
 
         lst = []
         lst.append(self.circuit_size)
@@ -567,10 +572,6 @@ class HonkTranscript:
     def from_proof(
         cls, proof: HonkProof, system: ProofSystem = ProofSystem.UltraKeccakHonk
     ) -> "HonkTranscript":
-        def g1_to_g1_proof_point(g1_proof_point: G1Point) -> tuple[int, int, int, int]:
-            x_high, x_low = divmod(g1_proof_point.x, G1_PROOF_POINT_SHIFT)
-            y_high, y_low = divmod(g1_proof_point.y, G1_PROOF_POINT_SHIFT)
-            return (x_low, x_high, y_low, y_high)
 
         def split_challenge(ch: bytes) -> tuple[int, int]:
             ch_int = int.from_bytes(ch, "big")

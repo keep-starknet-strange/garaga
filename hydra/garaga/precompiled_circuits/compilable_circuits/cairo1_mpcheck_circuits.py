@@ -3,11 +3,8 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
-from garaga.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    ModuloCircuit,
-    PyFelt,
-)
+from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, PyFelt
+from garaga.modulo_circuit import ModuloCircuit
 from garaga.modulo_circuit_structs import (
     E12D,
     BLSProcessedPair,
