@@ -14,6 +14,7 @@ dependencies = [
   "pysha3",
   "starknet-py==0.24.3",
   "requests",
+  "filelock",
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 
