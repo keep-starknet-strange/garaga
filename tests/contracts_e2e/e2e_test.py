@@ -267,9 +267,6 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
 
     print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
 
-    # # Declare the ECIP contract
-    # ecip_class_hash, _ = await ECIP_CONTRACT.declare_class_hash(account)
-
     # Declare the honk contract
     honk_class_hash, honk_abi = await contract_project.declare_class_hash(account)
 
