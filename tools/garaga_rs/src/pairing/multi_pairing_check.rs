@@ -172,6 +172,7 @@ where
     (new_f, new_points)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn bit_1_case<F, E2>(
     f: &Polynomial<F>,
     q: &[G2Point<F, E2>],
@@ -198,6 +199,7 @@ where
     (new_f, new_points)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn bit_01_case<F, E2>(
     f: &Polynomial<F>,
     q: &[G2Point<F, E2>],
@@ -235,6 +237,7 @@ where
     (new_f, new_new_points)
 }
 
+#[allow(clippy::too_many_arguments)]
 fn bit_10_case<F, E2>(
     f: &Polynomial<F>,
     q: &[G2Point<F, E2>],
@@ -381,7 +384,7 @@ where
                     let c_or_c_inv = if next_bit == 1 {
                         &c_inv
                     } else {
-                        &c.as_ref().unwrap()
+                        c.as_ref().unwrap()
                     };
                     let (new_f, new_points) = bit_01_case(
                         &f,
@@ -486,7 +489,7 @@ where
             lines.insert(0, f);
             f = extf_mul(lines, None, Some(&mut qis), Some(&mut ris));
             let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-            let c_frob_2 = frobenius(&frobenius_maps, &c.as_ref().unwrap(), 2, 12);
+            let c_frob_2 = frobenius(&frobenius_maps, c.as_ref().unwrap(), 2, 12);
             let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3, 12);
             f = extf_mul(
                 vec![f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3],

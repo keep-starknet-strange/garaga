@@ -38,6 +38,23 @@ export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
  * @returns {any[]}
  */
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
+/**
+ * @param {any} uint8_array
+ * @returns {any}
+ */
+export function parse_honk_proof(uint8_array: any): any;
+/**
+ * @param {any} uint8_array
+ * @returns {any}
+ */
+export function parse_honk_verification_key(uint8_array: any): any;
+/**
+ * @param {any} proof_js
+ * @param {any} vk_js
+ * @param {any} flavor_js
+ * @returns {any[]}
+ */
+export function get_honk_calldata(proof_js: any, vk_js: any, flavor_js: any): any[];
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -48,6 +65,9 @@ export interface InitOutput {
   readonly to_weirstrass: (a: number, b: number, c: number) => void;
   readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;
+  readonly parse_honk_proof: (a: number, b: number) => void;
+  readonly parse_honk_verification_key: (a: number, b: number) => void;
+  readonly get_honk_calldata: (a: number, b: number, c: number, d: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;

@@ -171,7 +171,7 @@ pub fn get_groth16_calldata_felt(
 ) -> Result<Vec<Felt>, String> {
     let calldata = get_groth16_calldata(proof, vk, curve_id)?;
 
-    Ok(calldata.into_iter().map(|x| Felt::from(x)).collect())
+    Ok(calldata.into_iter().map(Felt::from).collect())
 }
 
 pub fn get_groth16_calldata(
@@ -209,7 +209,7 @@ pub fn get_groth16_calldata(
                 .collect::<Vec<BigUint>>(),
             &proof.public_inputs,
             curve_id as usize,
-            true,
+            Some(true),
             false,
             true,
             false,
@@ -226,7 +226,7 @@ pub fn get_groth16_calldata(
                 proof.public_inputs[3].clone(),
             ],
             curve_id as usize,
-            true,
+            Some(true),
             false,
             true,
             true,
