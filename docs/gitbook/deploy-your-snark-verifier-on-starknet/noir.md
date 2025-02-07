@@ -6,8 +6,8 @@ icon: octopus
 
 ## Requirements
 
-* Noir 0.36.0 (install with \`noirup --version 0.36.0\`)
-* Barretenberg 0.61.0 (install with \`bbup --version 0.61.0\`)
+* Noir 1.0.0-beta.1 (install with \`noirup --version 1.0.0-beta.1\`)
+* Barretenberg 0.66.0 (install with \`bbup --version 0.66.0\`)
 * Garaga CLI [python-package.md](../installation/python-package.md "mention")
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec ](https://noir-lang.org/docs/getting_started/quick_start):
@@ -122,7 +122,7 @@ sudo apt install -y cmake clang clang-16 clang-format libstdc++-12-dev ninja-bui
 ```bash
 git clone https://github.com/raugfer/aztec-packages.git
 cd aztec-packages
-git checkout ultra-starknet-honk
+git checkout starknet-barretenberg-v0.66.0
 ```
 
 3. Perform the build
@@ -145,8 +145,8 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.nargo/lib/"
 Now, in order to generate a Ultra Starknet proof and verifying key using the customized Barretenberg implementation, simply issue the following commands:
 
 ```bash
-bb prove_ultra_starnet_honk -b target/hello.json -w target/witness.gz -o target/proof.bin
-bb write_vk_ultra_starnet_honk -b target/hello.json -o target/vk.bin
+bb prove_ultra_starknet_honk -b target/hello.json -w target/witness.gz -o target/proof.bin
+bb write_vk_ultra_starknet_honk -b target/hello.json -o target/vk.bin
 ```
 
 To generate a contract using the Ultra Starknet system, use the following command, which is similar to the previous process:
