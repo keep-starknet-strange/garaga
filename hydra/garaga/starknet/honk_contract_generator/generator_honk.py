@@ -422,7 +422,7 @@ mod Ultra{flavor}HonkVerifier {{
     src_dir = os.path.join(output_folder_path, "src")
     create_directory(src_dir)
 
-    with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
+    with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
         f.write("scarb 2.9.1\n")
 
     with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
