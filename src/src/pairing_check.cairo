@@ -37,7 +37,7 @@ use garaga::utils::hashing;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
 
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 pub struct MPCheckHintBN254 {
     pub lambda_root: E12D<u288>,
     pub lambda_root_inverse: E12D<u288>,
@@ -46,7 +46,7 @@ pub struct MPCheckHintBN254 {
     pub big_Q: Array<u288>,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 pub struct MPCheckHintBLS12_381 {
     pub lambda_root_inverse: E12D<u384>,
     pub w: MillerLoopResultScalingFactor<u384>,

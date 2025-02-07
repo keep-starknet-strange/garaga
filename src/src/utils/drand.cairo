@@ -99,11 +99,25 @@ fn get_i_dst_prime_first_word(i: usize) -> u32 {
     return i.into() * 0x1000000 + 0x424c53;
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 struct MapToCurveHint {
     gx1_is_square: bool,
     y1: u384,
     y_flag: bool // true if y and u have same parity, false otherwise
+}
+
+impl MapToCurveHintSerde of Serde<MapToCurveHint> {
+    fn serialize(self: @MapToCurveHint, ref output: Array<felt252>) {
+        Serde::<bool>::serialize(self.gx1_is_square, ref output);
+        u384Serde::serialize(self.y1, ref output);
+        Serde::<bool>::serialize(self.y_flag, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<MapToCurveHint> {
+        let gx1_is_square = Serde::<bool>::deserialize(ref serialized)?;
+        let y1 = u384Serde::deserialize(ref serialized)?;
+        let y_flag = Serde::<bool>::deserialize(ref serialized)?;
+        return Option::Some(MapToCurveHint { gx1_is_square: gx1_is_square, y1: y1, y_flag: y_flag });
+    }
 }
 
 #[derive(Drop, Serde)]

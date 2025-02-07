@@ -48,18 +48,47 @@ pub impl u288Serde of Serde<u288> {
 }
 
 
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+#[derive(Copy, Drop, Debug, PartialEq)]
 pub struct G1Point {
     pub x: u384,
     pub y: u384,
 }
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+
+impl G1PointSerde of Serde<G1Point> {
+    fn serialize(self: @G1Point, ref output: Array<felt252>) {
+        u384Serde::serialize(self.x, ref output);
+        u384Serde::serialize(self.y, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<G1Point> {
+        let x = u384Serde::deserialize(ref serialized)?;
+        let y = u384Serde::deserialize(ref serialized)?;
+        return Option::Some(G1Point { x: x, y: y });
+    }
+}
+
+#[derive(Copy, Drop, Debug, PartialEq)]
 pub struct G2Point {
     pub x0: u384,
     pub x1: u384,
     pub y0: u384,
     pub y1: u384,
 }
+impl G2PointSerde of Serde<G2Point> {
+    fn serialize(self: @G2Point, ref output: Array<felt252>) {
+        u384Serde::serialize(self.x0, ref output);
+        u384Serde::serialize(self.x1, ref output);
+        u384Serde::serialize(self.y0, ref output);
+        u384Serde::serialize(self.y1, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<G2Point> {
+        let x0 = u384Serde::deserialize(ref serialized)?;
+        let x1 = u384Serde::deserialize(ref serialized)?;
+        let y0 = u384Serde::deserialize(ref serialized)?;
+        let y1 = u384Serde::deserialize(ref serialized)?;
+        return Option::Some(G2Point { x0: x0, x1: x1, y0: y0, y1: y1 });
+    }
+}
+
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct G2Line<T> {

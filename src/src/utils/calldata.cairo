@@ -5,7 +5,7 @@ use garaga::definitions::{
 use core::RangeCheck;
 use core::circuit::u384;
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 pub struct FullProofWithHintsBN254 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBN254,
@@ -13,7 +13,7 @@ pub struct FullProofWithHintsBN254 {
     pub msm_hint: Array<felt252>,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 pub struct FullProofWithHintsBLS12_381 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBLS12_381,
@@ -21,7 +21,7 @@ pub struct FullProofWithHintsBLS12_381 {
     pub msm_hint: Array<felt252>,
 }
 
-#[derive(Serde, Drop)]
+#[derive (Drop)]
 pub struct FullProofWithHintsRisc0 {
     pub groth16_proof: Groth16ProofRaw,
     pub image_id: Span<u32>,
