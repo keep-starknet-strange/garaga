@@ -166,7 +166,7 @@ trait IUltra{flavor}HonkVerifier<TContractState> {{
 mod Ultra{flavor}HonkVerifier {{
     use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
@@ -183,7 +183,7 @@ mod Ultra{flavor}HonkVerifier {{
     #[derive(Drop, Serde)]
     struct FullProof {{
         proof: HonkProof,
-        msm_hint_batched: MSMHintBatched,
+        msm_hint_batched: MSMHint,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint:MPCheckHintBN254,
     }}
@@ -288,7 +288,7 @@ mod Ultra{flavor}HonkVerifier {{
 
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
-            full_proof.msm_hint_batched.SumDlogDivBatched.validate_degrees_batched({msm_len});
+            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
 
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
@@ -346,7 +346,7 @@ mod Ultra{flavor}HonkVerifier {{
 
             let base_rlc_coeff = s1;
 
-            let (s0, _, _) = full_proof.msm_hint_batched.SumDlogDivBatched.update_hash_state(s0, s1, s2);
+            let (s0, _, _) = full_proof.msm_hint_batched.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
 
             let random_point: G1Point = derive_ec_point_from_X(
                 s0,
@@ -370,7 +370,7 @@ mod Ultra{flavor}HonkVerifier {{
                 (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
             ];
 
-            let (zk_ecip_batched_lhs) = {lhs_ecip_function_name}(A0:random_point, A2:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff0:mb.coeff0, coeff2:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.SumDlogDivBatched);
+            let (zk_ecip_batched_lhs) = {lhs_ecip_function_name}(A0:random_point, A2:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff0:mb.coeff0, coeff2:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
 
             let rhs_low = compute_rhs_ecip(
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
@@ -423,7 +423,7 @@ mod Ultra{flavor}HonkVerifier {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write("scarb 2.9.1\n")
+        f.write("scarb 2.9.2\n")
 
     with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)

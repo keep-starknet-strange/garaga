@@ -8,6 +8,7 @@ use core::circuit::{
 use garaga::definitions::{
     get_a, get_b, get_modulus, get_g, get_min_one, get_b2, get_n, G1Point, G2Point,
     BLS_X_SEED_SQ_EPNS, BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde,
+    u384SpanSerde,
 };
 use core::option::Option;
 use core::panic_with_felt252;
@@ -272,13 +273,6 @@ pub struct MSMHintSmallScalar {
     pub SumDlogDiv: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
-struct MSMHintBatched {
-    Q_low: G1Point,
-    Q_high: G1Point,
-    Q_high_shifted: G1Point,
-    SumDlogDivBatched: FunctionFelt,
-}
 
 #[derive(Drop, Debug, PartialEq, Serde, Copy)]
 pub struct DerivePointFromXHint {
