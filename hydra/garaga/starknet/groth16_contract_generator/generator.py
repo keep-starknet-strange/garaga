@@ -157,7 +157,7 @@ mod Groth16Verifier{curve_id.name} {{
     src_dir = os.path.join(output_folder_path, "src")
     create_directory(src_dir)
 
-    with open(os.path.join(output_folder_path, ".tools-versions"), "w") as f:
+    with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
         f.write("scarb 2.9.1\n")
 
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:

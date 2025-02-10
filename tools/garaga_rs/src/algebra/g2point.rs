@@ -67,6 +67,17 @@ where
         self.y.square() == self.x.clone().square() * self.x.clone() + a * self.x.clone() + b
     }
 
+    pub fn generator() -> Self {
+        let curve_params = F::get_curve_params();
+        let generator_x = curve_params
+            .g2_x
+            .expect("G2 generator coordinates not defined for this curve");
+        let generator_y = curve_params
+            .g2_y
+            .expect("G2 generator coordinates not defined for this curve");
+        G2Point::new(generator_x, generator_y).unwrap()
+    }
+
     pub fn compute_doubling_slope(a: &Self) -> FieldElement<E2> {
         let [x, y] = &from_e2(a.x.clone());
         let num = to_e2([

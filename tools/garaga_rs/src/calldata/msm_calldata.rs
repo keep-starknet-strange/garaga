@@ -26,7 +26,7 @@ pub fn msm_calldata_builder(
     values: &[BigUint],
     scalars: &[BigUint],
     curve_id: usize,
-    include_digits_decomposition: bool,
+    include_digits_decomposition: Option<bool>,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
     risc0_mode: bool,
@@ -97,7 +97,7 @@ fn handle_curve<F>(
     values: &[BigUint],
     scalars: &[BigUint],
     curve_id: usize,
-    include_digits_decomposition: bool,
+    include_digits_decomposition: Option<bool>,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
     risc0_mode: bool,
@@ -135,7 +135,7 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     points: &[G1Point<F>],
     scalars: &[BigUint],
     curve_id: usize,
-    include_digits_decomposition: bool,
+    include_digits_decomposition: Option<bool>,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
     risc0_mode: bool,
@@ -219,7 +219,7 @@ where
     }
 
     // scalars_digits_decompositions
-    {
+    if let Some(include_digits_decomposition) = include_digits_decomposition {
         let flag: usize = if include_digits_decomposition { 0 } else { 1 };
         push(call_data_ref, flag);
         if include_digits_decomposition {
@@ -359,7 +359,7 @@ where
         transcript_ref.hash_u256_multi(scalars);
     }
 
-    return transcript;
+    transcript
 }
 
 fn retrieve_random_x_coordinate<F>(
@@ -430,7 +430,6 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigUint;
 
     #[test]
     fn test_init_hashes() {
