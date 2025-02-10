@@ -362,15 +362,15 @@ pub const vk: HonkVk = HonkVk {
     },
     lagrange_last: G1Point {
         x: u384 {
-            limb0: 0x71fba7a412dd61fcf34e8ceb,
-            limb1: 0x71155617b6af56ee40d90bea,
-            limb2: 0x140b0936c323fd24,
+            limb0: 0x868487222aa54f3268ab64a2,
+            limb1: 0x7c94249535bba7fcbd3f412f,
+            limb2: 0x1b8afad764d2cbe6,
             limb3: 0x0,
         },
         y: u384 {
-            limb0: 0x185c5ff8e440fd3d73b6fefc,
-            limb1: 0xc87d652e059df42b90071823,
-            limb2: 0x2b6c10790a5f6631,
+            limb0: 0xe415445bd0c84309caaf213e,
+            limb1: 0x5096aad8a0cc5d4c1d1cdb0f,
+            limb2: 0x1b70a90a334c9bd,
             limb3: 0x0,
         },
     },
