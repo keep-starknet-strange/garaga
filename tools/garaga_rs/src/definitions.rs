@@ -113,8 +113,10 @@ pub struct CurveParams<F: IsPrimeField> {
     pub b21: FieldElement<F>,
     pub g_x: FieldElement<F>,
     pub g_y: FieldElement<F>,
-    pub n: BigUint, // Order of the curve
-    pub h: u32,     // Cofactor
+    pub g2_x: Option<[FieldElement<F>; 2]>, // Only for pairing curves
+    pub g2_y: Option<[FieldElement<F>; 2]>, // Only for pairing curves
+    pub n: BigUint,                         // Order of the curve
+    pub h: u32,                             // Cofactor
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
@@ -159,6 +161,8 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
                 16,
@@ -191,6 +195,8 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162CBCE33576B315ECECBB6406837BF51F",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
                 16,
@@ -221,6 +227,8 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
                 16,
@@ -249,6 +257,8 @@ impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47",
                 16,
@@ -277,6 +287,22 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             ),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            g2_x: Some([
+                FieldElement::from_hex_unchecked(
+                    "1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED",
+                ),
+                FieldElement::from_hex_unchecked(
+                    "198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2",
+                ),
+            ]),
+            g2_y: Some([
+                FieldElement::from_hex_unchecked(
+                    "12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA",
+                ),
+                FieldElement::from_hex_unchecked(
+                    "090689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B",
+                ),
+            ]),
             n: BigUint::from_str_radix(
                 "30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001",
                 16,
@@ -308,6 +334,14 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             b21: FieldElement::from_hex_unchecked("4"),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            g2_x: Some([
+                FieldElement::from_hex_unchecked("24AA2B2F08F0A91260805272DC51051C6E47AD4FA403B02B4510B647AE3D1770BAC0326A805BBEFD48056C8C121BDB8"), // Replace with actual 'g2_x.0'
+                FieldElement::from_hex_unchecked("13E02B6052719F607DACD3A088274F65596BD0D09920B61AB5DA61BBDC7F5049334CF11213945D57E5AC7D055D042B7E"), // Replace with actual 'g2_x.1'
+            ]),
+            g2_y: Some([
+                FieldElement::from_hex_unchecked("CE5D527727D6E118CC9CDC6DA2E351AADFD9BAA8CBDD3A76D429A695160D12C923AC9CC3BACA289E193548608B82801"), // Replace with actual 'g2_y.0'
+                FieldElement::from_hex_unchecked("606C4A02EA734CC32ACD2B02BC28B99CB3E287E85A763AF267492AB572E99AB3F370D275CEC1DA1AAA9075FF05F79BE"), // Replace with actual 'g2_y.1'
+            ]),
             n: BigUint::from_str_radix(
                 "73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001",
                 16,

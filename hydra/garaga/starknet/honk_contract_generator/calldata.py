@@ -1,3 +1,4 @@
+from garaga import garaga_rs
 from garaga.definitions import G1G2Pair, ProofSystem
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
@@ -32,8 +33,14 @@ def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list
 
 
 def get_ultra_flavor_honk_calldata_from_vk_and_proof(
-    vk: HonkVk, proof: HonkProof, system: ProofSystem = ProofSystem.UltraKeccakHonk
+    vk: HonkVk,
+    proof: HonkProof,
+    system: ProofSystem = ProofSystem.UltraKeccakHonk,
+    use_rust: bool = False,
 ) -> list[int]:
+    if use_rust:
+        return _honk_calldata_from_vk_and_proof_rust(vk, proof, system)
+
     tp = HonkTranscript.from_proof(proof, system)
 
     circuit = HonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
@@ -125,3 +132,19 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     # print(f"HONK CALLDATA LENGTH: {len(res)}")
 
     return res
+
+
+def _honk_calldata_from_vk_and_proof_rust(
+    vk: HonkVk,
+    proof: HonkProof,
+    system: ProofSystem = ProofSystem.UltraKeccakHonk,
+) -> list[int]:
+    match system:
+        case ProofSystem.UltraKeccakHonk:
+            flavor = 0
+        case ProofSystem.UltraStarknetHonk:
+            flavor = 1
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
+
+    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor)
