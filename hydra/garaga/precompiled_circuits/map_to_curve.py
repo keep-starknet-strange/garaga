@@ -199,8 +199,8 @@ class MapToCurveG2(Fp2Circuits):
 
     def adjust_y_sign(
         self,
-        field: list[ModuloCircuitElement],
         y: list[ModuloCircuitElement],
+        field: list[ModuloCircuitElement],
     ):
         # Handle sign adjustment as before
         qy, y_parity = self.fp2_parity(y)
@@ -509,8 +509,8 @@ class MapToCurveG1(ModuloCircuit):
 
     def adjust_y_sign(
         self,
-        field: ModuloCircuitElement,
         y: ModuloCircuitElement,
+        field: ModuloCircuitElement,
     ):
         # Handle sign adjustment as before
         qy, y_parity = self.fp_parity(y)
