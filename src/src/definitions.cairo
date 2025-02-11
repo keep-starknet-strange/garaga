@@ -765,6 +765,7 @@ pub fn get_modulus(curve_index: usize) -> CircuitModulus {
     }
 }
 
+
 // Returns the modulus of BLS12_381
 #[inline(always)]
 pub fn get_BLS12_381_modulus() -> CircuitModulus {
