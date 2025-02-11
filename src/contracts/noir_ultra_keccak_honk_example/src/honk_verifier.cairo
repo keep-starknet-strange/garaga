@@ -17,7 +17,7 @@ mod UltraKeccakHonkVerifier {
     use garaga::definitions::{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus};
     use garaga::pairing_check::{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254};
     use garaga::ec_ops::{
-        G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHintBatched,
+        G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
         compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
     };
     use garaga::basic_field_ops::{batch_3_mod_p};
@@ -45,7 +45,7 @@ mod UltraKeccakHonkVerifier {
     #[derive(Drop, Serde)]
     struct FullProof {
         proof: HonkProof,
-        msm_hint_batched: MSMHintBatched,
+        msm_hint_batched: MSMHint,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint: MPCheckHintBN254,
     }
@@ -240,7 +240,7 @@ mod UltraKeccakHonkVerifier {
             ]
                 .span();
 
-            full_proof.msm_hint_batched.SumDlogDivBatched.validate_degrees_batched(42);
+            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(42);
 
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
@@ -302,7 +302,7 @@ mod UltraKeccakHonkVerifier {
 
             let (s0, _, _) = full_proof
                 .msm_hint_batched
-                .SumDlogDivBatched
+                .RLCSumDlogDiv
                 .update_hash_state(s0, s1, s2);
 
             let random_point: G1Point = derive_ec_point_from_X(
@@ -335,7 +335,7 @@ mod UltraKeccakHonkVerifier {
                 A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
                 coeff0: mb.coeff0,
                 coeff2: mb.coeff2,
-                SumDlogDivBatched: full_proof.msm_hint_batched.SumDlogDivBatched,
+                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
 
             let rhs_low = compute_rhs_ecip(
