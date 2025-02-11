@@ -6,7 +6,9 @@ use core::circuit::{
     AddInputResultTrait, CircuitInputs,
 };
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G1Point, G2Point, u384Serde, BLS_G2_GENERATOR};
+use garaga::definitions::{
+    G1Point, G2Point, serialize_u384, deserialize_u384, u384Serde, BLS_G2_GENERATOR,
+};
 use garaga::basic_field_ops::{u512_mod_bls12_381, is_even_u384};
 use core::num::traits::Zero;
 use garaga::ec_ops::{
@@ -99,11 +101,29 @@ fn get_i_dst_prime_first_word(i: usize) -> u32 {
     return i.into() * 0x1000000 + 0x424c53;
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 struct MapToCurveHint {
     gx1_is_square: bool,
     y1: u384,
     y_flag: bool // true if y and u have same parity, false otherwise
+}
+
+impl MapToCurveHintSerde of Serde<MapToCurveHint> {
+    fn serialize(self: @MapToCurveHint, ref output: Array<felt252>) {
+        Serde::<bool>::serialize(self.gx1_is_square, ref output);
+        serialize_u384(self.y1, ref output);
+        Serde::<bool>::serialize(self.y_flag, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<MapToCurveHint> {
+        let gx1_is_square = Serde::<bool>::deserialize(ref serialized);
+        let y1 = deserialize_u384(ref serialized);
+        let y_flag = Serde::<bool>::deserialize(ref serialized);
+        return Option::Some(
+            MapToCurveHint {
+                gx1_is_square: gx1_is_square.unwrap(), y1: y1, y_flag: y_flag.unwrap(),
+            },
+        );
+    }
 }
 
 #[derive(Drop, Serde)]

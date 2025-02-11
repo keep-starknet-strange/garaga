@@ -26,7 +26,7 @@ use core::poseidon::hades_permutation;
 use core::circuit::u384;
 use garaga::definitions::{
     G1Point, G2Point, G1G2Pair, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, G2Line, u384Serde, u288Serde,
+    BNProcessedPair, BLSProcessedPair, G2Line,
 };
 use core::option::Option;
 use core::num::traits::One;
@@ -37,7 +37,7 @@ use garaga::utils::hashing;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
 
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, Debug)]
 pub struct MPCheckHintBN254 {
     pub lambda_root: E12D<u288>,
     pub lambda_root_inverse: E12D<u288>,
@@ -46,13 +46,14 @@ pub struct MPCheckHintBN254 {
     pub big_Q: Array<u288>,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Debug, PartialEq)]
 pub struct MPCheckHintBLS12_381 {
     pub lambda_root_inverse: E12D<u384>,
     pub w: MillerLoopResultScalingFactor<u384>,
     pub Ris: Span<E12D<u384>>,
     pub big_Q: Array<u384>,
 }
+
 
 #[inline(always)]
 fn multi_pairing_check_bn254_2P_2F(

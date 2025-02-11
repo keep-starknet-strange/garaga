@@ -7,7 +7,8 @@ use core::circuit::{
 };
 use garaga::definitions::{
     get_a, get_b, get_modulus, get_g, get_min_one, get_b2, get_n, G1Point, G2Point,
-    BLS_X_SEED_SQ_EPNS, BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1, u384Serde,
+    BLS_X_SEED_SQ_EPNS, BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1,
+    deserialize_u384_array, u384Serde, serialize_u384_array, deserialize_u384, serialize_u384,
 };
 use core::option::Option;
 use core::panic_with_felt252;
@@ -208,13 +209,33 @@ fn derive_ec_point_from_X(
 // from the constant term.
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
-#[derive(Drop, Debug, Copy, PartialEq, Serde)]
+#[derive(Drop, Debug, Copy, PartialEq)]
 pub struct FunctionFelt {
     pub a_num: Span<u384>,
     pub a_den: Span<u384>,
     pub b_num: Span<u384>,
     pub b_den: Span<u384>,
 }
+
+impl FunctionFeltSerde of Serde<FunctionFelt> {
+    fn serialize(self: @FunctionFelt, ref output: Array<felt252>) {
+        serialize_u384_array(*self.a_num.snapshot, ref output);
+        serialize_u384_array(*self.a_den.snapshot, ref output);
+        serialize_u384_array(*self.b_num.snapshot, ref output);
+        serialize_u384_array(*self.b_den.snapshot, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt> {
+        return Option::Some(
+            FunctionFelt {
+                a_num: deserialize_u384_array(ref serialized).span(),
+                a_den: deserialize_u384_array(ref serialized).span(),
+                b_num: deserialize_u384_array(ref serialized).span(),
+                b_den: deserialize_u384_array(ref serialized).span(),
+            },
+        );
+    }
+}
+
 #[derive(Drop, Debug, Copy, PartialEq)]
 pub struct FunctionFeltEvaluations {
     pub a_num: u384,
@@ -272,18 +293,26 @@ pub struct MSMHintSmallScalar {
     pub SumDlogDiv: FunctionFelt,
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
-struct MSMHintBatched {
-    Q_low: G1Point,
-    Q_high: G1Point,
-    Q_high_shifted: G1Point,
-    SumDlogDivBatched: FunctionFelt,
-}
 
-#[derive(Drop, Debug, PartialEq, Serde, Copy)]
+#[derive(Drop, Debug, PartialEq, Copy)]
 pub struct DerivePointFromXHint {
     pub y_last_attempt: u384,
     pub g_rhs_sqrt: Span<u384>,
+}
+
+impl DerivePointFromXHintSerde of Serde<DerivePointFromXHint> {
+    fn serialize(self: @DerivePointFromXHint, ref output: Array<felt252>) {
+        serialize_u384(self.y_last_attempt, ref output);
+        serialize_u384_array(*self.g_rhs_sqrt.snapshot, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<DerivePointFromXHint> {
+        return Option::Some(
+            DerivePointFromXHint {
+                y_last_attempt: deserialize_u384(ref serialized),
+                g_rhs_sqrt: deserialize_u384_array(ref serialized).span(),
+            },
+        );
+    }
 }
 
 pub fn scalar_mul_g1_fixed_small_scalar(

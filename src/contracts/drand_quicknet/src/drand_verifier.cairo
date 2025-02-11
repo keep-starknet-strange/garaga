@@ -15,6 +15,7 @@ mod DrandQuicknet {
     use garaga::utils::drand::{
         round_to_curve_bls12_381, DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint,
     };
+    use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
     use super::{precomputed_lines, G2_GEN};
     use garaga::utils::hashing::hash_G1Point;
 
@@ -23,12 +24,31 @@ mod DrandQuicknet {
     #[storage]
     struct Storage {}
 
-    #[derive(Drop, Serde)]
+    #[derive(Drop)]
     struct DrandHint {
         round_number: u64,
         signature: G1Point,
         hash_to_curve_hint: HashToCurveHint,
         mpcheck_hint: MPCheckHintBLS12_381,
+    }
+
+    impl DrandHintSerde of Serde<DrandHint> {
+        fn serialize(self: @DrandHint, ref output: Array<felt252>) {}
+
+        fn deserialize(ref serialized: Span<felt252>) -> Option<DrandHint> {
+            let round_number = Serde::<u64>::deserialize(ref serialized).unwrap();
+            let signature = Serde::<G1Point>::deserialize(ref serialized).unwrap();
+            let hash_to_curve_hint = Serde::<HashToCurveHint>::deserialize(ref serialized).unwrap();
+            let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);
+            return Option::Some(
+                DrandHint {
+                    round_number: round_number,
+                    signature: signature,
+                    hash_to_curve_hint: hash_to_curve_hint,
+                    mpcheck_hint: mpcheck_hint,
+                },
+            );
+        }
     }
     #[abi(embed_v0)]
     impl IDrandQuicknet of super::IDrandQuicknet<ContractState> {

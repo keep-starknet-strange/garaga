@@ -48,7 +48,7 @@ use garaga::utils::hashing;
 
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, Debug, PartialEq)]
 pub struct Groth16Proof {
     pub a: G1Point,
     pub b: G2Point,
@@ -57,7 +57,7 @@ pub struct Groth16Proof {
 }
 
 // Only used for Risc0 where public inputs are derived with an extra step.
-#[derive(Drop, Serde)]
+#[derive(Drop, Serde, Debug)]
 pub struct Groth16ProofRaw {
     pub a: G1Point,
     pub b: G2Point,
