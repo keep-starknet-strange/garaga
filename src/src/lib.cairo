@@ -8,6 +8,7 @@ pub mod groth16;
 pub mod hashes;
 pub mod basic_field_ops;
 pub mod single_pairing_tower;
+pub mod signatures;
 mod tests;
 pub mod core;
 
