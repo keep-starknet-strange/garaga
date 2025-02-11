@@ -25,6 +25,53 @@ pub impl u384Serde of Serde<u384> {
     }
 }
 
+// pub impl u384Serde of Serde<u384> {
+pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
+    output.append((*self.limb0).into());
+    output.append((*self.limb1).into());
+    output.append((*self.limb2).into());
+    output.append((*self.limb3).into());
+}
+pub fn deserialize_u384(ref serialized: Span<felt252>) -> u384 {
+    let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
+    let limb0 = downcast(l0).unwrap();
+    let limb1 = downcast(l1).unwrap();
+    let limb2 = downcast(l2).unwrap();
+    let limb3 = downcast(l3).unwrap();
+    return u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 };
+}
+
+fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
+    self.len().serialize(ref output);
+    serialize_u384_array_helper(self.span(), ref output);
+}
+
+fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
+    match input.pop_front() {
+        Option::Some(value) => {
+            serialize_u384(value, ref output);
+            serialize_u384_array_helper(input, ref output);
+        },
+        Option::None => {},
+    }
+}
+fn deserialize_u384_array(ref serialized: Span<felt252>) -> Array<u384> {
+    let length = *serialized.pop_front().unwrap();
+    let mut arr = array![];
+    deserialize_u384_array_helper(ref serialized, arr, length)
+}
+
+fn deserialize_u384_array_helper(
+    ref serialized: Span<felt252>, mut curr_output: Array<u384>, remaining: felt252,
+) -> Array<u384> {
+    if remaining == 0 {
+        return curr_output;
+    }
+    curr_output.append(deserialize_u384(ref serialized));
+    deserialize_u384_array_helper(ref serialized, curr_output, remaining - 1)
+}
+
+
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct u288 {
     pub limb0: u96,
@@ -56,15 +103,16 @@ pub struct G1Point {
 
 impl G1PointSerde of Serde<G1Point> {
     fn serialize(self: @G1Point, ref output: Array<felt252>) {
-        u384Serde::serialize(self.x, ref output);
-        u384Serde::serialize(self.y, ref output);
+        serialize_u384(self.x, ref output);
+        serialize_u384(self.y, ref output);
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<G1Point> {
-        let x = u384Serde::deserialize(ref serialized)?;
-        let y = u384Serde::deserialize(ref serialized)?;
+        let x = deserialize_u384(ref serialized);
+        let y = deserialize_u384(ref serialized);
         return Option::Some(G1Point { x: x, y: y });
     }
 }
+
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct G2Point {
@@ -75,16 +123,16 @@ pub struct G2Point {
 }
 impl G2PointSerde of Serde<G2Point> {
     fn serialize(self: @G2Point, ref output: Array<felt252>) {
-        u384Serde::serialize(self.x0, ref output);
-        u384Serde::serialize(self.x1, ref output);
-        u384Serde::serialize(self.y0, ref output);
-        u384Serde::serialize(self.y1, ref output);
+        serialize_u384(self.x0, ref output);
+        serialize_u384(self.x1, ref output);
+        serialize_u384(self.y0, ref output);
+        serialize_u384(self.y1, ref output);
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<G2Point> {
-        let x0 = u384Serde::deserialize(ref serialized)?;
-        let x1 = u384Serde::deserialize(ref serialized)?;
-        let y0 = u384Serde::deserialize(ref serialized)?;
-        let y1 = u384Serde::deserialize(ref serialized)?;
+        let x0 = deserialize_u384(ref serialized);
+        let x1 = deserialize_u384(ref serialized);
+        let y0 = deserialize_u384(ref serialized);
+        let y1 = deserialize_u384(ref serialized);
         return Option::Some(G2Point { x0: x0, x1: x1, y0: y0, y1: y1 });
     }
 }
