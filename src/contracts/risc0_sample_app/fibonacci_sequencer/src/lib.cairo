@@ -11,7 +11,7 @@ mod FibonacciSequencer {
     use core::starknet::ClassHash;
 
     pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-        0x454de50fff2216fa3fc04a4a70ce93afdcb0e11e83f508de7071868c7be8a05;
+        0x52569b204c4a3c503af1318127e7edf7c50a01503baa396e86709a32f50642e;
 
     #[storage]
     struct Storage {
