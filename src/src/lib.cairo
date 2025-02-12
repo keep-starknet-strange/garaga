@@ -1,7 +1,6 @@
 pub mod definitions;
 pub mod utils;
-pub mod ec_ops;
-pub mod ec_ops_g2;
+pub mod ec;
 pub mod pairing_check;
 pub mod circuits;
 pub mod groth16;
@@ -12,6 +11,9 @@ pub mod signatures;
 mod tests;
 pub mod core;
 
+
+pub use garaga::ec::ec_ops;
+pub use garaga::ec::ec_ops_g2;
 
 #[cfg(test)]
 mod tests_lib {
