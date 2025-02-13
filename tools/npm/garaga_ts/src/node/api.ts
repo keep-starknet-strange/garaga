@@ -40,6 +40,14 @@ export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2
   return mpc_calldata_builder(curveId, values1, nFixedG2, values2);
 }
 
+export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: bigint, py: bigint, curveId: CurveId): bigint[] {
+  return schnorr_calldata_builder(rx, s, e, px, py, curveId);
+}
+
+export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint, py: bigint, z: bigint, curveId: CurveId): bigint[] {
+  return ecdsa_calldata_builder(r, s, v, px, py, z, curveId);
+}
+
 export function toWeirstrass(x_twisted: bigint, y_twisted: bigint): [bigint, bigint] {
   const result = to_weirstrass(x_twisted, y_twisted);
 
