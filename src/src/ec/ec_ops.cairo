@@ -27,6 +27,12 @@ impl G1PointImpl of G1PointTrait {
         );
         u384_assert_zero(check);
     }
+    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool {
+        let (check) = ec::run_IS_ON_CURVE_G1_circuit(
+            *self, get_a(curve_index), get_b(curve_index), curve_index,
+        );
+        check.is_zero()
+    }
     fn negate(self: @G1Point, curve_index: usize) -> G1Point {
         let modulus = get_modulus(curve_index);
         G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
