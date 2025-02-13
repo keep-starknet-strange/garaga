@@ -9,10 +9,10 @@ use core::RangeCheck;
 
 pub use curves::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, THIRD_ROOT_OF_UNITY_BLS12_381_G1, BLSProcessedPair,
-    BNProcessedPair, Curve, get_a, get_p, get_b, get_b2, get_g, get_n, get_min_one, get_modulus,
-    get_BLS12_381_modulus, get_BN254_modulus, get_SECP256K1_modulus, get_SECP256R1_modulus,
-    get_ED25519_modulus, get_GRUMPKIN_modulus, BN254, BLS12_381, SECP256K1, SECP256R1, ED25519,
-    GRUMPKIN, BN254_G1_GENERATOR, BLS_G2_GENERATOR, bn_bits, bls_bits,
+    BNProcessedPair, Curve, get_a, get_p, get_b, get_b2, get_g, get_n, get_G, get_min_one,
+    get_modulus, get_BLS12_381_modulus, get_BN254_modulus, get_SECP256K1_modulus,
+    get_SECP256R1_modulus, get_ED25519_modulus, get_GRUMPKIN_modulus, BN254, BLS12_381, SECP256K1,
+    SECP256R1, ED25519, GRUMPKIN, BN254_G1_GENERATOR, BLS_G2_GENERATOR, bn_bits, bls_bits,
 };
 pub use structs::points::{
     G1Point, G1PointSerde, G1PointZero, G2Point, G2PointSerde, G2PointZero, G2Line, G1G2Pair,

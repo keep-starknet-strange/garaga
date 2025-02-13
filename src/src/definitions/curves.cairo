@@ -1,7 +1,6 @@
 pub use core::circuit::{u96, u384, CircuitModulus};
 
-use garaga::definitions::{G1Point, G2Point};
-
+use garaga::definitions::{G1Point, G2Point, G1PointZero};
 // scalar_to_base_neg3_le(0xD201000000010000**2)
 pub const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
 pub const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) = (
@@ -45,7 +44,8 @@ pub struct Curve {
     pub a: u384, // Weierstrass a parameter in eqn: y^2 = x^3 + ax + b
     pub b: u384, // Weierstrass b parameter in eqn: y^2 = x^3 + ax + b
     pub g: u384, // Generator of Fp. (Used to verify square roots)
-    pub min_one: u384 // (-1) % p
+    pub min_one: u384, // (-1) % p
+    pub G: G1Point // Generator of the curve
 }
 
 
@@ -170,6 +170,18 @@ pub fn get_modulus(curve_index: usize) -> CircuitModulus {
     }
 }
 
+pub fn get_G(curve_index: usize) -> G1Point {
+    match curve_index {
+        0 => BN254.G,
+        1 => BLS12_381.G,
+        2 => SECP256K1.G,
+        3 => SECP256R1.G,
+        4 => ED25519.G,
+        5 => GRUMPKIN.G,
+        _ => G1PointZero::zero(),
+    }
+}
+
 // Returns the modulus of BLS12_381
 #[inline(always)]
 pub fn get_BLS12_381_modulus() -> CircuitModulus {
@@ -250,6 +262,10 @@ pub const BN254: Curve = Curve {
         limb2: 0x30644e72e131a029,
         limb3: 0x0,
     },
+    G: G1Point {
+        x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    },
 };
 
 pub const BLS12_381: Curve = Curve {
@@ -268,6 +284,20 @@ pub const BLS12_381: Curve = Curve {
         limb1: 0x6730d2a0f6b0f6241eabfffe,
         limb2: 0x434bacd764774b84f38512bf,
         limb3: 0x1a0111ea397fe69a4b1ba7b6,
+    },
+    G: G1Point {
+        x: u384 {
+            limb0: 0xf97a1aeffb3af00adb22c6bb,
+            limb1: 0xa14e3a3f171bac586c55e83f,
+            limb2: 0x4fa9ac0fc3688c4f9774b905,
+            limb3: 0x17f1d3a73197d7942695638c,
+        },
+        y: u384 {
+            limb0: 0xa2888ae40caa232946c5e7e1,
+            limb1: 0xdb18cb2c04b3edd03cc744,
+            limb2: 0x741d8ae4fcf5e095d5d00af6,
+            limb3: 0x8b3f481e3aaa0f1a09e30ed,
+        },
     },
 };
 
@@ -288,6 +318,20 @@ pub const SECP256K1: Curve = Curve {
         limb2: 0xffffffffffffffff,
         limb3: 0x0,
     },
+    G: G1Point {
+        x: u384 {
+            limb0: 0x2dce28d959f2815b16f81798,
+            limb1: 0x55a06295ce870b07029bfcdb,
+            limb2: 0x79be667ef9dcbbac,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0xa68554199c47d08ffb10d4b8,
+            limb1: 0x5da4fbfc0e1108a8fd17b448,
+            limb2: 0x483ada7726a3c465,
+            limb3: 0x0,
+        },
+    },
 };
 
 pub const SECP256R1: Curve = Curve {
@@ -307,6 +351,20 @@ pub const SECP256R1: Curve = Curve {
     g: u384 { limb0: 0x6, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     min_one: u384 {
         limb0: 0xfffffffffffffffffffffffe, limb1: 0x0, limb2: 0xffffffff00000001, limb3: 0x0,
+    },
+    G: G1Point {
+        x: u384 {
+            limb0: 0x2deb33a0f4a13945d898c296,
+            limb1: 0xf8bce6e563a440f277037d81,
+            limb2: 0x6b17d1f2e12c4247,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0x6b315ececbb6406837bf51f5,
+            limb1: 0x8ee7eb4a7c0f9e162bce3357,
+            limb2: 0x4fe342e2fe1a7f9b,
+            limb3: 0x0,
+        },
     },
 };
 
@@ -337,6 +395,20 @@ pub const ED25519: Curve = Curve {
         limb2: 0x7fffffffffffffff,
         limb3: 0x0,
     },
+    G: G1Point {
+        x: u384 {
+            limb0: 0xd617c9aca55c89b025aef35,
+            limb1: 0xf00b8f02f1c20618a9c13fdf,
+            limb2: 0x2a78dd0fd02c0339,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0x807131659b7830f3f62c1d14,
+            limb1: 0xbe483ba563798323cf6fd061,
+            limb2: 0x29c644a5c71da22e,
+            limb3: 0x0,
+        },
+    },
 };
 
 pub const GRUMPKIN: Curve = Curve {
@@ -361,8 +433,16 @@ pub const GRUMPKIN: Curve = Curve {
         limb2: 0x30644e72e131a029,
         limb3: 0x0,
     },
+    G: G1Point {
+        x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        y: u384 {
+            limb0: 0xf1181294833fc48d823f272c,
+            limb1: 0xcf135e7506a45d632d270d45,
+            limb2: 0x2,
+            limb3: 0x0,
+        },
+    },
 };
-
 
 pub const BN254_G1_GENERATOR: G1Point = G1Point {
     x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
