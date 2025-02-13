@@ -24,7 +24,7 @@ sierra-replace-ids = false # Do not forget this to avoid compilation errors.
 ### Supported Elliptic Curves
 
 Garaga support operations on different elliptic curves. \
-Curves are consistently identified throughout all Garaga code (Cairo/Python/Rust/Javascript) with identifiers (often referred as `CurveID` enums) :&#x20;
+Curves are consistently identified throughout all Garaga code (Cairo/Python/Rust/Javascript) with identifiers (often referred as `CurveID` enums or `curve_id`parameter) :&#x20;
 
 * 0 : BN254
 * 1 : BLS12-381
