@@ -1,6 +1,7 @@
 pub mod full_proof_with_hints;
 pub mod mpc_calldata;
 pub mod msm_calldata;
+pub mod signatures;
 
 use crate::definitions::{get_modulus_from_curve_id, CurveID};
 use num_bigint::BigUint;

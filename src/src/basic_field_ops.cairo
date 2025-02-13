@@ -31,15 +31,11 @@ pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     return outputs.get_output(neg);
 }
 
+
 pub fn is_even_u384(a: u384) -> bool {
-    let in1 = CircuitElement::<CircuitInput<0>> {};
-    let modulus = TryInto::<_, CircuitModulus>::try_into([2, 0, 0, 0]).unwrap();
-    let outputs = (in1,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
-    let limb0: felt252 = outputs.get_output(in1).limb0.into();
-    match limb0 {
-        0 => true,
-        _ => false,
-    }
+    let limb0: felt252 = a.limb0.into();
+    let limb0_u128: u128 = limb0.try_into().unwrap();
+    limb0_u128 % 2 == 0
 }
 
 #[inline(always)]
