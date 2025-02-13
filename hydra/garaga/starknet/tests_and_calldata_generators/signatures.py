@@ -197,7 +197,9 @@ class ECDSASignature:
             break
 
         sig = cls(r=r, s=s, v=v, px=Q.x, py=Q.y, z=z, curve_id=curve_id)
-        assert sig.is_valid(), "generated ECDSA signature is invalid"
+        assert (
+            sig.is_valid()
+        ), f"generated ECDSA signature on curve {curve_id.name} is invalid"
         return sig
 
     def is_valid(self) -> bool:
@@ -225,6 +227,7 @@ class ECDSASignature:
 
         R_prime = G.scalar_mul(u1).add(Q.scalar_mul(u2))
         return (R_prime.x % n) == self.r
+        # return (R_prime.x) == self.r
 
     def serialize(self) -> list[int]:
         cd = []

@@ -1,5 +1,5 @@
 use core::circuit::{CircuitModulus, u96};
-use garaga::basic_field_ops::{neg_mod_p, is_even_u384, inv_mod_p, mul_mod_p};
+use garaga::basic_field_ops::{neg_mod_p, is_even_u384, inv_mod_p, mul_mod_p, add_mod_p};
 use garaga::definitions::{
     Zero, get_n, get_modulus, get_G, get_curve_order_modulus, serialize_u384, deserialize_u384,
 };
@@ -72,6 +72,8 @@ struct ECDSASignatureWithHint {
 /// 4. Compute u₁ = zw mod n and u₂ = rw mod n
 /// 5. Compute R' = u₁G + u₂P
 /// 6. Verify that R'.x mod n equals r and R'.y's parity matches v
+/// /!\ Behaviour unclear for cofactor > 1.
+/// (BN254, SECP256K1/R1, GRUMPKIN) A.
 pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usize) -> bool {
     let ECDSASignatureWithHint { signature, msm_hint, msm_derive_hint } = signature;
     let ECDSASignature { rx, s, v, px, py, z } = signature;
@@ -104,9 +106,13 @@ pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usi
     let R_prime = msm_g1(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
 
     // Check R'.x mod n equals r and R'.y parity matches v
+    // Note : if cofactor is 1, no need to reduce r_prime.x mod n
     let ry_prime_parity = is_even_u384(R_prime.y);
+    let r_prime_x_mod_n = add_mod_p(
+        R_prime.x, u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, modulus,
+    );
 
-    if R_prime.x.is_zero() || R_prime.x != rx || R_prime.y.is_zero() || ry_prime_parity == v {
+    if R_prime.x.is_zero() || r_prime_x_mod_n != rx || R_prime.y.is_zero() || ry_prime_parity == v {
         return false;
     }
 
