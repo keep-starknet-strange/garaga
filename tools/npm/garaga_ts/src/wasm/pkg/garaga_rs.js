@@ -264,6 +264,63 @@ export function mpc_calldata_builder(curve_id, values1, n_fixed_g2, values2) {
 }
 
 /**
+ * @param {any} rx
+ * @param {any} s
+ * @param {any} e
+ * @param {any} px
+ * @param {any} py
+ * @param {number} curve_id
+ * @returns {any[]}
+ */
+export function schnorr_calldata_builder(rx, s, e, px, py, curve_id) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.schnorr_calldata_builder(retptr, addHeapObject(rx), addHeapObject(s), addHeapObject(e), addHeapObject(px), addHeapObject(py), curve_id);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v1 = getArrayJsValueFromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 4, 4);
+        return v1;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
+ * @param {any} r
+ * @param {any} s
+ * @param {number} v
+ * @param {any} px
+ * @param {any} py
+ * @param {any} z
+ * @param {number} curve_id
+ * @returns {any[]}
+ */
+export function ecdsa_calldata_builder(r, s, v, px, py, z, curve_id) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        wasm.ecdsa_calldata_builder(retptr, addHeapObject(r), addHeapObject(s), v, addHeapObject(px), addHeapObject(py), addHeapObject(z), curve_id);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v1 = getArrayJsValueFromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 4, 4);
+        return v1;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
  * @param {any} x_twisted
  * @param {any} y_twisted
  * @returns {any[]}
