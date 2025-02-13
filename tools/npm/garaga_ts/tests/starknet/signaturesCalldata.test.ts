@@ -1,8 +1,6 @@
 import * as garaga from "../../src/node/index";
 import { CurveId } from "../../src/node/definitions";
 
-const PATH = '../../../hydra/garaga/starknet/honk_contract_generator/examples';
-
 describe('Signatures Getting calldata', () => {
 
   test("should get calldata from Schnorr signature", async () => {
