@@ -7,7 +7,7 @@ icon: octopus
 ## Requirements
 
 * Noir 1.0.0-beta.1 (install with \`noirup --version 1.0.0-beta.1\`)
-* Barretenberg 0.66.0 (install with \`bbup --version 0.66.0\`)
+* Barretenberg 0.67.0 (install with \`bbup --version 0.67.0\`)
 * Garaga CLI [python-package.md](../installation/python-package.md "mention")
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec ](https://noir-lang.org/docs/getting_started/quick_start):
@@ -103,7 +103,7 @@ garaga calldata --system ultra_keccak_honk --vk vk.bin --proof proof.bin --forma
 Using `garaga calldata`with the `--format array` lets you paste this array in cairo code for unit tests by doing let proof:Array\<felt252> = \[ ... ] ; . The `--format starkli` has a formatting which is composable with starkli in the command line and also preprends the length of the array so that it can be deserialized by starknet.
 {% endhint %}
 
-## The Ultra Starknet Flavor
+## The Ultra Starknet Flavor (experimental)
 
 We are in the process of adding a new flavor to Noir proofs called Ultra Starknet. It contrasts with with Ultra Keccak presented in the previous section.
 
