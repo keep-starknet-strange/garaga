@@ -62,7 +62,7 @@ pub type BLS12381PrimeField = BLSPF;
 pub type Stark252PrimeField = StrkPF;
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
+    U256::from_hex_unchecked("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
 
 #[derive(Clone, Debug)]
 pub struct SECP256K1FieldModulus;
@@ -73,7 +73,7 @@ impl IsModulus<U256> for SECP256K1FieldModulus {
 pub type SECP256K1PrimeField = MontgomeryBackendPrimeField<SECP256K1FieldModulus, 4>;
 
 pub const SECP256R1_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
+    U256::from_hex_unchecked("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
 
 #[derive(Clone, Debug)]
 pub struct SECP256R1FieldModulus;
@@ -95,7 +95,7 @@ impl IsModulus<U256> for X25519FieldModulus {
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
 pub const GRUMPKIN_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
+    U256::from_hex_unchecked("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
 
 #[derive(Clone, Debug)]
 pub struct GrumpkinFieldModulus;
@@ -193,7 +193,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
                 "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
             ),
             g_y: FieldElement::from_hex_unchecked(
-                "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162CBCE33576B315ECECBB6406837BF51F",
+                "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5",
             ),
             g2_x: None,
             g2_y: None,
@@ -223,9 +223,11 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             ),
             b20: FieldElement::zero(), // Provide appropriate values here
             b21: FieldElement::zero(), // Provide appropriate values here
-            g_x: FieldElement::from_hex_unchecked("9"),
+            g_x: FieldElement::from_hex_unchecked(
+                "2a78dd0fd02c0339f00b8f02f1c20618a9c13fdf0d617c9aca55c89b025aef35",
+            ),
             g_y: FieldElement::from_hex_unchecked(
-                "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
+                "29c644a5c71da22ebe483ba563798323cf6fd061807131659b7830f3f62c1d14",
             ),
             g2_x: None,
             g2_y: None,
@@ -332,8 +334,8 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             b: FieldElement::from(4),
             b20: FieldElement::from_hex_unchecked("4"),
             b21: FieldElement::from_hex_unchecked("4"),
-            g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
-            g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            g_x: FieldElement::from_hex_unchecked("17F1D3A73197D7942695638C4FA9AC0FC3688C4F9774B905A14E3A3F171BAC586C55E83FF97A1AEFFB3AF00ADB22C6BB"), // Replace with actual 'g_x'
+            g_y: FieldElement::from_hex_unchecked("08B3F481E3AAA0F1A09E30ED741D8AE4FCF5E095D5D00AF600DB18CB2C04B3EDD03CC744A2888AE40CAA232946C5E7E1"), // Replace with actual 'g_y'
             g2_x: Some([
                 FieldElement::from_hex_unchecked("24AA2B2F08F0A91260805272DC51051C6E47AD4FA403B02B4510B647AE3D1770BAC0326A805BBEFD48056C8C121BDB8"), // Replace with actual 'g2_x.0'
                 FieldElement::from_hex_unchecked("13E02B6052719F607DACD3A088274F65596BD0D09920B61AB5DA61BBDC7F5049334CF11213945D57E5AC7D055D042B7E"), // Replace with actual 'g2_x.1'
