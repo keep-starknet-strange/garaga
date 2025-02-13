@@ -96,7 +96,13 @@ class SchnorrSignature:
         cd.extend(bigint_split(self.py, N_LIMBS, BASE))
         return cd
 
-    def serialize_with_hints(self) -> list[int]:
+    def serialize_with_hints(self, use_rust=False) -> list[int]:
+        """Serialize the signature with hints for verification"""
+        if use_rust:
+            return garaga_rs.schnorr_calldata_builder(
+                self.rx, self.s, self.e, self.px, self.py, self.curve_id.value
+            )
+
         cd = self.serialize()
         e_neg = -self.e % CURVES[self.curve_id.value].n
         msm_calldata = garaga_rs.msm_calldata_builder(
@@ -239,26 +245,27 @@ class ECDSASignature:
         cd.extend(split_128(self.z))
         return cd
 
-    def serialize_with_hints(self) -> list[int]:
-        cd = self.serialize()
+    def serialize_with_hints(self, use_rust=False) -> list[int]:
+        """Serialize the signature with hints for verification"""
+        if use_rust:
+            return garaga_rs.ecdsa_calldata_builder(
+                self.r, self.s, self.v, self.px, self.py, self.z, self.curve_id.value
+            )
 
-        # For ECDSA verification we need to compute R' = u₁G + u₂P
-        # where u₁ = z·s⁻¹ mod n and u₂ = r·s⁻¹ mod n
+        cd = self.serialize()
         n = CURVES[self.curve_id.value].n
         s_inv = pow(self.s, -1, n)
-        # Compute u₁ = z·s⁻¹ mod n and u₂ = r·s⁻¹ mod n
         u1 = (self.z * s_inv) % n
         u2 = (self.r * s_inv) % n
 
-        # Build MSM calldata for u₁G + u₂P
         msm_calldata = garaga_rs.msm_calldata_builder(
             [
-                CURVES[self.curve_id.value].Gx,  # Generator G x-coordinate
-                CURVES[self.curve_id.value].Gy,  # Generator G y-coordinate
-                self.px,  # Public key P x-coordinate
-                self.py,  # Public key P y-coordinate
+                CURVES[self.curve_id.value].Gx,
+                CURVES[self.curve_id.value].Gy,
+                self.px,
+                self.py,
             ],
-            [u1, u2],  # Scalars [u₁, u₂] for the linear combination
+            [u1, u2],
             self.curve_id.value,
             False,  # include_digits_decomposition
             False,  # include_points_and_scalars
