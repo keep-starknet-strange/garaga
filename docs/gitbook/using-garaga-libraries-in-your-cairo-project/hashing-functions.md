@@ -4,15 +4,11 @@ icon: binary-circle-check
 
 # Hashing functions
 
-Garaga support some relevant hashing functions :&#x20;
-
-
-
-### Poseidon(x,y) for BN254 scalar field
+### Poseidon(x,y)=z for BN254 scalar field
 
 This hash function is both compatible with [Circom poseidon implementation](https://github.com/iden3/circomlib/blob/252f8130105a66c8ae8b4a23c7f5662e17458f3f/circuits/poseidon.circom#L198-L208) (`nInputs=2`) and [Noir Poseidon hash](https://noir-lang.org/docs/noir/standard_library/cryptographic_primitives/hashes#poseidon) (`std::hash::poseidon::hash::hash_2)`
 
-Below we show Noir and Cairo code computing the same hash (it might not look like it but z are the same here, it's because in cairo the result is splitted in 96 bit limbs)
+Below we show Noir and Cairo code computing the same hash.
 
 {% code title="main.nr" %}
 ```rust

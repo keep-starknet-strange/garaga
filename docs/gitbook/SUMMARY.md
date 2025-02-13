@@ -12,7 +12,7 @@
     * [Rust -> Wasm bidings](developer-setup-and-guides/garaga-rs-crate/rust-greater-than-wasm-bidings.md)
 * [Using garaga libraries in your Cairo project](using-garaga-libraries-in-your-cairo-project/README.md)
   * [EC (Multi)-Scalar Multiplication](using-garaga-libraries-in-your-cairo-project/ec-multi-scalar-multiplication.md)
-  * [EC-Signatures](using-garaga-libraries-in-your-cairo-project/ec-signatures.md)
+  * [ECDSA & Schnorr Signatures](using-garaga-libraries-in-your-cairo-project/ec-signatures.md)
   * [Hashing functions](using-garaga-libraries-in-your-cairo-project/hashing-functions.md)
 * [Deploy your own SNARK verifier on Starknet](deploy-your-snark-verifier-on-starknet/README.md)
   * [Groth16](deploy-your-snark-verifier-on-starknet/groth16/README.md)

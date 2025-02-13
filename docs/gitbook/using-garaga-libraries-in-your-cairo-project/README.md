@@ -11,6 +11,11 @@ You can import Garaga's Cairo library by adding this dependency to your `Scarb.t
 ```toml
 [dependencies]
 garaga = { git = "https://github.com/keep-starknet-strange/garaga.git" }
+
+[cairo]
+sierra-replace-ids = false # Do not forget this to avoid compilation errors. 
+# See also https://github.com/keep-starknet-strange/garaga/issues/198 about using workspaces with garaga
+
 ```
 {% endcode %}
 
