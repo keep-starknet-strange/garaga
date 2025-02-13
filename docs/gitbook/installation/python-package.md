@@ -44,3 +44,7 @@ To install a version at specific commit, pick a commit hash from the [github his
 ```bash
 pip install git+https://github.com/keep-starknet-strange/garaga.git@COMMIT_HASH
 ```
+
+{% hint style="info" %}
+Make sure the dependency on the Garaga Cairo library in `Scarb.toml` is at the same commit to ensure tooling are in sync.&#x20;
+{% endhint %}
