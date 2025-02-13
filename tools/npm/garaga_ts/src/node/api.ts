@@ -1,6 +1,17 @@
 // This files provides a ts-like interface for garaga_rs
 
-import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata, get_honk_calldata, parse_honk_proof, parse_honk_verification_key } from '../wasm/pkg/garaga_rs';
+import {
+  msm_calldata_builder,
+  mpc_calldata_builder,
+  schnorr_calldata_builder,
+  ecdsa_calldata_builder,
+  to_twistededwards,
+  to_weirstrass,
+  get_groth16_calldata,
+  get_honk_calldata,
+  parse_honk_proof,
+  parse_honk_verification_key,
+} from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 import { HonkFlavor, HonkProof, HonkVerifyingKey } from './starknet/honkContractGenerator/parsingUtils';
