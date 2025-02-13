@@ -1,6 +1,17 @@
 // This files provides a ts-like interface for garaga_rs
 
-import { msm_calldata_builder, mpc_calldata_builder, to_twistededwards, to_weirstrass, get_groth16_calldata, get_honk_calldata, parse_honk_proof, parse_honk_verification_key } from '../wasm/pkg/garaga_rs';
+import {
+  msm_calldata_builder,
+  mpc_calldata_builder,
+  schnorr_calldata_builder,
+  ecdsa_calldata_builder,
+  to_twistededwards,
+  to_weirstrass,
+  get_groth16_calldata,
+  get_honk_calldata,
+  parse_honk_proof,
+  parse_honk_verification_key,
+} from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 import { HonkFlavor, HonkProof, HonkVerifyingKey } from './starknet/honkContractGenerator/parsingUtils';
@@ -38,6 +49,14 @@ export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2
   const values1 = flatten(pairs.map(pairToList));
   const values2 = publicPair === undefined ? [] : pairToList(publicPair);
   return mpc_calldata_builder(curveId, values1, nFixedG2, values2);
+}
+
+export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: bigint, py: bigint, curveId: CurveId): bigint[] {
+  return schnorr_calldata_builder(rx, s, e, px, py, curveId);
+}
+
+export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint, py: bigint, z: bigint, curveId: CurveId): bigint[] {
+  return ecdsa_calldata_builder(r, s, v, px, py, z, curveId);
 }
 
 export function toWeirstrass(x_twisted: bigint, y_twisted: bigint): [bigint, bigint] {

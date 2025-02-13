@@ -20,6 +20,27 @@ export function msm_calldata_builder(values: any[], scalars: any[], curve_id: nu
  */
 export function mpc_calldata_builder(curve_id: number, values1: any[], n_fixed_g2: number, values2: any[]): any[];
 /**
+ * @param {any} rx
+ * @param {any} s
+ * @param {any} e
+ * @param {any} px
+ * @param {any} py
+ * @param {number} curve_id
+ * @returns {any[]}
+ */
+export function schnorr_calldata_builder(rx: any, s: any, e: any, px: any, py: any, curve_id: number): any[];
+/**
+ * @param {any} r
+ * @param {any} s
+ * @param {number} v
+ * @param {any} px
+ * @param {any} py
+ * @param {any} z
+ * @param {number} curve_id
+ * @returns {any[]}
+ */
+export function ecdsa_calldata_builder(r: any, s: any, v: number, px: any, py: any, z: any, curve_id: number): any[];
+/**
  * @param {any} x_twisted
  * @param {any} y_twisted
  * @returns {any[]}
@@ -62,6 +83,8 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number, i: number, j: number) => void;
   readonly mpc_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly schnorr_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
+  readonly ecdsa_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly to_weirstrass: (a: number, b: number, c: number) => void;
   readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;
