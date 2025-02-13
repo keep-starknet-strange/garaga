@@ -2,7 +2,7 @@
 icon: pen-field
 ---
 
-# EC-Signatures
+# ECDSA & Schnorr Signatures
 
 Both signature schemes follow a similar pattern with a Cairo struct containing the signature data and a hint for efficient verification. Garaga provide tooling in Python/Rust/Javascript to generate the full expected Cairo struct given signature information. \
 
@@ -188,10 +188,7 @@ Both are working with all [#supported-elliptic-curves](./#supported-elliptic-cur
 
 #### Signature with Hint generation&#x20;
 
-All three (Python / Rust / Javascript) implementation are strictly equivalent and take a ECDSA Signature data and return the serialized Cairo array as a list of integers.&#x20;
-
-\
-Simply pass your signature information to the class / function and obtain the calldata  that you can deserialize inside Cairo into the `ECDSASignatureWithHint` struct, which is the input needed for the `is_valid_ecdsa_signature` function.&#x20;
+Simply pass your signature information to the class/function to obtain the calldata that you can deserialize inside Cairo into the `ECDSASignatureWithHint` struct. This is the input needed for the `is_valid_ecdsa_signature` function. Do not forget to use the correct curve identifier (see [#supported-elliptic-curves](./#supported-elliptic-curves "mention")).  All three implementations (Python/Rust/JavaScript) are strictly equivalent and take an ECDSA signature data and return the serialized Cairo array as a list of integers
 
 {% tabs %}
 {% tab title="Python" %}
@@ -264,10 +261,7 @@ fn test_schnorr_BN254() {
 
 #### Schnorr Signature With Hint generation
 
-All three (Python / Rust / Javascript) implementation are strictly equivalent and take a Schnorr signature data and return the serialized Cairo array as a list of integers.&#x20;
-
-\
-Simply pass your signature information to the class / function and obtain the calldata  that you can deserialize inside Cairo into the `SchnorrSignatureWithHint` struct, which is the input needed for the `is_valid_schnorr_signature` function.&#x20;
+Simply pass your signature information to the class or function and obtain the calldata that you can deserialize inside Cairo into the `SchnorrSignatureWithHint` struct. This is the input needed for the `is_valid_schnorr_signature` function. Do not forget to use the correct curve identifier (see [#supported-elliptic-curves](./#supported-elliptic-curves "mention")).  All three implementations (Python, Rust, JavaScript) are strictly equivalent and take Schnorr signature data, returning the serialized Cairo array as a list of integers.
 
 {% tabs %}
 {% tab title="Python" %}
