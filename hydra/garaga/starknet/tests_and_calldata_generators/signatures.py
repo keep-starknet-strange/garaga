@@ -115,3 +115,152 @@ class SchnorrSignature:
         )[1:]
         cd.extend(msm_calldata)
         return cd
+
+
+@dataclass(slots=True)
+class ECDSASignature:
+    """
+    An ECDSA signature with recovery parameter and associated public key and message hash.
+
+    Fields:
+      r    : int - r component of the signature (derived from the ephemeral point R.x mod n).
+      s    : int - s component of the signature.
+      v    : int - Recovery parameter; 0 if R.y is even, otherwise 1.
+      px   : int - The x-coordinate of the public key.
+      py   : int - The y-coordinate of the public key.
+      z    : int - The message hash used in signing (in practice, z = H(message)).
+      curve_id : CurveID - The identifier for the curve being used.
+    """
+
+    r: int
+    s: int
+    v: int
+    px: int
+    py: int
+    z: int
+    curve_id: CurveID
+
+    def __post_init__(self):
+        curve = CURVES[self.curve_id.value]
+        n = curve.n
+        p = curve.p
+        # For ECDSA, r and s must be nonzero and less than n.
+        assert 0 < self.r < n, f"r must be in range 1..n-1, got {hex(self.r)}"
+        assert 0 < self.s < n, f"s must be in range 1..n-1, got {hex(self.s)}"
+        # v should be either 0 or 1.
+        assert self.v in (0, 1), f"v must be 0 or 1, got {self.v}"
+        # Ensure public key coordinates are in the field.
+        assert 0 <= self.px < p, f"px must be in range 0..p-1, got {hex(self.px)}"
+        assert 0 <= self.py < p, f"py must be in range 0..p-1, got {hex(self.py)}"
+
+    @classmethod
+    def sample(cls, curve_id: CurveID) -> "ECDSASignature":
+        """
+        Generate a valid ECDSA signature for the given curve.
+
+        The algorithm:
+          1. Generate a private key d.
+          2. Compute the public key Q = d * G.
+          3. Generate a random message hash z (in practice, z = H(message)).
+          4. Choose a random nonce k and compute R = k * G.
+          5. Let r = R.x mod n (with r != 0).
+          6. Compute s = k⁻¹ * (z + r * d) mod n (with s != 0).
+          7. Set the recovery parameter v = 0 if R.y is even, else 1.
+        """
+        curve = CURVES[curve_id.value]
+        n = curve.n
+        p = curve.p
+        G = G1Point.get_nG(curve_id, 1)
+
+        # Generate the private key d and public key Q.
+        d = random.randint(1, n - 1)
+        Q = G.scalar_mul(d)
+
+        # Generate a random message hash (normally, this is H(message)).
+        z = random.randint(1, n - 1)
+
+        # Choose a nonce k until we get valid r and s.
+        while True:
+            k = random.randint(1, n - 1)
+            R = G.scalar_mul(k)
+            r = R.x % n  # r is computed from the x-coordinate of R.
+            if r == 0:
+                continue
+            try:
+                k_inv = pow(k, -1, n)
+            except ValueError:
+                continue
+            s = (k_inv * (z + r * d)) % n
+            if s == 0:
+                continue
+            v = 0 if R.y % 2 == 0 else 1
+            break
+
+        sig = cls(r=r, s=s, v=v, px=Q.x, py=Q.y, z=z, curve_id=curve_id)
+        assert sig.is_valid(), "generated ECDSA signature is invalid"
+        return sig
+
+    def is_valid(self) -> bool:
+        """
+        Verify the ECDSA signature using the stored message hash and public key.
+
+        Standard verification:
+          1. Compute w = s⁻¹ mod n.
+          2. Compute u₁ = z * w mod n and u₂ = r * w mod n.
+          3. Compute R' = u₁ * G + u₂ * Q.
+          4. The signature is valid if (R'.x mod n) equals r.
+        """
+        curve = CURVES[self.curve_id.value]
+        n = curve.n
+        G = G1Point.get_nG(self.curve_id, 1)
+        Q = G1Point(self.px, self.py, self.curve_id)
+
+        try:
+            s_inv = pow(self.s, -1, n)
+        except ValueError:
+            return False
+
+        u1 = (self.z * s_inv) % n
+        u2 = (self.r * s_inv) % n
+
+        R_prime = G.scalar_mul(u1).add(Q.scalar_mul(u2))
+        return (R_prime.x % n) == self.r
+
+    def serialize(self) -> list[int]:
+        cd = []
+        cd.extend(bigint_split(self.r, N_LIMBS, BASE))
+        cd.extend(split_128(self.s))
+        cd.append(self.v)
+        cd.extend(bigint_split(self.px, N_LIMBS, BASE))
+        cd.extend(bigint_split(self.py, N_LIMBS, BASE))
+        cd.extend(split_128(self.z))
+        return cd
+
+    def serialize_with_hints(self) -> list[int]:
+        cd = self.serialize()
+
+        # For ECDSA verification we need to compute R' = u₁G + u₂P
+        # where u₁ = z·s⁻¹ mod n and u₂ = r·s⁻¹ mod n
+        n = CURVES[self.curve_id.value].n
+        s_inv = pow(self.s, -1, n)
+        # Compute u₁ = z·s⁻¹ mod n and u₂ = r·s⁻¹ mod n
+        u1 = (self.z * s_inv) % n
+        u2 = (self.r * s_inv) % n
+
+        # Build MSM calldata for u₁G + u₂P
+        msm_calldata = garaga_rs.msm_calldata_builder(
+            [
+                CURVES[self.curve_id.value].Gx,  # Generator G x-coordinate
+                CURVES[self.curve_id.value].Gy,  # Generator G y-coordinate
+                self.px,  # Public key P x-coordinate
+                self.py,  # Public key P y-coordinate
+            ],
+            [u1, u2],  # Scalars [u₁, u₂] for the linear combination
+            self.curve_id.value,
+            False,  # include_digits_decomposition
+            False,  # include_points_and_scalars
+            False,  # serialize_as_pure_felt252_array
+            False,  # risc0_mode
+        )[1:]
+        cd.extend(msm_calldata)
+        return cd
