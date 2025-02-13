@@ -74,6 +74,56 @@ pub fn mpc_calldata_builder(
     Ok(result.into_iter().map(biguint_to_jsvalue).collect())
 }
 
+#[wasm_bindgen]
+pub fn schnorr_calldata_builder(
+    rx: JsValue,
+    s: JsValue,
+    e: JsValue,
+    px: JsValue,
+    py: JsValue,
+    curve_id: usize,
+) -> Result<Vec<JsValue>, JsValue> {
+    let rx: BigUint = jsvalue_to_biguint(rx)?;
+    let s: BigUint = jsvalue_to_biguint(s)?;
+    let e: BigUint = jsvalue_to_biguint(e)?;
+    let px: BigUint = jsvalue_to_biguint(px)?;
+    let py: BigUint = jsvalue_to_biguint(py)?;
+
+    let result = crate::calldata::signatures::schnorr_calldata_builder(rx, s, e, px, py, curve_id)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn ecdsa_calldata_builder(
+    r: JsValue,
+    s: JsValue,
+    v: usize,
+    px: JsValue,
+    py: JsValue,
+    z: JsValue,
+    curve_id: usize,
+) -> Result<Vec<JsValue>, JsValue> {
+    let r: BigUint = jsvalue_to_biguint(r)?;
+    let s: BigUint = jsvalue_to_biguint(s)?;
+    let v: u8 = v
+        .try_into()
+        .map_err(|_| JsValue::from_str("Failed to convert value to u8"))?;
+    let px: BigUint = jsvalue_to_biguint(px)?;
+    let py: BigUint = jsvalue_to_biguint(py)?;
+    let z: BigUint = jsvalue_to_biguint(z)?;
+
+    let result = crate::calldata::signatures::ecdsa_calldata_builder(r, s, v, px, py, z, curve_id)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
 fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
     let s = (JsValue::from_str("") + v)
         .as_string()
