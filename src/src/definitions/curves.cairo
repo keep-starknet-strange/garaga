@@ -170,6 +170,20 @@ pub fn get_modulus(curve_index: usize) -> CircuitModulus {
     }
 }
 
+// Returns the order of a given curve index as CircuitModulus
+pub fn get_curve_order_modulus(curve_index: usize) -> CircuitModulus {
+    match curve_index {
+        0 => get_BN254_order_modulus(),
+        1 => get_BLS12_381_order_modulus(),
+        2 => get_SECP256K1_order_modulus(),
+        3 => get_SECP256R1_order_modulus(),
+        4 => get_ED25519_order_modulus(),
+        5 => get_GRUMPKIN_order_modulus(),
+        _ => core::panic_with_felt252('Invalid curve index'),
+    }
+}
+
+
 pub fn get_G(curve_index: usize) -> G1Point {
     match curve_index {
         0 => BN254.G,
@@ -196,7 +210,6 @@ pub fn get_BLS12_381_modulus() -> CircuitModulus {
         .unwrap();
     modulus
 }
-
 // Returns the modulus of BN254
 #[inline(always)]
 pub fn get_BN254_modulus() -> CircuitModulus {
@@ -244,7 +257,70 @@ fn get_GRUMPKIN_modulus() -> CircuitModulus {
         .unwrap();
     modulus
 }
+// Return the order of BN254 as CircuitModulus
+#[inline(always)]
+pub fn get_BN254_order_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus,
+    >::try_into([0x79b9709143e1f593f0000001, 0xb85045b68181585d2833e848, 0x30644e72e131a029, 0x0])
+        .unwrap();
+    modulus
+}
 
+
+// Return the order of BLS12_381 as CircuitModulus
+#[inline(always)]
+pub fn get_BLS12_381_order_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus,
+    >::try_into([0xfffe5bfeffffffff00000001, 0x3339d80809a1d80553bda402, 0x73eda753299d7d48, 0x0])
+        .unwrap();
+    modulus
+}
+
+
+// Return the order of SECP256K1 as CircuitModulus
+#[inline(always)]
+pub fn get_SECP256K1_order_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus,
+    >::try_into([0xaf48a03bbfd25e8cd0364141, 0xfffffffffffffffebaaedce6, 0xffffffffffffffff, 0x0])
+        .unwrap();
+    modulus
+}
+
+
+// Return the order of SECP256R1 as CircuitModulus
+#[inline(always)]
+pub fn get_SECP256R1_order_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus,
+    >::try_into([0xa7179e84f3b9cac2fc632551, 0xffffffffffffffffbce6faad, 0xffffffff00000000, 0x0])
+        .unwrap();
+    modulus
+}
+
+
+// Return the order of ED25519 as CircuitModulus
+#[inline(always)]
+pub fn get_ED25519_order_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus,
+    >::try_into([0xa2f79cd65812631a5cf5d3ed, 0x14def9de, 0x1000000000000000, 0x0])
+        .unwrap();
+    modulus
+}
+
+
+// Return the order of GRUMPKIN as CircuitModulus
+#[inline(always)]
+pub fn get_GRUMPKIN_order_modulus() -> CircuitModulus {
+    let modulus = TryInto::<
+        _, CircuitModulus,
+    >::try_into([0x6871ca8d3c208c16d87cfd47, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0])
+        .unwrap();
+    modulus
+}
 pub const BN254: Curve = Curve {
     p: u384 {
         limb0: 0x6871ca8d3c208c16d87cfd47,
