@@ -13,6 +13,7 @@ from garaga.precompiled_circuits.honk import (
     HonkVk,
     ModuloCircuitElement,
 )
+from garaga.precompiled_circuits.zk_honk import ZKHonkProof, ZKHonkVk
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
@@ -134,6 +135,15 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     return res
 
 
+def get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
+    vk: ZKHonkVk,
+    proof: ZKHonkProof,
+    system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
+    use_rust: bool = False,
+) -> list[int]:
+    raise ValueError("Unimplemented")  # TODO
+
+
 def _honk_calldata_from_vk_and_proof_rust(
     vk: HonkVk,
     proof: HonkProof,
@@ -148,3 +158,19 @@ def _honk_calldata_from_vk_and_proof_rust(
             raise ValueError(f"Proof system {system} not compatible")
 
     return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor)
+
+
+def _zk_honk_calldata_from_vk_and_proof_rust(
+    vk: ZKHonkVk,
+    proof: ZKHonkProof,
+    system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
+) -> list[int]:
+    match system:
+        case ProofSystem.UltraKeccakZKHonk:
+            flavor = 0
+        case ProofSystem.UltraStarknetZKHonk:
+            flavor = 1
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
+
+    return garaga_rs.get_zk_honk_calldata(proof.flatten(), vk.flatten(), flavor)

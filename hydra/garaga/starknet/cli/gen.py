@@ -13,6 +13,9 @@ from garaga.starknet.groth16_contract_generator.generator import (
     gen_groth16_verifier,
 )
 from garaga.starknet.honk_contract_generator.generator_honk import gen_honk_verifier
+from garaga.starknet.honk_contract_generator.generator_zk_honk import (
+    gen_zk_honk_verifier,
+)
 
 
 def gen(
@@ -66,6 +69,14 @@ def gen(
                 )
             case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
                 gen_honk_verifier(
+                    vk=vk,
+                    output_folder_path=cwd,
+                    output_folder_name=project_name,
+                    system=system,
+                    cli_mode=True,
+                )
+            case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
+                gen_zk_honk_verifier(
                     vk=vk,
                     output_folder_path=cwd,
                     output_folder_name=project_name,
