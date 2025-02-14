@@ -13,7 +13,7 @@ from garaga.precompiled_circuits.honk import (
     HonkVk,
     ModuloCircuitElement,
 )
-from garaga.precompiled_circuits.zk_honk import HonkVk, ZKHonkProof
+from garaga.precompiled_circuits.zk_honk import ZKHonkProof
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
