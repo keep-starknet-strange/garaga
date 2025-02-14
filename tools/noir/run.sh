@@ -17,8 +17,8 @@ reset
 BB_PATH="bb"
 
 
-echo "nargo version : $(nargo --version)" # 1.0.0-beta.1
-echo "bb version : $($BB_PATH --version)" # 0.67.0
+echo "nargo version : $(nargo --version)" # 1.0.0-beta.2
+echo "bb version : $($BB_PATH --version)" # 0.74.0
 
 
 run_noir_proof_basic() {
@@ -66,6 +66,23 @@ run_noir_proof_ultra_keccak() {
     cd ../
 }
 
+run_noir_proof_ultra_keccak_zk() {
+    cd hello
+    local suffix="_ultra_keccak_zk"
+
+    $BB_PATH prove_ultra_keccak_honk_zk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
+    $BB_PATH write_vk_ultra_keccak_honk -b target/hello.json -o target/vk${suffix}.bin
+    $BB_PATH vk_as_fields_ultra_keccak_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+
+    if $BB_PATH verify_ultra_keccak_honk_zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+        echo "ok $suffix"
+    else
+        echo "Verification failed $suffix"
+    fi
+    $BB_PATH contract_ultra_honk_zk -k target/vk${suffix}.bin -o target/contract${suffix}.sol # contract_ultra_keccak_honk does not exist
+    cd ../
+}
+
 run_noir_proof_ultra_starknet() {
     cd hello
     local suffix="_ultra_starknet"
@@ -97,6 +114,10 @@ run_noir_proof_ultra
 echo $'\n ultra keccak honk'
 # reset
 run_noir_proof_ultra_keccak
+
+echo $'\n ultra keccak zk honk'
+# reset
+run_noir_proof_ultra_keccak_zk
 
 # echo $'\n ultra starknet honk'
 # reset
