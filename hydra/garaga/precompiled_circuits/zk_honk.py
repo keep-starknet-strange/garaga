@@ -2,13 +2,15 @@ import math
 from dataclasses import dataclass
 
 import garaga.hints.io as io
-from garaga.definitions import CurveID, G1Point
+from garaga.definitions import CURVES, CurveID, G1Point, ProofSystem
 from garaga.modulo_circuit import ModuloCircuit
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G1_PROOF_POINT_SHIFT,
     MAX_LOG_N,
     NUMBER_OF_ALPHAS,
+    Sha3Transcript,
+    StarknetPoseidonTranscript,
     g1_to_g1_proof_point,
 )
 
@@ -434,6 +436,236 @@ class ZKHonkTranscript:
         assert len(self.alphas) == NUMBER_OF_ALPHAS
         assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
         assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
+
+    @classmethod
+    def from_proof(
+        cls, proof: ZKHonkProof, system: ProofSystem = ProofSystem.UltraKeccakZKHonk
+    ) -> "ZKHonkTranscript":
+
+        def split_challenge(ch: bytes) -> tuple[int, int]:
+            ch_int = int.from_bytes(ch, "big")
+            high_128, low_128 = divmod(ch_int, 2**128)
+            return (low_128, high_128)
+
+        # Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
+        FR = CURVES[CurveID.GRUMPKIN.value].p
+
+        match system:
+            case ProofSystem.UltraKeccakZKHonk:
+                hasher = Sha3Transcript()
+            case ProofSystem.UltraStarknetZKHonk:
+                hasher = StarknetPoseidonTranscript()
+            case _:
+                raise ValueError(f"Proof system {system} not compatible")
+
+        hasher.update(int.to_bytes(proof.circuit_size, 32, "big"))
+        hasher.update(int.to_bytes(proof.public_inputs_size, 32, "big"))
+        hasher.update(int.to_bytes(proof.public_inputs_offset, 32, "big"))
+
+        for pub_input in proof.public_inputs:
+            hasher.update(int.to_bytes(pub_input, 32, "big"))
+
+        for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
+            # print(f"g1_proof_point: {g1_proof_point.__repr__()}")
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        ch0 = hasher.digest_reset()
+
+        eta, eta_two = split_challenge(ch0)
+
+        hasher.update(ch0)
+        ch0 = hasher.digest_reset()
+        eta_three, _ = split_challenge(ch0)
+
+        # print(f"eta: {hex(eta)}")
+        # print(f"eta_two: {hex(eta_two)}")
+        # print(f"eta_three: {hex(eta_three)}")
+        # Round 1 : ch0, lookup_read_counts, lookup_read_tags, w4
+
+        hasher.update(ch0)
+
+        for g1_proof_point in [
+            proof.lookup_read_counts,
+            proof.lookup_read_tags,
+            proof.w4,
+        ]:
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        ch1 = hasher.digest_reset()
+        beta, gamma = split_challenge(ch1)
+
+        # Round 2: ch1, lookup_inverses, z_perm
+
+        hasher.update(ch1)
+
+        for g1_proof_point in [proof.lookup_inverses, proof.z_perm]:
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        ch2 = hasher.digest_reset()
+
+        alphas = [None] * NUMBER_OF_ALPHAS
+        alphas[0], alphas[1] = split_challenge(ch2)
+
+        for i in range(1, NUMBER_OF_ALPHAS // 2):
+            hasher.update(ch2)
+            ch2 = hasher.digest_reset()
+            alphas[i * 2], alphas[i * 2 + 1] = split_challenge(ch2)
+
+        if NUMBER_OF_ALPHAS % 2 == 1:
+            hasher.update(ch2)
+            ch2 = hasher.digest_reset()
+            alphas[-1], _ = split_challenge(ch2)
+
+        # Round 3: Gate Challenges :
+        ch3 = ch2
+        gate_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            hasher.update(ch3)
+            ch3 = hasher.digest_reset()
+            gate_challenges[i], _ = split_challenge(ch3)
+
+        # print(f"gate_challenges: {[hex(x) for x in gate_challenges]}")
+        # print(f"len(gate_challenges): {len(gate_challenges)}")
+
+        # Round 3 and 1/2: Libra challenge
+        hasher.update(ch3)
+
+        x0, x1, y0, y1 = g1_to_g1_proof_point(proof.libra_commitments[0])
+        hasher.update(int.to_bytes(x0, 32, "big"))
+        hasher.update(int.to_bytes(x1, 32, "big"))
+        hasher.update(int.to_bytes(y0, 32, "big"))
+        hasher.update(int.to_bytes(y1, 32, "big"))
+
+        hasher.update(int.to_bytes(proof.libra_sum, 32, "big"))
+
+        ch3 = hasher.digest_reset()
+        libra_challenge, _ = split_challenge(ch3)
+
+        # Round 4: Sumcheck u challenges
+        ch4 = ch3
+        sum_check_u_challenges = [None] * CONST_PROOF_SIZE_LOG_N
+
+        # print(f"len(sumcheck_univariates): {len(proof.sumcheck_univariates)}")
+        # print(
+        #     f"len(proof.sumcheck_univariates[0]): {len(proof.sumcheck_univariates[0])}"
+        # )
+
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            # Create array of univariate challenges starting with previous challenge
+            univariate_chal = [ch4]
+
+            # Add the sumcheck univariates for this round
+            for j in range(ZK_BATCHED_RELATION_PARTIAL_LENGTH):
+                univariate_chal.append(
+                    int.to_bytes(proof.sumcheck_univariates[i][j], 32, "big")
+                )
+
+            # Update hasher with all univariate challenges
+            for chal in univariate_chal:
+                hasher.update(chal)
+
+            # Get next challenge
+            ch4 = hasher.digest_reset()
+
+            # Split challenge to get sumcheck challenge
+            sum_check_u_challenges[i], _ = split_challenge(ch4)
+
+        # print(f"sum_check_u_challenges: {[hex(x) for x in sum_check_u_challenges]}")
+        # print(f"len(sum_check_u_challenges): {len(sum_check_u_challenges)}")
+
+        # Rho challenge :
+        hasher.update(ch4)
+        for i in range(NUMBER_OF_ENTITIES):
+            hasher.update(int.to_bytes(proof.sumcheck_evaluations[i], 32, "big"))
+
+        hasher.update(int.to_bytes(proof.libra_evaluation, 32, "big"))
+
+        for g1_proof_point in [
+            proof.libra_commitments[1],
+            proof.libra_commitments[2],
+            proof.gemini_masking_poly,
+        ]:
+            x0, x1, y0, y1 = g1_to_g1_proof_point(g1_proof_point)
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        hasher.update(int.to_bytes(proof.gemini_masking_eval, 32, "big"))
+
+        c5 = hasher.digest_reset()
+        rho, _ = split_challenge(c5)
+
+        # print(f"rho: {hex(rho)}")
+
+        # Gemini R :
+        hasher.update(c5)
+        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+            x0, x1, y0, y1 = g1_to_g1_proof_point(proof.gemini_fold_comms[i])
+            hasher.update(int.to_bytes(x0, 32, "big"))
+            hasher.update(int.to_bytes(x1, 32, "big"))
+            hasher.update(int.to_bytes(y0, 32, "big"))
+            hasher.update(int.to_bytes(y1, 32, "big"))
+
+        c6 = hasher.digest_reset()
+        gemini_r, _ = split_challenge(c6)
+
+        # print(f"gemini_r: {hex(gemini_r)}")
+
+        # Shplonk Nu :
+        hasher.update(c6)
+        for i in range(CONST_PROOF_SIZE_LOG_N):
+            hasher.update(int.to_bytes(proof.gemini_a_evaluations[i], 32, "big"))
+
+        for i in range(4):
+            hasher.update(int.to_bytes(proof.libra_poly_evals[i], 32, "big"))
+
+        c7 = hasher.digest_reset()
+        shplonk_nu, _ = split_challenge(c7)
+
+        # print(f"shplonk_nu: {hex(shplonk_nu)}")
+
+        # Shplonk Z :
+        hasher.update(c7)
+        x0, x1, y0, y1 = g1_to_g1_proof_point(proof.shplonk_q)
+        hasher.update(int.to_bytes(x0, 32, "big"))
+        hasher.update(int.to_bytes(x1, 32, "big"))
+        hasher.update(int.to_bytes(y0, 32, "big"))
+        hasher.update(int.to_bytes(y1, 32, "big"))
+
+        c8 = hasher.digest_reset()
+        shplonk_z, _ = split_challenge(c8)
+
+        # print(f"shplonk_z: {hex(shplonk_z)}")
+
+        return cls(
+            eta=eta,
+            etaTwo=eta_two,
+            etaThree=eta_three,
+            beta=beta,
+            gamma=gamma,
+            alphas=alphas,
+            gate_challenges=gate_challenges,
+            libra_challenge=libra_challenge,
+            sum_check_u_challenges=sum_check_u_challenges,
+            rho=rho,
+            gemini_r=gemini_r,
+            shplonk_nu=shplonk_nu,
+            shplonk_z=shplonk_z,
+            public_inputs_delta=None,
+        )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "ZKHonkTranscript":
         return ZKHonkTranscript(
