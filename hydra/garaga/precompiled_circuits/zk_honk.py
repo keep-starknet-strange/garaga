@@ -8,7 +8,6 @@ from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G1_PROOF_POINT_SHIFT,
     MAX_LOG_N,
-    HonkVk,
     g1_to_g1_proof_point,
 )
 
@@ -411,11 +410,6 @@ class ZKHonkProof:
         lst.extend(g1_to_g1_proof_point(self.shplonk_q))
         lst.extend(g1_to_g1_proof_point(self.kzg_quotient))
         return lst
-
-
-@dataclass
-class ZKHonkVk(HonkVk):
-    pass
 
 
 if __name__ == "__main__":

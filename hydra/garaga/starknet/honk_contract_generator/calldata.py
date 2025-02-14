@@ -13,7 +13,7 @@ from garaga.precompiled_circuits.honk import (
     HonkVk,
     ModuloCircuitElement,
 )
-from garaga.precompiled_circuits.zk_honk import ZKHonkProof, ZKHonkVk
+from garaga.precompiled_circuits.zk_honk import HonkVk, ZKHonkProof
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
@@ -136,7 +136,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 
 
 def get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
-    vk: ZKHonkVk,
+    vk: HonkVk,
     proof: ZKHonkProof,
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
     use_rust: bool = False,
@@ -161,7 +161,7 @@ def _honk_calldata_from_vk_and_proof_rust(
 
 
 def _zk_honk_calldata_from_vk_and_proof_rust(
-    vk: ZKHonkVk,
+    vk: HonkVk,
     proof: ZKHonkProof,
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
 ) -> list[int]:

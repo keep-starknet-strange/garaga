@@ -1,5 +1,5 @@
 def gen_zk_honk_verifier(
-    vk: str | Path | ZKHonkVk | bytes,
+    vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
     output_folder_name: str,
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
