@@ -2,6 +2,7 @@ import math
 from dataclasses import dataclass
 
 import garaga.hints.io as io
+from garaga.algebra import ModuloCircuitElement
 from garaga.definitions import CURVES, CurveID, G1Point, ProofSystem
 from garaga.modulo_circuit import ModuloCircuit
 from garaga.precompiled_circuits.honk import (
@@ -11,6 +12,7 @@ from garaga.precompiled_circuits.honk import (
     NUMBER_OF_ALPHAS,
     Sha3Transcript,
     StarknetPoseidonTranscript,
+    Wire,
     g1_to_g1_proof_point,
 )
 
