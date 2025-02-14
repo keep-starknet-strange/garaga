@@ -8,6 +8,7 @@ from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G1_PROOF_POINT_SHIFT,
     MAX_LOG_N,
+    NUMBER_OF_ALPHAS,
     g1_to_g1_proof_point,
 )
 
@@ -410,6 +411,67 @@ class ZKHonkProof:
         lst.extend(g1_to_g1_proof_point(self.shplonk_q))
         lst.extend(g1_to_g1_proof_point(self.kzg_quotient))
         return lst
+
+
+@dataclass
+class ZKHonkTranscript:
+    eta: int | ModuloCircuitElement
+    etaTwo: int | ModuloCircuitElement
+    etaThree: int | ModuloCircuitElement
+    beta: int | ModuloCircuitElement
+    gamma: int | ModuloCircuitElement
+    alphas: list[int | ModuloCircuitElement]
+    gate_challenges: list[int | ModuloCircuitElement]
+    libra_challenge: int | ModuloCircuitElement
+    sum_check_u_challenges: list[ModuloCircuitElement]
+    rho: int | ModuloCircuitElement
+    gemini_r: int | ModuloCircuitElement
+    shplonk_nu: int | ModuloCircuitElement
+    shplonk_z: int | ModuloCircuitElement
+    public_inputs_delta: int | None = None  # Derived.
+
+    def __post_init__(self):
+        assert len(self.alphas) == NUMBER_OF_ALPHAS
+        assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
+        assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
+
+    def to_circuit_elements(self, circuit: ModuloCircuit) -> "ZKHonkTranscript":
+        return ZKHonkTranscript(
+            eta=circuit.write_element(self.eta),
+            etaTwo=circuit.write_element(self.etaTwo),
+            etaThree=circuit.write_element(self.etaThree),
+            beta=circuit.write_element(self.beta),
+            gamma=circuit.write_element(self.gamma),
+            alphas=circuit.write_elements(self.alphas),
+            gate_challenges=circuit.write_elements(self.gate_challenges),
+            libra_challenge=circuit.write_element(self.libra_challenge),
+            sum_check_u_challenges=circuit.write_elements(self.sum_check_u_challenges),
+            rho=circuit.write_element(self.rho),
+            gemini_r=circuit.write_element(self.gemini_r),
+            shplonk_nu=circuit.write_element(self.shplonk_nu),
+            shplonk_z=circuit.write_element(self.shplonk_z),
+            public_inputs_delta=None,
+        )
+
+    def to_cairo(self) -> str:
+        code = "ZKHonkTranscript{\n"
+        code += f"    eta: {hex(self.eta)},\n"
+        code += f"    eta_two: {hex(self.etaTwo)},\n"
+        code += f"    eta_three: {hex(self.etaThree)},\n"
+        code += f"    beta: {hex(self.beta)},\n"
+        code += f"    gamma: {hex(self.gamma)},\n"
+        code += (
+            f"    alphas:array![{', '.join([hex(alpha) for alpha in self.alphas])}],\n"
+        )
+        code += f"    gate_challenges:array![{', '.join([hex(gate_challenge) for gate_challenge in self.gate_challenges])}],\n"
+        code += f"    libra_challenge: {hex(self.libra_challenge)},\n"
+        code += f"    sum_check_u_challenges:array![{', '.join([hex(sum_check_u_challenge) for sum_check_u_challenge in self.sum_check_u_challenges])}],\n"
+        code += f"    rho: {hex(self.rho)},\n"
+        code += f"    gemini_r: {hex(self.gemini_r)},\n"
+        code += f"    shplonk_nu: {hex(self.shplonk_nu)},\n"
+        code += f"    shplonk_z: {hex(self.shplonk_z)},\n"
+        code += "}"
+        return code
 
 
 if __name__ == "__main__":
