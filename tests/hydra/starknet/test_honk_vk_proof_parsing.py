@@ -2,6 +2,7 @@ import pytest
 
 from garaga.definitions import ProofSystem
 from garaga.precompiled_circuits.honk import HonkProof, HonkVk
+from garaga.precompiled_circuits.zk_honk import ZKHonkProof
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
@@ -26,6 +27,15 @@ def test_vk_parsing(vk_path: str):
 )
 def test_proof_parsing(proof_path: str):
     proof = HonkProof.from_bytes(open(proof_path, "rb").read())
+    print(proof)
+
+
+@pytest.mark.parametrize(
+    "proof_path",
+    [f"{PATH}/proof_ultra_keccak_zk.bin"],
+)
+def test_zk_proof_parsing(proof_path: str):
+    proof = ZKHonkProof.from_bytes(open(proof_path, "rb").read())
     print(proof)
 
 
