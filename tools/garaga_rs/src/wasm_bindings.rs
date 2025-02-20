@@ -3,8 +3,11 @@ use crate::calldata::full_proof_with_hints::groth16::{Groth16Proof, Groth16Verif
 use crate::calldata::full_proof_with_hints::honk;
 use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof, HonkVerificationKey};
 use crate::calldata::{G1PointBigUint, G2PointBigUint};
+use crate::crypto::poseidon_bn254::poseidon_hash_bn254;
 use crate::definitions::CurveID;
-use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
+use crate::definitions::{
+    FieldElement, GrumpkinPrimeField, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
+};
 use crate::io::{element_from_biguint, element_to_biguint};
 use js_sys::{Array, Uint8Array};
 use num_bigint::BigUint;
@@ -710,6 +713,22 @@ pub fn get_honk_calldata(
     Ok(honk_calldata_js)
 }
 
+#[wasm_bindgen]
+pub fn poseidon_hash(x: String, y: String) -> Result<String, JsValue> {
+    // Convert hex strings to field elements, handling potential errors
+    let x_fe = FieldElement::<GrumpkinPrimeField>::from_hex(&x)
+        .map_err(|_| JsValue::from_str("Failed to parse x input as hex"))?;
+
+    let y_fe = FieldElement::<GrumpkinPrimeField>::from_hex(&y)
+        .map_err(|_| JsValue::from_str("Failed to parse y input as hex"))?;
+
+    // Compute hash
+    let result = poseidon_hash_bn254(&x_fe, &y_fe);
+
+    // Convert result to hex string
+    Ok(result.to_hex())
+}
+
 #[allow(dead_code)]
 #[cfg(test)]
 mod tests {
@@ -916,5 +935,20 @@ mod tests {
         js_sys::Reflect::set(&obj, &JsValue::from_str("ic"), &ic_array).unwrap();
 
         obj.into()
+    }
+
+    #[wasm_bindgen_test]
+    fn test_poseidon_hash() {
+        // Test with valid inputs
+        let result = poseidon_hash("1".to_string(), "2".to_string());
+        assert!(result.is_ok());
+
+        // Test with invalid hex input
+        let result = poseidon_hash("invalid".to_string(), "2".to_string());
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().as_string().unwrap(),
+            "Failed to parse x input as hex"
+        );
     }
 }

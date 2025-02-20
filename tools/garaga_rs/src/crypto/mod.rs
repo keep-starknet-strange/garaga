@@ -1,2 +1,2 @@
 #[allow(dead_code)]
-mod poseidon_bn254;
+pub mod poseidon_bn254;

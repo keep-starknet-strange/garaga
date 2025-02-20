@@ -11,6 +11,7 @@ import {
   get_honk_calldata,
   parse_honk_proof,
   parse_honk_verification_key,
+  poseidon_hash,
 } from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
@@ -62,7 +63,7 @@ export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint
 export function toWeirstrass(x_twisted: bigint, y_twisted: bigint): [bigint, bigint] {
   const result = to_weirstrass(x_twisted, y_twisted);
 
-  if(result.length !== 2) {
+  if (result.length !== 2) {
     throw new Error('Invalid result length');
   }
 
@@ -72,7 +73,7 @@ export function toWeirstrass(x_twisted: bigint, y_twisted: bigint): [bigint, big
 export function toTwistedEdwards(x_weierstrass: bigint, y_weierstrass: bigint): [bigint, bigint] {
   const result = to_twistededwards(x_weierstrass, y_weierstrass);
 
-  if(result.length !== 2) {
+  if (result.length !== 2) {
     throw new Error('Invalid result length');
   }
 
@@ -93,4 +94,18 @@ export function parseHonkProofFromBytes(bytes: Uint8Array): HonkProof {
 
 export function parseHonkVerifyingKeyFromBytes(bytes: Uint8Array): HonkVerifyingKey {
   return parse_honk_verification_key(bytes);
+}
+
+export function poseidonHashBN254(x: bigint, y: bigint): bigint {
+  try {
+    const xHex = x.toString(16);
+    const yHex = y.toString(16);
+    const result = poseidon_hash(xHex, yHex);
+    if (typeof result === 'string') {
+      return BigInt('0x' + result);
+    }
+    throw new Error('Invalid result from poseidon_hash');
+  } catch (error) {
+    throw new Error(`Failed to compute Poseidon hash: ${error}`);
+  }
 }
