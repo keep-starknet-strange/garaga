@@ -27,6 +27,8 @@ ci-cairo:
 ci-wasm:
 	./tools/make/ci_wasm.sh
 
+wasm:
+	./tools/make/wasm.sh
 clean:
 	rm -rf build/compiled_cairo_files
 	mkdir -p build
