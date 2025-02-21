@@ -98,11 +98,10 @@ export function parseHonkVerifyingKeyFromBytes(bytes: Uint8Array): HonkVerifying
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
   try {
-    const xHex = x.toString(16);
-    const yHex = y.toString(16);
-    const result = poseidon_hash(xHex, yHex);
-    if (typeof result === 'string') {
-      return BigInt('0x' + result);
+    const result = poseidon_hash(x, y);
+
+    if (typeof result === 'bigint') {
+      return result;
     }
     throw new Error('Invalid result from poseidon_hash');
   } catch (error) {

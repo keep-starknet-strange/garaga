@@ -6,7 +6,7 @@ use crate::calldata::{G1PointBigUint, G2PointBigUint};
 use crate::crypto::poseidon_bn254::poseidon_hash_bn254;
 use crate::definitions::CurveID;
 use crate::definitions::{
-    FieldElement, GrumpkinPrimeField, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
+    GrumpkinPrimeField, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
 };
 use crate::io::{element_from_biguint, element_to_biguint};
 use js_sys::{Array, Uint8Array};
@@ -714,19 +714,22 @@ pub fn get_honk_calldata(
 }
 
 #[wasm_bindgen]
-pub fn poseidon_hash(x: String, y: String) -> Result<String, JsValue> {
+pub fn poseidon_hash(x: JsValue, y: JsValue) -> Result<JsValue, JsValue> {
     // Convert hex strings to field elements, handling potential errors
-    let x_fe = FieldElement::<GrumpkinPrimeField>::from_hex(&x)
-        .map_err(|_| JsValue::from_str("Failed to parse x input as hex"))?;
 
-    let y_fe = FieldElement::<GrumpkinPrimeField>::from_hex(&y)
-        .map_err(|_| JsValue::from_str("Failed to parse y input as hex"))?;
+    let x_biguint =
+        jsvalue_to_biguint(x).map_err(|_| JsValue::from_str("Failed to parse x input as hex"))?;
+    let x_fe = element_from_biguint::<GrumpkinPrimeField>(&x_biguint);
+
+    let y_biguint =
+        jsvalue_to_biguint(y).map_err(|_| JsValue::from_str("Failed to parse y input as hex"))?;
+    let y_fe = element_from_biguint::<GrumpkinPrimeField>(&y_biguint);
 
     // Compute hash
     let result = poseidon_hash_bn254(&x_fe, &y_fe);
-
+    let res_biguint = element_to_biguint::<GrumpkinPrimeField>(&result);
     // Convert result to hex string
-    Ok(result.to_hex())
+    Ok(biguint_to_jsvalue(res_biguint))
 }
 
 #[allow(dead_code)]
@@ -940,15 +943,16 @@ mod tests {
     #[wasm_bindgen_test]
     fn test_poseidon_hash() {
         // Test with valid inputs
-        let result = poseidon_hash("1".to_string(), "2".to_string());
-        assert!(result.is_ok());
-
-        // Test with invalid hex input
-        let result = poseidon_hash("invalid".to_string(), "2".to_string());
-        assert!(result.is_err());
-        assert_eq!(
-            result.unwrap_err().as_string().unwrap(),
-            "Failed to parse x input as hex"
+        let x_js = JsValue::from_str("1");
+        let y_js = JsValue::from_str("2");
+        let result = poseidon_hash(x_js, y_js);
+        let expected_js = biguint_to_jsvalue(
+            BigUint::from_str_radix(
+                "115CC0F5E7D690413DF64C6B9662E9CF2A3617F2743245519E19607A4417189A",
+                16,
+            )
+            .unwrap(),
         );
+        assert_eq!(result.unwrap(), expected_js);
     }
 }
