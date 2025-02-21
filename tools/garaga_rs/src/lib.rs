@@ -1,5 +1,6 @@
 pub mod algebra;
 pub mod calldata;
+pub mod crypto;
 pub mod definitions;
 pub mod ecip;
 pub mod frobenius;

@@ -1,5 +1,5 @@
 from garaga.definitions import CurveID, get_base_field
-from garaga.modulo_circuit import ModuloCircuit
+from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement
 from garaga.modulo_circuit_structs import u384
 
 # Global circuit definition
@@ -73,8 +73,19 @@ def mix_s(t, S, r, state):
     return result
 
 
-def poseidon_hash(x, y):
+def poseidon_hash(
+    x: ModuloCircuitElement, y: ModuloCircuitElement
+) -> ModuloCircuitElement:
     """Computes the Poseidon hash for two inputs x and y."""
+    if isinstance(x, int):
+        x = circuit.write_element(x)
+    if isinstance(y, int):
+        y = circuit.write_element(y)
+    if not isinstance(x, ModuloCircuitElement) or not isinstance(
+        y, ModuloCircuitElement
+    ):
+        raise ValueError("x and y must be ModuloCircuitElement instances")
+
     t = 3  # 2 inputs + 1 state
     n_rounds_f = 8  # Full rounds
     n_rounds_p = 57  # Partial rounds
@@ -532,12 +543,13 @@ def poseidon_hash(x, y):
     return mix_last(t, POSEIDON_M, 0, state)
 
 
-# Compute the Poseidon hash
-z = poseidon_hash(x, y)
+if __name__ == "__main__":
+    # Compute the Poseidon hash
+    z = poseidon_hash(x, y)
 
-# Define the output of the circuit
-circuit.extend_struct_output(u384("z", [z]))
+    # Define the output of the circuit
+    circuit.extend_struct_output(u384("z", [z]))
 
-# Compile and print the compiled circuit
-compiled_code, function_name = circuit.compile_circuit()
-print(compiled_code)
+    # Compile and print the compiled circuit
+    compiled_code, function_name = circuit.compile_circuit()
+    print(compiled_code)
