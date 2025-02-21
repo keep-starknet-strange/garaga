@@ -17,15 +17,39 @@ use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseid
 
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 
-use crate::definitions::{BLS12381PrimeField, BN254PrimeField, FieldElement, Stark252PrimeField};
+use crate::crypto::poseidon_bn254::poseidon_hash_bn254 as core_poseidon_hash_bn254;
+use crate::definitions::{
+    BLS12381PrimeField, BN254PrimeField, FieldElement, GrumpkinPrimeField, Stark252PrimeField,
+};
+
+use crate::io::{element_from_biguint, element_to_biguint};
 use num_bigint::BigUint;
 use pyo3::{
+    conversion::IntoPyObject,
     prelude::*,
     types::{PyBytes, PyInt, PyList, PyTuple},
 };
 
 const CURVE_BN254: usize = 0;
 const CURVE_BLS12_381: usize = 1;
+
+#[pyfunction]
+pub fn poseidon_hash_bn254(
+    py: Python,
+    x: &Bound<'_, PyInt>,
+    y: &Bound<'_, PyInt>,
+) -> PyResult<PyObject> {
+    let x_biguint: BigUint = x.extract()?;
+    let y_biguint: BigUint = y.extract()?;
+
+    let x_fe = element_from_biguint::<GrumpkinPrimeField>(&x_biguint);
+    let y_fe = element_from_biguint::<GrumpkinPrimeField>(&y_biguint);
+
+    let result = core_poseidon_hash_bn254(&x_fe, &y_fe);
+    let result_biguint = element_to_biguint(&result);
+
+    Ok(result_biguint.into_pyobject(py)?.into())
+}
 
 #[pymodule]
 fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
@@ -49,5 +73,6 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(honk_calldata::get_honk_calldata, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::schnorr_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::ecdsa_calldata_builder, m)?)?;
+    m.add_function(wrap_pyfunction!(poseidon_hash_bn254, m)?)?;
     Ok(())
 }
