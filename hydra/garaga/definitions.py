@@ -33,6 +33,8 @@ class ProofSystem(Enum):
     Risc0Groth16 = "risc0_groth16"
     UltraKeccakHonk = "ultra_keccak_honk"
     UltraStarknetHonk = "ultra_starknet_honk"
+    UltraKeccakZKHonk = "ultra_keccak_zk_honk"
+    UltraStarknetZKHonk = "ultra_starknet_zk_honk"
 
     @property
     def supported_curves(self) -> set[int]:
@@ -43,6 +45,10 @@ class ProofSystem(Enum):
         if self == ProofSystem.UltraKeccakHonk:
             return {BN254_ID}
         if self == ProofSystem.UltraStarknetHonk:
+            return {BN254_ID}
+        if self == ProofSystem.UltraKeccakZKHonk:
+            return {BN254_ID}
+        if self == ProofSystem.UltraStarknetZKHonk:
             return {BN254_ID}
         return set()
 
