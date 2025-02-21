@@ -76,6 +76,12 @@ export function parse_honk_verification_key(uint8_array: any): any;
  * @returns {any[]}
  */
 export function get_honk_calldata(proof_js: any, vk_js: any, flavor_js: any): any[];
+/**
+ * @param {any} x
+ * @param {any} y
+ * @returns {any}
+ */
+export function poseidon_hash(x: any, y: any): any;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -91,6 +97,7 @@ export interface InitOutput {
   readonly parse_honk_proof: (a: number, b: number) => void;
   readonly parse_honk_verification_key: (a: number, b: number) => void;
   readonly get_honk_calldata: (a: number, b: number, c: number, d: number) => void;
+  readonly poseidon_hash: (a: number, b: number, c: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
   readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
