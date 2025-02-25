@@ -19,7 +19,7 @@ pub struct LeafMutation<H: HashFunction> {
     /// leaf has been mutated. An authentication path is a commitment to all
     /// other leafs in the Merkle tree than the one it is a membership proof
     /// for.
-    pub membership_proof: MmrMembershipProof,
+    pub membership_proof: MmrMembershipProof<H>,
 }
 
 impl<H: HashFunction> LeafMutation<H> {
