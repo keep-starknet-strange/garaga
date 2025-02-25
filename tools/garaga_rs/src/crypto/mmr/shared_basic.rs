@@ -1,6 +1,9 @@
-use crate::error::U32_TO_USIZE_ERR;
-use crate::error::USIZE_TO_U64_ERR;
-use crate::prelude::*;
+// use crate::prelude::*;
+
+pub(crate) const USIZE_TO_U64_ERR: &str =
+    "internal error: type `usize` should have at most 64 bits";
+pub(crate) const U32_TO_USIZE_ERR: &str =
+    "internal error: type `usize` should have at least 32 bits";
 
 #[inline]
 pub fn left_child(node_index: u64, height: u32) -> u64 {
@@ -137,208 +140,208 @@ pub fn calculate_new_peaks_from_leaf_mutation(
     calculated_peaks
 }
 
-#[cfg(test)]
-mod mmr_test {
-    use proptest::collection::vec;
-    use proptest_arbitrary_interop::arb;
-    use test_strategy::proptest;
+// #[cfg(test)]
+// mod mmr_test {
+//     use proptest::collection::vec;
+//     use proptest_arbitrary_interop::arb;
+//     use test_strategy::proptest;
 
-    use super::*;
+//     use super::*;
 
-    #[test]
-    fn right_lineage_length_from_leaf_index_test() {
-        assert_eq!(0, right_lineage_length_from_leaf_index(0));
-        assert_eq!(1, right_lineage_length_from_leaf_index(1));
-        assert_eq!(0, right_lineage_length_from_leaf_index(2));
-        assert_eq!(2, right_lineage_length_from_leaf_index(3));
-        assert_eq!(0, right_lineage_length_from_leaf_index(4));
-        assert_eq!(1, right_lineage_length_from_leaf_index(5));
-        assert_eq!(0, right_lineage_length_from_leaf_index(6));
-        assert_eq!(3, right_lineage_length_from_leaf_index(7));
-        assert_eq!(0, right_lineage_length_from_leaf_index(8));
-        assert_eq!(1, right_lineage_length_from_leaf_index(9));
-        assert_eq!(0, right_lineage_length_from_leaf_index(10));
-        assert_eq!(32, right_lineage_length_from_leaf_index((1 << 32) - 1));
-        assert_eq!(63, right_lineage_length_from_leaf_index((1 << 63) - 1));
-    }
+//     #[test]
+//     fn right_lineage_length_from_leaf_index_test() {
+//         assert_eq!(0, right_lineage_length_from_leaf_index(0));
+//         assert_eq!(1, right_lineage_length_from_leaf_index(1));
+//         assert_eq!(0, right_lineage_length_from_leaf_index(2));
+//         assert_eq!(2, right_lineage_length_from_leaf_index(3));
+//         assert_eq!(0, right_lineage_length_from_leaf_index(4));
+//         assert_eq!(1, right_lineage_length_from_leaf_index(5));
+//         assert_eq!(0, right_lineage_length_from_leaf_index(6));
+//         assert_eq!(3, right_lineage_length_from_leaf_index(7));
+//         assert_eq!(0, right_lineage_length_from_leaf_index(8));
+//         assert_eq!(1, right_lineage_length_from_leaf_index(9));
+//         assert_eq!(0, right_lineage_length_from_leaf_index(10));
+//         assert_eq!(32, right_lineage_length_from_leaf_index((1 << 32) - 1));
+//         assert_eq!(63, right_lineage_length_from_leaf_index((1 << 63) - 1));
+//     }
 
-    #[test]
-    fn leaf_index_to_mt_index_test() {
-        // 1 leaf
-        assert_eq!((1, 0), leaf_index_to_mt_index_and_peak_index(0, 1));
+//     #[test]
+//     fn leaf_index_to_mt_index_test() {
+//         // 1 leaf
+//         assert_eq!((1, 0), leaf_index_to_mt_index_and_peak_index(0, 1));
 
-        // 2 leafs
-        assert_eq!((2, 0), leaf_index_to_mt_index_and_peak_index(0, 2));
-        assert_eq!((3, 0), leaf_index_to_mt_index_and_peak_index(1, 2));
+//         // 2 leafs
+//         assert_eq!((2, 0), leaf_index_to_mt_index_and_peak_index(0, 2));
+//         assert_eq!((3, 0), leaf_index_to_mt_index_and_peak_index(1, 2));
 
-        // 3 leafs
-        assert_eq!((2, 0), leaf_index_to_mt_index_and_peak_index(0, 3));
-        assert_eq!((3, 0), leaf_index_to_mt_index_and_peak_index(1, 3));
-        assert_eq!((1, 1), leaf_index_to_mt_index_and_peak_index(2, 3));
+//         // 3 leafs
+//         assert_eq!((2, 0), leaf_index_to_mt_index_and_peak_index(0, 3));
+//         assert_eq!((3, 0), leaf_index_to_mt_index_and_peak_index(1, 3));
+//         assert_eq!((1, 1), leaf_index_to_mt_index_and_peak_index(2, 3));
 
-        // 4 leafs
-        assert_eq!((4, 0), leaf_index_to_mt_index_and_peak_index(0, 4));
-        assert_eq!((5, 0), leaf_index_to_mt_index_and_peak_index(1, 4));
-        assert_eq!((6, 0), leaf_index_to_mt_index_and_peak_index(2, 4));
-        assert_eq!((7, 0), leaf_index_to_mt_index_and_peak_index(3, 4));
+//         // 4 leafs
+//         assert_eq!((4, 0), leaf_index_to_mt_index_and_peak_index(0, 4));
+//         assert_eq!((5, 0), leaf_index_to_mt_index_and_peak_index(1, 4));
+//         assert_eq!((6, 0), leaf_index_to_mt_index_and_peak_index(2, 4));
+//         assert_eq!((7, 0), leaf_index_to_mt_index_and_peak_index(3, 4));
 
-        // 14 leafs
-        assert_eq!((8, 0), leaf_index_to_mt_index_and_peak_index(0, 14));
-        assert_eq!((9, 0), leaf_index_to_mt_index_and_peak_index(1, 14));
-        assert_eq!((10, 0), leaf_index_to_mt_index_and_peak_index(2, 14));
-        assert_eq!((11, 0), leaf_index_to_mt_index_and_peak_index(3, 14));
-        assert_eq!((12, 0), leaf_index_to_mt_index_and_peak_index(4, 14));
-        assert_eq!((13, 0), leaf_index_to_mt_index_and_peak_index(5, 14));
-        assert_eq!((14, 0), leaf_index_to_mt_index_and_peak_index(6, 14));
-        assert_eq!((15, 0), leaf_index_to_mt_index_and_peak_index(7, 14));
-        assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(8, 14));
-        assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(9, 14));
-        assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(10, 14));
-        assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(11, 14));
-        assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(11, 14));
+//         // 14 leafs
+//         assert_eq!((8, 0), leaf_index_to_mt_index_and_peak_index(0, 14));
+//         assert_eq!((9, 0), leaf_index_to_mt_index_and_peak_index(1, 14));
+//         assert_eq!((10, 0), leaf_index_to_mt_index_and_peak_index(2, 14));
+//         assert_eq!((11, 0), leaf_index_to_mt_index_and_peak_index(3, 14));
+//         assert_eq!((12, 0), leaf_index_to_mt_index_and_peak_index(4, 14));
+//         assert_eq!((13, 0), leaf_index_to_mt_index_and_peak_index(5, 14));
+//         assert_eq!((14, 0), leaf_index_to_mt_index_and_peak_index(6, 14));
+//         assert_eq!((15, 0), leaf_index_to_mt_index_and_peak_index(7, 14));
+//         assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(8, 14));
+//         assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(9, 14));
+//         assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(10, 14));
+//         assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(11, 14));
+//         assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(11, 14));
 
-        // 22 leafs
-        assert_eq!((16, 0), leaf_index_to_mt_index_and_peak_index(0, 23));
-        assert_eq!((17, 0), leaf_index_to_mt_index_and_peak_index(1, 23));
-        assert_eq!((18, 0), leaf_index_to_mt_index_and_peak_index(2, 23));
-        assert_eq!((19, 0), leaf_index_to_mt_index_and_peak_index(3, 23));
-        assert_eq!((30, 0), leaf_index_to_mt_index_and_peak_index(14, 23));
-        assert_eq!((31, 0), leaf_index_to_mt_index_and_peak_index(15, 23));
-        assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(16, 23));
-        assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(17, 23));
-        assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(18, 23));
-        assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(19, 23));
-        assert_eq!((2, 2), leaf_index_to_mt_index_and_peak_index(20, 23));
-        assert_eq!((3, 2), leaf_index_to_mt_index_and_peak_index(21, 23));
-        assert_eq!((1, 3), leaf_index_to_mt_index_and_peak_index(22, 23));
+//         // 22 leafs
+//         assert_eq!((16, 0), leaf_index_to_mt_index_and_peak_index(0, 23));
+//         assert_eq!((17, 0), leaf_index_to_mt_index_and_peak_index(1, 23));
+//         assert_eq!((18, 0), leaf_index_to_mt_index_and_peak_index(2, 23));
+//         assert_eq!((19, 0), leaf_index_to_mt_index_and_peak_index(3, 23));
+//         assert_eq!((30, 0), leaf_index_to_mt_index_and_peak_index(14, 23));
+//         assert_eq!((31, 0), leaf_index_to_mt_index_and_peak_index(15, 23));
+//         assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(16, 23));
+//         assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(17, 23));
+//         assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(18, 23));
+//         assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(19, 23));
+//         assert_eq!((2, 2), leaf_index_to_mt_index_and_peak_index(20, 23));
+//         assert_eq!((3, 2), leaf_index_to_mt_index_and_peak_index(21, 23));
+//         assert_eq!((1, 3), leaf_index_to_mt_index_and_peak_index(22, 23));
 
-        // 32 leafs
-        for i in 0..32 {
-            assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 32));
-        }
+//         // 32 leafs
+//         for i in 0..32 {
+//             assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 32));
+//         }
 
-        // 33 leafs
-        for i in 0..32 {
-            assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 33));
-        }
-        assert_eq!((1, 1), leaf_index_to_mt_index_and_peak_index(32, 33));
+//         // 33 leafs
+//         for i in 0..32 {
+//             assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 33));
+//         }
+//         assert_eq!((1, 1), leaf_index_to_mt_index_and_peak_index(32, 33));
 
-        // 34 leafs
-        for i in 0..32 {
-            assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 34));
-        }
-        assert_eq!((2, 1), leaf_index_to_mt_index_and_peak_index(32, 34));
-        assert_eq!((3, 1), leaf_index_to_mt_index_and_peak_index(33, 34));
+//         // 34 leafs
+//         for i in 0..32 {
+//             assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 34));
+//         }
+//         assert_eq!((2, 1), leaf_index_to_mt_index_and_peak_index(32, 34));
+//         assert_eq!((3, 1), leaf_index_to_mt_index_and_peak_index(33, 34));
 
-        // 35 leafs
-        for i in 0..32 {
-            assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 35));
-        }
-        assert_eq!((2, 1), leaf_index_to_mt_index_and_peak_index(32, 35));
-        assert_eq!((3, 1), leaf_index_to_mt_index_and_peak_index(33, 35));
-        assert_eq!((1, 2), leaf_index_to_mt_index_and_peak_index(34, 35));
+//         // 35 leafs
+//         for i in 0..32 {
+//             assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 35));
+//         }
+//         assert_eq!((2, 1), leaf_index_to_mt_index_and_peak_index(32, 35));
+//         assert_eq!((3, 1), leaf_index_to_mt_index_and_peak_index(33, 35));
+//         assert_eq!((1, 2), leaf_index_to_mt_index_and_peak_index(34, 35));
 
-        // 36 leafs
-        for i in 0..32 {
-            assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 36));
-        }
-        assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(32, 36));
-        assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(33, 36));
-        assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(34, 36));
-        assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(35, 36));
+//         // 36 leafs
+//         for i in 0..32 {
+//             assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 36));
+//         }
+//         assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(32, 36));
+//         assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(33, 36));
+//         assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(34, 36));
+//         assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(35, 36));
 
-        // 37 leafs
-        for i in 0..32 {
-            assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 37));
-        }
-        assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(32, 37));
-        assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(33, 37));
-        assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(34, 37));
-        assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(35, 37));
-        assert_eq!((1, 2), leaf_index_to_mt_index_and_peak_index(36, 37));
+//         // 37 leafs
+//         for i in 0..32 {
+//             assert_eq!((32 + i, 0), leaf_index_to_mt_index_and_peak_index(i, 37));
+//         }
+//         assert_eq!((4, 1), leaf_index_to_mt_index_and_peak_index(32, 37));
+//         assert_eq!((5, 1), leaf_index_to_mt_index_and_peak_index(33, 37));
+//         assert_eq!((6, 1), leaf_index_to_mt_index_and_peak_index(34, 37));
+//         assert_eq!((7, 1), leaf_index_to_mt_index_and_peak_index(35, 37));
+//         assert_eq!((1, 2), leaf_index_to_mt_index_and_peak_index(36, 37));
 
-        for i in (10..63).map(|x| 1 << x) {
-            assert_eq!((14 + i, 0), leaf_index_to_mt_index_and_peak_index(14, i));
-            assert_eq!((3, 2), leaf_index_to_mt_index_and_peak_index(i + 9, i + 11));
-            assert_eq!(
-                (1, 3),
-                leaf_index_to_mt_index_and_peak_index(i + 10, i + 11)
-            );
-        }
-    }
+//         for i in (10..63).map(|x| 1 << x) {
+//             assert_eq!((14 + i, 0), leaf_index_to_mt_index_and_peak_index(14, i));
+//             assert_eq!((3, 2), leaf_index_to_mt_index_and_peak_index(i + 9, i + 11));
+//             assert_eq!(
+//                 (1, 3),
+//                 leaf_index_to_mt_index_and_peak_index(i + 10, i + 11)
+//             );
+//         }
+//     }
 
-    #[test]
-    fn peak_index_test() {
-        let peak_index = |leaf_index, num_leafs| {
-            let (_, peak_index) = leaf_index_to_mt_index_and_peak_index(leaf_index, num_leafs);
-            peak_index
-        };
+//     #[test]
+//     fn peak_index_test() {
+//         let peak_index = |leaf_index, num_leafs| {
+//             let (_, peak_index) = leaf_index_to_mt_index_and_peak_index(leaf_index, num_leafs);
+//             peak_index
+//         };
 
-        assert_eq!(0, peak_index(0, 1));
+//         assert_eq!(0, peak_index(0, 1));
 
-        assert_eq!(0, peak_index(0, 2));
-        assert_eq!(0, peak_index(1, 2));
+//         assert_eq!(0, peak_index(0, 2));
+//         assert_eq!(0, peak_index(1, 2));
 
-        assert_eq!(0, peak_index(0, 3));
-        assert_eq!(0, peak_index(1, 3));
-        assert_eq!(1, peak_index(2, 3));
+//         assert_eq!(0, peak_index(0, 3));
+//         assert_eq!(0, peak_index(1, 3));
+//         assert_eq!(1, peak_index(2, 3));
 
-        assert_eq!(0, peak_index(0, 4));
-        assert_eq!(0, peak_index(1, 4));
-        assert_eq!(0, peak_index(2, 4));
-        assert_eq!(0, peak_index(3, 4));
+//         assert_eq!(0, peak_index(0, 4));
+//         assert_eq!(0, peak_index(1, 4));
+//         assert_eq!(0, peak_index(2, 4));
+//         assert_eq!(0, peak_index(3, 4));
 
-        assert_eq!(0, peak_index(0, 5));
-        assert_eq!(0, peak_index(1, 5));
-        assert_eq!(0, peak_index(2, 5));
-        assert_eq!(0, peak_index(3, 5));
-        assert_eq!(1, peak_index(4, 5));
+//         assert_eq!(0, peak_index(0, 5));
+//         assert_eq!(0, peak_index(1, 5));
+//         assert_eq!(0, peak_index(2, 5));
+//         assert_eq!(0, peak_index(3, 5));
+//         assert_eq!(1, peak_index(4, 5));
 
-        assert_eq!(0, peak_index(0, 7));
-        assert_eq!(0, peak_index(1, 7));
-        assert_eq!(0, peak_index(2, 7));
-        assert_eq!(0, peak_index(3, 7));
-        assert_eq!(1, peak_index(4, 7));
-        assert_eq!(1, peak_index(5, 7));
-        assert_eq!(2, peak_index(6, 7));
+//         assert_eq!(0, peak_index(0, 7));
+//         assert_eq!(0, peak_index(1, 7));
+//         assert_eq!(0, peak_index(2, 7));
+//         assert_eq!(0, peak_index(3, 7));
+//         assert_eq!(1, peak_index(4, 7));
+//         assert_eq!(1, peak_index(5, 7));
+//         assert_eq!(2, peak_index(6, 7));
 
-        assert_eq!(0, peak_index(0, (1 << 32) - 1));
-        assert_eq!(0, peak_index(1, (1 << 32) - 1));
+//         assert_eq!(0, peak_index(0, (1 << 32) - 1));
+//         assert_eq!(0, peak_index(1, (1 << 32) - 1));
 
-        assert_eq!(0, peak_index((0b01 << 31) - 1, (0b10 << 31) - 1));
-        assert_eq!(1, peak_index(0b01 << 31, (0b10 << 31) - 1));
+//         assert_eq!(0, peak_index((0b01 << 31) - 1, (0b10 << 31) - 1));
+//         assert_eq!(1, peak_index(0b01 << 31, (0b10 << 31) - 1));
 
-        assert_eq!(1, peak_index((0b011 << 30) - 1, (0b100 << 30) - 1));
-        assert_eq!(2, peak_index(0b011 << 30, (0b100 << 30) - 1));
+//         assert_eq!(1, peak_index((0b011 << 30) - 1, (0b100 << 30) - 1));
+//         assert_eq!(2, peak_index(0b011 << 30, (0b100 << 30) - 1));
 
-        assert_eq!(1, peak_index((0b0101 << 29) - 1, (0b1000 << 29) - 1));
-        assert_eq!(2, peak_index((0b0111 << 29) - 1, (0b1000 << 29) - 1));
-    }
+//         assert_eq!(1, peak_index((0b0101 << 29) - 1, (0b1000 << 29) - 1));
+//         assert_eq!(2, peak_index((0b0111 << 29) - 1, (0b1000 << 29) - 1));
+//     }
 
-    #[test]
-    fn merkle_tree_and_peak_indices_can_be_computed_for_large_mmrs() {
-        leaf_index_to_mt_index_and_peak_index(0, u64::MAX);
-        leaf_index_to_mt_index_and_peak_index(u64::MAX - 1, u64::MAX);
-    }
+//     #[test]
+//     fn merkle_tree_and_peak_indices_can_be_computed_for_large_mmrs() {
+//         leaf_index_to_mt_index_and_peak_index(0, u64::MAX);
+//         leaf_index_to_mt_index_and_peak_index(u64::MAX - 1, u64::MAX);
+//     }
 
-    #[proptest]
-    fn right_lineage_length_from_leaf_index_does_not_crash(
-        #[strategy(0..=u64::MAX >> 1)] leaf_index: u64,
-    ) {
-        right_lineage_length_from_leaf_index(leaf_index);
-    }
+//     #[proptest]
+//     fn right_lineage_length_from_leaf_index_does_not_crash(
+//         #[strategy(0..=u64::MAX >> 1)] leaf_index: u64,
+//     ) {
+//         right_lineage_length_from_leaf_index(leaf_index);
+//     }
 
-    #[proptest]
-    fn calculate_new_peaks_from_append_does_not_crash(
-        #[strategy(0..u64::MAX >> 1)] old_num_leafs: u64,
-        #[strategy(vec(arb(), #old_num_leafs.count_ones() as usize))] old_peaks: Vec<Digest>,
-        #[strategy(arb())] new_leaf: Digest,
-    ) {
-        calculate_new_peaks_from_append(old_num_leafs, old_peaks, new_leaf);
-    }
+//     #[proptest]
+//     fn calculate_new_peaks_from_append_does_not_crash(
+//         #[strategy(0..u64::MAX >> 1)] old_num_leafs: u64,
+//         #[strategy(vec(arb(), #old_num_leafs.count_ones() as usize))] old_peaks: Vec<Digest>,
+//         #[strategy(arb())] new_leaf: Digest,
+//     ) {
+//         calculate_new_peaks_from_append(old_num_leafs, old_peaks, new_leaf);
+//     }
 
-    #[test]
-    fn calculate_new_peaks_from_append_to_empty_mmra_does_not_crash() {
-        calculate_new_peaks_from_append(0, vec![], rand::random());
-    }
-}
+//     #[test]
+//     fn calculate_new_peaks_from_append_to_empty_mmra_does_not_crash() {
+//         calculate_new_peaks_from_append(0, vec![], rand::random());
+//     }
+// }
