@@ -191,10 +191,10 @@ pub fn get_authentication_path_node_indices(
 /// # Examples
 ///
 /// ```
-/// # use twenty_first::util_types::mmr::shared_advanced::get_peak_heights;
-/// assert_eq!(get_peak_heights(0b1010), vec![3, 1]);
-/// assert_eq!(get_peak_heights(0b1011), vec![3, 1, 0]);
-/// ```
+// /// use twenty_first::util_types::mmr::shared_advanced::get_peak_heights;
+// /// assert_eq!(get_peak_heights(0b1010), vec![3, 1]);
+// /// assert_eq!(get_peak_heights(0b1011), vec![3, 1, 0]);
+// /// ```
 pub fn get_peak_heights(leaf_count: u64) -> Vec<u32> {
     // In an MMR, the peak heights directly correspond the leaf count's bit decomposition. That is,
     // the indices of the bits that are set in the binary representation of the leaf count are the

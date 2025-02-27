@@ -96,7 +96,10 @@ pub fn calculate_new_peaks_from_append<H: HashFunction>(
         let in_progress_peak = peaks.pop().unwrap();
         let previous_peak = peaks.pop().unwrap();
         authentication_path.push(previous_peak);
-        peaks.push(H::hash_pair(previous_peak, in_progress_peak));
+        peaks.push(Digest::<H>::from_element(H::hash_pair(
+            &previous_peak.data,
+            &in_progress_peak.data,
+        )));
     }
 
     (peaks, MmrMembershipProof::new(authentication_path))
@@ -118,7 +121,8 @@ pub fn calculate_new_peaks_from_leaf_mutation<H: HashFunction>(
     leaf_index: u64,
     membership_proof: &MmrMembershipProof<H>,
 ) -> Vec<Digest<H>> {
-    let merkle_tree_root_index = u64::try_from(MerkleTree::ROOT_INDEX).expect(USIZE_TO_U64_ERR);
+    let merkle_tree_root_index =
+        u64::try_from(MerkleTree::<H>::ROOT_INDEX).expect(USIZE_TO_U64_ERR);
 
     let (mut acc_mt_index, peak_index) =
         leaf_index_to_mt_index_and_peak_index(leaf_index, num_leafs);
@@ -129,16 +133,16 @@ pub fn calculate_new_peaks_from_leaf_mutation<H: HashFunction>(
         let &ap_element = authentication_path.next().unwrap();
         let accumulator_is_left_child = acc_mt_index % 2 == 0;
         if accumulator_is_left_child {
-            acc_hash = H::hash_pair(acc_hash, ap_element);
+            acc_hash = Digest::<H>::from_element(H::hash_pair(&acc_hash.data, &ap_element.data));
         } else {
-            acc_hash = H::hash_pair(ap_element, acc_hash);
+            acc_hash = Digest::<H>::from_element(H::hash_pair(&ap_element.data, &acc_hash.data));
         }
 
         acc_mt_index /= 2;
     }
     debug_assert_eq!(merkle_tree_root_index, acc_mt_index);
 
-    let mut calculated_peaks: Vec<Digest> = old_peaks.to_vec();
+    let mut calculated_peaks: Vec<Digest<H>> = old_peaks.to_vec();
     calculated_peaks[peak_index as usize] = acc_hash;
 
     calculated_peaks

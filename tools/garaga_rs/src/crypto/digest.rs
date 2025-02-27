@@ -27,7 +27,7 @@ use crate::definitions::{FieldElement, GrumpkinPrimeField, Random};
 /// A trait defining the hash function interface
 pub trait HashFunction: Clone + Copy + fmt::Debug + PartialEq {
     /// The type of elements being hashed
-    type Element: Clone + Copy + PartialEq + Eq + Default + fmt::Debug;
+    type Element: Clone + Copy + PartialEq + Eq + Default + fmt::Debug + From<u64>;
 
     /// Hash two elements together
     fn hash_pair(left: &Self::Element, right: &Self::Element) -> Self::Element;

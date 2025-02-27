@@ -7,7 +7,7 @@ use std::iter::FromIterator;
 
 // use arbitrary::Arbitrary;
 // use get_size2::GetSize;
-// use itertools::Itertools;
+use itertools::Itertools;
 // use serde::Deserialize;
 // use serde::Serialize;
 
@@ -16,6 +16,7 @@ use super::shared_advanced;
 use super::shared_basic;
 use super::TOO_MANY_LEAFS_ERR;
 use crate::crypto::digest::{Digest, HashFunction};
+use crate::crypto::merkle_tree::MerkleTree;
 // use crate::error::U32_TO_USIZE_ERR;
 // use crate::error::USIZE_TO_U64_ERR;
 // use crate::prelude::*;
@@ -54,7 +55,8 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         }
 
         let merkle_tree_height = u64::from(mt_index.ilog2());
-        let auth_path_len = u64::try_from(self.authentication_path.len()).expect(USIZE_TO_U64_ERR);
+        let auth_path_len = u64::try_from(self.authentication_path.len())
+            .expect("Authentication path length is too large");
         if merkle_tree_height != auth_path_len {
             return false;
         }
@@ -63,15 +65,15 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         for &sibling in &self.authentication_path {
             let current_node_is_left_sibling = mt_index % 2 == 0;
             current_node = if current_node_is_left_sibling {
-                Tip5::hash_pair(current_node, sibling)
+                Digest::<H>::from_element(H::hash_pair(&current_node.data, &sibling.data))
             } else {
-                Tip5::hash_pair(sibling, current_node)
+                Digest::<H>::from_element(H::hash_pair(&sibling.data, &current_node.data))
             };
             mt_index /= 2;
         }
-        debug_assert_eq!(MerkleTree::ROOT_INDEX as u64, mt_index);
+        debug_assert_eq!(MerkleTree::<H>::ROOT_INDEX as u64, mt_index);
 
-        let peak_index = usize::try_from(peak_index).expect(U32_TO_USIZE_ERR);
+        let peak_index = usize::try_from(peak_index).expect("Peak index is too large");
 
         peaks[peak_index] == current_node
     }
@@ -128,8 +130,8 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         &mut self,
         membership_proof_leaf_index: u64,
         old_mmr_leaf_count: u64,
-        new_mmr_leaf: Digest,
-        old_mmr_peaks: &[Digest],
+        new_mmr_leaf: Digest<H>,
+        old_mmr_peaks: &[Digest<H>],
     ) -> bool {
         // 1. Get index of authentication paths's peak
         // 2. Get node indices for nodes added by the append
@@ -173,7 +175,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         // 5 collect all derivable peaks in a hashmap indexed by node index
         // 5.a, collect all node hash digests that are present in the old peaks
         // The keys in the hash map are node indices
-        let mut known_digests: HashMap<u64, Digest> = HashMap::new();
+        let mut known_digests: HashMap<u64, Digest<H>> = HashMap::new();
         let (_old_mmr_peak_heights, old_mmr_peak_indices) =
             shared_advanced::get_peak_heights_and_peak_node_indices(old_mmr_leaf_count);
         for (old_peak_index, old_peak_digest) in
@@ -193,7 +195,8 @@ impl<H: HashFunction> MmrMembershipProof<H> {
             known_digests.insert(*node_index, acc_hash.to_owned());
 
             // peaks are always left children, so we don't have to check for that
-            acc_hash = Tip5::hash_pair(old_peak_digest, acc_hash);
+            acc_hash =
+                Digest::<H>::from_element(H::hash_pair(&old_peak_digest.data, &acc_hash.data));
 
             // once we encounter the first of the needed accumulator indices,
             // we can break. Just like we could in the update for the leaf update
@@ -225,8 +228,8 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         membership_proofs: &mut [&mut Self],
         membership_proof_leaf_indices: &[u64],
         old_leaf_count: u64,
-        new_leaf: Digest,
-        old_peaks: &[Digest],
+        new_leaf: Digest<H>,
+        old_peaks: &[Digest<H>],
     ) -> Vec<usize> {
         assert_eq!(
             membership_proofs.len(),
@@ -256,7 +259,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         // 2 collect all derivable peaks in a hashmap indexed by node index
         // 2.a, collect all node hash digests that are present in the old peaks
         // The keys in the hash map are node indices
-        let mut known_digests: HashMap<u64, Digest> = HashMap::new();
+        let mut known_digests: HashMap<u64, Digest<H>> = HashMap::new();
         let (_old_peak_heights, old_peak_indices) =
             shared_advanced::get_peak_heights_and_peak_node_indices(old_leaf_count);
         for (old_peak_index, old_peak_digest) in old_peak_indices.iter().zip(old_peaks.iter()) {
@@ -281,7 +284,8 @@ impl<H: HashFunction> MmrMembershipProof<H> {
             }
 
             // peaks are always left children, so we don't have to check for that
-            acc_hash = Tip5::hash_pair(old_peak_digest, acc_hash);
+            acc_hash =
+                Digest::<H>::from_element(H::hash_pair(&old_peak_digest.data, &acc_hash.data));
         }
 
         // Loop over all membership proofs and insert missing hashes for each
@@ -337,7 +341,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
     pub fn update_from_leaf_mutation(
         &mut self,
         own_mp_leaf_index: u64,
-        leaf_mutation: &LeafMutation,
+        leaf_mutation: &LeafMutation<H>,
     ) -> bool {
         let affected_node_indices: HashSet<u64> =
             leaf_mutation.affected_node_indices().into_iter().collect();
@@ -358,10 +362,10 @@ impl<H: HashFunction> MmrMembershipProof<H> {
 
         // If intersection is **not** empty, we need to calculate all deducible node hashes from the
         // `leaf_mutation_membership_proof`, until we meet the intersecting node.
-        let mut deducible_hashes: HashMap<u64, Digest> = HashMap::new();
+        let mut deducible_hashes: HashMap<u64, Digest<H>> = HashMap::new();
         let mut node_index = shared_advanced::leaf_index_to_node_index(leaf_mutation.leaf_index);
         deducible_hashes.insert(node_index, leaf_mutation.new_leaf);
-        let mut acc_hash: Digest = leaf_mutation.new_leaf;
+        let mut acc_hash: Digest<H> = leaf_mutation.new_leaf;
 
         // Calculate hashes from the bottom towards the peak. Break when
         // the intersecting node is reached.
@@ -378,12 +382,12 @@ impl<H: HashFunction> MmrMembershipProof<H> {
             let (acc_right_ancestor_count, acc_height) =
                 shared_advanced::right_lineage_length_and_own_height(node_index);
             if acc_right_ancestor_count != 0 {
-                acc_hash = Tip5::hash_pair(hash, acc_hash);
+                acc_hash = Digest::<H>::from_element(H::hash_pair(&hash.data, &acc_hash.data));
 
                 // parent of right child is +1
                 node_index += 1;
             } else {
-                acc_hash = Tip5::hash_pair(acc_hash, hash);
+                acc_hash = Digest::<H>::from_element(H::hash_pair(&acc_hash.data, &hash.data));
 
                 // parent of left child:
                 node_index += 1 << (acc_height + 1);
@@ -421,7 +425,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
     pub fn batch_update_from_leaf_mutation(
         membership_proofs: &mut [Self],
         membership_proof_leaf_indices: &[u64],
-        leaf_mutation: LeafMutation,
+        leaf_mutation: LeafMutation<H>,
     ) -> Vec<u64> {
         assert_eq!(
             membership_proofs.len(),
@@ -437,10 +441,10 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         // Calculate hashes from the bottom towards the peak. Break before we
         // calculate the hash of the peak, since peaks are never included in
         // authentication paths
-        let mut deducible_hashes: HashMap<u64, Digest> = HashMap::new();
+        let mut deducible_hashes: HashMap<u64, Digest<H>> = HashMap::new();
         let mut node_index = shared_advanced::leaf_index_to_node_index(leaf_mutation.leaf_index);
         deducible_hashes.insert(node_index, leaf_mutation.new_leaf);
-        let mut acc_hash: Digest = leaf_mutation.new_leaf;
+        let mut acc_hash: Digest<H> = leaf_mutation.new_leaf;
         for (count, &hash) in leaf_mutation
             .membership_proof
             .authentication_path
@@ -457,13 +461,13 @@ impl<H: HashFunction> MmrMembershipProof<H> {
                 shared_advanced::right_lineage_length_and_own_height(node_index);
             if right_ancestor_count != 0 {
                 // node is right child
-                acc_hash = Tip5::hash_pair(hash, acc_hash);
+                acc_hash = Digest::<H>::from_element(H::hash_pair(&hash.data, &acc_hash.data));
 
                 // parent of right child is +1
                 node_index += 1;
             } else {
                 // node is left child
-                acc_hash = Tip5::hash_pair(acc_hash, hash);
+                acc_hash = Digest::<H>::from_element(H::hash_pair(&acc_hash.data, &hash.data));
 
                 // parent of left child:
                 node_index += 1 << (acc_height + 1);
@@ -523,7 +527,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
     pub fn batch_update_from_batch_leaf_mutation(
         membership_proofs: &mut [&mut Self],
         membership_proof_leaf_indices: &[u64],
-        mut leaf_mutations: Vec<LeafMutation>,
+        mut leaf_mutations: Vec<LeafMutation<H>>,
     ) -> Vec<usize> {
         assert_eq!(
             membership_proofs.len(),
@@ -534,7 +538,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
         );
 
         // Calculate all derivable paths
-        let mut new_ap_digests: HashMap<u64, Digest> = HashMap::new();
+        let mut new_ap_digests: HashMap<u64, Digest<H>> = HashMap::new();
 
         // Calculate the derivable digests from a number of leaf mutations and their
         // associated authentication paths. Notice that all authentication paths
@@ -553,7 +557,7 @@ impl<H: HashFunction> MmrMembershipProof<H> {
                 former_value.is_none(),
                 "Duplicated leafs are not allowed in membership proof updater"
             );
-            let mut acc_hash: Digest = new_leaf.to_owned();
+            let mut acc_hash: Digest<H> = new_leaf.to_owned();
 
             for (i, &hash) in membership_proof.authentication_path.iter().enumerate() {
                 // Do not calculate the last hash as it will always be a peak which
@@ -568,21 +572,23 @@ impl<H: HashFunction> MmrMembershipProof<H> {
                     shared_advanced::right_lineage_length_and_own_height(node_index);
                 if right_ancestor_count != 0 {
                     let left_sibling_index = shared_advanced::left_sibling(node_index, height);
-                    let sibling_hash: Digest = new_ap_digests
+                    let sibling_hash: Digest<H> = new_ap_digests
                         .get(&left_sibling_index)
                         .copied()
                         .unwrap_or(hash);
-                    acc_hash = Tip5::hash_pair(sibling_hash, acc_hash);
+                    acc_hash =
+                        Digest::<H>::from_element(H::hash_pair(&sibling_hash.data, &acc_hash.data));
 
                     // Find parent node index
                     node_index += 1;
                 } else {
                     let right_sibling_index = shared_advanced::right_sibling(node_index, height);
-                    let sibling_hash: Digest = new_ap_digests
+                    let sibling_hash: Digest<H> = new_ap_digests
                         .get(&right_sibling_index)
                         .copied()
                         .unwrap_or(hash);
-                    acc_hash = Tip5::hash_pair(acc_hash, sibling_hash);
+                    acc_hash =
+                        Digest::<H>::from_element(H::hash_pair(&acc_hash.data, &sibling_hash.data));
 
                     // Find parent node index
                     node_index += 1 << (height + 1);

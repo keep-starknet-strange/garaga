@@ -3,7 +3,7 @@ use std::fmt::Debug;
 
 // use arbitrary::Arbitrary;
 // use get_size2::GetSize;
-// use itertools::Itertools;
+use itertools::Itertools;
 // use serde::Deserialize;
 // use serde::Serialize;
 
@@ -88,7 +88,7 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
     /// Mutate an existing leaf. It is the caller's responsibility that the
     /// membership proof is valid. If the membership proof is wrong, the MMR
     /// will end up in a broken state.
-    fn mutate_leaf(&mut self, leaf_mutation: LeafMutation) {
+    fn mutate_leaf(&mut self, leaf_mutation: LeafMutation<H>) {
         self.peaks = shared_basic::calculate_new_peaks_from_leaf_mutation(
             &self.peaks,
             self.leaf_count,
@@ -106,9 +106,9 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
     /// the same length, or if a leaf index is out-of-bounds for the MMR.
     fn batch_mutate_leaf_and_update_mps(
         &mut self,
-        membership_proofs: &mut [&mut MmrMembershipProof],
+        membership_proofs: &mut [&mut MmrMembershipProof<H>],
         membership_proof_leaf_indices: &[u64],
-        mut mutation_data: Vec<LeafMutation>,
+        mut mutation_data: Vec<LeafMutation<H>>,
     ) -> Vec<usize> {
         assert_eq!(
             membership_proofs.len(),
@@ -128,7 +128,7 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
         );
 
         // Calculate all derivable paths
-        let mut new_ap_digests: HashMap<u64, Digest> = HashMap::new();
+        let mut new_ap_digests: HashMap<u64, Digest<H>> = HashMap::new();
 
         // Calculate the derivable digests from a number of leaf mutations and their
         // associated authentication paths. Notice that all authentication paths
@@ -147,7 +147,7 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
                 former_value.is_none(),
                 "Duplicated leaf indices are not allowed in membership proof updater"
             );
-            let mut acc_hash: Digest = new_leaf.to_owned();
+            let mut acc_hash: Digest<H> = new_leaf.to_owned();
 
             for (count, &hash) in membership_proof.authentication_path.iter().enumerate() {
                 // If sibling node is something that has already been calculated, we use that
@@ -157,21 +157,23 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
                 let is_right_child = right_ancestor_count != 0;
                 if is_right_child {
                     let left_sibling_index = shared_advanced::left_sibling(node_index, height);
-                    let sibling_hash: Digest = new_ap_digests
+                    let sibling_hash: Digest<H> = new_ap_digests
                         .get(&left_sibling_index)
                         .copied()
                         .unwrap_or(hash);
-                    acc_hash = H::hash_pair(sibling_hash, acc_hash);
+                    acc_hash =
+                        Digest::<H>::from_element(H::hash_pair(&sibling_hash.data, &acc_hash.data));
 
                     // Find parent node index
                     node_index += 1;
                 } else {
                     let right_sibling_index = shared_advanced::right_sibling(node_index, height);
-                    let sibling_hash: Digest = new_ap_digests
+                    let sibling_hash: Digest<H> = new_ap_digests
                         .get(&right_sibling_index)
                         .copied()
                         .unwrap_or(hash);
-                    acc_hash = H::hash_pair(acc_hash, sibling_hash);
+                    acc_hash =
+                        Digest::<H>::from_element(H::hash_pair(&acc_hash.data, &sibling_hash.data));
 
                     // Find parent node index
                     node_index += 1 << (height + 1);
@@ -233,9 +235,9 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
     /// state is not a valid MMR.
     fn verify_batch_update(
         &self,
-        new_peaks: &[Digest],
-        appended_leafs: &[Digest],
-        leaf_mutations: Vec<LeafMutation>,
+        new_peaks: &[Digest<H>],
+        appended_leafs: &[Digest<H>],
+        leaf_mutations: Vec<LeafMutation<H>>,
     ) -> bool {
         let mut manipulated_leaf_indices = leaf_mutations.iter().map(|x| x.leaf_index);
         if !manipulated_leaf_indices.clone().all_unique() {
@@ -295,7 +297,7 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
         running_peaks == new_peaks
     }
 
-    fn to_accumulator(&self) -> MmrAccumulator {
+    fn to_accumulator(&self) -> MmrAccumulator<H> {
         self.to_owned()
     }
 }
@@ -305,15 +307,12 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
 /// to calculate a root from a list of peaks and the size of the MMR.
 pub(crate) fn bag_peaks<H: HashFunction>(peaks: &[Digest<H>], leaf_count: u64) -> Digest<H> {
     // use `hash_10` over `hash` or `hash_varlen` to simplify hashing in Triton VM
-    let [lo_limb, hi_limb] = leaf_count.encode()[..] else {
-        panic!("internal error: unknown encoding of type `u64`")
-    };
-    let hashed_leaf_count = H::hash_single(&leaf_count);
+    let leaf_count_elem = H::Element::from(leaf_count);
+    let hashed_leaf_count = Digest::<H>::from_element(H::hash_single(&leaf_count_elem));
 
-    peaks
-        .iter()
-        .rev()
-        .fold(hashed_leaf_count, |acc, &peak| H::hash_pair(peak, acc))
+    peaks.iter().rev().fold(hashed_leaf_count, |acc, &peak| {
+        Digest::<H>::from_element(H::hash_pair(&peak.data, &acc.data))
+    })
 }
 
 pub mod util {
@@ -337,7 +336,7 @@ pub mod util {
         );
 
         // initial_setup
-        let mut peaks: Vec<Digest> = random_elements::<H>(leaf_count.count_ones() as usize);
+        let mut peaks: Vec<Digest<H>> = random_elements::<H>(leaf_count.count_ones() as usize);
         if specified_leafs.is_empty() {
             return (MmrAccumulator::init(peaks, leaf_count), vec![]);
         }
@@ -348,11 +347,11 @@ pub mod util {
 
         // Change peaks such that the 1st specification belongs in the MMR
         let first_mt_height = (first_mt_index + 1).next_power_of_two().ilog2() - 1;
-        let first_ap: Vec<Digest> = random_elements(first_mt_height as usize);
+        let first_ap: Vec<Digest<H>> = random_elements(first_mt_height as usize);
 
         let first_mp = MmrMembershipProof::new(first_ap);
         let original_node_indices = first_mp.get_node_indices(first_leaf_index);
-        let mut derivable_node_values: HashMap<u64, Digest> = HashMap::default();
+        let mut derivable_node_values: HashMap<u64, Digest<H>> = HashMap::default();
         let mut first_acc_hash = first_specified_digest;
         for (height, node_index_in_path) in first_mp
             .get_direct_path_indices(first_leaf_index)
@@ -362,11 +361,15 @@ pub mod util {
             derivable_node_values.insert(node_index_in_path, first_acc_hash);
             if first_mp.authentication_path.len() > height {
                 if right_lineage_length_from_node_index(node_index_in_path) != 0 {
-                    first_acc_hash =
-                        H::hash_pair(first_mp.authentication_path[height], first_acc_hash);
+                    first_acc_hash = Digest::<H>::from_element(H::hash_pair(
+                        &first_mp.authentication_path[height].data,
+                        &first_acc_hash.data,
+                    ));
                 } else {
-                    first_acc_hash =
-                        H::hash_pair(first_acc_hash, first_mp.authentication_path[height]);
+                    first_acc_hash = Digest::<H>::from_element(H::hash_pair(
+                        &first_acc_hash.data,
+                        &first_mp.authentication_path[height].data,
+                    ));
                 }
             }
         }
@@ -374,7 +377,7 @@ pub mod util {
         // Update root
         peaks[first_peak_index as usize] = first_acc_hash;
 
-        let mut all_ap_elements: HashMap<u64, Digest> = original_node_indices
+        let mut all_ap_elements: HashMap<u64, Digest<H>> = original_node_indices
             .into_iter()
             .zip_eq(first_mp.authentication_path.clone())
             .collect();
@@ -436,9 +439,15 @@ pub mod util {
                 }
                 derivable_node_values.insert(node_index_in_path, acc_hash);
                 if right_lineage_length_from_node_index(node_index_in_path) != 0 {
-                    acc_hash = H::hash_pair(new_mp.authentication_path[height], acc_hash);
+                    acc_hash = Digest::<H>::from_element(H::hash_pair(
+                        &new_mp.authentication_path[height].data,
+                        &acc_hash.data,
+                    ));
                 } else {
-                    acc_hash = H::hash_pair(acc_hash, new_mp.authentication_path[height]);
+                    acc_hash = Digest::<H>::from_element(H::hash_pair(
+                        &acc_hash.data,
+                        &new_mp.authentication_path[height].data,
+                    ));
                 }
             }
 
