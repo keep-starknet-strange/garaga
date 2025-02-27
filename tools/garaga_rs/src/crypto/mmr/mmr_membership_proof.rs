@@ -15,6 +15,7 @@ use super::mmr_trait::LeafMutation;
 use super::shared_advanced;
 use super::shared_basic;
 use super::TOO_MANY_LEAFS_ERR;
+use crate::crypto::digest::{Digest, HashFunction};
 // use crate::error::U32_TO_USIZE_ERR;
 // use crate::error::USIZE_TO_U64_ERR;
 // use crate::prelude::*;

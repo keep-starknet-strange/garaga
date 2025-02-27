@@ -1,6 +1,6 @@
 use super::mmr_accumulator::MmrAccumulator;
 use super::mmr_membership_proof::MmrMembershipProof;
-use crate::crypto::digest::Digest;
+use crate::crypto::digest::{Digest, HashFunction};
 
 /// A wrapper for the data needed to change the value of a leaf in an MMR when
 /// only the MMR-accumulator is known, i.e., only the peaks and the leaf-count
@@ -23,7 +23,11 @@ pub struct LeafMutation<H: HashFunction> {
 }
 
 impl<H: HashFunction> LeafMutation<H> {
-    pub fn new(leaf_index: u64, new_leaf: Digest<H>, membership_proof: MmrMembershipProof) -> Self {
+    pub fn new(
+        leaf_index: u64,
+        new_leaf: Digest<H>,
+        membership_proof: MmrMembershipProof<H>,
+    ) -> Self {
         Self {
             leaf_index,
             new_leaf,
@@ -139,7 +143,7 @@ pub trait Mmr<H: HashFunction> {
     fn num_leafs(&self) -> u64;
 
     /// Append a hash digest to the MMR.
-    fn append(&mut self, new_leaf: Digest<H>) -> MmrMembershipProof;
+    fn append(&mut self, new_leaf: Digest<H>) -> MmrMembershipProof<H>;
 
     /// Mutate an existing leaf. It is the caller's responsibility that the
     /// membership proof is valid. If the membership proof is wrong, the MMR
@@ -151,7 +155,7 @@ pub trait Mmr<H: HashFunction> {
     /// operation.
     fn batch_mutate_leaf_and_update_mps(
         &mut self,
-        membership_proofs: &mut [&mut MmrMembershipProof],
+        membership_proofs: &mut [&mut MmrMembershipProof<H>],
         membership_proof_leaf_indices: &[u64],
         mutation_data: Vec<LeafMutation<H>>,
     ) -> Vec<usize>;
@@ -167,5 +171,5 @@ pub trait Mmr<H: HashFunction> {
 
     /// Derive an MMR accumulator, which contains only peaks and the number of
     /// leafs.
-    fn to_accumulator(&self) -> MmrAccumulator;
+    fn to_accumulator(&self) -> MmrAccumulator<H>;
 }

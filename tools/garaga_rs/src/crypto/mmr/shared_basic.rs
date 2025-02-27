@@ -1,5 +1,9 @@
 // use crate::prelude::*;
 
+use crate::crypto::digest::{Digest, HashFunction};
+use crate::crypto::merkle_tree::MerkleTree;
+use crate::crypto::mmr::mmr_membership_proof::MmrMembershipProof;
+
 pub(crate) const USIZE_TO_U64_ERR: &str =
     "internal error: type `usize` should have at most 64 bits";
 pub(crate) const U32_TO_USIZE_ERR: &str =
@@ -75,11 +79,11 @@ pub fn right_lineage_length_from_leaf_index(leaf_index: u64) -> u32 {
 /// # Panics
 ///
 /// - if the `old_peaks` and the `old_num_leafs` are inconsistent
-pub fn calculate_new_peaks_from_append(
+pub fn calculate_new_peaks_from_append<H: HashFunction>(
     old_num_leafs: u64,
-    old_peaks: Vec<Digest>,
-    new_leaf: Digest,
-) -> (Vec<Digest>, MmrMembershipProof) {
+    old_peaks: Vec<Digest<H>>,
+    new_leaf: Digest<H>,
+) -> (Vec<Digest<H>>, MmrMembershipProof<H>) {
     assert_eq!(
         old_peaks.len(),
         usize::try_from(old_num_leafs.count_ones()).expect(U32_TO_USIZE_ERR)
@@ -92,7 +96,7 @@ pub fn calculate_new_peaks_from_append(
         let in_progress_peak = peaks.pop().unwrap();
         let previous_peak = peaks.pop().unwrap();
         authentication_path.push(previous_peak);
-        peaks.push(Tip5::hash_pair(previous_peak, in_progress_peak));
+        peaks.push(H::hash_pair(previous_peak, in_progress_peak));
     }
 
     (peaks, MmrMembershipProof::new(authentication_path))
@@ -107,13 +111,13 @@ pub fn calculate_new_peaks_from_append(
 /// Panics if the `membership_proof`'s authentication path is of insufficient
 /// length. This can only happen if the `membership_proof` is invalid (but
 /// there are other ways in which it can be invalid, too).
-pub fn calculate_new_peaks_from_leaf_mutation(
-    old_peaks: &[Digest],
+pub fn calculate_new_peaks_from_leaf_mutation<H: HashFunction>(
+    old_peaks: &[Digest<H>],
     num_leafs: u64,
-    new_leaf: Digest,
+    new_leaf: Digest<H>,
     leaf_index: u64,
-    membership_proof: &MmrMembershipProof,
-) -> Vec<Digest> {
+    membership_proof: &MmrMembershipProof<H>,
+) -> Vec<Digest<H>> {
     let merkle_tree_root_index = u64::try_from(MerkleTree::ROOT_INDEX).expect(USIZE_TO_U64_ERR);
 
     let (mut acc_mt_index, peak_index) =
@@ -125,9 +129,9 @@ pub fn calculate_new_peaks_from_leaf_mutation(
         let &ap_element = authentication_path.next().unwrap();
         let accumulator_is_left_child = acc_mt_index % 2 == 0;
         if accumulator_is_left_child {
-            acc_hash = Tip5::hash_pair(acc_hash, ap_element);
+            acc_hash = H::hash_pair(acc_hash, ap_element);
         } else {
-            acc_hash = Tip5::hash_pair(ap_element, acc_hash);
+            acc_hash = H::hash_pair(ap_element, acc_hash);
         }
 
         acc_mt_index /= 2;

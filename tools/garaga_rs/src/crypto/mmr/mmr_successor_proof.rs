@@ -1,9 +1,11 @@
-use arbitrary::Arbitrary;
+// use arbitrary::Arbitrary;
 
 use super::mmr_accumulator::MmrAccumulator;
 use super::shared_basic::leaf_index_to_mt_index_and_peak_index;
-use crate::error::USIZE_TO_U64_ERR;
-use crate::prelude::*;
+// use crate::error::USIZE_TO_U64_ERR;
+// use crate::prelude::*;
+
+use super::super::digest::{Digest, HashFunction};
 
 /// Asserts that one [MMR Accumulator] is the descendant of another, *i.e.*,
 /// that the second can be obtained by appending a set of leafs to the first. It
@@ -11,12 +13,12 @@ use crate::prelude::*;
 /// new peaks.
 ///
 /// [MMR Accumulator]: MmrAccumulator
-#[derive(Debug, Clone, BFieldCodec, Arbitrary)]
-pub struct MmrSuccessorProof {
-    pub paths: Vec<Digest>,
+#[derive(Debug, Clone)]
+pub struct MmrSuccessorProof<H: HashFunction> {
+    pub paths: Vec<Digest<H>>,
 }
 
-impl MmrSuccessorProof {
+impl<H: HashFunction> MmrSuccessorProof<H> {
     /// Compute a new `MmrSuccessorProof` given the starting MMR accumulator (MMRA)
     /// and a list of digests to be appended.
     ///
@@ -30,7 +32,7 @@ impl MmrSuccessorProof {
     //
     // For an introduction to the inner workings of this function, see
     // [`Self::verify_internal`].
-    pub fn new_from_batch_append(mmra: &MmrAccumulator, new_leafs: &[Digest]) -> Self {
+    pub fn new_from_batch_append(mmra: &MmrAccumulator<H>, new_leafs: &[Digest<H>]) -> Self {
         if mmra.num_leafs() == 0 {
             // any MMR is a successor to the empty MMR – nothing to check, nothing to prove
             return Self { paths: vec![] };
