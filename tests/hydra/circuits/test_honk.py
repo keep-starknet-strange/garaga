@@ -83,11 +83,11 @@ def test_verify_honk_proof(system: ProofSystem):
         vk.qr,  # 4
         vk.qo,  # 5
         vk.q4,  # 6
-        vk.qArith,  # 7
-        vk.qDeltaRange,  # 8
-        vk.qElliptic,  # 9
-        vk.qAux,  # 10
-        vk.qLookup,  # 11
+        vk.qLookup,  # 7
+        vk.qArith,  # 8
+        vk.qDeltaRange,  # 9
+        vk.qElliptic,  # 10
+        vk.qAux,  # 11
         vk.qPoseidon2External,  # 12
         vk.qPoseidon2Internal,  # 13
         vk.s1,  # 14
@@ -112,26 +112,17 @@ def test_verify_honk_proof(system: ProofSystem):
         proof.lookup_inverses,  # 33
         proof.lookup_read_counts,  # 34
         proof.lookup_read_tags,  # 35
-        vk.t1,  # 36
-        vk.t2,  # 37
-        vk.t3,  # 38
-        vk.t4,  # 39
-        proof.w1,  # 40
-        proof.w2,  # 41
-        proof.w3,  # 42
-        proof.w4,  # 43
-        proof.z_perm,  # 44
+        proof.w1,  # 36
+        proof.w2,  # 37
+        proof.w3,  # 38
+        proof.w4,  # 39
+        proof.z_perm,  # 40
     ]
 
-    # t1 : 22 + 36
-    # t2 : 23 + 37
-    # t3 : 24 + 38
-    # t4 : 25 + 39
-
-    # w1 : 28 + 40
-    # w2 : 29 + 41
-    # w3 : 30 + 42
-    # w4 : 31 + 43
+    # w1 : 28 + 36
+    # w2 : 29 + 37
+    # w3 : 30 + 38
+    # w4 : 31 + 39
 
     points.extend(proof.gemini_fold_comms)
     points.append(G1Point.get_nG(CurveID.BN254, 1))

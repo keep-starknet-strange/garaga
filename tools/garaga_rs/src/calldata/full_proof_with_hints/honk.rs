@@ -24,7 +24,7 @@ const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
 const CONST_PROOF_SIZE_LOG_N: usize = 28;
 const NUMBER_OF_SUBRELATIONS: usize = 26;
 const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
-const NUMBER_OF_ENTITIES: usize = 44;
+const NUMBER_OF_ENTITIES: usize = 40;
 const NUMBER_UNSHIFTED: usize = 35;
 const MAX_LOG_N: usize = 23;
 const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N; // 2^23 = 8388608
@@ -57,11 +57,11 @@ pub struct HonkVerificationKey {
     pub qr: G1PointBigUint,
     pub qo: G1PointBigUint,
     pub q4: G1PointBigUint,
+    pub q_lookup: G1PointBigUint,
     pub q_arith: G1PointBigUint,
     pub q_delta_range: G1PointBigUint,
     pub q_elliptic: G1PointBigUint,
     pub q_aux: G1PointBigUint,
-    pub q_lookup: G1PointBigUint,
     pub q_poseidon2_external: G1PointBigUint,
     pub q_poseidon2_internal: G1PointBigUint,
     pub s1: G1PointBigUint,
@@ -119,7 +119,7 @@ impl HonkVerificationKey {
         let [circuit_size, log_circuit_size, public_inputs_size, public_inputs_offset] =
             consts.try_into().unwrap();
 
-        let [qm, qc, ql, qr, qo, q4, q_arith, q_delta_range, q_elliptic, q_aux, q_lookup, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
+        let [qm, qc, ql, qr, qo, q4, q_lookup, q_arith, q_delta_range, q_elliptic, q_aux, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
             points.try_into().unwrap();
 
         if log_circuit_size > CONST_PROOF_SIZE_LOG_N {
@@ -137,11 +137,11 @@ impl HonkVerificationKey {
             qr,
             qo,
             q4,
+            q_lookup,
             q_arith,
             q_delta_range,
             q_elliptic,
             q_aux,
-            q_lookup,
             q_poseidon2_external,
             q_poseidon2_internal,
             s1,
@@ -423,11 +423,11 @@ pub fn get_honk_calldata(
     let qr = g1_point_on_curve(&vk.qr)?;
     let qo = g1_point_on_curve(&vk.qo)?;
     let q4 = g1_point_on_curve(&vk.q4)?;
+    let q_lookup = g1_point_on_curve(&vk.q_lookup)?;
     let q_arith = g1_point_on_curve(&vk.q_arith)?;
     let q_delta_range = g1_point_on_curve(&vk.q_delta_range)?;
     let q_elliptic = g1_point_on_curve(&vk.q_elliptic)?;
     let q_aux = g1_point_on_curve(&vk.q_aux)?;
-    let q_lookup = g1_point_on_curve(&vk.q_lookup)?;
     let q_poseidon2_external = g1_point_on_curve(&vk.q_poseidon2_external)?;
     let q_poseidon2_internal = g1_point_on_curve(&vk.q_poseidon2_internal)?;
     let s1 = g1_point_on_curve(&vk.s1)?;
@@ -554,11 +554,11 @@ pub fn get_honk_calldata(
         qr,                   // 4
         qo,                   // 5
         q4,                   // 6
-        q_arith,              // 7
-        q_delta_range,        // 8
-        q_elliptic,           // 9
-        q_aux,                // 10
-        q_lookup,             // 11
+        q_lookup,             // 7
+        q_arith,              // 8
+        q_delta_range,        // 9
+        q_elliptic,           // 10
+        q_aux,                // 11
         q_poseidon2_external, // 12
         q_poseidon2_internal, // 13
         s1,                   // 14
@@ -583,7 +583,7 @@ pub fn get_honk_calldata(
         lookup_inverses,      // 33
         lookup_read_counts,   // 34
         lookup_read_tags,     // 35
-        z_perm,               // 44
+        z_perm,               // 40
     ];
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
@@ -986,34 +986,20 @@ fn compute_shplemini_msm_scalars(
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator.clone());
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(shplonk_z.clone());
 
-    // vk.t1 : 22 + 36
-    // vk.t2 : 23 + 37
-    // vk.t3 : 24 + 38
-    // vk.t4 : 25 + 39
+    // proof.w1 : 28 + 36
+    // proof.w2 : 29 + 37
+    // proof.w3 : 30 + 38
+    // proof.w4 : 31 + 39
 
-    scalars[22] = Some(scalars[22].clone().unwrap() + scalars[36].clone().unwrap());
-    scalars[23] = Some(scalars[23].clone().unwrap() + scalars[37].clone().unwrap());
-    scalars[24] = Some(scalars[24].clone().unwrap() + scalars[38].clone().unwrap());
-    scalars[25] = Some(scalars[25].clone().unwrap() + scalars[39].clone().unwrap());
-
-    // proof.w1 : 28 + 40
-    // proof.w2 : 29 + 41
-    // proof.w3 : 30 + 42
-    // proof.w4 : 31 + 43
-
-    scalars[28] = Some(scalars[28].clone().unwrap() + scalars[40].clone().unwrap());
-    scalars[29] = Some(scalars[29].clone().unwrap() + scalars[41].clone().unwrap());
-    scalars[30] = Some(scalars[30].clone().unwrap() + scalars[42].clone().unwrap());
-    scalars[31] = Some(scalars[31].clone().unwrap() + scalars[43].clone().unwrap());
+    scalars[28] = Some(scalars[28].clone().unwrap() + scalars[36].clone().unwrap());
+    scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
+    scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
+    scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
 
     scalars[36] = None;
     scalars[37] = None;
     scalars[38] = None;
     scalars[39] = None;
-    scalars[40] = None;
-    scalars[41] = None;
-    scalars[42] = None;
-    scalars[43] = None;
 
     Ok(scalars
         .into_iter()
