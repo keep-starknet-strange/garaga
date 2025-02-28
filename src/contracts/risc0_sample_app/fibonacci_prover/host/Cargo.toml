@@ -7,7 +7,7 @@ edition = "2021"
 methods = { path = "../methods" }
 risc0-zkvm = { version = "1.2.0" }
 risc0-ethereum-contracts = { version = "1.2.0" }
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.15.4" }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.15.5" }
 hex = "0.4"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 serde = "1.0"
