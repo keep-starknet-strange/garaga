@@ -28,9 +28,7 @@ mod UltraKeccakHonkVerifier {
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
     };
-    use garaga::utils::noir::{
-        HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2,
-    };
+    use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
         KeccakHasherState,
@@ -77,9 +75,7 @@ mod UltraKeccakHonkVerifier {
                     .proof
                     .sumcheck_univariates
                     .slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
-                sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
-                    full_proof.proof.sumcheck_evaluations,
-                ),
+                sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
                 tp_eta_1: transcript.eta.into(),

@@ -456,18 +456,6 @@ pub fn get_proof_starknet() -> HonkProof {
         },
     }
 }
-
-pub fn remove_unused_variables_sumcheck_evaluations(evaluations: Span<u256>) -> Span<u256> {
-    // Basically remove indexes 35 36 37 38.
-    let mut new_evaluations: Array<u256> = array![];
-    for i in 0..35_usize {
-        new_evaluations.append(*evaluations.at(i));
-    };
-    for i in 39..evaluations.len() {
-        new_evaluations.append(*evaluations.at(i));
-    };
-    new_evaluations.span()
-}
 // #[cfg(test)]
 // mod tests {
 //     use super::{
