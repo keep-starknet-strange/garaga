@@ -7,6 +7,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
 use num_traits::Num;
@@ -64,7 +65,7 @@ pub type Stark252PrimeField = StrkPF;
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct SECP256K1FieldModulus;
 impl IsModulus<U256> for SECP256K1FieldModulus {
     const MODULUS: U256 = SECP256K1_PRIME_FIELD_ORDER;
@@ -86,7 +87,7 @@ pub type SECP256R1PrimeField = MontgomeryBackendPrimeField<SECP256R1FieldModulus
 pub const X25519_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct X25519FieldModulus;
 impl IsModulus<U256> for X25519FieldModulus {
     const MODULUS: U256 = X25519_PRIME_FIELD_ORDER;
@@ -97,13 +98,38 @@ pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 pub const GRUMPKIN_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy, Hash)]
 pub struct GrumpkinFieldModulus;
 impl IsModulus<U256> for GrumpkinFieldModulus {
     const MODULUS: U256 = GRUMPKIN_PRIME_FIELD_ORDER;
 }
 
 pub type GrumpkinPrimeField = MontgomeryBackendPrimeField<GrumpkinFieldModulus, 4>;
+
+/// A trait to generate random field elements.
+pub trait Random<F: IsPrimeField> {
+    fn random() -> Self;
+}
+
+impl<F: IsPrimeField> Random<F> for FieldElement<F>
+where
+    FieldElement<F>: ByteConversion,
+{
+    fn random() -> Self {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        let bits = F::field_bit_size();
+        let bytes = (bits + 7) / 8; // Round up to nearest byte
+
+        loop {
+            let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
+            let random_num = BigUint::from_bytes_be(&random_bytes);
+
+            // Try to convert to field element
+            return element_from_biguint::<F>(&random_num);
+        }
+    }
+}
 
 pub struct CurveParams<F: IsPrimeField> {
     pub curve_id: CurveID,

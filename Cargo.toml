@@ -1,0 +1,10 @@
+[workspace]
+resolver = "2"
+members = [
+    "tools/garaga_rs"
+]
+
+[profile.release]
+lto = true
+debug = false
+opt-level = 3
