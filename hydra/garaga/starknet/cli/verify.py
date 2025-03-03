@@ -35,8 +35,10 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 from garaga.starknet.honk_contract_generator.calldata import (
     HonkProof,
     HonkVk,
-    ZKHonkProof,
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
+)
+from garaga.starknet.honk_contract_generator.zk_calldata import (
+    ZKHonkProof,
     get_ultra_flavor_zk_honk_calldata_from_vk_and_proof,
 )
 
