@@ -9,6 +9,7 @@ pub mod mpc_calldata;
 pub mod msm;
 pub mod pairing;
 pub mod signatures;
+pub mod zk_honk_calldata;
 
 use ark_ec::pairing::Pairing;
 use ark_ec::AffineRepr;
@@ -71,6 +72,7 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(mpc_calldata::mpc_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(groth16_calldata::get_groth16_calldata, m)?)?;
     m.add_function(wrap_pyfunction!(honk_calldata::get_honk_calldata, m)?)?;
+    m.add_function(wrap_pyfunction!(zk_honk_calldata::get_zk_honk_calldata, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::schnorr_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::ecdsa_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(poseidon_hash_bn254, m)?)?;
