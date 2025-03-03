@@ -503,6 +503,11 @@ pub fn parse_honk_verification_key(uint8_array: JsValue) -> Result<JsValue, JsVa
     set_property(&vk_obj, "q4", &jsvalue_from_g1_point(&vk.q4, curve_id)?)?;
     set_property(
         &vk_obj,
+        "qLookup",
+        &jsvalue_from_g1_point(&vk.q_lookup, curve_id)?,
+    )?;
+    set_property(
+        &vk_obj,
         "qArith",
         &jsvalue_from_g1_point(&vk.q_arith, curve_id)?,
     )?;
@@ -520,11 +525,6 @@ pub fn parse_honk_verification_key(uint8_array: JsValue) -> Result<JsValue, JsVa
         &vk_obj,
         "qAux",
         &jsvalue_from_g1_point(&vk.q_aux, curve_id)?,
-    )?;
-    set_property(
-        &vk_obj,
-        "qLookup",
-        &jsvalue_from_g1_point(&vk.q_lookup, curve_id)?,
     )?;
     set_property(
         &vk_obj,
@@ -638,11 +638,11 @@ pub fn get_honk_calldata(
     let qr = parse_g1_point(get_property(&vk_obj, "qr")?)?;
     let qo = parse_g1_point(get_property(&vk_obj, "qo")?)?;
     let q4 = parse_g1_point(get_property(&vk_obj, "q4")?)?;
+    let q_lookup = parse_g1_point(get_property(&vk_obj, "qLookup")?)?;
     let q_arith = parse_g1_point(get_property(&vk_obj, "qArith")?)?;
     let q_delta_range = parse_g1_point(get_property(&vk_obj, "qDeltaRange")?)?;
     let q_elliptic = parse_g1_point(get_property(&vk_obj, "qElliptic")?)?;
     let q_aux = parse_g1_point(get_property(&vk_obj, "qAux")?)?;
-    let q_lookup = parse_g1_point(get_property(&vk_obj, "qLookup")?)?;
     let q_poseidon2_external = parse_g1_point(get_property(&vk_obj, "qPoseidon2External")?)?;
     let q_poseidon2_internal = parse_g1_point(get_property(&vk_obj, "qPoseidon2Internal")?)?;
     let s1 = parse_g1_point(get_property(&vk_obj, "s1")?)?;
@@ -671,11 +671,11 @@ pub fn get_honk_calldata(
     values.extend([qr.x, qr.y]);
     values.extend([qo.x, qo.y]);
     values.extend([q4.x, q4.y]);
+    values.extend([q_lookup.x, q_lookup.y]);
     values.extend([q_arith.x, q_arith.y]);
     values.extend([q_delta_range.x, q_delta_range.y]);
     values.extend([q_elliptic.x, q_elliptic.y]);
     values.extend([q_aux.x, q_aux.y]);
-    values.extend([q_lookup.x, q_lookup.y]);
     values.extend([q_poseidon2_external.x, q_poseidon2_external.y]);
     values.extend([q_poseidon2_internal.x, q_poseidon2_internal.y]);
     values.extend([s1.x, s1.y]);
