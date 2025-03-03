@@ -307,13 +307,14 @@ checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
 name = "garaga_rs"
-version = "0.15.4"
+version = "0.15.5"
 dependencies = [
  "arbitrary",
  "ark-bls12-381",
  "ark-bn254",
  "ark-ec",
  "ark-ff",
+ "getrandom 0.3.1",
  "hex",
  "itertools 0.14.0",
  "js-sys",
@@ -364,8 +365,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43a49c392881ce6d5c3b8cb70f98717b7c07aabbdff06687b9030dbfbe2725f8"
 dependencies = [
  "cfg-if",
+ "js-sys",
  "libc",
  "wasi 0.13.3+wasi-0.2.2",
+ "wasm-bindgen",
  "windows-targets",
 ]
 

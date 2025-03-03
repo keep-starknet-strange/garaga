@@ -68,11 +68,11 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         vk.qr,  # 4
         vk.qo,  # 5
         vk.q4,  # 6
-        vk.qArith,  # 7
-        vk.qDeltaRange,  # 8
-        vk.qElliptic,  # 9
-        vk.qAux,  # 10
-        vk.qLookup,  # 11
+        vk.qLookup,  # 7
+        vk.qArith,  # 8
+        vk.qDeltaRange,  # 9
+        vk.qElliptic,  # 10
+        vk.qAux,  # 11
         vk.qPoseidon2External,  # 12
         vk.qPoseidon2Internal,  # 13
         vk.s1,  # 14
@@ -97,7 +97,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         proof.lookup_inverses,  # 33
         proof.lookup_read_counts,  # 34
         proof.lookup_read_tags,  # 35
-        proof.z_perm,  # 44
+        proof.z_perm,  # 40
     ]
     points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
     points.append(G1Point.get_nG(CurveID.BN254, 1))

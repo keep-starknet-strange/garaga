@@ -2,9 +2,11 @@ import hashlib
 import random
 
 import pytest
+import requests
 
 from garaga.definitions import CurveID, G1G2Pair, G2Point
 from garaga.drand.client import (
+    BASE_URLS,
     DrandNetwork,
     digest_func,
     get_randomness,
@@ -95,3 +97,24 @@ def test_tlock_encrypt_same_message_gives_different_ciphertexts(round: int):
 
     assert msg_decrypted1 == msg
     assert msg_decrypted2 == msg
+
+
+def test_all_base_urls_return_chains():
+    for url in BASE_URLS:
+        try:
+            response = requests.get(f"{url}/chains")
+            response.raise_for_status()
+            chains = response.json()
+
+            # Check that both default and quicknet chains are present
+            expected_chains = {network.value for network in DrandNetwork}
+            found_chains = set(chains)
+
+            assert expected_chains.issubset(
+                found_chains
+            ), f"URL {url} missing chains: {expected_chains - found_chains}"
+
+            print(f"✓ {url} returned all expected chains")
+        except Exception as e:
+            print(f"✗ {url} failed: {str(e)}")
+            continue

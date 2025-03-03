@@ -28,7 +28,7 @@ lazy_static! {
 /// Using a type other than `usize` could enable a higher maximum height, but
 /// would require a different storage mechanism for the Merkle tree's nodes:
 /// indexing into a `Vec<_>` can only be done with `usize`.
-const MAX_NUM_NODES: usize = 1 << 32;
+const MAX_NUM_NODES: usize = 1 << 32 - 1;
 const MAX_NUM_LEAFS: usize = MAX_NUM_NODES / 2;
 
 /// The maximum height of a Merkle tree.
@@ -605,7 +605,7 @@ pub mod merkle_tree_test {
         fn test_tree_of_height(tree_height: usize) -> Self {
             let num_leafs = 1 << tree_height;
             let leafs = (0..num_leafs)
-                .map(|i| Digest::new(FieldElement::<GrumpkinPrimeField>::from(i as u64)))
+                .map(|i| Digest::new(FieldElement::<GrumpkinPrimeField>::from(i)))
                 .collect_vec();
             let tree = Self::par_new(&leafs).unwrap();
             assert!(leafs.iter().all_unique());
