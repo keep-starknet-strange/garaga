@@ -816,32 +816,6 @@ class HonkVerifierCircuits(ModuloCircuit):
         )
         self.log_n = log_n
 
-    def verify_sanity(
-        self, proof: HonkProof, transcript: HonkTranscript, vk: HonkVk
-    ) -> bool:
-
-        transcript.public_inputs_delta = self.compute_public_input_delta(
-            proof.public_inputs,
-            transcript.beta,
-            transcript.gamma,
-            proof.circuit_size,
-            transcript.public_inputs_offset,
-        )
-
-        rlc, check = self.verify_sum_check(
-            proof.sumcheck_univariates, transcript, proof.circuit_size, transcript.beta
-        )
-
-        # check_spl = self.verify_shplemini(proof, vk, transcript)
-
-        assert rlc.value == 0
-        assert check.value == 0
-
-    def prepare_shplemini_msm(
-        self, proof: HonkProof, vk: HonkVk, transcript: HonkTranscript
-    ) -> ModuloCircuitElement:
-        pass
-
     def compute_public_input_delta(
         self,
         public_inputs: list[ModuloCircuitElement],
@@ -1857,15 +1831,10 @@ class HonkVerifierCircuits(ModuloCircuit):
         scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
         scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = tp_shplonk_z
 
-        # vk.t1 : 22 + 36
-        # vk.t2 : 23 + 37
-        # vk.t3 : 24 + 38
-        # vk.t4 : 25 + 39
-
-        # proof.w1 : 28 + 40
-        # proof.w2 : 29 + 41
-        # proof.w3 : 30 + 42
-        # proof.w4 : 31 + 43
+        # proof.w1 : 28 + 36
+        # proof.w2 : 29 + 37
+        # proof.w3 : 30 + 38
+        # proof.w4 : 31 + 39
 
         scalars[28] = self.add(scalars[28], scalars[36])
         scalars[29] = self.add(scalars[29], scalars[37])
