@@ -30,10 +30,10 @@ class ZKHonkProof:
     w2: G1Point
     w3: G1Point
     w4: G1Point
+    z_perm: G1Point
     lookup_read_counts: G1Point
     lookup_read_tags: G1Point
     lookup_inverses: G1Point
-    z_perm: G1Point
     libra_commitments: list[G1Point]
     libra_sum: int
     sumcheck_univariates: list[list[int]]
@@ -176,10 +176,10 @@ class ZKHonkProof:
             w2=w2,
             w3=w3,
             w4=w4,
+            z_perm=z_perm,
             lookup_read_counts=lookup_read_counts,
             lookup_read_tags=lookup_read_tags,
             lookup_inverses=lookup_inverses,
-            z_perm=z_perm,
             libra_commitments=libra_commitments,
             libra_sum=libra_sum,
             sumcheck_univariates=sumcheck_univariates,
@@ -205,6 +205,9 @@ class ZKHonkProof:
             w2=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w2", self.w2)),
             w3=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w3", self.w3)),
             w4=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w4", self.w4)),
+            z_perm=circuit.write_struct(
+                structs.G1PointCircuit.from_G1Point("z_perm", self.z_perm)
+            ),
             lookup_read_counts=circuit.write_struct(
                 structs.G1PointCircuit.from_G1Point(
                     "lookup_read_counts", self.lookup_read_counts
@@ -219,9 +222,6 @@ class ZKHonkProof:
                 structs.G1PointCircuit.from_G1Point(
                     "lookup_inverses", self.lookup_inverses
                 )
-            ),
-            z_perm=circuit.write_struct(
-                structs.G1PointCircuit.from_G1Point("z_perm", self.z_perm)
             ),
             libra_commitments=[
                 circuit.write_struct(
@@ -279,10 +279,10 @@ class ZKHonkProof:
         code += f"w2: {g1_to_g1point256(self.w2)},\n"
         code += f"w3: {g1_to_g1point256(self.w3)},\n"
         code += f"w4: {g1_to_g1point256(self.w4)},\n"
+        code += f"z_perm: {g1_to_g1point256(self.z_perm)},\n"
         code += f"lookup_read_counts: {g1_to_g1point256(self.lookup_read_counts)},\n"
         code += f"lookup_read_tags: {g1_to_g1point256(self.lookup_read_tags)},\n"
         code += f"lookup_inverses: {g1_to_g1point256(self.lookup_inverses)},\n"
-        code += f"z_perm: {g1_to_g1point256(self.z_perm)},\n"
         code += f"libra_commitments: array![{', '.join(g1_to_g1point256(comm) for comm in self.libra_commitments)}].span(),\n"
         code += f"libra_sum: {hex(self.libra_sum)},\n"
 
@@ -320,10 +320,10 @@ class ZKHonkProof:
         cd.extend(serialize_G1Point256(self.w2))
         cd.extend(serialize_G1Point256(self.w3))
         cd.extend(serialize_G1Point256(self.w4))
+        cd.extend(serialize_G1Point256(self.z_perm))
         cd.extend(serialize_G1Point256(self.lookup_read_counts))
         cd.extend(serialize_G1Point256(self.lookup_read_tags))
         cd.extend(serialize_G1Point256(self.lookup_inverses))
-        cd.extend(serialize_G1Point256(self.z_perm))
 
         for pt in self.libra_commitments:
             cd.extend(serialize_G1Point256(pt))
