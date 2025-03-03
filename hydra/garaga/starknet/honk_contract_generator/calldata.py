@@ -13,7 +13,7 @@ from garaga.precompiled_circuits.honk import (
     HonkVk,
     ModuloCircuitElement,
 )
-from garaga.precompiled_circuits.zk_honk import ZKHonkProof
+from garaga.precompiled_circuits.zk_honk import ZKHonkProof, ZKHonkTranscript
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
@@ -141,6 +141,11 @@ def get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
     use_rust: bool = False,
 ) -> list[int]:
+    if use_rust:
+        return _zk_honk_calldata_from_vk_and_proof_rust(vk, proof, system)
+
+    tp = ZKHonkTranscript.from_proof(proof, system)
+
     raise ValueError("Unimplemented")  # TODO
 
 
