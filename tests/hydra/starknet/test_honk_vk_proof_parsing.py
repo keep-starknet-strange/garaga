@@ -32,7 +32,7 @@ def test_proof_parsing(proof_path: str):
 
 @pytest.mark.parametrize(
     "proof_path",
-    [f"{PATH}/proof_ultra_keccak_zk.bin"],
+    [f"{PATH}/proof_ultra_keccak_zk.bin", f"{PATH}/proof_ultra_starknet_zk.bin"],
 )
 def test_zk_proof_parsing(proof_path: str):
     proof = ZKHonkProof.from_bytes(open(proof_path, "rb").read())
@@ -74,3 +74,42 @@ def test_calldata_generation(proof_path: str, vk_path: str, system: ProofSystem)
     end = time.time()
     print(f"Rust time: {end - start}")
     assert calldata == calldata_rust
+
+
+"""
+@pytest.mark.parametrize(
+    "proof_path, vk_path, system",
+    [
+        (
+            f"{PATH}/proof_ultra_keccak_zk.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakZKHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_starknet_zk.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraStarknetZKHonk,
+        ),
+    ],
+)
+def test_zk_calldata_generation(proof_path: str, vk_path: str, system: ProofSystem):
+    import time
+
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+    proof = ZKHonkProof.from_bytes(open(proof_path, "rb").read())
+
+    start = time.time()
+    calldata = get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
+        vk, proof, system, use_rust=False
+    )
+    end = time.time()
+    print(f"Python time: {end - start}")
+
+    start = time.time()
+    calldata_rust = get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
+        vk, proof, system, use_rust=True
+    )
+    end = time.time()
+    print(f"Rust time: {end - start}")
+    assert calldata == calldata_rust
+"""

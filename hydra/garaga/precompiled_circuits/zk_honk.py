@@ -10,6 +10,7 @@ from garaga.precompiled_circuits.honk import (
     G1_PROOF_POINT_SHIFT,
     MAX_LOG_N,
     NUMBER_OF_ALPHAS,
+    NUMBER_OF_ENTITIES,
     Sha3Transcript,
     StarknetPoseidonTranscript,
     Wire,
@@ -17,7 +18,6 @@ from garaga.precompiled_circuits.honk import (
 )
 
 ZK_BATCHED_RELATION_PARTIAL_LENGTH = 9
-NUMBER_OF_ENTITIES = 40
 
 
 @dataclass
