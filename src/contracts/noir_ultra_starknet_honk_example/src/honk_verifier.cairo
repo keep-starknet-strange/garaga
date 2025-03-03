@@ -28,9 +28,7 @@ mod UltraStarknetHonkVerifier {
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
     };
-    use garaga::utils::noir::{
-        HonkProof, remove_unused_variables_sumcheck_evaluations, G2_POINT_KZG_1, G2_POINT_KZG_2,
-    };
+    use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
         StarknetHasherState,
@@ -77,9 +75,7 @@ mod UltraStarknetHonkVerifier {
                     .proof
                     .sumcheck_univariates
                     .slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
-                sumcheck_evaluations: remove_unused_variables_sumcheck_evaluations(
-                    full_proof.proof.sumcheck_evaluations,
-                ),
+                sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
                 tp_eta_1: transcript.eta.into(),
@@ -127,12 +123,12 @@ mod UltraStarknetHonkVerifier {
                 scalar_33,
                 scalar_34,
                 scalar_35,
+                scalar_40,
+                scalar_41,
+                scalar_42,
+                scalar_43,
                 scalar_44,
-                scalar_45,
-                scalar_46,
-                scalar_47,
-                scalar_48,
-                scalar_72,
+                scalar_68,
                 _,
             ) =
                 run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
@@ -154,11 +150,11 @@ mod UltraStarknetHonkVerifier {
                 vk.qr,
                 vk.qo,
                 vk.q4,
+                vk.qLookup,
                 vk.qArith,
                 vk.qDeltaRange,
                 vk.qElliptic,
                 vk.qAux,
-                vk.qLookup,
                 vk.qPoseidon2External,
                 vk.qPoseidon2Internal,
                 vk.s1,
@@ -230,12 +226,12 @@ mod UltraStarknetHonkVerifier {
                 scalar_33.try_into().unwrap(),
                 scalar_34.try_into().unwrap(),
                 scalar_35.try_into().unwrap(),
+                scalar_40.try_into().unwrap(),
+                scalar_41.try_into().unwrap(),
+                scalar_42.try_into().unwrap(),
+                scalar_43.try_into().unwrap(),
                 scalar_44.try_into().unwrap(),
-                scalar_45.try_into().unwrap(),
-                scalar_46.try_into().unwrap(),
-                scalar_47.try_into().unwrap(),
-                scalar_48.try_into().unwrap(),
-                scalar_72.try_into().unwrap(),
+                scalar_68.try_into().unwrap(),
                 transcript.shplonk_z.into(),
             ]
                 .span();

@@ -15,11 +15,11 @@ from garaga.poseidon_transcript import hades_permutation
 
 NUMBER_OF_SUBRELATIONS = 26
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
-NUMBER_OF_ENTITIES = 44
+NUMBER_OF_ENTITIES = 40
 BATCHED_RELATION_PARTIAL_LENGTH = 8
 CONST_PROOF_SIZE_LOG_N = 28
 NUMBER_UNSHIFTED = 35
-NUMBER_TO_BE_SHIFTED = 9
+NUMBER_TO_BE_SHIFTED = 5
 
 
 MAX_LOG_N = 23  # 2^23 = 8388608
@@ -368,11 +368,11 @@ class HonkVk:
     qr: G1Point
     qo: G1Point
     q4: G1Point
+    qLookup: G1Point
     qArith: G1Point
     qDeltaRange: G1Point
     qElliptic: G1Point
     qAux: G1Point
-    qLookup: G1Point
     qPoseidon2External: G1Point
     qPoseidon2Internal: G1Point
     s1: G1Point
@@ -1867,24 +1867,15 @@ class HonkVerifierCircuits(ModuloCircuit):
         # proof.w3 : 30 + 42
         # proof.w4 : 31 + 43
 
-        scalars[22] = self.add(scalars[22], scalars[36])
-        scalars[23] = self.add(scalars[23], scalars[37])
-        scalars[24] = self.add(scalars[24], scalars[38])
-        scalars[25] = self.add(scalars[25], scalars[39])
-
-        scalars[28] = self.add(scalars[28], scalars[40])
-        scalars[29] = self.add(scalars[29], scalars[41])
-        scalars[30] = self.add(scalars[30], scalars[42])
-        scalars[31] = self.add(scalars[31], scalars[43])
+        scalars[28] = self.add(scalars[28], scalars[36])
+        scalars[29] = self.add(scalars[29], scalars[37])
+        scalars[30] = self.add(scalars[30], scalars[38])
+        scalars[31] = self.add(scalars[31], scalars[39])
 
         scalars[36] = None
         scalars[37] = None
         scalars[38] = None
         scalars[39] = None
-        scalars[40] = None
-        scalars[41] = None
-        scalars[42] = None
-        scalars[43] = None
 
         return scalars
 
@@ -1909,11 +1900,11 @@ class Wire(AutoValueEnum):
     Q_R = auto()
     Q_O = auto()
     Q_4 = auto()
+    Q_LOOKUP = auto()
     Q_ARITH = auto()
     Q_RANGE = auto()
     Q_ELLIPTIC = auto()
     Q_AUX = auto()
-    Q_LOOKUP = auto()
     Q_POSEIDON2_EXTERNAL = auto()
     Q_POSEIDON2_INTERNAL = auto()
     SIGMA_1 = auto()
@@ -1938,10 +1929,6 @@ class Wire(AutoValueEnum):
     LOOKUP_INVERSES = auto()
     LOOKUP_READ_COUNTS = auto()
     LOOKUP_READ_TAGS = auto()
-    TABLE_1_SHIFT = auto()
-    TABLE_2_SHIFT = auto()
-    TABLE_3_SHIFT = auto()
-    TABLE_4_SHIFT = auto()
     W_L_SHIFT = auto()
     W_R_SHIFT = auto()
     W_O_SHIFT = auto()
@@ -1950,12 +1937,7 @@ class Wire(AutoValueEnum):
 
     @staticmethod
     def unused_indexes():
-        return [
-            Wire.TABLE_1_SHIFT.value,
-            Wire.TABLE_2_SHIFT.value,
-            Wire.TABLE_3_SHIFT.value,
-            Wire.TABLE_4_SHIFT.value,
-        ]
+        return []
 
     @staticmethod
     def insert_unused_indexes_with_nones(array: list) -> list:

@@ -17,8 +17,8 @@ reset
 BB_PATH="bb"
 
 
-echo "nargo version : $(nargo --version)" # 1.0.0-beta.1
-echo "bb version : $($BB_PATH --version)" # 0.67.0
+echo "nargo version : $(nargo --version)" # 1.0.0-beta.2
+echo "bb version : $($BB_PATH --version)" # 0.74.0
 
 
 run_noir_proof_basic() {
