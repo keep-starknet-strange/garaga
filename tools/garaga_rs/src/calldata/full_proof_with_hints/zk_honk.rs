@@ -25,6 +25,7 @@ const NUMBER_OF_ENTITIES: usize = 40;
 const NUMBER_UNSHIFTED: usize = 35;
 const MAX_LOG_N: usize = 23;
 const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N; // 2^23 = 8388608
+const SUBGROUP_SIZE: usize = 256;
 
 pub struct ZKHonkProof {
     pub circuit_size: usize,
@@ -377,6 +378,17 @@ pub fn get_zk_honk_calldata(
     let gemini_r = element_on_curve(&transcript.gemini_r);
     let shplonk_nu = element_on_curve(&transcript.shplonk_nu);
     let shplonk_z = element_on_curve(&transcript.shplonk_z);
+
+    let consistent = check_evals_consistency(
+        &libra_poly_evals,
+        &gemini_r,
+        &sumcheck_u_challenges,
+        &libra_evaluation,
+    )
+    .map_err(|e| format!("Field error: {:?}", e))?;
+    if !consistent {
+        return Err(format!("Consistency check failed"));
+    }
 
     let scalars = extract_msm_scalars_zk(
         vk.log_circuit_size,
@@ -887,6 +899,66 @@ fn compute_shplemini_msm_scalars_zk(
         .collect::<Vec<_>>()
         .try_into()
         .unwrap())
+}
+
+fn check_evals_consistency(
+    libra_poly_evals: &[FieldElement<GrumpkinPrimeField>; 4],
+    gemini_r: &FieldElement<GrumpkinPrimeField>,
+    sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
+    libra_eval: &FieldElement<GrumpkinPrimeField>,
+) -> Result<bool, FieldError> {
+    let vanishing_poly_eval =
+        gemini_r.pow(SUBGROUP_SIZE) - FieldElement::<GrumpkinPrimeField>::from(1);
+    if vanishing_poly_eval == FieldElement::<GrumpkinPrimeField>::from(0) {
+        return Ok(false);
+    }
+
+    let mut challenge_poly_lagrange =
+        vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
+    challenge_poly_lagrange[0] = FieldElement::<GrumpkinPrimeField>::from(1);
+    for round in 0..CONST_PROOF_SIZE_LOG_N {
+        let curr_idx = 1 + 9 * round;
+        challenge_poly_lagrange[curr_idx] = FieldElement::<GrumpkinPrimeField>::from(1);
+        for idx in curr_idx + 1..curr_idx + 9 {
+            challenge_poly_lagrange[idx] =
+                &challenge_poly_lagrange[idx - 1] * &sumcheck_u_challenges[round];
+        }
+    }
+
+    let subgroup_generator_inverse = FieldElement::<GrumpkinPrimeField>::from_hex_unchecked(
+        "204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6",
+    );
+
+    let mut root_power = FieldElement::<GrumpkinPrimeField>::from(1);
+    let mut challenge_poly_eval = FieldElement::<GrumpkinPrimeField>::from(0);
+    let mut denominators = vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
+    for idx in 0..SUBGROUP_SIZE {
+        denominators[idx] = &root_power * gemini_r - FieldElement::<GrumpkinPrimeField>::from(1);
+        denominators[idx] = denominators[idx].inv()?;
+        challenge_poly_eval =
+            &challenge_poly_eval + &challenge_poly_lagrange[idx] * &denominators[idx];
+        root_power = &root_power * &subgroup_generator_inverse;
+    }
+
+    let numerator = &vanishing_poly_eval
+        * FieldElement::<GrumpkinPrimeField>::from(SUBGROUP_SIZE as u64).inv()?;
+    challenge_poly_eval = &challenge_poly_eval * &numerator;
+    let lagrange_first = &denominators[0] * &numerator;
+    let lagrange_last = &denominators[SUBGROUP_SIZE - 1] * &numerator;
+
+    let mut diff = &lagrange_first * &libra_poly_evals[2];
+    diff = diff
+        + (gemini_r - &subgroup_generator_inverse)
+            * (&libra_poly_evals[1]
+                - &libra_poly_evals[2]
+                - &libra_poly_evals[0] * &challenge_poly_eval);
+    diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_eval)
+        - &vanishing_poly_eval * &libra_poly_evals[3];
+    if diff != FieldElement::<GrumpkinPrimeField>::from(0) {
+        return Ok(false);
+    }
+
+    Ok(true)
 }
 
 fn extract_msm_scalars_zk(
