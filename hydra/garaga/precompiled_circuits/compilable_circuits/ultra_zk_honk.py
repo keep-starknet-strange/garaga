@@ -174,6 +174,8 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         imap["p_public_inputs"] = (structs.u256Span, self.vk.public_inputs_size)
         imap["p_public_inputs_offset"] = structs.u384
 
+        imap["libra_sum"] = structs.u384
+
         imap["sumcheck_univariates_flat"] = (
             structs.u256Span,
             self.vk.log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH,
@@ -183,6 +185,8 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             structs.u256Span,
             hk.NUMBER_OF_ENTITIES - len(Wire.unused_indexes()),
         )
+
+        imap["libra_evaluation"] = structs.u384
 
         imap["tp_sum_check_u_challenges"] = (
             structs.u128Span,
@@ -199,10 +203,11 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         imap["tp_gamma"] = structs.u384
         imap["tp_base_rlc"] = structs.u384
         imap["tp_alphas"] = (structs.u128Span, hk.NUMBER_OF_ALPHAS)
+        imap["tp_libra_challenge"] = structs.u384
         return imap
 
     def _execute_circuit_logic(
-        self, circuit: HonkVerifierCircuits, vars: dict
+        self, circuit: ZKHonkVerifierCircuits, vars: dict
     ) -> ModuloCircuit:
 
         tp_delta = circuit.compute_public_input_delta(
@@ -230,14 +235,17 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         assert len(vars["sumcheck_evaluations"]) == len(Wire)
 
         check_rlc, check = circuit.verify_sum_check(
+            vars["libra_sum"],
             sumcheck_univariates,
             vars["sumcheck_evaluations"],
+            vars["libra_evaluation"],
             vars["tp_beta"],
             vars["tp_gamma"],
             tp_delta,
             vars["tp_eta_1"],
             vars["tp_eta_2"],
             vars["tp_eta_3"],
+            vars["tp_libra_challenge"],
             vars["tp_sum_check_u_challenges"],
             vars["tp_gate_challenges"],
             vars["tp_alphas"],
@@ -273,7 +281,7 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         imap = {}
 
         imap["p_sumcheck_evaluations"] = (structs.u256Span, hk.NUMBER_OF_ENTITIES)
-        imap["p_gemini_masking_eval"] = structs.u256
+        imap["p_gemini_masking_eval"] = structs.u384
         imap["p_gemini_a_evaluations"] = (structs.u256Span, self.vk.log_circuit_size)
         imap["p_libra_poly_evals"] = (structs.u256Span, 4)
         imap["tp_gemini_r"] = structs.u384
@@ -288,7 +296,7 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         return imap
 
     def _execute_circuit_logic(
-        self, circuit: HonkVerifierCircuits, vars: dict
+        self, circuit: ZKHonkVerifierCircuits, vars: dict
     ) -> ModuloCircuit:
 
         assert len(vars["p_sumcheck_evaluations"]) == len(Wire)
