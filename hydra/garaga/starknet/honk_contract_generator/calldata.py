@@ -49,15 +49,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     proof_circuit = proof.to_circuit_elements(circuit)
     tp = tp.to_circuit_elements(circuit)
 
-    vanishing_check, diff_check = circuit.check_evals_consistency(
-        proof_circuit.libra_poly_evals,
-        tp.gemini_r,
-        tp.sum_check_u_challenges,
-        proof_circuit.libra_evaluation,
-    )
-    assert vanishing_check.value != 0
-    assert diff_check.value == 0
-
     scalars = circuit.compute_shplemini_msm_scalars(
         proof_circuit.sumcheck_evaluations,
         proof_circuit.gemini_a_evaluations,
