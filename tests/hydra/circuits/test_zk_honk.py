@@ -37,6 +37,15 @@ def test_verify_honk_proof(system: ProofSystem):
     proof_circuit = proof.to_circuit_elements(circuit)
     tp = tp.to_circuit_elements(circuit)
 
+    vanishing_check, diff_check = circuit.check_evals_consistency(
+        proof_circuit.libra_poly_evals,
+        tp.gemini_r,
+        tp.sum_check_u_challenges,
+        proof_circuit.libra_evaluation,
+    )
+    assert vanishing_check.value != 0
+    assert diff_check.value == 0
+
     public_input_delta = circuit.compute_public_input_delta(
         public_inputs=proof_circuit.public_inputs,
         beta=tp.beta,
