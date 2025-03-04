@@ -798,7 +798,7 @@ fn compute_shplemini_msm_scalars_zk(
         scalars[i] = Some(&shifted_scalar * &batching_challenge);
         batched_evaluation += &sumcheck_evaluations[i - 2] * &batching_challenge;
         // skip last round:
-        if i < NUMBER_OF_ENTITIES {
+        if i < NUMBER_OF_ENTITIES + 1 {
             batching_challenge *= rho;
         }
     }
@@ -918,8 +918,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            188, 23, 106, 75, 0, 61, 122, 97, 135, 65, 18, 233, 84, 127, 21, 59, 149, 88, 99, 65,
-            199, 41, 184, 171, 106, 79, 137, 215, 8, 92, 145, 186,
+            117, 196, 205, 247, 43, 202, 48, 86, 189, 200, 55, 21, 18, 140, 56, 37, 216, 201, 196,
+            248, 215, 128, 101, 65, 50, 58, 214, 62, 60, 152, 237, 232,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -936,8 +936,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            134, 95, 143, 35, 22, 179, 174, 158, 168, 11, 74, 218, 4, 168, 28, 51, 82, 40, 107, 60,
-            93, 212, 140, 50, 116, 216, 124, 72, 218, 143, 64, 128,
+            171, 91, 126, 189, 110, 224, 56, 110, 138, 116, 184, 147, 173, 117, 139, 98, 254, 85,
+            56, 184, 251, 192, 146, 174, 81, 122, 39, 201, 185, 61, 231, 245,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
