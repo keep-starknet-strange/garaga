@@ -1785,7 +1785,9 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         for i in range(4):
             scaling_factor = self.mul(denominators[i], batching_challenge)
             batching_scalars[i] = self.neg(scaling_factor)
-            batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
+            # skip last step:
+            if i < 3:
+                batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
             constant_term_accumulator = self.add(
                 constant_term_accumulator,
                 self.mul(scaling_factor, p_libra_poly_evals[i]),
