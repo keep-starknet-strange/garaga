@@ -905,7 +905,7 @@ fn check_evals_consistency(
     libra_poly_evals: &[FieldElement<GrumpkinPrimeField>; 4],
     gemini_r: &FieldElement<GrumpkinPrimeField>,
     sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-    libra_eval: &FieldElement<GrumpkinPrimeField>,
+    libra_evaluation: &FieldElement<GrumpkinPrimeField>,
 ) -> Result<bool, FieldError> {
     let vanishing_poly_eval =
         gemini_r.pow(SUBGROUP_SIZE) - FieldElement::<GrumpkinPrimeField>::from(1);
@@ -952,7 +952,7 @@ fn check_evals_consistency(
             * (&libra_poly_evals[1]
                 - &libra_poly_evals[2]
                 - &libra_poly_evals[0] * &challenge_poly_eval);
-    diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_eval)
+    diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_evaluation)
         - &vanishing_poly_eval * &libra_poly_evals[3];
     if diff != FieldElement::<GrumpkinPrimeField>::from(0) {
         return Ok(false);
