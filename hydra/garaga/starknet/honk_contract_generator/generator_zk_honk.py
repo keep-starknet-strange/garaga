@@ -174,7 +174,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
     use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{{flavor}HasherState}};
     use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, Point256IntoCircuitPoint, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::U64IntoU384;
+    use garaga::core::circuit::{{U64IntoU384, u256_to_u384}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -210,10 +210,10 @@ mod Ultra{flavor}ZKHonkVerifier {{
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
                 p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
-                libra_sum: full_proof.proof.libra_sum.into(),
+                libra_sum: u256_to_u384(full_proof.proof.libra_sum),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * ZK_BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
-                libra_evaluation: full_proof.proof.libra_evaluation.into(),
+                libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
                 tp_eta_1: transcript.eta.into(),
@@ -232,7 +232,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
         ) =
             {prepare_scalars_function_name}(
             p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
-            p_gemini_masking_eval: full_proof.proof.gemini_masking_eval.into(),
+            p_gemini_masking_eval: u256_to_u384(full_proof.proof.gemini_masking_eval),
             p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
             p_libra_poly_evals: full_proof.proof.libra_poly_evals,
             tp_gemini_r: transcript.gemini_r.into(),
