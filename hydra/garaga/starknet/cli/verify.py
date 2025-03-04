@@ -37,6 +37,10 @@ from garaga.starknet.honk_contract_generator.calldata import (
     HonkVk,
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
+from garaga.starknet.honk_contract_generator.zk_calldata import (
+    ZKHonkProof,
+    get_ultra_flavor_zk_honk_calldata_from_vk_and_proof,
+)
 
 app = typer.Typer()
 
@@ -191,6 +195,12 @@ def get_calldata_generic(
             vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
             proof_obj = HonkProof.from_bytes(open(proof, "rb").read())
             return get_ultra_flavor_honk_calldata_from_vk_and_proof(
+                vk_obj, proof_obj, system
+            )
+        case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
+            vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
+            proof_obj = ZKHonkProof.from_bytes(open(proof, "rb").read())
+            return get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
                 vk_obj, proof_obj, system
             )
         case _:
