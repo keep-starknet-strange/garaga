@@ -27,6 +27,10 @@ from garaga.starknet.honk_contract_generator.calldata import (
     HonkVk,
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
+from garaga.starknet.honk_contract_generator.zk_calldata import (
+    ZKHonkProof,
+    get_ultra_flavor_zk_honk_calldata_from_vk_and_proof,
+)
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
     drand_round_to_calldata,
 )
@@ -308,6 +312,102 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     prepare_invoke = PreparedFunctionInvokeV3(
         to_addr=function_call.contract_data.address,
         calldata=get_ultra_flavor_honk_calldata_from_vk_and_proof(
+            vk=vk, proof=proof, system=system
+        ),
+        selector=function_call.get_selector(function_call.name),
+        l1_resource_bounds=None,
+        _contract_data=function_call.contract_data,
+        _client=function_call.client,
+        _account=function_call.account,
+        _payload_transformer=function_call._payload_transformer,
+    )
+
+    invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
+
+    await invoke_result.wait_for_acceptance()
+
+    print(f"Invoke result : {invoke_result.status}")
+
+    receipt = await account.client.get_transaction_receipt(invoke_result.hash)
+    print(receipt.execution_resources)
+
+
+ZK_HONK_CONTRACTS = [
+    {
+        "contract_project": SmartContractProject(
+            smart_contract_folder=CONTRACTS_PATH / "noir_ultra_keccak_zk_honk_example",
+        ),
+        "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak_zk.bin",
+        "system": ProofSystem.UltraKeccakZKHonk,
+    },
+    {
+        "contract_project": SmartContractProject(
+            smart_contract_folder=CONTRACTS_PATH
+            / "noir_ultra_starknet_zk_honk_example",
+        ),
+        "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet_zk.bin",
+        "system": ProofSystem.UltraStarknetZKHonk,
+    },
+]
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("contract_info", ZK_HONK_CONTRACTS)
+async def test_zk_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
+    account = account_devnet
+    contract_project: SmartContractProject = contract_info["contract_project"]
+    vk_path: Path = contract_info["vk_path"]
+    proof_path: Path = contract_info["proof_path"]
+    system: ProofSystem = contract_info["system"]
+
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+    proof = ZKHonkProof.from_bytes(open(proof_path, "rb").read())
+
+    print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
+
+    # Declare the honk contract
+    honk_class_hash, honk_abi = await contract_project.declare_class_hash(account)
+
+    print(f"Declared contract class hash: {hex(honk_class_hash)}")
+
+    # Deploy the honk contract
+    precomputed_address = compute_address(
+        class_hash=honk_class_hash,
+        constructor_calldata=[],
+        salt=pedersen_hash(to_int(account.address), 1),
+        deployer_address=DEPLOYER_ADDRESS,
+    )
+
+    try_contract = await get_contract_if_exists(account, precomputed_address)
+    if try_contract is None:
+        deploy_result = await Contract.deploy_contract_v1(
+            account=account,
+            class_hash=honk_class_hash,
+            abi=honk_abi,
+            deployer_address=DEPLOYER_ADDRESS,
+            auto_estimate=True,
+            salt=1,
+            cairo_version=1,
+        )
+        await deploy_result.wait_for_acceptance()
+
+        contract = deploy_result.deployed_contract
+    else:
+        print(f"Contract already deployed at {hex(precomputed_address)}")
+        contract = try_contract
+
+    print(f"Deployed contract address: {hex(contract.address)}")
+    print(f"Deployed contract: {contract.functions}")
+
+    function_call: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["verify"]
+    )
+
+    prepare_invoke = PreparedFunctionInvokeV3(
+        to_addr=function_call.contract_data.address,
+        calldata=get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
             vk=vk, proof=proof, system=system
         ),
         selector=function_call.get_selector(function_call.name),
