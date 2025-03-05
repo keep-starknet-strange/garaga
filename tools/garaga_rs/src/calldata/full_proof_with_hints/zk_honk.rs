@@ -459,6 +459,7 @@ pub fn get_zk_honk_calldata(
         push_point(call_data_ref, &lookup_read_counts);
         push_point(call_data_ref, &lookup_read_tags);
         push_point(call_data_ref, &lookup_inverses);
+        push(call_data_ref, libra_commitments.len());
         for point in &libra_commitments {
             push_point(call_data_ref, point);
         }
@@ -483,7 +484,7 @@ pub fn get_zk_honk_calldata(
             &gemini_a_evaluations[..vk.log_circuit_size],
             true,
         );
-        push_elements(call_data_ref, &libra_poly_evals, false);
+        push_elements(call_data_ref, &libra_poly_evals, true);
         push_point(call_data_ref, &shplonk_q);
         push_point(call_data_ref, &kzg_quotient);
 
@@ -990,8 +991,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            117, 196, 205, 247, 43, 202, 48, 86, 189, 200, 55, 21, 18, 140, 56, 37, 216, 201, 196,
-            248, 215, 128, 101, 65, 50, 58, 214, 62, 60, 152, 237, 232,
+            68, 240, 173, 172, 201, 64, 114, 159, 87, 146, 39, 223, 178, 91, 88, 56, 72, 160, 111,
+            93, 165, 0, 164, 98, 196, 206, 110, 37, 250, 160, 180, 35,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1008,8 +1009,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            171, 91, 126, 189, 110, 224, 56, 110, 138, 116, 184, 147, 173, 117, 139, 98, 254, 85,
-            56, 184, 251, 192, 146, 174, 81, 122, 39, 201, 185, 61, 231, 245,
+            149, 168, 167, 177, 167, 104, 202, 210, 144, 141, 233, 45, 239, 75, 54, 32, 9, 187,
+            148, 110, 38, 95, 149, 208, 139, 4, 69, 84, 141, 192, 114, 0,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

@@ -334,6 +334,7 @@ class ZKHonkProof:
         cd.extend(serialize_G1Point256(self.lookup_read_tags))
         cd.extend(serialize_G1Point256(self.lookup_inverses))
 
+        cd.append(len(self.libra_commitments))
         for pt in self.libra_commitments:
             cd.extend(serialize_G1Point256(pt))
 
@@ -382,7 +383,7 @@ class ZKHonkProof:
                 x=self.libra_poly_evals,
                 n_limbs=2,
                 base=2**128,
-                prepend_length=False,
+                prepend_length=True,
             )
         )
 
