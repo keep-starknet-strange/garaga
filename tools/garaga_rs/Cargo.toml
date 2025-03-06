@@ -44,5 +44,5 @@ js-sys = "0.3"
 lazy_static = "1.4"
 itertools = "0.14"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
-lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "7e94a19037852cedc16b17922142ece2460a0845" }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev ="7e94a19037852cedc16b17922142ece2460a0845" }
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "be4a329dad5c847a37ab3831b6fdee546b2d0af9" }
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev ="be4a329dad5c847a37ab3831b6fdee546b2d0af9" }
