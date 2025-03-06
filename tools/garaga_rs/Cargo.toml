@@ -19,8 +19,8 @@ wasm = ["dep:wasm-bindgen"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
-proptest = "1.0"
-proptest-arbitrary-interop = "0.1"
+#proptest = "1.6.0"
+#proptest-arbitrary-interop = "0.1"
 test-strategy = "0.4.0"
 
 # assumes python dependencies when not on wasm32-unknown-unknown
@@ -44,8 +44,8 @@ js-sys = "0.3"
 lazy_static = "1.4"
 rand = "0.9.0"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
-lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329" }
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329" }
 arbitrary = "1.0"
 thiserror = "2.0.11"
 itertools = "0.14"

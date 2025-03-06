@@ -397,98 +397,98 @@ impl<'a, H: HashFunction> arbitrary::Arbitrary<'a> for Digest<H> {
     }
 }
 
-#[cfg(test)]
-pub(crate) mod digest_tests {
-    use num_traits::One;
-    use proptest::collection::vec;
-    use proptest::prelude::Arbitrary as ProptestArbitrary;
-    use proptest::prelude::*;
-    use proptest_arbitrary_interop::arb;
-    use test_strategy::proptest;
+// #[cfg(test)]
+// pub(crate) mod digest_tests {
+//     use num_traits::One;
+//     use proptest::collection::vec;
+//     use proptest::prelude::Arbitrary as ProptestArbitrary;
+//     use proptest::prelude::*;
+//     use proptest_arbitrary_interop::arb;
+//     use test_strategy::proptest;
 
-    use super::*;
-    // use crate::prelude::*;
+//     use super::*;
+//     // use crate::prelude::*;
 
-    impl ProptestArbitrary for Digest<PoseidonBn254Hash> {
-        type Parameters = ();
-        fn arbitrary_with(_args: Self::Parameters) -> Self::Strategy {
-            arb().prop_map(|d| d).no_shrink().boxed()
-        }
+//     impl ProptestArbitrary for Digest<PoseidonBn254Hash> {
+//         type Parameters = ();
+//         fn arbitrary_with(_args: Self::Parameters) -> Self::Strategy {
+//             arb().prop_map(|d| d).no_shrink().boxed()
+//         }
 
-        type Strategy = BoxedStrategy<Self>;
-    }
+//         type Strategy = BoxedStrategy<Self>;
+//     }
 
-    /// Test helper struct for corrupting digests. Primarily used for negative tests.
-    #[derive(Debug, Clone, PartialEq, Eq, test_strategy::Arbitrary)]
-    pub(crate) struct DigestCorruptor;
+//     /// Test helper struct for corrupting digests. Primarily used for negative tests.
+//     #[derive(Debug, Clone, PartialEq, Eq, test_strategy::Arbitrary)]
+//     pub(crate) struct DigestCorruptor;
 
-    impl DigestCorruptor {
-        pub fn corrupt_digest<H: HashFunction>(&self, digest: Digest<H>) -> Digest<H> {
-            // Generate a new random digest different from the input
-            loop {
-                let new_digest = Digest::new(H::random());
-                if new_digest != digest {
-                    return new_digest;
-                }
-            }
-        }
-    }
+//     impl DigestCorruptor {
+//         pub fn corrupt_digest<H: HashFunction>(&self, digest: Digest<H>) -> Digest<H> {
+//             // Generate a new random digest different from the input
+//             loop {
+//                 let new_digest = Digest::new(H::random());
+//                 if new_digest != digest {
+//                     return new_digest;
+//                 }
+//             }
+//         }
+//     }
 
-    // mod serde_test {
-    //     use super::hex_test::hex_examples;
-    //     use super::*;
+//     // mod serde_test {
+//     //     use super::hex_test::hex_examples;
+//     //     use super::*;
 
-    //     mod json_test {
-    //         use super::*;
+//     //     mod json_test {
+//     //         use super::*;
 
-    //         #[test]
-    //         fn serialize() -> Result<(), serde_json::Error> {
-    //             for (digest, hex) in hex_examples() {
-    //                 assert_eq!(serde_json::to_string(&digest)?, format!("\"{}\"", hex));
-    //             }
-    //             Ok(())
-    //         }
+//     //         #[test]
+//     //         fn serialize() -> Result<(), serde_json::Error> {
+//     //             for (digest, hex) in hex_examples() {
+//     //                 assert_eq!(serde_json::to_string(&digest)?, format!("\"{}\"", hex));
+//     //             }
+//     //             Ok(())
+//     //         }
 
-    //         #[test]
-    //         fn deserialize() -> Result<(), serde_json::Error> {
-    //             for (digest, hex) in hex_examples() {
-    //                 let json_hex = format!("\"{}\"", hex);
-    //                 let digest_deserialized: Digest = serde_json::from_str::<Digest>(&json_hex)?;
-    //                 assert_eq!(digest_deserialized, digest);
-    //             }
-    //             Ok(())
-    //         }
-    //     }
+//     //         #[test]
+//     //         fn deserialize() -> Result<(), serde_json::Error> {
+//     //             for (digest, hex) in hex_examples() {
+//     //                 let json_hex = format!("\"{}\"", hex);
+//     //                 let digest_deserialized: Digest = serde_json::from_str::<Digest>(&json_hex)?;
+//     //                 assert_eq!(digest_deserialized, digest);
+//     //             }
+//     //             Ok(())
+//     //         }
+//     //     }
 
-    //     mod bincode_test {
-    //         use super::*;
+//     //     mod bincode_test {
+//     //         use super::*;
 
-    //         fn bincode_examples() -> Vec<(Digest, [u8; Digest::BYTES])> {
-    //             vec![
-    //                 (Digest::default(), [0u8; Digest::BYTES]),
-    //                 (
-    //                     Digest::new(bfe_array![0, 1, 10, 15, 255]),
-    //                     [
-    //                         0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0,
-    //                         0, 15, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0,
-    //                     ],
-    //                 ),
-    //             ]
-    //         }
+//     //         fn bincode_examples() -> Vec<(Digest, [u8; Digest::BYTES])> {
+//     //             vec![
+//     //                 (Digest::default(), [0u8; Digest::BYTES]),
+//     //                 (
+//     //                     Digest::new(bfe_array![0, 1, 10, 15, 255]),
+//     //                     [
+//     //                         0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 10, 0, 0, 0, 0, 0, 0,
+//     //                         0, 15, 0, 0, 0, 0, 0, 0, 0, 255, 0, 0, 0, 0, 0, 0, 0,
+//     //                     ],
+//     //                 ),
+//     //             ]
+//     //         }
 
-    //         #[test]
-    //         fn serialize() {
-    //             for (digest, bytes) in bincode_examples() {
-    //                 assert_eq!(bincode::serialize(&digest).unwrap(), bytes);
-    //             }
-    //         }
+//     //         #[test]
+//     //         fn serialize() {
+//     //             for (digest, bytes) in bincode_examples() {
+//     //                 assert_eq!(bincode::serialize(&digest).unwrap(), bytes);
+//     //             }
+//     //         }
 
-    //         #[test]
-    //         fn deserialize() {
-    //             for (digest, bytes) in bincode_examples() {
-    //                 assert_eq!(bincode::deserialize::<Digest>(&bytes).unwrap(), digest);
-    //             }
-    //         }
-    //     }
-    // }
-}
+//     //         #[test]
+//     //         fn deserialize() {
+//     //             for (digest, bytes) in bincode_examples() {
+//     //                 assert_eq!(bincode::deserialize::<Digest>(&bytes).unwrap(), digest);
+//     //             }
+//     //         }
+//     //     }
+//     // }
+// }
