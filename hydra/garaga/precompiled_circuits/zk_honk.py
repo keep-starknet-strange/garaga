@@ -1854,9 +1854,11 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
                 challenge_poly_eval,
                 self.mul(challenge_poly_lagrange[idx], denominators[idx]),
             )
-            root_power = self.mul(
-                root_power, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
-            )
+            # skip last step:
+            if idx < SUBGROUP_SIZE - 1:
+                root_power = self.mul(
+                    root_power, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
+                )
 
         numerator = self.mul(
             vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))

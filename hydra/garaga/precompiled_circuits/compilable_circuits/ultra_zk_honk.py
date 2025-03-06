@@ -353,3 +353,50 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         circuit.exact_output_refs_needed = [sum_scalars]
 
         return circuit
+
+
+class ZKEvalsConsistencyCircuit(ZKBaseUltraHonkCircuit):
+    def __init__(
+        self,
+        vk: HonkVk,
+        curve_id: int = CurveID.GRUMPKIN.value,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ) -> None:
+        name = f"zk_honk_evals_consist_size_{vk.log_circuit_size}"
+        self.vk = vk
+        super().__init__(
+            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
+        )
+
+    @property
+    def input_map(self) -> dict:
+        imap = {}
+
+        imap["p_libra_poly_evals"] = (structs.u256Span, 4)
+        imap["tp_gemini_r"] = structs.u384
+        imap["tp_sum_check_u_challenges"] = (
+            structs.u128Span,
+            hk.CONST_PROOF_SIZE_LOG_N,
+        )
+        imap["p_libra_evaluation"] = structs.u384
+
+        return imap
+
+    def _execute_circuit_logic(
+        self, circuit: ZKHonkVerifierCircuits, vars: dict
+    ) -> ModuloCircuit:
+
+        vanishing_check, diff_check = circuit.check_evals_consistency(
+            vars["p_libra_poly_evals"],
+            vars["tp_gemini_r"],
+            vars["tp_sum_check_u_challenges"],
+            vars["p_libra_evaluation"],
+        )
+
+        assert type(vanishing_check) == ModuloCircuitElement
+        assert type(diff_check) == ModuloCircuitElement
+
+        circuit.extend_struct_output(u384("vanishing_check", elmts=[vanishing_check]))
+        circuit.extend_struct_output(u384("diff_check", elmts=[diff_check]))
+        return circuit

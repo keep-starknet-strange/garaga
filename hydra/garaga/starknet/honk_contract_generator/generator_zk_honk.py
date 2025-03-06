@@ -8,6 +8,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     EvalFunctionChallengeDuplCircuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.ultra_zk_honk import (
+    ZKEvalsConsistencyCircuit,
     ZKPrepareScalarsCircuit,
     ZKSumCheckCircuit,
 )
@@ -61,13 +62,23 @@ use core::option::Option;\n
     prepare_scalars_function_name = (
         f"{CurveID.GRUMPKIN.name}_{prepare_scalars_circuit.name.upper()}"
     )
-
     prepare_scalars_code, prepare_scalars_function_name = (
         prepare_scalars_circuit.circuit.compile_circuit(
             function_name=prepare_scalars_function_name, pub=True
         )
     )
-    code += sumcheck_code + prepare_scalars_code
+
+    consistency_circuit = ZKEvalsConsistencyCircuit(vk)
+    consistency_function_name = (
+        f"{CurveID.GRUMPKIN.name}_{consistency_circuit.name.upper()}"
+    )
+    consistency_code, consistency_function_name = (
+        consistency_circuit.circuit.compile_circuit(
+            function_name=consistency_function_name, pub=True
+        )
+    )
+
+    code += sumcheck_code + prepare_scalars_code + consistency_code
 
     lhs_ecip_circuit = EvalFunctionChallengeDuplCircuit(
         CurveID.BN254.value,
@@ -85,6 +96,7 @@ use core::option::Option;\n
         code,
         sumcheck_function_name,
         prepare_scalars_function_name,
+        consistency_function_name,
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
@@ -140,6 +152,7 @@ def gen_zk_honk_verifier(
         circuits_code,
         sumcheck_function_name,
         prepare_scalars_function_name,
+        consistency_function_name,
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
@@ -152,7 +165,7 @@ def gen_zk_honk_verifier(
 
     contract_code = f"""
 use super::honk_verifier_constants::{{vk, precomputed_lines}};
-use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
+use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_function_name}, {lhs_ecip_function_name}}};
 
 #[starknet::interface]
 trait IUltra{flavor}ZKHonkVerifier<TContractState> {{
@@ -170,7 +183,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
     use garaga::basic_field_ops::{{batch_3_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
-    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
+    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{{flavor}HasherState}};
     use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, Point256IntoCircuitPoint, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
@@ -224,6 +237,13 @@ mod Ultra{flavor}ZKHonkVerifier {{
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
+            );
+
+            let (vanishing_check, diff_check) = {consistency_function_name}(
+                p_libra_poly_evals: full_proof.proof.libra_poly_evals,
+                tp_gemini_r: transcript.gemini_r.into(),
+                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
+                p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
             );
 
         let (
@@ -414,7 +434,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
                full_proof.kzg_hint,
             );
 
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{
                 return Option::None;

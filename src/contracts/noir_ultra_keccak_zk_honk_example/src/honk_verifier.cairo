@@ -2,6 +2,7 @@ use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
     run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit,
     run_BN254_EVAL_FN_CHALLENGE_DUPL_46P_RLC_circuit,
 };
 
@@ -26,6 +27,7 @@ mod UltraKeccakZKHonkVerifier {
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
         run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit,
         run_BN254_EVAL_FN_CHALLENGE_DUPL_46P_RLC_circuit,
     };
     use garaga::utils::noir::{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
@@ -88,6 +90,13 @@ mod UltraKeccakZKHonkVerifier {
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
+            );
+
+            let (vanishing_check, diff_check) = run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit(
+                p_libra_poly_evals: full_proof.proof.libra_poly_evals,
+                tp_gemini_r: transcript.gemini_r.into(),
+                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
+                p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
             );
 
             let (
@@ -400,7 +409,12 @@ mod UltraKeccakZKHonkVerifier {
                 full_proof.kzg_hint,
             );
 
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {
+            if sum_check_rlc.is_zero()
+                && honk_check.is_zero()
+                && !vanishing_check.is_zero()
+                && diff_check.is_zero()
+                && ecip_check
+                && kzg_check {
                 return Option::Some(full_proof.proof.public_inputs);
             } else {
                 return Option::None;
