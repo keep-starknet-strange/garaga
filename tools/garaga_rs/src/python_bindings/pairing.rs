@@ -116,20 +116,12 @@ pub fn multi_pairing(
             BN254AtePairing::compute_batch(&pairs.iter().map(|(a, b)| (a, b)).collect::<Vec<_>>())
                 .unwrap();
 
-        let cx: FieldElement<
-            lambdaworks_math::field::extensions::quadratic::QuadraticExtensionField<
-                lambdaworks_math::field::extensions::cubic::CubicExtensionField<
-                    bn_254::field_extension::Degree2ExtensionField,
-                    bn_254::field_extension::LevelTwoResidue,
-                >,
-                bn_254::field_extension::LevelThreeResidue,
-            >,
-        > = match cx == FieldElement::one() {
+        let cx = match cx == FieldElement::one() {
             true => cx,
             false => {
-                let finla_exp_cofactor =
+                let final_exp_cofactor =
                     U256::from_hex_unchecked("3bec47df15e307c81ea96b02d9d9e38d2e5d4e223ddedaf4");
-                cx.pow(finla_exp_cofactor)
+                cx.pow(final_exp_cofactor)
             }
         };
 
