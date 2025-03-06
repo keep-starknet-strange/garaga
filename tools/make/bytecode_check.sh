@@ -21,6 +21,18 @@ bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_starknet_honk_
 echo "Bytecode length NOIR POSEIDON: $bytecode_length"
 
 
+cd ../noir_ultra_keccak_zk_honk_example
+scarb build
+bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_keccak_zk_honk_example_UltraKeccakZKHonkVerifier.compiled_contract_class.json)
+echo "Bytecode length NOIR ZK KECCAK: $bytecode_length"
+
+
+cd ../noir_ultra_starknet_zk_honk_example
+scarb build
+bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_starknet_zk_honk_example_UltraStarknetZKHonkVerifier.compiled_contract_class.json)
+echo "Bytecode length NOIR ZK POSEIDON: $bytecode_length"
+
+
 cd ../groth16_example_$c2
 scarb build
 bytecode_length=$(jq '.bytecode | length' ./target/dev/groth16_example_${c2}_Groth16Verifier${c2^^}.compiled_contract_class.json)
