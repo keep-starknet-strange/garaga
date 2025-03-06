@@ -1,4 +1,5 @@
 import binascii
+import functools
 import hashlib
 import random
 from dataclasses import dataclass
@@ -202,6 +203,7 @@ def _parse_randomness_beacon(data: dict) -> RandomnessBeacon:
     )
 
 
+@functools.lru_cache(maxsize=None)
 def print_all_chain_info() -> dict[DrandNetwork, NetworkInfo]:
     # Try multiple times to get chains
     max_retries = 3
