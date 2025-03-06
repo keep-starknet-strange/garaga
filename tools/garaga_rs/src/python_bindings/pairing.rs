@@ -16,6 +16,7 @@ use lambdaworks_math::field::element::FieldElement;
 
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254;
+use lambdaworks_math::unsigned_integer::element::U256;
 
 fn to_bn(v: FieldElement<bn_254::field_extension::Degree12ExtensionField>) -> [BigUint; 12] {
     let [c0, c1] = v.value();
@@ -114,6 +115,23 @@ pub fn multi_pairing(
         let cx =
             BN254AtePairing::compute_batch(&pairs.iter().map(|(a, b)| (a, b)).collect::<Vec<_>>())
                 .unwrap();
+
+        let cx: FieldElement<
+            lambdaworks_math::field::extensions::quadratic::QuadraticExtensionField<
+                lambdaworks_math::field::extensions::cubic::CubicExtensionField<
+                    bn_254::field_extension::Degree2ExtensionField,
+                    bn_254::field_extension::LevelTwoResidue,
+                >,
+                bn_254::field_extension::LevelThreeResidue,
+            >,
+        > = match cx == FieldElement::one() {
+            true => cx,
+            false => {
+                let finla_exp_cofactor =
+                    U256::from_hex_unchecked("3bec47df15e307c81ea96b02d9d9e38d2e5d4e223ddedaf4");
+                cx.pow(finla_exp_cofactor)
+            }
+        };
 
         let py_list = PyList::new(py, to_bn(cx));
         return Ok(py_list?.into());
