@@ -380,10 +380,10 @@ pub fn get_zk_honk_calldata(
     let shplonk_z = element_on_curve(&transcript.shplonk_z);
 
     let consistent = check_evals_consistency(
+        &libra_evaluation,
         &libra_poly_evals,
         &gemini_r,
         &sumcheck_u_challenges,
-        &libra_evaluation,
     )
     .map_err(|e| format!("Field error: {:?}", e))?;
     if !consistent {
@@ -903,10 +903,10 @@ fn compute_shplemini_msm_scalars_zk(
 }
 
 fn check_evals_consistency(
+    libra_evaluation: &FieldElement<GrumpkinPrimeField>,
     libra_poly_evals: &[FieldElement<GrumpkinPrimeField>; 4],
     gemini_r: &FieldElement<GrumpkinPrimeField>,
     sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-    libra_evaluation: &FieldElement<GrumpkinPrimeField>,
 ) -> Result<bool, FieldError> {
     let vanishing_poly_eval =
         gemini_r.pow(SUBGROUP_SIZE) - FieldElement::<GrumpkinPrimeField>::from(1);

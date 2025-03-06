@@ -1823,10 +1823,10 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
     def check_evals_consistency(
         self,
+        p_libra_evaluation: ModuloCircuitElement,
         p_libra_poly_evals: list[ModuloCircuitElement],
         tp_gemini_r: ModuloCircuitElement,
         tp_sumcheck_u_challenges: list[ModuloCircuitElement],
-        p_libra_evaluation: ModuloCircuitElement,
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
         vanishing_poly_eval = self.sub(
             self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)

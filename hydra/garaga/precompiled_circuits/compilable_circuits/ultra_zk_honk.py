@@ -373,13 +373,13 @@ class ZKEvalsConsistencyCircuit(ZKBaseUltraHonkCircuit):
     def input_map(self) -> dict:
         imap = {}
 
+        imap["p_libra_evaluation"] = structs.u384
         imap["p_libra_poly_evals"] = (structs.u256Span, 4)
         imap["tp_gemini_r"] = structs.u384
         imap["tp_sum_check_u_challenges"] = (
             structs.u128Span,
             hk.CONST_PROOF_SIZE_LOG_N,
         )
-        imap["p_libra_evaluation"] = structs.u384
 
         return imap
 
@@ -388,10 +388,10 @@ class ZKEvalsConsistencyCircuit(ZKBaseUltraHonkCircuit):
     ) -> ModuloCircuit:
 
         vanishing_check, diff_check = circuit.check_evals_consistency(
+            vars["p_libra_evaluation"],
             vars["p_libra_poly_evals"],
             vars["tp_gemini_r"],
             vars["tp_sum_check_u_challenges"],
-            vars["p_libra_evaluation"],
         )
 
         assert type(vanishing_check) == ModuloCircuitElement

@@ -93,10 +93,10 @@ mod UltraKeccakZKHonkVerifier {
             );
 
             let (vanishing_check, diff_check) = run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit(
+                p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 p_libra_poly_evals: full_proof.proof.libra_poly_evals,
                 tp_gemini_r: transcript.gemini_r.into(),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
-                p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
             );
 
             let (

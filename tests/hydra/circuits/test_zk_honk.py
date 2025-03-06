@@ -38,10 +38,10 @@ def test_verify_honk_proof(system: ProofSystem):
     tp = tp.to_circuit_elements(circuit)
 
     vanishing_check, diff_check = circuit.check_evals_consistency(
+        proof_circuit.libra_evaluation,
         proof_circuit.libra_poly_evals,
         tp.gemini_r,
         tp.sum_check_u_challenges,
-        proof_circuit.libra_evaluation,
     )
     assert vanishing_check.value != 0
     assert diff_check.value == 0

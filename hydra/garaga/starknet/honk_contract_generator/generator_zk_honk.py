@@ -240,10 +240,10 @@ mod Ultra{flavor}ZKHonkVerifier {{
             );
 
             let (vanishing_check, diff_check) = {consistency_function_name}(
+                p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 p_libra_poly_evals: full_proof.proof.libra_poly_evals,
                 tp_gemini_r: transcript.gemini_r.into(),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
-                p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
             );
 
         let (
