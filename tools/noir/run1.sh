@@ -105,43 +105,43 @@ EOF
     #
     #    - The script below uses a fixed loop count. Adapt as needed.
     ##################################################################
+    nargo compile
+
+    local recursion_suffix="_combined_recursion_circuit"
+    $BB_PATH write_vk_ultra_honk -b target/combined_recursive_circuit.json -o target/vk${recursion_suffix}.bin -h 1 --recursive
+    $BB_PATH vk_as_fields_ultra_honk -k target/vk${recursion_suffix}.bin -o target/vk_fields${recursion_suffix} -h 1 --recursive
+    local recursion_vk_fields="./target/vk_fields${recursion_suffix}"
+    # Check if file exists
+    if [[ ! -f "$recursion_vk_fields" ]]; then
+        echo "[Error] VK fields file not found at $recursion_vk_fields"
+        return 1
+    fi
+    local recursion_vk_content="$(cat "$recursion_vk_fields")"
 
     local MAX_ITERATIONS=3
     for ((i = 1; i <= MAX_ITERATIONS; i++)); do
         echo ""
         echo "==== [2.$i] Running the combined circuit iteration #$i ===="
 
-        nargo compile
-
         nargo execute witness
-
-        local recursion_suffix="_combined_recursion_circuit"
 
         $BB_PATH prove_ultra_honk -b target/combined_recursive_circuit.json -w target/witness.gz -o target/proof${recursion_suffix}.bin -h 1 --recursive
         $BB_PATH proof_as_fields_honk -p target/proof${recursion_suffix}.bin -o target/proof_fields${recursion_suffix} -h 1 --recursive
-        $BB_PATH write_vk_ultra_honk -b target/combined_recursive_circuit.json -o target/vk${recursion_suffix}.bin -h 1 --recursive
-        $BB_PATH vk_as_fields_ultra_honk -k target/vk${recursion_suffix}.bin -o target/vk_fields${recursion_suffix} -h 1 --recursive
+
         if $BB_PATH verify_ultra_honk -p target/proof${recursion_suffix}.bin -k target/vk${recursion_suffix}.bin -v -h 1 --recursive; then
             echo "[INFO] Verification succeeded for $recursion_suffix"
         else
             echo "[ERROR] Verification failed for $recursion_suffix"
         fi
 
-        local recursion_vk_fields="./target/vk_fields${recursion_suffix}"
         local recursion_proof_fields="./target/proof_fields${recursion_suffix}"
 
         # Check if file exists
-        if [[ ! -f "$recursion_vk_fields" ]]; then
-            echo "[Error] VK fields file not found at $recursion_vk_fields"
-            return 1
-        fi
-
         if [[ ! -f "$recursion_proof_fields" ]]; then
             echo "[Error] VK fields file not found at $recursion_proof_fields"
             return 1
         fi
 
-        local recursion_vk_content="$(cat "$recursion_vk_fields")"
         local recursion_proof_content="$(cat "$recursion_proof_fields")"
 
         # Extract array content (remove outer brackets)
