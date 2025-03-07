@@ -1832,40 +1832,47 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
         )
 
-        challenge_poly_lagrange = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
-        challenge_poly_lagrange[0] = self.set_or_get_constant(1)
+        denominator_first = self.inv(self.sub(tp_gemini_r, self.set_or_get_constant(1)))
+        challenge_poly_eval = denominator_first
+        root_power_times_tp_gemini_r = self.mul(
+            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE), tp_gemini_r
+        )
         for r in range(CONST_PROOF_SIZE_LOG_N):
-            curr_idx = 1 + 9 * r
-            challenge_poly_lagrange[curr_idx] = self.set_or_get_constant(1)
-            for idx in range(curr_idx + 1, curr_idx + 9):
-                challenge_poly_lagrange[idx] = self.mul(
-                    challenge_poly_lagrange[idx - 1], tp_sumcheck_u_challenges[r]
+            challenge_poly_lagrange = self.set_or_get_constant(1)
+            for i in range(9):
+                denominator = self.inv(
+                    self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
                 )
-
-        root_power = self.set_or_get_constant(1)
-        challenge_poly_eval = self.set_or_get_constant(0)
-        denominators = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
-        for idx in range(SUBGROUP_SIZE):
-            denominators[idx] = self.sub(
-                self.mul(root_power, tp_gemini_r), self.set_or_get_constant(1)
-            )
-            denominators[idx] = self.inv(denominators[idx])
-            challenge_poly_eval = self.add(
-                challenge_poly_eval,
-                self.mul(challenge_poly_lagrange[idx], denominators[idx]),
-            )
-            # skip last step:
-            if idx < SUBGROUP_SIZE - 1:
-                root_power = self.mul(
-                    root_power, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
+                challenge_poly_eval = self.add(
+                    challenge_poly_eval, self.mul(challenge_poly_lagrange, denominator)
                 )
+                root_power_times_tp_gemini_r = self.mul(
+                    root_power_times_tp_gemini_r,
+                    self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+                )
+                # skip last step:
+                if i < 8:
+                    challenge_poly_lagrange = self.mul(
+                        challenge_poly_lagrange, tp_sumcheck_u_challenges[r]
+                    )
+        root_power_times_tp_gemini_r = self.mul(
+            root_power_times_tp_gemini_r,
+            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+        )
+        root_power_times_tp_gemini_r = self.mul(
+            root_power_times_tp_gemini_r,
+            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+        )
+        denominator_last = self.inv(
+            self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
+        )
 
         numerator = self.mul(
             vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
-        lagrange_first = self.mul(denominators[0], numerator)
-        lagrange_last = self.mul(denominators[SUBGROUP_SIZE - 1], numerator)
+        lagrange_first = self.mul(denominator_first, numerator)
+        lagrange_last = self.mul(denominator_last, numerator)
 
         diff = self.mul(lagrange_first, p_libra_poly_evals[2])
         diff = self.add(
