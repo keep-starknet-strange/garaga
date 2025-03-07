@@ -8,11 +8,18 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     EvalFunctionChallengeDuplCircuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.ultra_zk_honk import (
-    ZKEvalsConsistencyCircuit,
+    ZKEvalsConsistencyDoneCircuit,
+    ZKEvalsConsistencyInitCircuit,
+    ZKEvalsConsistencyLoopCircuit,
     ZKPrepareScalarsCircuit,
     ZKSumCheckCircuit,
 )
-from garaga.precompiled_circuits.honk import G2_POINT_KZG_1, G2_POINT_KZG_2, HonkVk
+from garaga.precompiled_circuits.honk import (
+    CONST_PROOF_SIZE_LOG_N,
+    G2_POINT_KZG_1,
+    G2_POINT_KZG_2,
+    HonkVk,
+)
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import get_scarb_toml_file
@@ -68,17 +75,43 @@ use core::option::Option;\n
         )
     )
 
-    consistency_circuit = ZKEvalsConsistencyCircuit(vk)
-    consistency_function_name = (
-        f"{CurveID.GRUMPKIN.name}_{consistency_circuit.name.upper()}"
+    consistency_init_circuit = ZKEvalsConsistencyInitCircuit(vk)
+    consistency_init_function_name = (
+        f"{CurveID.GRUMPKIN.name}_{consistency_init_circuit.name.upper()}"
     )
-    consistency_code, consistency_function_name = (
-        consistency_circuit.circuit.compile_circuit(
-            function_name=consistency_function_name, pub=True
+    consistency_init_code, consistency_init_function_name = (
+        consistency_init_circuit.circuit.compile_circuit(
+            function_name=consistency_init_function_name, pub=True
         )
     )
 
-    code += sumcheck_code + prepare_scalars_code + consistency_code
+    consistency_loop_circuit = ZKEvalsConsistencyLoopCircuit(vk)
+    consistency_loop_function_name = (
+        f"{CurveID.GRUMPKIN.name}_{consistency_loop_circuit.name.upper()}"
+    )
+    consistency_loop_code, consistency_loop_function_name = (
+        consistency_loop_circuit.circuit.compile_circuit(
+            function_name=consistency_loop_function_name, pub=True
+        )
+    )
+
+    consistency_done_circuit = ZKEvalsConsistencyDoneCircuit(vk)
+    consistency_done_function_name = (
+        f"{CurveID.GRUMPKIN.name}_{consistency_done_circuit.name.upper()}"
+    )
+    consistency_done_code, consistency_done_function_name = (
+        consistency_done_circuit.circuit.compile_circuit(
+            function_name=consistency_done_function_name, pub=True
+        )
+    )
+
+    code += (
+        sumcheck_code
+        + prepare_scalars_code
+        + consistency_init_code
+        + consistency_loop_code
+        + consistency_done_code
+    )
 
     lhs_ecip_circuit = EvalFunctionChallengeDuplCircuit(
         CurveID.BN254.value,
@@ -96,7 +129,9 @@ use core::option::Option;\n
         code,
         sumcheck_function_name,
         prepare_scalars_function_name,
-        consistency_function_name,
+        consistency_init_function_name,
+        consistency_loop_function_name,
+        consistency_done_function_name,
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
@@ -152,7 +187,9 @@ def gen_zk_honk_verifier(
         circuits_code,
         sumcheck_function_name,
         prepare_scalars_function_name,
-        consistency_function_name,
+        consistency_init_function_name,
+        consistency_loop_function_name,
+        consistency_done_function_name,
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
@@ -165,7 +202,7 @@ def gen_zk_honk_verifier(
 
     contract_code = f"""
 use super::honk_verifier_constants::{{vk, precomputed_lines}};
-use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_function_name}, {lhs_ecip_function_name}}};
+use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_init_function_name}, {consistency_loop_function_name}, {consistency_done_function_name}, {lhs_ecip_function_name}}};
 
 #[starknet::interface]
 trait IUltra{flavor}ZKHonkVerifier<TContractState> {{
@@ -183,7 +220,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
     use garaga::basic_field_ops::{{batch_3_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
-    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_function_name}, {lhs_ecip_function_name}}};
+    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_init_function_name}, {consistency_loop_function_name}, {consistency_done_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{{flavor}HasherState}};
     use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, Point256IntoCircuitPoint, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
@@ -239,11 +276,25 @@ mod Ultra{flavor}ZKHonkVerifier {{
                 tp_libra_challenge: transcript.libra_challenge.into(),
             );
 
-            let (vanishing_check, diff_check) = {consistency_function_name}(
+            const CONST_PROOF_SIZE_LOG_N: usize = {CONST_PROOF_SIZE_LOG_N};
+            let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) = {consistency_init_function_name}(
+                tp_gemini_r: transcript.gemini_r.into(),
+            );
+            for i in 0..CONST_PROOF_SIZE_LOG_N {{
+                let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) = {consistency_loop_function_name}(
+                    challenge_poly_eval: challenge_poly_eval,
+                    root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
+                    tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
+                );
+                challenge_poly_eval = new_challenge_poly_eval;
+                root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
+            }};
+            let (vanishing_check, diff_check) = {consistency_done_function_name}(
                 p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 p_libra_poly_evals: full_proof.proof.libra_poly_evals,
                 tp_gemini_r: transcript.gemini_r.into(),
-                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
+                challenge_poly_eval: challenge_poly_eval,
+                root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
             );
 
         let (

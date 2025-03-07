@@ -2,7 +2,9 @@ use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
     run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_BN254_EVAL_FN_CHALLENGE_DUPL_46P_RLC_circuit,
 };
 
@@ -27,7 +29,9 @@ mod UltraStarknetZKHonkVerifier {
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
         run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_BN254_EVAL_FN_CHALLENGE_DUPL_46P_RLC_circuit,
     };
     use garaga::utils::noir::{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
@@ -92,11 +96,27 @@ mod UltraStarknetZKHonkVerifier {
                 tp_libra_challenge: transcript.libra_challenge.into(),
             );
 
-            let (vanishing_check, diff_check) = run_GRUMPKIN_ZK_HONK_EVALS_CONSIST_SIZE_5_circuit(
+            const CONST_PROOF_SIZE_LOG_N: usize = 28;
+            let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) =
+                run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit(
+                tp_gemini_r: transcript.gemini_r.into(),
+            );
+            for i in 0..CONST_PROOF_SIZE_LOG_N {
+                let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) =
+                    run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit(
+                    challenge_poly_eval: challenge_poly_eval,
+                    root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
+                    tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
+                );
+                challenge_poly_eval = new_challenge_poly_eval;
+                root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
+            };
+            let (vanishing_check, diff_check) = run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit(
                 p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 p_libra_poly_evals: full_proof.proof.libra_poly_evals,
                 tp_gemini_r: transcript.gemini_r.into(),
-                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
+                challenge_poly_eval: challenge_poly_eval,
+                root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
             );
 
             let (

@@ -400,3 +400,141 @@ class ZKEvalsConsistencyCircuit(ZKBaseUltraHonkCircuit):
         circuit.extend_struct_output(u384("vanishing_check", elmts=[vanishing_check]))
         circuit.extend_struct_output(u384("diff_check", elmts=[diff_check]))
         return circuit
+
+
+class ZKEvalsConsistencyInitCircuit(ZKBaseUltraHonkCircuit):
+    def __init__(
+        self,
+        vk: HonkVk,
+        curve_id: int = CurveID.GRUMPKIN.value,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ) -> None:
+        name = f"zk_honk_evals_cons_init_size_{vk.log_circuit_size}"
+        self.vk = vk
+        super().__init__(
+            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
+        )
+
+    @property
+    def input_map(self) -> dict:
+        imap = {}
+
+        imap["tp_gemini_r"] = structs.u384
+
+        return imap
+
+    def _execute_circuit_logic(
+        self, circuit: ZKHonkVerifierCircuits, vars: dict
+    ) -> ModuloCircuit:
+
+        challenge_poly_eval, root_power_times_tp_gemini_r = (
+            circuit._check_evals_consistency_init(
+                vars["tp_gemini_r"],
+            )
+        )
+
+        assert type(challenge_poly_eval) == ModuloCircuitElement
+        assert type(root_power_times_tp_gemini_r) == ModuloCircuitElement
+
+        circuit.extend_struct_output(
+            u384("challenge_poly_eval", elmts=[challenge_poly_eval])
+        )
+        circuit.extend_struct_output(
+            u384("root_power_times_tp_gemini_r", elmts=[root_power_times_tp_gemini_r])
+        )
+        return circuit
+
+
+class ZKEvalsConsistencyLoopCircuit(ZKBaseUltraHonkCircuit):
+    def __init__(
+        self,
+        vk: HonkVk,
+        curve_id: int = CurveID.GRUMPKIN.value,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ) -> None:
+        name = f"zk_honk_evals_cons_loop_size_{vk.log_circuit_size}"
+        self.vk = vk
+        super().__init__(
+            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
+        )
+
+    @property
+    def input_map(self) -> dict:
+        imap = {}
+
+        imap["challenge_poly_eval"] = structs.u384
+        imap["root_power_times_tp_gemini_r"] = structs.u384
+        imap["tp_sumcheck_u_challenge"] = structs.u384
+
+        return imap
+
+    def _execute_circuit_logic(
+        self, circuit: ZKHonkVerifierCircuits, vars: dict
+    ) -> ModuloCircuit:
+
+        challenge_poly_eval, root_power_times_tp_gemini_r = (
+            circuit._check_evals_consistency_loop(
+                vars["challenge_poly_eval"],
+                vars["root_power_times_tp_gemini_r"],
+                vars["tp_sumcheck_u_challenge"],
+            )
+        )
+
+        assert type(challenge_poly_eval) == ModuloCircuitElement
+        assert type(root_power_times_tp_gemini_r) == ModuloCircuitElement
+
+        circuit.extend_struct_output(
+            u384("challenge_poly_eval", elmts=[challenge_poly_eval])
+        )
+        circuit.extend_struct_output(
+            u384("root_power_times_tp_gemini_r", elmts=[root_power_times_tp_gemini_r])
+        )
+        return circuit
+
+
+class ZKEvalsConsistencyDoneCircuit(ZKBaseUltraHonkCircuit):
+    def __init__(
+        self,
+        vk: HonkVk,
+        curve_id: int = CurveID.GRUMPKIN.value,
+        auto_run: bool = True,
+        compilation_mode: int = 1,
+    ) -> None:
+        name = f"zk_honk_evals_cons_done_size_{vk.log_circuit_size}"
+        self.vk = vk
+        super().__init__(
+            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
+        )
+
+    @property
+    def input_map(self) -> dict:
+        imap = {}
+
+        imap["p_libra_evaluation"] = structs.u384
+        imap["p_libra_poly_evals"] = (structs.u256Span, 4)
+        imap["tp_gemini_r"] = structs.u384
+        imap["challenge_poly_eval"] = structs.u384
+        imap["root_power_times_tp_gemini_r"] = structs.u384
+
+        return imap
+
+    def _execute_circuit_logic(
+        self, circuit: ZKHonkVerifierCircuits, vars: dict
+    ) -> ModuloCircuit:
+
+        vanishing_check, diff_check = circuit._check_evals_consistency_done(
+            vars["p_libra_evaluation"],
+            vars["p_libra_poly_evals"],
+            vars["tp_gemini_r"],
+            vars["challenge_poly_eval"],
+            vars["root_power_times_tp_gemini_r"],
+        )
+
+        assert type(vanishing_check) == ModuloCircuitElement
+        assert type(diff_check) == ModuloCircuitElement
+
+        circuit.extend_struct_output(u384("vanishing_check", elmts=[vanishing_check]))
+        circuit.extend_struct_output(u384("diff_check", elmts=[diff_check]))
+        return circuit
