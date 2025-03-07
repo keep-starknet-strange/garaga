@@ -1828,45 +1828,84 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         tp_gemini_r: ModuloCircuitElement,
         tp_sumcheck_u_challenges: list[ModuloCircuitElement],
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
-        vanishing_poly_eval = self.sub(
-            self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
+        challenge_poly_eval, root_power_times_tp_gemini_r = (
+            self._check_evals_consistency_init(tp_gemini_r)
         )
+        for r in range(CONST_PROOF_SIZE_LOG_N):
+            challenge_poly_eval, root_power_times_tp_gemini_r = (
+                self._check_evals_consistency_loop(
+                    challenge_poly_eval,
+                    root_power_times_tp_gemini_r,
+                    tp_sumcheck_u_challenges[r],
+                )
+            )
+        vanishing_poly_eval, diff = self._check_evals_consistency_done(
+            p_libra_evaluation,
+            p_libra_poly_evals,
+            tp_gemini_r,
+            challenge_poly_eval,
+            root_power_times_tp_gemini_r,
+        )
+        return vanishing_poly_eval, diff
 
-        denominator_first = self.inv(self.sub(tp_gemini_r, self.set_or_get_constant(1)))
-        challenge_poly_eval = denominator_first
+    def _check_evals_consistency_init(
+        self,
+        tp_gemini_r: ModuloCircuitElement,
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        challenge_poly_eval = self.inv(
+            self.sub(tp_gemini_r, self.set_or_get_constant(1))
+        )
         root_power_times_tp_gemini_r = self.mul(
             self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE), tp_gemini_r
         )
-        for r in range(CONST_PROOF_SIZE_LOG_N):
-            challenge_poly_lagrange = self.set_or_get_constant(1)
-            for i in range(9):
-                denominator = self.inv(
-                    self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
+        return challenge_poly_eval, root_power_times_tp_gemini_r
+
+    def _check_evals_consistency_loop(
+        self,
+        challenge_poly_eval: ModuloCircuitElement,
+        root_power_times_tp_gemini_r: ModuloCircuitElement,
+        tp_sumcheck_u_challenge: ModuloCircuitElement,
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        challenge_poly_lagrange = self.set_or_get_constant(1)
+        for i in range(9):
+            denominator = self.inv(
+                self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
+            )
+            challenge_poly_eval = self.add(
+                challenge_poly_eval, self.mul(challenge_poly_lagrange, denominator)
+            )
+            root_power_times_tp_gemini_r = self.mul(
+                root_power_times_tp_gemini_r,
+                self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+            )
+            # skip last step:
+            if i < 8:
+                challenge_poly_lagrange = self.mul(
+                    challenge_poly_lagrange, tp_sumcheck_u_challenge
                 )
-                challenge_poly_eval = self.add(
-                    challenge_poly_eval, self.mul(challenge_poly_lagrange, denominator)
-                )
-                root_power_times_tp_gemini_r = self.mul(
-                    root_power_times_tp_gemini_r,
-                    self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
-                )
-                # skip last step:
-                if i < 8:
-                    challenge_poly_lagrange = self.mul(
-                        challenge_poly_lagrange, tp_sumcheck_u_challenges[r]
-                    )
-        root_power_times_tp_gemini_r = self.mul(
-            root_power_times_tp_gemini_r,
-            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
-        )
-        root_power_times_tp_gemini_r = self.mul(
-            root_power_times_tp_gemini_r,
-            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
-        )
+        return challenge_poly_eval, root_power_times_tp_gemini_r
+
+    def _check_evals_consistency_done(
+        self,
+        p_libra_evaluation: ModuloCircuitElement,
+        p_libra_poly_evals: list[ModuloCircuitElement],
+        tp_gemini_r: ModuloCircuitElement,
+        challenge_poly_eval: ModuloCircuitElement,
+        root_power_times_tp_gemini_r: ModuloCircuitElement,
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        for _ in range(CONST_PROOF_SIZE_LOG_N * 9, SUBGROUP_SIZE - 2):
+            root_power_times_tp_gemini_r = self.mul(
+                root_power_times_tp_gemini_r,
+                self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+            )
+        denominator_first = self.inv(self.sub(tp_gemini_r, self.set_or_get_constant(1)))
         denominator_last = self.inv(
             self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
         )
 
+        vanishing_poly_eval = self.sub(
+            self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
+        )
         numerator = self.mul(
             vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
         )
