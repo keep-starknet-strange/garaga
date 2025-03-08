@@ -8,6 +8,10 @@ pub mod signatures;
 mod tests;
 pub mod core;
 
+pub mod crypto {
+    pub mod mmr;
+}
+
 
 pub use garaga::ec::ec_ops;
 pub use garaga::ec::ec_ops_g2;
