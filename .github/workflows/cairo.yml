@@ -31,3 +31,13 @@ jobs:
       - run: scarb fmt --check
         working-directory: src/
       - run: cd src/ && scarb test
+
+  test-contracts:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: scarb fmt --check
+        working-directory: src/contracts/mutator_set
+      - run: cd src/contracts/mutator_set && snforge test
