@@ -18,18 +18,19 @@ pub fn trailing_ones(n: u64) -> usize {
     return count;
 }
 
+#[cfg(test)]
 mod tests {
     use super::trailing_ones;
     #[test]
     fn test_trailing_ones() {
-        assert_eq!(trailing_ones(7), 3);
-        assert_eq!(trailing_ones(11), 2);
-        assert_eq!(trailing_ones(0), 0);
-        assert_eq!(trailing_ones(1), 1);
-        assert_eq!(trailing_ones(2), 0);
-        assert_eq!(trailing_ones(3), 2);
-        assert_eq!(trailing_ones(9), 1);
-        assert_eq!(trailing_ones(5), 1);
-        assert_eq!(trailing_ones(6), 0);
+        assert(trailing_ones(7) == 3, 'Invalid trailing_ones');
+        assert(trailing_ones(11) == 2, 'Invalid trailing_ones');
+        assert(trailing_ones(0) == 0, 'Invalid trailing_ones');
+        assert(trailing_ones(1) == 1, 'Invalid trailing_ones');
+        assert(trailing_ones(2) == 0, 'Invalid trailing_ones');
+        assert(trailing_ones(3) == 2, 'Invalid trailing_ones');
+        assert(trailing_ones(9) == 1, 'Invalid trailing_ones');
+        assert(trailing_ones(5) == 1, 'Invalid trailing_ones');
+        assert(trailing_ones(6) == 0, 'Invalid trailing_ones');
     }
 }
