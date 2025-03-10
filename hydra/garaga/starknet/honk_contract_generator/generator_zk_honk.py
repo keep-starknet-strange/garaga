@@ -222,8 +222,8 @@ mod Ultra{flavor}ZKHonkVerifier {{
     use garaga::utils::neg_3;
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_init_function_name}, {consistency_loop_function_name}, {consistency_done_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::honk_transcript::{{{flavor}HasherState}};
-    use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, Point256IntoCircuitPoint, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
+    use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
+    use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U64IntoU384, u256_to_u384}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;

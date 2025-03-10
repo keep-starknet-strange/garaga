@@ -35,9 +35,9 @@ mod UltraKeccakZKHonkVerifier {
         run_BN254_EVAL_FN_CHALLENGE_DUPL_46P_RLC_circuit,
     };
     use garaga::utils::noir::{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
-    use garaga::utils::noir::honk_transcript::{KeccakHasherState};
+    use garaga::utils::noir::honk_transcript::{Point256IntoCircuitPoint, KeccakHasherState};
     use garaga::utils::noir::zk_honk_transcript::{
-        ZKHonkTranscriptTrait, Point256IntoCircuitPoint, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
+        ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
     };
     use garaga::core::circuit::{U64IntoU384, u256_to_u384};
     use core::num::traits::Zero;
