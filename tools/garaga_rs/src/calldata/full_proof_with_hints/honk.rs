@@ -20,14 +20,14 @@ use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 use sha3::{Digest, Keccak256};
 
-const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
-const CONST_PROOF_SIZE_LOG_N: usize = 28;
-const NUMBER_OF_SUBRELATIONS: usize = 26;
-const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
-const NUMBER_OF_ENTITIES: usize = 40;
-const NUMBER_UNSHIFTED: usize = 35;
-const MAX_LOG_N: usize = 23;
-const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N; // 2^23 = 8388608
+pub const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
+pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
+pub const NUMBER_OF_SUBRELATIONS: usize = 26;
+pub const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
+pub const NUMBER_OF_ENTITIES: usize = 40;
+pub const NUMBER_UNSHIFTED: usize = 35;
+pub const MAX_LOG_N: usize = 23;
+pub const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N; // 2^23 = 8388608
 
 pub enum HonkFlavor {
     KECCAK = 0,

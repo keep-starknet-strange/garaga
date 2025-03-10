@@ -2,7 +2,8 @@ use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::full_proof_with_hints::honk::{
-    Hasher, HonkFlavor, HonkVerificationKey, KeccakHasher, StarknetHasher,
+    Hasher, HonkFlavor, HonkVerificationKey, KeccakHasher, StarknetHasher, CONST_PROOF_SIZE_LOG_N,
+    MAX_CIRCUIT_SIZE, NUMBER_OF_ALPHAS, NUMBER_OF_ENTITIES, NUMBER_UNSHIFTED,
 };
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
@@ -17,15 +18,8 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
-const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
-const CONST_PROOF_SIZE_LOG_N: usize = 28;
-const NUMBER_OF_SUBRELATIONS: usize = 26;
-const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
-const NUMBER_OF_ENTITIES: usize = 40;
-const NUMBER_UNSHIFTED: usize = 35;
-const MAX_LOG_N: usize = 23;
-const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N; // 2^23 = 8388608
-const SUBGROUP_SIZE: usize = 256;
+pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
+pub const SUBGROUP_SIZE: usize = 256;
 
 pub struct ZKHonkProof {
     pub circuit_size: usize,
