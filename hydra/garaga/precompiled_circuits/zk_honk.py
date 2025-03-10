@@ -1821,6 +1821,77 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         return scalars
 
+    def check_evals_consistency_original(
+        self,
+        p_libra_evaluation: ModuloCircuitElement,
+        p_libra_poly_evals: list[ModuloCircuitElement],
+        tp_gemini_r: ModuloCircuitElement,
+        tp_sumcheck_u_challenges: list[ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        vanishing_poly_eval = self.sub(
+            self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
+        )
+
+        challenge_poly_lagrange = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
+        challenge_poly_lagrange[0] = self.set_or_get_constant(1)
+        for r in range(CONST_PROOF_SIZE_LOG_N):
+            curr_idx = 1 + 9 * r
+            challenge_poly_lagrange[curr_idx] = self.set_or_get_constant(1)
+            for idx in range(curr_idx + 1, curr_idx + 9):
+                challenge_poly_lagrange[idx] = self.mul(
+                    challenge_poly_lagrange[idx - 1], tp_sumcheck_u_challenges[r]
+                )
+
+        root_power = self.set_or_get_constant(1)
+        challenge_poly_eval = self.set_or_get_constant(0)
+        denominators = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
+        for idx in range(SUBGROUP_SIZE):
+            denominators[idx] = self.sub(
+                self.mul(root_power, tp_gemini_r), self.set_or_get_constant(1)
+            )
+            denominators[idx] = self.inv(denominators[idx])
+            challenge_poly_eval = self.add(
+                challenge_poly_eval,
+                self.mul(challenge_poly_lagrange[idx], denominators[idx]),
+            )
+            # skip last step:
+            if idx < SUBGROUP_SIZE - 1:
+                root_power = self.mul(
+                    root_power, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
+                )
+
+        numerator = self.mul(
+            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+        )
+        challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
+        lagrange_first = self.mul(denominators[0], numerator)
+        lagrange_last = self.mul(denominators[SUBGROUP_SIZE - 1], numerator)
+
+        diff = self.mul(lagrange_first, p_libra_poly_evals[2])
+        diff = self.add(
+            diff,
+            self.mul(
+                self.sub(
+                    tp_gemini_r, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
+                ),
+                self.sub(
+                    self.sub(p_libra_poly_evals[1], p_libra_poly_evals[2]),
+                    self.mul(p_libra_poly_evals[0], challenge_poly_eval),
+                ),
+            ),
+        )
+        diff = self.sub(
+            self.add(
+                diff,
+                self.mul(
+                    lagrange_last, self.sub(p_libra_poly_evals[2], p_libra_evaluation)
+                ),
+            ),
+            self.mul(vanishing_poly_eval, p_libra_poly_evals[3]),
+        )
+
+        return vanishing_poly_eval, diff
+
     def check_evals_consistency(
         self,
         p_libra_evaluation: ModuloCircuitElement,

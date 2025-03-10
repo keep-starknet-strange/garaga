@@ -163,3 +163,39 @@ def test_verify_honk_proof(system: ProofSystem):
     pairs = [G1G2Pair(P_0, G2_POINT_KZG_1), G1G2Pair(P_1, G2_POINT_KZG_2)]
 
     assert G1G2Pair.pair(pairs).value_coeffs == [1] + [0] * 11
+
+
+@pytest.mark.parametrize(
+    "system", [ProofSystem.UltraKeccakZKHonk, ProofSystem.UltraStarknetZKHonk]
+)
+def test_check_evals_consistency(system: ProofSystem):
+    vk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
+    flavor = "keccak" if system == ProofSystem.UltraKeccakZKHonk else "starknet"
+    proof = ZKHonkProof.from_bytes(
+        open(f"{PATH}/proof_ultra_{flavor}_zk.bin", "rb").read()
+    )
+    tp = ZKHonkTranscript.from_proof(proof, system)
+
+    circuit = ZKHonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
+
+    proof_circuit = proof.to_circuit_elements(circuit)
+    tp = tp.to_circuit_elements(circuit)
+
+    vanishing_check_expected, diff_check_expected = (
+        circuit.check_evals_consistency_original(
+            proof_circuit.libra_evaluation,
+            proof_circuit.libra_poly_evals,
+            tp.gemini_r,
+            tp.sum_check_u_challenges,
+        )
+    )
+
+    vanishing_check, diff_check = circuit.check_evals_consistency(
+        proof_circuit.libra_evaluation,
+        proof_circuit.libra_poly_evals,
+        tp.gemini_r,
+        tp.sum_check_u_challenges,
+    )
+
+    assert vanishing_check.value == vanishing_check_expected.value
+    assert diff_check.value == diff_check_expected.value
