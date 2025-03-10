@@ -23,6 +23,7 @@ verify_ultra_keccak_honk_proof() {
 
     if $BB_PATH verify_ultra_keccak_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin -v -h 1 --recursive; then
         echo "Verification succeeded $suffix"
+        return 0
     else
         echo "Verification failed $suffix"
         return 1
@@ -50,14 +51,28 @@ verify_ultra_honk_proof() {
 
     if $BB_PATH verify_ultra_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin -v -h 1 --recursive; then
         echo "Verification succeeded $suffix"
+        return 0
     else
         echo "Verification failed $suffix"
         return 1
     fi
 }
 
+generate_and_verify_proof_and_vk() {
+    local circuit_name=$1
+    local suffix=$2
+    local generator_func=$3        # e.g. generate_ultra_honk_proof
+    local vk_func=$4               # e.g. generate_ultra_honk_vk
+    local verifier_func=$5         # e.g. verify_ultra_honk_proof
+
+    "$generator_func" "$circuit_name" "$suffix"
+    "$vk_func"         "$circuit_name" "$suffix"
+    "$verifier_func"   "$suffix"
+}
+
 modify_proof_fields() {
     local proof_fields_path=$1
+    [[ ! -f "$proof_fields_path" ]] && { echo "[ERROR] Proof fields file not found: $proof_fields_path"; return 1; }
 
     local proof_content
     # Extract the array content
@@ -99,7 +114,19 @@ modify_proof_fields() {
     echo "$modified_proof"
 }
 
+# -----------------------------------------------------------------------------
+# Prover.toml Update Function
+# -----------------------------------------------------------------------------
 
+# Function to update the Prover.toml file with new parameters
+# Parameters:
+#   1: file_path        - Path to the Prover.toml file
+#   2: prev_tally       - Previous tally value
+#   3: new_votes        - New votes value
+#   4: is_first_run     - Flag indicating if it's the first run (1 or 0)
+#   5: verification_key - Verification key content
+#   6: proof            - Proof content
+#   7: public_inputs    - Public inputs & outputs content
 update_prover_toml() {
     local file_path=$1
     local prev_tally=$2
@@ -121,14 +148,19 @@ EOF
     echo "[OK] Updated Prover.toml"
 }
 
-run_noir_proof_ultra_honk_combined_recursive_flow() {
+
+run_noir_combined_recursive_proof_flow() {
+    echo "[INFO] Starting ultra honk combined recursive proof flow"
+
+    # --- 1. Dummy Proof Circuit Flow ---
     cd combined_recursion/dummy_proof_circuit
+    echo "[INFO] [1] Building and executing dummy proof circuit witness"
     nargo build && nargo execute witness
 
     local dummy_proof_suffix="_dummy_proof_circuit"
-    generate_ultra_honk_proof "dummy_proof_circuit" "$dummy_proof_suffix"
-    generate_ultra_honk_vk "dummy_proof_circuit" "$dummy_proof_suffix"
-    verify_ultra_honk_proof "$dummy_proof_suffix"
+    echo "[INFO] [1.a] Generating dummy proof circuit artifacts"
+    generate_and_verify_proof_and_vk "dummy_proof_circuit" "$dummy_proof_suffix" \
+    generate_ultra_honk_proof generate_ultra_honk_vk verify_ultra_honk_proof
 
     local recursion_toml="../combined_recursive_circuit/Prover.toml"
     local dummy_vk_fields="./target/vk_fields${dummy_proof_suffix}"
@@ -139,7 +171,7 @@ run_noir_proof_ultra_honk_combined_recursive_flow() {
 
     # Check if vk & proof files exist
     if [[ ! -f "$dummy_vk_fields" || ! -f "$dummy_proof_fields" ]]; then
-        echo "[Error] Missing proof or VK fields file"
+        echo "[Error] Missing proof or VK fields file in dummy proof circuit flow"
         return 1
     fi
 
@@ -152,9 +184,10 @@ run_noir_proof_ultra_honk_combined_recursive_flow() {
     modified_proof=$(echo "$modify_proof_fields_output" | tail -n 1)
 
     # Create the initial recursion Prover.toml
+    mkdir -p "$(dirname "$recursion_toml")"
     update_prover_toml "$recursion_toml" "0" "2" "1" "$dummy_vk_content" "$modified_proof" "$all_public_inputs"
 
-    echo "[INFO] Created initial Prover.toml for combined circuit."
+    echo "[INFO] [1.b] Created initial Prover.toml for combined circuit."
 
     cd ../combined_recursive_circuit
 
@@ -173,9 +206,11 @@ run_noir_proof_ultra_honk_combined_recursive_flow() {
     #
     #    - The script below uses a fixed loop count. Adapt as needed.
     ##################################################################
+    echo "[INFO] [2] Starting combined recursion circuit iterations"
     nargo compile
 
     local recursion_suffix="_combined_recursion_circuit"
+    echo "[INFO] [2.a] Generating combined recursion circuit VK artifacts"
     generate_ultra_honk_vk "combined_recursive_circuit" "$recursion_suffix"
 
     local recursion_vk_fields="./target/vk_fields${recursion_suffix}"
@@ -187,7 +222,7 @@ run_noir_proof_ultra_honk_combined_recursive_flow() {
     fi
     local recursion_vk_content="$(cat "$recursion_vk_fields")"
 
-    # Number of runs through the recursivecircuit
+    # Number of runs through the recursive circuit
     local MAX_ITERATIONS=3
     for ((i = 1; i <= MAX_ITERATIONS; i++)); do
         echo ""
@@ -248,16 +283,10 @@ run_noir_proof_ultra_honk_combined_recursive_flow() {
 
     nargo execute witness
 
-    generate_ultra_keccak_honk_proof "combined_recursive_circuit" "$recursion_suffix"
+    generate_and_verify_proof_and_vk "combined_recursive_circuit" "$recursion_suffix" \
+    generate_ultra_keccak_honk_proof generate_ultra_keccak_honk_vk verify_ultra_keccak_honk_proof
 
-    generate_ultra_keccak_honk_vk "combined_recursive_circuit" "$recursion_suffix"
-
-    if verify_ultra_keccak_honk_proof "$recursion_suffix"; then
-        echo "[INFO] Verification succeeded for $recursion_suffix"
-    else
-        echo "[ERROR] Verification failed for $recursion_suffix"
-    fi
-
+    echo "[INFO] [2.${iteration_count}-final] Generating Garaga calldata"
     garaga calldata --system ultra_keccak_honk --vk ./target/vk${recursion_suffix}.bin --proof ./target/proof${recursion_suffix}.bin --format array
 
     echo "[INFO] Final recursive circuit iteration completed & Garaga verifier calldata generated."
@@ -270,4 +299,4 @@ run_noir_proof_ultra_honk_combined_recursive_flow() {
 
 echo $'\n ultra honk recursive flow'
 # reset
-run_noir_proof_ultra_honk_combined_recursive_flow
+run_noir_combined_recursive_proof_flow
