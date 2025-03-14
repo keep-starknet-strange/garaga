@@ -384,9 +384,9 @@ pub fn get_zk_honk_calldata(
         return Err(format!("Consistency check failed"));
     }
 
-    let scalars = extract_msm_scalars_zk(
+    let scalars = extract_msm_scalars(
         vk.log_circuit_size,
-        compute_shplemini_msm_scalars_zk(
+        compute_shplemini_msm_scalars(
             vk.log_circuit_size,
             &sumcheck_evaluations,
             &gemini_masking_eval,
@@ -742,7 +742,7 @@ fn compute_zk_transcript<T: Hasher>(proof: &ZKHonkProof, mut hasher: T) -> ZKHon
 }
 
 #[allow(clippy::needless_range_loop, clippy::too_many_arguments)]
-fn compute_shplemini_msm_scalars_zk(
+fn compute_shplemini_msm_scalars(
     log_circuit_size: usize,
     sumcheck_evaluations: &[FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES],
     gemini_masking_eval: &FieldElement<GrumpkinPrimeField>,
@@ -956,7 +956,7 @@ fn check_evals_consistency(
     Ok(true)
 }
 
-fn extract_msm_scalars_zk(
+fn extract_msm_scalars(
     log_circuit_size: usize,
     scalars: [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3],
 ) -> Vec<BigUint> {
