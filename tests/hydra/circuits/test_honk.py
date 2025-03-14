@@ -12,8 +12,6 @@ from garaga.precompiled_circuits.honk import (
     HonkTranscript,
     HonkVerifierCircuits,
     HonkVk,
-)
-from garaga.precompiled_circuits.zk_honk import (
     ZKHonkTranscript,
     ZKHonkVerifierCircuits,
     honk_proof_from_bytes,

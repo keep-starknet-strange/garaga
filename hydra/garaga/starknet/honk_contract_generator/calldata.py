@@ -14,8 +14,6 @@ from garaga.precompiled_circuits.honk import (
     HonkVerifierCircuits,
     HonkVk,
     ModuloCircuitElement,
-)
-from garaga.precompiled_circuits.zk_honk import (
     ZKHonkProof,
     ZKHonkTranscript,
     ZKHonkVerifierCircuits,

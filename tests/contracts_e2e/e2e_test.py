@@ -14,7 +14,7 @@ from starknet_py.net.client_errors import ContractNotFoundError
 
 from garaga.definitions import ProofSystem
 from garaga.hints.io import to_int
-from garaga.precompiled_circuits.zk_honk import honk_proof_from_bytes
+from garaga.precompiled_circuits.honk import honk_proof_from_bytes
 from garaga.starknet.cli.smart_contract_project import (
     Groth16SmartContract,
     SmartContractProject,

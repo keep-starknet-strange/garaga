@@ -11,9 +11,10 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     ModuloCircuit,
     PyFelt,
 )
-from garaga.precompiled_circuits.honk import HonkVk, Wire
-from garaga.precompiled_circuits.zk_honk import (
+from garaga.precompiled_circuits.honk import (
     ZK_BATCHED_RELATION_PARTIAL_LENGTH,
+    HonkVk,
+    Wire,
     ZKHonkVerifierCircuits,
 )
 
