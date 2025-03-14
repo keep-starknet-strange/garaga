@@ -28,16 +28,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Setup Starknet Foundry
-        uses: foundry-rs/setup-snfoundry@v3
+        uses: foundry-rs/setup-snfoundry@v4
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:
           scarb-lock: ./src/Scarb.lock
-
-
-      - name: Install Universal Sierra Compiler
-        run: |
-          curl -L https://raw.githubusercontent.com/software-mansion/universal-sierra-compiler/master/scripts/install.sh | sh
 
       - name: Run scarb fmt check in src
         working-directory: src/
@@ -51,6 +46,4 @@ jobs:
         run: scarb fmt --check
       - name: Run snforge test in mutator_set
         working-directory: src/contracts/mutator_set
-        run: |
-          export PATH="$PATH:$HOME/.local/bin"
-          snforge test
+        run: snforge test
