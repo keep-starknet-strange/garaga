@@ -7,7 +7,7 @@ from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     EvalFunctionChallengeDuplCircuit,
 )
-from garaga.precompiled_circuits.compilable_circuits.ultra_zk_honk import (
+from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     ZKEvalsConsistencyDoneCircuit,
     ZKEvalsConsistencyInitCircuit,
     ZKEvalsConsistencyLoopCircuit,
