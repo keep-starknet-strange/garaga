@@ -1,13 +1,10 @@
 from garaga.definitions import G1G2Pair, ProofSystem
 from garaga.precompiled_circuits.honk import (
-    CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,
-    NUMBER_OF_ENTITIES,
     CurveID,
     G1Point,
     HonkVk,
-    ModuloCircuitElement,
 )
 from garaga.precompiled_circuits.zk_honk import (
     ZKHonkProof,
@@ -16,26 +13,10 @@ from garaga.precompiled_circuits.zk_honk import (
 )
 from garaga.starknet.honk_contract_generator.calldata import (
     _honk_calldata_from_vk_and_proof_rust,
+    extract_msm_scalars,
 )
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
-
-
-def extract_msm_scalars_zk(
-    scalars: list[ModuloCircuitElement], log_n: int
-) -> list[int]:
-    assert len(scalars) == NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3
-
-    start_dummy = 1 + NUMBER_OF_ENTITIES + log_n
-    end_dummy = 1 + NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N
-
-    scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
-
-    scalars_filtered = scalars_no_dummy[1:]
-    scalars_filtered_no_nones = [
-        scalar for scalar in scalars_filtered if scalar is not None
-    ]
-    return [s.value for s in scalars_filtered_no_nones]
 
 
 def get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
@@ -76,7 +57,7 @@ def get_ultra_flavor_zk_honk_calldata_from_vk_and_proof(
         tp.sum_check_u_challenges,
     )
 
-    scalars_msm = extract_msm_scalars_zk(scalars, vk.log_circuit_size)
+    scalars_msm = extract_msm_scalars(scalars, vk.log_circuit_size, True)
 
     points = [
         proof.gemini_masking_poly,  # 1

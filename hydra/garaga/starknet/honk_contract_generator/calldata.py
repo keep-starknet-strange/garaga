@@ -17,11 +17,17 @@ from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldat
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 
-def extract_msm_scalars(scalars: list[ModuloCircuitElement], log_n: int) -> list[int]:
-    assert len(scalars) == NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2
-
-    start_dummy = NUMBER_OF_ENTITIES + log_n
-    end_dummy = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N
+def extract_msm_scalars(
+    scalars: list[ModuloCircuitElement], log_n: int, zk=False
+) -> list[int]:
+    if zk:
+        assert len(scalars) == NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3
+        start_dummy = 1 + NUMBER_OF_ENTITIES + log_n
+        end_dummy = 1 + NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N
+    else:
+        assert len(scalars) == NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2
+        start_dummy = NUMBER_OF_ENTITIES + log_n
+        end_dummy = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N
 
     scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
 
@@ -59,7 +65,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         tp.sum_check_u_challenges,
     )
 
-    scalars_msm = extract_msm_scalars(scalars, vk.log_circuit_size)
+    scalars_msm = extract_msm_scalars(scalars, vk.log_circuit_size, False)
 
     points = [
         vk.qm,  # 1
