@@ -164,4 +164,4 @@ def _zk_honk_calldata_from_vk_and_proof_rust(
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
-    return garaga_rs.get_zk_honk_calldata(proof.flatten(), vk.flatten(), flavor)
+    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor, True)
