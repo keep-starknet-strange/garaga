@@ -1,10 +1,10 @@
 use core::circuit::{
-    add_circuit_input, AddInputResult, CircuitData, IntoCircuitInputValue, CircuitDefinition,
-    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee, u384,
+    AddInputResult, CircuitData, CircuitDefinition, CircuitInputAccumulator, IntoCircuitInputValue,
+    U96Guarantee, add_circuit_input, init_circuit_data, into_u96_guarantee, u384,
 };
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u288};
-use garaga::utils::hashing::{hades_permutation, PoseidonState};
+use garaga::utils::hashing::{PoseidonState, hades_permutation};
 // use core::panics::panic;
 
 impl U64IntoU384 of Into<u64, u384> {
@@ -167,7 +167,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                     },
                     (*v).into_circuit_input_value(),
                 );
-        };
+        }
         add_input_result
     }
     // Inlining to make sure possibly huge `C` won't be in a user function name.

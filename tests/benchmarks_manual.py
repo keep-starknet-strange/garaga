@@ -7,7 +7,6 @@ from garaga.definitions import (
     STARK,
     Curve,
     CurveID,
-    EcInfinity,
     G1G2Pair,
     G1Point,
     G2Point,
@@ -41,7 +40,7 @@ def test_extf_mul(curve_id: CurveID, extension_degree: int):
     X = circuit.write_elements(X, WriteOps.INPUT)
     Y = circuit.write_elements(Y, WriteOps.INPUT)
     circuit.extf_mul([X, Y], extension_degree)
-    circuit.finalize_circuit(mock=True)
+    circuit.finalize_circuit(mock=False)
     return circuit.summarize(), circuit.ops_counter
 
 
@@ -265,7 +264,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
         assert lhs.value == rhs_acc.value, f"{lhs.value} != {rhs_acc.value}"
 
         if Q == (0, 0):
-            return EcInfinity
+            return G1Point.infinity(curve_id)
         return G1Point(Q[0].value, Q[1].value, curve_id)
         # print(f"\tlhs: {lhs.value}")
         # print(f"\trhs_acc_final: {rhs_acc.value}")

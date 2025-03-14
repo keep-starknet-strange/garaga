@@ -1,8 +1,8 @@
 use core::circuit::u384;
-use garaga::definitions::{serialize_u384, deserialize_u384};
 use core::num;
-use core::num::traits::{Zero, One};
-use core::serde::{Serde};
+use core::num::traits::{One, Zero};
+use core::serde::Serde;
+use garaga::definitions::{deserialize_u384, serialize_u384};
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct G1Point {

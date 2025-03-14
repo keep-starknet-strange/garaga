@@ -8,7 +8,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x338BE2EC2D0672C64FB851DBEFBCE890C9E29382F4FA9535EABEF98D6DADA7A
+ECIP_OPS_CLASS_HASH = 0x1F6BCD5CDC2124582966A1116BB81434E1707751BC912985BE5C70BC9FEEB5C
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -158,7 +158,7 @@ mod Groth16Verifier{curve_id.name} {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write("scarb 2.9.2\n")
+        f.write("scarb 2.11.2\n")
 
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
@@ -198,13 +198,13 @@ edition = "2024_07"
 
 [dependencies]
 garaga = {{ {dep} }}
-starknet = "2.9.2"
+starknet = "2.11.2"
 
 [cairo]
 sierra-replace-ids = false
 
 [dev-dependencies]
-cairo_test = "2.9.2"
+cairo_test = "2.11.2"
 
 [[target.starknet-contract]]
 casm = true

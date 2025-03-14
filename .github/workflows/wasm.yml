@@ -23,7 +23,7 @@ jobs:
       - run: cargo install wasm-pack
       - name: Run wasm specific tests
         working-directory: tools/garaga_rs
-        run: wasm-pack test --node --release --no-default-features
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features
 
   build:
     name: Build
@@ -90,7 +90,7 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.9.2"
+          scarb-version: "2.11.2"
       - name: Set up Python 3.10.14
         uses: actions/setup-python@v5
         with:

@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use crate::utils::calldata::{
-        deserialize_full_proof_with_hints_bls12_381, G1Point, Groth16Proof, G2Point,
-        FullProofWithHintsBLS12_381, E12D, MPCheckHintBLS12_381, u384,
-        MillerLoopResultScalingFactor, E12DMulQuotient,
+        E12D, E12DMulQuotient, FullProofWithHintsBLS12_381, G1Point, G2Point, Groth16Proof,
+        MPCheckHintBLS12_381, MillerLoopResultScalingFactor,
+        deserialize_full_proof_with_hints_bls12_381, u384,
     };
 
     #[test]

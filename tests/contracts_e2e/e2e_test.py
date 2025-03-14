@@ -116,7 +116,7 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
 
         try_contract = await get_contract_if_exists(account, precomputed_address)
         if try_contract is None:
-            deploy_result = await Contract.deploy_contract_v1(
+            deploy_result = await Contract.deploy_contract_v3(
                 account=account,
                 class_hash=groth16_class_hash,
                 abi=groth16_abi,
@@ -193,7 +193,7 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
 
     try_contract = await get_contract_if_exists(account, precomputed_address)
     if try_contract is None:
-        deploy_result = await Contract.deploy_contract_v1(
+        deploy_result = await Contract.deploy_contract_v3(
             account=account,
             class_hash=drand_class_hash,
             abi=drand_abi,
@@ -282,7 +282,7 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
 
     try_contract = await get_contract_if_exists(account, precomputed_address)
     if try_contract is None:
-        deploy_result = await Contract.deploy_contract_v1(
+        deploy_result = await Contract.deploy_contract_v3(
             account=account,
             class_hash=honk_class_hash,
             abi=honk_abi,
@@ -369,7 +369,7 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
 
     assert (
         hex(lib_groth16_class_hash) in open(src_path).read()
-    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date in {src_path}"
+    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date, expected {hex(lib_groth16_class_hash)}, got {hex(lib_groth16_class_hash)}"
 
     # Declare the risc0 sample app contract
     groth16_class_hash, groth16_abi = await contract_project.declare_class_hash(account)
@@ -386,7 +386,7 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
 
     try_contract = await get_contract_if_exists(account, precomputed_address)
     if try_contract is None:
-        deploy_result = await Contract.deploy_contract_v1(
+        deploy_result = await Contract.deploy_contract_v3(
             account=account,
             class_hash=groth16_class_hash,
             abi=groth16_abi,

@@ -1,23 +1,21 @@
-use core::result::ResultTrait;
 use core::array::ArrayTrait;
 use core::circuit::{
-    AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub, circuit_mul,
-    circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384, CircuitOutputsTrait, CircuitModulus,
-    AddInputResultTrait, CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
-};
-use garaga::definitions::{
-    get_a, get_b, get_modulus, get_g, get_min_one, get_b2, get_n, G1Point, G2Point,
-    BLS_X_SEED_SQ_EPNS, BLS_X_SEED_SQ, G1PointZero, THIRD_ROOT_OF_UNITY_BLS12_381_G1,
-    deserialize_u384_array, u384Serde, serialize_u384_array, deserialize_u384, serialize_u384,
+    AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement, CircuitInput,
+    CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
+    EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
+use core::result::ResultTrait;
+use garaga::basic_field_ops::{add_mod_p, batch_3_mod_p, mul_mod_p, neg_mod_p, sub_mod_p};
 use garaga::circuits::ec;
-use garaga::utils::hashing;
-use garaga::utils::neg_3;
-use garaga::basic_field_ops::{add_mod_p, sub_mod_p, neg_mod_p, mul_mod_p, batch_3_mod_p};
-use garaga::utils::{u384_assert_zero, u384_assert_eq};
+use garaga::definitions::{
+    BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
+    THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u384, deserialize_u384_array, get_a, get_b,
+    get_b2, get_g, get_min_one, get_modulus, get_n, serialize_u384, serialize_u384_array, u384Serde,
+};
+use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
 
 #[generate_trait]
 impl G1PointImpl of G1PointTrait {
@@ -198,7 +196,7 @@ fn derive_ec_point_from_X(
         let (new_x, _, _) = hades_permutation(x, attempt.into(), 2);
         x = new_x;
         attempt += 1;
-    };
+    }
 
     let x_u384: u384 = x.into();
     let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
@@ -447,7 +445,7 @@ fn msm_g1(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     // Hash result points
     let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
     let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
@@ -465,7 +463,7 @@ fn msm_g1(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
 
     let base_rlc_coeff = s1;
 
@@ -579,7 +577,7 @@ fn msm_g1_u128(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     // Hash result points
     let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
     // Hash scalars. No need to check if scalar is below curve order since it is always at most 128
@@ -592,7 +590,7 @@ fn msm_g1_u128(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
 
     let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
 
@@ -744,7 +742,7 @@ fn compute_lhs_ecip(
                 xA0_power = _xA0_power;
                 xA2_power = _xA2_power;
                 i += 1;
-            };
+            }
 
             ec::run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
                 f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index,
@@ -783,7 +781,7 @@ fn compute_rhs_ecip(
                 basis_sum = _basis_sum;
             }
         }
-    };
+    }
 
     if Q_result.is_infinity() {
         return basis_sum;
@@ -797,10 +795,8 @@ fn compute_rhs_ecip(
 
 #[cfg(test)]
 mod tests {
+    use core::circuit::u384;
     use core::traits::TryInto;
-
-    use core::circuit::{u384};
-
     use super::{G1Point, derive_ec_point_from_X};
 
     #[test]

@@ -52,7 +52,8 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             numerator / denominator
         } else {
             (&other.y - &self.y) / (&other.x - &self.x)
-        };
+        }
+        .unwrap();
 
         let x3 = &lambda.square() - &self.x - &other.x;
 
