@@ -142,9 +142,17 @@ def _honk_calldata_from_vk_and_proof_rust(
     match system:
         case ProofSystem.UltraKeccakHonk:
             flavor = 0
+            zk = False
         case ProofSystem.UltraStarknetHonk:
             flavor = 1
+            zk = False
+        case ProofSystem.UltraKeccakZKHonk:
+            flavor = 0
+            zk = True
+        case ProofSystem.UltraStarknetZKHonk:
+            flavor = 1
+            zk = True
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
-    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor, False)
+    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor, zk)
