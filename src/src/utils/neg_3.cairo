@@ -1,5 +1,5 @@
-use garaga::definitions::get_min_one;
 use core::circuit::{u384, u96};
+use garaga::definitions::get_min_one;
 
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
@@ -63,7 +63,7 @@ pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
             }
         }
         scalar_negative = !scalar_negative;
-    };
+    }
 
     return digits;
 }
@@ -172,7 +172,7 @@ pub fn scalar_to_epns(mut scalar: u128) -> (felt252, felt252, felt252, felt252) 
         }
         scalar_negative = !scalar_negative;
         base_power = base_power * (-3);
-    };
+    }
 
     let sign_p = sign(sum_p);
     let sign_n = sign(sum_n);
@@ -199,7 +199,7 @@ pub fn scalar_to_epns_with_digits(
         }
 
         base_power = base_power * (-3);
-    };
+    }
 
     assert!(
         scalar.into() == sum_p - sum_n,
@@ -214,9 +214,9 @@ pub fn scalar_to_epns_with_digits(
 
 #[cfg(test)]
 mod tests {
+    use core::circuit::u384;
     use core::traits::TryInto;
-    use core::circuit::{u384};
-    use super::{scalar_to_epns, neg_3_base_le};
+    use super::{neg_3_base_le, scalar_to_epns};
 
     #[test]
     fn test_scalar_to_epns() {

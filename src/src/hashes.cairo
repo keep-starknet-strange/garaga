@@ -1,8 +1,9 @@
 use core::circuit::{
-    u384, circuit_add, circuit_mul, EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
-    CircuitElement as CE, CircuitInput as CI,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_mul, u384,
 };
-use garaga::{core::circuit::AddInputResultTrait2, definitions::get_GRUMPKIN_modulus};
+use garaga::core::circuit::AddInputResultTrait2;
+use garaga::definitions::get_GRUMPKIN_modulus;
 
 
 // Compute the poseidon hash of two elements for the BN254 scalar field (Fr).

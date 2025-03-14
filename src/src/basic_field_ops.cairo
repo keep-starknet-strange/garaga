@@ -1,13 +1,12 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitInputAccumulator,
+    AddInputResultTrait, AddMod, CircuitElement, CircuitElement as CE, CircuitInput,
+    CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::utils::hashing::hades_permutation;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, get_SECP256K1_modulus};
+use garaga::utils::hashing::hades_permutation;
 
 const POW_2_32_252: felt252 = 0x100000000;
 const POW_2_64_252: felt252 = 0x10000000000000000;

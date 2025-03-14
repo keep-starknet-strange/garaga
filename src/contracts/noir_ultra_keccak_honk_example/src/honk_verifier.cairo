@@ -1,9 +1,9 @@
-use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
-    run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
+    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+    run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
+use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
 trait IUltraKeccakHonkVerifier<TContractState> {
@@ -14,28 +14,28 @@ trait IUltraKeccakHonkVerifier<TContractState> {
 
 #[starknet::contract]
 mod UltraKeccakHonkVerifier {
-    use garaga::definitions::{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus};
-    use garaga::pairing_check::{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254};
-    use garaga::ec_ops::{
-        G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
-        compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
-    };
-    use garaga::basic_field_ops::{batch_3_mod_p};
-    use garaga::circuits::ec;
-    use garaga::utils::neg_3;
-    use super::{
-        vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
-    };
-    use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
-    use garaga::utils::noir::honk_transcript::{
-        HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
-        KeccakHasherState,
-    };
-    use garaga::core::circuit::U64IntoU384;
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
+    use garaga::basic_field_ops::batch_3_mod_p;
+    use garaga::circuits::ec;
+    use garaga::core::circuit::U64IntoU384;
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus};
+    use garaga::ec_ops::{
+        DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
+        compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
+    };
+    use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
+    use garaga::utils::neg_3;
+    use garaga::utils::noir::honk_transcript::{
+        BATCHED_RELATION_PARTIAL_LENGTH, HonkTranscriptTrait, KeccakHasherState,
+        Point256IntoCircuitPoint,
+    };
+    use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
+    use super::{
+        precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
+        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+        run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
+    };
 
     #[storage]
     struct Storage {}
@@ -184,7 +184,7 @@ mod UltraKeccakHonkVerifier {
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
-            };
+            }
             _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
 
@@ -261,7 +261,7 @@ mod UltraKeccakHonkVerifier {
                 s0 = _s0;
                 s1 = _s1;
                 s2 = _s2;
-            };
+            }
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
                 full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
@@ -292,7 +292,7 @@ mod UltraKeccakHonkVerifier {
                 s0 = _s0;
                 s1 = _s1;
                 s2 = _s2;
-            };
+            }
 
             let base_rlc_coeff = s1;
 

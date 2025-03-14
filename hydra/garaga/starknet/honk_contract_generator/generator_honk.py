@@ -421,7 +421,7 @@ mod Ultra{flavor}HonkVerifier {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write("scarb 2.9.2\n")
+        f.write("scarb 2.11.2\n")
 
     with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)

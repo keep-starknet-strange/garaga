@@ -1,13 +1,13 @@
 #[cfg(test)]
 mod pairing_tests {
-    use garaga::pairing_check::{
-        G1G2Pair, G1Point, G2Point, G2Line, E12D, MillerLoopResultScalingFactor,
-        multi_pairing_check_bn254_2P_2F, multi_pairing_check_bls12_381_2P_2F, u384,
-        MPCheckHintBN254, MPCheckHintBLS12_381, u288,
-    };
     use garaga::groth16::{
-        E12DMulQuotient, multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
-        multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
+        E12DMulQuotient, multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
+        multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
+    };
+    use garaga::pairing_check::{
+        E12D, G1G2Pair, G1Point, G2Line, G2Point, MPCheckHintBLS12_381, MPCheckHintBN254,
+        MillerLoopResultScalingFactor, multi_pairing_check_bls12_381_2P_2F,
+        multi_pairing_check_bn254_2P_2F, u288, u384,
     };
 
     #[test]

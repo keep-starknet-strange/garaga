@@ -1,7 +1,7 @@
-pub use core::poseidon::hades_permutation;
 use core::circuit::{u384, u96};
+pub use core::poseidon::hades_permutation;
 use garaga::definitions::{
-    E12D, u288, G1G2Pair, G1Point, E12DMulQuotient, MillerLoopResultScalingFactor,
+    E12D, E12DMulQuotient, G1G2Pair, G1Point, MillerLoopResultScalingFactor, u288,
 };
 
 #[derive(Copy, Drop)]
@@ -27,7 +27,7 @@ pub fn hash_u384_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
@@ -44,7 +44,7 @@ pub fn hash_u288_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
@@ -328,7 +328,7 @@ pub fn hash_E12D_u384_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
@@ -379,7 +379,7 @@ pub fn hash_E12D_u288_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 

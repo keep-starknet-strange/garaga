@@ -1,13 +1,11 @@
 use core::circuit::{
-    u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse, EvalCircuitTrait,
-    CircuitOutputsTrait, CircuitInputs,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::AddInputResultTrait2;
-use garaga::ec_ops::FunctionFelt;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};
 use core::option::Option;
+use garaga::core::circuit::AddInputResultTrait2;
+use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus};
+use garaga::ec_ops::FunctionFelt;
 
 #[inline(always)]
 pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
@@ -867,29 +865,29 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let mut p_public_inputs = p_public_inputs;
     while let Option::Some(val) = p_public_inputs.pop_front() {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in29 - in29
+    } // in29 - in29
 
     circuit_inputs = circuit_inputs.next_2(p_public_inputs_offset); // in30
 
     let mut sumcheck_univariates_flat = sumcheck_univariates_flat;
     while let Option::Some(val) = sumcheck_univariates_flat.pop_front() {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in31 - in70
+    } // in31 - in70
 
     let mut sumcheck_evaluations = sumcheck_evaluations;
     while let Option::Some(val) = sumcheck_evaluations.pop_front() {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in71 - in110
+    } // in71 - in110
 
     let mut tp_sum_check_u_challenges = tp_sum_check_u_challenges;
     while let Option::Some(val) = tp_sum_check_u_challenges.pop_front() {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in111 - in115
+    } // in111 - in115
 
     let mut tp_gate_challenges = tp_gate_challenges;
     while let Option::Some(val) = tp_gate_challenges.pop_front() {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in116 - in120
+    } // in116 - in120
 
     circuit_inputs = circuit_inputs.next_2(tp_eta_1); // in121
     circuit_inputs = circuit_inputs.next_2(tp_eta_2); // in122
@@ -901,7 +899,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
     let mut tp_alphas = tp_alphas;
     while let Option::Some(val) = tp_alphas.pop_front() {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in127 - in151
+    } // in127 - in151
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let check_rlc: u384 = outputs.get_output(t279);
@@ -1389,12 +1387,12 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
     let mut p_sumcheck_evaluations = p_sumcheck_evaluations;
     while let Option::Some(val) = p_sumcheck_evaluations.pop_front() {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in2 - in41
+    } // in2 - in41
 
     let mut p_gemini_a_evaluations = p_gemini_a_evaluations;
     while let Option::Some(val) = p_gemini_a_evaluations.pop_front() {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in42 - in46
+    } // in42 - in46
 
     circuit_inputs = circuit_inputs.next_2(tp_gemini_r); // in47
     circuit_inputs = circuit_inputs.next_2(tp_rho); // in48
@@ -1404,7 +1402,7 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
     let mut tp_sum_check_u_challenges = tp_sum_check_u_challenges;
     while let Option::Some(val) = tp_sum_check_u_challenges.pop_front() {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in51 - in55
+    } // in51 - in55
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let scalar_1: u384 = outputs.get_output(t24);
@@ -2322,19 +2320,19 @@ pub fn run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
     let mut SumDlogDivBatched_a_num = SumDlogDivBatched.a_num;
     while let Option::Some(val) = SumDlogDivBatched_a_num.pop_front() {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     let mut SumDlogDivBatched_a_den = SumDlogDivBatched.a_den;
     while let Option::Some(val) = SumDlogDivBatched_a_den.pop_front() {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     let mut SumDlogDivBatched_b_num = SumDlogDivBatched.b_num;
     while let Option::Some(val) = SumDlogDivBatched_b_num.pop_front() {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     let mut SumDlogDivBatched_b_den = SumDlogDivBatched.b_den;
     while let Option::Some(val) = SumDlogDivBatched_b_den.pop_front() {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in191
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();

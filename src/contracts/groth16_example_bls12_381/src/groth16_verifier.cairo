@@ -1,4 +1,4 @@
-use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
+use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
 #[starknet::interface]
 trait IGroth16VerifierBLS12_381<TContractState> {
@@ -9,13 +9,13 @@ trait IGroth16VerifierBLS12_381<TContractState> {
 
 #[starknet::contract]
 mod Groth16VerifierBLS12_381 {
-    use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair};
-    use garaga::groth16::{multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result};
+    use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
-    use garaga::ec_ops_g2::{G2PointTrait};
-    use garaga::utils::calldata::{deserialize_full_proof_with_hints_bls12_381};
-    use super::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
+    use garaga::ec_ops_g2::G2PointTrait;
+    use garaga::groth16::multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result;
+    use garaga::utils::calldata::deserialize_full_proof_with_hints_bls12_381;
+    use starknet::SyscallResultTrait;
+    use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
         0x338be2ec2d0672c64fb851dbefbce890c9e29382f4fa9535eabef98d6dada7a;

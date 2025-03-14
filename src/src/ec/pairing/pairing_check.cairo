@@ -1,3 +1,7 @@
+use core::array::{ArrayTrait, SpanTrait};
+use core::circuit::u384;
+use core::num::traits::One;
+use core::option::Option;
 /// This file contains utilities to verify a pairing check of the form :
 /// e(P1, Qf1) * e(P2, Qf2) == 1, where Qf1 and Qf2 are fixed known points. (2P_2F circuits are used
 /// for double pairs and double fixed G2 points)
@@ -7,34 +11,28 @@
 /// To generate the lines functions, you can use garaga's python backend.
 
 use core::option::OptionTrait;
-use core::array::ArrayTrait;
-use garaga::circuits::multi_pairing_check::{
-    run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-    run_BN254_MP_CHECK_BIT10_2P_2F_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
-    run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit, run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
-};
-use garaga::circuits::extf_mul::{
-    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit,
-};
 use core::poseidon::hades_permutation;
-use core::circuit::u384;
-use garaga::definitions::{
-    G1Point, G2Point, G1G2Pair, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, G2Line,
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
+use garaga::circuits::extf_mul::{
+    run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
+    run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
 };
-use core::option::Option;
-use core::num::traits::One;
+use garaga::circuits::multi_pairing_check::{
+    run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
+    run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
+    run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
+};
+use garaga::definitions::{
+    BLSProcessedPair, BNProcessedPair, E12D, G1G2Pair, G1Point, G2Line, G2Point,
+    MillerLoopResultScalingFactor, bls_bits, bn_bits, u288,
+};
 use garaga::utils;
-use core::array::{SpanTrait};
-use garaga::utils::{u384_assert_zero, usize_assert_eq};
-use garaga::utils::hashing;
-use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
+use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
 
 
 #[derive(Drop, Serde, Debug)]
@@ -190,7 +188,7 @@ fn multi_pairing_check_bn254_2P_2F(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
     let R_n_minus_2 = Ris.pop_front().unwrap();
     let R_last = Ris.pop_front().unwrap();
@@ -344,7 +342,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
     let R_last = Ris.pop_front().unwrap();
     let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(

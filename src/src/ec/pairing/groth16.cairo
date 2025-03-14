@@ -1,3 +1,19 @@
+use core::array::SpanTrait;
+use core::circuit::u384;
+use core::num::traits::One;
+use core::option::Option;
+use core::poseidon::hades_permutation;
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, neg_mod_p};
+use garaga::circuits::extf_mul::{
+    run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
+    run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
+};
+use garaga::circuits::multi_pairing_check as mpc;
+use garaga::circuits::multi_pairing_check::{
+    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
+};
 /// This file contains utilities to verify a pairing check of the form :
 /// e(P1, Qf1) * e(P2, Qf2) * e(P3, Q3) * e(Pf4, Qf4) == 1, where
 /// - Qf1 and Qf2 are fixed known G2 points.
@@ -17,34 +33,14 @@
 ///
 /// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
 use garaga::definitions::{
-    G1Point, G2Point, G1G2Pair, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, get_modulus, E12DMulQuotient, G2Line, u288,
+    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point,
+    MillerLoopResultScalingFactor, bls_bits, bn_bits, get_modulus, u288,
 };
-use garaga::circuits::multi_pairing_check::{
-    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
-    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
-};
-use garaga::circuits::multi_pairing_check as mpc;
-use core::circuit::u384;
-use garaga::circuits::extf_mul::{
-    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit,
-};
-use core::option::Option;
-use garaga::utils;
-use core::array::{SpanTrait};
-use core::poseidon::hades_permutation;
-use core::num::traits::{One};
-
-
-use garaga::basic_field_ops::{neg_mod_p, compute_yInvXnegOverY_BN254};
-use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait};
+use garaga::ec_ops::{DerivePointFromXHint, G1PointTrait, MSMHint, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
-use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
-use garaga::utils::{u384_assert_zero, usize_assert_eq};
-use garaga::utils::hashing;
+use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
+use garaga::utils;
+use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
 
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
@@ -406,7 +402,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
     let R_n_minus_2 = Ris.pop_front().unwrap();
     let R_last = Ris.pop_front().unwrap();
 
@@ -644,7 +640,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
     let R_last = Ris.pop_front().unwrap();
 
