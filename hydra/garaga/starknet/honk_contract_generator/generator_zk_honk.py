@@ -138,13 +138,6 @@ use core::option::Option;\n
     )
 
 
-def gen_msm_code(vk: HonkVk) -> str:
-    code = """
-
-    """
-    return code
-
-
 def gen_zk_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
