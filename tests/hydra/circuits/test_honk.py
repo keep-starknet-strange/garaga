@@ -277,7 +277,7 @@ def test_check_evals_consistency(proof_path: str, system: ProofSystem):
     tp = tp.to_circuit_elements(circuit)
 
     vanishing_check_expected, diff_check_expected = (
-        circuit.check_evals_consistency_original(
+        circuit.check_evals_consistency(
             proof_circuit.libra_evaluation,
             proof_circuit.libra_poly_evals,
             tp.gemini_r,
@@ -285,7 +285,7 @@ def test_check_evals_consistency(proof_path: str, system: ProofSystem):
         )
     )
 
-    vanishing_check, diff_check = circuit.check_evals_consistency(
+    vanishing_check, diff_check = circuit.check_evals_consistency_split(
         proof_circuit.libra_evaluation,
         proof_circuit.libra_poly_evals,
         tp.gemini_r,

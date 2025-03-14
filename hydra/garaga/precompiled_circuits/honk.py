@@ -2950,7 +2950,7 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
         return scalars
 
-    def check_evals_consistency_original(
+    def check_evals_consistency(
         self,
         p_libra_evaluation: ModuloCircuitElement,
         p_libra_poly_evals: list[ModuloCircuitElement],
@@ -3021,7 +3021,7 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
         return vanishing_poly_eval, diff
 
-    def check_evals_consistency(
+    def check_evals_consistency_split(
         self,
         p_libra_evaluation: ModuloCircuitElement,
         p_libra_poly_evals: list[ModuloCircuitElement],
