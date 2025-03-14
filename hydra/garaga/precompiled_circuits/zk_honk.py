@@ -1,6 +1,7 @@
 import copy
 import math
 from dataclasses import dataclass
+from typing import Union
 
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
@@ -15,6 +16,7 @@ from garaga.precompiled_circuits.honk import (
     NUMBER_OF_ENTITIES,
     NUMBER_OF_SUBRELATIONS,
     NUMBER_UNSHIFTED,
+    HonkProof,
     Sha3Transcript,
     StarknetPoseidonTranscript,
     Wire,
@@ -2016,6 +2018,18 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         for i in range(shift):
             y = self.mul(y, y)
         return y
+
+
+def honk_proof_from_bytes(
+    bytes: bytes, system: ProofSystem = ProofSystem.UltraKeccakHonk
+) -> Union[HonkProof, ZKHonkProof]:
+    match system:
+        case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
+            return HonkProof.from_bytes(bytes)
+        case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
+            return ZKHonkProof.from_bytes(bytes)
+        case _:
+            raise ValueError(f"Proof system {self} not compatible")
 
 
 if __name__ == "__main__":
