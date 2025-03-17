@@ -62,6 +62,8 @@ const DRAND_QUICKNET_PUBLIC_KEY: G2Point = G2Point {
         limb3: 0x1859fcf74bc8a580a828f6e0,
     },
 };
+const DRAND_QUICKNET_GENESIS_TIME: u64 = 1692803367;
+const DRAND_QUICKNET_PERIOD: u8 = 3;
 
 const a_iso_swu: u384 = u384 {
     limb0: 0xa0e0f97f5cf428082d584c1d,
@@ -815,7 +817,24 @@ pub fn hash_to_u256(msg: [u32; 8]) -> u256 {
 
     u256 { low: low, high: high }
 }
-
+pub fn timestamp_to_round(timestamp: u64, genesis_timestamp: u64, period: u64) -> u64 {
+    // If timestamp is before genesis, return 0 (no round has started yet)
+    if timestamp < genesis_timestamp {
+        return 0;
+    }
+    
+    let elapsed_time = timestamp - genesis_timestamp;
+    return (elapsed_time / period) + 1;
+}
+pub fn round_to_timestamp(round: u64, genesis_timestamp: u64, period: u64) -> u64 {
+    // Round 0 is invalid
+    if round == 0 {
+        return 0;
+    }
+    // Calculate timestamp: genesis + (round-1) * period
+    // We subtract 1 from the round because round 1 starts at genesis
+    return genesis_timestamp + ((round - 1) * period);
+}
 
 #[cfg(test)]
 mod tests {
