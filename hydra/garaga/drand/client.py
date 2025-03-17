@@ -51,7 +51,6 @@ class RandomnessBeacon:
 BASE_URLS = [
     "https://drand.cloudflare.com",
     "https://api.drand.sh",
-    "https://api.drand.secureweb3.com:6875",
     "https://api2.drand.sh",
     "https://api3.drand.sh",
 ]

@@ -2,6 +2,8 @@ use crate::calldata::full_proof_with_hints::groth16;
 use crate::calldata::full_proof_with_hints::groth16::{Groth16Proof, Groth16VerificationKey};
 use crate::calldata::full_proof_with_hints::honk;
 use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof, HonkVerificationKey};
+use crate::calldata::full_proof_with_hints::zk_honk;
+use crate::calldata::full_proof_with_hints::zk_honk::ZKHonkProof;
 use crate::calldata::{G1PointBigUint, G2PointBigUint};
 use crate::crypto::poseidon_bn254::poseidon_hash_bn254;
 use crate::definitions::CurveID;
@@ -477,6 +479,138 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
 }
 
 #[wasm_bindgen]
+pub fn parse_zk_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
+    let bytes = uint8_array
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
+
+    let proof = ZKHonkProof::from_bytes(&bytes).map_err(|s| JsValue::from_str(&s))?;
+
+    let curve_id = CurveID::BN254 as usize;
+
+    let proof_obj = js_sys::Object::new();
+    set_property(&proof_obj, "circuitSize", &proof.circuit_size.into())?;
+    set_property(
+        &proof_obj,
+        "publicInputsSize",
+        &proof.public_inputs_size.into(),
+    )?;
+    set_property(
+        &proof_obj,
+        "publicInputsOffset",
+        &proof.public_inputs_offset.into(),
+    )?;
+    set_property(
+        &proof_obj,
+        "publicInputs",
+        &jsvalue_from_biguint_array(&proof.public_inputs)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w1",
+        &jsvalue_from_g1_point(&proof.w1, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w2",
+        &jsvalue_from_g1_point(&proof.w2, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w3",
+        &jsvalue_from_g1_point(&proof.w3, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w4",
+        &jsvalue_from_g1_point(&proof.w4, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "zPerm",
+        &jsvalue_from_g1_point(&proof.z_perm, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupReadCounts",
+        &jsvalue_from_g1_point(&proof.lookup_read_counts, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupReadTags",
+        &jsvalue_from_g1_point(&proof.lookup_read_tags, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupInverses",
+        &jsvalue_from_g1_point(&proof.lookup_inverses, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "libraCommitments",
+        &jsvalue_from_g1_point_array(&proof.libra_commitments, curve_id)?,
+    )?;
+    set_property(&proof_obj, "libraSum", &biguint_to_jsvalue(proof.libra_sum))?;
+    let sumcheck_univariates = proof
+        .sumcheck_univariates
+        .iter()
+        .flat_map(|v| v.clone())
+        .collect::<Vec<_>>();
+    set_property(
+        &proof_obj,
+        "sumcheckUnivariates",
+        &jsvalue_from_biguint_array(&sumcheck_univariates)?,
+    )?; // flattened
+    set_property(
+        &proof_obj,
+        "sumcheckEvaluations",
+        &jsvalue_from_biguint_array(&proof.sumcheck_evaluations)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "libraEvaluation",
+        &biguint_to_jsvalue(proof.libra_evaluation),
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiMaskingPoly",
+        &jsvalue_from_g1_point(&proof.gemini_masking_poly, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiMaskingEval",
+        &biguint_to_jsvalue(proof.gemini_masking_eval),
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiFoldComms",
+        &jsvalue_from_g1_point_array(&proof.gemini_fold_comms, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiAEvaluations",
+        &jsvalue_from_biguint_array(&proof.gemini_a_evaluations)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "libraPolyEvals",
+        &jsvalue_from_biguint_array(&proof.libra_poly_evals)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "shplonkQ",
+        &jsvalue_from_g1_point(&proof.shplonk_q, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "kzgQuotient",
+        &jsvalue_from_g1_point(&proof.kzg_quotient, curve_id)?,
+    )?;
+
+    Ok(proof_obj.into())
+}
+
+#[wasm_bindgen]
 pub fn parse_honk_verification_key(uint8_array: JsValue) -> Result<JsValue, JsValue> {
     let bytes = uint8_array
         .dyn_into::<Uint8Array>()
@@ -704,6 +838,174 @@ pub fn get_honk_calldata(
     let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
 
     let honk_calldata_biguint = honk::get_honk_calldata(&proof, &vk, flavor);
+
+    let honk_calldata_js = honk_calldata_biguint?
+        .into_iter()
+        .map(biguint_to_jsvalue)
+        .collect::<Vec<_>>();
+
+    Ok(honk_calldata_js)
+}
+
+#[wasm_bindgen]
+pub fn get_zk_honk_calldata(
+    proof_js: JsValue,
+    vk_js: JsValue,
+    flavor_js: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
+    let proof_obj = proof_js
+        .dyn_into::<js_sys::Object>()
+        .map_err(|_| JsValue::from_str("proof_js is not an object"))?;
+
+    let circuit_size = jsvalue_to_biguint(get_property(&proof_obj, "circuitSize")?)?;
+    let public_inputs_size = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsSize")?)?;
+    let public_inputs_offset = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsOffset")?)?;
+    let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
+    let w1 = parse_g1_point(get_property(&proof_obj, "w1")?)?;
+    let w2 = parse_g1_point(get_property(&proof_obj, "w2")?)?;
+    let w3 = parse_g1_point(get_property(&proof_obj, "w3")?)?;
+    let w4 = parse_g1_point(get_property(&proof_obj, "w4")?)?;
+    let z_perm = parse_g1_point(get_property(&proof_obj, "zPerm")?)?;
+    let lookup_read_counts = parse_g1_point(get_property(&proof_obj, "lookupReadCounts")?)?;
+    let lookup_read_tags = parse_g1_point(get_property(&proof_obj, "lookupReadTags")?)?;
+    let lookup_inverses = parse_g1_point(get_property(&proof_obj, "lookupInverses")?)?;
+    let libra_commitments = parse_g1_point_array(get_property(&proof_obj, "libraCommitments")?)?;
+    let libra_sum = jsvalue_to_biguint(get_property(&proof_obj, "libraSum")?)?;
+    let sumcheck_univariates =
+        parse_biguint_array(get_property(&proof_obj, "sumcheckUnivariates")?)?;
+    let sumcheck_evaluations =
+        parse_biguint_array(get_property(&proof_obj, "sumcheckEvaluations")?)?;
+    let libra_evaluation = jsvalue_to_biguint(get_property(&proof_obj, "libraEvaluation")?)?;
+    let gemini_masking_poly = parse_g1_point(get_property(&proof_obj, "geminiMaskingPoly")?)?;
+    let gemini_masking_eval = jsvalue_to_biguint(get_property(&proof_obj, "geminiMaskingEval")?)?;
+    let gemini_fold_comms = parse_g1_point_array(get_property(&proof_obj, "geminiFoldComms")?)?;
+    let gemini_a_evaluations =
+        parse_biguint_array(get_property(&proof_obj, "geminiAEvaluations")?)?;
+    let libra_poly_evals = parse_biguint_array(get_property(&proof_obj, "libraPolyEvals")?)?;
+    let shplonk_q = parse_g1_point(get_property(&proof_obj, "shplonkQ")?)?;
+    let kzg_quotient = parse_g1_point(get_property(&proof_obj, "kzgQuotient")?)?;
+
+    fn g1_point_split(point: G1PointBigUint) -> [BigUint; 4] {
+        let x = &point.x;
+        let y = &point.y;
+        let mask = &((BigUint::from(1usize) << 136) - 1usize);
+        [x & mask, x >> 136, y & mask, y >> 136]
+    }
+
+    let [libra_commitments_0, libra_commitments_1, libra_commitments_2] =
+        libra_commitments.try_into().unwrap();
+
+    let mut values = vec![];
+    values.push(circuit_size);
+    values.push(public_inputs_size);
+    values.push(public_inputs_offset);
+    values.extend(public_inputs);
+    values.extend(g1_point_split(w1));
+    values.extend(g1_point_split(w2));
+    values.extend(g1_point_split(w3));
+    values.extend(g1_point_split(lookup_read_counts));
+    values.extend(g1_point_split(lookup_read_tags));
+    values.extend(g1_point_split(w4));
+    values.extend(g1_point_split(lookup_inverses));
+    values.extend(g1_point_split(z_perm));
+    values.extend(g1_point_split(libra_commitments_0));
+    values.push(libra_sum);
+    values.extend(sumcheck_univariates);
+    values.extend(sumcheck_evaluations);
+    values.push(libra_evaluation);
+    values.extend(g1_point_split(libra_commitments_1));
+    values.extend(g1_point_split(libra_commitments_2));
+    values.extend(g1_point_split(gemini_masking_poly));
+    values.push(gemini_masking_eval);
+    for gemini_fold_comm in gemini_fold_comms {
+        values.extend(g1_point_split(gemini_fold_comm));
+    }
+    values.extend(gemini_a_evaluations);
+    values.extend(libra_poly_evals);
+    values.extend(g1_point_split(shplonk_q));
+    values.extend(g1_point_split(kzg_quotient));
+    let proof = ZKHonkProof::from(values).map_err(|s| JsValue::from_str(&s))?;
+
+    let vk_obj = vk_js
+        .dyn_into::<js_sys::Object>()
+        .map_err(|_| JsValue::from_str("vk_js is not an object"))?;
+
+    let circuit_size = jsvalue_to_biguint(get_property(&vk_obj, "circuitSize")?)?;
+    let log_circuit_size = jsvalue_to_biguint(get_property(&vk_obj, "logCircuitSize")?)?;
+    let public_inputs_size = jsvalue_to_biguint(get_property(&vk_obj, "publicInputsSize")?)?;
+    let public_inputs_offset = jsvalue_to_biguint(get_property(&vk_obj, "publicInputsOffset")?)?;
+    let qm = parse_g1_point(get_property(&vk_obj, "qm")?)?;
+    let qc = parse_g1_point(get_property(&vk_obj, "qc")?)?;
+    let ql = parse_g1_point(get_property(&vk_obj, "ql")?)?;
+    let qr = parse_g1_point(get_property(&vk_obj, "qr")?)?;
+    let qo = parse_g1_point(get_property(&vk_obj, "qo")?)?;
+    let q4 = parse_g1_point(get_property(&vk_obj, "q4")?)?;
+    let q_lookup = parse_g1_point(get_property(&vk_obj, "qLookup")?)?;
+    let q_arith = parse_g1_point(get_property(&vk_obj, "qArith")?)?;
+    let q_delta_range = parse_g1_point(get_property(&vk_obj, "qDeltaRange")?)?;
+    let q_elliptic = parse_g1_point(get_property(&vk_obj, "qElliptic")?)?;
+    let q_aux = parse_g1_point(get_property(&vk_obj, "qAux")?)?;
+    let q_poseidon2_external = parse_g1_point(get_property(&vk_obj, "qPoseidon2External")?)?;
+    let q_poseidon2_internal = parse_g1_point(get_property(&vk_obj, "qPoseidon2Internal")?)?;
+    let s1 = parse_g1_point(get_property(&vk_obj, "s1")?)?;
+    let s2 = parse_g1_point(get_property(&vk_obj, "s2")?)?;
+    let s3 = parse_g1_point(get_property(&vk_obj, "s3")?)?;
+    let s4 = parse_g1_point(get_property(&vk_obj, "s4")?)?;
+    let id1 = parse_g1_point(get_property(&vk_obj, "id1")?)?;
+    let id2 = parse_g1_point(get_property(&vk_obj, "id2")?)?;
+    let id3 = parse_g1_point(get_property(&vk_obj, "id3")?)?;
+    let id4 = parse_g1_point(get_property(&vk_obj, "id4")?)?;
+    let t1 = parse_g1_point(get_property(&vk_obj, "t1")?)?;
+    let t2 = parse_g1_point(get_property(&vk_obj, "t2")?)?;
+    let t3 = parse_g1_point(get_property(&vk_obj, "t3")?)?;
+    let t4 = parse_g1_point(get_property(&vk_obj, "t4")?)?;
+    let lagrange_first = parse_g1_point(get_property(&vk_obj, "lagrangeFirst")?)?;
+    let lagrange_last = parse_g1_point(get_property(&vk_obj, "lagrangeLast")?)?;
+
+    let mut values = vec![];
+    values.push(circuit_size);
+    values.push(log_circuit_size);
+    values.push(public_inputs_size);
+    values.push(public_inputs_offset);
+    values.extend([qm.x, qm.y]);
+    values.extend([qc.x, qc.y]);
+    values.extend([ql.x, ql.y]);
+    values.extend([qr.x, qr.y]);
+    values.extend([qo.x, qo.y]);
+    values.extend([q4.x, q4.y]);
+    values.extend([q_lookup.x, q_lookup.y]);
+    values.extend([q_arith.x, q_arith.y]);
+    values.extend([q_delta_range.x, q_delta_range.y]);
+    values.extend([q_elliptic.x, q_elliptic.y]);
+    values.extend([q_aux.x, q_aux.y]);
+    values.extend([q_poseidon2_external.x, q_poseidon2_external.y]);
+    values.extend([q_poseidon2_internal.x, q_poseidon2_internal.y]);
+    values.extend([s1.x, s1.y]);
+    values.extend([s2.x, s2.y]);
+    values.extend([s3.x, s3.y]);
+    values.extend([s4.x, s4.y]);
+    values.extend([id1.x, id1.y]);
+    values.extend([id2.x, id2.y]);
+    values.extend([id3.x, id3.y]);
+    values.extend([id4.x, id4.y]);
+    values.extend([t1.x, t1.y]);
+    values.extend([t2.x, t2.y]);
+    values.extend([t3.x, t3.y]);
+    values.extend([t4.x, t4.y]);
+    values.extend([lagrange_first.x, lagrange_first.y]);
+    values.extend([lagrange_last.x, lagrange_last.y]);
+    let vk = HonkVerificationKey::from(values).map_err(|s| JsValue::from_str(&s))?;
+
+    //Parse flavor_js into usize
+    let flavor_num = flavor_js
+        .as_f64()
+        .ok_or_else(|| JsValue::from_str("flavor_js is not a number"))?
+        as usize;
+
+    // Convert usize to HonkFlavor using TryFrom
+    let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
+
+    let honk_calldata_biguint = zk_honk::get_zk_honk_calldata(&proof, &vk, flavor);
 
     let honk_calldata_js = honk_calldata_biguint?
         .into_iter()
