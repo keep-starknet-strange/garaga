@@ -3,7 +3,7 @@ use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::full_proof_with_hints::honk::{
     Hasher, HonkFlavor, HonkVerificationKey, KeccakHasher, StarknetHasher, CONST_PROOF_SIZE_LOG_N,
-    MAX_CIRCUIT_SIZE, NUMBER_OF_ALPHAS, NUMBER_OF_ENTITIES, NUMBER_UNSHIFTED,
+    NUMBER_OF_ALPHAS, NUMBER_OF_ENTITIES, NUMBER_UNSHIFTED,
 };
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
@@ -18,13 +18,11 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
+pub const ZK_PROOF_SIZE: usize = 491;
 pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 pub const SUBGROUP_SIZE: usize = 256;
 
 pub struct ZKHonkProof {
-    pub circuit_size: usize,
-    pub public_inputs_size: usize,
-    pub public_inputs_offset: usize,
     pub public_inputs: Vec<BigUint>,
     pub w1: G1PointBigUint,
     pub w2: G1PointBigUint,
@@ -72,26 +70,15 @@ impl ZKHonkProof {
         Self::from(values)
     }
     pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
-        if values.len() < 3 {
+        if values.len() < ZK_PROOF_SIZE {
             return Err(format!("Invalid input length: {}", values.len()));
         }
 
+        let public_inputs_size = values.len() - ZK_PROOF_SIZE;
+
         let mut offset = 0;
 
-        let mut consts = vec![];
-        for i in (offset..).step_by(1).take(3) {
-            let err_fn = |e: num_bigint::TryFromBigIntError<BigUint>| e.to_string();
-            consts.push(values[i].clone().try_into().map_err(err_fn)?);
-        }
-        offset += 3;
-        let [circuit_size, public_inputs_size, public_inputs_offset] = consts.try_into().unwrap();
-
-        if circuit_size > MAX_CIRCUIT_SIZE {
-            return Err(format!("Invalid circuit size: {}", circuit_size));
-        }
-
-        let count = 3
-            + public_inputs_size
+        let count = public_inputs_size
             + 11 * 4
             + 1
             + ZK_BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
@@ -204,9 +191,6 @@ impl ZKHonkProof {
         assert_eq!(offset, count);
 
         let proof = Self {
-            circuit_size,
-            public_inputs_size,
-            public_inputs_offset,
             public_inputs,
             w1,
             w2,
@@ -251,10 +235,21 @@ pub struct ZKHonkTranscript {
 }
 
 impl ZKHonkTranscript {
-    pub fn from_proof(proof: &ZKHonkProof, flavor: HonkFlavor) -> Self {
+    pub fn from_proof(
+        vk: &HonkVerificationKey,
+        proof: &ZKHonkProof,
+        flavor: HonkFlavor,
+    ) -> Result<Self, String> {
+        if proof.public_inputs.len() != vk.public_inputs_size {
+            return Err(format!(
+                "Public inputs length mismatch: proof {}, vk {}",
+                proof.public_inputs.len(),
+                vk.public_inputs_size
+            ));
+        }
         match flavor {
-            HonkFlavor::KECCAK => compute_zk_transcript(proof, KeccakHasher::new()),
-            HonkFlavor::STARKNET => compute_zk_transcript(proof, StarknetHasher::new()),
+            HonkFlavor::KECCAK => Ok(compute_zk_transcript(vk, proof, KeccakHasher::new())),
+            HonkFlavor::STARKNET => Ok(compute_zk_transcript(vk, proof, StarknetHasher::new())),
         }
     }
 }
@@ -264,7 +259,7 @@ pub fn get_zk_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = ZKHonkTranscript::from_proof(proof, flavor);
+    let transcript = ZKHonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -441,9 +436,6 @@ pub fn get_zk_honk_calldata(
             push_element(call_data_ref, &point.y);
         }
 
-        push(call_data_ref, proof.circuit_size);
-        push(call_data_ref, proof.public_inputs_size);
-        push(call_data_ref, proof.public_inputs_offset);
         push_elements(call_data_ref, &public_inputs, true);
         push_point(call_data_ref, &w1);
         push_point(call_data_ref, &w2);
@@ -587,7 +579,11 @@ pub fn get_zk_honk_calldata(
 }
 
 #[allow(clippy::needless_range_loop)]
-fn compute_zk_transcript<T: Hasher>(proof: &ZKHonkProof, mut hasher: T) -> ZKHonkTranscript {
+fn compute_zk_transcript<T: Hasher>(
+    vk: &HonkVerificationKey,
+    proof: &ZKHonkProof,
+    mut hasher: T,
+) -> ZKHonkTranscript {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -595,9 +591,9 @@ fn compute_zk_transcript<T: Hasher>(proof: &ZKHonkProof, mut hasher: T) -> ZKHon
     }
 
     // Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
-    hasher.update(&BigUint::from(proof.circuit_size));
-    hasher.update(&BigUint::from(proof.public_inputs_size));
-    hasher.update(&BigUint::from(proof.public_inputs_offset));
+    hasher.update(&BigUint::from(vk.circuit_size));
+    hasher.update(&BigUint::from(vk.public_inputs_size));
+    hasher.update(&BigUint::from(vk.public_inputs_offset));
     for public_input in &proof.public_inputs {
         hasher.update(public_input);
     }
@@ -975,7 +971,7 @@ mod tests {
     use sha3::{Digest, Keccak256};
 
     #[test]
-    fn test_honk_keccak_calldata() -> std::io::Result<()> {
+    fn test_zk_honk_keccak_calldata() -> std::io::Result<()> {
         let vk = get_honk_vk()?;
         let proof = get_zk_honk_keccak_proof()?;
         let call_data = get_zk_honk_calldata(&proof, &vk, HonkFlavor::KECCAK).unwrap();
@@ -985,15 +981,15 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            68, 240, 173, 172, 201, 64, 114, 159, 87, 146, 39, 223, 178, 91, 88, 56, 72, 160, 111,
-            93, 165, 0, 164, 98, 196, 206, 110, 37, 250, 160, 180, 35,
+            0, 96, 107, 245, 171, 213, 200, 108, 143, 50, 222, 172, 48, 35, 32, 179, 185, 172, 91,
+            200, 91, 250, 126, 201, 150, 44, 255, 31, 142, 252, 61, 114,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
     }
 
     #[test]
-    fn test_honk_starknet_calldata() -> std::io::Result<()> {
+    fn test_zk_honk_starknet_calldata() -> std::io::Result<()> {
         let vk = get_honk_vk()?;
         let proof = get_zk_honk_starknet_proof()?;
         let call_data = get_zk_honk_calldata(&proof, &vk, HonkFlavor::STARKNET).unwrap();
@@ -1003,8 +999,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            149, 168, 167, 177, 167, 104, 202, 210, 144, 141, 233, 45, 239, 75, 54, 32, 9, 187,
-            148, 110, 38, 95, 149, 208, 139, 4, 69, 84, 141, 192, 114, 0,
+            70, 80, 73, 241, 30, 114, 26, 80, 129, 36, 156, 140, 194, 114, 237, 139, 164, 241, 249,
+            128, 29, 135, 215, 191, 115, 60, 233, 3, 198, 110, 213, 29,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

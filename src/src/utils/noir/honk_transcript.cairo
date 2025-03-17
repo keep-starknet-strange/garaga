@@ -3,7 +3,7 @@ use core::traits::Into;
 use core::poseidon::hades_permutation;
 use core::array::array_slice;
 use garaga::definitions::G1Point;
-use garaga::utils::noir::{HonkProof, G1Point256, G1PointProof};
+use garaga::utils::noir::{HonkVk, HonkProof, G1Point256, G1PointProof};
 
 const POW2_136: u256 = 0x10000000000000000000000000000000000;
 const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
@@ -191,14 +191,14 @@ struct HonkTranscript {
 #[generate_trait]
 impl HonkTranscriptImpl of HonkTranscriptTrait {
     fn from_proof<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-        honk_proof: HonkProof,
+        honk_vk: @HonkVk, honk_proof: HonkProof,
     ) -> (HonkTranscript, felt252) {
         let (etas, challenge) = get_eta_challenges::<
             T,
         >(
-            honk_proof.circuit_size,
-            honk_proof.public_inputs_size,
-            honk_proof.public_inputs_offset,
+            (*honk_vk.circuit_size).into(),
+            (*honk_vk.public_inputs_size).into(),
+            (*honk_vk.public_inputs_offset).into(),
             honk_proof.public_inputs,
             honk_proof.w1.into(),
             honk_proof.w2.into(),
@@ -257,11 +257,12 @@ mod tests {
         HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
         StarknetHasherState,
     };
-    use garaga::utils::noir::{get_proof_keccak, get_proof_starknet};
+    use garaga::utils::noir::{get_vk, get_proof_keccak, get_proof_starknet};
     #[test]
     fn test_transcript_keccak() {
+        let vk = get_vk();
         let proof = get_proof_keccak();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<KeccakHasherState>(proof);
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<KeccakHasherState>(@vk, proof);
         let expected = HonkTranscript {
             eta: 0x8f552b09842921c3d8e179c45df06f60,
             eta_two: 0x12fbf1fd24f38c808ec773d904e06a74,
@@ -375,8 +376,9 @@ mod tests {
     }
     #[test]
     fn test_transcript_starknet() {
+        let vk = get_vk();
         let proof = get_proof_starknet();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<StarknetHasherState>(proof);
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<StarknetHasherState>(@vk, proof);
         let expected = HonkTranscript {
             eta: 0xacab94703ab6d0ac76a257baf5b3cc47,
             eta_two: 0x48aa9b84794b8501475d1acdde7c12,

@@ -194,7 +194,7 @@ def get_calldata_generic(
             | ProofSystem.UltraStarknetZKHonk
         ):
             vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
-            proof_obj = honk_proof_from_bytes(open(proof, "rb").read(), system)
+            proof_obj = honk_proof_from_bytes(open(proof, "rb").read(), vk_obj, system)
             return get_ultra_flavor_honk_calldata_from_vk_and_proof(
                 vk_obj, proof_obj, system
             )

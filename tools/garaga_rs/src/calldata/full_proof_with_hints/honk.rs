@@ -20,6 +20,7 @@ use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 use sha3::{Digest, Keccak256};
 
+pub const PROOF_SIZE: usize = 440;
 pub const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
 pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
 pub const NUMBER_OF_SUBRELATIONS: usize = 26;
@@ -122,8 +123,19 @@ impl HonkVerificationKey {
         let [qm, qc, ql, qr, qo, q4, q_lookup, q_arith, q_delta_range, q_elliptic, q_aux, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
             points.try_into().unwrap();
 
+        if circuit_size > MAX_CIRCUIT_SIZE {
+            return Err(format!("Invalid circuit size: {}", circuit_size));
+        }
+
         if log_circuit_size > CONST_PROOF_SIZE_LOG_N {
             return Err(format!("Invalid log circuit size: {}", log_circuit_size));
+        }
+
+        if public_inputs_offset != 1 {
+            return Err(format!(
+                "Invalid public inputs offset: {}",
+                log_circuit_size
+            ));
         }
 
         let vk = Self {
@@ -165,9 +177,6 @@ impl HonkVerificationKey {
 }
 
 pub struct HonkProof {
-    pub circuit_size: usize,
-    pub public_inputs_size: usize,
-    pub public_inputs_offset: usize,
     pub public_inputs: Vec<BigUint>,
     pub w1: G1PointBigUint,
     pub w2: G1PointBigUint,
@@ -208,26 +217,15 @@ impl HonkProof {
         Self::from(values)
     }
     pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
-        if values.len() < 3 {
+        if values.len() < PROOF_SIZE {
             return Err(format!("Invalid input length: {}", values.len()));
         }
 
+        let public_inputs_size = values.len() - PROOF_SIZE;
+
         let mut offset = 0;
 
-        let mut consts = vec![];
-        for i in (offset..).step_by(1).take(3) {
-            let err_fn = |e: num_bigint::TryFromBigIntError<BigUint>| e.to_string();
-            consts.push(values[i].clone().try_into().map_err(err_fn)?);
-        }
-        offset += 3;
-        let [circuit_size, public_inputs_size, public_inputs_offset] = consts.try_into().unwrap();
-
-        if circuit_size > MAX_CIRCUIT_SIZE {
-            return Err(format!("Invalid circuit size: {}", circuit_size));
-        }
-
-        let count = 3
-            + public_inputs_size
+        let count = public_inputs_size
             + 8 * 4
             + BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
             + NUMBER_OF_ENTITIES
@@ -311,9 +309,6 @@ impl HonkProof {
         assert_eq!(offset, count);
 
         let proof = Self {
-            circuit_size,
-            public_inputs_size,
-            public_inputs_offset,
             public_inputs,
             w1,
             w2,
@@ -351,10 +346,21 @@ pub struct HonkTranscript {
 }
 
 impl HonkTranscript {
-    pub fn from_proof(proof: &HonkProof, flavor: HonkFlavor) -> Self {
+    pub fn from_proof(
+        vk: &HonkVerificationKey,
+        proof: &HonkProof,
+        flavor: HonkFlavor,
+    ) -> Result<Self, String> {
+        if proof.public_inputs.len() != vk.public_inputs_size {
+            return Err(format!(
+                "Public inputs length mismatch: proof {}, vk {}",
+                proof.public_inputs.len(),
+                vk.public_inputs_size
+            ));
+        }
         match flavor {
-            HonkFlavor::KECCAK => compute_transcript(proof, KeccakHasher::new()),
-            HonkFlavor::STARKNET => compute_transcript(proof, StarknetHasher::new()),
+            HonkFlavor::KECCAK => Ok(compute_transcript(vk, proof, KeccakHasher::new())),
+            HonkFlavor::STARKNET => Ok(compute_transcript(vk, proof, StarknetHasher::new())),
         }
     }
 }
@@ -364,7 +370,7 @@ pub fn get_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = HonkTranscript::from_proof(proof, flavor);
+    let transcript = HonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -512,9 +518,6 @@ pub fn get_honk_calldata(
             push_element(call_data_ref, &point.y);
         }
 
-        push(call_data_ref, proof.circuit_size);
-        push(call_data_ref, proof.public_inputs_size);
-        push(call_data_ref, proof.public_inputs_offset);
         push_elements(call_data_ref, &public_inputs, true);
         push_point(call_data_ref, &w1);
         push_point(call_data_ref, &w2);
@@ -737,7 +740,11 @@ impl Hasher for StarknetHasher {
 }
 
 #[allow(clippy::needless_range_loop)]
-fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTranscript {
+fn compute_transcript<T: Hasher>(
+    vk: &HonkVerificationKey,
+    proof: &HonkProof,
+    mut hasher: T,
+) -> HonkTranscript {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -745,9 +752,9 @@ fn compute_transcript<T: Hasher>(proof: &HonkProof, mut hasher: T) -> HonkTransc
     }
 
     // Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
-    hasher.update(&BigUint::from(proof.circuit_size));
-    hasher.update(&BigUint::from(proof.public_inputs_size));
-    hasher.update(&BigUint::from(proof.public_inputs_offset));
+    hasher.update(&BigUint::from(vk.circuit_size));
+    hasher.update(&BigUint::from(vk.public_inputs_size));
+    hasher.update(&BigUint::from(vk.public_inputs_offset));
     for public_input in &proof.public_inputs {
         hasher.update(public_input);
     }
@@ -1037,8 +1044,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            188, 23, 106, 75, 0, 61, 122, 97, 135, 65, 18, 233, 84, 127, 21, 59, 149, 88, 99, 65,
-            199, 41, 184, 171, 106, 79, 137, 215, 8, 92, 145, 186,
+            180, 212, 222, 39, 89, 122, 27, 74, 243, 78, 113, 176, 58, 141, 192, 159, 159, 158,
+            154, 56, 209, 142, 159, 158, 127, 123, 74, 231, 115, 216, 47, 51,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1055,8 +1062,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            134, 95, 143, 35, 22, 179, 174, 158, 168, 11, 74, 218, 4, 168, 28, 51, 82, 40, 107, 60,
-            93, 212, 140, 50, 116, 216, 124, 72, 218, 143, 64, 128,
+            191, 223, 152, 118, 88, 224, 231, 207, 45, 105, 134, 34, 2, 226, 61, 184, 156, 2, 229,
+            171, 194, 2, 211, 193, 111, 130, 0, 170, 129, 150, 89, 158,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
