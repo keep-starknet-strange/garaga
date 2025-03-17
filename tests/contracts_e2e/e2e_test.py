@@ -14,6 +14,7 @@ from starknet_py.net.client_errors import ContractNotFoundError
 
 from garaga.definitions import ProofSystem
 from garaga.hints.io import to_int
+from garaga.precompiled_circuits.honk import honk_proof_from_bytes
 from garaga.starknet.cli.smart_contract_project import (
     Groth16SmartContract,
     SmartContractProject,
@@ -23,7 +24,6 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     find_item_from_key_patterns,
 )
 from garaga.starknet.honk_contract_generator.calldata import (
-    HonkProof,
     HonkVk,
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
@@ -250,6 +250,23 @@ HONK_CONTRACTS = [
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet.bin",
         "system": ProofSystem.UltraStarknetHonk,
     },
+    {
+        "contract_project": SmartContractProject(
+            smart_contract_folder=CONTRACTS_PATH / "noir_ultra_keccak_zk_honk_example",
+        ),
+        "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak_zk.bin",
+        "system": ProofSystem.UltraKeccakZKHonk,
+    },
+    {
+        "contract_project": SmartContractProject(
+            smart_contract_folder=CONTRACTS_PATH
+            / "noir_ultra_starknet_zk_honk_example",
+        ),
+        "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet_zk.bin",
+        "system": ProofSystem.UltraStarknetZKHonk,
+    },
 ]
 
 
@@ -263,7 +280,7 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     system: ProofSystem = contract_info["system"]
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
-    proof = HonkProof.from_bytes(open(proof_path, "rb").read())
+    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), system)
 
     print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
 

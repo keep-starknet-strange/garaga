@@ -513,7 +513,7 @@ fn u256_byte_reverse(word: u256) -> u256 {
 
 
 #[inline]
-fn append_proof_point<T, impl Hasher: IHasher<T>>(ref hasher: T, point: G1PointProof) {
+pub fn append_proof_point<T, impl Hasher: IHasher<T>>(ref hasher: T, point: G1PointProof) {
     hasher.update(point.x0);
     hasher.update(point.x1);
     hasher.update(point.y0);

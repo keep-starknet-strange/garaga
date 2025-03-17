@@ -47,5 +47,5 @@ sha3 = "0.10"
 js-sys = "0.3"
 lazy_static = "1.4"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
-lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "7e94a19037852cedc16b17922142ece2460a0845" }
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev ="7e94a19037852cedc16b17922142ece2460a0845" }

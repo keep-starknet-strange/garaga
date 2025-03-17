@@ -14,6 +14,10 @@ impl U64IntoU384 of Into<u64, u384> {
     }
 }
 
+pub fn u256_to_u384(value: u256) -> u384 {
+    value.into()
+}
+
 impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
         [
