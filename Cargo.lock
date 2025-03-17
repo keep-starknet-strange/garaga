@@ -347,7 +347,7 @@ dependencies = [
 [[package]]
 name = "lambdaworks-crypto"
 version = "0.11.0"
-source = "git+https://github.com/lambdaclass/lambdaworks.git?rev=be4a329#be4a329dad5c847a37ab3831b6fdee546b2d0af9"
+source = "git+https://github.com/lambdaclass/lambdaworks.git?rev=7e94a19037852cedc16b17922142ece2460a0845#7e94a19037852cedc16b17922142ece2460a0845"
 dependencies = [
  "lambdaworks-math 0.11.0",
  "serde",
@@ -364,7 +364,7 @@ checksum = "d1bd2632acbd9957afc5aeec07ad39f078ae38656654043bf16e046fa2730e23"
 [[package]]
 name = "lambdaworks-math"
 version = "0.11.0"
-source = "git+https://github.com/lambdaclass/lambdaworks.git?rev=be4a329#be4a329dad5c847a37ab3831b6fdee546b2d0af9"
+source = "git+https://github.com/lambdaclass/lambdaworks.git?rev=7e94a19037852cedc16b17922142ece2460a0845#7e94a19037852cedc16b17922142ece2460a0845"
 dependencies = [
  "rayon",
  "serde",
