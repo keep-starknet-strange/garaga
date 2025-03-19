@@ -66,7 +66,7 @@ mod Risc0Groth16VerifierBN254 {
 
             // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
             // to obtain claim0 * IC[3] + claim1 * IC[4].
-            let mut _msm_result_serialized = core::starknet::syscalls::library_call_syscall(
+            let mut _msm_result_serialized = starknet::syscalls::library_call_syscall(
                 ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                 selector!("msm_g1_u128"),
                 msm_calldata.span(),

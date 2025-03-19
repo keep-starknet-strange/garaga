@@ -81,7 +81,7 @@ mod Groth16VerifierBLS12_381 {
                 mpcheck_hint,
                 small_Q,
             );
-            if check == true {
+            if check {
                 return Option::Some(groth16_proof.public_inputs);
             } else {
                 return Option::None;
