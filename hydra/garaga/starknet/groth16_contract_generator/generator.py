@@ -119,7 +119,7 @@ mod Groth16Verifier{curve_id.name} {{
 
                     // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
                     // to obtain vk_x.
-                    let mut _vx_x_serialized = core::starknet::syscalls::library_call_syscall(
+                    let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                         selector!("msm_g1"),
                         msm_calldata.span()
