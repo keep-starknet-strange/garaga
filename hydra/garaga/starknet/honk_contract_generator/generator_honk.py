@@ -27,7 +27,10 @@ from garaga.precompiled_circuits.honk import (
 )
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory
-from garaga.starknet.groth16_contract_generator.generator import get_scarb_toml_file
+from garaga.starknet.groth16_contract_generator.generator import (
+    CAIRO_VERSION,
+    get_scarb_toml_file,
+)
 
 
 def gen_honk_verifier(
@@ -696,7 +699,7 @@ def _write_and_format_project_files(
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write("scarb 2.9.2\n")
+        f.write(f"scarb {CAIRO_VERSION}\n")
 
     with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
