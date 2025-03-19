@@ -1,44 +1,45 @@
 #!/bin/bash
-c1="bn254"
-c2="bls12_381"
 
+cd src/contracts
+echo "----------------------------------------"
 
+# Function to build and check bytecode length
+check_bytecode_length() {
+    local contract_dir=$1
 
-cd src/contracts/groth16_example_$c1
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/groth16_example_${c1}_Groth16Verifier${c1^^}.compiled_contract_class.json)
-echo "Bytecode length BN254: $bytecode_length"
+    cd $contract_dir
+    scarb build
+    # Find the compiled contract class JSON file
+    compiled_file=$(find ./target/dev -name '*.compiled_contract_class.json' -print -quit)
+    if [[ -f $compiled_file ]]; then
+        bytecode_length=$(jq '.bytecode | length' "$compiled_file")
 
-cd ../noir_ultra_keccak_honk_example
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_keccak_honk_example_UltraKeccakHonkVerifier.compiled_contract_class.json)
-echo "Bytecode length NOIR KECCAK: $bytecode_length"
+        # Color the output: use green for the bytecode length line
+        echo -e "\e[32mBytecode length [$contract_dir] = $bytecode_length\e[0m"
+        echo "----------------------------------------"
+    else
+        echo "Compiled contract class JSON not found in $contract_dir"
+        echo "----------------------------------------"
+    fi
+    cd ../
+}
 
+# List of contract directories
+contracts=(
+    "groth16_example_bn254"
+    "noir_ultra_keccak_honk_example"
+    "noir_ultra_starknet_honk_example"
+    "groth16_example_bls12_381"
+    "universal_ecip"
+    "drand_quicknet"
+    "risc0_verifier_bn254"
+)
 
-cd ../noir_ultra_starknet_honk_example
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/noir_ultra_starknet_honk_example_UltraStarknetHonkVerifier.compiled_contract_class.json)
-echo "Bytecode length NOIR POSEIDON: $bytecode_length"
+# Number of CPUs to use
+n_cpus=2
 
+# Export the function for parallel
+export -f check_bytecode_length
 
-cd ../groth16_example_$c2
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/groth16_example_${c2}_Groth16Verifier${c2^^}.compiled_contract_class.json)
-echo "Bytecode length BLS12_381: $bytecode_length"
-
-
-cd ../universal_ecip
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/universal_ecip_UniversalECIP.compiled_contract_class.json)
-echo "Bytecode length ECIP: $bytecode_length"
-
-cd ../drand_quicknet
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/drand_quicknet_DrandQuicknet.compiled_contract_class.json)
-echo "Bytecode length DRAND: $bytecode_length"
-
-
-cd ../risc0_verifier_bn254
-scarb build
-bytecode_length=$(jq '.bytecode | length' ./target/dev/risc0_bn254_verifier_Risc0Groth16VerifierBN254.compiled_contract_class.json)
-echo "Bytecode length RISC0: $bytecode_length"
+# Use parallel to run the function
+parallel -j $n_cpus check_bytecode_length ::: "${contracts[@]}"
