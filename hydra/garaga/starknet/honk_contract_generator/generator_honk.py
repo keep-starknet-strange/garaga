@@ -436,7 +436,11 @@ mod Ultra{flavor}HonkVerifier {{
         f.write(contract_code)
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(get_scarb_toml_file(output_folder_name, cli_mode))
+        f.write(
+            get_scarb_toml_file(
+                package_name=output_folder_name, cli_mode=cli_mode, inlining_level=2
+            )
+        )
 
     with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
