@@ -899,16 +899,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let inverse_vanishing_evals = {
-        let mut values = vec![];
-        {
-            values.push((shplonk_z - &powers_of_evaluations_challenge[0]).inv()?);
-        }
-        for i in 0..log_circuit_size {
-            values.push((shplonk_z + &powers_of_evaluations_challenge[i]).inv()?);
-        }
-        values
-    };
+    let mut pos_inverted_denominator = (shplonk_z - &powers_of_evaluations_challenge[0]).inv()?;
+    let mut neg_inverted_denominator = (shplonk_z + &powers_of_evaluations_challenge[0]).inv()?;
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
@@ -928,7 +920,7 @@ fn compute_shplemini_msm_scalars(
 
         {
             let unshifted_scalar =
-                -(&inverse_vanishing_evals[0] + shplonk_nu * &inverse_vanishing_evals[1]);
+                -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
             for i in 1..NUMBER_UNSHIFTED + 1 {
                 scalars[i] = Some(&unshifted_scalar * &batching_challenge);
                 batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
@@ -938,7 +930,7 @@ fn compute_shplemini_msm_scalars(
 
         {
             let shifted_scalar = -(gemini_r.inv()?
-                * (&inverse_vanishing_evals[0] - shplonk_nu * &inverse_vanishing_evals[1]));
+                * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
             for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
                 scalars[i] = Some(&shifted_scalar * &batching_challenge);
                 batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
@@ -950,27 +942,9 @@ fn compute_shplemini_msm_scalars(
         }
     }
 
-    let mut constant_term_accumulator = FieldElement::zero();
-
-    {
-        let mut batching_challenge = shplonk_nu * shplonk_nu;
-
-        for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
-            let dummy_round = i >= (log_circuit_size - 1);
-            if !dummy_round {
-                let scaling_factor = &batching_challenge * &inverse_vanishing_evals[i + 2];
-                scalars[NUMBER_OF_ENTITIES + i + 1] = Some(-scaling_factor.clone());
-                constant_term_accumulator += scaling_factor * &gemini_a_evaluations[i + 1];
-            }
-            // skip last round:
-            if i < log_circuit_size - 2 {
-                batching_challenge *= shplonk_nu;
-            }
-        }
-    }
-
-    let a_0_pos = {
-        let mut batched_eval_accumulator = batched_evaluation;
+    let fold_pos_evaluations = {
+        let mut values = vec![FieldElement::from(0); CONST_PROOF_SIZE_LOG_N];
+        let mut batched_eval_accumulator = batched_evaluation.clone();
         for i in (0..log_circuit_size).rev() {
             let challenge_power = &powers_of_evaluations_challenge[i];
             let u = &sumcheck_u_challenges[i];
@@ -982,13 +956,41 @@ fn compute_shplemini_msm_scalars(
                 - (eval_neg * (&term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
+            values[i] = batched_eval_accumulator.clone();
         }
-        batched_eval_accumulator
+        values
     };
 
-    constant_term_accumulator += a_0_pos * &inverse_vanishing_evals[0];
-    constant_term_accumulator +=
-        &gemini_a_evaluations[0] * shplonk_nu * &inverse_vanishing_evals[1];
+    let mut constant_term_accumulator = &fold_pos_evaluations[0] * pos_inverted_denominator;
+    constant_term_accumulator += &gemini_a_evaluations[0] * shplonk_nu * &neg_inverted_denominator;
+
+    {
+        let mut batching_challenge = shplonk_nu * shplonk_nu;
+
+        for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
+            let dummy_round = i >= (log_circuit_size - 1);
+            if !dummy_round {
+                pos_inverted_denominator =
+                    (shplonk_z - &powers_of_evaluations_challenge[i + 1]).inv()?;
+                neg_inverted_denominator =
+                    (shplonk_z + &powers_of_evaluations_challenge[i + 1]).inv()?;
+
+                let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
+                let scaling_factor_neg =
+                    &batching_challenge * shplonk_nu * neg_inverted_denominator;
+                scalars[NUMBER_OF_ENTITIES + i + 1] =
+                    Some(-(&scaling_factor_neg + &scaling_factor_pos));
+
+                let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
+                accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
+                constant_term_accumulator += accum_contribution;
+            }
+            // skip last round:
+            if i < log_circuit_size - 2 {
+                batching_challenge *= shplonk_nu * shplonk_nu;
+            }
+        }
+    }
 
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator.clone());
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(shplonk_z.clone());
@@ -1044,8 +1046,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            180, 212, 222, 39, 89, 122, 27, 74, 243, 78, 113, 176, 58, 141, 192, 159, 159, 158,
-            154, 56, 209, 142, 159, 158, 127, 123, 74, 231, 115, 216, 47, 51,
+            104, 126, 156, 116, 58, 231, 134, 188, 32, 179, 43, 199, 20, 100, 239, 30, 186, 103,
+            166, 234, 196, 186, 165, 183, 154, 164, 24, 187, 120, 43, 250, 30,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1062,8 +1064,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            191, 223, 152, 118, 88, 224, 231, 207, 45, 105, 134, 34, 2, 226, 61, 184, 156, 2, 229,
-            171, 194, 2, 211, 193, 111, 130, 0, 170, 129, 150, 89, 158,
+            226, 87, 102, 71, 18, 38, 60, 241, 142, 13, 223, 194, 183, 227, 0, 227, 139, 121, 251,
+            56, 1, 190, 210, 254, 241, 90, 79, 227, 126, 99, 132, 24,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

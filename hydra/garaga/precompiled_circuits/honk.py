@@ -1680,26 +1680,17 @@ class HonkVerifierCircuits(ModuloCircuit):
             NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2
         )
 
-        # computeInvertedGeminiDenominators
-
-        inverse_vanishing_evals = [None] * (CONST_PROOF_SIZE_LOG_N + 1)
-        inverse_vanishing_evals[0] = self.inv(
+        pos_inverted_denominator = self.inv(
             self.sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
         )
-        for i in range(self.log_n):
-            inverse_vanishing_evals[i + 1] = self.inv(
-                self.add(tp_shplonk_z, powers_of_evaluations_challenge[i])
-            )
-        assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
-
-        # mem.unshiftedScalar = inverse_vanishing_evals[0] + (tp.shplonkNu * inverse_vanishing_evals[1]);
-        # mem.shiftedScalar =
-        #     tp.geminiR.invert() * (inverse_vanishing_evals[0] - (tp.shplonkNu * inverse_vanishing_evals[1]));
+        neg_inverted_denominator = self.inv(
+            self.add(tp_shplonk_z, powers_of_evaluations_challenge[0])
+        )
 
         unshifted_scalar = self.neg(
             self.add(
-                inverse_vanishing_evals[0],
-                self.mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
+                pos_inverted_denominator,
+                self.mul(tp_shplonk_nu, neg_inverted_denominator),
             )
         )
 
@@ -1707,8 +1698,8 @@ class HonkVerifierCircuits(ModuloCircuit):
             self.mul(
                 self.inv(tp_gemini_r),
                 self.sub(
-                    inverse_vanishing_evals[0],
-                    self.mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
+                    pos_inverted_denominator,
+                    self.mul(tp_shplonk_nu, neg_inverted_denominator),
                 ),
             )
         )
@@ -1736,39 +1727,16 @@ class HonkVerifierCircuits(ModuloCircuit):
             if i < NUMBER_OF_ENTITIES:
                 batching_challenge = self.mul(batching_challenge, tp_rho)
 
-        constant_term_accumulator = self.set_or_get_constant(0)
-        batching_challenge = self.square(tp_shplonk_nu)
-
-        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
-            dummy_round = i >= (self.log_n - 1)
-
-            scaling_factor = self.set_or_get_constant(0)
-            if not dummy_round:
-                scaling_factor = self.mul(
-                    batching_challenge, inverse_vanishing_evals[i + 2]
-                )
-                scalars[NUMBER_OF_ENTITIES + i + 1] = self.neg(scaling_factor)
-                constant_term_accumulator = self.add(
-                    constant_term_accumulator,
-                    self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
-                )
-            else:
-                # print(
-                #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
-                # )
-                pass
-
-            # skip last round:
-            if i < self.log_n - 2:
-                batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
-
-        # computeGeminiBatchedUnivariateEvaluation
-        def compute_gemini_batched_univariate_evaluation(
+        # computeFoldPosEvaluations
+        def compute_fold_pos_evaluations(
             tp_sumcheck_u_challenges,
             batched_eval_accumulator,
             gemini_evaluations,
             gemini_eval_challenge_powers,
         ):
+            fold_pos_evaluations = [
+                self.set_or_get_constant(0)
+            ] * CONST_PROOF_SIZE_LOG_N
             for i in range(self.log_n, 0, -1):
                 challenge_power = gemini_eval_challenge_powers[i - 1]
                 u = tp_sumcheck_u_challenges[i - 1]
@@ -1790,23 +1758,19 @@ class HonkVerifierCircuits(ModuloCircuit):
 
                 batched_eval_round_acc = self.mul(batched_eval_round_acc, self.inv(den))
                 batched_eval_accumulator = batched_eval_round_acc
+                fold_pos_evaluations[i - 1] = batched_eval_accumulator
 
-            return batched_eval_accumulator
+            return fold_pos_evaluations
 
-        a_0_pos = compute_gemini_batched_univariate_evaluation(
+        fold_pos_evaluations = compute_fold_pos_evaluations(
             tp_sumcheck_u_challenges,
             batched_evaluation,
             p_gemini_a_evaluations,
             powers_of_evaluations_challenge,
         )
 
-        # mem.constantTermAccumulator = mem.constantTermAccumulator + (a_0_pos * inverse_vanishing_evals[0]);
-        # mem.constantTermAccumulator =
-        #     mem.constantTermAccumulator + (proof.geminiAEvaluations[0] * tp.shplonkNu * inverse_vanishing_evals[1]);
-
-        constant_term_accumulator = self.add(
-            constant_term_accumulator,
-            self.mul(a_0_pos, inverse_vanishing_evals[0]),
+        constant_term_accumulator = self.mul(
+            fold_pos_evaluations[0], pos_inverted_denominator
         )
 
         constant_term_accumulator = self.add(
@@ -1815,10 +1779,57 @@ class HonkVerifierCircuits(ModuloCircuit):
                 [
                     p_gemini_a_evaluations[0],
                     tp_shplonk_nu,
-                    inverse_vanishing_evals[1],
+                    neg_inverted_denominator,
                 ]
             ),
         )
+
+        batching_challenge = self.square(tp_shplonk_nu)
+
+        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+            dummy_round = i >= (self.log_n - 1)
+
+            scaling_factor = self.set_or_get_constant(0)
+            if not dummy_round:
+                pos_inverted_denominator = self.inv(
+                    self.sub(tp_shplonk_z, powers_of_evaluations_challenge[i + 1])
+                )
+                neg_inverted_denominator = self.inv(
+                    self.add(tp_shplonk_z, powers_of_evaluations_challenge[i + 1])
+                )
+
+                scaling_factor_pos = self.mul(
+                    batching_challenge, pos_inverted_denominator
+                )
+                scaling_factor_neg = self.mul(
+                    batching_challenge,
+                    self.mul(tp_shplonk_nu, neg_inverted_denominator),
+                )
+                scalars[NUMBER_OF_ENTITIES + i + 1] = self.neg(
+                    self.add(scaling_factor_neg, scaling_factor_pos)
+                )
+
+                accum_contribution = self.mul(
+                    scaling_factor_neg, p_gemini_a_evaluations[i + 1]
+                )
+                accum_contribution = self.add(
+                    accum_contribution,
+                    self.mul(scaling_factor_pos, fold_pos_evaluations[i + 1]),
+                )
+                constant_term_accumulator = self.add(
+                    constant_term_accumulator, accum_contribution
+                )
+            else:
+                # print(
+                #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
+                # )
+                pass
+
+            # skip last round:
+            if i < self.log_n - 2:
+                batching_challenge = self.mul(
+                    batching_challenge, self.square(tp_shplonk_nu)
+                )
 
         scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = constant_term_accumulator
         scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = tp_shplonk_z
@@ -2732,26 +2743,17 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
             NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3
         )
 
-        # computeInvertedGeminiDenominators
-
-        inverse_vanishing_evals = [None] * (CONST_PROOF_SIZE_LOG_N + 1)
-        inverse_vanishing_evals[0] = self.inv(
+        pos_inverted_denominator = self.inv(
             self.sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
         )
-        for i in range(self.log_n):
-            inverse_vanishing_evals[i + 1] = self.inv(
-                self.add(tp_shplonk_z, powers_of_evaluations_challenge[i])
-            )
-        assert len(inverse_vanishing_evals) == CONST_PROOF_SIZE_LOG_N + 1
-
-        # mem.unshiftedScalar = inverse_vanishing_evals[0] + (tp.shplonkNu * inverse_vanishing_evals[1]);
-        # mem.shiftedScalar =
-        #     tp.geminiR.invert() * (inverse_vanishing_evals[0] - (tp.shplonkNu * inverse_vanishing_evals[1]));
+        neg_inverted_denominator = self.inv(
+            self.add(tp_shplonk_z, powers_of_evaluations_challenge[0])
+        )
 
         unshifted_scalar = self.neg(
             self.add(
-                inverse_vanishing_evals[0],
-                self.mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
+                pos_inverted_denominator,
+                self.mul(tp_shplonk_nu, neg_inverted_denominator),
             )
         )
 
@@ -2759,8 +2761,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
             self.mul(
                 self.inv(tp_gemini_r),
                 self.sub(
-                    inverse_vanishing_evals[0],
-                    self.mul(tp_shplonk_nu, inverse_vanishing_evals[1]),
+                    pos_inverted_denominator,
+                    self.mul(tp_shplonk_nu, neg_inverted_denominator),
                 ),
             )
         )
@@ -2788,37 +2790,16 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
             if i < NUMBER_OF_ENTITIES + 1:
                 batching_challenge = self.mul(batching_challenge, tp_rho)
 
-        constant_term_accumulator = self.set_or_get_constant(0)
-        batching_challenge = self.square(tp_shplonk_nu)
-
-        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
-            dummy_round = i >= (self.log_n - 1)
-
-            scaling_factor = self.set_or_get_constant(0)
-            if not dummy_round:
-                scaling_factor = self.mul(
-                    batching_challenge, inverse_vanishing_evals[i + 2]
-                )
-                scalars[NUMBER_OF_ENTITIES + i + 2] = self.neg(scaling_factor)
-                constant_term_accumulator = self.add(
-                    constant_term_accumulator,
-                    self.mul(scaling_factor, p_gemini_a_evaluations[i + 1]),
-                )
-            else:
-                # print(
-                #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
-                # )
-                pass
-
-            batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
-
-        # computeGeminiBatchedUnivariateEvaluation
-        def compute_gemini_batched_univariate_evaluation(
+        # computeFoldPosEvaluations
+        def compute_fold_pos_evaluations(
             tp_sumcheck_u_challenges,
             batched_eval_accumulator,
             gemini_evaluations,
             gemini_eval_challenge_powers,
         ):
+            fold_pos_evaluations = [
+                self.set_or_get_constant(0)
+            ] * CONST_PROOF_SIZE_LOG_N
             for i in range(self.log_n, 0, -1):
                 challenge_power = gemini_eval_challenge_powers[i - 1]
                 u = tp_sumcheck_u_challenges[i - 1]
@@ -2840,23 +2821,19 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
                 batched_eval_round_acc = self.mul(batched_eval_round_acc, self.inv(den))
                 batched_eval_accumulator = batched_eval_round_acc
+                fold_pos_evaluations[i - 1] = batched_eval_accumulator
 
-            return batched_eval_accumulator
+            return fold_pos_evaluations
 
-        a_0_pos = compute_gemini_batched_univariate_evaluation(
+        fold_pos_evaluations = compute_fold_pos_evaluations(
             tp_sumcheck_u_challenges,
             batched_evaluation,
             p_gemini_a_evaluations,
             powers_of_evaluations_challenge,
         )
 
-        # mem.constantTermAccumulator = mem.constantTermAccumulator + (a_0_pos * inverse_vanishing_evals[0]);
-        # mem.constantTermAccumulator =
-        #     mem.constantTermAccumulator + (proof.geminiAEvaluations[0] * tp.shplonkNu * inverse_vanishing_evals[1]);
-
-        constant_term_accumulator = self.add(
-            constant_term_accumulator,
-            self.mul(a_0_pos, inverse_vanishing_evals[0]),
+        constant_term_accumulator = self.mul(
+            fold_pos_evaluations[0], pos_inverted_denominator
         )
 
         constant_term_accumulator = self.add(
@@ -2865,10 +2842,55 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
                 [
                     p_gemini_a_evaluations[0],
                     tp_shplonk_nu,
-                    inverse_vanishing_evals[1],
+                    neg_inverted_denominator,
                 ]
             ),
         )
+
+        batching_challenge = self.square(tp_shplonk_nu)
+
+        for i in range(CONST_PROOF_SIZE_LOG_N - 1):
+            dummy_round = i >= (self.log_n - 1)
+
+            scaling_factor = self.set_or_get_constant(0)
+            if not dummy_round:
+                pos_inverted_denominator = self.inv(
+                    self.sub(tp_shplonk_z, powers_of_evaluations_challenge[i + 1])
+                )
+                neg_inverted_denominator = self.inv(
+                    self.add(tp_shplonk_z, powers_of_evaluations_challenge[i + 1])
+                )
+
+                scaling_factor_pos = self.mul(
+                    batching_challenge, pos_inverted_denominator
+                )
+                scaling_factor_neg = self.mul(
+                    batching_challenge,
+                    self.mul(tp_shplonk_nu, neg_inverted_denominator),
+                )
+                scalars[NUMBER_OF_ENTITIES + i + 2] = self.neg(
+                    self.add(scaling_factor_neg, scaling_factor_pos)
+                )
+
+                accum_contribution = self.mul(
+                    scaling_factor_neg, p_gemini_a_evaluations[i + 1]
+                )
+                accum_contribution = self.add(
+                    accum_contribution,
+                    self.mul(scaling_factor_pos, fold_pos_evaluations[i + 1]),
+                )
+                constant_term_accumulator = self.add(
+                    constant_term_accumulator, accum_contribution
+                )
+            else:
+                # print(
+                #     f"dummy round {i}, index {NUMBER_OF_ENTITIES + i + 1} is set to 0"
+                # )
+                pass
+
+            batching_challenge = self.mul(
+                batching_challenge, self.square(tp_shplonk_nu)
+            )
 
         denominators = [self.set_or_get_constant(0)] * 4
         denominators[0] = self.div(
@@ -2885,7 +2907,7 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
         denominators[3] = denominators[0]
 
         batching_scalars = [self.set_or_get_constant(0)] * 4
-        batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
+        batching_challenge = self.mul(batching_challenge, self.square(tp_shplonk_nu))
         for i in range(4):
             scaling_factor = self.mul(denominators[i], batching_challenge)
             batching_scalars[i] = self.neg(scaling_factor)
