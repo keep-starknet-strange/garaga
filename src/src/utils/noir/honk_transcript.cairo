@@ -134,7 +134,7 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     #[inline]
     fn update_u64_as_u256(ref self: StarknetHasherState, v: u64) {
         let low: felt252 = v.into();
-        let (s0, s1, s2) = hades_permutation(self.s0 + low, self.s1, self.s2);
+        let (s0, s1, s2) = hades_permutation(self.s0, self.s1, self.s2 + low);
         self.s0 = s0;
         self.s1 = s1;
         self.s2 = s2;
@@ -142,9 +142,9 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     #[inline]
     fn update_gen_point(ref self: StarknetHasherState) {
         // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for keccak.
-        let (s0, s1, s2) = hades_permutation(self.s0 + 1, self.s1, self.s2);
+        let (s0, s1, s2) = hades_permutation(self.s0, self.s1, self.s2 + 1);
         let (s0, s1, s2) = hades_permutation(s0, s1, s2);
-        let (s0, s1, s2) = hades_permutation(s0 + 2, s1, s2);
+        let (s0, s1, s2) = hades_permutation(s0, s1, s2 + 2);
         let (s0, s1, s2) = hades_permutation(s0, s1, s2);
         self.s0 = s0;
         self.s1 = s1;
@@ -161,14 +161,14 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     fn update(ref self: StarknetHasherState, v: u256) {
         let low: felt252 = v.low.into();
         let high: felt252 = v.high.into();
-        let (s0, s1, s2) = hades_permutation(self.s0 + low, self.s1 + high, self.s2);
+        let (s0, s1, s2) = hades_permutation(self.s0, self.s1 + high, self.s2 + low);
         self.s0 = s0;
         self.s1 = s1;
         self.s2 = s2;
     }
     #[inline]
     fn digest(ref self: StarknetHasherState) -> u256 {
-        self.s0.into()
+        self.s2.into()
     }
 }
 
