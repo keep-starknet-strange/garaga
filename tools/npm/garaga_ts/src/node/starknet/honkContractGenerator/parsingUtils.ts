@@ -6,9 +6,6 @@ export enum HonkFlavor {
 }
 
 export interface HonkProof {
-    circuitSize: number,
-    publicInputsSize: number,
-    publicInputsOffset: number,
     publicInputs: bigint[],
     w1: G1Point,
     w2: G1Point,
@@ -27,9 +24,6 @@ export interface HonkProof {
 }
 
 export interface ZKHonkProof {
-    circuitSize: number,
-    publicInputsSize: number,
-    publicInputsOffset: number,
     publicInputs: bigint[],
     w1: G1Point,
     w2: G1Point,

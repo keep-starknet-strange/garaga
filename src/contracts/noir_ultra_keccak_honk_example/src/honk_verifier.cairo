@@ -33,7 +33,7 @@ mod UltraKeccakHonkVerifier {
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
         KeccakHasherState,
     };
-    use garaga::core::circuit::U64IntoU384;
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -66,11 +66,11 @@ mod UltraKeccakHonkVerifier {
 
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
-            >(full_proof.proof);
+            >(@vk, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
-                p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
+                p_public_inputs_offset: vk.public_inputs_offset.into(),
                 sumcheck_univariates_flat: full_proof
                     .proof
                     .sumcheck_univariates

@@ -56,11 +56,11 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 
     if zk:
         assert isinstance(proof, ZKHonkProof)
-        tp = ZKHonkTranscript.from_proof(proof, system)
+        tp = ZKHonkTranscript.from_proof(vk, proof, system)
         circuit = ZKHonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
     else:
         assert isinstance(proof, HonkProof)
-        tp = HonkTranscript.from_proof(proof, system)
+        tp = HonkTranscript.from_proof(vk, proof, system)
         circuit = HonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
 
     vk_circuit = vk.to_circuit_elements(circuit)

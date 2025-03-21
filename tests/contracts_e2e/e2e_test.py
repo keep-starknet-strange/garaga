@@ -280,7 +280,7 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     system: ProofSystem = contract_info["system"]
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
-    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), system)
+    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
 
     print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
 
