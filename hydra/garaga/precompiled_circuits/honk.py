@@ -3164,7 +3164,7 @@ def honk_transcript_from_proof(
         case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
             return HonkTranscript.from_proof(vk, proof, system)
         case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
-            return ZHonkTranscript.from_proof(vk, proof, system)
+            return ZKHonkTranscript.from_proof(vk, proof, system)
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
