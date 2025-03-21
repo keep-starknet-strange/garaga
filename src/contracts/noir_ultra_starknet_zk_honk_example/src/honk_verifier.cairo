@@ -5,7 +5,7 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-    run_BN254_EVAL_FN_CHALLENGE_DUPL_45P_RLC_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
 };
 
 #[starknet::interface]
@@ -23,7 +23,7 @@ mod UltraStarknetZKHonkVerifier {
         G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
         compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
     };
-    use garaga::basic_field_ops::{batch_3_mod_p};
+    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{
@@ -32,7 +32,7 @@ mod UltraStarknetZKHonkVerifier {
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_DUPL_45P_RLC_circuit,
+        run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
     };
     use garaga::utils::noir::{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{Point256IntoCircuitPoint, StarknetHasherState};
@@ -164,7 +164,6 @@ mod UltraStarknetZKHonkVerifier {
                 scalar_70,
                 scalar_71,
                 scalar_72,
-                _,
             ) =
                 run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -369,13 +368,19 @@ mod UltraStarknetZKHonkVerifier {
                 ),
             ];
 
-            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_45P_RLC_circuit(
-                A0: random_point,
-                A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-                coeff0: mb.coeff0,
-                coeff2: mb.coeff2,
+            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
+                A: random_point,
+                coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
+            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
+                A: G1Point { x: mb.x_A2, y: mb.y_A2 },
+                coeff: mb.coeff2,
+                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+            );
+            let mod_bn = get_modulus(0);
+
+            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
             let rhs_low = compute_rhs_ecip(
                 points,

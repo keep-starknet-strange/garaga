@@ -1337,9 +1337,8 @@ pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
     circuit_inputs = circuit_inputs.next_2(previous_lhs); // in7
     circuit_inputs = circuit_inputs.next_2(R_n_minus_2_of_z); // in8
 
-    let mut Q = Q;
-    while let Option::Some(val) = Q.pop_front() {
-        circuit_inputs = circuit_inputs.next_2(val);
+    for val in Q.span() {
+        circuit_inputs = circuit_inputs.next_2(*val);
     }; // in9 - in89
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1652,9 +1651,8 @@ pub fn run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
     circuit_inputs = circuit_inputs.next_2(previous_lhs); // in7
     circuit_inputs = circuit_inputs.next_2(R_n_minus_2_of_z); // in8
 
-    let mut Q = Q;
-    while let Option::Some(val) = Q.pop_front() {
-        circuit_inputs = circuit_inputs.next_2(val);
+    for val in Q.span() {
+        circuit_inputs = circuit_inputs.next_2(*val);
     }; // in9 - in113
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -4633,9 +4631,8 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(previous_lhs); // in32
     circuit_inputs = circuit_inputs.next_2(R_n_minus_3_of_z); // in33
 
-    let mut Q = Q;
-    while let Option::Some(val) = Q.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+    for val in Q.span() {
+        circuit_inputs = circuit_inputs.next_u288(*val);
     }; // in34 - in178
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -5399,9 +5396,8 @@ pub fn run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
     circuit_inputs = circuit_inputs.next_2(previous_lhs); // in48
     circuit_inputs = circuit_inputs.next_2(R_n_minus_3_of_z); // in49
 
-    let mut Q = Q;
-    while let Option::Some(val) = Q.pop_front() {
-        circuit_inputs = circuit_inputs.next_u288(val);
+    for val in Q.span() {
+        circuit_inputs = circuit_inputs.next_u288(*val);
     }; // in50 - in239
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();

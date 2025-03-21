@@ -194,7 +194,7 @@ def get_scarb_toml_file(package_name: str, cli_mode: bool):
     return f"""[package]
 name = "{package_name}"
 version = "0.1.0"
-edition = "2024_07"
+edition = "2023_10"
 
 [dependencies]
 garaga = {{ {dep} }}

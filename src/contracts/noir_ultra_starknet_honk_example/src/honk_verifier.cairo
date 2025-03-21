@@ -2,7 +2,7 @@ use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
     run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-    run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
 };
 
 #[starknet::interface]
@@ -20,13 +20,13 @@ mod UltraStarknetHonkVerifier {
         G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
         compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
     };
-    use garaga::basic_field_ops::{batch_3_mod_p};
+    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit,
+        run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
     };
     use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{
@@ -78,11 +78,11 @@ mod UltraStarknetHonkVerifier {
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
-                tp_eta_1: transcript.eta.into(),
-                tp_eta_2: transcript.eta_two.into(),
-                tp_eta_3: transcript.eta_three.into(),
-                tp_beta: transcript.beta.into(),
-                tp_gamma: transcript.gamma.into(),
+                tp_eta_1: transcript.eta,
+                tp_eta_2: transcript.eta_two,
+                tp_eta_3: transcript.eta_three,
+                tp_beta: transcript.beta,
+                tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
             );
@@ -128,7 +128,6 @@ mod UltraStarknetHonkVerifier {
                 scalar_43,
                 scalar_44,
                 scalar_68,
-                _,
             ) =
                 run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -323,13 +322,19 @@ mod UltraStarknetHonkVerifier {
                 ),
             ];
 
-            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit(
-                A0: random_point,
-                A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-                coeff0: mb.coeff0,
-                coeff2: mb.coeff2,
+            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
+                A: random_point,
+                coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
+            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
+                A: G1Point { x: mb.x_A2, y: mb.y_A2 },
+                coeff: mb.coeff2,
+                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+            );
+            let mod_bn = get_modulus(0);
+
+            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
             let rhs_low = compute_rhs_ecip(
                 points,
@@ -359,7 +364,6 @@ mod UltraStarknetHonkVerifier {
                 0,
             );
 
-            let mod_bn = get_modulus(0);
             let zk_ecip_batched_rhs = batch_3_mod_p(
                 rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn,
             );

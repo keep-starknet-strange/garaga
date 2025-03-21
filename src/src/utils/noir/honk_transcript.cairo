@@ -254,252 +254,6 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{
-        HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
-        StarknetHasherState,
-    };
-    use garaga::utils::noir::{get_vk, get_proof_keccak, get_proof_starknet};
-    #[test]
-    fn test_transcript_keccak() {
-        let vk = get_vk();
-        let proof = get_proof_keccak();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
-            KeccakHasherState,
-        >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
-        let expected = HonkTranscript {
-            eta: 0x8f552b09842921c3d8e179c45df06f60,
-            eta_two: 0x12fbf1fd24f38c808ec773d904e06a74,
-            eta_three: 0x31848febf1a2baa2787dce151b3af87f,
-            beta: 0xd862459f6b68ff32eb00329415abbeb4,
-            gamma: 0x490beb870562adcb4b5b369ecaad99a,
-            alphas: array![
-                0xeb60fa249708fce6448e9d3b01921b45,
-                0x2dcc3670321250579136fa1f0cdcb82c,
-                0x2fdd6fb0ec0576290d75a3787fab4943,
-                0x23bfbbb4313d4d62912624d0c7af3778,
-                0x2ea2f2d064271b5ba8ea40a93e5508a3,
-                0x2e44916f8a2a4ae7397f4d70a32bee1b,
-                0x53d85eacf5d74ec893c9642feab95374,
-                0x1c68457e0064ae9ca5cdb7dc9a6a9877,
-                0xf9967d7ff15b716e4732d03d770b4b7c,
-                0x16ec6f6fe2cdeda6a992e17c5d84e9f5,
-                0x2f3f85623409fdc6a2ff32dcdae23e47,
-                0xb7ed594e3690a48788d067c3c6eab49,
-                0x47083760a50211d763a0e28c85ca0ab2,
-                0x17f16c9ed3ef1d10ea5adf32add4a5bd,
-                0xd8ef1260fa77b69b5af8bd9e8839fbfa,
-                0x457b064b31e9c7c3f8df87132c3be60,
-                0xa0f795db922a9c0f842c25cd129bee7,
-                0x2bd5e75480cfd6d8bdf15239c4ee2de1,
-                0x6acf0ddbb7736b7c60ef36f3602d7644,
-                0x184ca1e15327827bfb91b6ff00c63c35,
-                0x599e7c7c1b77951ef0f9c29e4767b721,
-                0x218203e486042d51b09588fcc37f3f6,
-                0xd6467fb2e7bb03ce03b52206b69a2af7,
-                0x1671504835ea499e8eca67268db3e28e,
-                0xb60028b150a4357f47682e533f5f9992,
-            ],
-            gate_challenges: array![
-                0x81f4f81b706ba682619d2f5ba0729be6,
-                0x21c790fac296d7c844d88f1dd2f60035,
-                0x1a6dee6be12c075b76ec039da01e8abb,
-                0x3edb03832d3937d142722417c84b2b3,
-                0xc0a2e585fb420359ea6117221d1454c5,
-                0x23c1677ee0de9bad0de211e565ea8519,
-                0x4dba9384b4bca6565b27d243ea5ee01d,
-                0x6f0e395b8793e96026e680365360946f,
-                0x871b3dc857c8c4b0298e140955651769,
-                0xcc7bc68b460a5ab986da8cdbb19ceadd,
-                0xbd5522614f0f52b01f111a68e78847be,
-                0x82662ff38da8507e9fc1aa266d7cac19,
-                0x365548359170099aaf47b8b28e2ec001,
-                0xf2b5ef5d5820d73eae40593062af0a13,
-                0x10e84f11b06b083aa8dfb3610dee6591,
-                0xac8c27816a32284cc9894b8c17f0960a,
-                0xfb17ebba25c7145f502f9bfaf3ed7bd3,
-                0x91720e68e07f55ceaa0dc6aa64d0c119,
-                0x23f4b1dff3848ed7d629279b639dd5b3,
-                0x7865fd4964ea388a73d507a08c4c30e8,
-                0xcb1c8bb2b147c5a65ca5cccfa22a2c64,
-                0xbe176fab8c0c15b088af4cb51073a2b6,
-                0x833f40aaaa002056498d064923f6fa2e,
-                0x5591d25fdc27a8115a7df89b873bea0,
-                0x535eca64b27d035c67e6ef51992fab71,
-                0x9844b56d7dc0be5d3666264c83edb8c0,
-                0x8c614118f36b73944f7650d110cf2023,
-                0xd45a9a753c738faf5af35cd808904ae2,
-            ],
-            sum_check_u_challenges: array![
-                0x5deab7fd7bf68b847a04d56063fb5d54,
-                0x800dbc1afedb937488f8e86702ef756e,
-                0xf6bb6a9ac1c2904b516dd0020a1f6bab,
-                0xcc84ad1bfc96d5c6688c2e4176ec9427,
-                0x4efcedd7ca1db5771a6ac6bf32bfa84e,
-                0x3a118eec6a7140d8623848460005680b,
-                0x131694194defa18110185afeddf2d1b2,
-                0xe7b0d23ec9a136263e91f750fd36e161,
-                0xe26c687e34c0724f7e523fde786be010,
-                0xcd9cbb30d202796f1cbdc37a8fcd9f26,
-                0x9005a9a774ae28e14dd115c972516b14,
-                0xedae819a97523359ac10a1106c002e74,
-                0x26caef78b45d503bbc9055b536e5f8b4,
-                0xa8a6288913d1d3ecd0990f6c42bc13d3,
-                0x3e7f45a0dccbd904d6a9148b5115dbbc,
-                0x8cb0edfbdae121efacbddbcc7175107d,
-                0x52dc4bfa0bec646f9d4fab911822d8ad,
-                0xb2e49bb080ffee7fcdd55a62a528cb88,
-                0x82bbbd3e6ecaed0bdea29ff03cc7e8ce,
-                0x4ade5e83d94d31f90492f8d3a6e1e682,
-                0xf614ae1527c8e69d49d500bf416dd26c,
-                0xea8ff1d92d99d4b509c6264d5b94cc97,
-                0x520a5a2a6c9ead1fd907da6aa797130e,
-                0x3a906556ff880bd8db8c09c478318652,
-                0x11ef1d24e255c77fee63d1b1a3556b66,
-                0xf6540bb65059d956b407a30b886bc5be,
-                0xac0acd7d0849846373d07f8decd56eee,
-                0xa69e1a25cf5789dc59d0e83dc74e6b01,
-            ],
-            rho: 0xee4eb74b3e344e1e7198579a6d05c83f,
-            gemini_r: 0xd8811fa4e82faef06a389ebfa77269a2,
-            shplonk_nu: 0x39db5d248a75833cb7752419437b987e,
-            shplonk_z: 0x14fe91a40f4b58a1a846076a2f3f0181,
-        };
-        assert_eq!(transcript.eta, expected.eta);
-        assert_eq!(transcript.eta_two, expected.eta_two);
-        assert_eq!(transcript.eta_three, expected.eta_three);
-        assert_eq!(transcript.beta, expected.beta);
-        assert_eq!(transcript.gamma, expected.gamma);
-        assert_eq!(transcript.alphas, expected.alphas);
-        assert_eq!(transcript.gate_challenges, expected.gate_challenges);
-        assert_eq!(transcript.sum_check_u_challenges, expected.sum_check_u_challenges);
-        assert_eq!(transcript.rho, expected.rho);
-        assert_eq!(transcript.gemini_r, expected.gemini_r);
-        assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
-        assert_eq!(transcript.shplonk_z, expected.shplonk_z);
-    }
-    #[test]
-    fn test_transcript_starknet() {
-        let vk = get_vk();
-        let proof = get_proof_starknet();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
-            StarknetHasherState,
-        >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
-        let expected = HonkTranscript {
-            eta: 0xacab94703ab6d0ac76a257baf5b3cc47,
-            eta_two: 0x48aa9b84794b8501475d1acdde7c12,
-            eta_three: 0x75e7a26159152b2e8ffe0d819208882a,
-            beta: 0x964133a1e77ef97b1e8f861fc2c60723,
-            gamma: 0x5f6f7c58fa879b7ce52e395dfdce364,
-            alphas: array![
-                0xe7911296f60df1760a5be7afee898a12,
-                0x6fb11a8bcf4528a66e537cd7ec05e34,
-                0x2f586b8a5e1b275bfdf60dbdb2608fd5,
-                0x685bfbd08ddad1709c19634a02c9f77,
-                0xbd0ba4fcee9fd962935586e8a7d5339e,
-                0x6a6fb02b6aba4e2445383eaf0520be7,
-                0x9022363a8d8b370b056fac4ff4fa7a,
-                0x441c400cf1827b3466bed56e84e2cf9,
-                0x18a3e1de86d1c66cba855a5fe580daea,
-                0x742ce348dc252d7b70722f123cc2cba,
-                0x221fd3dab521b999036b1a3b5208ee0b,
-                0xa449dec06766699424ccf3db36acd3,
-                0x76397a396545e559b9d760d10709b00e,
-                0x69ee542904a0fb3acb14f9a31110346,
-                0xced4926c55cad486c97940a7c7a50358,
-                0x13cfa991749b10cb201df1d4694e567,
-                0xa0eb8ec6324d4ae17efb7b6cfa659a1,
-                0x42644dc16c5395ab1c06f98dd37e7b3,
-                0x969d8263384583d371bcad8d4cf069ea,
-                0x70cf93d413328ff7d168e0000751abf,
-                0x126e690d2bc4a9082d9be37a26ca4306,
-                0x5caf12ab713e66155c9f8235fabbfbf,
-                0x6d6241b94e8cb208f1dd22dd76effc64,
-                0x6deb65afd65fbb307c503d7106cdfd9,
-                0x2f71118a04e7451931fd629d305f0164,
-            ],
-            gate_challenges: array![
-                0x69c37c6c2ffba2f07e39d26432181f2e,
-                0x23ac910b6f51fb3d81a9d968f6f00b44,
-                0x7d16fc9dc0f496c5dfaad141b7ff2785,
-                0xfda0c15eddaa9c5deb5f3ada049925b5,
-                0x4e979fc84f06b5823fe74b430dd22d12,
-                0x8d1b8e63324d96c697f7e7b0ef9ab032,
-                0x1b2a8f9bad182647bb0808319ae8802b,
-                0xf798302b1d90fa22890f106f73fd52c3,
-                0xdf416794a76cf1a268eb3800bdbb7a27,
-                0xc3070672a9d001a3e201f3567d3cf26,
-                0x1173d7336be0ca588ddb468918c30d44,
-                0x443fccd696e9694ccb17c5f41e718827,
-                0x7d36241e3cbf818664a14e89d5db7e1b,
-                0x8c382222a14ad2e385dcb00929dead66,
-                0x39b3f265f401af6c81164c854f792c37,
-                0x3739d9af74ff462191040a49b332e701,
-                0x369acb748865636da7853ae51af388b,
-                0xcb801712dd82470e1aafb760e5447c6c,
-                0x9dccfa35df07b05ba983d4bd27606431,
-                0xfb170e32c43c8934ba2b03c4b7efe738,
-                0x75d7f7c00e6f9ca5f65e34581fac33f0,
-                0xc5b490a4215093be8f547c1c521ce016,
-                0x25cfd09a174499d84b961cc1c6434797,
-                0x33371c22958a398e5e257d1e5aeb29fe,
-                0xd8d4d07688225e278de2e7dd5f01f1f,
-                0x60be980e8c25ee53c7f6cdbfa3d43b4,
-                0xbcfe51021c0c9b872c999ca50c883273,
-                0xdef59c8cc9e2e6d841a4559b7f559b18,
-            ],
-            sum_check_u_challenges: array![
-                0xa6f62ac9a6d65343c89cd8b8bbce38a4,
-                0x36e11608428ed71dbd27d2dc40647550,
-                0xe250aec24cb8748159deb84786e8853f,
-                0xa6a51b832a23b1eaebfcee0cb758aa93,
-                0xca680cd52d831e80d2b61431027bed86,
-                0x27b7dff2043dae2b3910268eb35cdd68,
-                0xdbe5d1a716a1f9dc458893fc415aef70,
-                0x1b76a47d6a8c32b957dd625cc6fcd5b7,
-                0xc91d6e073a1669b17f6536da54f86139,
-                0x50041fb3db843e4bfa45e286f2df7b10,
-                0xee0e052cde436b85dd6a70b2116c34ba,
-                0x60954981aa640aa8ae70deae98b47898,
-                0xee180b4e36aa83a35bee4ae1ee6a5cf,
-                0x9e54bea31704ef7dc466925c4c7deebc,
-                0x755ba40e9e747929612c6165ac3dd9d6,
-                0xaf5a11d38209107eeed8c4a01cefbfb2,
-                0x95b6984e042fb16e1583b9bcf1699ee,
-                0x91f09bf40ddc06a92ee187cd7f43b8f0,
-                0x294d4583b2dca4d781e4967abd742e06,
-                0x96f0382505ef58d0b464e1b247bd84ee,
-                0x6c45fab85566fd700bbf270cb1417500,
-                0xe6546fb2b8ca3f66ca59d4d5d9ee0adb,
-                0x7685215e239f8afbee74cfea22ead170,
-                0xa27092481e320c2bd02609605e924bd5,
-                0x30e9f641f7090befc71de050ff339d6b,
-                0x8cd39327f4927bfe90bec78131e0b76b,
-                0x139dbfb9449b54cdd7bac7d1fffcbd78,
-                0x666c0386e0657e4e2f09e44de17291c5,
-            ],
-            rho: 0xa94de3afcb56c451d2730542b106af2a,
-            gemini_r: 0xe642b1a1b5ea29ec784add59062acad2,
-            shplonk_nu: 0x2cb604ccd14cc249f3b4b25bb3f8c518,
-            shplonk_z: 0x7d749235fb659af386c5ecaf5eebb736,
-        };
-        assert_eq!(transcript.eta, expected.eta);
-        assert_eq!(transcript.eta_two, expected.eta_two);
-        assert_eq!(transcript.eta_three, expected.eta_three);
-        assert_eq!(transcript.beta, expected.beta);
-        assert_eq!(transcript.gamma, expected.gamma);
-        assert_eq!(transcript.alphas, expected.alphas);
-        assert_eq!(transcript.gate_challenges, expected.gate_challenges);
-        assert_eq!(transcript.sum_check_u_challenges, expected.sum_check_u_challenges);
-        assert_eq!(transcript.rho, expected.rho);
-        assert_eq!(transcript.gemini_r, expected.gemini_r);
-        assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
-        assert_eq!(transcript.shplonk_z, expected.shplonk_z);
-    }
-}
-
-
 #[derive(Drop)]
 struct Etas {
     eta: u128,
@@ -754,5 +508,245 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
     append_proof_point(ref hasher, shplonk_q);
 
     hasher.digest()
+}
+
+
+#[cfg(test)]
+mod tests {
+    use garaga::utils::noir::{get_proof_keccak, get_proof_starknet};
+    use super::{
+        G1Point256, HonkProof, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
+        StarknetHasherState,
+    };
+    #[test]
+    fn test_transcript_keccak() {
+        let proof = get_proof_keccak();
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<KeccakHasherState>(proof);
+        let expected = HonkTranscript {
+            eta: 0x8f552b09842921c3d8e179c45df06f60,
+            eta_two: 0x12fbf1fd24f38c808ec773d904e06a74,
+            eta_three: 0x31848febf1a2baa2787dce151b3af87f,
+            beta: 0xd862459f6b68ff32eb00329415abbeb4,
+            gamma: 0x490beb870562adcb4b5b369ecaad99a,
+            alphas: array![
+                0xeb60fa249708fce6448e9d3b01921b45,
+                0x2dcc3670321250579136fa1f0cdcb82c,
+                0x2fdd6fb0ec0576290d75a3787fab4943,
+                0x23bfbbb4313d4d62912624d0c7af3778,
+                0x2ea2f2d064271b5ba8ea40a93e5508a3,
+                0x2e44916f8a2a4ae7397f4d70a32bee1b,
+                0x53d85eacf5d74ec893c9642feab95374,
+                0x1c68457e0064ae9ca5cdb7dc9a6a9877,
+                0xf9967d7ff15b716e4732d03d770b4b7c,
+                0x16ec6f6fe2cdeda6a992e17c5d84e9f5,
+                0x2f3f85623409fdc6a2ff32dcdae23e47,
+                0xb7ed594e3690a48788d067c3c6eab49,
+                0x47083760a50211d763a0e28c85ca0ab2,
+                0x17f16c9ed3ef1d10ea5adf32add4a5bd,
+                0xd8ef1260fa77b69b5af8bd9e8839fbfa,
+                0x457b064b31e9c7c3f8df87132c3be60,
+                0xa0f795db922a9c0f842c25cd129bee7,
+                0x2bd5e75480cfd6d8bdf15239c4ee2de1,
+                0x6acf0ddbb7736b7c60ef36f3602d7644,
+                0x184ca1e15327827bfb91b6ff00c63c35,
+                0x599e7c7c1b77951ef0f9c29e4767b721,
+                0x218203e486042d51b09588fcc37f3f6,
+                0xd6467fb2e7bb03ce03b52206b69a2af7,
+                0x1671504835ea499e8eca67268db3e28e,
+                0xb60028b150a4357f47682e533f5f9992,
+            ],
+            gate_challenges: array![
+                0x81f4f81b706ba682619d2f5ba0729be6,
+                0x21c790fac296d7c844d88f1dd2f60035,
+                0x1a6dee6be12c075b76ec039da01e8abb,
+                0x3edb03832d3937d142722417c84b2b3,
+                0xc0a2e585fb420359ea6117221d1454c5,
+                0x23c1677ee0de9bad0de211e565ea8519,
+                0x4dba9384b4bca6565b27d243ea5ee01d,
+                0x6f0e395b8793e96026e680365360946f,
+                0x871b3dc857c8c4b0298e140955651769,
+                0xcc7bc68b460a5ab986da8cdbb19ceadd,
+                0xbd5522614f0f52b01f111a68e78847be,
+                0x82662ff38da8507e9fc1aa266d7cac19,
+                0x365548359170099aaf47b8b28e2ec001,
+                0xf2b5ef5d5820d73eae40593062af0a13,
+                0x10e84f11b06b083aa8dfb3610dee6591,
+                0xac8c27816a32284cc9894b8c17f0960a,
+                0xfb17ebba25c7145f502f9bfaf3ed7bd3,
+                0x91720e68e07f55ceaa0dc6aa64d0c119,
+                0x23f4b1dff3848ed7d629279b639dd5b3,
+                0x7865fd4964ea388a73d507a08c4c30e8,
+                0xcb1c8bb2b147c5a65ca5cccfa22a2c64,
+                0xbe176fab8c0c15b088af4cb51073a2b6,
+                0x833f40aaaa002056498d064923f6fa2e,
+                0x5591d25fdc27a8115a7df89b873bea0,
+                0x535eca64b27d035c67e6ef51992fab71,
+                0x9844b56d7dc0be5d3666264c83edb8c0,
+                0x8c614118f36b73944f7650d110cf2023,
+                0xd45a9a753c738faf5af35cd808904ae2,
+            ],
+            sum_check_u_challenges: array![
+                0x5deab7fd7bf68b847a04d56063fb5d54,
+                0x800dbc1afedb937488f8e86702ef756e,
+                0xf6bb6a9ac1c2904b516dd0020a1f6bab,
+                0xcc84ad1bfc96d5c6688c2e4176ec9427,
+                0x4efcedd7ca1db5771a6ac6bf32bfa84e,
+                0x3a118eec6a7140d8623848460005680b,
+                0x131694194defa18110185afeddf2d1b2,
+                0xe7b0d23ec9a136263e91f750fd36e161,
+                0xe26c687e34c0724f7e523fde786be010,
+                0xcd9cbb30d202796f1cbdc37a8fcd9f26,
+                0x9005a9a774ae28e14dd115c972516b14,
+                0xedae819a97523359ac10a1106c002e74,
+                0x26caef78b45d503bbc9055b536e5f8b4,
+                0xa8a6288913d1d3ecd0990f6c42bc13d3,
+                0x3e7f45a0dccbd904d6a9148b5115dbbc,
+                0x8cb0edfbdae121efacbddbcc7175107d,
+                0x52dc4bfa0bec646f9d4fab911822d8ad,
+                0xb2e49bb080ffee7fcdd55a62a528cb88,
+                0x82bbbd3e6ecaed0bdea29ff03cc7e8ce,
+                0x4ade5e83d94d31f90492f8d3a6e1e682,
+                0xf614ae1527c8e69d49d500bf416dd26c,
+                0xea8ff1d92d99d4b509c6264d5b94cc97,
+                0x520a5a2a6c9ead1fd907da6aa797130e,
+                0x3a906556ff880bd8db8c09c478318652,
+                0x11ef1d24e255c77fee63d1b1a3556b66,
+                0xf6540bb65059d956b407a30b886bc5be,
+                0xac0acd7d0849846373d07f8decd56eee,
+                0xa69e1a25cf5789dc59d0e83dc74e6b01,
+            ],
+            rho: 0xee4eb74b3e344e1e7198579a6d05c83f,
+            gemini_r: 0xd8811fa4e82faef06a389ebfa77269a2,
+            shplonk_nu: 0x39db5d248a75833cb7752419437b987e,
+            shplonk_z: 0x5668c7147bfb828113c61d5d7e3b53c4,
+        };
+        assert_eq!(transcript.eta, expected.eta);
+        assert_eq!(transcript.eta_two, expected.eta_two);
+        assert_eq!(transcript.eta_three, expected.eta_three);
+        assert_eq!(transcript.beta, expected.beta);
+        assert_eq!(transcript.gamma, expected.gamma);
+        assert_eq!(transcript.alphas, expected.alphas);
+        assert_eq!(transcript.gate_challenges, expected.gate_challenges);
+        assert_eq!(transcript.sum_check_u_challenges, expected.sum_check_u_challenges);
+        assert_eq!(transcript.rho, expected.rho);
+        assert_eq!(transcript.gemini_r, expected.gemini_r);
+        assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
+        assert_eq!(transcript.shplonk_z, expected.shplonk_z);
+    }
+    #[test]
+    fn test_transcript_starknet() {
+        let proof = get_proof_starknet();
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<StarknetHasherState>(proof);
+        let expected = HonkTranscript {
+            eta: 0xacab94703ab6d0ac76a257baf5b3cc47,
+            eta_two: 0x48aa9b84794b8501475d1acdde7c12,
+            eta_three: 0x75e7a26159152b2e8ffe0d819208882a,
+            beta: 0x964133a1e77ef97b1e8f861fc2c60723,
+            gamma: 0x5f6f7c58fa879b7ce52e395dfdce364,
+            alphas: array![
+                0xe7911296f60df1760a5be7afee898a12,
+                0x6fb11a8bcf4528a66e537cd7ec05e34,
+                0x2f586b8a5e1b275bfdf60dbdb2608fd5,
+                0x685bfbd08ddad1709c19634a02c9f77,
+                0xbd0ba4fcee9fd962935586e8a7d5339e,
+                0x6a6fb02b6aba4e2445383eaf0520be7,
+                0x9022363a8d8b370b056fac4ff4fa7a,
+                0x441c400cf1827b3466bed56e84e2cf9,
+                0x18a3e1de86d1c66cba855a5fe580daea,
+                0x742ce348dc252d7b70722f123cc2cba,
+                0x221fd3dab521b999036b1a3b5208ee0b,
+                0xa449dec06766699424ccf3db36acd3,
+                0x76397a396545e559b9d760d10709b00e,
+                0x69ee542904a0fb3acb14f9a31110346,
+                0xced4926c55cad486c97940a7c7a50358,
+                0x13cfa991749b10cb201df1d4694e567,
+                0xa0eb8ec6324d4ae17efb7b6cfa659a1,
+                0x42644dc16c5395ab1c06f98dd37e7b3,
+                0x969d8263384583d371bcad8d4cf069ea,
+                0x70cf93d413328ff7d168e0000751abf,
+                0x126e690d2bc4a9082d9be37a26ca4306,
+                0x5caf12ab713e66155c9f8235fabbfbf,
+                0x6d6241b94e8cb208f1dd22dd76effc64,
+                0x6deb65afd65fbb307c503d7106cdfd9,
+                0x2f71118a04e7451931fd629d305f0164,
+            ],
+            gate_challenges: array![
+                0x69c37c6c2ffba2f07e39d26432181f2e,
+                0x23ac910b6f51fb3d81a9d968f6f00b44,
+                0x7d16fc9dc0f496c5dfaad141b7ff2785,
+                0xfda0c15eddaa9c5deb5f3ada049925b5,
+                0x4e979fc84f06b5823fe74b430dd22d12,
+                0x8d1b8e63324d96c697f7e7b0ef9ab032,
+                0x1b2a8f9bad182647bb0808319ae8802b,
+                0xf798302b1d90fa22890f106f73fd52c3,
+                0xdf416794a76cf1a268eb3800bdbb7a27,
+                0xc3070672a9d001a3e201f3567d3cf26,
+                0x1173d7336be0ca588ddb468918c30d44,
+                0x443fccd696e9694ccb17c5f41e718827,
+                0x7d36241e3cbf818664a14e89d5db7e1b,
+                0x8c382222a14ad2e385dcb00929dead66,
+                0x39b3f265f401af6c81164c854f792c37,
+                0x3739d9af74ff462191040a49b332e701,
+                0x369acb748865636da7853ae51af388b,
+                0xcb801712dd82470e1aafb760e5447c6c,
+                0x9dccfa35df07b05ba983d4bd27606431,
+                0xfb170e32c43c8934ba2b03c4b7efe738,
+                0x75d7f7c00e6f9ca5f65e34581fac33f0,
+                0xc5b490a4215093be8f547c1c521ce016,
+                0x25cfd09a174499d84b961cc1c6434797,
+                0x33371c22958a398e5e257d1e5aeb29fe,
+                0xd8d4d07688225e278de2e7dd5f01f1f,
+                0x60be980e8c25ee53c7f6cdbfa3d43b4,
+                0xbcfe51021c0c9b872c999ca50c883273,
+                0xdef59c8cc9e2e6d841a4559b7f559b18,
+            ],
+            sum_check_u_challenges: array![
+                0xa6f62ac9a6d65343c89cd8b8bbce38a4,
+                0x36e11608428ed71dbd27d2dc40647550,
+                0xe250aec24cb8748159deb84786e8853f,
+                0xa6a51b832a23b1eaebfcee0cb758aa93,
+                0xca680cd52d831e80d2b61431027bed86,
+                0x27b7dff2043dae2b3910268eb35cdd68,
+                0xdbe5d1a716a1f9dc458893fc415aef70,
+                0x1b76a47d6a8c32b957dd625cc6fcd5b7,
+                0xc91d6e073a1669b17f6536da54f86139,
+                0x50041fb3db843e4bfa45e286f2df7b10,
+                0xee0e052cde436b85dd6a70b2116c34ba,
+                0x60954981aa640aa8ae70deae98b47898,
+                0xee180b4e36aa83a35bee4ae1ee6a5cf,
+                0x9e54bea31704ef7dc466925c4c7deebc,
+                0x755ba40e9e747929612c6165ac3dd9d6,
+                0xaf5a11d38209107eeed8c4a01cefbfb2,
+                0x95b6984e042fb16e1583b9bcf1699ee,
+                0x91f09bf40ddc06a92ee187cd7f43b8f0,
+                0x294d4583b2dca4d781e4967abd742e06,
+                0x96f0382505ef58d0b464e1b247bd84ee,
+                0x6c45fab85566fd700bbf270cb1417500,
+                0xe6546fb2b8ca3f66ca59d4d5d9ee0adb,
+                0x7685215e239f8afbee74cfea22ead170,
+                0xa27092481e320c2bd02609605e924bd5,
+                0x30e9f641f7090befc71de050ff339d6b,
+                0x8cd39327f4927bfe90bec78131e0b76b,
+                0x139dbfb9449b54cdd7bac7d1fffcbd78,
+                0x666c0386e0657e4e2f09e44de17291c5,
+            ],
+            rho: 0xa94de3afcb56c451d2730542b106af2a,
+            gemini_r: 0xe642b1a1b5ea29ec784add59062acad2,
+            shplonk_nu: 0x2cb604ccd14cc249f3b4b25bb3f8c518,
+            shplonk_z: 0xa3db962951152eafbcdc3661164a6411,
+        };
+        assert_eq!(transcript.eta, expected.eta);
+        assert_eq!(transcript.eta_two, expected.eta_two);
+        assert_eq!(transcript.eta_three, expected.eta_three);
+        assert_eq!(transcript.beta, expected.beta);
+        assert_eq!(transcript.gamma, expected.gamma);
+        assert_eq!(transcript.alphas, expected.alphas);
+        assert_eq!(transcript.gate_challenges, expected.gate_challenges);
+        assert_eq!(transcript.sum_check_u_challenges, expected.sum_check_u_challenges);
+        assert_eq!(transcript.rho, expected.rho);
+        assert_eq!(transcript.gemini_r, expected.gemini_r);
+        assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
+        assert_eq!(transcript.shplonk_z, expected.shplonk_z);
+    }
 }
 
