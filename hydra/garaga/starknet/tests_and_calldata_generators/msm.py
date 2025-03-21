@@ -340,9 +340,9 @@ class MSMCalldataBuilder:
     def to_cairo_1_test(
         self, test_name: str = None, include_digits_decomposition=False
     ):
-        print(
-            f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
-        )
+        # print(
+        #     f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
+        # )
         test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 

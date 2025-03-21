@@ -9,6 +9,7 @@ starknet = "2.11.2"
 
 [cairo]
 sierra-replace-ids = false
+inlining-strategy = 1
 
 [dev-dependencies]
 cairo_test = "2.11.2"

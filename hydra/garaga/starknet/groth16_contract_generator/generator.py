@@ -108,7 +108,7 @@ mod Groth16Verifier{curve_id.name} {{
             let ic = ic.span();
 
             let vk_x: G1Point = match ic.len() {{
-                0 => panic!("Malformed VK"),
+                0 => core::panic_with_felt252('Malformed VK'),
                 1 => *ic.at(0),
                 _ => {{
                     // Start serialization with the hint array directly to avoid copying it.
@@ -169,7 +169,11 @@ mod Groth16Verifier{curve_id.name} {{
         f.write(contract_code)
 
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(get_scarb_toml_file(output_folder_name, cli_mode))
+        f.write(
+            get_scarb_toml_file(
+                package_name=output_folder_name, cli_mode=cli_mode, inlining_level=2
+            )
+        )
 
     with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
         f.write(
@@ -182,7 +186,7 @@ mod groth16_verifier_constants;
     return constants_code
 
 
-def get_scarb_toml_file(package_name: str, cli_mode: bool):
+def get_scarb_toml_file(package_name: str, cli_mode: bool, inlining_level: int = 1):
     version = get_package_version()
     if version == "dev":
         suffix = ""
@@ -204,6 +208,7 @@ starknet = "{CAIRO_VERSION}"
 
 [cairo]
 sierra-replace-ids = false
+inlining-strategy = {inlining_level}
 
 [dev-dependencies]
 cairo_test = "{CAIRO_VERSION}"

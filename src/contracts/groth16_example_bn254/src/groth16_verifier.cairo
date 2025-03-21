@@ -46,7 +46,7 @@ mod Groth16VerifierBN254 {
             let ic = ic.span();
 
             let vk_x: G1Point = match ic.len() {
-                0 => panic!("Malformed VK"),
+                0 => core::panic_with_felt252('Malformed VK'),
                 1 => *ic.at(0),
                 _ => {
                     // Start serialization with the hint array directly to avoid copying it.

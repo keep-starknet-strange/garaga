@@ -5,7 +5,7 @@ from pathlib import Path
 from garaga.definitions import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
-    EvalFunctionChallengeDuplCircuit,
+    EvalFunctionChallengeSingleCircuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     PrepareScalarsCircuit,
@@ -18,6 +18,39 @@ from garaga.starknet.groth16_contract_generator.generator import (
     CAIRO_VERSION,
     get_scarb_toml_file,
 )
+
+
+def get_impl_template(num_outputs: int):
+    TEMPLATE = """\n
+    impl CircuitDefinition{num_outputs}<
+        {elements}
+    > of core::circuit::CircuitDefinition<
+        (
+            {ce_elements}
+        )
+    > {{
+        type CircuitType =
+            core::circuit::Circuit<
+                ({elements_tuple},)
+            >;
+    }}
+    impl MyDrp_{num_outputs}<
+        {elements}
+    > of Drop<
+        (
+            {ce_elements}
+        )
+    >;
+    """
+    elements = ", ".join(f"E{i}" for i in range(num_outputs))
+    ce_elements = ", ".join(f"CE<E{i}>" for i in range(num_outputs))
+    elements_tuple = ", ".join(f"E{i}" for i in range(num_outputs))
+    return TEMPLATE.format(
+        num_outputs=num_outputs,
+        elements=elements,
+        ce_elements=ce_elements,
+        elements_tuple=elements_tuple,
+    )
 
 
 def precompute_lines_honk() -> StructArray:
@@ -48,8 +81,7 @@ use garaga::core::circuit::AddInputResultTrait2;
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};
-use core::option::Option;\n
+use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
 """
     code = header
     sumcheck_circuit = SumCheckCircuit(vk)
@@ -72,7 +104,7 @@ use core::option::Option;\n
     )
     code += sumcheck_code + prepare_scalars_code
 
-    lhs_ecip_circuit = EvalFunctionChallengeDuplCircuit(
+    lhs_ecip_circuit = EvalFunctionChallengeSingleCircuit(
         CurveID.BN254.value,
         n_points=msm_len,
         batched=True,
@@ -81,9 +113,11 @@ use core::option::Option;\n
     )
     lhs_ecip_function_name = f"{CurveID.BN254.name}_{lhs_ecip_circuit.name.upper()}"
     lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
-        function_name=lhs_ecip_function_name, pub=True
+        function_name=lhs_ecip_function_name, pub=True, inline=False
     )
     code += lhs_ecip_code
+
+    code += get_impl_template(len(scalar_indexes))
     return (
         code,
         sumcheck_function_name,
@@ -170,7 +204,7 @@ mod Ultra{flavor}HonkVerifier {{
     use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
-    use garaga::basic_field_ops::{{batch_3_mod_p}};
+    use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
@@ -216,18 +250,17 @@ mod Ultra{flavor}HonkVerifier {{
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
-                tp_eta_1: transcript.eta.into(),
-                tp_eta_2: transcript.eta_two.into(),
-                tp_eta_3: transcript.eta_three.into(),
-                tp_beta: transcript.beta.into(),
-                tp_gamma: transcript.gamma.into(),
+                tp_eta_1: transcript.eta,
+                tp_eta_2: transcript.eta_two,
+                tp_eta_3: transcript.eta_three,
+                tp_beta: transcript.beta,
+                tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
             );
 
         let (
             {scalars_tuple},
-            _
         ) =
             {prepare_scalars_function_name}(
             p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -371,7 +404,11 @@ mod Ultra{flavor}HonkVerifier {{
                 (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
             ];
 
-            let (zk_ecip_batched_lhs) = {lhs_ecip_function_name}(A0:random_point, A2:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff0:mb.coeff0, coeff2:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
+            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
+            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
+            let mod_bn = get_modulus(0);
+
+            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
             let rhs_low = compute_rhs_ecip(
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
@@ -389,7 +426,6 @@ mod Ultra{flavor}HonkVerifier {{
                 0
             );
 
-            let mod_bn = get_modulus(0);
             let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
 
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
