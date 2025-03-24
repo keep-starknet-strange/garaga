@@ -396,9 +396,7 @@ where
     }
     push_elements::<USE_288, F>(call_data_ref, &big_q_coeffs, true);
 
-    if USE_288 {
-        push(call_data_ref, BigUint::from_bytes_be(&z.to_bytes_be()));
-    } // temp hack until we refactor bls as well
+    push(call_data_ref, BigUint::from_bytes_be(&z.to_bytes_be()));
 
     if let Some(small_q) = small_q {
         push_elements::<USE_288, F>(call_data_ref, &small_q, false);

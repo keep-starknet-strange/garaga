@@ -769,7 +769,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
     @property
     def input_map(self):
         return {
-            "R_n_minus_1": E12D,
+            "R_n_minus_1_of_z": u384,
             "c_n_minus_2": u384,
             "w_of_z": u384,
             "z": u384,
@@ -786,9 +786,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
         circuit.create_powers_of_Z(vars["z"], max_degree=12)
 
         c_n_minus_1 = circuit.square(vars["c_n_minus_2"])
-        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(
-            vars["R_n_minus_1"], poly_name="R_n_minus_1"
-        )
+        R_n_minus_1_of_z = vars["R_n_minus_1_of_z"]
 
         # Relation n-1 (last one) : f * w * c_inv_frob_1
         prod_k_P_of_z_n_minus_1 = circuit.mul(

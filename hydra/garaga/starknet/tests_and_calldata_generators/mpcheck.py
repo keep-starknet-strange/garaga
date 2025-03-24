@@ -266,11 +266,7 @@ class MPCheckCalldataBuilder:
                     ),
                     structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
                 ]
-                + (
-                    [structs.felt252(name="z", elmts=[z])]
-                    if self.curve_id == CurveID.BN254
-                    else []
-                ),
+                + [structs.felt252(name="z", elmts=[z])],
             ),
             small_Q_struct,
         )

@@ -1013,9 +1013,9 @@ fn deserialize_mpcheck_hint_bls12_381(ref serialized: Span<felt252>) -> MPCheckH
         let [l0, l1, l2, l3] = (*q).unbox();
         big_q.append(downcast_u384(l0, l1, l2, l3))
     };
-
+    let z = *serialized.pop_front().unwrap();
     let mpcheck_hint = MPCheckHintBLS12_381 {
-        lambda_root_inverse: lambda_root_inverse, w: w, Ris: Ris.span(), big_Q: big_q,
+        lambda_root_inverse: lambda_root_inverse, w: w, Ris: Ris.span(), big_Q: big_q, z: z,
     };
 
     return mpcheck_hint;
