@@ -72,7 +72,7 @@ mod UltraKeccakZKHonkVerifier {
 
             let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
-            >(@vk, full_proof.proof);
+            >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
