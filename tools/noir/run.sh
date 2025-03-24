@@ -14,38 +14,51 @@ EOF
 reset
 
 
-BB_PATH="bb"
+#BB_PATH="bb"
+BB_PATH="$HOME/Projects/Executed/onlydust/garaga/tmp/aztec-packages/barretenberg/cpp/build/bin/bb"
 
 
 echo "nargo version : $(nargo --version)" # 1.0.0-beta.2
-echo "bb version : $($BB_PATH --version)" # 0.74.0
+echo "bb version : $($BB_PATH --version)" # 0.82.2
 
 
 run_noir_proof_basic() {
     cd hello
     local suffix="_basic"
-    $BB_PATH prove -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
-    $BB_PATH write_vk -b target/hello.json -o target/vk${suffix}.bin
+
+    mkdir -p target/proof${suffix}/
+    $BB_PATH prove --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
+    mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
+    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    rmdir target/proof${suffix}/
+
     if $BB_PATH verify -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
     fi
-    $BB_PATH contract -k target/vk${suffix}.bin -o target/contract${suffix}.sol
     cd ../
 }
 
 run_noir_proof_ultra() {
     cd hello
     local suffix="_ultra"
-    $BB_PATH prove_ultra_honk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
-    $BB_PATH write_vk_ultra_honk -b target/hello.json -o target/vk${suffix}.bin
-    if $BB_PATH verify_ultra_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+
+    mkdir -p target/proof${suffix}/
+    $BB_PATH prove -s ultra_honk --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
+    mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
+    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    rmdir target/proof${suffix}/
+
+    if $BB_PATH verify -s ultra_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
     fi
-    $BB_PATH contract_ultra_honk -k target/vk${suffix}.bin -o target/contract${suffix}.sol
     cd ../
 }
 
@@ -53,16 +66,20 @@ run_noir_proof_ultra_keccak() {
     cd hello
     local suffix="_ultra_keccak"
 
-    $BB_PATH prove_ultra_keccak_honk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
-    $BB_PATH write_vk_ultra_keccak_honk -b target/hello.json -o target/vk${suffix}.bin
-    $BB_PATH vk_as_fields_ultra_keccak_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+    mkdir -p target/proof${suffix}/
+    $BB_PATH prove -s ultra_honk --oracle_hash keccak --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
+    mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
+    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    rmdir target/proof${suffix}/
 
-    if $BB_PATH verify_ultra_keccak_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash keccak -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
     fi
-    $BB_PATH contract_ultra_honk -k target/vk${suffix}.bin -o target/contract${suffix}.sol # contract_ultra_keccak_honk does not exist
+    $BB_PATH write_solidity_verifier -s ultra_honk -k target/vk${suffix}.bin -o target/contract${suffix}.sol
     cd ../
 }
 
@@ -70,16 +87,19 @@ run_noir_proof_ultra_starknet() {
     cd hello
     local suffix="_ultra_starknet"
 
-    $BB_PATH prove_ultra_starknet_honk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
-    $BB_PATH write_vk_ultra_starknet_honk -b target/hello.json -o target/vk${suffix}.bin
-    $BB_PATH vk_as_fields_ultra_starknet_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+    mkdir -p target/proof${suffix}/
+    $BB_PATH prove -s ultra_honk --oracle_hash starknet --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
+    mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
+    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    rmdir target/proof${suffix}/
 
-    if $BB_PATH verify_ultra_starknet_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash starknet -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
     fi
-    # $BB_PATH contract_ultra_honk -k target/vk${suffix}.bin -o target/contract${suffix}.sol # contract_ultra_keccak_honk does not exist
     cd ../
 }
 
@@ -87,16 +107,20 @@ run_noir_proof_ultra_keccak_zk() {
     cd hello
     local suffix="_ultra_keccak_zk"
 
-    $BB_PATH prove_ultra_keccak_honk_zk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
-    $BB_PATH write_vk_ultra_keccak_honk -b target/hello.json -o target/vk${suffix}.bin
-    $BB_PATH vk_as_fields_ultra_keccak_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+    mkdir -p target/proof${suffix}/
+    $BB_PATH prove -s ultra_honk --oracle_hash keccak --zk --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
+    mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
+    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    rmdir target/proof${suffix}/
 
-    if $BB_PATH verify_ultra_keccak_honk_zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash keccak --zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
     fi
-    $BB_PATH contract_ultra_honk_zk -k target/vk${suffix}.bin -o target/contract${suffix}.sol # contract_ultra_keccak_honk does not exist
+    $BB_PATH write_solidity_verifier -s ultra_honk --zk -k target/proof${suffix}.bin -o target/contract${suffix}.sol
     cd ../
 }
 
@@ -104,16 +128,19 @@ run_noir_proof_ultra_starknet_zk() {
     cd hello
     local suffix="_ultra_starknet_zk"
 
-    $BB_PATH prove_ultra_starknet_honk_zk -b target/hello.json -w target/witness.gz -o target/proof${suffix}.bin
-    $BB_PATH write_vk_ultra_starknet_honk -b target/hello.json -o target/vk${suffix}.bin
-    $BB_PATH vk_as_fields_ultra_starknet_honk -b target/hello.json -k target/vk${suffix}.bin -o target/vk_fields${suffix}.bin
+    mkdir -p target/proof${suffix}/
+    $BB_PATH prove -s ultra_honk --oracle_hash starknet --zk --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
+    mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
+    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    rmdir target/proof${suffix}/
 
-    if $BB_PATH verify_ultra_starknet_honk_zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash starknet --zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
     fi
-    # $BB_PATH contract_ultra_honk_zk -k target/vk${suffix}.bin -o target/contract${suffix}.sol # contract_ultra_keccak_honk does not exist
     cd ../
 }
 
