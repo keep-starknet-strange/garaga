@@ -17,7 +17,6 @@ use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegO
 use garaga::basic_field_ops;
 use garaga::circuits::extf_mul::{
     run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
 };
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,

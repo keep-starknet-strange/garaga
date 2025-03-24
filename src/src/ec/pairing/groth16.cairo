@@ -23,7 +23,7 @@ use core::poseidon::hades_permutation;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, neg_mod_p};
 use garaga::circuits::extf_mul::{
     run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
+    run_BN254_FP12_MUL_ASSERT_ONE_circuit,
 };
 use garaga::circuits::multi_pairing_check as mpc;
 use garaga::circuits::multi_pairing_check::{
