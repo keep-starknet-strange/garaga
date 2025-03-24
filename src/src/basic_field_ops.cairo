@@ -38,7 +38,6 @@ pub fn is_even_u384(a: u384) -> bool {
     limb0_u128 % 2 == 0
 }
 
-#[inline(always)]
 pub fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
@@ -302,6 +301,111 @@ pub fn eval_and_hash_E12D_u288_transcript(
         circuit_inputs = circuit_inputs.next_u288(elmt.w9); // in9
         circuit_inputs = circuit_inputs.next_u288(elmt.w10); // in10
         circuit_inputs = circuit_inputs.next_u288(elmt.w11); // in11
+        circuit_inputs = circuit_inputs.next_2(z); // in12
+
+        let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+        let f_of_z: u384 = outputs.get_output(t21);
+        evals.append(f_of_z);
+    };
+    return (s0, s1, s2, evals.span());
+}
+
+
+#[inline(always)]
+pub fn eval_and_hash_E12D_u384_transcript(
+    transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384
+) -> (felt252, felt252, felt252, Span<u384>) {
+    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let mut evals: Array<u384> = array![];
+    let modulus = get_BLS12_381_modulus(); // BN254 prime field modulus
+
+    for elmt in transcript {
+        let elmt = *elmt;
+        let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
+        let in_2 = s1 + elmt.w0.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
+        let in_1 = _s0 + elmt.w1.limb0.into() + base * elmt.w1.limb1.into();
+        let in_2 = _s1 + elmt.w1.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w2.limb0.into() + base * elmt.w2.limb1.into();
+        let in_2 = _s1 + elmt.w2.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w3.limb0.into() + base * elmt.w3.limb1.into();
+        let in_2 = _s1 + elmt.w3.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w4.limb0.into() + base * elmt.w4.limb1.into();
+        let in_2 = _s1 + elmt.w4.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w5.limb0.into() + base * elmt.w5.limb1.into();
+        let in_2 = _s1 + elmt.w5.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w6.limb0.into() + base * elmt.w6.limb1.into();
+        let in_2 = _s1 + elmt.w6.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w7.limb0.into() + base * elmt.w7.limb1.into();
+        let in_2 = _s1 + elmt.w7.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w8.limb0.into() + base * elmt.w8.limb1.into();
+        let in_2 = _s1 + elmt.w8.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w9.limb0.into() + base * elmt.w9.limb1.into();
+        let in_2 = _s1 + elmt.w9.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w10.limb0.into() + base * elmt.w10.limb1.into();
+        let in_2 = _s1 + elmt.w10.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        let in_1 = _s0 + elmt.w11.limb0.into() + base * elmt.w11.limb1.into();
+        let in_2 = _s1 + elmt.w11.limb2.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
+
+        let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+        let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
+        let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
+        let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
+        let in12 = CE::<CI<12>> {};
+        let t0 = circuit_mul(in11, in12); // Eval X Horner step: multiply by z
+        let t1 = circuit_add(in10, t0); // Eval X Horner step: add coefficient_10
+        let t2 = circuit_mul(t1, in12); // Eval X Horner step: multiply by z
+        let t3 = circuit_add(in9, t2); // Eval X Horner step: add coefficient_9
+        let t4 = circuit_mul(t3, in12); // Eval X Horner step: multiply by z
+        let t5 = circuit_add(in8, t4); // Eval X Horner step: add coefficient_8
+        let t6 = circuit_mul(t5, in12); // Eval X Horner step: multiply by z
+        let t7 = circuit_add(in7, t6); // Eval X Horner step: add coefficient_7
+        let t8 = circuit_mul(t7, in12); // Eval X Horner step: multiply by z
+        let t9 = circuit_add(in6, t8); // Eval X Horner step: add coefficient_6
+        let t10 = circuit_mul(t9, in12); // Eval X Horner step: multiply by z
+        let t11 = circuit_add(in5, t10); // Eval X Horner step: add coefficient_5
+        let t12 = circuit_mul(t11, in12); // Eval X Horner step: multiply by z
+        let t13 = circuit_add(in4, t12); // Eval X Horner step: add coefficient_4
+        let t14 = circuit_mul(t13, in12); // Eval X Horner step: multiply by z
+        let t15 = circuit_add(in3, t14); // Eval X Horner step: add coefficient_3
+        let t16 = circuit_mul(t15, in12); // Eval X Horner step: multiply by z
+        let t17 = circuit_add(in2, t16); // Eval X Horner step: add coefficient_2
+        let t18 = circuit_mul(t17, in12); // Eval X Horner step: multiply by z
+        let t19 = circuit_add(in1, t18); // Eval X Horner step: add coefficient_1
+        let t20 = circuit_mul(t19, in12); // Eval X Horner step: multiply by z
+        let t21 = circuit_add(in0, t20); // Eval X Horner step: add coefficient_0
+
+
+        let mut circuit_inputs = (t21,).new_inputs();
+        // Prefill constants:
+
+        // Fill inputs:
+        circuit_inputs = circuit_inputs.next_2(elmt.w0); // in0
+        circuit_inputs = circuit_inputs.next_2(elmt.w1); // in1
+        circuit_inputs = circuit_inputs.next_2(elmt.w2); // in2
+        circuit_inputs = circuit_inputs.next_2(elmt.w3); // in3
+        circuit_inputs = circuit_inputs.next_2(elmt.w4); // in4
+        circuit_inputs = circuit_inputs.next_2(elmt.w5); // in5
+        circuit_inputs = circuit_inputs.next_2(elmt.w6); // in6
+        circuit_inputs = circuit_inputs.next_2(elmt.w7); // in7
+        circuit_inputs = circuit_inputs.next_2(elmt.w8); // in8
+        circuit_inputs = circuit_inputs.next_2(elmt.w9); // in9
+        circuit_inputs = circuit_inputs.next_2(elmt.w10); // in10
+        circuit_inputs = circuit_inputs.next_2(elmt.w11); // in11
         circuit_inputs = circuit_inputs.next_2(z); // in12
 
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
