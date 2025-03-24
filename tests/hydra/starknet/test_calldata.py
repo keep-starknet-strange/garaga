@@ -39,6 +39,7 @@ def test_mpc_calldata_builder(
 
     calldata2 = mpc.serialize_to_calldata(use_rust=True)
 
+    assert len(calldata1) == len(calldata2)
     assert calldata1 == calldata2
 
 
