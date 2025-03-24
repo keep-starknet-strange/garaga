@@ -1,3 +1,8 @@
+use core::array::{ArrayTrait, SpanTrait};
+use core::circuit::u384;
+use core::num::traits::{One, Zero};
+use core::option::Option;
+
 /// This file contains utilities to verify a pairing check of the form :
 /// e(P1, Qf1) * e(P2, Qf2) == 1, where Qf1 and Qf2 are fixed known points. (2P_2F circuits are used
 /// for double pairs and double fixed G2 points)
@@ -7,34 +12,29 @@
 /// To generate the lines functions, you can use garaga's python backend.
 
 use core::option::OptionTrait;
-use core::array::ArrayTrait;
-use garaga::circuits::multi_pairing_check::{
-    run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-    run_BN254_MP_CHECK_BIT10_2P_2F_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
-    run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit, run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
-};
-use garaga::circuits::extf_mul::{
-    run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit,
-};
 use core::poseidon::hades_permutation;
-use core::circuit::u384;
-use garaga::definitions::{
-    G1Point, G2Point, G1G2Pair, u288, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, G2Line,
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
+use garaga::basic_field_ops;
+use garaga::circuits::extf_mul::{
+    run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
+    run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
 };
-use core::option::Option;
-use core::num::traits::One;
+use garaga::circuits::multi_pairing_check::{
+    run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
+    run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
+    run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
+};
+use garaga::definitions::{
+    BLSProcessedPair, BNProcessedPair, E12D, G1G2Pair, G1Point, G2Line, G2Point,
+    MillerLoopResultScalingFactor, bls_bits, bn_bits, u288,
+};
 use garaga::utils;
-use core::array::{SpanTrait};
-use garaga::utils::{u384_assert_zero, usize_assert_eq};
-use garaga::utils::hashing;
-use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, compute_yInvXnegOverY_BLS12_381};
+use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
 
 
 #[derive(Drop, Serde, Debug)]
@@ -44,6 +44,7 @@ pub struct MPCheckHintBN254 {
     pub w: MillerLoopResultScalingFactor<u288>,
     pub Ris: Span<E12D<u288>>,
     pub big_Q: Array<u288>,
+    pub z: felt252,
 }
 
 #[derive(Drop, Debug, PartialEq)]
@@ -66,20 +67,31 @@ fn multi_pairing_check_bn254_2P_2F(
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
 
     // Init sponge state
-    let (s0, s1, s2) = hades_permutation('MPCHECK_BN254_2P_2F', 0, 1);
+    // >>> hades_permutation(int.from_bytes(b"MPCHECK_BN254_2P_2F", "big"), 0, 1)
+
+    let (s0, s1, s2) = (
+        0x68d2a3cc4a3b2f1d317e7666256ca63efd983952025ffa78d32d4032e76e918,
+        0x4ea762aacef0cbba4cf150cf273fcc20874daaf40937062001104ce970a76f3,
+        0x42aab602bbf1944066179f43c84e0eee75c531ec7b2c7d479d554e368c4e07c,
+    );
     // Hash Inputs
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_E12D_u288(hint.lambda_root, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_E12D_u288(hint.lambda_root_inverse, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u288(hint.w, s0, s1, s2);
-    // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = hashing::hash_E12D_u288_transcript(hint.Ris, s0, s1, s2);
+    // Hash Ris to obtain base random coefficient c0 and evals
+    let z: u384 = hint.z.into();
+
+    let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
+        hint.Ris, s0, s1, s2, z,
+    );
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let (z_felt252, _, _) = hashing::hash_u288_transcript(hint.big_Q.span(), s0, s1, s2);
-    let z: u384 = z_felt252.into();
+
+    assert!(z_felt252 == hint.z);
 
     let (
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
@@ -89,20 +101,13 @@ fn multi_pairing_check_bn254_2P_2F(
     );
 
     // init bit for bn254 is 0:
-    let mut Ris = hint.Ris;
-    let (R_0_of_Z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+    // let mut Ris = hint.Ris;
+    // Evaluate all Ri's.
+
+    let R_0_of_Z = *evals.pop_front().unwrap();
+    let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
     let (_lhs, _c_i) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
-        yInv_0,
-        xNegOverY_0,
-        *lines.pop_front().unwrap(),
-        yInv_1,
-        xNegOverY_1,
-        *lines.pop_front().unwrap(),
-        R_0_of_Z,
-        c_i,
-        z,
-        c_inv_of_z,
-        LHS,
+        yInv_0, xNegOverY_0, l0, yInv_1, xNegOverY_1, l1, R_0_of_Z, c_i, z, c_inv_of_z, LHS,
     );
 
     let mut LHS = _lhs;
@@ -114,7 +119,7 @@ fn multi_pairing_check_bn254_2P_2F(
 
     while let Option::Some(bit) = bits.pop_front() {
         // println!("bit {}", *bit);
-        let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+        let R_i_of_z = *evals.pop_front().unwrap();
         let (_LHS, _c_i): (u384, u384) = match *bit {
             0 => {
                 let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
@@ -192,8 +197,8 @@ fn multi_pairing_check_bn254_2P_2F(
         c_i = _c_i;
     };
 
-    let R_n_minus_2 = Ris.pop_front().unwrap();
-    let R_last = Ris.pop_front().unwrap();
+    let R_n_minus_2_of_z = *evals.pop_front().unwrap();
+    let R_n_minus_1_of_z = *evals.pop_front().unwrap();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
         yInv_0,
@@ -204,8 +209,8 @@ fn multi_pairing_check_bn254_2P_2F(
         xNegOverY_1,
         l2,
         l3,
-        *R_n_minus_2,
-        *R_last,
+        R_n_minus_2_of_z,
+        R_n_minus_1_of_z,
         c_i,
         w_of_z,
         z,
@@ -217,9 +222,9 @@ fn multi_pairing_check_bn254_2P_2F(
         hint.big_Q,
     );
 
-    assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
+    assert!(check.is_zero(), "Final check failed");
 
-    assert!(R_last.is_one());
+    assert!(R_n_minus_1_of_z.is_one());
     return true;
 }
 

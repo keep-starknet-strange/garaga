@@ -357,12 +357,15 @@ fn deserialize_full_proof_with_hints_risc0(
         big_q.append(downcast_u288(l0, l1, l2))
     };
 
+    let z = (*serialized.pop_front().unwrap()).try_into().unwrap();
+
     let mpcheck_hint = MPCheckHintBN254 {
         lambda_root: lambda_root,
         lambda_root_inverse: lambda_root_inverse,
         w: w,
         Ris: Ris.span(),
         big_Q: big_q,
+        z: z,
     };
 
     let [
@@ -736,12 +739,15 @@ fn deserialize_full_proof_with_hints_bn254(
         big_q.append(downcast_u288(l0, l1, l2))
     };
 
+    let z = (*serialized.pop_front().unwrap()).try_into().unwrap();
+
     let mpcheck_hint = MPCheckHintBN254 {
         lambda_root: lambda_root,
         lambda_root_inverse: lambda_root_inverse,
         w: w,
         Ris: Ris.span(),
         big_Q: big_q,
+        z: z,
     };
 
     let [

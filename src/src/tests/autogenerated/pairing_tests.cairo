@@ -6956,6 +6956,7 @@ mod pairing_tests {
                     limb2: 0x190ba400f525f1a9,
                 },
             ],
+            z: 0x41bc71f0a8832b40c41e1be7c3697e27dbe00eac626e3c7361576b24e59ae7b,
         };
         let res = multi_pairing_check_bn254_2P_2F(pair0, pair1, lines, hint);
         assert!(res);
@@ -14285,6 +14286,7 @@ mod pairing_tests {
                     limb2: 0x12fe9c921cb4510a,
                 },
             ],
+            z: 0x7e0fdecd37837e1776f197a58073036d63bdff212ff1fbc52f09862db5bed1d,
         };
         let small_Q = E12DMulQuotient {
             w0: u288 {
