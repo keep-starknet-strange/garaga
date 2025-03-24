@@ -6956,6 +6956,7 @@ mod pairing_tests {
                     limb2: 0x190ba400f525f1a9,
                 },
             ],
+            z: 0x41bc71f0a8832b40c41e1be7c3697e27dbe00eac626e3c7361576b24e59ae7b,
         };
         let res = multi_pairing_check_bn254_2P_2F(pair0, pair1, lines, hint);
         assert!(res);
@@ -14285,6 +14286,7 @@ mod pairing_tests {
                     limb2: 0x12fe9c921cb4510a,
                 },
             ],
+            z: 0x7e0fdecd37837e1776f197a58073036d63bdff212ff1fbc52f09862db5bed1d,
         };
         let small_Q = E12DMulQuotient {
             w0: u288 {
@@ -21159,6 +21161,7 @@ mod pairing_tests {
                     limb3: 0x4d140c79a879c6e48e78944,
                 },
             ],
+            z: 0x7f2407fcbf815251ed755bb3ee0cbe27d388805bc6e2b90bd4a55df1bdd30c3,
         };
         let res = multi_pairing_check_bls12_381_2P_2F(pair0, pair1, lines, hint);
         assert!(res);
@@ -28293,6 +28296,7 @@ mod pairing_tests {
                     limb3: 0x6aeeb595ac6206f2158689e,
                 },
             ],
+            z: 0x6be34360edf5a4696bfd51eab7660550e9e248ed16315209dce10eb7f588e53,
         };
         let small_Q = E12DMulQuotient {
             w0: u384 {
