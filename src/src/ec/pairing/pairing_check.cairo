@@ -99,10 +99,6 @@ fn multi_pairing_check_bn254_2P_2F(
         hint.lambda_root, z, hint.w, hint.lambda_root_inverse, c_i,
     );
 
-    // init bit for bn254 is 0:
-    // let mut Ris = hint.Ris;
-    // Evaluate all Ri's.
-
     let R_0_of_Z = *evals.pop_front().unwrap();
     let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
     let (_lhs, _c_i) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
