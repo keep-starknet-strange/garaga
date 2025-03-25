@@ -30,14 +30,17 @@ struct ZKHonkTranscript {
 #[generate_trait]
 impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
     fn from_proof<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-        honk_vk: @HonkVk, honk_proof: ZKHonkProof,
+        circuit_size: usize,
+        public_inputs_size: usize,
+        public_inputs_offset: usize,
+        honk_proof: ZKHonkProof,
     ) -> (ZKHonkTranscript, felt252) {
         let (etas, challenge) = get_eta_challenges::<
             T,
         >(
-            (*honk_vk.circuit_size).into(),
-            (*honk_vk.public_inputs_size).into(),
-            (*honk_vk.public_inputs_offset).into(),
+            circuit_size.into(),
+            public_inputs_size.into(),
+            public_inputs_offset.into(),
             honk_proof.public_inputs,
             honk_proof.w1.into(),
             honk_proof.w2.into(),
@@ -114,7 +117,9 @@ mod tests {
     fn test_zk_transcript_keccak() {
         let vk = get_vk();
         let proof = get_zk_proof_keccak();
-        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<KeccakHasherState>(@vk, proof);
+        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<
+            KeccakHasherState,
+        >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = ZKHonkTranscript {
             eta: 0x8f552b09842921c3d8e179c45df06f60,
             eta_two: 0x12fbf1fd24f38c808ec773d904e06a74,
@@ -232,7 +237,9 @@ mod tests {
     fn test_zk_transcript_starknet() {
         let vk = get_vk();
         let proof = get_zk_proof_starknet();
-        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<StarknetHasherState>(@vk, proof);
+        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<
+            StarknetHasherState,
+        >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = ZKHonkTranscript {
             eta: 0xc6dad1dc44b188472495d4205dd6c884,
             eta_two: 0x2f223ec75ca4deba48a47b78e5c5099,

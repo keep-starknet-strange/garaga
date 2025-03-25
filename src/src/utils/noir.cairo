@@ -682,12 +682,12 @@ pub fn get_proof_keccak() -> HonkProof {
         ]
             .span(),
         shplonk_q: G1Point256 {
-            x: 0x256c003db7bf326445ee6a0572bfc6276b815f88191c08614ffe2423d13d16b9,
-            y: 0xb130a304d82de840df3d59900cdd68666c7e16bf90e36a4a60cb3b44d229829,
+            x: 0x16547035923f2103c69c354924cf8f12ab062966faca3d85a3760a7df236f75d,
+            y: 0x126f896b2cfd0285656d2ecc0efa54ff0066914efd641033e44fe14c38e6212d,
         },
         kzg_quotient: G1Point256 {
-            x: 0x151c725a7ad9a59b1ef0aa59250ae771751e171058241a229db37eead192a7dd,
-            y: 0x16d4360d2c8dfedec9d11ad18cf3c8fc2732ac341eb4f0319476a6df04ea8202,
+            x: 0x23ddbca93b86a001368800a89e515fa9e79e1f4d3cda3e47aecfd7167044a98b,
+            y: 0x19b70d7848c24903d13d76f806b87a9fdae1f1892ef476504b66cd638a862daf,
         },
     }
 }

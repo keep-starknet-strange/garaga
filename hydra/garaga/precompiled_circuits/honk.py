@@ -1843,11 +1843,13 @@ class HonkVerifierCircuits(ModuloCircuit):
         scalars[29] = self.add(scalars[29], scalars[37])
         scalars[30] = self.add(scalars[30], scalars[38])
         scalars[31] = self.add(scalars[31], scalars[39])
+        scalars[32] = self.add(scalars[32], scalars[40])  # z_perm
 
         scalars[36] = None
         scalars[37] = None
         scalars[38] = None
         scalars[39] = None
+        scalars[40] = None
 
         return scalars
 
@@ -2938,11 +2940,13 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
         scalars[30] = self.add(scalars[30], scalars[38])
         scalars[31] = self.add(scalars[31], scalars[39])
         scalars[32] = self.add(scalars[32], scalars[40])
+        scalars[33] = self.add(scalars[33], scalars[41])  # z_perm
 
         scalars[37] = None
         scalars[38] = None
         scalars[39] = None
         scalars[40] = None
+        scalars[41] = None
 
         return scalars
 

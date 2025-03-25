@@ -582,11 +582,10 @@ pub fn get_honk_calldata(
         w2,                   // 29
         w3,                   // 30
         w4,                   // 31
-        z_perm.clone(),       // 32
+        z_perm,               // 32
         lookup_inverses,      // 33
         lookup_read_counts,   // 34
         lookup_read_tags,     // 35
-        z_perm,               // 40
     ];
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
@@ -1004,11 +1003,13 @@ fn compute_shplemini_msm_scalars(
     scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
     scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
     scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
+    scalars[32] = Some(scalars[32].clone().unwrap() + scalars[40].clone().unwrap());
 
     scalars[36] = None;
     scalars[37] = None;
     scalars[38] = None;
     scalars[39] = None;
+    scalars[40] = None;
 
     Ok(scalars
         .into_iter()

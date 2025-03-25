@@ -207,7 +207,7 @@ mod Ultra{flavor}HonkVerifier {{
             // let msm_hint = fph.msm_hint;
 
 
-            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(@vk, full_proof.proof);
+            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -276,7 +276,6 @@ mod Ultra{flavor}HonkVerifier {{
                                                     full_proof.proof.lookup_inverses.into(),
                                                     full_proof.proof.lookup_read_counts.into(),
                                                     full_proof.proof.lookup_read_tags.into(),
-                                                    full_proof.proof.z_perm.into(),
                                                     ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{
@@ -658,7 +657,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
             // let msm_hint = fph.msm_hint;
 
 
-            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(@vk, full_proof.proof);
+            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -754,7 +753,6 @@ mod Ultra{flavor}ZKHonkVerifier {{
                                                     full_proof.proof.lookup_inverses.into(),
                                                     full_proof.proof.lookup_read_counts.into(),
                                                     full_proof.proof.lookup_read_tags.into(),
-                                                    full_proof.proof.z_perm.into(),
                                                     ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{
