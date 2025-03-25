@@ -383,17 +383,6 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
     let curve_id = CurveID::BN254 as usize;
 
     let proof_obj = js_sys::Object::new();
-    set_property(&proof_obj, "circuitSize", &proof.circuit_size.into())?;
-    set_property(
-        &proof_obj,
-        "publicInputsSize",
-        &proof.public_inputs_size.into(),
-    )?;
-    set_property(
-        &proof_obj,
-        "publicInputsOffset",
-        &proof.public_inputs_offset.into(),
-    )?;
     set_property(
         &proof_obj,
         "publicInputs",
@@ -489,17 +478,6 @@ pub fn parse_zk_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
     let curve_id = CurveID::BN254 as usize;
 
     let proof_obj = js_sys::Object::new();
-    set_property(&proof_obj, "circuitSize", &proof.circuit_size.into())?;
-    set_property(
-        &proof_obj,
-        "publicInputsSize",
-        &proof.public_inputs_size.into(),
-    )?;
-    set_property(
-        &proof_obj,
-        "publicInputsOffset",
-        &proof.public_inputs_offset.into(),
-    )?;
     set_property(
         &proof_obj,
         "publicInputs",
@@ -706,9 +684,6 @@ pub fn get_honk_calldata(
         .dyn_into::<js_sys::Object>()
         .map_err(|_| JsValue::from_str("proof_js is not an object"))?;
 
-    let circuit_size = jsvalue_to_biguint(get_property(&proof_obj, "circuitSize")?)?;
-    let public_inputs_size = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsSize")?)?;
-    let public_inputs_offset = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsOffset")?)?;
     let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
     let w1 = parse_g1_point(get_property(&proof_obj, "w1")?)?;
     let w2 = parse_g1_point(get_property(&proof_obj, "w2")?)?;
@@ -736,9 +711,6 @@ pub fn get_honk_calldata(
     }
 
     let mut values = vec![];
-    values.push(circuit_size);
-    values.push(public_inputs_size);
-    values.push(public_inputs_offset);
     values.extend(public_inputs);
     values.extend(g1_point_split(w1));
     values.extend(g1_point_split(w2));
@@ -857,9 +829,6 @@ pub fn get_zk_honk_calldata(
         .dyn_into::<js_sys::Object>()
         .map_err(|_| JsValue::from_str("proof_js is not an object"))?;
 
-    let circuit_size = jsvalue_to_biguint(get_property(&proof_obj, "circuitSize")?)?;
-    let public_inputs_size = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsSize")?)?;
-    let public_inputs_offset = jsvalue_to_biguint(get_property(&proof_obj, "publicInputsOffset")?)?;
     let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
     let w1 = parse_g1_point(get_property(&proof_obj, "w1")?)?;
     let w2 = parse_g1_point(get_property(&proof_obj, "w2")?)?;
@@ -896,9 +865,6 @@ pub fn get_zk_honk_calldata(
         libra_commitments.try_into().unwrap();
 
     let mut values = vec![];
-    values.push(circuit_size);
-    values.push(public_inputs_size);
-    values.push(public_inputs_offset);
     values.extend(public_inputs);
     values.extend(g1_point_split(w1));
     values.extend(g1_point_split(w2));

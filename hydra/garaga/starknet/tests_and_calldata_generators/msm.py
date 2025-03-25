@@ -24,7 +24,7 @@ class MSMCalldataBuilder:
         ), "All points must be on the same curve."
         assert len(self.points) == len(
             self.scalars
-        ), "Number of points and scalars must be equal."
+        ), f"Number of points and scalars must be equal, got {len(self.points)} points and {len(self.scalars)} scalars"
         assert all(
             0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
         ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."

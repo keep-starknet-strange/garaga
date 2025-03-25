@@ -7,6 +7,13 @@ use garaga::definitions::{E12D, G2Line, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
 
+impl U32IntoU384 of Into<u32, u384> {
+    fn into(self: u32) -> u384 {
+        let v128: u128 = self.into();
+        v128.into()
+    }
+}
+
 impl U64IntoU384 of Into<u64, u384> {
     fn into(self: u64) -> u384 {
         let v128: u128 = self.into();

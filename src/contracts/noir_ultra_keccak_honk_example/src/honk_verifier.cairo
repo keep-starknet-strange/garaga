@@ -2,7 +2,7 @@ use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
     run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-    run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit,
 };
 
 #[starknet::interface]
@@ -26,14 +26,14 @@ mod UltraKeccakHonkVerifier {
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit,
+        run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit,
     };
     use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
         KeccakHasherState,
     };
-    use garaga::core::circuit::U64IntoU384;
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -66,11 +66,11 @@ mod UltraKeccakHonkVerifier {
 
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
-            >(full_proof.proof);
+            >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
-                p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
+                p_public_inputs_offset: vk.public_inputs_offset.into(),
                 sumcheck_univariates_flat: full_proof
                     .proof
                     .sumcheck_univariates
@@ -123,7 +123,6 @@ mod UltraKeccakHonkVerifier {
                 scalar_33,
                 scalar_34,
                 scalar_35,
-                scalar_40,
                 scalar_41,
                 scalar_42,
                 scalar_43,
@@ -179,7 +178,6 @@ mod UltraKeccakHonkVerifier {
                 full_proof.proof.lookup_inverses.into(),
                 full_proof.proof.lookup_read_counts.into(),
                 full_proof.proof.lookup_read_tags.into(),
-                full_proof.proof.z_perm.into(),
             ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
@@ -226,7 +224,6 @@ mod UltraKeccakHonkVerifier {
                 scalar_33.try_into().unwrap(),
                 scalar_34.try_into().unwrap(),
                 scalar_35.try_into().unwrap(),
-                scalar_40.try_into().unwrap(),
                 scalar_41.try_into().unwrap(),
                 scalar_42.try_into().unwrap(),
                 scalar_43.try_into().unwrap(),
@@ -236,7 +233,7 @@ mod UltraKeccakHonkVerifier {
             ]
                 .span();
 
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(42);
+            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(41);
 
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
@@ -244,7 +241,7 @@ mod UltraKeccakHonkVerifier {
                 'MSM_G1', 0, 1,
             ); // Init Sponge state
             let (s0, s1, s2) = hades_permutation(
-                s0 + 0.into(), s1 + 42.into(), s2,
+                s0 + 0.into(), s1 + 41.into(), s2,
             ); // Include curve_index and msm size
 
             let mut s0 = s0;
@@ -326,7 +323,7 @@ mod UltraKeccakHonkVerifier {
                 ),
             ];
 
-            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_42P_RLC_circuit(
+            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit(
                 A0: random_point,
                 A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
                 coeff0: mb.coeff0,
