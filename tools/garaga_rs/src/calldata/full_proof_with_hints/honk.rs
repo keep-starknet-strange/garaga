@@ -729,12 +729,12 @@ impl Hasher for StarknetHasher {
     fn update_as_element(&mut self, element: &FieldElement<GrumpkinPrimeField>) {
         let limbs = field_element_to_u256_limbs(element);
         let values = limbs.map(|v| element_from_biguint::<Stark252PrimeField>(&BigUint::from(v)));
+        self.state[0] += values[0];
         self.state[1] += values[1];
-        self.state[2] += values[0];
         PoseidonCairoStark252::hades_permutation(&mut self.state);
     }
     fn digest_as_element(&self) -> FieldElement<GrumpkinPrimeField> {
-        element_from_biguint(&element_to_biguint(&self.state[2]))
+        element_from_biguint(&element_to_biguint(&self.state[0]))
     }
 }
 
@@ -1065,8 +1065,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            2, 184, 12, 107, 11, 126, 78, 115, 136, 142, 123, 122, 41, 69, 212, 18, 67, 31, 168,
-            11, 13, 66, 4, 221, 201, 33, 86, 99, 2, 185, 40, 191,
+            4, 228, 157, 181, 2, 45, 246, 172, 225, 118, 235, 3, 98, 59, 123, 33, 182, 250, 143,
+            76, 59, 148, 7, 173, 4, 99, 70, 149, 164, 128, 0, 167,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
