@@ -10,9 +10,6 @@ pub mod msm;
 pub mod pairing;
 pub mod signatures;
 
-use ark_ec::pairing::Pairing;
-use ark_ec::AffineRepr;
-use ark_ff::PrimeField;
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};

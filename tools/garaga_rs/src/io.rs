@@ -8,6 +8,12 @@ use lambdaworks_math::{
 };
 use num_bigint::BigUint;
 
+use lambdaworks_math::unsigned_integer::element::U256;
+
+pub fn biguint_to_u256(x: &BigUint) -> U256 {
+    U256::from_hex_unchecked(&x.to_str_radix(16))
+}
+
 pub fn parse_g1_points_from_flattened_field_elements_list<F>(
     values: &[FieldElement<F>],
 ) -> Result<Vec<G1Point<F>>, String>
