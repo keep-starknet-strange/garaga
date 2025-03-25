@@ -176,7 +176,7 @@ mod Ultra{flavor}HonkVerifier {{
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH, {flavor}HasherState}};
-    use garaga::core::circuit::U64IntoU384;
+    use garaga::core::circuit::{{U32IntoU384, U64IntoU384}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -207,11 +207,11 @@ mod Ultra{flavor}HonkVerifier {{
             // let msm_hint = fph.msm_hint;
 
 
-            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(full_proof.proof);
+            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
-                p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
+                p_public_inputs_offset: vk.public_inputs_offset.into(),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
@@ -276,7 +276,6 @@ mod Ultra{flavor}HonkVerifier {{
                                                     full_proof.proof.lookup_inverses.into(),
                                                     full_proof.proof.lookup_read_counts.into(),
                                                     full_proof.proof.lookup_read_tags.into(),
-                                                    full_proof.proof.z_perm.into(),
                                                     ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{
@@ -627,7 +626,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
     use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::{{U64IntoU384, u256_to_u384}};
+    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, u256_to_u384}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -658,11 +657,11 @@ mod Ultra{flavor}ZKHonkVerifier {{
             // let msm_hint = fph.msm_hint;
 
 
-            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(full_proof.proof);
+            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
-                p_public_inputs_offset: full_proof.proof.public_inputs_offset.into(),
+                p_public_inputs_offset: vk.public_inputs_offset.into(),
                 libra_sum: u256_to_u384(full_proof.proof.libra_sum),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * ZK_BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -754,7 +753,6 @@ mod Ultra{flavor}ZKHonkVerifier {{
                                                     full_proof.proof.lookup_inverses.into(),
                                                     full_proof.proof.lookup_read_counts.into(),
                                                     full_proof.proof.lookup_read_tags.into(),
-                                                    full_proof.proof.z_perm.into(),
                                                     ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{

@@ -18,6 +18,7 @@ from garaga.precompiled_circuits.honk import (
     Wire,
     ZKHonkVerifierCircuits,
 )
+from garaga.starknet.honk_contract_generator.calldata import filter_msm_scalars
 
 
 class BaseUltraHonkCircuit(BaseModuloCircuit):
@@ -301,24 +302,11 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
             vars["tp_sum_check_u_challenges"],
         )
 
-        # Get the ranges for each section
-        start_dummy = hk.NUMBER_OF_ENTITIES + self.vk.log_circuit_size
-        end_dummy = hk.NUMBER_OF_ENTITIES + hk.CONST_PROOF_SIZE_LOG_N
-
-        # Verify zeros in dummy section
-        assert all(
-            s.value == 0 for s in scalars[start_dummy:end_dummy]
-        ), "Expected all dummy round scalars to be 0"
-
-        # Keep everything except dummy section
-        scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
-
-        # Remove the first element (== 1) and last element (tp_shplonk_z)
-        scalars_filtered = scalars_no_dummy[1:-1]
-
-        scalars_filtered_no_nones = [
-            scalar for scalar in scalars_filtered if scalar is not None
-        ]
+        scalars_filtered_no_nones = filter_msm_scalars(
+            scalars, self.vk.log_circuit_size, False
+        )
+        # Remove shplonk_z (last scalar) (included in transcript)
+        scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
 
         sum_scalars = circuit.sum(scalars_filtered_no_nones)
 
@@ -531,25 +519,12 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
             vars["tp_sum_check_u_challenges"],
         )
 
-        # Get the ranges for each section
-        start_dummy = 1 + hk.NUMBER_OF_ENTITIES + self.vk.log_circuit_size
-        end_dummy = 1 + hk.NUMBER_OF_ENTITIES + hk.CONST_PROOF_SIZE_LOG_N
-
-        # Verify zeros in dummy section
-        assert all(
-            s.value == 0 for s in scalars[start_dummy:end_dummy]
-        ), "Expected all dummy round scalars to be 0"
-
-        # Keep everything except dummy section
-        scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
-
-        # Remove the first element (== 1) and last element (tp_shplonk_z)
-        scalars_filtered = scalars_no_dummy[1:-1]
-
-        scalars_filtered_no_nones = [
-            scalar for scalar in scalars_filtered if scalar is not None
-        ]
-
+        scalars_filtered_no_nones = filter_msm_scalars(
+            scalars, self.vk.log_circuit_size, True
+        )
+        # Remove shplonk_z (last scalar) (included in transcript)
+        scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
+        self.msm_len = len(scalars_filtered_no_nones) + 1
         sum_scalars = circuit.sum(scalars_filtered_no_nones)
 
         # For each filtered scalar, find its original index by matching offset
