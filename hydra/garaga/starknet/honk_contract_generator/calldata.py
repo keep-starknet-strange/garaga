@@ -22,9 +22,9 @@ from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldat
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 
-def extract_msm_scalars(
+def filter_msm_scalars(
     scalars: list[ModuloCircuitElement], log_n: int, zk: bool = False
-) -> list[int]:
+) -> list[ModuloCircuitElement]:
     if zk:
         assert len(scalars) == NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3
         start_dummy = 1 + NUMBER_OF_ENTITIES + log_n
@@ -34,13 +34,26 @@ def extract_msm_scalars(
         start_dummy = NUMBER_OF_ENTITIES + log_n
         end_dummy = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N
 
-    scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
+    # Verify zeros in dummy section
+    assert all(
+        s.value == 0 for s in scalars[start_dummy:end_dummy]
+    ), "Expected all dummy round scalars to be 0"
 
+    # Keep everything except dummy section
+    scalars_no_dummy = scalars[:start_dummy] + scalars[end_dummy:]
+    # Remove the first element (== 1)
     scalars_filtered = scalars_no_dummy[1:]
     scalars_filtered_no_nones = [
         scalar for scalar in scalars_filtered if scalar is not None
     ]
-    return [s.value for s in scalars_filtered_no_nones]
+    return scalars_filtered_no_nones
+
+
+def extract_msm_scalars(
+    scalars: list[ModuloCircuitElement], log_n: int, zk: bool = False
+) -> list[ModuloCircuitElement]:
+    scalars_msm = filter_msm_scalars(scalars, log_n, zk)
+    return [s.value for s in scalars_msm]
 
 
 def get_ultra_flavor_honk_calldata_from_vk_and_proof(
@@ -101,7 +114,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         )
 
     scalars_msm = extract_msm_scalars(scalars, vk.log_circuit_size, zk)
-
     if zk:
         points = [
             proof.gemini_masking_poly,  # 1
@@ -140,7 +152,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
             proof.lookup_inverses,  # 34
             proof.lookup_read_counts,  # 35
             proof.lookup_read_tags,  # 36
-            proof.z_perm,  # 41
         ]
         points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
         points.extend(proof.libra_commitments)
@@ -183,7 +194,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
             proof.lookup_inverses,  # 33
             proof.lookup_read_counts,  # 34
             proof.lookup_read_tags,  # 35
-            proof.z_perm,  # 40
         ]
         points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
         points.append(G1Point.get_nG(CurveID.BN254, 1))

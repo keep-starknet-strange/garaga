@@ -276,7 +276,6 @@ mod Ultra{flavor}HonkVerifier {{
                                                     full_proof.proof.lookup_inverses.into(),
                                                     full_proof.proof.lookup_read_counts.into(),
                                                     full_proof.proof.lookup_read_tags.into(),
-                                                    full_proof.proof.z_perm.into(),
                                                     ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{
@@ -754,7 +753,6 @@ mod Ultra{flavor}ZKHonkVerifier {{
                                                     full_proof.proof.lookup_inverses.into(),
                                                     full_proof.proof.lookup_read_counts.into(),
                                                     full_proof.proof.lookup_read_tags.into(),
-                                                    full_proof.proof.z_perm.into(),
                                                     ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{

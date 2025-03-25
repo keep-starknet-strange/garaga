@@ -582,11 +582,10 @@ pub fn get_honk_calldata(
         w2,                   // 29
         w3,                   // 30
         w4,                   // 31
-        z_perm.clone(),       // 32
+        z_perm,               // 32
         lookup_inverses,      // 33
         lookup_read_counts,   // 34
         lookup_read_tags,     // 35
-        z_perm,               // 40
     ];
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
@@ -1004,11 +1003,13 @@ fn compute_shplemini_msm_scalars(
     scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
     scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
     scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
+    scalars[32] = Some(scalars[32].clone().unwrap() + scalars[40].clone().unwrap());
 
     scalars[36] = None;
     scalars[37] = None;
     scalars[38] = None;
     scalars[39] = None;
+    scalars[40] = None;
 
     Ok(scalars
         .into_iter()
@@ -1046,8 +1047,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            171, 176, 170, 107, 112, 26, 40, 63, 81, 94, 187, 249, 9, 67, 165, 190, 214, 91, 49,
-            123, 1, 66, 72, 7, 164, 176, 145, 248, 50, 252, 236, 52,
+            0, 114, 105, 230, 232, 63, 110, 100, 74, 147, 156, 143, 183, 170, 25, 146, 248, 91,
+            194, 189, 245, 199, 5, 48, 168, 123, 211, 116, 232, 76, 43, 127,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1064,8 +1065,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            236, 16, 218, 102, 108, 210, 171, 152, 197, 54, 41, 113, 126, 72, 135, 224, 171, 47,
-            102, 8, 207, 159, 51, 182, 42, 55, 66, 40, 80, 172, 8, 41,
+            4, 228, 157, 181, 2, 45, 246, 172, 225, 118, 235, 3, 98, 59, 123, 33, 182, 250, 143,
+            76, 59, 148, 7, 173, 4, 99, 70, 149, 164, 128, 0, 167,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
