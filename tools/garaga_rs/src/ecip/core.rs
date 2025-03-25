@@ -177,6 +177,7 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
     let two: FieldElement<F> = FieldElement::from(2);
     if p == q {
         let m = (three * px.clone() * px.clone() + F::get_curve_params().a) / (two * py.clone());
+        let m = m.unwrap();
         let b = py.clone() - m.clone() * px.clone();
         return FF::new(vec![
             Polynomial::new(vec![-b, -m]),
@@ -192,6 +193,7 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
     let qy = q.y.clone();
 
     let m = (py.clone() - qy.clone()) / (px.clone() - qx.clone());
+    let m = m.unwrap();
     let b = qy - m.clone() * qx;
     FF::new(vec![
         Polynomial::new(vec![-b, -m]),

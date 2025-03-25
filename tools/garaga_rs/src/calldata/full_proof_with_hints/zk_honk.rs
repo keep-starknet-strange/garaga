@@ -845,9 +845,11 @@ fn compute_shplemini_msm_scalars(
     );
 
     let mut denominators = vec![];
-    denominators.push(FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r));
+    denominators
+        .push((FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r)).unwrap());
     denominators.push(
-        FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - subgroup_generator * gemini_r),
+        (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - subgroup_generator * gemini_r))
+            .unwrap(),
     );
     denominators.push(denominators[0].clone());
     denominators.push(denominators[0].clone());
