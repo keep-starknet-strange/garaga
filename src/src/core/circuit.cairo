@@ -19,15 +19,13 @@ use core::circuit::conversions::{MulHelper64By64Impl, MulHelper32By96Impl, MulHe
 
 impl U32IntoU384 of Into<u32, u384> {
     fn into(self: u32) -> u384 {
-        let v128: u128 = self.into();
-        v128.into()
+        u384 { limb0: upcast(self), limb1: 0, limb2: 0, limb3: 0 }
     }
 }
 
 impl U64IntoU384 of Into<u64, u384> {
     fn into(self: u64) -> u384 {
-        let v128: u128 = self.into();
-        v128.into()
+        u384 { limb0: upcast(self), limb1: 0, limb2: 0, limb3: 0 }
     }
 }
 
@@ -35,6 +33,7 @@ impl U64IntoU384 of Into<u64, u384> {
 // Cuts a u384 into a u256.
 // This is unsafe because it assumes the value is less than 2^256.
 // Only use when computing circuit with a modulus less than 2^256.
+#[inline(never)]
 pub fn into_u256_unchecked(value: u384) -> u256 {
     let (_, limb2_low) = bounded_int::div_rem(value.limb2, NZ_POW64_TYPED);
     let (limb1_high, limb1_low) = bounded_int::div_rem(value.limb1, NZ_POW32_TYPED);

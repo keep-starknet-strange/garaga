@@ -63,7 +63,7 @@ impl KeccakHasher of IHasher<KeccakHasherState> {
     fn new() -> KeccakHasherState {
         KeccakHasherState { arr: array![] }
     }
-    #[inline]
+    #[inline(never)]
     fn update_u64_as_u256(ref self: KeccakHasherState, v: u64) {
         self.arr.append(0);
         self.arr.append(0);
@@ -275,7 +275,7 @@ fn u256_byte_reverse(word: u256) -> u256 {
 }
 
 
-#[inline]
+#[inline(never)]
 pub fn append_proof_point<T, impl Hasher: IHasher<T>>(ref hasher: T, point: G1PointProof) {
     hasher.update(point.x0);
     hasher.update(point.x1);
