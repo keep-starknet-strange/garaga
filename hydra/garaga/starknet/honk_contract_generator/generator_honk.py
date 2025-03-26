@@ -4,6 +4,9 @@ from pathlib import Path
 
 from garaga.definitions import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
+from garaga.precompiled_circuits.compilable_circuits.base import (
+    get_circuit_definition_impl_template,
+)
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     EvalFunctionChallengeSingleCircuit,
 )
@@ -27,41 +30,134 @@ from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import get_scarb_toml_file
 
 
-def get_impl_template(num_outputs: int):
+def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
     TEMPLATE = """\n
-    impl CircuitDefinition{num_outputs}<
-        {elements}
-    > of core::circuit::CircuitDefinition<
-        (
-            {ce_elements}
-        )
-    > {{
-        type CircuitType =
-            core::circuit::Circuit<
-                ({elements_tuple},)
-            >;
-    }}
-    impl MyDrp_{num_outputs}<
-        {elements}
-    > of Drop<
-        (
-            {ce_elements}
-        )
-    >;
-    """
-    elements = ", ".join(f"E{i}" for i in range(num_outputs))
-    ce_elements = ", ".join(f"CE<E{i}>" for i in range(num_outputs))
-    elements_tuple = ", ".join(f"E{i}" for i in range(num_outputs))
-    return TEMPLATE.format(
-        num_outputs=num_outputs,
-        elements=elements,
-        ce_elements=ce_elements,
-        elements_tuple=elements_tuple,
+            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
+            // HASHING: GET ECIP BASE RLC COEFF.
+            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
+            let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
+                'MSM_G1', 0, 1
+            ); // Init Sponge state
+            let (s0, s1, s2) = hades_permutation(
+                s0 + 0.into(), s1 + {msm_len}.into(), s2
+            ); // Include curve_index and msm size
+
+            let mut s0 = s0;
+            let mut s1 = s1;
+            let mut s2 = s2;
+
+            // Check input points are on curve and hash them at the same time.
+
+            for point in points {{
+                if !point.is_infinity() {{
+                    point.assert_on_curve(0);
+                }}
+                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
+                s0 = _s0;
+                s1 = _s1;
+                s2 = _s2;
+            }};
+
+            if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
+                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
+            }}
+            if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
+                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
+            }}
+            if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
+                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
+            }}
+
+            // Hash result points
+            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_low.update_hash_state(s0, s1, s2);
+            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
+            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high_shifted.update_hash_state(s0, s1, s2);
+
+            // Hash scalars :
+            let mut s0 = s0;
+            let mut s1 = s1;
+            let mut s2 = s2;
+            for scalar in scalars {{
+                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
+                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
+                );
+                s0 = _s0;
+                s1 = _s1;
+                s2 = _s2;
+            }};
+
+
+            let base_rlc_coeff = s1;
+
+            let (s0, _, _) = full_proof.msm_hint_batched.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
+
+            let random_point: G1Point = derive_ec_point_from_X(
+                s0,
+                full_proof.derive_point_from_x_hint.y_last_attempt,
+                full_proof.derive_point_from_x_hint.g_rhs_sqrt,
+                0
+            );
+
+            // Get slope, intercept and other constant from random point
+            let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+                random_point, get_a(0), 0
+            );
+
+            // Get positive and negative multiplicities of low and high part of scalars
+            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
+                scalars, Option::None
+            );
+
+            // Hardcoded epns for 2**128
+            let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
+                (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
+            ];
+
+            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
+            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
+            let mod_bn = get_modulus(0);
+
+            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
+
+            let rhs_low = compute_rhs_ecip(
+                points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
+            );
+            let rhs_high = compute_rhs_ecip(
+                points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
+            );
+            let rhs_high_shifted = compute_rhs_ecip(
+                array![full_proof.msm_hint_batched.Q_high].span(),
+                mb.m_A0,
+                mb.b_A0,
+                random_point.x,
+                epns_shifted,
+                full_proof.msm_hint_batched.Q_high_shifted,
+                0
+            );
+
+            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
+
+            let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
+
+            let P_1 = ec_safe_add(full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0);
+            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
+            let P_2:G1Point = full_proof.proof.kzg_quotient.into();
+
+            // Perform the KZG pairing check.
+            let kzg_check = multi_pairing_check_bn254_2P_2F(
+               G1G2Pair {{ p: P_1, q: G2_POINT_KZG_1 }},
+               G1G2Pair {{ p: P_2.negate(0), q: G2_POINT_KZG_2 }},
+               precomputed_lines.span(),
+               full_proof.kzg_hint,
+            );
+
+        """.format(
+        lhs_ecip_function_name=lhs_ecip_function_name, msm_len=msm_size
     )
+    return TEMPLATE
 
 
 def precompute_lines_honk() -> StructArray:
-
     # Precompute lines for fixed G2 points
     lines = precompute_lines([G2_POINT_KZG_1, G2_POINT_KZG_2])
     precomputed_lines = StructArray(
@@ -71,7 +167,6 @@ def precompute_lines_honk() -> StructArray:
             for i in range(0, len(lines), 4)
         ],
     )
-
     return precomputed_lines
 
 
@@ -129,7 +224,7 @@ def gen_honk_circuits_code(vk: HonkVk) -> str:
     )
     code += lhs_ecip_code
 
-    code += get_impl_template(len(scalar_indexes))
+    code += get_circuit_definition_impl_template(len(scalar_indexes))
     return (
         code,
         sumcheck_function_name,
@@ -326,126 +421,7 @@ mod Ultra{flavor}HonkVerifier {{
 
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
-
-            // HASHING: GET ECIP BASE RLC COEFF.
-            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
-            let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-                'MSM_G1', 0, 1
-            ); // Init Sponge state
-            let (s0, s1, s2) = hades_permutation(
-                s0 + 0.into(), s1 + {msm_len}.into(), s2
-            ); // Include curve_index and msm size
-
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-
-            // Check input points are on curve and hash them at the same time.
-
-            for point in points {{
-                if !point.is_infinity() {{
-                    point.assert_on_curve(0);
-                }}
-                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }};
-
-            if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
-            }}
-            if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
-            }}
-            if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
-            }}
-
-            // Hash result points
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_low.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high_shifted.update_hash_state(s0, s1, s2);
-
-            // Hash scalars :
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-            for scalar in scalars {{
-                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
-                );
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }};
-
-
-            let base_rlc_coeff = s1;
-
-            let (s0, _, _) = full_proof.msm_hint_batched.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
-
-            let random_point: G1Point = derive_ec_point_from_X(
-                s0,
-                full_proof.derive_point_from_x_hint.y_last_attempt,
-                full_proof.derive_point_from_x_hint.g_rhs_sqrt,
-                0
-            );
-
-            // Get slope, intercept and other constant from random point
-            let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0
-            );
-
-            // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-                scalars, Option::None
-            );
-
-            // Hardcoded epns for 2**128
-            let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-                (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
-            ];
-
-            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let mod_bn = get_modulus(0);
-
-            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
-
-            let rhs_low = compute_rhs_ecip(
-                points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
-            );
-            let rhs_high = compute_rhs_ecip(
-                points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
-            );
-            let rhs_high_shifted = compute_rhs_ecip(
-                array![full_proof.msm_hint_batched.Q_high].span(),
-                mb.m_A0,
-                mb.b_A0,
-                random_point.x,
-                epns_shifted,
-                full_proof.msm_hint_batched.Q_high_shifted,
-                0
-            );
-
-            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
-
-            let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
-
-
-            let P_1 = ec_safe_add(full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0);
-            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
-            let P_2:G1Point = full_proof.proof.kzg_quotient.into();
-
-            // Perform the KZG pairing check.
-            let kzg_check = multi_pairing_check_bn254_2P_2F(
-               G1G2Pair {{ p: P_1, q: G2_POINT_KZG_1 }},
-               G1G2Pair {{ p: P_2.negate(0), q: G2_POINT_KZG_2 }},
-               precomputed_lines.span(),
-               full_proof.kzg_hint,
-            );
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
 
             if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
@@ -545,7 +521,7 @@ def gen_zk_honk_circuits_code(vk: HonkVk) -> str:
         function_name=lhs_ecip_function_name, pub=True
     )
     code += lhs_ecip_code
-    code += get_impl_template(len(scalar_indexes))
+    code += get_circuit_definition_impl_template(len(scalar_indexes))
 
     return (
         code,
@@ -780,128 +756,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
 
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
-
-            // HASHING: GET ECIP BASE RLC COEFF.
-            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
-            let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-                'MSM_G1', 0, 1
-            ); // Init Sponge state
-            let (s0, s1, s2) = hades_permutation(
-                s0 + 0.into(), s1 + {msm_len}.into(), s2
-            ); // Include curve_index and msm size
-
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-
-            // Check input points are on curve and hash them at the same time.
-
-            for point in points {{
-                if !point.is_infinity() {{
-                    point.assert_on_curve(0);
-                }}
-                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }};
-
-            if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
-            }}
-            if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
-            }}
-            if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
-            }}
-
-            // Hash result points
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_low.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high_shifted.update_hash_state(s0, s1, s2);
-
-            // Hash scalars :
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-            for scalar in scalars {{
-                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
-                );
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }};
-
-
-            let base_rlc_coeff = s1;
-
-            let (s0, _, _) = full_proof.msm_hint_batched.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
-
-            let random_point: G1Point = derive_ec_point_from_X(
-                s0,
-                full_proof.derive_point_from_x_hint.y_last_attempt,
-                full_proof.derive_point_from_x_hint.g_rhs_sqrt,
-                0
-            );
-
-            // Get slope, intercept and other constant from random point
-            let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0
-            );
-
-            // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-                scalars, Option::None
-            );
-
-            // Hardcoded epns for 2**128
-            let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-                (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
-            ];
-
-            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let mod_bn = get_modulus(0);
-
-            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
-
-            let rhs_low = compute_rhs_ecip(
-                points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
-            );
-            let rhs_high = compute_rhs_ecip(
-                points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
-            );
-            let rhs_high_shifted = compute_rhs_ecip(
-                array![full_proof.msm_hint_batched.Q_high].span(),
-                mb.m_A0,
-                mb.b_A0,
-                random_point.x,
-                epns_shifted,
-                full_proof.msm_hint_batched.Q_high_shifted,
-                0
-            );
-
-            let mod_bn = get_modulus(0);
-            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
-
-            let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
-
-
-            let P_1 = ec_safe_add(full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0);
-            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
-            let P_2:G1Point = full_proof.proof.kzg_quotient.into();
-
-            // Perform the KZG pairing check.
-            let kzg_check = multi_pairing_check_bn254_2P_2F(
-               G1G2Pair {{ p: P_1, q: G2_POINT_KZG_1 }},
-               G1G2Pair {{ p: P_2.negate(0), q: G2_POINT_KZG_2 }},
-               precomputed_lines.span(),
-               full_proof.kzg_hint,
-            );
-
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
             if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{

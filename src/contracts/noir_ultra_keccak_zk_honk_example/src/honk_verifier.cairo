@@ -279,7 +279,6 @@ mod UltraKeccakZKHonkVerifier {
                 .span();
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(45);
-
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -410,7 +409,6 @@ mod UltraKeccakZKHonkVerifier {
                 0,
             );
 
-            let mod_bn = get_modulus(0);
             let zk_ecip_batched_rhs = batch_3_mod_p(
                 rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn,
             );

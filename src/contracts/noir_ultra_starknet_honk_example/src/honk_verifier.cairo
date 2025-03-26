@@ -233,7 +233,6 @@ mod UltraStarknetHonkVerifier {
                 .span();
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(41);
-
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
