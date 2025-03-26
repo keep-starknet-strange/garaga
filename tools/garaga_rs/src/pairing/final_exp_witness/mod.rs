@@ -137,33 +137,7 @@ pub fn get_final_exp_witness(curve_id: usize, f: [BigUint; 12]) -> ([BigUint; 12
             ]),
         ]);
         let (c, wi) = bls12_381_final_exp_witness::get_final_exp_witness(f);
-        fn to(v: FieldElement<Degree12ExtensionField>) -> [BigUint; 12] {
-            let [c0, c1] = v.value();
-            let [c0b0, c0b1, c0b2] = c0.value();
-            let [c1b0, c1b1, c1b2] = c1.value();
-            let [c0b0a0, c0b0a1] = c0b0.value();
-            let [c0b1a0, c0b1a1] = c0b1.value();
-            let [c0b2a0, c0b2a1] = c0b2.value();
-            let [c1b0a0, c1b0a1] = c1b0.value();
-            let [c1b1a0, c1b1a1] = c1b1.value();
-            let [c1b2a0, c1b2a1] = c1b2.value();
-
-            [
-                element_to_biguint::<BLS12381PrimeField>(c0b0a0),
-                element_to_biguint::<BLS12381PrimeField>(c0b0a1),
-                element_to_biguint::<BLS12381PrimeField>(c0b1a0),
-                element_to_biguint::<BLS12381PrimeField>(c0b1a1),
-                element_to_biguint::<BLS12381PrimeField>(c0b2a0),
-                element_to_biguint::<BLS12381PrimeField>(c0b2a1),
-                element_to_biguint::<BLS12381PrimeField>(c1b0a0),
-                element_to_biguint::<BLS12381PrimeField>(c1b0a1),
-                element_to_biguint::<BLS12381PrimeField>(c1b1a0),
-                element_to_biguint::<BLS12381PrimeField>(c1b1a1),
-                element_to_biguint::<BLS12381PrimeField>(c1b2a0),
-                element_to_biguint::<BLS12381PrimeField>(c1b2a1),
-            ]
-        }
-        return (to(c), to(wi));
+        return (to_bls(c), to_bls(wi));
     }
 
     panic!("Curve ID {} not supported", curve_id);
