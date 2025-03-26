@@ -19,7 +19,7 @@ mod Risc0Groth16VerifierBN254 {
     use super::{N_FREE_PUBLIC_INPUTS, T, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x27f0e206537afbdabd0606f9c9a0545df8b71441d1848d9d9b0905dc129c1fa;
+        0x54234b153baa38a35c69a075c50f3f868b3436a60ae5d19e1a7687e716b30f7;
 
     #[storage]
     struct Storage {}
