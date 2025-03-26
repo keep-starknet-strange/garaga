@@ -318,6 +318,46 @@ class ECIPCircuits(ModuloCircuit):
         res = self.add(eval_accumulator, eval_neg)
         return res
 
+    def _eval_function_challenge_single(
+        self,
+        A: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        coeff: ModuloCircuitElement,
+        log_div_a_num: list[ModuloCircuitElement],
+        log_div_a_den: list[ModuloCircuitElement],
+        log_div_b_num: list[ModuloCircuitElement],
+        log_div_b_den: list[ModuloCircuitElement],
+        var_name: str = "xA",
+    ) -> ModuloCircuitElement:
+        xA, yA = A
+        F_A = self.add(
+            self.div(
+                self.eval_horner(
+                    log_div_a_num, xA, poly_name="sumdlogdiv_a_num", var_name=var_name
+                ),
+                self.eval_horner(
+                    log_div_a_den, xA, poly_name="sumdlogdiv_a_den", var_name=var_name
+                ),
+            ),
+            self.mul(
+                yA,
+                self.div(
+                    self.eval_horner(
+                        log_div_b_num,
+                        xA,
+                        poly_name="sumdlogdiv_b_num",
+                        var_name=var_name,
+                    ),
+                    self.eval_horner(
+                        log_div_b_den,
+                        xA,
+                        poly_name="sumdlogdiv_b_den",
+                        var_name=var_name,
+                    ),
+                ),
+            ),
+        )
+        return self.mul(coeff, F_A)
+
     def _eval_function_challenge_dupl(
         self,
         A0: tuple[ModuloCircuitElement, ModuloCircuitElement],
@@ -336,53 +376,28 @@ class ECIPCircuits(ModuloCircuit):
         xA0, yA0 = A0
         xA2, yA2 = A2
 
-        F_A0 = self.add(
-            self.div(
-                self.eval_horner(
-                    log_div_a_num, xA0, poly_name="sumdlogdiv_a_num", var_name="xA0"
-                ),
-                self.eval_horner(
-                    log_div_a_den, xA0, poly_name="sumdlogdiv_a_den", var_name="xA0"
-                ),
-            ),
-            self.mul(
-                yA0,
-                self.div(
-                    self.eval_horner(
-                        log_div_b_num, xA0, poly_name="sumdlogdiv_b_num", var_name="xA0"
-                    ),
-                    self.eval_horner(
-                        log_div_b_den, xA0, poly_name="sumdlogdiv_b_den", var_name="xA0"
-                    ),
-                ),
-            ),
+        F_A0 = self._eval_function_challenge_single(
+            A0,
+            coeff0,
+            log_div_a_num,
+            log_div_a_den,
+            log_div_b_num,
+            log_div_b_den,
+            var_name="xA0",
         )
-
-        F_A2 = self.add(
-            self.div(
-                self.eval_horner(
-                    log_div_a_num, xA2, poly_name="sumdlogdiv_a_num", var_name="xA2"
-                ),
-                self.eval_horner(
-                    log_div_a_den, xA2, poly_name="sumdlogdiv_a_den", var_name="xA2"
-                ),
-            ),
-            self.mul(
-                yA2,
-                self.div(
-                    self.eval_horner(
-                        log_div_b_num, xA2, poly_name="sumdlogdiv_b_num", var_name="xA2"
-                    ),
-                    self.eval_horner(
-                        log_div_b_den, xA2, poly_name="sumdlogdiv_b_den", var_name="xA2"
-                    ),
-                ),
-            ),
+        F_A2 = self._eval_function_challenge_single(
+            A2,
+            coeff2,
+            log_div_a_num,
+            log_div_a_den,
+            log_div_b_num,
+            log_div_b_den,
+            var_name="xA2",
         )
 
         # return coeff0*F(A0) - coeff2*F(A2)
 
-        res = self.sub(self.mul(coeff0, F_A0), self.mul(coeff2, F_A2))
+        res = self.sub(F_A0, F_A2)
 
         return res
 
