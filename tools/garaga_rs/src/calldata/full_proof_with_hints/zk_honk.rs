@@ -942,9 +942,9 @@ fn check_evals_consistency(
 
     let mut diff = &lagrange_first * &libra_poly_evals[2];
     diff += (gemini_r - &subgroup_generator_inverse)
-            * (&libra_poly_evals[1]
-                - &libra_poly_evals[2]
-                - &libra_poly_evals[0] * &challenge_poly_eval);
+        * (&libra_poly_evals[1]
+            - &libra_poly_evals[2]
+            - &libra_poly_evals[0] * &challenge_poly_eval);
     diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_evaluation)
         - &vanishing_poly_eval * &libra_poly_evals[3];
     if diff != FieldElement::<GrumpkinPrimeField>::from(0) {
