@@ -149,10 +149,8 @@ fn get_DERIVE_POINT_FROM_X_circuit(
     circuit_inputs = circuit_inputs.next(get_g(curve_index));
     circuit_inputs = circuit_inputs.next(sqrt_rhs_or_g_rhs);
 
-    let outputs = match circuit_inputs.done().eval(modulus) {
-        Result::Ok(outputs) => { outputs },
-        Result::Err(_) => { panic!("Expected success") },
-    };
+    let outputs = circuit_inputs.done().eval(modulus).unwrap();
+
     let rhs = outputs.get_output(t4); // rhs
     let g_rhs = outputs.get_output(t5); // g*rhs
     let should_be_rhs_or_grhs = outputs

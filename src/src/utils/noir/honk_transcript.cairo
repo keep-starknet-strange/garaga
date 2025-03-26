@@ -63,7 +63,7 @@ impl KeccakHasher of IHasher<KeccakHasherState> {
     fn new() -> KeccakHasherState {
         KeccakHasherState { arr: array![] }
     }
-    #[inline]
+    #[inline(never)]
     fn update_u64_as_u256(ref self: KeccakHasherState, v: u64) {
         self.arr.append(0);
         self.arr.append(0);
@@ -253,6 +253,263 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         );
     }
 }
+
+#[derive(Drop)]
+struct Etas {
+    eta: u128,
+    eta2: u128,
+    eta3: u128,
+}
+
+#[inline]
+fn u64_byte_reverse(word: u64) -> u64 {
+    (core::integer::u128_byte_reverse(word.into()) / 0x10000000000000000).try_into().unwrap()
+}
+
+#[inline]
+fn u256_byte_reverse(word: u256) -> u256 {
+    u256 {
+        low: core::integer::u128_byte_reverse(word.high),
+        high: core::integer::u128_byte_reverse(word.low),
+    }
+}
+
+
+#[inline(never)]
+pub fn append_proof_point<T, impl Hasher: IHasher<T>>(ref hasher: T, point: G1PointProof) {
+    hasher.update(point.x0);
+    hasher.update(point.x1);
+    hasher.update(point.y0);
+    hasher.update(point.y1);
+}
+
+// Hasher little endian output to big endian challenge.
+// Converts to big endian, then takes modulo Fr.
+fn ke_le_out_to_ch_be(ke_le_out: u256) -> u256 {
+    let ke_be: u256 = u256_byte_reverse(ke_le_out);
+    let ch_be: u256 = ke_be % Fr;
+    ch_be
+}
+
+// Return eta and last hasher output
+#[inline]
+pub fn get_eta_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    circuit_size: u64,
+    pub_inputs_size: u64,
+    pub_inputs_offset: u64,
+    pub_inputs: Span<u256>,
+    w1: G1PointProof,
+    w2: G1PointProof,
+    w3: G1PointProof,
+) -> (Etas, u256) {
+    let mut hasher = Hasher::new();
+    hasher.update_u64_as_u256(circuit_size);
+    hasher.update_u64_as_u256(pub_inputs_size);
+    hasher.update_u64_as_u256(pub_inputs_offset);
+    for pub_i in pub_inputs {
+        hasher.update(*pub_i);
+    };
+    append_proof_point(ref hasher, w1);
+    append_proof_point(ref hasher, w2);
+    append_proof_point(ref hasher, w3);
+
+    let ch_be: u256 = hasher.digest();
+
+    let mut hasher_2 = Hasher::new();
+    hasher_2.update(ch_be);
+
+    let ch_2_be: u256 = hasher_2.digest();
+
+    (Etas { eta: ch_be.low, eta2: ch_be.high, eta3: ch_2_be.low }, ch_2_be)
+}
+
+
+// Return beta, gamma, and last hasher output.
+// Outut :
+// ch_be.
+// beta = ch_be.low, gamma = ch_be.high, last_hasher_output = ch_be.
+#[inline]
+pub fn get_beta_gamma_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256,
+    lookup_read_counts: G1PointProof,
+    lookup_read_tags: G1PointProof,
+    w4: G1PointProof,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    append_proof_point(ref hasher, lookup_read_counts);
+    append_proof_point(ref hasher, lookup_read_tags);
+    append_proof_point(ref hasher, w4);
+
+    let ch_be: u256 = hasher.digest();
+
+    ch_be
+}
+
+
+#[inline]
+pub fn generate_alpha_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, lookup_inverse: G1PointProof, z_perm: G1PointProof,
+) -> (Array<u128>, u256) { // -> [u256; NUMBER_OF_ALPHAS]
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    append_proof_point(ref hasher, lookup_inverse);
+    append_proof_point(ref hasher, z_perm);
+
+    let mut alpha_XY: u256 = hasher.digest();
+
+    let mut alphas: Array<u128> = array![];
+    alphas.append(alpha_XY.low);
+    alphas.append(alpha_XY.high);
+
+    // Asumme N_alphas > 2 and N_alphas is odd.
+    for _ in 1..NUMBER_OF_ALPHAS / 2 {
+        let mut hasher_i = Hasher::new();
+        hasher_i.update(alpha_XY);
+        let _alpha_XY: u256 = hasher_i.digest();
+
+        alphas.append(_alpha_XY.low);
+        alphas.append(_alpha_XY.high);
+
+        alpha_XY = _alpha_XY;
+    };
+
+    // Last alpha (odd number of alphas)
+
+    let mut hasher_last = Hasher::new();
+    hasher_last.update(alpha_XY);
+    let alpha_last: u256 = hasher_last.digest();
+
+    alphas.append(alpha_last.low);
+
+    assert(alphas.len() == NUMBER_OF_ALPHAS, 'Wrong number of alphas');
+
+    (alphas, alpha_last)
+}
+
+#[inline]
+pub fn generate_gate_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256,
+) -> (Array<u128>, u256) {
+    let mut gate_challenges: Array<u128> = array![];
+
+    let mut gate_challenge: u256 = prev_hasher_output;
+    for _ in 0..CONST_PROOF_SIZE_LOG_N {
+        let mut hasher = Hasher::new();
+        hasher.update(gate_challenge);
+        let _gate_challenge: u256 = hasher.digest();
+        gate_challenges.append(_gate_challenge.low);
+        gate_challenge = _gate_challenge;
+    };
+
+    (gate_challenges, gate_challenge)
+}
+
+
+#[inline]
+pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, sumcheck_univariates: Span<u256>,
+) -> (Array<u128>, u256) {
+    let mut sum_check_u_challenges: Array<u128> = array![];
+    let mut challenge: u256 = prev_hasher_output;
+    for i in 0..CONST_PROOF_SIZE_LOG_N {
+        let mut hasher = Hasher::new();
+        hasher.update(challenge);
+
+        match array_slice(
+            sumcheck_univariates.snapshot,
+            i * BATCHED_RELATION_PARTIAL_LENGTH,
+            BATCHED_RELATION_PARTIAL_LENGTH,
+        ) {
+            Option::Some(slice) => {
+                let sumcheck_univariates_i = Span { snapshot: slice };
+                for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+                    hasher.update(*sumcheck_univariates_i.at(j));
+                };
+            },
+            Option::None => {
+                for _ in 0..BATCHED_RELATION_PARTIAL_LENGTH {
+                    hasher.update_0_256();
+                };
+            },
+        };
+        challenge = hasher.digest();
+        sum_check_u_challenges.append(challenge.low);
+    };
+
+    (sum_check_u_challenges, challenge)
+}
+
+
+#[inline]
+pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, sumcheck_evaluations: Span<u256>,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    for i in 0..NUMBER_OF_ENTITIES {
+        hasher.update(*sumcheck_evaluations.at(i));
+    };
+
+    hasher.digest()
+}
+
+#[inline]
+pub fn generate_gemini_r_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, gemini_fold_comms: Span<G1Point256>,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    // Log_n - 1 points
+    for pt in gemini_fold_comms {
+        append_proof_point(ref hasher, (*pt).into());
+    };
+    for _ in 0..(CONST_PROOF_SIZE_LOG_N - gemini_fold_comms.len() - 1) {
+        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for hasher.
+        hasher.update_gen_point();
+    };
+    hasher.digest()
+}
+
+#[inline]
+pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, gemini_a_evaluations: Span<u256>,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    for eval in gemini_a_evaluations {
+        hasher.update(*eval);
+    };
+    let implied_log_n = gemini_a_evaluations.len();
+    for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
+        hasher.update_0_256();
+    };
+
+    hasher.digest()
+}
+
+#[inline]
+pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, shplonk_q: G1PointProof,
+) -> u256 {
+    // # Shplonk Z :
+    // hasher.update(c7)
+    // x0, x1, y0, y1 = g1_to_g1_proof_point(proof.shplonk_q)
+    // hasher.update(int.to_bytes(x0, 32, "big"))
+    // hasher.update(int.to_bytes(x1, 32, "big"))
+    // hasher.update(int.to_bytes(y0, 32, "big"))
+    // hasher.update(int.to_bytes(y1, 32, "big"))
+
+    // c8 = hasher.digest_reset()
+    // shplonk_z, _ = split_challenge(c8)
+
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    append_proof_point(ref hasher, shplonk_q);
+
+    hasher.digest()
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -498,261 +755,3 @@ mod tests {
         assert_eq!(transcript.shplonk_z, expected.shplonk_z);
     }
 }
-
-
-#[derive(Drop)]
-struct Etas {
-    eta: u128,
-    eta2: u128,
-    eta3: u128,
-}
-
-#[inline]
-fn u64_byte_reverse(word: u64) -> u64 {
-    (core::integer::u128_byte_reverse(word.into()) / 0x10000000000000000).try_into().unwrap()
-}
-
-#[inline]
-fn u256_byte_reverse(word: u256) -> u256 {
-    u256 {
-        low: core::integer::u128_byte_reverse(word.high),
-        high: core::integer::u128_byte_reverse(word.low),
-    }
-}
-
-
-#[inline]
-pub fn append_proof_point<T, impl Hasher: IHasher<T>>(ref hasher: T, point: G1PointProof) {
-    hasher.update(point.x0);
-    hasher.update(point.x1);
-    hasher.update(point.y0);
-    hasher.update(point.y1);
-}
-
-// Hasher little endian output to big endian challenge.
-// Converts to big endian, then takes modulo Fr.
-fn ke_le_out_to_ch_be(ke_le_out: u256) -> u256 {
-    let ke_be: u256 = u256_byte_reverse(ke_le_out);
-    let ch_be: u256 = ke_be % Fr;
-    ch_be
-}
-
-// Return eta and last hasher output
-#[inline]
-pub fn get_eta_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    circuit_size: u64,
-    pub_inputs_size: u64,
-    pub_inputs_offset: u64,
-    pub_inputs: Span<u256>,
-    w1: G1PointProof,
-    w2: G1PointProof,
-    w3: G1PointProof,
-) -> (Etas, u256) {
-    let mut hasher = Hasher::new();
-    hasher.update_u64_as_u256(circuit_size);
-    hasher.update_u64_as_u256(pub_inputs_size);
-    hasher.update_u64_as_u256(pub_inputs_offset);
-    for pub_i in pub_inputs {
-        hasher.update(*pub_i);
-    };
-    append_proof_point(ref hasher, w1);
-    append_proof_point(ref hasher, w2);
-    append_proof_point(ref hasher, w3);
-
-    let ch_be: u256 = hasher.digest();
-
-    let mut hasher_2 = Hasher::new();
-    hasher_2.update(ch_be);
-
-    let ch_2_be: u256 = hasher_2.digest();
-
-    (Etas { eta: ch_be.low, eta2: ch_be.high, eta3: ch_2_be.low }, ch_2_be)
-}
-
-
-// Return beta, gamma, and last hasher output.
-// Outut :
-// ch_be.
-// beta = ch_be.low, gamma = ch_be.high, last_hasher_output = ch_be.
-#[inline]
-pub fn get_beta_gamma_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256,
-    lookup_read_counts: G1PointProof,
-    lookup_read_tags: G1PointProof,
-    w4: G1PointProof,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    append_proof_point(ref hasher, lookup_read_counts);
-    append_proof_point(ref hasher, lookup_read_tags);
-    append_proof_point(ref hasher, w4);
-
-    let ch_be: u256 = hasher.digest();
-
-    ch_be
-}
-
-
-#[inline]
-pub fn generate_alpha_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, lookup_inverse: G1PointProof, z_perm: G1PointProof,
-) -> (Array<u128>, u256) { // -> [u256; NUMBER_OF_ALPHAS]
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    append_proof_point(ref hasher, lookup_inverse);
-    append_proof_point(ref hasher, z_perm);
-
-    let mut alpha_XY: u256 = hasher.digest();
-
-    let mut alphas: Array<u128> = array![];
-    alphas.append(alpha_XY.low);
-    alphas.append(alpha_XY.high);
-
-    // Asumme N_alphas > 2 and N_alphas is odd.
-    for _ in 1..NUMBER_OF_ALPHAS / 2 {
-        let mut hasher_i = Hasher::new();
-        hasher_i.update(alpha_XY);
-        let _alpha_XY: u256 = hasher_i.digest();
-
-        alphas.append(_alpha_XY.low);
-        alphas.append(_alpha_XY.high);
-
-        alpha_XY = _alpha_XY;
-    };
-
-    // Last alpha (odd number of alphas)
-
-    let mut hasher_last = Hasher::new();
-    hasher_last.update(alpha_XY);
-    let alpha_last: u256 = hasher_last.digest();
-
-    alphas.append(alpha_last.low);
-
-    assert(alphas.len() == NUMBER_OF_ALPHAS, 'Wrong number of alphas');
-
-    (alphas, alpha_last)
-}
-
-#[inline]
-pub fn generate_gate_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256,
-) -> (Array<u128>, u256) {
-    let mut gate_challenges: Array<u128> = array![];
-
-    let mut gate_challenge: u256 = prev_hasher_output;
-    for _ in 0..CONST_PROOF_SIZE_LOG_N {
-        let mut hasher = Hasher::new();
-        hasher.update(gate_challenge);
-        let _gate_challenge: u256 = hasher.digest();
-        gate_challenges.append(_gate_challenge.low);
-        gate_challenge = _gate_challenge;
-    };
-
-    (gate_challenges, gate_challenge)
-}
-
-
-#[inline]
-pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, sumcheck_univariates: Span<u256>,
-) -> (Array<u128>, u256) {
-    let mut sum_check_u_challenges: Array<u128> = array![];
-    let mut challenge: u256 = prev_hasher_output;
-    for i in 0..CONST_PROOF_SIZE_LOG_N {
-        let mut hasher = Hasher::new();
-        hasher.update(challenge);
-
-        match array_slice(
-            sumcheck_univariates.snapshot,
-            i * BATCHED_RELATION_PARTIAL_LENGTH,
-            BATCHED_RELATION_PARTIAL_LENGTH,
-        ) {
-            Option::Some(slice) => {
-                let sumcheck_univariates_i = Span { snapshot: slice };
-                for j in 0..BATCHED_RELATION_PARTIAL_LENGTH {
-                    hasher.update(*sumcheck_univariates_i.at(j));
-                };
-            },
-            Option::None => {
-                for _ in 0..BATCHED_RELATION_PARTIAL_LENGTH {
-                    hasher.update_0_256();
-                };
-            },
-        };
-        challenge = hasher.digest();
-        sum_check_u_challenges.append(challenge.low);
-    };
-
-    (sum_check_u_challenges, challenge)
-}
-
-
-#[inline]
-pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, sumcheck_evaluations: Span<u256>,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    for i in 0..NUMBER_OF_ENTITIES {
-        hasher.update(*sumcheck_evaluations.at(i));
-    };
-
-    hasher.digest()
-}
-
-#[inline]
-pub fn generate_gemini_r_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, gemini_fold_comms: Span<G1Point256>,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    // Log_n - 1 points
-    for pt in gemini_fold_comms {
-        append_proof_point(ref hasher, (*pt).into());
-    };
-    for _ in 0..(CONST_PROOF_SIZE_LOG_N - gemini_fold_comms.len() - 1) {
-        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for hasher.
-        hasher.update_gen_point();
-    };
-    hasher.digest()
-}
-
-#[inline]
-pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, gemini_a_evaluations: Span<u256>,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    for eval in gemini_a_evaluations {
-        hasher.update(*eval);
-    };
-    let implied_log_n = gemini_a_evaluations.len();
-    for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
-        hasher.update_0_256();
-    };
-
-    hasher.digest()
-}
-
-#[inline]
-pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, shplonk_q: G1PointProof,
-) -> u256 {
-    // # Shplonk Z :
-    // hasher.update(c7)
-    // x0, x1, y0, y1 = g1_to_g1_proof_point(proof.shplonk_q)
-    // hasher.update(int.to_bytes(x0, 32, "big"))
-    // hasher.update(int.to_bytes(x1, 32, "big"))
-    // hasher.update(int.to_bytes(y0, 32, "big"))
-    // hasher.update(int.to_bytes(y1, 32, "big"))
-
-    // c8 = hasher.digest_reset()
-    // shplonk_z, _ = split_challenge(c8)
-
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    append_proof_point(ref hasher, shplonk_q);
-
-    hasher.digest()
-}
-
