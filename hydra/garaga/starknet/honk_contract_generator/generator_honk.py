@@ -454,34 +454,15 @@ mod Ultra{flavor}HonkVerifier {{
 
     """
 
-    create_directory(output_folder_path)
-    src_dir = os.path.join(output_folder_path, "src")
-    create_directory(src_dir)
+    _write_and_format_project_files(
+        output_folder_path,
+        output_folder_name,
+        cli_mode,
+        constants_code,
+        circuits_code,
+        contract_code,
+    )
 
-    with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write("scarb 2.9.2\n")
-
-    with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
-        f.write(constants_code)
-
-    with open(os.path.join(src_dir, "honk_verifier_circuits.cairo"), "w") as f:
-        f.write(circuits_code)
-
-    with open(os.path.join(src_dir, "honk_verifier.cairo"), "w") as f:
-        f.write(contract_code)
-
-    with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(get_scarb_toml_file(output_folder_name, cli_mode))
-
-    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
-        f.write(
-            """
-mod honk_verifier;
-mod honk_verifier_constants;
-mod honk_verifier_circuits;
-"""
-        )
-    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
     return constants_code
 
 
@@ -937,7 +918,26 @@ mod Ultra{flavor}ZKHonkVerifier {{
 
 
     """
+    _write_and_format_project_files(
+        output_folder_path,
+        output_folder_name,
+        cli_mode,
+        constants_code,
+        circuits_code,
+        contract_code,
+    )
 
+    return True
+
+
+def _write_and_format_project_files(
+    output_folder_path: str,
+    output_folder_name: str,
+    cli_mode: bool,
+    constants_code: str,
+    circuits_code: str,
+    contract_code: str,
+):
     create_directory(output_folder_path)
     src_dir = os.path.join(output_folder_path, "src")
     create_directory(src_dir)
@@ -966,7 +966,6 @@ mod honk_verifier_circuits;
 """
         )
     subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
-    return constants_code
 
 
 def gen_honk_verifier(
