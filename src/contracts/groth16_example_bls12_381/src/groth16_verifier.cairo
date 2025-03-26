@@ -18,7 +18,7 @@ mod Groth16VerifierBLS12_381 {
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x54234b153baa38a35c69a075c50f3f868b3436a60ae5d19e1a7687e716b30f7;
+        0x25387ed45cd336dbdca62f1eec9ac2a393efa68ae197843cbd1bc7f15cbf1b3;
 
     #[storage]
     struct Storage {}
