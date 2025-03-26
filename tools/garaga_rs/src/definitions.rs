@@ -134,7 +134,7 @@ pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
             -FieldElement::from(-c as u64)
         }
     }
-    return Polynomial::new(coeffs.iter().map(|x| lift::<F>(*x)).collect());
+    Polynomial::new(coeffs.iter().map(|x| lift::<F>(*x)).collect())
 }
 
 /// A trait that provides curve parameters for a specific field type.

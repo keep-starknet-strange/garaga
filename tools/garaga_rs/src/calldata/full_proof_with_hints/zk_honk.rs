@@ -376,7 +376,7 @@ pub fn get_zk_honk_calldata(
     )
     .map_err(|e| format!("Field error: {:?}", e))?;
     if !consistent {
-        return Err(format!("Consistency check failed"));
+        return Err("Consistency check failed".to_string());
     }
 
     let scalars = extract_msm_scalars(
@@ -941,11 +941,10 @@ fn check_evals_consistency(
     let lagrange_last = &denominators[SUBGROUP_SIZE - 1] * &numerator;
 
     let mut diff = &lagrange_first * &libra_poly_evals[2];
-    diff = diff
-        + (gemini_r - &subgroup_generator_inverse)
-            * (&libra_poly_evals[1]
-                - &libra_poly_evals[2]
-                - &libra_poly_evals[0] * &challenge_poly_eval);
+    diff += (gemini_r - &subgroup_generator_inverse)
+        * (&libra_poly_evals[1]
+            - &libra_poly_evals[2]
+            - &libra_poly_evals[0] * &challenge_poly_eval);
     diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_evaluation)
         - &vanishing_poly_eval * &libra_poly_evals[3];
     if diff != FieldElement::<GrumpkinPrimeField>::from(0) {

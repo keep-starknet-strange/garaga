@@ -58,9 +58,9 @@ lazy_static! {
 
 #[cfg(test)]
 mod tests {
-    use super::{E, H3_S};
-    use num_bigint::BigInt;
-    use num_traits::Num;
+    // use super::{E, H3_S};
+    // use num_bigint::BigInt;
+    // use num_traits::Num;
 
     // #[test]
     // fn test_hardcoded_consts() {
@@ -98,19 +98,19 @@ mod tests {
     //     assert_eq!(E, &e.to_string());
     // }
 
-    fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
-        assert!(a > &BigInt::from(0) && b > &BigInt::from(0));
-        let mut a = a.clone();
-        let mut b = b.clone();
-        while b != BigInt::from(0) {
-            (a, b) = (b.clone(), a % b);
-        }
-        a
-    }
+    // fn gcd(a: &BigInt, b: &BigInt) -> BigInt {
+    //     assert!(a > &BigInt::from(0) && b > &BigInt::from(0));
+    //     let mut a = a.clone();
+    //     let mut b = b.clone();
+    //     while b != BigInt::from(0) {
+    //         (a, b) = (b.clone(), a % b);
+    //     }
+    //     a
+    // }
 
-    fn to_words_le(bigint: &BigInt) -> Vec<u64> {
-        let (sign, words) = bigint.to_u64_digits();
-        assert!(sign != num_bigint::Sign::Minus);
-        words
-    }
+    // fn to_words_le(bigint: &BigInt) -> Vec<u64> {
+    //     let (sign, words) = bigint.to_u64_digits();
+    //     assert!(sign != num_bigint::Sign::Minus);
+    //     words
+    // }
 }

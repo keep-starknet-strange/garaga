@@ -1,5 +1,8 @@
 pub mod curves;
-pub mod structs;
+pub mod structs {
+    pub mod fields;
+    pub mod points;
+}
 use core::RangeCheck;
 
 pub use core::circuit::{u384, u96};

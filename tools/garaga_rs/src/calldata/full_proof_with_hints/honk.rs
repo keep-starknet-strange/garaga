@@ -680,6 +680,12 @@ pub struct KeccakHasher {
     data: Vec<u8>,
 }
 
+impl Default for KeccakHasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KeccakHasher {
     pub fn new() -> Self {
         KeccakHasher { data: vec![] }
@@ -705,6 +711,12 @@ impl Hasher for KeccakHasher {
 
 pub struct StarknetHasher {
     state: [FieldElement<Stark252PrimeField>; 3],
+}
+
+impl Default for StarknetHasher {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StarknetHasher {
