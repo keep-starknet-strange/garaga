@@ -513,15 +513,18 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
 
 #[cfg(test)]
 mod tests {
-    use garaga::utils::noir::{get_proof_keccak, get_proof_starknet};
     use super::{
-        G1Point256, HonkProof, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
+        HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
         StarknetHasherState,
     };
+    use garaga::utils::noir::{get_vk, get_proof_keccak, get_proof_starknet};
     #[test]
     fn test_transcript_keccak() {
+        let vk = get_vk();
         let proof = get_proof_keccak();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<KeccakHasherState>(proof);
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+            KeccakHasherState,
+        >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {
             eta: 0x8f552b09842921c3d8e179c45df06f60,
             eta_two: 0x12fbf1fd24f38c808ec773d904e06a74,
@@ -618,7 +621,7 @@ mod tests {
             rho: 0xee4eb74b3e344e1e7198579a6d05c83f,
             gemini_r: 0xd8811fa4e82faef06a389ebfa77269a2,
             shplonk_nu: 0x39db5d248a75833cb7752419437b987e,
-            shplonk_z: 0x5668c7147bfb828113c61d5d7e3b53c4,
+            shplonk_z: 0x14fe91a40f4b58a1a846076a2f3f0181,
         };
         assert_eq!(transcript.eta, expected.eta);
         assert_eq!(transcript.eta_two, expected.eta_two);
@@ -635,8 +638,11 @@ mod tests {
     }
     #[test]
     fn test_transcript_starknet() {
+        let vk = get_vk();
         let proof = get_proof_starknet();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<StarknetHasherState>(proof);
+        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+            StarknetHasherState,
+        >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {
             eta: 0xacab94703ab6d0ac76a257baf5b3cc47,
             eta_two: 0x48aa9b84794b8501475d1acdde7c12,
@@ -733,7 +739,7 @@ mod tests {
             rho: 0xa94de3afcb56c451d2730542b106af2a,
             gemini_r: 0xe642b1a1b5ea29ec784add59062acad2,
             shplonk_nu: 0x2cb604ccd14cc249f3b4b25bb3f8c518,
-            shplonk_z: 0xa3db962951152eafbcdc3661164a6411,
+            shplonk_z: 0x7d749235fb659af386c5ecaf5eebb736,
         };
         assert_eq!(transcript.eta, expected.eta);
         assert_eq!(transcript.eta_two, expected.eta_two);
@@ -749,4 +755,3 @@ mod tests {
         assert_eq!(transcript.shplonk_z, expected.shplonk_z);
     }
 }
-
