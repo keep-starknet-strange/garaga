@@ -62,7 +62,7 @@ const DRAND_QUICKNET_PUBLIC_KEY: G2Point = G2Point {
     },
 };
 pub const DRAND_QUICKNET_GENESIS_TIME: u64 = 1692803367;
-pub const DRAND_QUICKNET_PERIOD: u8 = 3;
+pub const DRAND_QUICKNET_PERIOD: u64 = 3;
 
 const a_iso_swu: u384 = u384 {
     limb0: 0xa0e0f97f5cf428082d584c1d,
@@ -819,8 +819,8 @@ pub fn timestamp_to_round(timestamp: u64) -> u64 {
     if timestamp < DRAND_QUICKNET_GENESIS_TIME {
         return 0;
     }
-    
-    let elapsed_time = timestamp - DRAND_QUICKNET_GENESIS_TIME;
+
+    let elapsed_time: u64 = timestamp - DRAND_QUICKNET_GENESIS_TIME;
     return (elapsed_time / DRAND_QUICKNET_PERIOD) + 1;
 }
 pub fn round_to_timestamp(round: u64) -> u64 {
