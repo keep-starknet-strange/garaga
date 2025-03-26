@@ -90,7 +90,7 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.9.2"
+          scarb-version: "2.11.2"
       - name: Set up Python 3.10.14
         uses: actions/setup-python@v5
         with:

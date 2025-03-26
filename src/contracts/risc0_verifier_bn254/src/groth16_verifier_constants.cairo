@@ -1,4 +1,4 @@
-use garaga::definitions::{G1Point, G2Point, E12D, G2Line, u384, u288};
+use garaga::definitions::{E12D, G1Point, G2Line, G2Point, u288, u384};
 use garaga::groth16::Groth16VerifyingKey;
 
 pub const N_FREE_PUBLIC_INPUTS: usize = 2;

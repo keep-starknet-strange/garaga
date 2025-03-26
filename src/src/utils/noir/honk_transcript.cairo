@@ -1,9 +1,9 @@
-use core::keccak;
-use core::traits::Into;
-use core::poseidon::hades_permutation;
 use core::array::array_slice;
+use core::keccak;
+use core::poseidon::hades_permutation;
+use core::traits::Into;
 use garaga::definitions::G1Point;
-use garaga::utils::noir::{HonkVk, HonkProof, G1Point256, G1PointProof};
+use garaga::utils::noir::{G1Point256, G1PointProof, HonkProof, HonkVk};
 
 const POW2_136: u256 = 0x10000000000000000000000000000000000;
 const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
@@ -308,7 +308,7 @@ pub fn get_eta_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     hasher.update_u64_as_u256(pub_inputs_offset);
     for pub_i in pub_inputs {
         hasher.update(*pub_i);
-    };
+    }
     append_proof_point(ref hasher, w1);
     append_proof_point(ref hasher, w2);
     append_proof_point(ref hasher, w3);
@@ -372,7 +372,7 @@ pub fn generate_alpha_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>
         alphas.append(_alpha_XY.high);
 
         alpha_XY = _alpha_XY;
-    };
+    }
 
     // Last alpha (odd number of alphas)
 
@@ -400,7 +400,7 @@ pub fn generate_gate_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
         let _gate_challenge: u256 = hasher.digest();
         gate_challenges.append(_gate_challenge.low);
         gate_challenge = _gate_challenge;
-    };
+    }
 
     (gate_challenges, gate_challenge)
 }
@@ -432,10 +432,10 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
                     hasher.update_0_256();
                 };
             },
-        };
+        }
         challenge = hasher.digest();
         sum_check_u_challenges.append(challenge.low);
-    };
+    }
 
     (sum_check_u_challenges, challenge)
 }
@@ -449,7 +449,7 @@ pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     hasher.update(prev_hasher_output);
     for i in 0..NUMBER_OF_ENTITIES {
         hasher.update(*sumcheck_evaluations.at(i));
-    };
+    }
 
     hasher.digest()
 }
@@ -463,11 +463,11 @@ pub fn generate_gemini_r_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T
     // Log_n - 1 points
     for pt in gemini_fold_comms {
         append_proof_point(ref hasher, (*pt).into());
-    };
+    }
     for _ in 0..(CONST_PROOF_SIZE_LOG_N - gemini_fold_comms.len() - 1) {
         // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for hasher.
         hasher.update_gen_point();
-    };
+    }
     hasher.digest()
 }
 
@@ -479,11 +479,11 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
     hasher.update(prev_hasher_output);
     for eval in gemini_a_evaluations {
         hasher.update(*eval);
-    };
+    }
     let implied_log_n = gemini_a_evaluations.len();
     for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
         hasher.update_0_256();
-    };
+    }
 
     hasher.digest()
 }
@@ -513,11 +513,11 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
 
 #[cfg(test)]
 mod tests {
+    use garaga::utils::noir::{get_proof_keccak, get_proof_starknet, get_vk};
     use super::{
-        HonkProof, G1Point256, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
+        G1Point256, HonkProof, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
         StarknetHasherState,
     };
-    use garaga::utils::noir::{get_vk, get_proof_keccak, get_proof_starknet};
     #[test]
     fn test_transcript_keccak() {
         let vk = get_vk();

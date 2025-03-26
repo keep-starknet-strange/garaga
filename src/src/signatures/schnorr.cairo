@@ -1,7 +1,7 @@
 use core::circuit::{CircuitModulus, u96};
-use garaga::basic_field_ops::{neg_mod_p, is_even_u384};
+use garaga::basic_field_ops::{is_even_u384, neg_mod_p};
 use garaga::definitions::{
-    Zero, get_n, get_modulus, get_G, get_curve_order_modulus, serialize_u384, deserialize_u384,
+    Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
 use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1, u384};
 use garaga::utils::u384_eq_zero;
