@@ -235,6 +235,68 @@ def gen_honk_circuits_code(vk: HonkVk) -> str:
     )
 
 
+def _gen_contract_header(flavor: str, is_zk: bool, function_names: list[str]) -> str:
+    """Generate the contract header and imports based on flavor and ZK status."""
+    contract_name = f"Ultra{flavor}{'ZK' if is_zk else ''}HonkVerifier"
+    trait_name = f"I{contract_name}"
+    endpoint_name = f"verify_ultra_{flavor.lower()}{'_zk' if is_zk else ''}_honk_proof"
+    imports_str = ", ".join(function_names)
+    proof_struct_name = f"{('ZK' if is_zk else '') + 'HonkProof'}"
+    header = f"""
+use super::honk_verifier_constants::{{vk, precomputed_lines}};
+use super::honk_verifier_circuits::{{{imports_str}}};
+
+#[starknet::interface]
+trait {trait_name}<TContractState> {{
+    fn {endpoint_name}(
+        self: @TContractState,
+        full_proof_with_hints: Span<felt252>,
+    ) -> Option<Span<u256>>;
+}}
+
+#[starknet::contract]
+mod {contract_name} {{
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
+    use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
+    use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
+    use garaga::circuits::ec;
+    use garaga::utils::neg_3;
+    use super::{{vk, precomputed_lines, {imports_str}}};
+    use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
+    use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
+    use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
+    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}into_u256_unchecked}};
+    use core::num::traits::Zero;
+    use core::poseidon::hades_permutation;
+
+    #[storage]
+    struct Storage {{}}
+
+    #[derive(Drop, Serde)]
+    struct FullProof {{
+        proof: {proof_struct_name},
+        msm_hint_batched: MSMHint,
+        derive_point_from_x_hint: DerivePointFromXHint,
+        kzg_hint:MPCheckHintBN254,
+    }}
+
+    #[abi(embed_v0)]
+    impl {trait_name} of super::{trait_name}<ContractState> {{
+        fn {endpoint_name}(
+            self: @ContractState,
+            full_proof_with_hints: Span<felt252>,
+        ) -> Option<Span<u256>> {{
+            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+            // This function returns an Option for the public inputs if the proof is valid.
+            // If the proof is invalid, the execution will either fail or return None.
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
+            let mut full_proof_with_hints = full_proof_with_hints;
+            let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
+"""
+    return header
+
+
 def _gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
@@ -287,60 +349,18 @@ def _gen_honk_verifier(
         f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
     )
 
-    contract_code = f"""
-use super::honk_verifier_constants::{{vk, precomputed_lines}};
-use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
+    # Generate contract header
+    contract_header = _gen_contract_header(
+        flavor=flavor,
+        is_zk=False,
+        function_names=[
+            sumcheck_function_name,
+            prepare_scalars_function_name,
+            lhs_ecip_function_name,
+        ],
+    )
 
-#[starknet::interface]
-trait IUltra{flavor}HonkVerifier<TContractState> {{
-    fn verify_ultra_{flavor.lower()}_honk_proof(
-        self: @TContractState,
-        full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>;
-}}
-
-#[starknet::contract]
-mod Ultra{flavor}HonkVerifier {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
-    use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
-    use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
-    use garaga::circuits::ec;
-    use garaga::utils::neg_3;
-    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
-    use garaga::utils::noir::{{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::honk_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH, {flavor}HasherState}};
-    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, into_u256_unchecked}};
-    use core::num::traits::Zero;
-    use core::poseidon::hades_permutation;
-
-    #[storage]
-    struct Storage {{}}
-
-    #[derive(Drop, Serde)]
-    struct FullProof {{
-        proof: HonkProof,
-        msm_hint_batched: MSMHint,
-        derive_point_from_x_hint: DerivePointFromXHint,
-        kzg_hint:MPCheckHintBN254,
-    }}
-
-    #[abi(embed_v0)]
-    impl IUltra{flavor}HonkVerifier of super::IUltra{flavor}HonkVerifier<ContractState> {{
-        fn verify_ultra_{flavor.lower()}_honk_proof(
-            self: @ContractState,
-            full_proof_with_hints: Span<felt252>,
-        ) -> Option<Span<u256>> {{
-            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns an Option for the public inputs if the proof is valid.
-            // If the proof is invalid, the execution will either fail or return None.
-            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
-            let mut full_proof_with_hints = full_proof_with_hints;
-            let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
-
-
+    contract_code = f"""{contract_header}
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
@@ -591,61 +611,21 @@ def _gen_zk_honk_verifier(
         f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
     )
 
-    contract_code = f"""
-use super::honk_verifier_constants::{{vk, precomputed_lines}};
-use super::honk_verifier_circuits::{{{sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_init_function_name}, {consistency_loop_function_name}, {consistency_done_function_name}, {lhs_ecip_function_name}}};
+    # Generate contract header
+    contract_header = _gen_contract_header(
+        flavor=flavor,
+        is_zk=True,
+        function_names=[
+            sumcheck_function_name,
+            prepare_scalars_function_name,
+            consistency_init_function_name,
+            consistency_loop_function_name,
+            consistency_done_function_name,
+            lhs_ecip_function_name,
+        ],
+    )
 
-#[starknet::interface]
-trait IUltra{flavor}ZKHonkVerifier<TContractState> {{
-    fn verify_ultra_{flavor.lower()}_zk_honk_proof(
-        self: @TContractState,
-        full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>;
-}}
-
-#[starknet::contract]
-mod Ultra{flavor}ZKHonkVerifier {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
-    use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
-    use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
-    use garaga::circuits::ec;
-    use garaga::utils::neg_3;
-    use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {consistency_init_function_name}, {consistency_loop_function_name}, {consistency_done_function_name}, {lhs_ecip_function_name}}};
-    use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
-    use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, u256_to_u384, into_u256_unchecked}};
-    use core::num::traits::Zero;
-    use core::poseidon::hades_permutation;
-
-    #[storage]
-    struct Storage {{}}
-
-    #[derive(Drop, Serde)]
-    struct FullProof {{
-        proof: ZKHonkProof,
-        msm_hint_batched: MSMHint,
-        derive_point_from_x_hint: DerivePointFromXHint,
-        kzg_hint:MPCheckHintBN254,
-    }}
-
-    #[abi(embed_v0)]
-    impl IUltra{flavor}ZKHonkVerifier of super::IUltra{flavor}ZKHonkVerifier<ContractState> {{
-        fn verify_ultra_{flavor.lower()}_zk_honk_proof(
-            self: @ContractState,
-            full_proof_with_hints: Span<felt252>,
-        ) -> Option<Span<u256>> {{
-            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns an Option for the public inputs if the proof is valid.
-            // If the proof is invalid, the execution will either fail or return None.
-            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
-            let mut full_proof_with_hints = full_proof_with_hints;
-            let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
-
-
+    contract_code = f"""{contract_header}
             let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(

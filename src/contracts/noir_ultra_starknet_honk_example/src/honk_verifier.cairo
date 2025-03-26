@@ -29,9 +29,9 @@ mod UltraStarknetHonkVerifier {
         run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
     };
     use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
+    use garaga::utils::noir::honk_transcript::{Point256IntoCircuitPoint, StarknetHasherState};
     use garaga::utils::noir::honk_transcript::{
-        HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
-        StarknetHasherState,
+        HonkTranscriptTrait, BATCHED_RELATION_PARTIAL_LENGTH,
     };
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked};
     use core::num::traits::Zero;
@@ -61,8 +61,6 @@ mod UltraStarknetHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
 
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
                 StarknetHasherState,

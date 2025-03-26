@@ -67,8 +67,6 @@ mod UltraStarknetZKHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
 
             let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
