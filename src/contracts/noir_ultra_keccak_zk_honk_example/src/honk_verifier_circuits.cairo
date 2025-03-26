@@ -1847,7 +1847,6 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit(
     let diff_check: u384 = outputs.get_output(t31);
     return (vanishing_check, diff_check);
 }
-#[inline(always)]
 pub fn run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
     A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt,
 ) -> (u384,) {

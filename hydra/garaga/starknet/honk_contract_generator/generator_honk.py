@@ -30,6 +30,26 @@ from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import get_scarb_toml_file
 
 
+def gen_honk_verifier(
+    vk: str | Path | HonkVk | bytes,
+    output_folder_path: str,
+    output_folder_name: str,
+    system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
+    cli_mode: bool = False,
+) -> str:
+    match system:
+        case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
+            return _gen_honk_verifier(
+                vk, output_folder_path, output_folder_name, system, cli_mode
+            )
+        case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
+            return _gen_zk_honk_verifier(
+                vk, output_folder_path, output_folder_name, system, cli_mode
+            )
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
+
+
 def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
     TEMPLATE = """\n
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
@@ -175,7 +195,7 @@ def setup_vk_flavor(system: ProofSystem, vk: str | Path | HonkVk | bytes):
     return vk, flavor
 
 
-def get_circuit_code_header():
+def _get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
@@ -190,32 +210,67 @@ use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
     return header
 
 
-def gen_honk_circuits_code(vk: HonkVk) -> str:
+def _gen_circuits_code(
+    vk: HonkVk, is_zk: bool
+) -> tuple[str, str, str, list[str], str, int, list[str]]:
     """
-    Generate the code for the sumcheck circuit.
+    Generate the code for the sumcheck circuit and related circuits.
+
+    Args:
+        vk: The verifying key
+        is_zk: Whether to generate ZK-specific circuits
+
+    Returns:
+        Tuple containing:
+        - The generated code
+        - Sumcheck function name
+        - Prepare scalars function name
+        - List of consistency function names (empty for non-ZK)
+        - Scalar indexes
+        - LHS ECIP function name
+        - MSM length
     """
-    header = get_circuit_code_header()
-    code = header
-    sumcheck_circuit = SumCheckCircuit(vk)
-    sumcheck_function_name = f"{CurveID.GRUMPKIN.name}_{sumcheck_circuit.name.upper()}"
+    code = _get_circuit_code_header()
+    curve_id = CurveID.GRUMPKIN
+
+    # Generate sumcheck circuit
+    sumcheck_circuit = ZKSumCheckCircuit(vk) if is_zk else SumCheckCircuit(vk)
+    sumcheck_function_name = f"{curve_id.name}_{sumcheck_circuit.name.upper()}"
     sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
         function_name=sumcheck_function_name, pub=True
     )
 
-    prepare_scalars_circuit = PrepareScalarsCircuit(vk)
+    # Generate prepare scalars circuit
+    prepare_scalars_circuit = (
+        ZKPrepareScalarsCircuit(vk) if is_zk else PrepareScalarsCircuit(vk)
+    )
     scalar_indexes = prepare_scalars_circuit.scalar_indexes
     msm_len = prepare_scalars_circuit.msm_len
     prepare_scalars_function_name = (
-        f"{CurveID.GRUMPKIN.name}_{prepare_scalars_circuit.name.upper()}"
+        f"{curve_id.name}_{prepare_scalars_circuit.name.upper()}"
     )
-
     prepare_scalars_code, prepare_scalars_function_name = (
         prepare_scalars_circuit.circuit.compile_circuit(
             function_name=prepare_scalars_function_name, pub=True
         )
     )
-    code += sumcheck_code + prepare_scalars_code
 
+    # Generate consistency circuits for ZK
+    consistency_circuits = []
+    if is_zk:
+        for circuit_class in [
+            ZKEvalsConsistencyInitCircuit,
+            ZKEvalsConsistencyLoopCircuit,
+            ZKEvalsConsistencyDoneCircuit,
+        ]:
+            circuit = circuit_class(vk)
+            function_name = f"{curve_id.name}_{circuit.name.upper()}"
+            circuit_code, function_name = circuit.circuit.compile_circuit(
+                function_name=function_name, pub=True
+            )
+            consistency_circuits.append((circuit_code, function_name))
+
+    # Generate LHS ECIP circuit
     lhs_ecip_circuit = EvalFunctionChallengeSingleCircuit(
         CurveID.BN254.value,
         n_points=msm_len,
@@ -227,13 +282,19 @@ def gen_honk_circuits_code(vk: HonkVk) -> str:
     lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
         function_name=lhs_ecip_function_name, pub=True, inline=False
     )
-    code += lhs_ecip_code
 
+    # Combine all circuit code
+    code += sumcheck_code + prepare_scalars_code
+    if is_zk:
+        code += "".join(circuit_code for circuit_code, _ in consistency_circuits)
+    code += lhs_ecip_code
     code += get_circuit_definition_impl_template(len(scalar_indexes))
+
     return (
         code,
         sumcheck_function_name,
         prepare_scalars_function_name,
+        [func_name for _, func_name in consistency_circuits] if is_zk else [],
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
@@ -321,7 +382,7 @@ pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precompute
 """
 
 
-def get_msm_points_array_code(zk: bool) -> str:
+def _get_msm_points_array_code(zk: bool) -> str:
     # Common points that are shared between ZK and non-ZK versions
     common_points = [
         "vk.qm",
@@ -373,7 +434,6 @@ def get_msm_points_array_code(zk: bool) -> str:
             for gem_comm in full_proof.proof.gemini_fold_comms {{
                 _points.append((*gem_comm).into());
             }};"""
-
     # Add ZK-specific commitments
     if zk:
         code += """
@@ -410,10 +470,11 @@ def _gen_honk_verifier(
         circuits_code,
         sumcheck_function_name,
         prepare_scalars_function_name,
+        consistency_function_names,
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
-    ) = gen_honk_circuits_code(vk)
+    ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
     scalars_tuple_into = ",\n            ".join(
@@ -463,7 +524,7 @@ def _gen_honk_verifier(
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            {get_msm_points_array_code(zk=False)}
+            {_get_msm_points_array_code(zk=False)}
 
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
@@ -493,95 +554,6 @@ def _gen_honk_verifier(
     return constants_code
 
 
-def gen_zk_honk_circuits_code(vk: HonkVk) -> str:
-    """
-    Generate the code for the sumcheck circuit.
-    """
-    code = get_circuit_code_header()
-
-    sumcheck_circuit = ZKSumCheckCircuit(vk)
-    sumcheck_function_name = f"{CurveID.GRUMPKIN.name}_{sumcheck_circuit.name.upper()}"
-    sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
-        function_name=sumcheck_function_name, pub=True
-    )
-
-    prepare_scalars_circuit = ZKPrepareScalarsCircuit(vk)
-    scalar_indexes = prepare_scalars_circuit.scalar_indexes
-    msm_len = prepare_scalars_circuit.msm_len
-    prepare_scalars_function_name = (
-        f"{CurveID.GRUMPKIN.name}_{prepare_scalars_circuit.name.upper()}"
-    )
-    prepare_scalars_code, prepare_scalars_function_name = (
-        prepare_scalars_circuit.circuit.compile_circuit(
-            function_name=prepare_scalars_function_name, pub=True
-        )
-    )
-
-    consistency_init_circuit = ZKEvalsConsistencyInitCircuit(vk)
-    consistency_init_function_name = (
-        f"{CurveID.GRUMPKIN.name}_{consistency_init_circuit.name.upper()}"
-    )
-    consistency_init_code, consistency_init_function_name = (
-        consistency_init_circuit.circuit.compile_circuit(
-            function_name=consistency_init_function_name, pub=True
-        )
-    )
-
-    consistency_loop_circuit = ZKEvalsConsistencyLoopCircuit(vk)
-    consistency_loop_function_name = (
-        f"{CurveID.GRUMPKIN.name}_{consistency_loop_circuit.name.upper()}"
-    )
-    consistency_loop_code, consistency_loop_function_name = (
-        consistency_loop_circuit.circuit.compile_circuit(
-            function_name=consistency_loop_function_name, pub=True
-        )
-    )
-
-    consistency_done_circuit = ZKEvalsConsistencyDoneCircuit(vk)
-    consistency_done_function_name = (
-        f"{CurveID.GRUMPKIN.name}_{consistency_done_circuit.name.upper()}"
-    )
-    consistency_done_code, consistency_done_function_name = (
-        consistency_done_circuit.circuit.compile_circuit(
-            function_name=consistency_done_function_name, pub=True
-        )
-    )
-
-    code += (
-        sumcheck_code
-        + prepare_scalars_code
-        + consistency_init_code
-        + consistency_loop_code
-        + consistency_done_code
-    )
-
-    lhs_ecip_circuit = EvalFunctionChallengeSingleCircuit(
-        CurveID.BN254.value,
-        n_points=msm_len,
-        batched=True,
-        generic_circuit=False,
-        compilation_mode=1,
-    )
-    lhs_ecip_function_name = f"{CurveID.BN254.name}_{lhs_ecip_circuit.name.upper()}"
-    lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
-        function_name=lhs_ecip_function_name, pub=True
-    )
-    code += lhs_ecip_code
-    code += get_circuit_definition_impl_template(len(scalar_indexes))
-
-    return (
-        code,
-        sumcheck_function_name,
-        prepare_scalars_function_name,
-        consistency_init_function_name,
-        consistency_loop_function_name,
-        consistency_done_function_name,
-        scalar_indexes,
-        lhs_ecip_function_name,
-        msm_len,
-    )
-
-
 def _gen_zk_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
@@ -601,13 +573,11 @@ def _gen_zk_honk_verifier(
         circuits_code,
         sumcheck_function_name,
         prepare_scalars_function_name,
-        consistency_init_function_name,
-        consistency_loop_function_name,
-        consistency_done_function_name,
+        consistency_function_names,
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
-    ) = gen_zk_honk_circuits_code(vk)
+    ) = _gen_circuits_code(vk, True)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
     scalars_tuple_into = ",\n            ".join(
@@ -621,9 +591,9 @@ def _gen_zk_honk_verifier(
         function_names=[
             sumcheck_function_name,
             prepare_scalars_function_name,
-            consistency_init_function_name,
-            consistency_loop_function_name,
-            consistency_done_function_name,
+            consistency_function_names[0],
+            consistency_function_names[1],
+            consistency_function_names[2],
             lhs_ecip_function_name,
         ],
     )
@@ -651,11 +621,11 @@ def _gen_zk_honk_verifier(
             );
 
             const CONST_PROOF_SIZE_LOG_N: usize = {CONST_PROOF_SIZE_LOG_N};
-            let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) = {consistency_init_function_name}(
+            let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) = {consistency_function_names[0]}(
                 tp_gemini_r: transcript.gemini_r.into(),
             );
             for i in 0..CONST_PROOF_SIZE_LOG_N {{
-                let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) = {consistency_loop_function_name}(
+                let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) = {consistency_function_names[1]}(
                     challenge_poly_eval: challenge_poly_eval,
                     root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
                     tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
@@ -663,7 +633,7 @@ def _gen_zk_honk_verifier(
                 challenge_poly_eval = new_challenge_poly_eval;
                 root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
             }};
-            let (vanishing_check, diff_check) = {consistency_done_function_name}(
+            let (vanishing_check, diff_check) = {consistency_function_names[2]}(
                 p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 p_libra_poly_evals: full_proof.proof.libra_poly_evals,
                 tp_gemini_r: transcript.gemini_r.into(),
@@ -686,7 +656,7 @@ def _gen_zk_honk_verifier(
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            {get_msm_points_array_code(zk=True)}
+            {_get_msm_points_array_code(zk=True)}
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
             {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
@@ -749,26 +719,6 @@ mod honk_verifier_circuits;
 """
         )
     subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
-
-
-def gen_honk_verifier(
-    vk: str | Path | HonkVk | bytes,
-    output_folder_path: str,
-    output_folder_name: str,
-    system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
-    cli_mode: bool = False,
-) -> str:
-    match system:
-        case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
-            return _gen_honk_verifier(
-                vk, output_folder_path, output_folder_name, system, cli_mode
-            )
-        case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
-            return _gen_zk_honk_verifier(
-                vk, output_folder_path, output_folder_name, system, cli_mode
-            )
-        case _:
-            raise ValueError(f"Proof system {system} not compatible")
 
 
 if __name__ == "__main__":
