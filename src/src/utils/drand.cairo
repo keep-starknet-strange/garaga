@@ -539,18 +539,18 @@ const IBE_H2: [u32; 2] = [0x4942452d, 0x4832];
 const IBE_H4: [u32; 2] = [0x4942452d, 0x4834];
 const IBE_H3: [u32; 2] = [0x4942452d, 0x4833];
 use core::circuit::conversions::{
-    ConstValue, DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED,
+    UnitInt, DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED,
     POW64, POW64_TYPED,
 };
 use core::internal::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
 
 const POW80: felt252 = 0x100000000000000000000;
-const NZ_POW80_TYPED: NonZero<ConstValue<POW80>> = 0x100000000000000000000;
+const NZ_POW80_TYPED: NonZero<UnitInt<POW80>> = 0x100000000000000000000;
 const POW16: felt252 = 0x10000;
-const NZ_POW16_TYPED: NonZero<ConstValue<POW16>> = 0x10000;
+const NZ_POW16_TYPED: NonZero<UnitInt<POW16>> = 0x10000;
 
 const POW48: felt252 = 0x1000000000000;
-const NZ_POW48_TYPED: NonZero<ConstValue<POW48>> = 0x1000000000000;
+const NZ_POW48_TYPED: NonZero<UnitInt<POW48>> = 0x1000000000000;
 
 
 const POW24: felt252 = 0x1000000;
@@ -560,27 +560,27 @@ type u80_bi = BoundedInt<0, { POW80 - 1 }>;
 type u48_bi = BoundedInt<0, { POW48 - 1 }>;
 type u32_bi = BoundedInt<0, { POW32 - 1 }>;
 
-impl DivRemU64By32 of DivRemHelper<u64_bi, ConstValue<POW32>> {
+impl DivRemU64By32 of DivRemHelper<u64_bi, UnitInt<POW32>> {
     type DivT = BoundedInt<0, { POW32 - 1 }>;
     type RemT = BoundedInt<0, { POW32 - 1 }>;
 }
 
-impl DivRemU96By80 of DivRemHelper<u96, ConstValue<POW80>> {
+impl DivRemU96By80 of DivRemHelper<u96, UnitInt<POW80>> {
     type DivT = BoundedInt<0, { POW16 - 1 }>;
     type RemT = BoundedInt<0, { POW80 - 1 }>;
 }
 
-impl DivRemU80By48 of DivRemHelper<u80_bi, ConstValue<POW48>> {
+impl DivRemU80By48 of DivRemHelper<u80_bi, UnitInt<POW48>> {
     type DivT = BoundedInt<0, { POW32 - 1 }>;
     type RemT = BoundedInt<0, { POW48 - 1 }>;
 }
 
-impl DivRemU48By16 of DivRemHelper<u48_bi, ConstValue<POW16>> {
+impl DivRemU48By16 of DivRemHelper<u48_bi, UnitInt<POW16>> {
     type DivT = BoundedInt<0, { POW32 - 1 }>;
     type RemT = BoundedInt<0, { POW16 - 1 }>;
 }
 
-impl DivRemU32By16 of DivRemHelper<u32_bi, ConstValue<POW16>> {
+impl DivRemU32By16 of DivRemHelper<u32_bi, UnitInt<POW16>> {
     type DivT = BoundedInt<0, { POW16 - 1 }>;
     type RemT = BoundedInt<0, { POW16 - 1 }>;
 }
