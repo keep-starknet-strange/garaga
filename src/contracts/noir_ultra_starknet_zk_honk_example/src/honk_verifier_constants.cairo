@@ -4250,4 +4250,3 @@ pub const precomputed_lines: [G2Line; 176] = [
         },
     },
 ];
-

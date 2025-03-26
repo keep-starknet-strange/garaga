@@ -304,3 +304,100 @@ pub fn multi_miller_loop(
 
     panic!("Curve ID {} not supported", curve_id);
 }
+
+#[pyfunction]
+pub fn final_exp(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> PyResult<PyObject> {
+    assert!(py_list_1.len() == 12, "invalid length");
+
+    let [f_0, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10, f_11] =
+        py_list_1.extract::<[BigUint; 12]>().unwrap();
+
+    if curve_id == 0 {
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::{Degree12ExtensionField, Degree6ExtensionField, Degree2ExtensionField};
+
+        let f = FieldElement::<Degree12ExtensionField>::new([
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_0),
+                    element_from_biguint::<BN254PrimeField>(&f_1),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_2),
+                    element_from_biguint::<BN254PrimeField>(&f_3),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_4),
+                    element_from_biguint::<BN254PrimeField>(&f_5),
+                ]),
+            ]),
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_6),
+                    element_from_biguint::<BN254PrimeField>(&f_7),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_8),
+                    element_from_biguint::<BN254PrimeField>(&f_9),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_10),
+                    element_from_biguint::<BN254PrimeField>(&f_11),
+                ]),
+            ]),
+        ]);
+
+        let final_exp = bn_254::pairing::final_exponentiation_optimized(&f);
+        let fx = match final_exp == FieldElement::one() {
+            true => final_exp,
+            false => {
+                let final_exp_cofactor =
+                    U256::from_hex_unchecked("3bec47df15e307c81ea96b02d9d9e38d2e5d4e223ddedaf4");
+                final_exp.pow(final_exp_cofactor)
+            }
+        };
+        let py_list = PyList::new(py, to_bn(fx));
+        return Ok(py_list?.into());
+    }
+
+    if curve_id == 1 {
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::{Degree12ExtensionField, Degree6ExtensionField, Degree2ExtensionField};
+
+        let f = FieldElement::<Degree12ExtensionField>::new([
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_0),
+                    element_from_biguint::<BLS12381PrimeField>(&f_1),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_2),
+                    element_from_biguint::<BLS12381PrimeField>(&f_3),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_4),
+                    element_from_biguint::<BLS12381PrimeField>(&f_5),
+                ]),
+            ]),
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_6),
+                    element_from_biguint::<BLS12381PrimeField>(&f_7),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_8),
+                    element_from_biguint::<BLS12381PrimeField>(&f_9),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_10),
+                    element_from_biguint::<BLS12381PrimeField>(&f_11),
+                ]),
+            ]),
+        ]);
+
+        let fx = bls12_381::pairing::final_exponentiation(&f);
+
+        let py_list = PyList::new(py, to_bls(fx));
+        return Ok(py_list?.into());
+    }
+
+    panic!("Curve ID {} not supported", curve_id);
+}

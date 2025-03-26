@@ -29,9 +29,9 @@ mod UltraStarknetHonkVerifier {
         run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
     };
     use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
+    use garaga::utils::noir::honk_transcript::{Point256IntoCircuitPoint, StarknetHasherState};
     use garaga::utils::noir::honk_transcript::{
-        HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
-        StarknetHasherState,
+        HonkTranscriptTrait, BATCHED_RELATION_PARTIAL_LENGTH,
     };
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked};
     use core::num::traits::Zero;
@@ -61,8 +61,6 @@ mod UltraStarknetHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
 
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
@@ -139,8 +137,7 @@ mod UltraStarknetHonkVerifier {
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
             );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
+            // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
                 vk.qm,
                 vk.qc,
@@ -233,7 +230,6 @@ mod UltraStarknetHonkVerifier {
                 .span();
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(41);
-
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
