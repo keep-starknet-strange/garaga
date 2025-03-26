@@ -114,9 +114,7 @@ def generate_tower_final_exp_test(curve_id, seed):
     elmts = [field.random() for _ in range(12)]
     e12 = E12(elmts, curve_id.value)
     e12t = structs.E12T(name="input", elmts=elmts)
-    cofactor = CURVES[curve_id.value].final_exp_cofactor
-    h = cofactor * (CURVES[curve_id.value].p ** 12 - 1) // CURVES[curve_id.value].n
-    expected = structs.E12T(name="expected", elmts=(e12**h).felt_coeffs)
+    expected = structs.E12T(name="expected", elmts=(e12.final_exp()).felt_coeffs)
     code = f"""
 #[test]
 fn test_tower_final_exp_{curve_id.name}() {{
