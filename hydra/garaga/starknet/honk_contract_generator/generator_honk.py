@@ -75,10 +75,7 @@ def precompute_lines_honk() -> StructArray:
     return precomputed_lines
 
 
-def gen_honk_circuits_code(vk: HonkVk) -> str:
-    """
-    Generate the code for the sumcheck circuit.
-    """
+def get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
@@ -90,6 +87,14 @@ use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
 """
+    return header
+
+
+def gen_honk_circuits_code(vk: HonkVk) -> str:
+    """
+    Generate the code for the sumcheck circuit.
+    """
+    header = get_circuit_code_header()
     code = header
     sumcheck_circuit = SumCheckCircuit(vk)
     sumcheck_function_name = f"{CurveID.GRUMPKIN.name}_{sumcheck_circuit.name.upper()}"
@@ -470,18 +475,8 @@ def gen_zk_honk_circuits_code(vk: HonkVk) -> str:
     """
     Generate the code for the sumcheck circuit.
     """
-    header = """
-use core::circuit::{
-    u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
-};
-use garaga::core::circuit::AddInputResultTrait2;
-use garaga::ec_ops::FunctionFelt;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
-"""
-    code = header
+    code = get_circuit_code_header()
+
     sumcheck_circuit = ZKSumCheckCircuit(vk)
     sumcheck_function_name = f"{CurveID.GRUMPKIN.name}_{sumcheck_circuit.name.upper()}"
     sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
