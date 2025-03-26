@@ -1,2 +1,0 @@
-mod ecdsa;
-mod schnorr;

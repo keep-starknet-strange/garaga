@@ -1,7 +1,7 @@
 use super::*;
 
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
-use crate::io::{element_from_biguint, element_to_biguint};
+use crate::io::element_from_biguint;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::curve::BN254Curve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::twist::BN254TwistCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
@@ -18,57 +18,7 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254;
 use lambdaworks_math::unsigned_integer::element::U256;
 
-fn to_bn(v: FieldElement<bn_254::field_extension::Degree12ExtensionField>) -> [BigUint; 12] {
-    let [c0, c1] = v.value();
-    let [c0b0, c0b1, c0b2] = c0.value();
-    let [c1b0, c1b1, c1b2] = c1.value();
-    let [c0b0a0, c0b0a1] = c0b0.value();
-    let [c0b1a0, c0b1a1] = c0b1.value();
-    let [c0b2a0, c0b2a1] = c0b2.value();
-    let [c1b0a0, c1b0a1] = c1b0.value();
-    let [c1b1a0, c1b1a1] = c1b1.value();
-    let [c1b2a0, c1b2a1] = c1b2.value();
-    [
-        element_to_biguint(&c0b0a0),
-        element_to_biguint(&c0b0a1),
-        element_to_biguint(&c0b1a0),
-        element_to_biguint(&c0b1a1),
-        element_to_biguint(&c0b2a0),
-        element_to_biguint(&c0b2a1),
-        element_to_biguint(&c1b0a0),
-        element_to_biguint(&c1b0a1),
-        element_to_biguint(&c1b1a0),
-        element_to_biguint(&c1b1a1),
-        element_to_biguint(&c1b2a0),
-        element_to_biguint(&c1b2a1),
-    ]
-}
-
-fn to_bls(v: FieldElement<bls12_381::field_extension::Degree12ExtensionField>) -> [BigUint; 12] {
-    let [c0, c1] = v.value();
-    let [c0b0, c0b1, c0b2] = c0.value();
-    let [c1b0, c1b1, c1b2] = c1.value();
-    let [c0b0a0, c0b0a1] = c0b0.value();
-    let [c0b1a0, c0b1a1] = c0b1.value();
-    let [c0b2a0, c0b2a1] = c0b2.value();
-    let [c1b0a0, c1b0a1] = c1b0.value();
-    let [c1b1a0, c1b1a1] = c1b1.value();
-    let [c1b2a0, c1b2a1] = c1b2.value();
-    [
-        element_to_biguint(&c0b0a0),
-        element_to_biguint(&c0b0a1),
-        element_to_biguint(&c0b1a0),
-        element_to_biguint(&c0b1a1),
-        element_to_biguint(&c0b2a0),
-        element_to_biguint(&c0b2a1),
-        element_to_biguint(&c1b0a0),
-        element_to_biguint(&c1b0a1),
-        element_to_biguint(&c1b1a0),
-        element_to_biguint(&c1b1a1),
-        element_to_biguint(&c1b2a0),
-        element_to_biguint(&c1b2a1),
-    ]
-}
+use crate::pairing::final_exp_witness::{to_bls, to_bn};
 
 #[pyfunction]
 pub fn multi_pairing(
@@ -235,7 +185,7 @@ pub fn multi_miller_loop(
             if !p.is_neutral_element() && !q.is_neutral_element() {
                 let p = p.to_affine();
                 let q = q.to_affine();
-                result = result * bn_254::pairing::miller_optimized(&p, &q);
+                result *= bn_254::pairing::miller_optimized(&p, &q);
             }
         }
 
@@ -294,7 +244,7 @@ pub fn multi_miller_loop(
             if !p.is_neutral_element() && !q.is_neutral_element() {
                 let p = p.to_affine();
                 let q = q.to_affine();
-                result = result * bls12_381::pairing::miller(&q, &p);
+                result *= bls12_381::pairing::miller(&q, &p);
             }
         }
 
