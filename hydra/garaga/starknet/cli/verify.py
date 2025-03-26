@@ -15,6 +15,7 @@ from starknet_py.contract import (
 
 from garaga.definitions import ProofSystem
 from garaga.hints.io import to_int
+from garaga.precompiled_circuits.honk import honk_proof_from_bytes
 from garaga.starknet.cli.utils import (
     Network,
     complete_fee,
@@ -33,7 +34,6 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     find_item_from_key_patterns,
 )
 from garaga.starknet.honk_contract_generator.calldata import (
-    HonkProof,
     HonkVk,
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
@@ -187,9 +187,14 @@ def get_calldata_generic(
             vk_obj = Groth16VerifyingKey.from_json(vk)
             proof_obj = Groth16Proof.from_json(proof, public_inputs)
             return groth16_calldata_from_vk_and_proof(vk_obj, proof_obj)
-        case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
+        case (
+            ProofSystem.UltraKeccakHonk
+            | ProofSystem.UltraStarknetHonk
+            | ProofSystem.UltraKeccakZKHonk
+            | ProofSystem.UltraStarknetZKHonk
+        ):
             vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
-            proof_obj = HonkProof.from_bytes(open(proof, "rb").read())
+            proof_obj = honk_proof_from_bytes(open(proof, "rb").read(), vk_obj, system)
             return get_ultra_flavor_honk_calldata_from_vk_and_proof(
                 vk_obj, proof_obj, system
             )

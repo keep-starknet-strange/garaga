@@ -1,17 +1,47 @@
-use core::circuit::{
-    add_circuit_input, AddInputResult, CircuitData, IntoCircuitInputValue, CircuitDefinition,
-    init_circuit_data, CircuitInputAccumulator, into_u96_guarantee, U96Guarantee, u384,
+use core::circuit::conversions::{
+    AddHelperTo128By64Impl, AddHelperTo128By96Impl, AddHelperTo96By32Impl, DivRemU128By96,
+    DivRemU96By32, DivRemU96By64, MulHelper32By96Impl, MulHelper64By32Impl, MulHelper64By64Impl,
+    NZ_POW32_TYPED, NZ_POW64_TYPED, NZ_POW96_TYPED, POW64_TYPED, POW96_TYPED, upcast,
 };
+use core::circuit::{
+    AddInputResult, CircuitData, CircuitDefinition, CircuitInputAccumulator, IntoCircuitInputValue,
+    U96Guarantee, add_circuit_input, init_circuit_data, into_u96_guarantee, u384, u96,
+};
+// use core::panics::panic;
+use core::internal::bounded_int;
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u288};
-use garaga::utils::hashing::{hades_permutation, PoseidonState};
-// use core::panics::panic;
+use garaga::utils::hashing::{PoseidonState, hades_permutation};
+
+
+impl U32IntoU384 of Into<u32, u384> {
+    fn into(self: u32) -> u384 {
+        u384 { limb0: upcast(self), limb1: 0, limb2: 0, limb3: 0 }
+    }
+}
 
 impl U64IntoU384 of Into<u64, u384> {
     fn into(self: u64) -> u384 {
-        let v128: u128 = self.into();
-        v128.into()
+        u384 { limb0: upcast(self), limb1: 0, limb2: 0, limb3: 0 }
     }
+}
+
+
+// Cuts a u384 into a u256.
+// This is unsafe because it assumes the value is less than 2^256.
+// Only use when computing circuit with a modulus less than 2^256.
+#[inline(never)]
+pub fn into_u256_unchecked(value: u384) -> u256 {
+    let (_, limb2_low) = bounded_int::div_rem(value.limb2, NZ_POW64_TYPED);
+    let (limb1_high, limb1_low) = bounded_int::div_rem(value.limb1, NZ_POW32_TYPED);
+    u256 {
+        high: upcast(bounded_int::add(bounded_int::mul(limb2_low, POW64_TYPED), limb1_high)),
+        low: upcast(bounded_int::add(bounded_int::mul(limb1_low, POW96_TYPED), value.limb0)),
+    }
+}
+
+pub fn u256_to_u384(value: u256) -> u384 {
+    value.into()
 }
 
 impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
@@ -27,7 +57,7 @@ impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
 pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     /// Adds an input to the accumulator.
     // Inlining to make sure possibly huge `C` won't be in a user function name.
-    #[inline]
+    // #[inline(never)]
     fn next_2<Value, +IntoCircuitInputValue<Value>, +Drop<Value>>(
         self: AddInputResult<C>, value: Value,
     ) -> AddInputResult<C> {
@@ -38,17 +68,28 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
             AddInputResult::Done(_) => panic_with_felt252('All inputs have been filled'),
         }
     }
-    #[inline]
+    // #[inline(never)]
     fn next_u256(self: AddInputResult<C>, value: u256) -> AddInputResult<C> {
         let val_u384: u384 = value.into();
         self.next_2(val_u384)
     }
-    #[inline]
+    // #[inline(never)]
     fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
-        let val_u384: u384 = value.into();
-        self.next_2(val_u384)
+        let (limb1, limb0) = core::internal::bounded_int::div_rem(value, NZ_POW96_TYPED);
+        let limb1: u96 = core::integer::upcast(limb1);
+        let c = match self {
+            AddInputResult::More(accumulator) => add_circuit_input(
+                accumulator,
+                [
+                    into_u96_guarantee(limb0), into_u96_guarantee(limb1), into_u96_guarantee(0_u8),
+                    into_u96_guarantee(0_u8),
+                ],
+            ),
+            AddInputResult::Done(_) => panic_with_felt252(0),
+        };
+        c
     }
-    #[inline(always)]
+    // #[inline(never)]
     fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {
         let c = match self {
             AddInputResult::More(accumulator) => add_circuit_input(
@@ -167,7 +208,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                     },
                     (*v).into_circuit_input_value(),
                 );
-        };
+        }
         add_input_result
     }
     // Inlining to make sure possibly huge `C` won't be in a user function name.

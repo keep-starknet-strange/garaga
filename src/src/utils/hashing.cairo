@@ -1,7 +1,7 @@
-pub use core::poseidon::hades_permutation;
 use core::circuit::{u384, u96};
+pub use core::poseidon::hades_permutation;
 use garaga::definitions::{
-    E12D, u288, G1G2Pair, G1Point, E12DMulQuotient, MillerLoopResultScalingFactor,
+    E12D, E12DMulQuotient, G1G2Pair, G1Point, MillerLoopResultScalingFactor, u288,
 };
 
 #[derive(Copy, Drop)]
@@ -27,7 +27,7 @@ pub fn hash_u384_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
@@ -44,7 +44,7 @@ pub fn hash_u288_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
@@ -134,7 +134,6 @@ pub fn hash_E12DMulQuotient_u288(
 
 
 // Apply sponge construction to a E12D element from an initial state (s0, s1, s2)
-#[inline(always)]
 pub fn hash_E12D_u384(
     elmt: E12D<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
@@ -179,7 +178,6 @@ pub fn hash_E12D_u384(
     return (_s0, _s1, _s2);
 }
 
-#[inline(always)]
 pub fn hash_E12D_u288(
     elmt: E12D<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
 ) -> (felt252, felt252, felt252) {
@@ -328,7 +326,7 @@ pub fn hash_E12D_u384_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
@@ -379,13 +377,13 @@ pub fn hash_E12D_u288_transcript(
         s0 = _s0;
         s1 = _s1;
         s2 = _s2;
-    };
+    }
     return (s0, s1, s2);
 }
 
 
 // Apply sponge construction to a pair of G1 and G2 points from an initial state (s0, s1, s2)
-#[inline(always)]
+// #[inline(always)]
 pub fn hash_G1G2Pair(
     pair: G1G2Pair, s0: felt252, s1: felt252, s2: felt252,
 ) -> (felt252, felt252, felt252) {

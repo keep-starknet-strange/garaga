@@ -28,7 +28,7 @@ impl<F: IsPrimeField> RationalFunction<F> {
     }
 
     pub fn evaluate(&self, x: FieldElement<F>) -> FieldElement<F> {
-        self.numerator.evaluate(&x.clone()) / self.denominator.evaluate(&x.clone())
+        (self.numerator.evaluate(&x.clone()) / self.denominator.evaluate(&x.clone())).unwrap()
     }
 
     pub fn scale_by_coeff(&self, coeff: FieldElement<F>) -> RationalFunction<F> {

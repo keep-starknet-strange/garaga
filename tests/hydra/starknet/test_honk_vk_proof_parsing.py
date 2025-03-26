@@ -1,7 +1,7 @@
 import pytest
 
 from garaga.definitions import ProofSystem
-from garaga.precompiled_circuits.honk import HonkProof, HonkVk
+from garaga.precompiled_circuits.honk import HonkVk, honk_proof_from_bytes
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
@@ -21,11 +21,33 @@ def test_vk_parsing(vk_path: str):
 
 
 @pytest.mark.parametrize(
-    "proof_path",
-    [f"{PATH}/proof_ultra_keccak.bin", f"{PATH}/proof_ultra_starknet.bin"],
+    "proof_path, vk_path, system",
+    [
+        (
+            f"{PATH}/proof_ultra_keccak.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_starknet.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraStarknetHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_keccak_zk.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakZKHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_starknet_zk.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraStarknetZKHonk,
+        ),
+    ],
 )
-def test_proof_parsing(proof_path: str):
-    proof = HonkProof.from_bytes(open(proof_path, "rb").read())
+def test_proof_parsing(proof_path: str, vk_path: str, system: ProofSystem):
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
     print(proof)
 
 
@@ -42,13 +64,23 @@ def test_proof_parsing(proof_path: str):
             f"{PATH}/vk_ultra_keccak.bin",
             ProofSystem.UltraStarknetHonk,
         ),
+        (
+            f"{PATH}/proof_ultra_keccak_zk.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakZKHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_starknet_zk.bin",
+            f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraStarknetZKHonk,
+        ),
     ],
 )
 def test_calldata_generation(proof_path: str, vk_path: str, system: ProofSystem):
     import time
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
-    proof = HonkProof.from_bytes(open(proof_path, "rb").read())
+    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
 
     start = time.time()
     calldata = get_ultra_flavor_honk_calldata_from_vk_and_proof(

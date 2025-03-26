@@ -84,10 +84,10 @@ where
             (x + y) * (x - y) * FieldElement::<F>::from(3),
             x * y * FieldElement::<F>::from(6),
         ]);
-        num / (&a.y + &a.y)
+        (num / (&a.y + &a.y)).unwrap()
     }
 
     pub fn compute_adding_slope(a: &Self, b: &Self) -> FieldElement<E2> {
-        (&a.y - &b.y) / (&a.x - &b.x)
+        ((&a.y - &b.y) / (&a.x - &b.x)).unwrap()
     }
 }

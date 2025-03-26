@@ -10,6 +10,39 @@ from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt
 from garaga.modulo_circuit_structs import Cairo1SerializableStruct
 
 
+def get_circuit_definition_impl_template(num_outputs: int):
+    TEMPLATE = """\n
+    impl CircuitDefinition{num_outputs}<
+        {elements}
+    > of core::circuit::CircuitDefinition<
+        (
+            {ce_elements}
+        )
+    > {{
+        type CircuitType =
+            core::circuit::Circuit<
+                ({elements_tuple},)
+            >;
+    }}
+    impl MyDrp_{num_outputs}<
+        {elements}
+    > of Drop<
+        (
+            {ce_elements}
+        )
+    >;
+    """
+    elements = ", ".join(f"E{i}" for i in range(num_outputs))
+    ce_elements = ", ".join(f"CE<E{i}>" for i in range(num_outputs))
+    elements_tuple = ", ".join(f"E{i}" for i in range(num_outputs))
+    return TEMPLATE.format(
+        num_outputs=num_outputs,
+        elements=elements,
+        ce_elements=ce_elements,
+        elements_tuple=elements_tuple,
+    )
+
+
 class BaseModuloCircuit(ABC):
     """
     Base class for all modulo circuits that will be compiled to Cairo code.

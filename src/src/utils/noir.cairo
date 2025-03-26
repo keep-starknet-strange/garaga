@@ -1,8 +1,7 @@
 pub mod honk_transcript;
-
-use garaga::definitions::{G1Point, G2Point};
-use garaga::definitions::{u288, u384};
-use garaga::core::circuit::{U64IntoU384};
+pub mod zk_honk_transcript;
+use garaga::core::circuit::U64IntoU384;
+use garaga::definitions::{G1Point, G2Point, u288, u384};
 
 #[derive(Drop, Copy, Serde)]
 struct G1Point256 {
@@ -20,9 +19,6 @@ struct G1PointProof {
 
 #[derive(Drop, Serde, Copy)]
 pub struct HonkProof {
-    pub circuit_size: u64,
-    pub public_inputs_size: u64,
-    pub public_inputs_offset: u64,
     pub public_inputs: Span<u256>,
     pub w1: G1Point256,
     pub w2: G1Point256,
@@ -36,6 +32,32 @@ pub struct HonkProof {
     pub sumcheck_evaluations: Span<u256>,
     pub gemini_fold_comms: Span<G1Point256>,
     pub gemini_a_evaluations: Span<u256>,
+    pub shplonk_q: G1Point256,
+    pub kzg_quotient: G1Point256,
+}
+
+
+#[derive(Drop, Serde, Copy)]
+pub struct ZKHonkProof {
+    pub public_inputs: Span<u256>,
+    pub w1: G1Point256,
+    pub w2: G1Point256,
+    pub w3: G1Point256,
+    pub w4: G1Point256,
+    pub z_perm: G1Point256,
+    pub lookup_read_counts: G1Point256,
+    pub lookup_read_tags: G1Point256,
+    pub lookup_inverses: G1Point256,
+    pub libra_commitments: Span<G1Point256>,
+    pub libra_sum: u256,
+    pub sumcheck_univariates: Span<u256>,
+    pub sumcheck_evaluations: Span<u256>,
+    pub libra_evaluation: u256,
+    pub gemini_masking_poly: G1Point256,
+    pub gemini_masking_eval: u256,
+    pub gemini_fold_comms: Span<G1Point256>,
+    pub gemini_a_evaluations: Span<u256>,
+    pub libra_poly_evals: Span<u256>,
     pub shplonk_q: G1Point256,
     pub kzg_quotient: G1Point256,
 }
@@ -132,12 +154,385 @@ pub const G2_POINT_KZG_2: G2Point = G2Point {
     },
 };
 
+pub fn get_vk() -> HonkVk {
+    HonkVk {
+        circuit_size: 32,
+        log_circuit_size: 5,
+        public_inputs_size: 1,
+        public_inputs_offset: 1,
+        qm: G1Point {
+            x: u384 {
+                limb0: 0x2e3fa8c261ba5428d3182515,
+                limb1: 0xe378de0d47922f9f5496a469,
+                limb2: 0x13868a317444a5ef,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x4a5ff25006bf8f2d233ccdc1,
+                limb1: 0x1ca51267b655e658e21e16b1,
+                limb2: 0x7eef6a540b0a0c2,
+                limb3: 0x0,
+            },
+        },
+        qc: G1Point {
+            x: u384 {
+                limb0: 0x9b8459ee77954c5e5218f66e,
+                limb1: 0x1863e37e5e1a8985e42a4e82,
+                limb2: 0x201802934e67604b,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x7cd18f83e21cfb1987d203fe,
+                limb1: 0x424f4a166307d849541fdf46,
+                limb2: 0x7e813a7e75c707d,
+                limb3: 0x0,
+            },
+        },
+        ql: G1Point {
+            x: u384 {
+                limb0: 0x844f1f9def88b1ff01351661,
+                limb1: 0xacce8109c398fa1f5e58d01a,
+                limb2: 0x11ad6b3a3b872fc1,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x5033bed4ae42b1159226a51a,
+                limb1: 0x7ee41fb4cfff9311926c0e3a,
+                limb2: 0x129b7f90aa4a1939,
+                limb3: 0x0,
+            },
+        },
+        qr: G1Point {
+            x: u384 {
+                limb0: 0xaf0666ee5c56a24f44567365,
+                limb1: 0x2834e9b4f5153d7c6f434740,
+                limb2: 0xb0e20d82e14a591,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x4b340ea96150d094df88f8fe,
+                limb1: 0x22279f5179a36b9413146cbd,
+                limb2: 0x28663be34020c003,
+                limb3: 0x0,
+            },
+        },
+        qo: G1Point {
+            x: u384 {
+                limb0: 0x3d9ef999a83cc1cd66bbf03c,
+                limb1: 0x96cbad52ea2027630b0d8ff4,
+                limb2: 0x9de4c0ce293ba3b,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x8e7254d8848b80222ba7cf71,
+                limb1: 0x23660581568ebe7f66fab0bd,
+                limb2: 0x117dbcfeb68ed48d,
+                limb3: 0x0,
+            },
+        },
+        q4: G1Point {
+            x: u384 {
+                limb0: 0xa48f4a2c77047f577dbb1201,
+                limb1: 0x38ab5ba135dad4650b9bbed5,
+                limb2: 0xfd1274f8b384aa2,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x8312c27935b42e49dd9948fe,
+                limb1: 0xdb0391c1bdad0b6a118d7b3a,
+                limb2: 0xe8a8f5fb867080e,
+                limb3: 0x0,
+            },
+        },
+        qLookup: G1Point {
+            x: u384 {
+                limb0: 0xe9b57129ce995b19cec0c90f,
+                limb1: 0x9164de8e3654ed72bd9f54e6,
+                limb2: 0x2453e056dc179bdc,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xe1840d9a1a7bba0989618a5a,
+                limb1: 0xd97a8cfaeabcda043139c10,
+                limb2: 0x15bc4680db7eb810,
+                limb3: 0x0,
+            },
+        },
+        qArith: G1Point {
+            x: u384 {
+                limb0: 0xb63a367e21f41eb47fbc0c3e,
+                limb1: 0xbfa534a9c112715fc3e6d6bf,
+                limb2: 0x6a9540ee6a4d6f,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x4e8b9e83f4dba7135273b21c,
+                limb1: 0x88fbc5cfc98f0ef64b9959da,
+                limb2: 0xabf801f8ca9ad0b,
+                limb3: 0x0,
+            },
+        },
+        qDeltaRange: G1Point {
+            x: u384 {
+                limb0: 0x8341b5afdc0c863a59ab7e70,
+                limb1: 0x7267e50bb898148ef78d5de0,
+                limb2: 0x1618ea679c4ee146,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x8a49046cce4062820e5c1116,
+                limb1: 0xa97cc3e75da6cff9a3659c3b,
+                limb2: 0x23268ad7678b97fb,
+                limb3: 0x0,
+            },
+        },
+        qElliptic: G1Point {
+            x: u384 {
+                limb0: 0x5df3af7487468bdfa2fd8325,
+                limb1: 0xb0ccdb27df1434557e054c6,
+                limb2: 0x1a11684e6c135cbe,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x619e58d7db7f2b28cec21202,
+                limb1: 0xd523e9572d7f4c60cadfef00,
+                limb2: 0x2a8f4fba8e6893b6,
+                limb3: 0x0,
+            },
+        },
+        qAux: G1Point {
+            x: u384 {
+                limb0: 0x7ed60a3cda0c7db10c955c8a,
+                limb1: 0x9301dfeeed1b752548d2ebff,
+                limb2: 0x1469006b8b61c8d7,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x4a91df6570722995d636f037,
+                limb1: 0x68ab919e345670ab029bcbce,
+                limb2: 0x19c2b11ddeff8ffe,
+                limb3: 0x0,
+            },
+        },
+        qPoseidon2External: G1Point {
+            x: u384 {
+                limb0: 0x50c9a1b5a476834f5f518c05,
+                limb1: 0x1c673b3139893fa365285bca,
+                limb2: 0x524c8e7146a4155,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x438261bdb144c99daa9fe18b,
+                limb1: 0xd3ae60d42e595d73cc5e8e83,
+                limb2: 0xe3589731c046d57,
+                limb3: 0x0,
+            },
+        },
+        qPoseidon2Internal: G1Point {
+            x: u384 {
+                limb0: 0x256adeca293661e04f1a3ddf,
+                limb1: 0x5c3ed0f88d90604a4c8d6886,
+                limb2: 0x1aebf53057be467f,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x60efa4921bc0e5c16da58b6f,
+                limb1: 0x21c63599557c6473249908a1,
+                limb2: 0x2bb5fcc21332b835,
+                limb3: 0x0,
+            },
+        },
+        s1: G1Point {
+            x: u384 {
+                limb0: 0x2cea25534ba68b732cca8d99,
+                limb1: 0xbc86cef9ca2f1b433e6db34f,
+                limb2: 0x9f2420ca39f8c66,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xd4e2e056497e1551b37128f8,
+                limb1: 0xf8a3ac1759839d2e7216fc6f,
+                limb2: 0x1fc9ba0ca1f14657,
+                limb3: 0x0,
+            },
+        },
+        s2: G1Point {
+            x: u384 {
+                limb0: 0xba359a01a3d06e72bd5e96ff,
+                limb1: 0x13577e0b9c5936e55aee220d,
+                limb2: 0x154709fd07431038,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x7d14ce7ebb9f0c7057596627,
+                limb1: 0x315bb512c54ad4befb8a4015,
+                limb2: 0x21d04477bb3d674d,
+                limb3: 0x0,
+            },
+        },
+        s3: G1Point {
+            x: u384 {
+                limb0: 0x935724b6a5c95053777a0312,
+                limb1: 0x2e2ff1945693daba560ade30,
+                limb2: 0x15a8a335f2e2564d,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x89c9c75193368a53c2699aa5,
+                limb1: 0x54648350adb880b5d79361c4,
+                limb2: 0x1b7d24b00a517472,
+                limb3: 0x0,
+            },
+        },
+        s4: G1Point {
+            x: u384 {
+                limb0: 0x76b4c039c7efe1bc636a8ef7,
+                limb1: 0xccd4425f1aa0ffa4fbfacc21,
+                limb2: 0x13b5fe0957911479,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xcca3649a8fced32db68d29f9,
+                limb1: 0x905cec75809bcf814c306db5,
+                limb2: 0x27137b8082abcb07,
+                limb3: 0x0,
+            },
+        },
+        id1: G1Point {
+            x: u384 {
+                limb0: 0xde693a3ee792993c6ef77765,
+                limb1: 0x481b2b7d28aef79f8c700e4f,
+                limb2: 0x17f3c984982dcc1d,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xde05db283ea650de5452510e,
+                limb1: 0x3646bd782284850616a4f088,
+                limb2: 0x26c942b83f4fc94e,
+                limb3: 0x0,
+            },
+        },
+        id2: G1Point {
+            x: u384 {
+                limb0: 0xcb9163a1d1c378e84cb1e0be,
+                limb1: 0xa680c807d199dca4b23892f2,
+                limb2: 0x9e8c4400c501df3,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xd546f5a0f3f4e0037c6bc584,
+                limb1: 0xbafb9962078862b97a655014,
+                limb2: 0x1a4e20a630920734,
+                limb3: 0x0,
+            },
+        },
+        id3: G1Point {
+            x: u384 {
+                limb0: 0x46cc9fd4bed60251f55f5f24,
+                limb1: 0x2601c7dad83f39ad9be9235d,
+                limb2: 0x24f21e58367f93a5,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x7aaccf36f2a478c65f23cc0d,
+                limb1: 0xdd5da1a108783205bf0e476d,
+                limb2: 0x216267dc395e5d7e,
+                limb3: 0x0,
+            },
+        },
+        id4: G1Point {
+            x: u384 {
+                limb0: 0xb6b2ddaa5591e81bfb216779,
+                limb1: 0x6290c61f0f618509482bec6a,
+                limb2: 0x233e6668b534fa57,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xe6d3e8293ae433ef77f8719f,
+                limb1: 0x327ff9adc990ab750bdb767,
+                limb2: 0xa2eb194ae8dcd35,
+                limb3: 0x0,
+            },
+        },
+        t1: G1Point {
+            x: u384 {
+                limb0: 0x5953037a679ab272fa3105b9,
+                limb1: 0xb1224ddc6b1bd3222e655303,
+                limb2: 0x21ba3aba551d4f6e,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xfae29d6d2c39a34b1b77c86c,
+                limb1: 0xc7c5360b19266d1256c709ea,
+                limb2: 0x2021ee9bf4036008,
+                limb3: 0x0,
+            },
+        },
+        t2: G1Point {
+            x: u384 {
+                limb0: 0x4acb4ffd415b2d78e05072e6,
+                limb1: 0xc8f63212e0116c906e48717,
+                limb2: 0x292ec6f935caa1df,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xb5ee4323e4a3c8dd012d101,
+                limb1: 0xdff46211993558a4755d42ee,
+                limb2: 0x1d3047e5faf396ec,
+                limb3: 0x0,
+            },
+        },
+        t3: G1Point {
+            x: u384 {
+                limb0: 0x205ebc50dd3e6ade8082c459,
+                limb1: 0x1a5bdac41900c5160e17aff3,
+                limb2: 0xa0a057328da5833,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xde466cea777c910d9a5d4d6e,
+                limb1: 0x3becb11cac21a42f71677010,
+                limb2: 0x2f1f6579ac435ccd,
+                limb3: 0x0,
+            },
+        },
+        t4: G1Point {
+            x: u384 {
+                limb0: 0x6c763732122a3b923bc6797b,
+                limb1: 0x6452657437518f7b73e854ce,
+                limb2: 0x27456b3a666ff24c,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x5b2dd53c33662369bcdc4e0,
+                limb1: 0xdb96eb72034b26275a33325b,
+                limb2: 0x2ecbc0db4ae72d05,
+                limb3: 0x0,
+            },
+        },
+        lagrange_first: G1Point {
+            x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        lagrange_last: G1Point {
+            x: u384 {
+                limb0: 0x948580f406bc9416113d620,
+                limb1: 0xdd1d28c2ad910d9cf21a151,
+                limb2: 0x9dfd2992ac1708f,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xe57eed899b1a1a880534dcb9,
+                limb1: 0x5c98c775c4e4f3534b5dcc29,
+                limb2: 0x205f76eebda12f56,
+                limb3: 0x0,
+            },
+        },
+    }
+}
 
 pub fn get_proof_keccak() -> HonkProof {
     HonkProof {
-        circuit_size: 32,
-        public_inputs_size: 1,
-        public_inputs_offset: 1,
         public_inputs: array![0x2].span(),
         w1: G1Point256 {
             x: 0x25854ff3aad33d93681c7e08bafe5c25402a6c979d3f550985c01f93bca7fe44,
@@ -285,21 +680,18 @@ pub fn get_proof_keccak() -> HonkProof {
         ]
             .span(),
         shplonk_q: G1Point256 {
-            x: 0x256c003db7bf326445ee6a0572bfc6276b815f88191c08614ffe2423d13d16b9,
-            y: 0xb130a304d82de840df3d59900cdd68666c7e16bf90e36a4a60cb3b44d229829,
+            x: 0x16547035923f2103c69c354924cf8f12ab062966faca3d85a3760a7df236f75d,
+            y: 0x126f896b2cfd0285656d2ecc0efa54ff0066914efd641033e44fe14c38e6212d,
         },
         kzg_quotient: G1Point256 {
-            x: 0x151c725a7ad9a59b1ef0aa59250ae771751e171058241a229db37eead192a7dd,
-            y: 0x16d4360d2c8dfedec9d11ad18cf3c8fc2732ac341eb4f0319476a6df04ea8202,
+            x: 0x23ddbca93b86a001368800a89e515fa9e79e1f4d3cda3e47aecfd7167044a98b,
+            y: 0x19b70d7848c24903d13d76f806b87a9fdae1f1892ef476504b66cd638a862daf,
         },
     }
 }
 
 pub fn get_proof_starknet() -> HonkProof {
     HonkProof {
-        circuit_size: 32,
-        public_inputs_size: 1,
-        public_inputs_offset: 1,
         public_inputs: array![0x2].span(),
         w1: G1Point256 {
             x: 0x25854ff3aad33d93681c7e08bafe5c25402a6c979d3f550985c01f93bca7fe44,
@@ -447,12 +839,392 @@ pub fn get_proof_starknet() -> HonkProof {
         ]
             .span(),
         shplonk_q: G1Point256 {
-            x: 0x5eb7416bc57a1a174a50ce9316c961c5d35fe78d05ffb4e0e6e1c0fef3424b4,
-            y: 0x17146af6a9eacee1dd78dd87790e5a4d452a1bacccc2b189fc774ee4c949e414,
+            x: 0xc87cd604d2f6b0fe776889a887d5d65939a59dfd0d09af54c20c24a71a6692b,
+            y: 0x15cf9ad6ef770bb956f1b9fc8a5e8de65510868cf375a375c382f466986e3089,
         },
         kzg_quotient: G1Point256 {
-            x: 0x95f88af88b171718d99036c7a7df46ba39de6ba3566227f9eb783e9a896513c,
-            y: 0x12d409fa0d029ea8df6ec761e1570ad8d1bbb09b3b0d6d55bda07f79d92abda8,
+            x: 0x68312703e8e9469151af77ebafc783e1dfa8190fd44a3e3f618e499c4dbaf6e,
+            y: 0x1498be756bda345ca31e3555ef2662d5e6b2b0148b66d743aa2bd69dc582a608,
+        },
+    }
+}
+
+pub fn get_zk_proof_keccak() -> ZKHonkProof {
+    ZKHonkProof {
+        public_inputs: array![0x2].span(),
+        w1: G1Point256 {
+            x: 0x25854ff3aad33d93681c7e08bafe5c25402a6c979d3f550985c01f93bca7fe44,
+            y: 0x25b9b835ebc06babb7e686386073c269cc5daaab631ce5f7e09a760254cf748c,
+        },
+        w2: G1Point256 {
+            x: 0x6baa667e9d5ded4dcce15084344598b8c161f804b2333d5bc696336719a549e,
+            y: 0x16be1af204fe29ca6639ea31eaa199fc2bb05cbf98d7af96a0f0cebca03d365f,
+        },
+        w3: G1Point256 {
+            x: 0x2fb05f8696948b2a452bca52221c7538c4ad2d24c2a007769c3e1a2236fdcc19,
+            y: 0x1613385822bb674f8d47773cf00a7df54cf584fc1f6a3c63f91eac6bcebd177e,
+        },
+        w4: G1Point256 {
+            x: 0x1115f9d68eaf8390e1da284ff3838ebecb9142a9e15b279f0d6eb5afe7854c70,
+            y: 0x30fce2a81dbf3294c9da973303b54e297e376d0aff44b15c9f31f74a6ce941d,
+        },
+        z_perm: G1Point256 {
+            x: 0x309f29222b2a314011e4fbacb4e337327d5e1897ca1022fd4f7fbf2a3c744b6,
+            y: 0x1aa1865f1323a633621fd36d24bc712aa498d429acd774140791d1bfc1684d5d,
+        },
+        lookup_read_counts: G1Point256 {
+            x: 0x2a253233fd0755077696cab47cf559b3aa1a067aead0d8c1c5cbd360576c27b7,
+            y: 0x19170f1a1dfc12078e0c6d0e0be4d158225fb7491ad143923a6afd72945c9f3c,
+        },
+        lookup_read_tags: G1Point256 {
+            x: 0x2a253233fd0755077696cab47cf559b3aa1a067aead0d8c1c5cbd360576c27b7,
+            y: 0x19170f1a1dfc12078e0c6d0e0be4d158225fb7491ad143923a6afd72945c9f3c,
+        },
+        lookup_inverses: G1Point256 {
+            x: 0x1ce949d89af31f99a1f0e33fc70a50cc994a8a89fe63bad0f3fd906f1edaa390,
+            y: 0x8d2f0c707b85e32ef7155cb3a29222b4cfc17493ab965389b8d33ab1b537074,
+        },
+        libra_commitments: array![
+            G1Point256 {
+                x: 0x29dababd8db25ec8ff1cc67d94d8fcd24eacd2398b39c8784183b00a29af204,
+                y: 0x2950240ca90a896b2063f3680a6aeabdc016d37c324e933cbb5bcbd6c45688ab,
+            },
+            G1Point256 {
+                x: 0xa966ebddf2f248de5097c331e2943f432267dc1a5d114b7b3e00de69350aa9c,
+                y: 0xfa03bb162da353f56241291f4136e81c5227ee89aa25e1ff2dde3fe134bb416,
+            },
+            G1Point256 {
+                x: 0x27038e56386e6f7a92efe22b69272cb8c63e605ba8a7652d6e0e9d3d76fada54,
+                y: 0x29229f929b71bb0dde334dffa1573363e88cb70a800a3e856d9b1b429a83e6c7,
+            },
+        ]
+            .span(),
+        libra_sum: 0x18913b40b9ee0e0d0208edf8a4edfcad37434a950f6e5c5fc7486793de75929e,
+        sumcheck_univariates: array![
+            0x77482f79a32487b19500e0e5b23d3a2d86d2defecee4992ab1efd77e7a56cf6,
+            0x1d518251adf1aeeeae102238ee85b6d0befc7072ae0d9ed40294c33068dca4a9,
+            0x1e7e8ce8f791175699d0d33538e7c98a70095cebc5b93ab1edc4d8d6788f8c,
+            0x2dd6ad8e3caab315adbb7acf074ca6f9b7608b1fac539197fcd53a652754b71f,
+            0x2a8cbaa5001a69014e34950f123c91883336a99b6b709eb744c0f7f2297cbb5e,
+            0x19dbe330c18330123d80e78b32be0212d3eabd937f6a64e669253057855c13a0,
+            0x6060fa051379a2b2652c0c60b1c5813d21300f210675a71895535b0b0fa4557,
+            0x1dceb7c44bfd86221100e67667adeedc0de456428f1d3c3e1ef9f3b4966fda4a,
+            0x2b705f50dd25e8760e5a188175c98cc76d15c11fc3f352cba2a3d8d002ecaf1,
+            0x273a0b4abe9d6ed0454f18b9e01f342c6b96318b1c06f2a50b24bc0c2b8fd973,
+            0x19da14f89146621523454f1fe9aa9e24050facbaf234633a31dfa0a3e0323037,
+            0x11acfb44ed933f90a455e019345e77c36f84a3e186390ab4f4aa42f301e6f7f6,
+            0xe1f1b04912b8424208aeb77f56a08ef4d4aa3aa6e41f7cfd46bf78da61038c3,
+            0xb2c5b1f56d9e575e243a9b253b35225d707645d2d86c12fb6a2395ce5af2b65,
+            0x22f37f28dc5869d70d2c843d62d98b569c043002e4b9109fd9f6d47ec50089e3,
+            0x112c63e488999e4830c63418615115b8b1a916252b29417e34db69bdf2abbfd5,
+            0x287a6502970ae16ac3ae5f9cc14076743dc834cbe51a6c52056860089ea44eb5,
+            0x45574d6abb7d31c1ab2342e30bea44ac0b4a118eb9145ac24895a2054a1fea6,
+            0x14b44c8f767bb86d90e340c9989209f3b895374fedbb00fad54c258cb0588ea3,
+            0xb5c971462eeb2ce4283fbcb4d2a01df993ae02bdfbdb57b10d83dec33f362de,
+            0x11be810f87197bef7589752a6259e6582a202a10120a2d283995890efec4fa21,
+            0x1f60d15de93cda9658a8e3f629cba638c72423d7313ad61ada864e86cc6b4f9a,
+            0x1d6f66ba481f8c55ad9809ac082fba187fb814d4f6a4a0c2280c3e0f1d6d08a7,
+            0x1d313aa6fe249b5469a25b91e0be61eaac8856062a12bbc9c374629220cf61cf,
+            0x14bb3d50bc887516c164a2e13a903718e4378b7bf57d04ddb872a9167feb135,
+            0x2e868dece461c60c27e34989f68720bec91bb3f14898511f5ef53afd1bed20e4,
+            0x18e2a7d06ccdbddce48b6e4a9861eeb1ff3dbe241e7aeb6a976a9f2634cb5880,
+            0x2e5ae65f189daa612ad44360f5264e371fdcc48237dfab1f0ccfe14fdd1b3538,
+            0x26eefd308be2bf55b352b6b5f5e4f9ba911531949f43c98d0d5b7289f2c54927,
+            0x520914a30173eb6cac755e285ac705f39b73595291324feede9331f7eeb6d40,
+            0x2e3129d09fbbae12d9bc5fc519dbc0bd52b87faaf39bba65fd34b04d07e93774,
+            0x163d5ba8fdda01dbaf4beb1bbe8f20543ca9d1ac5a7ff361e22f4b922f0e0993,
+            0x9e66fd39b6873df478fc03c13af1369843c1905c8b138c8de00c49c4029db72,
+            0x22428511df200a7781c48ac23111d85c7ca5e3162f66e814eed358b8ead0e4b9,
+            0xc1194d3d3e40152f29842d7d3d74b4019252924d37b62e7aff123bd91262a87,
+            0x1a111532f44c7be1533d652c2e122e779ad2e607c81dac8865a1dfa117c9563d,
+            0x26501a73fbd8bad5e7465cd6064af42d2392740942f253b3828ba586eb18ea62,
+            0x1c611a10b8bed39c18c82b9fc70ed6664f8c4ca2c36fb691aaa9c09755085484,
+            0x21279b2bc5f5400b4b06a0e25961fde451b32f746c91957f84361f14a476c15a,
+            0x824962f9aa5efd76897f14882d82bf310a5cbd3b6be4a2f7c9c90236586fa8e,
+            0x11ab4817513692944b04c0bd59752cc887cedd9ca72b2f4fc68890de0afcfaef,
+            0x16a0e7f250e4a3e8a7d2eeeefac058bc6bedc59249ff5d6198bb401c5b4fcecf,
+            0x2416ceb33fdcddddfd970b9e0d61eb2867efb895eb6cc93f9250da119b3a1534,
+            0x1ed8b49bbf7399c302e9b88a90a42af50a7b1d89020d0b73a5a55386f8b68db8,
+            0x507685fa02bcfff9144495dc3a33590094e1f9f5a7910ccdf9f478f66f3b305,
+        ]
+            .span(),
+        sumcheck_evaluations: array![
+            0xf754144029dcf199e02f8b42504405bf69c44b6c06ceff8840c680ec787fff,
+            0x40621e65d1a8b1a4748a05cd487d9aa07e6749ce8ea4badd57367eeb6c8abd9,
+            0x25593cbb70d14a82f43b743acabf678c29d06388472cea114f7068cfb0b41d41,
+            0x1cfe98acb229d9e99529965df7e37b4bff8ac1fd66527c0611a19db8b23efc28,
+            0x775a40c7b837210e555911824d0319939a74fcfaa7741da49884ee1648182f5,
+            0xaf3b0d3c4106b58b272f04749fdd2389e56eff10238c7757fbee39e9741acc5,
+            0x1833e2a1e4f602b340a830801fa3d9bf8976976894aa91eaeba53484f1236959,
+            0x4bced6867a9e9ebf2e9c5730a503d2c74ad757e199b4394f3abf9f305c38b28,
+            0x23ae03cf1eb06a46949096b4ac4829bbe72cbd815157554bd8e7fca0b71a027b,
+            0x292e731027fe10aff7f187c6b1a9ab45621af53c06ef1678e6dba66723773d26,
+            0x1c4de3272b8cd3a7ffbd8e782751b70463d0caa97cf6e9f2823f5fc6542f65da,
+            0x2c5a444db196131bdab4d02252f3be9b8c97ee7180e255897f062c7e816682a2,
+            0x12faca8cc51fef89b27111c63995a9e6e7ce279cd58646ee638d4f82beb39de0,
+            0x26ee7db75365d936f6eeddd963f0401d415245da0da28f25d143a099faf13c62,
+            0x166a15b1a79083523f3c261626f34a09ec8ecb21bdaacb9da5c393ab9a4d0586,
+            0x23e8405dd71d25e50bfbc47c4ca9b2f7b2d9ec5baba9ec27e4bd51c7771061f,
+            0xe5a0146fff79655365169030c3e96bb67f31308457a89c5ec5627e9fa1c15d4,
+            0x17778a0f11fd7910bb59aa42c163d8b26a5640f9789393b1c89542d426da22c8,
+            0xc11ffd69c2b48d1adf05b7cf27054b3141e2034fdceb38f77ecc1afe6bf0fc7,
+            0x2f41ab3576287d447a95e35ef57d07a5af2d7ff031bf32347afabcafebb4dc3a,
+            0x224ad3863587cbbfaeedaec9ebd5bfd7f8c5084f9b067b5df52a26ee59dc8682,
+            0x289bb4e072232ae8604aa471fb902eb4155fcd6272802623f367169c825f7386,
+            0x2d05a33fba29979b7636778e6b18dde2d675390b8e8442e81f677ed64aaa104c,
+            0xe60ff2873cec943e19a1c4685499367927e9043293c48a61f74d448f9698c62,
+            0xf919d32fd2bac67e8d6d8fbcb7d58848a183672de1087fc813a69dab07155a0,
+            0x21828fef76a3cdde36368a7ecfe0351e522491965e3f05866aefdcef9c49d54a,
+            0xc9983c37dfd8fc5c5af0821ce54733ae6dc58f825c36133fde961a8c4f0622,
+            0x817222af0688e28f75f580347508ec9b78e117d79196dcc5154aff9ae57f5ca,
+            0x1dee43b223af0e60554aab68af2c3be298be66524a28bedaf5466160ddf6066c,
+            0xafd25d93946eeb6f4849dfb8053d30ec119cdcc18264224a38091db5c50c3b3,
+            0x2a3b235036b16364f5b14f21ead6e3d85d8979cd99a230ea0451aa56b9ee0493,
+            0x9b1bab7c3ee75cadb0b5e3226484aa71079577857e34e21022c5dcd92089fb,
+            0xb6051469766a2f93df764f8b0a7bbf1b7a2d75758636706848380f69892ae70,
+            0x258fff333ea6258a90e0e6764648ac499ccde93be40d010dd5df2ff4e6288d57,
+            0x258fff333ea6258a90e0e6764648ac499ccde93be40d010dd5df2ff4e6288d57,
+            0x2fc11ce9ef3916a490d4e69ef65a054ad744bf5216f9cf9f00e4634003da9af9,
+            0x2f68d17f7a203a36975b1317beb761c141b637be3afd82ad2538c6e52af75fc1,
+            0xf476355caf4ff8ccb83ee89e49a3c33e0fcd33756989c54b67b2ea010f48257,
+            0x2e8481ac8179d407f83762482e40d7321e3c442eba1648e478244dce9aa44465,
+            0x142742bd22399e5b2d24bee95405af561e2a1b72fe59e8b3ba6c3069b452935b,
+        ]
+            .span(),
+        libra_evaluation: 0x28caee8c857d85090425eef0ea8bacb18a572a468b9fd8983c857de94693442d,
+        gemini_masking_poly: G1Point256 { x: 0x0, y: 0x0 },
+        gemini_masking_eval: 0x0,
+        gemini_fold_comms: array![
+            G1Point256 {
+                x: 0xe47154d3d4c8f7e77cd3ed5dc5d4ec1db2ea674def49dd7076178b55ade63cc,
+                y: 0xd00e421b030d024a4079bcfc0a06b14bbdcdcb101f4512012fde270b6e1a459,
+            },
+            G1Point256 {
+                x: 0x2928dee14e8b7985844e0f10282da8297df255e5e681d0e925de7162200ec5fc,
+                y: 0x1a6954bdbb231868ae13338d26f25a83f51477755505f91ff069888cdd82267f,
+            },
+            G1Point256 {
+                x: 0x1d6da435364889214a1114221f20d3818aa0833d6dfdf620e763b1fd5d717ac9,
+                y: 0x56630376d62badab87eb4c2425a121276ce3dcbb6540c41ee26bdf2fbcf6bbe,
+            },
+            G1Point256 {
+                x: 0x29f262d8e747a037155524ad307687f1c84acbf05d66c48a1b1caa40be4da7b4,
+                y: 0x10a276ee1225407685fc227975d995e2c786f3dd996e8617578d2665bc2d3271,
+            },
+        ]
+            .span(),
+        gemini_a_evaluations: array![
+            0xd52dd8730efa4fd69058a471493131a66565be60d4986d7a2cdbe22e202eba7,
+            0x1af848a3d58dea9cb91333c2a013bb31fd2548e8e43f7b881c808ef0448f1c1f,
+            0x2de9dd3d3a0c0ab12980fd224952bf4806fc0eb95e7bce78f69b53c9d9002ac5,
+            0x3c85bab505092770a5adedd211556a82d71ba2f7a8d1f4f237f80c4463b1da2,
+            0x135552c7adf06bc51a5e10da1cb3565a747e1fde3ac34f6138c3b8d79c422594,
+        ]
+            .span(),
+        libra_poly_evals: array![
+            0x16b954e70880eca51a91fc8f4e4afd6809210f01194b419cd268699dc1b3e34a,
+            0x28d50bb4b91676eda78153680d26c1b69bc5eb6a2a63e894bf76ee2de5aac162,
+            0x2ab9246c18eacfded1d470215488bde06e5a31c2ac112d3919960a3450e2361d,
+            0x2d8e15131e1d48d94711ba5e0499758ee2caae547efbba50e424bcf8ec2ae932,
+        ]
+            .span(),
+        shplonk_q: G1Point256 {
+            x: 0x2fa740fd0db26b8e68f2c7707e52817f590bb67b4f5b0efe2ea1e8ff925b2dc9,
+            y: 0x29ee2242ab31e45dd6184a4952603f1a2e411f2d8fad71e67966cf215e46a2ac,
+        },
+        kzg_quotient: G1Point256 {
+            x: 0x753f1d49d7a5238df7cb362553b8811c6c486beaf321bbd500359fb181f5c7d,
+            y: 0x24d1483380ebdc6f6a259464c62bda4ba080f4388f0c9030b8d7b09211b6fe7c,
+        },
+    }
+}
+
+pub fn get_zk_proof_starknet() -> ZKHonkProof {
+    ZKHonkProof {
+        public_inputs: array![0x2].span(),
+        w1: G1Point256 {
+            x: 0x25854ff3aad33d93681c7e08bafe5c25402a6c979d3f550985c01f93bca7fe44,
+            y: 0x25b9b835ebc06babb7e686386073c269cc5daaab631ce5f7e09a760254cf748c,
+        },
+        w2: G1Point256 {
+            x: 0x6baa667e9d5ded4dcce15084344598b8c161f804b2333d5bc696336719a549e,
+            y: 0x16be1af204fe29ca6639ea31eaa199fc2bb05cbf98d7af96a0f0cebca03d365f,
+        },
+        w3: G1Point256 {
+            x: 0x2fb05f8696948b2a452bca52221c7538c4ad2d24c2a007769c3e1a2236fdcc19,
+            y: 0x1613385822bb674f8d47773cf00a7df54cf584fc1f6a3c63f91eac6bcebd177e,
+        },
+        w4: G1Point256 {
+            x: 0x1115f9d68eaf8390e1da284ff3838ebecb9142a9e15b279f0d6eb5afe7854c70,
+            y: 0x30fce2a81dbf3294c9da973303b54e297e376d0aff44b15c9f31f74a6ce941d,
+        },
+        z_perm: G1Point256 {
+            x: 0xe571a05aa0d0eea278a7e4079172b20ea688b501e2df33ef14e8fbf8ec4091c,
+            y: 0x1201de236b89d750857c762580fc94513dee4d240cfeb48c08135305fa07b71d,
+        },
+        lookup_read_counts: G1Point256 {
+            x: 0x2a253233fd0755077696cab47cf559b3aa1a067aead0d8c1c5cbd360576c27b7,
+            y: 0x19170f1a1dfc12078e0c6d0e0be4d158225fb7491ad143923a6afd72945c9f3c,
+        },
+        lookup_read_tags: G1Point256 {
+            x: 0x2a253233fd0755077696cab47cf559b3aa1a067aead0d8c1c5cbd360576c27b7,
+            y: 0x19170f1a1dfc12078e0c6d0e0be4d158225fb7491ad143923a6afd72945c9f3c,
+        },
+        lookup_inverses: G1Point256 {
+            x: 0x286bcc1209503f2684e1eb4f00d4cfd504007b39e5a3289be57590adf8fc21d8,
+            y: 0x2bc08adff6a6f3c6a48b8b03973484d19c037d9154fa6e9961b7607927efa790,
+        },
+        libra_commitments: array![
+            G1Point256 {
+                x: 0x2a15a55cec6b7f378a1cfc4b057c2d9e30344886e7e5b396aad536e0dc49bf2,
+                y: 0x2ee60f7ffd99e48aebc2380122d99741968ff493865f6755c81e6a13cfc7ce03,
+            },
+            G1Point256 {
+                x: 0x21e46d555d9bf6ef68984f9f26bc580e0e6395b52540b6066c518c720e9be2a8,
+                y: 0x2555f85b319837d879ff3ec83e258fe7744c68284839a2be8f840a7dbb6ca584,
+            },
+            G1Point256 {
+                x: 0x1f1895d18756297d4c51be848f3b0401c399caca45cde57fc87f2e1bd9799c4c,
+                y: 0x14397d15cd93bdf9105507bda4b5196daa063bac024a6cb2e5c084d3cc3f162a,
+            },
+        ]
+            .span(),
+        libra_sum: 0xa444427fb943055bb0f42224491ef4eae53e4f7e0e670e00edb9c05f66c8782,
+        sumcheck_univariates: array![
+            0x1ead45aa365eac9aba380056e8b37844603635ea6c5dc07f8de6f2887f7887b8,
+            0xf896ba879fbf701ac6dfb25d28fd42bcbd01ac9277b6aaeb33f9d5a2d0e6bd9,
+            0x18f7366d0f42d7f4b404574eec862ba5a709b46cc4e7dad2ed9eb699e091c83d,
+            0x23228d685be639c6ade6088732ea33d2f1e50b23f45e491c6a5b16dfaadd7a0f,
+            0x1c7f606e52d90484a1e74ac406c6d8334bc2f40a2d69cdde4392083ff3f23419,
+            0x2d8a6b371de91d83dab8c6cc2c889425ac6471907ee697ad818f156a5951546f,
+            0x21723daea8ee944a0c63f000c4e03ad7409e6dec6fa070ebe5530587850f9cb5,
+            0x24fe6d41fd8ecd77e23ba6e8ef4193e82e37ee2479e569109132bbc313cf76f2,
+            0x3050f0898af90f10f54277876ca3764e3b774cffc296abed054c4a99432c45c5,
+            0xad40d89720393db0afb113120bb9dd85bcd6860954338248dca81b8504e80d6,
+            0x20be164df613767ebe346b8291283b16c9eed127ef8229b9e51a4fac748cfc46,
+            0xd3e3855b6a8d26c1c97179b7107a168e3dcc2aacc0b660cec20c73ba50a8c8a,
+            0x1639a7708625f0c0184ff07916d3d13bbecad6e3b4e6e5893759415b16a6d616,
+            0x1603e1120c81078941681dd306226ce55b9bd162a63281021f15cfbb3ded655d,
+            0x10c0e403744e8c1d01d5a77faa7b16e6d432d2e9bd739da98977716489fc55a0,
+            0xec7491734df4a992da25fbace5411f333c0d41848e8d657dae0834ce27645ea,
+            0x30105ce0f67ed170bfa67d7d9a3068c403e8c2c3478924ec521f8a9449516060,
+            0x209593d9643be79789119ad6b1de0a6ea30fcccc1d637b1ce8fd642fea1bbd97,
+            0xa9c418e0029a82c2604ca0e308b7072c284a6473b8e04709dafbff3b560e5c1,
+            0x216d3079ac19050157e27008f8c225ae4eb5f844b7be94f9c61755d911b7fdf7,
+            0x1d480673f2086ece30cadd6789a5aca271547a6b874ae9c57cf79520e9639cb4,
+            0x291d0779a50de7b5fce41da5154ab3db4ace8a470d0fdd73f4597498a689b3c1,
+            0x15ab4d7e975cb854ddec0c6fe385bbd286db83e72a748616e06ca98c34e8ab28,
+            0x2ca42592750ed91f713904e18806d283e9cf9977883f26b9c3e8dc4f0f77a035,
+            0x1e8794f6663dffa170e2a15165019958a25f17316def92b470ab3eca62dd1263,
+            0x24b0b76b0449169f5c3ccfc37306116c55b755c1edca1659509e845a97c8a7cc,
+            0x187f5bf7a955639144ff9c91f4582db40dc51f3c068012ef23853aae8107e48,
+            0x1139339bd674691fd437a15df234d8b5b12af14b50e518d45ca31ac81bdcb951,
+            0xb691fbcc458e1c5541c65f60ddbbd9b298912aa697b6fdad00bad08bf679576,
+            0x1f92d5bc287c9391475f6bcf8369300be35317d7e2d92ff87fbe238a5b26e797,
+            0x28bb46febe20c2083d6f8a7fd8cbc7706ca094182289879750dc4fc9eb9ba718,
+            0x1bb0928fc29e2338e0e148d6ebb04b1fa55e36653b38d9e8d087da166ea3dea2,
+            0x1cc5bb4f1def8c2aa20ac8d4604bd87814ec61bb90aab0aa0c27d2ff18af97fe,
+            0x203a14380a5b283d0fb910ed18239ec2eaf16ffbc1dfbc6a99256294c520546,
+            0x253e7f8b93bcabf0e2a80ba862896dac67086368ed93d454a0a5078261309d49,
+            0x1d564cee99df93e830ba13385eeb76a070dd2695788d0be47db65f2c73273066,
+            0x156e6b9b626a5048a9a8ed072152ae163356f6d7f665c442948e98ab43af7b69,
+            0xa79b26fbfd418c09919da30435660898b311cdd99f72fdf9f4c46312293746c,
+            0x1e5628d4741c61cd02cc1df0e7744f98b41f881e948957b26659adaea517267a,
+            0x2576659a2b1337119d93dccdff98782eb8bbdfa9862daed77529097bc665b151,
+            0x4839f5e50c6de85a404e4bb288d9396ad5dc44d527036af161fb0a217369554,
+            0x715539c92201c283df5cd4c91f2751501eefc4ccf6a8d319fc5905e11592dc6,
+            0x2ccf70bbec6bbff59c494b3c011be331235c237c67bfab148cbef8d6c3ee5a96,
+            0x2d3800fbb69bb2713ba4e12f60ab8437957a87a3c3213c7e416252a174ab203c,
+            0x2930ad10b2552933de3e9cf557ab13adca26d3cee16c9c05ca91b1e6380a2604,
+        ]
+            .span(),
+        sumcheck_evaluations: array![
+            0x1f5ffd5d908bf86e0ab0700adc1d8094e1dd202e6990c703c11e9f3d5e8ed006,
+            0xb07623da3a73c8a26411e99b92387081a84ac41da81a18d3c6e9622965b6fa1,
+            0xeecd3499d455ca2da11cac600fd996d4c9c6ff9b6ab12cc156d2e6cffa86750,
+            0x5c6b1190e118fcb28e2d6be52df1a8273757a011d7c13bd7b9eff97bbb92c6a,
+            0x90bc596c7e98ead92dc4970d11bd8c5534803749de83da2c53efe1508c3954,
+            0x20375b4b49cb23a347ed9f154f8b2de4c231c4d68e8de6ca0fd62eb133a0ad1a,
+            0x1f91aee8d560e2af727a92c9480cb5c30b4935d75511d1cfd4f4cd2424afe9f,
+            0x1a751ed379b644eb9db48acf5335e88bd36c83f8b18af890b6a12680a930406d,
+            0x1953a71c7b148efe7111d5a82719afc5026c8901627d52b99832ab71fb5d3bd9,
+            0x2ab4410d63772d81c6bc2b97a2d695dd0cc827aa93dfd5836a2a0796e40edba3,
+            0x1fdb6ef4b2e125c23699a1a32df3c1b22eda64ae445af2f909b4bc2991cca66c,
+            0x19cf60a38e19669bb6d2401c48b35b418855f78983ee30d5e521eeb7d0015456,
+            0x21952ad4fc7187ba8e43546f2ed64df5956bdea5b15a97e6a92f55f2fc4be909,
+            0x13a58f9002e286128b64cf58167b249fb1563ae02a8f7ab3415e883384a5ae0b,
+            0x2bbafe5162ff14b6e522e6f9a14f2c1fe997aa0482fa2deefa7b760d538f101f,
+            0xb181f91666a320fb31fe4f9bb124ef52c0b59938f4142b40529679d080e96ac,
+            0x82f2c930423e65b2180bf7268a826719f98f9014ba042bd329a72e5f50fee78,
+            0x1ae6f189ba1b798740d4fd43994a1558d4fe53b282bb25b461ef9ab1275b4432,
+            0x2edf3039eaaa1bad92e8417b2d5dee5215c1203bfd4c0b9266288e5da6bd7fa6,
+            0x281236ec853c9e66b686e93e91f3494e5f4205bce0eaac369b4426babd9ca81a,
+            0x54a6485057f7201bab7cce4ab2c4e1cb2062413edfcc6a28eaf5d0e2e97c49c,
+            0x1531edbe0f8b0ccf6888776372dbe1e28779088db2e6870de997007f1573616b,
+            0x2ea2b6fd70356ef5bb1e17019eb4283c8dcf60c64b72226a26c9fe0db7207c70,
+            0xbccfa5eb9aec3b9ec035c1274a83bd2d84a16e3368e451586c89c35a1c8aa0a,
+            0xbb260ac224835a44e0786e48a063739ee1f784a60f46b8dd7caaf69df639a0d,
+            0x5b478a1bbe30115bb5551961f84b9a9edf54394a8386794c460490f8f7beac4,
+            0x2547054f57ce31a826059e5191fc6ebf8601adfb1f12deec3dae11a0dcb56433,
+            0x15846043831f7899f82beafd855725f483b31956506756ea124a023405a7d5e6,
+            0xc14fc575b7f22b990c2a70b685c246a0c4e344010d8829a2c02536fba2b76b3,
+            0x1ce79768298fa0270ec597b771241e980d436761abf0173e75e7340e111b17e,
+            0x25bf1fb699ee8fa3ab420e355828d501f59bb8bda0036779a909621f1535ed03,
+            0x1468d2232221175a2e4f469b31aa9f5aebe08ec2c1bb98ccaba61e69b99669b8,
+            0x7e5ac5a4461eec6d6f8b61cc9693da958ade3c53859d6c0f2144fcefd550898,
+            0x2e11faa403b6d60ae1f0526a91a26ab0389ae08f01939e8ffa760e2c6694431c,
+            0x2e11faa403b6d60ae1f0526a91a26ab0389ae08f01939e8ffa760e2c6694431c,
+            0x13a0c50ee1f33b0e3ef648dbd496742fbf6f2f3e3813b63eec02c5ea1d648f80,
+            0x1331cdc937be49748107a798ce455915cf4281bea29f75326b389d8ac40dd8f3,
+            0x83dd6a40bd2eae7f4a9ba32a23af4f2f7fdb5e20c147f763cb21afc8560adc7,
+            0x14fc8b6e5b923fdd66b313dbc1992627ad8101abc9f69b51b15c714e68591062,
+            0x691d453ac3cff9e212487329ad1e76ce7467ed8f5771c3939d799f8df9a1288,
+        ]
+            .span(),
+        libra_evaluation: 0xa81a9d7b6392518d2591738f917869274fb97be563faefb3995ef71133cc081,
+        gemini_masking_poly: G1Point256 { x: 0x0, y: 0x0 },
+        gemini_masking_eval: 0x0,
+        gemini_fold_comms: array![
+            G1Point256 {
+                x: 0x3148e77d1eeaa44583e01a62880f1ed2b1b28512a42c59dfb66278d43b48185,
+                y: 0x1b5bc3a0ac4e7d47befc987005ac4c463d8c30734b05f588ee3a76ee1f4e26ca,
+            },
+            G1Point256 {
+                x: 0x1f8a6f60c12eb3a78992123dacaa9da7c245a1fb67b65be4bb039bed7395dd10,
+                y: 0xc6a8c3c05a787450907234d30bc5c4a9b4fddb27d07934d1bb93fe1ea6a8211,
+            },
+            G1Point256 {
+                x: 0x2e1b18abc836169ade4758a28c7db84adc9e65c6931ef37e5891e5eb7c40b0d5,
+                y: 0x374e9219c04c92544255870944f29e26c8f67adc6766160305fe8a9cec8e920,
+            },
+            G1Point256 {
+                x: 0x1e62fe0fac1485638f072bb10c178de0e404dbe60023f17709f4864bc488795f,
+                y: 0x1ace17b32a10dee5dfc4e5998722af978114bc8caa65352db4f72a856cb5a200,
+            },
+        ]
+            .span(),
+        gemini_a_evaluations: array![
+            0x2e8b97291a0179be2b9757513910f4148a1bfe7c7a7fcf4b6d69cd5b7bd98308,
+            0x2be3b6341ca011e0166ddc3cd7a517c58a7bf845b376f4cf7022404ce4cdd710,
+            0x27aec07776dcada983eb05cbc932ebb67188655fbbb6e326a4e2b6d1bda99cb6,
+            0x1b444c6348397b02336c6cbf5a7f0455b13047f25cfc7ef6962b0c587ed47bef,
+            0x1b34be25748e75153b02343e45ce5b762003eb67e2e56664dd54ffeb74313921,
+        ]
+            .span(),
+        libra_poly_evals: array![
+            0x1c005431eed4458e144bbfea05e495cb547904e9d0ead09d9086170ad05ac730,
+            0xd220a4ca80f5d3f0ea56ff8e26f860383a22627512785e10a1981bf47fc4395,
+            0x153a07f27c7df64333dc5c8bb1fe62c56797adae5db68a13dc2a0e1abd138f06,
+            0x235c800ed2ab59355f0e3a1b704f1cba323fe7aa6d05ea02f411871fb51a945d,
+        ]
+            .span(),
+        shplonk_q: G1Point256 {
+            x: 0x2c5d859ff746c220c59b2bf704158c1d8eccad07e6eb2a4c35895378160270af,
+            y: 0x46cfe3cdb8272add8a07c9638b433cf313e93610950dc5eb2c4805d0b96675a,
+        },
+        kzg_quotient: G1Point256 {
+            x: 0x1e77c6bbdfa7c0ad56e4afa70ed7ed62120fc2e1b34af215cf5a76999acb3a83,
+            y: 0x1d89c1dc83491c6e8673d62732ea8cd57669b3d442f934005e87d36e4c38b1e6,
         },
     }
 }

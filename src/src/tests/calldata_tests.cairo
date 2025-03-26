@@ -1,9 +1,9 @@
 #[cfg(test)]
 mod tests {
     use crate::utils::calldata::{
-        deserialize_full_proof_with_hints_bls12_381, G1Point, Groth16Proof, G2Point,
-        FullProofWithHintsBLS12_381, E12D, MPCheckHintBLS12_381, u384,
-        MillerLoopResultScalingFactor, E12DMulQuotient,
+        E12D, E12DMulQuotient, FullProofWithHintsBLS12_381, G1Point, G2Point, Groth16Proof,
+        MPCheckHintBLS12_381, MillerLoopResultScalingFactor,
+        deserialize_full_proof_with_hints_bls12_381, u384,
     };
 
     #[test]
@@ -2266,6 +2266,7 @@ mod tests {
             9519865181903533278148908020,
             46431381139510846788402362436,
             7112272902459538889417230501,
+            1234567890,
             72376238845430224376864410318,
             34390174194596044540780857697,
             64981004927594744860398256968,
@@ -6050,6 +6051,7 @@ mod tests {
                         limb3: 7112272902459538889417230501,
                     },
                 ],
+                z: 1234567890,
             },
             small_Q: E12DMulQuotient {
                 w0: u384 {

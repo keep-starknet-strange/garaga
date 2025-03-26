@@ -1,25 +1,24 @@
-use core::sha256::compute_sha256_u32_array;
-use garaga::utils::usize_assert_eq;
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus,
-    AddInputResultTrait, CircuitInputs,
+    AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
+    CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
+use core::num::traits::Zero;
+use core::sha256::compute_sha256_u32_array;
+use garaga::basic_field_ops::{is_even_u384, u512_mod_bls12_381};
+use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
+use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{
-    G1Point, G2Point, serialize_u384, deserialize_u384, u384Serde, BLS_G2_GENERATOR,
+    BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, serialize_u384, u384Serde,
 };
-use garaga::basic_field_ops::{u512_mod_bls12_381, is_even_u384};
-use core::num::traits::Zero;
 use garaga::ec_ops::{
-    ec_safe_add, scalar_mul_g1_fixed_small_scalar, MSMHintSmallScalar, DerivePointFromXHint,
-    FunctionFelt, msm_g1_u128,
+    DerivePointFromXHint, FunctionFelt, MSMHintSmallScalar, ec_safe_add, msm_g1_u128,
+    scalar_mul_g1_fixed_small_scalar,
 };
 use garaga::ec_ops_g2;
-use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
-use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
-
-use garaga::single_pairing_tower::{miller_loop_bls12_381_tower, final_exp_bls12_381_tower};
+use garaga::single_pairing_tower::{final_exp_bls12_381_tower, miller_loop_bls12_381_tower};
+use garaga::utils::usize_assert_eq;
 
 // Chain: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971
 //   Public Key:
@@ -239,11 +238,11 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     // msg. 8*4 = 32 bytes
     for v in message.span() {
         array.append(*v);
-    };
+    }
     // LIB_DST 47 bytes
     for v in LIB_DST.span() {
         array.append(*v);
-    };
+    }
     // Total : 64 + 32 + 47 = 143 bytes = 1144 bits.
     let b0 = compute_sha256_u32_array(
         input: array, last_input_word: LIB_DST_LAST_WORD, last_input_num_bytes: 3,
@@ -251,12 +250,12 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     let mut array: Array<u32> = array![];
     for v in b0.span() {
         array.append(*v);
-    };
+    }
 
     array.append(get_i_dst_prime_first_word(1));
     for v in I_DST_PRIME.span() {
         array.append(*v);
-    };
+    }
     let bi = compute_sha256_u32_array(
         input: array, last_input_word: I_DST_PRIME_LAST_WORD, last_input_num_bytes: 1,
     );
@@ -265,11 +264,11 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
 
     for v in bi_xor_b0.span() {
         array.append(*v);
-    };
+    }
     array.append(get_i_dst_prime_first_word(2));
     for v in I_DST_PRIME.span() {
         array.append(*v);
-    };
+    }
 
     let bi_1 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
@@ -277,22 +276,22 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     let mut array: Array<u32> = array![];
     for v in bi1_xor_b0.span() {
         array.append(*v);
-    };
+    }
     array.append(get_i_dst_prime_first_word(3));
     for v in I_DST_PRIME.span() {
         array.append(*v);
-    };
+    }
     let bi_2 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
     let bi2_xor_b0 = xor_u32_array_8(bi_2, b0);
     let mut array: Array<u32> = array![];
     for v in bi2_xor_b0.span() {
         array.append(*v);
-    };
+    }
     array.append(get_i_dst_prime_first_word(4));
     for v in I_DST_PRIME.span() {
         array.append(*v);
-    };
+    }
     let bi_3 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
     return (u512_mod_bls12_381(bi, bi_1), u512_mod_bls12_381(bi_2, bi_3));
@@ -541,21 +540,19 @@ const IBE_H2: [u32; 2] = [0x4942452d, 0x4832];
 // bytes("IBE-H4") (4 + 2 bytes)
 const IBE_H4: [u32; 2] = [0x4942452d, 0x4834];
 const IBE_H3: [u32; 2] = [0x4942452d, 0x4833];
-
 use core::circuit::conversions::{
-    DivRemU96By32, DivRemU96By64, ConstValue, POW64, POW64_TYPED, NZ_POW64_TYPED, POW32,
-    POW32_TYPED, NZ_POW32_TYPED,
+    DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED, POW64,
+    POW64_TYPED, UnitInt,
 };
-
-use core::internal::bounded_int::{BoundedInt, bounded_int_div_rem, DivRemHelper};
+use core::internal::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
 
 const POW80: felt252 = 0x100000000000000000000;
-const NZ_POW80_TYPED: NonZero<ConstValue<POW80>> = 0x100000000000000000000;
+const NZ_POW80_TYPED: NonZero<UnitInt<POW80>> = 0x100000000000000000000;
 const POW16: felt252 = 0x10000;
-const NZ_POW16_TYPED: NonZero<ConstValue<POW16>> = 0x10000;
+const NZ_POW16_TYPED: NonZero<UnitInt<POW16>> = 0x10000;
 
 const POW48: felt252 = 0x1000000000000;
-const NZ_POW48_TYPED: NonZero<ConstValue<POW48>> = 0x1000000000000;
+const NZ_POW48_TYPED: NonZero<UnitInt<POW48>> = 0x1000000000000;
 
 
 const POW24: felt252 = 0x1000000;
@@ -565,27 +562,27 @@ type u80_bi = BoundedInt<0, { POW80 - 1 }>;
 type u48_bi = BoundedInt<0, { POW48 - 1 }>;
 type u32_bi = BoundedInt<0, { POW32 - 1 }>;
 
-impl DivRemU64By32 of DivRemHelper<u64_bi, ConstValue<POW32>> {
+impl DivRemU64By32 of DivRemHelper<u64_bi, UnitInt<POW32>> {
     type DivT = BoundedInt<0, { POW32 - 1 }>;
     type RemT = BoundedInt<0, { POW32 - 1 }>;
 }
 
-impl DivRemU96By80 of DivRemHelper<u96, ConstValue<POW80>> {
+impl DivRemU96By80 of DivRemHelper<u96, UnitInt<POW80>> {
     type DivT = BoundedInt<0, { POW16 - 1 }>;
     type RemT = BoundedInt<0, { POW80 - 1 }>;
 }
 
-impl DivRemU80By48 of DivRemHelper<u80_bi, ConstValue<POW48>> {
+impl DivRemU80By48 of DivRemHelper<u80_bi, UnitInt<POW48>> {
     type DivT = BoundedInt<0, { POW32 - 1 }>;
     type RemT = BoundedInt<0, { POW48 - 1 }>;
 }
 
-impl DivRemU48By16 of DivRemHelper<u48_bi, ConstValue<POW16>> {
+impl DivRemU48By16 of DivRemHelper<u48_bi, UnitInt<POW16>> {
     type DivT = BoundedInt<0, { POW32 - 1 }>;
     type RemT = BoundedInt<0, { POW16 - 1 }>;
 }
 
-impl DivRemU32By16 of DivRemHelper<u32_bi, ConstValue<POW16>> {
+impl DivRemU32By16 of DivRemHelper<u32_bi, UnitInt<POW16>> {
     type DivT = BoundedInt<0, { POW16 - 1 }>;
     type RemT = BoundedInt<0, { POW16 - 1 }>;
 }
@@ -770,7 +767,7 @@ pub fn decrypt_at_round(signature_at_round: G1Point, ciphertext: CipherText) -> 
         i += 1;
         let _r = expand_message_drand(rh, i);
         r = _r;
-    };
+    }
 
     let U = ec_ops_g2::ec_mul(BLS_G2_GENERATOR, r, 1).unwrap();
     assert(U == ciphertext.U, 'Incorrect ciphertext proof.');
@@ -838,13 +835,13 @@ pub fn round_to_timestamp(round: u64) -> u64 {
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        DRAND_QUICKNET_PUBLIC_KEY, hash_to_two_bls_felts, u384, G1Point, MapToCurveHint,
-        map_to_curve, HashToCurveHint, MSMHintSmallScalar, DerivePointFromXHint,
-        hash_to_curve_bls12_381, FunctionFelt, run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit,
-        CipherText, decrypt_at_round, G2Point,
-    };
     use garaga::ec_ops_g2::G2PointTrait;
+    use super::{
+        CipherText, DRAND_QUICKNET_PUBLIC_KEY, DerivePointFromXHint, FunctionFelt, G1Point, G2Point,
+        HashToCurveHint, MSMHintSmallScalar, MapToCurveHint, decrypt_at_round,
+        hash_to_curve_bls12_381, hash_to_two_bls_felts, map_to_curve,
+        run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit, u384,
+    };
 
     #[test]
     fn test_drand_quicknet_public_key() {

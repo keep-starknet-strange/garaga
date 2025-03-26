@@ -5,7 +5,7 @@ from typing import List, Union
 from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.io import bigint_split
-from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u384
+from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u128, u256, u384
 
 BATCH_SIZE = 1  # Batch Size, only used in cairo 0 mode.
 
@@ -421,7 +421,7 @@ class ModuloCircuit:
 
         if all_pyfelt:
             self.input_structs.append(struct)
-            if len(struct) == 1 and isinstance(struct, u384):
+            if len(struct) == 1 and isinstance(struct, (u384, u256, u128)):
                 return self.write_element(struct.elmts[0], write_source)
             else:
                 return self.write_elements(struct.elmts, write_source)
@@ -908,14 +908,16 @@ class ModuloCircuit:
     def print_value_segment(self):
         self.values_segment.print()
 
-    def compile_circuit(self, function_name: str = None, pub: bool = True):
+    def compile_circuit(
+        self, function_name: str = None, pub: bool = True, inline: bool = True
+    ):
         if self.is_empty_circuit():
             return "", ""
         self.values_segment = self.values_segment.non_interactive_transform()
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
-            return self.compile_circuit_cairo_1(function_name, pub)
+            return self.compile_circuit_cairo_1(function_name, pub, inline)
 
     def compile_circuit_cairo_zero(
         self,
@@ -1144,6 +1146,7 @@ class ModuloCircuit:
         self,
         function_name: str = None,
         pub: bool = False,
+        inline: bool = True,
     ) -> str:
         """
         Defines the Cairo 1 function code for the compiled circuit.
@@ -1183,10 +1186,14 @@ class ModuloCircuit:
             prefix = "pub "
         else:
             prefix = ""
-        if self.generic_circuit:
-            code = f"#[inline(always)]\n{prefix}fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        if inline:
+            attribute = "#[inline(always)]"
         else:
-            code = f"#[inline(always)]\n{prefix}fn {function_name}({signature_input})->{signature_output} {{\n"
+            attribute = ""
+        if self.generic_circuit:
+            code = f"{attribute}\n{prefix}fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        else:
+            code = f"{attribute}\n{prefix}fn {function_name}({signature_input})->{signature_output} {{\n"
 
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
@@ -1252,7 +1259,7 @@ class ModuloCircuit:
                 struct_code_lines = [
                     line for line in struct_code.split("\n") if line.strip()
                 ]
-                if "while let" not in struct_code:
+                if "while let" not in struct_code and "for val in" not in struct_code:
                     struct_code_with_counter = "\n".join(
                         f"{line} // in{i+acc_len}"
                         for i, line in enumerate(struct_code_lines)

@@ -118,7 +118,7 @@ pub fn precompute_consts<F: IsPrimeField>(
     let mut x_neg_over_y = vec![];
     for point in p {
         y_inv.push(point.y.inv().unwrap());
-        x_neg_over_y.push(-&(&point.x / &point.y));
+        x_neg_over_y.push(-&(&point.x / &point.y).unwrap());
     }
     (y_inv, x_neg_over_y)
 }
@@ -243,7 +243,7 @@ where
     let line1_r1 = &(&λ1 * &qa.x) - &qa.y;
     let num = &qa.y + &qa.y;
     let den = &x3 - &qa.x;
-    let λ2 = -&(&λ1 + &(&num / &den));
+    let λ2 = -&(&λ1 + &(&num / &den).unwrap());
     let x4 = &(&(&λ2 * &λ2) - &qa.x) - &x3;
     let y4 = &(&λ2 * &(&qa.x - &x4)) - &qa.y;
     let p = G2Point::new_unchecked(x4, y4);
@@ -267,7 +267,7 @@ where
     let line1_r0 = λ1.clone();
     let line1_r1 = &(&λ1 * &q.x) - &q.y;
     let x2 = &(&λ1 * &λ1) - &(&q.x + &q.x);
-    let λ2 = &(&(&q.y + &q.y) / &(&q.x - &x2)) - &λ1;
+    let λ2 = &(((&q.y + &q.y) / &(&q.x - &x2)).unwrap()) - &λ1;
     let line2_r0 = λ2.clone();
     let line2_r1 = &(&λ2 * &q.x) - &q.y;
     let xr = &(&λ2 * &λ2) - &(&q.x + &x2);

@@ -16,35 +16,29 @@
 /// documentation.
 ///
 /// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
-use garaga::definitions::{
-    G1Point, G2Point, G1G2Pair, bn_bits, bls_bits, MillerLoopResultScalingFactor, E12D,
-    BNProcessedPair, BLSProcessedPair, get_modulus, E12DMulQuotient, G2Line, u288,
-};
-use garaga::circuits::multi_pairing_check::{
-    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
-    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
-};
-use garaga::circuits::multi_pairing_check as mpc;
 use core::circuit::u384;
+use core::num::traits::One;
+use core::option::Option;
+use core::poseidon::hades_permutation;
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, neg_mod_p};
 use garaga::circuits::extf_mul::{
     run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
-    run_BN254_EVAL_E12D_circuit, run_BLS12_381_EVAL_E12D_circuit,
 };
-use core::option::Option;
-use garaga::utils;
-use core::array::{SpanTrait};
-use core::poseidon::hades_permutation;
-use core::num::traits::{One};
-
-
-use garaga::basic_field_ops::{neg_mod_p, compute_yInvXnegOverY_BN254};
-use garaga::ec_ops::{msm_g1, MSMHint, DerivePointFromXHint, G1PointTrait};
+use garaga::circuits::multi_pairing_check as mpc;
+use garaga::circuits::multi_pairing_check::{
+    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
+};
+use garaga::definitions::{
+    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point,
+    MillerLoopResultScalingFactor, bls_bits, bn_bits, get_modulus, u288,
+};
+use garaga::ec_ops::{DerivePointFromXHint, G1PointTrait, MSMHint, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
-use garaga::pairing_check::{MPCheckHintBN254, MPCheckHintBLS12_381};
-use garaga::utils::{u384_assert_zero, usize_assert_eq};
-use garaga::utils::hashing;
+use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
+use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
+use garaga::{basic_field_ops, utils};
 
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
@@ -256,14 +250,16 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2) = hashing::hash_E12D_u288(mpcheck_hint.lambda_root_inverse, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u288(mpcheck_hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = hashing::hash_E12D_u288_transcript(mpcheck_hint.Ris, s0, s1, s2);
-
+    let z: u384 = mpcheck_hint.z.into();
+    let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
+        mpcheck_hint.Ris, s0, s1, s2, z,
+    );
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let (z_felt252, _, _) = hashing::hash_u288_transcript(mpcheck_hint.big_Q.span(), s0, s1, s2);
 
-    let z: u384 = z_felt252.into();
+    assert!(z_felt252 == mpcheck_hint.z);
     // Precompute lambda root evaluated in Z:
     let (
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
@@ -273,15 +269,17 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     );
 
     // init bit for bn254 is 0:
-    let mut Ris = mpcheck_hint.Ris;
-    let (R_0_of_Z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+    // let mut Ris = mpcheck_hint.Ris;
+    let R_0_of_Z = *evals.pop_front().unwrap();
+    let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
+
     let (_Q2, _lhs, _c_i) = mpc::run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
         yInv_0,
         xNegOverY_0,
-        *lines.pop_front().unwrap(),
+        l0,
         yInv_1,
         xNegOverY_1,
-        *lines.pop_front().unwrap(),
+        l1,
         processed_pair2.yInv,
         processed_pair2.xNegOverY,
         pair2.q,
@@ -300,7 +298,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     // rest of miller loop
     let mut bits = bn_bits.span();
     while let Option::Some(bit) = bits.pop_front() {
-        let (R_i_of_z) = run_BN254_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+        let R_i_of_z = *evals.pop_front().unwrap();
         let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
             0 => {
                 let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
@@ -406,9 +404,9 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
-    let R_n_minus_2 = Ris.pop_front().unwrap();
-    let R_last = Ris.pop_front().unwrap();
+    }
+    let R_n_minus_2_of_z = *evals.pop_front().unwrap();
+    let R_n_minus_1_of_z = *evals.pop_front().unwrap();
 
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (check) = mpc::run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit(
@@ -424,8 +422,8 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         processed_pair2.yInv,
         processed_pair2.xNegOverY,
         Q2,
-        *R_n_minus_2,
-        *R_last,
+        R_n_minus_2_of_z,
+        R_n_minus_1_of_z,
         c_i,
         w_of_z,
         z,
@@ -444,7 +442,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2) = hashing::hash_E12D_u288(precomputed_miller_loop_result, s0, s1, s2);
     let (z, _, _) = hashing::hash_E12DMulQuotient_u288(small_Q, s0, s1, s2);
     let (check) = run_BN254_FP12_MUL_ASSERT_ONE_circuit(
-        *R_last, precomputed_miller_loop_result, small_Q, z.into(),
+        *mpcheck_hint.Ris[34], precomputed_miller_loop_result, small_Q, z.into(),
     );
     u384_assert_zero(check);
     return true;
@@ -529,12 +527,18 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2) = hashing::hash_E12D_u384(hint.lambda_root_inverse, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u384(hint.w, s0, s1, s2);
     // Hash Ris to obtain base random coefficient c0
-    let (s0, s1, s2) = hashing::hash_E12D_u384_transcript(hint.Ris, s0, s1, s2);
+    let z: u384 = hint.z.into();
+    let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u384_transcript(
+        hint.Ris, s0, s1, s2, z,
+    );
+
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let (z_felt252, s1, s2) = hashing::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
-    let z: u384 = z_felt252.into();
+
+    assert(z_felt252 == hint.z, 'z mismatch');
+
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1): (u384, u384, u384) =
         run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
@@ -543,7 +547,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
 
     // init bit for bls is 1:
     let mut Ris = hint.Ris;
-    let (R_0_of_Z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+    let R_0_of_Z = *evals.pop_front().unwrap();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (_Q2, _lhs) = mpc::run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
         processed_pair0.yInv,
@@ -574,7 +578,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     let mut bits = bls_bits.span();
 
     while let Option::Some(bit) = bits.pop_front() {
-        let (R_i_of_z) = run_BLS12_381_EVAL_E12D_circuit(*Ris.pop_front().unwrap(), z);
+        let R_i_of_z = *evals.pop_front().unwrap();
         let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
             0 => {
                 let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
@@ -644,18 +648,19 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
-    let R_last = Ris.pop_front().unwrap();
+    let R_last_of_z = evals.pop_front().unwrap();
 
     // Checks that LHS = Q(z) * P_irr(z)
     let (check) = mpc::run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit(
-        *R_last, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
+        *R_last_of_z, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
     );
 
     assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
 
     // Use precomputed miller loop result & check conj(f) * M = 1
+    let R_last = Ris.at(35);
     let f_conjugate = conjugate_e12D(*R_last, 1);
     let (s0, s1, s2) = hashing::hash_E12D_u384(precomputed_miller_loop_result, s0, s1, s2);
     let (z, _, _) = hashing::hash_E12DMulQuotient_u384(small_Q, s0, s1, s2);

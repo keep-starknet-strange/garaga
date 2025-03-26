@@ -6,9 +6,6 @@ export enum HonkFlavor {
 }
 
 export interface HonkProof {
-    circuitSize: number,
-    publicInputsSize: number,
-    publicInputsOffset: number,
     publicInputs: bigint[],
     w1: G1Point,
     w2: G1Point,
@@ -22,6 +19,30 @@ export interface HonkProof {
     sumcheckEvaluations: bigint[],
     geminiFoldComms: G1Point[],
     geminiAEvaluations: bigint[],
+    shplonkQ: G1Point,
+    kzgQuotient: G1Point,
+}
+
+export interface ZKHonkProof {
+    publicInputs: bigint[],
+    w1: G1Point,
+    w2: G1Point,
+    w3: G1Point,
+    w4: G1Point,
+    zPerm: G1Point,
+    lookupReadCounts: G1Point,
+    lookupReadTags: G1Point,
+    lookupInverses: G1Point,
+    libraCommitments: G1Point[],
+    libraSum: bigint,
+    sumcheckUnivariates: bigint[], // flattened
+    sumcheckEvaluations: bigint[],
+    libraEvaluation: bigint,
+    geminiMaskingPoly: G1Point,
+    geminiMaskingEval: bigint,
+    geminiFoldComms: G1Point[],
+    geminiAEvaluations: bigint[],
+    libraPolyEvals: bigint[],
     shplonkQ: G1Point,
     kzgQuotient: G1Point,
 }

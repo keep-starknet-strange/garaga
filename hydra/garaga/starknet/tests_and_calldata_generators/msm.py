@@ -24,7 +24,7 @@ class MSMCalldataBuilder:
         ), "All points must be on the same curve."
         assert len(self.points) == len(
             self.scalars
-        ), "Number of points and scalars must be equal."
+        ), f"Number of points and scalars must be equal, got {len(self.points)} points and {len(self.scalars)} scalars"
         assert all(
             0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
         ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
@@ -340,9 +340,9 @@ class MSMCalldataBuilder:
     def to_cairo_1_test(
         self, test_name: str = None, include_digits_decomposition=False
     ):
-        print(
-            f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
-        )
+        # print(
+        #     f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
+        # )
         test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 

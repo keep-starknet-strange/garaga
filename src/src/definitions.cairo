@@ -1,25 +1,24 @@
 pub mod curves;
 pub mod structs;
-
-pub use core::circuit::{u96, u384};
-use core::serde::{Serde};
-use core::num::traits::{Zero, One};
 use core::RangeCheck;
+
+pub use core::circuit::{u384, u96};
+use core::num::traits::{One, Zero};
+use core::serde::Serde;
 
 
 pub use curves::{
-    BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, THIRD_ROOT_OF_UNITY_BLS12_381_G1, BLSProcessedPair,
-    BNProcessedPair, Curve, get_a, get_p, get_b, get_b2, get_g, get_n, get_G, get_min_one,
-    get_curve_order_modulus, get_modulus, get_BLS12_381_modulus, get_BN254_modulus,
-    get_SECP256K1_modulus, get_SECP256R1_modulus, get_ED25519_modulus, get_GRUMPKIN_modulus, BN254,
-    BLS12_381, SECP256K1, SECP256R1, ED25519, GRUMPKIN, BN254_G1_GENERATOR, BLS_G2_GENERATOR,
-    bn_bits, bls_bits,
-};
-pub use structs::points::{
-    G1Point, G1PointSerde, G1PointZero, G2Point, G2PointSerde, G2PointZero, G2Line, G1G2Pair,
+    BLS12_381, BLSProcessedPair, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, BN254,
+    BN254_G1_GENERATOR, BNProcessedPair, Curve, ED25519, GRUMPKIN, SECP256K1, SECP256R1,
+    THIRD_ROOT_OF_UNITY_BLS12_381_G1, bls_bits, bn_bits, get_BLS12_381_modulus, get_BN254_modulus,
+    get_ED25519_modulus, get_G, get_GRUMPKIN_modulus, get_SECP256K1_modulus, get_SECP256R1_modulus,
+    get_a, get_b, get_b2, get_curve_order_modulus, get_g, get_min_one, get_modulus, get_n, get_p,
 };
 pub use structs::fields::{
-    u288, u288Serde, E12D, E12T, E12DMulQuotient, MillerLoopResultScalingFactor,
+    E12D, E12DMulQuotient, E12T, MillerLoopResultScalingFactor, u288, u288Serde,
+};
+pub use structs::points::{
+    G1G2Pair, G1Point, G1PointSerde, G1PointZero, G2Line, G2Point, G2PointSerde, G2PointZero,
 };
 
 

@@ -1,5 +1,6 @@
 pub mod groth16;
 pub mod honk;
+pub mod zk_honk;
 
 #[cfg(test)]
 mod tests_risc0_utils {

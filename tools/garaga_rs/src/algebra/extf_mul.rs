@@ -166,19 +166,19 @@ where
         2 => {
             let a = to_e2(a.to_vec().try_into().unwrap());
             let b = to_e2(b.to_vec().try_into().unwrap());
-            let c = a / b;
+            let c = (a / b).unwrap();
             from_e2(c).to_vec()
         }
         6 => {
             let a = to_e6(a.to_vec().try_into().unwrap());
             let b = to_e6(b.to_vec().try_into().unwrap());
-            let c = a / b;
+            let c = (a / b).unwrap();
             from_e6(c).to_vec()
         }
         12 => {
             let a = to_e12(a.to_vec().try_into().unwrap());
             let b = to_e12(b.to_vec().try_into().unwrap());
-            let c = a / b;
+            let c = (a / b).unwrap();
             from_e12(c).to_vec()
         }
         _ => panic!("Unsupported extension degree"),
