@@ -184,7 +184,7 @@ def _gen_honk_verifier(
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
     scalars_tuple_into = ",\n            ".join(
-        f"scalar_{idx}.try_into().unwrap()" for idx in scalar_indexes
+        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
     )
 
     contract_code = f"""
@@ -210,7 +210,7 @@ mod Ultra{flavor}HonkVerifier {{
     use super::{{vk, precomputed_lines, {sumcheck_function_name}, {prepare_scalars_function_name}, {lhs_ecip_function_name}}};
     use garaga::utils::noir::{{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH, {flavor}HasherState}};
-    use garaga::core::circuit::{{U32IntoU384, U64IntoU384}};
+    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, into_u256_unchecked}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -636,7 +636,7 @@ def _gen_zk_honk_verifier(
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
     scalars_tuple_into = ",\n            ".join(
-        f"scalar_{idx}.try_into().unwrap()" for idx in scalar_indexes
+        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
     )
 
     contract_code = f"""
@@ -663,7 +663,7 @@ mod Ultra{flavor}ZKHonkVerifier {{
     use garaga::utils::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::zk_honk_transcript::{{ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, u256_to_u384}};
+    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, u256_to_u384, into_u256_unchecked}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 

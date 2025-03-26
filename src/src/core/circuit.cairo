@@ -7,6 +7,15 @@ use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u288};
 use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
+use core::internal::bounded_int;
+use core::circuit::conversions::{
+    NZ_POW64_TYPED, NZ_POW32_TYPED, POW64_TYPED, POW96_TYPED, upcast, DivRemU96By64, DivRemU96By32,
+};
+use core::circuit::conversions::{
+    AddHelperTo96By32Impl, AddHelperTo128By64Impl, AddHelperTo128By96Impl,
+};
+use core::circuit::conversions::{MulHelper64By64Impl, MulHelper32By96Impl, MulHelper64By32Impl};
+
 
 impl U32IntoU384 of Into<u32, u384> {
     fn into(self: u32) -> u384 {
@@ -19,6 +28,19 @@ impl U64IntoU384 of Into<u64, u384> {
     fn into(self: u64) -> u384 {
         let v128: u128 = self.into();
         v128.into()
+    }
+}
+
+
+// Cuts a u384 into a u256.
+// This is unsafe because it assumes the value is less than 2^256.
+// Only use when computing circuit with a modulus less than 2^256.
+pub fn into_u256_unchecked(value: u384) -> u256 {
+    let (_, limb2_low) = bounded_int::div_rem(value.limb2, NZ_POW64_TYPED);
+    let (limb1_high, limb1_low) = bounded_int::div_rem(value.limb1, NZ_POW32_TYPED);
+    u256 {
+        high: upcast(bounded_int::add(bounded_int::mul(limb2_low, POW64_TYPED), limb1_high)),
+        low: upcast(bounded_int::add(bounded_int::mul(limb1_low, POW96_TYPED), value.limb0)),
     }
 }
 
