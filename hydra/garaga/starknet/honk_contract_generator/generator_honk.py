@@ -297,6 +297,17 @@ mod {contract_name} {{
     return header
 
 
+def _gen_constants_code(vk: HonkVk, precomputed_lines: StructArray) -> str:
+    """Generate the constants code for the contract."""
+    return f"""
+use garaga::definitions::{{G1Point, G2Line, u384, u288}};
+use garaga::utils::noir::HonkVk;
+
+{vk.serialize_to_cairo()}\n
+pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
+"""
+
+
 def _gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
@@ -325,15 +336,7 @@ def _gen_honk_verifier(
 
     output_folder_path = os.path.join(output_folder_path, output_folder_name)
 
-    precomputed_lines = precompute_lines_honk()
-
-    constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Line, u384, u288}};
-    use garaga::utils::noir::HonkVk;
-
-    {vk.serialize_to_cairo()}\n
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
-    """
+    constants_code = _gen_constants_code(vk, precompute_lines_honk())
 
     (
         circuits_code,
@@ -584,15 +587,7 @@ def _gen_zk_honk_verifier(
 
     output_folder_path = os.path.join(output_folder_path, output_folder_name)
 
-    precomputed_lines = precompute_lines_honk()
-
-    constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Line, u384, u288}};
-    use garaga::utils::noir::HonkVk;
-
-    {vk.serialize_to_cairo()}\n
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
-    """
+    constants_code = _gen_constants_code(vk, precompute_lines_honk())
 
     (
         circuits_code,
