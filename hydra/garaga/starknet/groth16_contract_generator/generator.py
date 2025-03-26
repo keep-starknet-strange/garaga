@@ -181,7 +181,7 @@ mod groth16_verifier_constants;
     return constants_code
 
 
-def get_scarb_toml_file(package_name: str, cli_mode: bool):
+def get_scarb_toml_file(package_name: str, cli_mode: bool, inlining_level: int = 2):
     version = get_package_version()
     if version == "dev":
         suffix = ""
@@ -195,7 +195,7 @@ def get_scarb_toml_file(package_name: str, cli_mode: bool):
     return f"""[package]
 name = "{package_name}"
 version = "0.1.0"
-edition = "2023_10"
+edition = "2024_07"
 
 [dependencies]
 garaga = {{ {dep} }}
@@ -203,6 +203,7 @@ starknet = "{CAIRO_VERSION}"
 
 [cairo]
 sierra-replace-ids = false
+inlining-strategy = {inlining_level}
 
 [dev-dependencies]
 cairo_test = "{CAIRO_VERSION}"

@@ -539,8 +539,8 @@ const IBE_H2: [u32; 2] = [0x4942452d, 0x4832];
 const IBE_H4: [u32; 2] = [0x4942452d, 0x4834];
 const IBE_H3: [u32; 2] = [0x4942452d, 0x4833];
 use core::circuit::conversions::{
-    UnitInt, DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED,
-    POW64, POW64_TYPED,
+    DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED, POW64,
+    POW64_TYPED, UnitInt,
 };
 use core::internal::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
 
