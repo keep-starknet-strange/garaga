@@ -2,7 +2,7 @@ use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
     run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-    run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
 };
 
 #[starknet::interface]
@@ -20,20 +20,20 @@ mod UltraKeccakHonkVerifier {
         G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
         compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
     };
-    use garaga::basic_field_ops::{batch_3_mod_p};
+    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{
         vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit,
+        run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
     };
     use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{
         HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
         KeccakHasherState,
     };
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384};
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -78,11 +78,11 @@ mod UltraKeccakHonkVerifier {
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
                 tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
-                tp_eta_1: transcript.eta.into(),
-                tp_eta_2: transcript.eta_two.into(),
-                tp_eta_3: transcript.eta_three.into(),
-                tp_beta: transcript.beta.into(),
-                tp_gamma: transcript.gamma.into(),
+                tp_eta_1: transcript.eta,
+                tp_eta_2: transcript.eta_two,
+                tp_eta_3: transcript.eta_three,
+                tp_beta: transcript.beta,
+                tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
             );
@@ -128,7 +128,6 @@ mod UltraKeccakHonkVerifier {
                 scalar_43,
                 scalar_44,
                 scalar_68,
-                _,
             ) =
                 run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -189,46 +188,46 @@ mod UltraKeccakHonkVerifier {
             let points = _points.span();
 
             let scalars: Span<u256> = array![
-                scalar_1.try_into().unwrap(),
-                scalar_2.try_into().unwrap(),
-                scalar_3.try_into().unwrap(),
-                scalar_4.try_into().unwrap(),
-                scalar_5.try_into().unwrap(),
-                scalar_6.try_into().unwrap(),
-                scalar_7.try_into().unwrap(),
-                scalar_8.try_into().unwrap(),
-                scalar_9.try_into().unwrap(),
-                scalar_10.try_into().unwrap(),
-                scalar_11.try_into().unwrap(),
-                scalar_12.try_into().unwrap(),
-                scalar_13.try_into().unwrap(),
-                scalar_14.try_into().unwrap(),
-                scalar_15.try_into().unwrap(),
-                scalar_16.try_into().unwrap(),
-                scalar_17.try_into().unwrap(),
-                scalar_18.try_into().unwrap(),
-                scalar_19.try_into().unwrap(),
-                scalar_20.try_into().unwrap(),
-                scalar_21.try_into().unwrap(),
-                scalar_22.try_into().unwrap(),
-                scalar_23.try_into().unwrap(),
-                scalar_24.try_into().unwrap(),
-                scalar_25.try_into().unwrap(),
-                scalar_26.try_into().unwrap(),
-                scalar_27.try_into().unwrap(),
-                scalar_28.try_into().unwrap(),
-                scalar_29.try_into().unwrap(),
-                scalar_30.try_into().unwrap(),
-                scalar_31.try_into().unwrap(),
-                scalar_32.try_into().unwrap(),
-                scalar_33.try_into().unwrap(),
-                scalar_34.try_into().unwrap(),
-                scalar_35.try_into().unwrap(),
-                scalar_41.try_into().unwrap(),
-                scalar_42.try_into().unwrap(),
-                scalar_43.try_into().unwrap(),
-                scalar_44.try_into().unwrap(),
-                scalar_68.try_into().unwrap(),
+                into_u256_unchecked(scalar_1),
+                into_u256_unchecked(scalar_2),
+                into_u256_unchecked(scalar_3),
+                into_u256_unchecked(scalar_4),
+                into_u256_unchecked(scalar_5),
+                into_u256_unchecked(scalar_6),
+                into_u256_unchecked(scalar_7),
+                into_u256_unchecked(scalar_8),
+                into_u256_unchecked(scalar_9),
+                into_u256_unchecked(scalar_10),
+                into_u256_unchecked(scalar_11),
+                into_u256_unchecked(scalar_12),
+                into_u256_unchecked(scalar_13),
+                into_u256_unchecked(scalar_14),
+                into_u256_unchecked(scalar_15),
+                into_u256_unchecked(scalar_16),
+                into_u256_unchecked(scalar_17),
+                into_u256_unchecked(scalar_18),
+                into_u256_unchecked(scalar_19),
+                into_u256_unchecked(scalar_20),
+                into_u256_unchecked(scalar_21),
+                into_u256_unchecked(scalar_22),
+                into_u256_unchecked(scalar_23),
+                into_u256_unchecked(scalar_24),
+                into_u256_unchecked(scalar_25),
+                into_u256_unchecked(scalar_26),
+                into_u256_unchecked(scalar_27),
+                into_u256_unchecked(scalar_28),
+                into_u256_unchecked(scalar_29),
+                into_u256_unchecked(scalar_30),
+                into_u256_unchecked(scalar_31),
+                into_u256_unchecked(scalar_32),
+                into_u256_unchecked(scalar_33),
+                into_u256_unchecked(scalar_34),
+                into_u256_unchecked(scalar_35),
+                into_u256_unchecked(scalar_41),
+                into_u256_unchecked(scalar_42),
+                into_u256_unchecked(scalar_43),
+                into_u256_unchecked(scalar_44),
+                into_u256_unchecked(scalar_68),
                 transcript.shplonk_z.into(),
             ]
                 .span();
@@ -323,13 +322,19 @@ mod UltraKeccakHonkVerifier {
                 ),
             ];
 
-            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_41P_RLC_circuit(
-                A0: random_point,
-                A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-                coeff0: mb.coeff0,
-                coeff2: mb.coeff2,
+            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
+                A: random_point,
+                coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
+            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
+                A: G1Point { x: mb.x_A2, y: mb.y_A2 },
+                coeff: mb.coeff2,
+                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+            );
+            let mod_bn = get_modulus(0);
+
+            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
             let rhs_low = compute_rhs_ecip(
                 points,
@@ -359,7 +364,6 @@ mod UltraKeccakHonkVerifier {
                 0,
             );
 
-            let mod_bn = get_modulus(0);
             let zk_ecip_batched_rhs = batch_3_mod_p(
                 rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn,
             );

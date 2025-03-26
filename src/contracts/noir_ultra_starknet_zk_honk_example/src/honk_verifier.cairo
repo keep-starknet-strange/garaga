@@ -5,7 +5,7 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-    run_BN254_EVAL_FN_CHALLENGE_DUPL_45P_RLC_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
 };
 
 #[starknet::interface]
@@ -23,7 +23,7 @@ mod UltraStarknetZKHonkVerifier {
         G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
         compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
     };
-    use garaga::basic_field_ops::{batch_3_mod_p};
+    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
     use super::{
@@ -32,14 +32,14 @@ mod UltraStarknetZKHonkVerifier {
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_DUPL_45P_RLC_circuit,
+        run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
     };
     use garaga::utils::noir::{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
     use garaga::utils::noir::honk_transcript::{Point256IntoCircuitPoint, StarknetHasherState};
     use garaga::utils::noir::zk_honk_transcript::{
         ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
     };
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, u256_to_u384};
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384, u256_to_u384, into_u256_unchecked};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -164,7 +164,6 @@ mod UltraStarknetZKHonkVerifier {
                 scalar_70,
                 scalar_71,
                 scalar_72,
-                _,
             ) =
                 run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -231,50 +230,50 @@ mod UltraStarknetZKHonkVerifier {
             let points = _points.span();
 
             let scalars: Span<u256> = array![
-                scalar_1.try_into().unwrap(),
-                scalar_2.try_into().unwrap(),
-                scalar_3.try_into().unwrap(),
-                scalar_4.try_into().unwrap(),
-                scalar_5.try_into().unwrap(),
-                scalar_6.try_into().unwrap(),
-                scalar_7.try_into().unwrap(),
-                scalar_8.try_into().unwrap(),
-                scalar_9.try_into().unwrap(),
-                scalar_10.try_into().unwrap(),
-                scalar_11.try_into().unwrap(),
-                scalar_12.try_into().unwrap(),
-                scalar_13.try_into().unwrap(),
-                scalar_14.try_into().unwrap(),
-                scalar_15.try_into().unwrap(),
-                scalar_16.try_into().unwrap(),
-                scalar_17.try_into().unwrap(),
-                scalar_18.try_into().unwrap(),
-                scalar_19.try_into().unwrap(),
-                scalar_20.try_into().unwrap(),
-                scalar_21.try_into().unwrap(),
-                scalar_22.try_into().unwrap(),
-                scalar_23.try_into().unwrap(),
-                scalar_24.try_into().unwrap(),
-                scalar_25.try_into().unwrap(),
-                scalar_26.try_into().unwrap(),
-                scalar_27.try_into().unwrap(),
-                scalar_28.try_into().unwrap(),
-                scalar_29.try_into().unwrap(),
-                scalar_30.try_into().unwrap(),
-                scalar_31.try_into().unwrap(),
-                scalar_32.try_into().unwrap(),
-                scalar_33.try_into().unwrap(),
-                scalar_34.try_into().unwrap(),
-                scalar_35.try_into().unwrap(),
-                scalar_36.try_into().unwrap(),
-                scalar_42.try_into().unwrap(),
-                scalar_43.try_into().unwrap(),
-                scalar_44.try_into().unwrap(),
-                scalar_45.try_into().unwrap(),
-                scalar_69.try_into().unwrap(),
-                scalar_70.try_into().unwrap(),
-                scalar_71.try_into().unwrap(),
-                scalar_72.try_into().unwrap(),
+                into_u256_unchecked(scalar_1),
+                into_u256_unchecked(scalar_2),
+                into_u256_unchecked(scalar_3),
+                into_u256_unchecked(scalar_4),
+                into_u256_unchecked(scalar_5),
+                into_u256_unchecked(scalar_6),
+                into_u256_unchecked(scalar_7),
+                into_u256_unchecked(scalar_8),
+                into_u256_unchecked(scalar_9),
+                into_u256_unchecked(scalar_10),
+                into_u256_unchecked(scalar_11),
+                into_u256_unchecked(scalar_12),
+                into_u256_unchecked(scalar_13),
+                into_u256_unchecked(scalar_14),
+                into_u256_unchecked(scalar_15),
+                into_u256_unchecked(scalar_16),
+                into_u256_unchecked(scalar_17),
+                into_u256_unchecked(scalar_18),
+                into_u256_unchecked(scalar_19),
+                into_u256_unchecked(scalar_20),
+                into_u256_unchecked(scalar_21),
+                into_u256_unchecked(scalar_22),
+                into_u256_unchecked(scalar_23),
+                into_u256_unchecked(scalar_24),
+                into_u256_unchecked(scalar_25),
+                into_u256_unchecked(scalar_26),
+                into_u256_unchecked(scalar_27),
+                into_u256_unchecked(scalar_28),
+                into_u256_unchecked(scalar_29),
+                into_u256_unchecked(scalar_30),
+                into_u256_unchecked(scalar_31),
+                into_u256_unchecked(scalar_32),
+                into_u256_unchecked(scalar_33),
+                into_u256_unchecked(scalar_34),
+                into_u256_unchecked(scalar_35),
+                into_u256_unchecked(scalar_36),
+                into_u256_unchecked(scalar_42),
+                into_u256_unchecked(scalar_43),
+                into_u256_unchecked(scalar_44),
+                into_u256_unchecked(scalar_45),
+                into_u256_unchecked(scalar_69),
+                into_u256_unchecked(scalar_70),
+                into_u256_unchecked(scalar_71),
+                into_u256_unchecked(scalar_72),
                 transcript.shplonk_z.into(),
             ]
                 .span();
@@ -369,13 +368,19 @@ mod UltraStarknetZKHonkVerifier {
                 ),
             ];
 
-            let (zk_ecip_batched_lhs) = run_BN254_EVAL_FN_CHALLENGE_DUPL_45P_RLC_circuit(
-                A0: random_point,
-                A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-                coeff0: mb.coeff0,
-                coeff2: mb.coeff2,
+            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
+                A: random_point,
+                coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
+            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
+                A: G1Point { x: mb.x_A2, y: mb.y_A2 },
+                coeff: mb.coeff2,
+                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+            );
+            let mod_bn = get_modulus(0);
+
+            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
             let rhs_low = compute_rhs_ecip(
                 points,

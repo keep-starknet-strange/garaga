@@ -193,11 +193,11 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
             structs.u128Span,
             self.vk.log_circuit_size,
         )
-        imap["tp_eta_1"] = structs.u384
-        imap["tp_eta_2"] = structs.u384
-        imap["tp_eta_3"] = structs.u384
-        imap["tp_beta"] = structs.u384
-        imap["tp_gamma"] = structs.u384
+        imap["tp_eta_1"] = structs.u128
+        imap["tp_eta_2"] = structs.u128
+        imap["tp_eta_3"] = structs.u128
+        imap["tp_beta"] = structs.u128
+        imap["tp_gamma"] = structs.u128
         imap["tp_base_rlc"] = structs.u384
         imap["tp_alphas"] = (structs.u128Span, hk.NUMBER_OF_ALPHAS)
         return imap
@@ -308,7 +308,7 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
         # Remove shplonk_z (last scalar) (included in transcript)
         scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
 
-        sum_scalars = circuit.sum(scalars_filtered_no_nones)
+        # sum_scalars = circuit.sum(scalars_filtered_no_nones)
 
         # For each filtered scalar, find its original index by matching offset
         self.scalar_indexes = []
@@ -325,8 +325,8 @@ class PrepareScalarsCircuit(BaseUltraHonkCircuit):
 
         self.msm_len = len(scalars_filtered_no_nones) + 1
 
-        circuit.extend_struct_output(u384("sum_scalars", elmts=[sum_scalars]))
-        circuit.exact_output_refs_needed = [sum_scalars]
+        # circuit.extend_struct_output(u384("sum_scalars", elmts=[sum_scalars]))
+        # circuit.exact_output_refs_needed = [sum_scalars]
 
         return circuit
 
@@ -525,7 +525,6 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         # Remove shplonk_z (last scalar) (included in transcript)
         scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
         self.msm_len = len(scalars_filtered_no_nones) + 1
-        sum_scalars = circuit.sum(scalars_filtered_no_nones)
 
         # For each filtered scalar, find its original index by matching offset
         self.scalar_indexes = []
@@ -541,9 +540,6 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
             )
 
         self.msm_len = len(scalars_filtered_no_nones) + 1
-
-        circuit.extend_struct_output(u384("sum_scalars", elmts=[sum_scalars]))
-        circuit.exact_output_refs_needed = [sum_scalars]
 
         return circuit
 
