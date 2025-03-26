@@ -1,18 +1,17 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait,
-    CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
+    AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement as CE,
+    CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
-use garaga::core::circuit::AddInputResultTrait2;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
-use garaga::definitions::{
-    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
-    get_BLS12_381_modulus, get_BN254_modulus,
-};
-use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
+use garaga::core::circuit::AddInputResultTrait2;
+use garaga::definitions::{
+    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
+    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
+    get_g, get_min_one, get_modulus, u288,
+};
+use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
 #[inline(always)]
 pub fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
     acc: u384,
@@ -646,19 +645,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in63
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -788,19 +787,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in27
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -895,19 +894,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
 
     for val in SumDlogDiv.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in19
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1054,19 +1053,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in31
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1178,19 +1177,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
 
     for val in SumDlogDiv.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in23
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1354,19 +1353,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in35
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1548,19 +1547,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in39
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1759,19 +1758,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in43
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -1987,19 +1986,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in47
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -2233,19 +2232,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in51
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -2496,19 +2495,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in55
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -2776,19 +2775,19 @@ pub fn run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in6 - in59
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -3152,19 +3151,19 @@ pub fn run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
 
     for val in SumDlogDiv.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDiv.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in2 - in63
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -3430,19 +3429,17 @@ pub fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
 
 #[cfg(test)]
 mod tests {
-    use core::traits::TryInto;
-
     use core::circuit::{
-        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+        AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
+        CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add,
+        circuit_inverse, circuit_mul, circuit_sub, u384, u96,
     };
+    use core::traits::TryInto;
     use garaga::definitions::{
-        G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line,
+        BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line,
+        G2Point, MillerLoopResultScalingFactor,
     };
-    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
-
+    use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
     use super::{
         run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit, run_ACC_FUNCTION_CHALLENGE_DUPL_circuit,
         run_ADD_EC_POINTS_G2_circuit, run_ADD_EC_POINT_circuit,

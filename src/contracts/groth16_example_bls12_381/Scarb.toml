@@ -1,17 +1,18 @@
 [package]
 name = "groth16_example_bls12_381"
 version = "0.1.0"
-edition = "2023_10"
+edition = "2024_07"
 
 [dependencies]
 garaga = { path = "../../" }
-starknet = "2.9.2"
+starknet = "2.11.2"
 
 [cairo]
 sierra-replace-ids = false
+inlining-strategy = 2
 
 [dev-dependencies]
-cairo_test = "2.9.2"
+cairo_test = "2.11.2"
 
 [[target.starknet-contract]]
 casm = true

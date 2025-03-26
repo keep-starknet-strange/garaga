@@ -1,6 +1,6 @@
-use core::sha256::{compute_sha256_u32_array, compute_sha256_byte_array};
-use garaga::utils::usize_assert_eq;
 use core::integer;
+use core::sha256::{compute_sha256_byte_array, compute_sha256_u32_array};
+use garaga::utils::usize_assert_eq;
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
@@ -34,7 +34,7 @@ pub fn journal_sha256(journal: Span<u8>) -> Span<u32> {
 
     for byte in journal_arr {
         journal_byte_arr.append_byte(byte);
-    };
+    }
 
     let journal_digest = compute_sha256_byte_array(@journal_byte_arr);
 
@@ -50,28 +50,28 @@ pub fn compute_receipt_claim(image_id: Span<u32>, journal_digest: Span<u32>) -> 
     // Tag digest
     for v in TAG_DIGEST.span() {
         array.append(*v);
-    };
+    }
 
     // Input
     for v in INPUT_ZERO.span() {
         array.append(*v);
-    };
+    }
 
     // Pre state digest
     for v in image_id {
         array.append(*v);
-    };
+    }
 
     // Post state digest
     for v in SYSTEM_STATE_ZERO_DIGEST.span() {
         array.append(*v);
-    };
+    }
 
     // Output
     let output_digest = output_digest(journal_digest);
     for v in output_digest.span() {
         array.append(*v);
-    };
+    }
 
     // Exit_code system (0) (4 bytes) + Exit Code User (0) (4 bytes)
     array.append(0);
@@ -105,16 +105,16 @@ fn output_digest(journal_digest: Span<u32>) -> [u32; 8] {
 
     for v in RISC0_OUTPUT_TAG.span() {
         array.append(*v);
-    };
+    }
 
     for v in journal_digest {
         array.append(*v);
-    };
+    }
 
     // Assumptions digest
     for v in INPUT_ZERO.span() {
         array.append(*v);
-    };
+    }
 
     // Add 2 << 8 = 512 to the end of the array (2 bytes)
     compute_sha256_u32_array(input: array, last_input_word: 512, last_input_num_bytes: 2)

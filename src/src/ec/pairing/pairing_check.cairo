@@ -14,7 +14,6 @@ use core::option::Option;
 use core::option::OptionTrait;
 use core::poseidon::hades_permutation;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
-use garaga::basic_field_ops;
 use garaga::circuits::extf_mul::run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit;
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
@@ -30,8 +29,8 @@ use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, G1G2Pair, G1Point, G2Line, G2Point,
     MillerLoopResultScalingFactor, bls_bits, bn_bits, u288,
 };
-use garaga::utils;
 use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
+use garaga::{basic_field_ops, utils};
 
 
 #[derive(Drop, Serde, Debug)]
@@ -189,7 +188,7 @@ fn multi_pairing_check_bn254_2P_2F(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
     let R_n_minus_2_of_z = *evals.pop_front().unwrap();
     let R_n_minus_1_of_z = *evals.pop_front().unwrap();
@@ -347,7 +346,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
     let R_last_of_z = *evals.pop_front().unwrap();
     let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(

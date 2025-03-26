@@ -1,4 +1,4 @@
-use garaga::definitions::{G1Point, G2Line, u384, u288};
+use garaga::definitions::{G1Point, G2Line, u288, u384};
 use garaga::utils::noir::HonkVk;
 
 pub const vk: HonkVk = HonkVk {

@@ -1,11 +1,11 @@
-use core::poseidon::hades_permutation;
 use core::array::array_slice;
-use garaga::utils::noir::{HonkVk, ZKHonkProof, G1Point256, G1PointProof};
+use core::poseidon::hades_permutation;
 use garaga::utils::noir::honk_transcript::{
-    CONST_PROOF_SIZE_LOG_N, NUMBER_OF_ENTITIES, IHasher, Point256IntoProofPoint, append_proof_point,
-    get_eta_challenges, get_beta_gamma_challenges, generate_alpha_challenges,
-    generate_gate_challenges, generate_gemini_r_challenge, generate_shplonk_z_challenge,
+    CONST_PROOF_SIZE_LOG_N, IHasher, NUMBER_OF_ENTITIES, Point256IntoProofPoint, append_proof_point,
+    generate_alpha_challenges, generate_gate_challenges, generate_gemini_r_challenge,
+    generate_shplonk_z_challenge, get_beta_gamma_challenges, get_eta_challenges,
 };
+use garaga::utils::noir::{G1Point256, G1PointProof, HonkVk, ZKHonkProof};
 
 const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 
@@ -110,9 +110,9 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
 
 #[cfg(test)]
 mod tests {
-    use super::{ZKHonkProof, G1Point256, ZKHonkTranscript, ZKHonkTranscriptTrait};
     use garaga::utils::noir::honk_transcript::{KeccakHasherState, StarknetHasherState};
     use garaga::utils::noir::{get_vk, get_zk_proof_keccak, get_zk_proof_starknet};
+    use super::{G1Point256, ZKHonkProof, ZKHonkTranscript, ZKHonkTranscriptTrait};
     #[test]
     fn test_zk_transcript_keccak() {
         let vk = get_vk();
@@ -396,10 +396,10 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
                     hasher.update_0_256();
                 };
             },
-        };
+        }
         challenge = hasher.digest();
         sum_check_u_challenges.append(challenge.low);
-    };
+    }
 
     (sum_check_u_challenges, challenge)
 }
@@ -418,7 +418,7 @@ pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     hasher.update(prev_hasher_output);
     for i in 0..NUMBER_OF_ENTITIES {
         hasher.update(*sumcheck_evaluations.at(i));
-    };
+    }
 
     hasher.update(libra_evaluation);
     append_proof_point(ref hasher, (*libra_commitments.at(1)).into());
@@ -437,15 +437,15 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
     hasher.update(prev_hasher_output);
     for eval in gemini_a_evaluations {
         hasher.update(*eval);
-    };
+    }
     let implied_log_n = gemini_a_evaluations.len();
     for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
         hasher.update_0_256();
-    };
+    }
 
     for eval in libra_poly_evals {
         hasher.update(*eval);
-    };
+    }
 
     hasher.digest()
 }

@@ -10,14 +10,14 @@ trait IDrandQuicknet<TContractState> {
 #[starknet::contract]
 mod DrandQuicknet {
     // use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair};
-    use garaga::pairing_check::{multi_pairing_check_bls12_381_2P_2F, MPCheckHintBLS12_381};
-    use garaga::utils::drand::{
-        round_to_curve_bls12_381, DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint,
-    };
+    use garaga::definitions::{G1G2Pair, G1Point};
+    use garaga::pairing_check::{MPCheckHintBLS12_381, multi_pairing_check_bls12_381_2P_2F};
     use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
-    use super::{precomputed_lines, G2_GEN};
+    use garaga::utils::drand::{
+        DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint, round_to_curve_bls12_381,
+    };
     use garaga::utils::hashing::hash_G1Point;
+    use super::{G2_GEN, precomputed_lines};
 
     // use starknet::ContractAddress;
 
