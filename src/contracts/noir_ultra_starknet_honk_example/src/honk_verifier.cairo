@@ -137,8 +137,7 @@ mod UltraStarknetHonkVerifier {
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
             );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
+            // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
                 vk.qm,
                 vk.qc,

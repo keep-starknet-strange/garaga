@@ -175,8 +175,7 @@ mod UltraKeccakZKHonkVerifier {
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
             );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
+            // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
                 full_proof.proof.gemini_masking_poly.into(),
                 vk.qm,
@@ -226,7 +225,6 @@ mod UltraKeccakZKHonkVerifier {
             _points.append(full_proof.proof.kzg_quotient.into());
 
             let points = _points.span();
-
             let scalars: Span<u256> = array![
                 into_u256_unchecked(scalar_1),
                 into_u256_unchecked(scalar_2),

@@ -86,7 +86,6 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
                 s2 = _s2;
             }};
 
-
             let base_rlc_coeff = s1;
 
             let (s0, _, _) = full_proof.msm_hint_batched.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
@@ -157,17 +156,23 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
     return TEMPLATE
 
 
-def precompute_lines_honk() -> StructArray:
-    # Precompute lines for fixed G2 points
-    lines = precompute_lines([G2_POINT_KZG_1, G2_POINT_KZG_2])
-    precomputed_lines = StructArray(
-        name="lines",
-        elmts=[
-            G2Line(name=f"line{i}", elmts=lines[i : i + 4])
-            for i in range(0, len(lines), 4)
-        ],
-    )
-    return precomputed_lines
+def setup_vk_flavor(system: ProofSystem, vk: str | Path | HonkVk | bytes):
+    match system:
+        case ProofSystem.UltraKeccakHonk | ProofSystem.UltraKeccakZKHonk:
+            flavor = "Keccak"
+        case ProofSystem.UltraStarknetHonk | ProofSystem.UltraStarknetZKHonk:
+            flavor = "Starknet"
+        case _:
+            raise ValueError(f"Proof system {system} not compatible")
+    if isinstance(vk, (Path, str)):
+        vk = HonkVk.from_bytes(open(vk, "rb").read())
+    elif isinstance(vk, bytes):
+        vk = HonkVk.from_bytes(vk)
+    else:
+        assert isinstance(
+            vk, HonkVk
+        ), f"Invalid type for vk: {type(vk)}. Should be str, Path, HonkVk or bytes."
+    return vk, flavor
 
 
 def get_circuit_code_header():
@@ -297,8 +302,16 @@ mod {contract_name} {{
     return header
 
 
-def _gen_constants_code(vk: HonkVk, precomputed_lines: StructArray) -> str:
+def _gen_constants_code(vk: HonkVk) -> str:
     """Generate the constants code for the contract."""
+    lines = precompute_lines([G2_POINT_KZG_1, G2_POINT_KZG_2])
+    precomputed_lines = StructArray(
+        name="lines",
+        elmts=[
+            G2Line(name=f"line{i}", elmts=lines[i : i + 4])
+            for i in range(0, len(lines), 4)
+        ],
+    )
     return f"""
 use garaga::definitions::{{G1Point, G2Line, u384, u288}};
 use garaga::utils::noir::HonkVk;
@@ -308,6 +321,76 @@ pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precompute
 """
 
 
+def get_msm_points_array_code(zk: bool) -> str:
+    # Common points that are shared between ZK and non-ZK versions
+    common_points = [
+        "vk.qm",
+        "vk.qc",
+        "vk.ql",
+        "vk.qr",
+        "vk.qo",
+        "vk.q4",
+        "vk.qLookup",
+        "vk.qArith",
+        "vk.qDeltaRange",
+        "vk.qElliptic",
+        "vk.qAux",
+        "vk.qPoseidon2External",
+        "vk.qPoseidon2Internal",
+        "vk.s1",
+        "vk.s2",
+        "vk.s3",
+        "vk.s4",
+        "vk.id1",
+        "vk.id2",
+        "vk.id3",
+        "vk.id4",
+        "vk.t1",
+        "vk.t2",
+        "vk.t3",
+        "vk.t4",
+        "vk.lagrange_first",
+        "vk.lagrange_last",
+        "full_proof.proof.w1.into()",
+        "full_proof.proof.w2.into()",
+        "full_proof.proof.w3.into()",
+        "full_proof.proof.w4.into()",
+        "full_proof.proof.z_perm.into()",
+        "full_proof.proof.lookup_inverses.into()",
+        "full_proof.proof.lookup_read_counts.into()",
+        "full_proof.proof.lookup_read_tags.into()",
+    ]
+
+    # ZK-specific points that are added at the beginning
+    zk_points = ["full_proof.proof.gemini_masking_poly.into()"] if zk else []
+
+    # Combine all points
+    all_points = zk_points + common_points
+    points_str = ",\n".join(all_points)
+    code = "// Starts with 1 * shplonk_q, not included in msm\n"
+    code += f"""            let mut _points: Array<G1Point> = array![{points_str}];
+
+            for gem_comm in full_proof.proof.gemini_fold_comms {{
+                _points.append((*gem_comm).into());
+            }};"""
+
+    # Add ZK-specific commitments
+    if zk:
+        code += """
+            for lib_comm in full_proof.proof.libra_commitments {
+                _points.append((*lib_comm).into());
+            };"""
+
+    # Add common final points
+    code += """
+            _points.append(BN254_G1_GENERATOR);
+            _points.append(full_proof.proof.kzg_quotient.into());
+
+            let points = _points.span();"""
+
+    return code
+
+
 def _gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,
     output_folder_path: str,
@@ -315,28 +398,13 @@ def _gen_honk_verifier(
     system: ProofSystem = ProofSystem.UltraKeccakHonk,
     cli_mode: bool = False,
 ) -> str:
-    match system:
-        case ProofSystem.UltraKeccakHonk:
-            flavor = "Keccak"
-        case ProofSystem.UltraStarknetHonk:
-            flavor = "Starknet"
-        case _:
-            raise ValueError(f"Proof system {system} not compatible")
-
-    if isinstance(vk, (Path, str)):
-        vk = HonkVk.from_bytes(open(vk, "rb").read())
-    elif isinstance(vk, bytes):
-        vk = HonkVk.from_bytes(vk)
-    else:
-        assert isinstance(
-            vk, HonkVk
-        ), f"Invalid type for vk: {type(vk)}. Should be str, Path, HonkVk or bytes."
+    vk, flavor = setup_vk_flavor(system, vk)
 
     curve_id = CurveID.GRUMPKIN
 
     output_folder_path = os.path.join(output_folder_path, output_folder_name)
 
-    constants_code = _gen_constants_code(vk, precompute_lines_honk())
+    constants_code = _gen_constants_code(vk)
 
     (
         circuits_code,
@@ -395,52 +463,7 @@ def _gen_honk_verifier(
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
-            let mut _points: Array<G1Point> = array![vk.qm,
-                                                    vk.qc,
-                                                    vk.ql,
-                                                    vk.qr,
-                                                    vk.qo,
-                                                    vk.q4,
-                                                    vk.qLookup,
-                                                    vk.qArith,
-                                                    vk.qDeltaRange,
-                                                    vk.qElliptic,
-                                                    vk.qAux,
-                                                    vk.qPoseidon2External,
-                                                    vk.qPoseidon2Internal,
-                                                    vk.s1,
-                                                    vk.s2,
-                                                    vk.s3,
-                                                    vk.s4,
-                                                    vk.id1,
-                                                    vk.id2,
-                                                    vk.id3,
-                                                    vk.id4,
-                                                    vk.t1,
-                                                    vk.t2,
-                                                    vk.t3,
-                                                    vk.t4,
-                                                    vk.lagrange_first,
-                                                    vk.lagrange_last,
-                                                    full_proof.proof.w1.into(),
-                                                    full_proof.proof.w2.into(),
-                                                    full_proof.proof.w3.into(),
-                                                    full_proof.proof.w4.into(),
-                                                    full_proof.proof.z_perm.into(),
-                                                    full_proof.proof.lookup_inverses.into(),
-                                                    full_proof.proof.lookup_read_counts.into(),
-                                                    full_proof.proof.lookup_read_tags.into(),
-                                                    ];
-
-            for gem_comm in full_proof.proof.gemini_fold_comms {{
-                _points.append((*gem_comm).into());
-            }};
-            _points.append(BN254_G1_GENERATOR);
-            _points.append(full_proof.proof.kzg_quotient.into());
-
-            let points = _points.span();
+            {get_msm_points_array_code(zk=False)}
 
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
@@ -566,28 +589,13 @@ def _gen_zk_honk_verifier(
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
     cli_mode: bool = False,
 ) -> str:
-    match system:
-        case ProofSystem.UltraKeccakZKHonk:
-            flavor = "Keccak"
-        case ProofSystem.UltraStarknetZKHonk:
-            flavor = "Starknet"
-        case _:
-            raise ValueError(f"Proof system {system} not compatible")
-
-    if isinstance(vk, (Path, str)):
-        vk = HonkVk.from_bytes(open(vk, "rb").read())
-    elif isinstance(vk, bytes):
-        vk = HonkVk.from_bytes(vk)
-    else:
-        assert isinstance(
-            vk, HonkVk
-        ), f"Invalid type for vk: {type(vk)}. Should be str, Path, HonkVk or bytes."
+    vk, flavor = setup_vk_flavor(system, vk)
 
     curve_id = CurveID.GRUMPKIN
 
     output_folder_path = os.path.join(output_folder_path, output_folder_name)
 
-    constants_code = _gen_constants_code(vk, precompute_lines_honk())
+    constants_code = _gen_constants_code(vk)
 
     (
         circuits_code,
@@ -678,57 +686,7 @@ def _gen_zk_honk_verifier(
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
-            let mut _points: Array<G1Point> = array![full_proof.proof.gemini_masking_poly.into(),
-                                                    vk.qm,
-                                                    vk.qc,
-                                                    vk.ql,
-                                                    vk.qr,
-                                                    vk.qo,
-                                                    vk.q4,
-                                                    vk.qLookup,
-                                                    vk.qArith,
-                                                    vk.qDeltaRange,
-                                                    vk.qElliptic,
-                                                    vk.qAux,
-                                                    vk.qPoseidon2External,
-                                                    vk.qPoseidon2Internal,
-                                                    vk.s1,
-                                                    vk.s2,
-                                                    vk.s3,
-                                                    vk.s4,
-                                                    vk.id1,
-                                                    vk.id2,
-                                                    vk.id3,
-                                                    vk.id4,
-                                                    vk.t1,
-                                                    vk.t2,
-                                                    vk.t3,
-                                                    vk.t4,
-                                                    vk.lagrange_first,
-                                                    vk.lagrange_last,
-                                                    full_proof.proof.w1.into(),
-                                                    full_proof.proof.w2.into(),
-                                                    full_proof.proof.w3.into(),
-                                                    full_proof.proof.w4.into(),
-                                                    full_proof.proof.z_perm.into(),
-                                                    full_proof.proof.lookup_inverses.into(),
-                                                    full_proof.proof.lookup_read_counts.into(),
-                                                    full_proof.proof.lookup_read_tags.into(),
-                                                    ];
-
-            for gem_comm in full_proof.proof.gemini_fold_comms {{
-                _points.append((*gem_comm).into());
-            }};
-            for lib_comm in full_proof.proof.libra_commitments {{
-                _points.append((*lib_comm).into());
-            }};
-            _points.append(BN254_G1_GENERATOR);
-            _points.append(full_proof.proof.kzg_quotient.into());
-
-            let points = _points.span();
-
+            {get_msm_points_array_code(zk=True)}
             let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
 
             {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
