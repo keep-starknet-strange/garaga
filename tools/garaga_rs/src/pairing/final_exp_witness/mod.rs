@@ -1,10 +1,66 @@
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
-
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
 use crate::io::{element_from_biguint, element_to_biguint};
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254;
+
 use lambdaworks_math::field::element::FieldElement;
 use num_bigint::BigUint;
+
+pub fn to_bn(v: FieldElement<bn_254::field_extension::Degree12ExtensionField>) -> [BigUint; 12] {
+    let [c0, c1] = v.value();
+    let [c0b0, c0b1, c0b2] = c0.value();
+    let [c1b0, c1b1, c1b2] = c1.value();
+    let [c0b0a0, c0b0a1] = c0b0.value();
+    let [c0b1a0, c0b1a1] = c0b1.value();
+    let [c0b2a0, c0b2a1] = c0b2.value();
+    let [c1b0a0, c1b0a1] = c1b0.value();
+    let [c1b1a0, c1b1a1] = c1b1.value();
+    let [c1b2a0, c1b2a1] = c1b2.value();
+    [
+        element_to_biguint(c0b0a0),
+        element_to_biguint(c0b0a1),
+        element_to_biguint(c0b1a0),
+        element_to_biguint(c0b1a1),
+        element_to_biguint(c0b2a0),
+        element_to_biguint(c0b2a1),
+        element_to_biguint(c1b0a0),
+        element_to_biguint(c1b0a1),
+        element_to_biguint(c1b1a0),
+        element_to_biguint(c1b1a1),
+        element_to_biguint(c1b2a0),
+        element_to_biguint(c1b2a1),
+    ]
+}
+
+pub fn to_bls(
+    v: FieldElement<bls12_381::field_extension::Degree12ExtensionField>,
+) -> [BigUint; 12] {
+    let [c0, c1] = v.value();
+    let [c0b0, c0b1, c0b2] = c0.value();
+    let [c1b0, c1b1, c1b2] = c1.value();
+    let [c0b0a0, c0b0a1] = c0b0.value();
+    let [c0b1a0, c0b1a1] = c0b1.value();
+    let [c0b2a0, c0b2a1] = c0b2.value();
+    let [c1b0a0, c1b0a1] = c1b0.value();
+    let [c1b1a0, c1b1a1] = c1b1.value();
+    let [c1b2a0, c1b2a1] = c1b2.value();
+    [
+        element_to_biguint(c0b0a0),
+        element_to_biguint(c0b0a1),
+        element_to_biguint(c0b1a0),
+        element_to_biguint(c0b1a1),
+        element_to_biguint(c0b2a0),
+        element_to_biguint(c0b2a1),
+        element_to_biguint(c1b0a0),
+        element_to_biguint(c1b0a1),
+        element_to_biguint(c1b1a0),
+        element_to_biguint(c1b1a1),
+        element_to_biguint(c1b2a0),
+        element_to_biguint(c1b2a1),
+    ]
+}
 
 pub fn get_final_exp_witness(curve_id: usize, f: [BigUint; 12]) -> ([BigUint; 12], [BigUint; 12]) {
     let [f_0, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10, f_11] = f;
@@ -43,33 +99,8 @@ pub fn get_final_exp_witness(curve_id: usize, f: [BigUint; 12]) -> ([BigUint; 12
             ]),
         ]);
         let (c, wi) = bn254_final_exp_witness::get_final_exp_witness(f);
-        fn to(v: FieldElement<Degree12ExtensionField>) -> [BigUint; 12] {
-            let [c0, c1] = v.value();
-            let [c0b0, c0b1, c0b2] = c0.value();
-            let [c1b0, c1b1, c1b2] = c1.value();
-            let [c0b0a0, c0b0a1] = c0b0.value();
-            let [c0b1a0, c0b1a1] = c0b1.value();
-            let [c0b2a0, c0b2a1] = c0b2.value();
-            let [c1b0a0, c1b0a1] = c1b0.value();
-            let [c1b1a0, c1b1a1] = c1b1.value();
-            let [c1b2a0, c1b2a1] = c1b2.value();
 
-            [
-                element_to_biguint::<BN254PrimeField>(&c0b0a0),
-                element_to_biguint::<BN254PrimeField>(&c0b0a1),
-                element_to_biguint::<BN254PrimeField>(&c0b1a0),
-                element_to_biguint::<BN254PrimeField>(&c0b1a1),
-                element_to_biguint::<BN254PrimeField>(&c0b2a0),
-                element_to_biguint::<BN254PrimeField>(&c0b2a1),
-                element_to_biguint::<BN254PrimeField>(&c1b0a0),
-                element_to_biguint::<BN254PrimeField>(&c1b0a1),
-                element_to_biguint::<BN254PrimeField>(&c1b1a0),
-                element_to_biguint::<BN254PrimeField>(&c1b1a1),
-                element_to_biguint::<BN254PrimeField>(&c1b2a0),
-                element_to_biguint::<BN254PrimeField>(&c1b2a1),
-            ]
-        }
-        return (to(c), to(wi));
+        return (to_bn(c), to_bn(wi));
     }
 
     if curve_id == 1 {
@@ -118,18 +149,18 @@ pub fn get_final_exp_witness(curve_id: usize, f: [BigUint; 12]) -> ([BigUint; 12
             let [c1b2a0, c1b2a1] = c1b2.value();
 
             [
-                element_to_biguint::<BLS12381PrimeField>(&c0b0a0),
-                element_to_biguint::<BLS12381PrimeField>(&c0b0a1),
-                element_to_biguint::<BLS12381PrimeField>(&c0b1a0),
-                element_to_biguint::<BLS12381PrimeField>(&c0b1a1),
-                element_to_biguint::<BLS12381PrimeField>(&c0b2a0),
-                element_to_biguint::<BLS12381PrimeField>(&c0b2a1),
-                element_to_biguint::<BLS12381PrimeField>(&c1b0a0),
-                element_to_biguint::<BLS12381PrimeField>(&c1b0a1),
-                element_to_biguint::<BLS12381PrimeField>(&c1b1a0),
-                element_to_biguint::<BLS12381PrimeField>(&c1b1a1),
-                element_to_biguint::<BLS12381PrimeField>(&c1b2a0),
-                element_to_biguint::<BLS12381PrimeField>(&c1b2a1),
+                element_to_biguint::<BLS12381PrimeField>(c0b0a0),
+                element_to_biguint::<BLS12381PrimeField>(c0b0a1),
+                element_to_biguint::<BLS12381PrimeField>(c0b1a0),
+                element_to_biguint::<BLS12381PrimeField>(c0b1a1),
+                element_to_biguint::<BLS12381PrimeField>(c0b2a0),
+                element_to_biguint::<BLS12381PrimeField>(c0b2a1),
+                element_to_biguint::<BLS12381PrimeField>(c1b0a0),
+                element_to_biguint::<BLS12381PrimeField>(c1b0a1),
+                element_to_biguint::<BLS12381PrimeField>(c1b1a0),
+                element_to_biguint::<BLS12381PrimeField>(c1b1a1),
+                element_to_biguint::<BLS12381PrimeField>(c1b2a0),
+                element_to_biguint::<BLS12381PrimeField>(c1b2a1),
             ]
         }
         return (to(c), to(wi));
