@@ -1,4 +1,4 @@
-// Taken from Alexandria library.
+// Originally taken from Alexandria library.
 
 use core::num::traits::{Bounded, WrappingAdd};
 use core::traits::{BitAnd, BitOr, BitXor};
@@ -99,19 +99,10 @@ impl U64IntoWord of Into<u64, Word64> {
 }
 
 pub trait WordOperations<T> {
-    fn shr(self: T, n: u64) -> T;
-    fn shl(self: T, n: u64) -> T;
     fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> T;
-    fn rotl(self: T, n: u64) -> T;
 }
 
 pub impl Word64WordOperations of WordOperations<Word64> {
-    fn shr(self: Word64, n: u64) -> Word64 {
-        Word64 { data: math_shr_u64(self.data, n) }
-    }
-    fn shl(self: Word64, n: u64) -> Word64 {
-        Word64 { data: math_shl_u64(self.data, n) }
-    }
     // does the work of rotr but with precomputed values 2**n and 2**(64-n)
     fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> Word64 {
         let data = self.data.into();
@@ -125,12 +116,6 @@ pub impl Word64WordOperations of WordOperations<Word64> {
             Option::None => (data & MAX_U64).try_into().unwrap(),
         };
 
-        Word64 { data }
-    }
-    fn rotl(self: Word64, n: u64) -> Word64 {
-        let data = BitOr::bitor(
-            math_shl_u64(self.data, n), math_shr_u64(self.data, (U64_BIT_NUM - n)),
-        );
         Word64 { data }
     }
 }
@@ -180,55 +165,9 @@ fn ssig1(x: Word64) -> Word64 {
         ^ math_shr_precomputed::<u64>(x.data, TWO_POW_64_MINUS_6).into() // 2 ** 6
 }
 
-/// Calculates base ** power
-pub fn fpow(mut base: u128, mut power: u128) -> u128 {
-    // Return invalid input error
-    assert!(base != 0, "fpow: invalid input");
-
-    let mut result = 1;
-    while (power != 0) {
-        let (q, r) = DivRem::div_rem(power, 2);
-        if r == 1 {
-            result = (result * base);
-        }
-        base = base * base;
-        power = q;
-    }
-
-    result
-}
-
 const two_squarings: [u64; 6] = [
     TWO_POW_1, TWO_POW_2, TWO_POW_4, TWO_POW_8, TWO_POW_16, TWO_POW_32,
 ];
-// Uses cache for faster powers of 2 in a u128
-// Uses TWO_POW_* constants
-// Generic T to use with both u128 and u64
-pub fn two_pow<T, +DivRem<T>, +Mul<T>, +Into<u64, T>, +Drop<T>>(mut power: u64) -> T {
-    let mut i = 0;
-    let mut result: T = 1_u64.into();
-    let two_squarings = two_squarings.span();
-    while (power != 0) {
-        let (q, r) = DivRem::div_rem(power, 2);
-        if r == 1 {
-            result = result * (*two_squarings[i]).into();
-        }
-        i = i + 1;
-        power = q;
-    }
-
-    result
-}
-
-// Shift left with math_shl_precomputed function
-fn math_shl(x: u128, n: u64) -> u128 {
-    math_shl_precomputed(x, two_pow(n))
-}
-
-// Shift right with math_shr_precomputed function
-fn math_shr(x: u128, n: u64) -> u128 {
-    math_shr_precomputed(x, two_pow(n))
-}
 
 // Shift left with precomputed powers of 2
 fn math_shl_precomputed<T, +Mul<T>, +Rem<T>, +Drop<T>, +Copy<T>, +Into<T, u128>>(
@@ -242,16 +181,6 @@ fn math_shr_precomputed<T, +Div<T>, +Rem<T>, +Drop<T>, +Copy<T>, +Into<T, u128>>
     x: T, two_power_n: T,
 ) -> T {
     x / two_power_n
-}
-
-// Shift left wrapper for u64
-fn math_shl_u64(x: u64, n: u64) -> u64 {
-    (math_shl(x.into(), n) % Bounded::<u64>::MAX.into()).try_into().unwrap()
-}
-
-// Shift right wrapper for u64
-fn math_shr_u64(x: u64, n: u64) -> u64 {
-    (math_shr(x.into(), n) % Bounded::<u64>::MAX.into()).try_into().unwrap()
 }
 
 fn add_trailing_zeroes(ref data: Array<u8>, msg_len: usize) {
