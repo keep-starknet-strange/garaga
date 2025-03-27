@@ -5,12 +5,13 @@ use core::circuit::{
 };
 use core::num::traits::Zero;
 use core::sha256::compute_sha256_u32_array;
-use garaga::basic_field_ops::{is_even_u384, u512_mod_bls12_381};
+use garaga::basic_field_ops::{is_even_u384, u512_mod_p};
 use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
 use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{
-    BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, serialize_u384, u384Serde,
+    BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, get_BLS12_381_modulus, serialize_u384,
+    u384Serde,
 };
 use garaga::ec_ops::{
     DerivePointFromXHint, FunctionFelt, MSMHintSmallScalar, ec_safe_add, msm_g1_u128,
@@ -292,7 +293,8 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     }
     let bi_3 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
-    return (u512_mod_bls12_381(bi, bi_1), u512_mod_bls12_381(bi_2, bi_3));
+    let modulus = get_BLS12_381_modulus();
+    return (u512_mod_p(bi, bi_1, modulus), u512_mod_p(bi_2, bi_3, modulus));
 }
 
 

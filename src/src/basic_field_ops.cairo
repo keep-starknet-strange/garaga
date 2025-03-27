@@ -82,26 +82,16 @@ pub fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
-// Takes big endian u512 and returns a u384 mod bls12_381
+// Takes big endian u512 and returns a u384 mod modulus
 // u512 = low_256 + high_256 * 2^256
 // u512 % p = (low_256 + high_256 * 2^256) % p
 // = (low_256 % p + high_256 * 2^256 % p) % p
-pub fn u512_mod_bls12_381(a_high: [u32; 8], a_low: [u32; 8]) -> u384 {
+pub fn u512_mod_p(a_high: [u32; 8], a_low: [u32; 8], modulus: CircuitModulus) -> u384 {
     let low = CircuitElement::<CircuitInput<0>> {};
     let high = CircuitElement::<CircuitInput<1>> {};
     let shift = CircuitElement::<CircuitInput<2>> {};
     let high_shifted = circuit_mul(high, shift);
     let res = circuit_add(low, high_shifted);
-
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
 
     let [al_0, al_1, al_2, al_3, al_4, al_5, al_6, al_7] = a_low;
     let ll0: felt252 = al_7.into() + al_6.into() * POW_2_32_252 + al_5.into() * POW_2_64_252;
