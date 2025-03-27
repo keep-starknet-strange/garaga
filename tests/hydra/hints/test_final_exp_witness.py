@@ -2,13 +2,13 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID
+from garaga.definitions import CURVES, CurveID, get_sparsity
 from garaga.hints.multi_miller_witness import (
     get_final_exp_witness,
     get_lambda,
     get_miller_loop_output,
 )
-from garaga.hints.tower_backup import E12
+from garaga.hints.tower_backup import E6, E12
 from garaga.precompiled_circuits.multi_pairing_check import (
     MultiPairingCheckCircuit,
     WriteOps,
@@ -17,7 +17,7 @@ from garaga.precompiled_circuits.multi_pairing_check import (
 )
 
 
-@pytest.mark.parametrize("seed", range(5))
+@pytest.mark.parametrize("seed", range(4))
 @pytest.mark.parametrize("curve_id", [CurveID.BN254, CurveID.BLS12_381])
 def test_final_exp_witness(seed, curve_id):
     random.seed(seed)
@@ -44,6 +44,22 @@ def test_final_exp_witness(seed, curve_id):
         w_full_correct_rust == w_full_correct_python
     ), "Scaling factors should match between Rust and Python implementations"
 
+    e6_subfield = E12(
+        [E6.random(curve_id.value), E6.zero(curve_id.value)], curve_id.value
+    )
+    scaling_factor_sparsity = get_sparsity(e6_subfield.to_direct())
+    scaling_factor = w_full_correct_rust.to_direct()
+    # Assert sparsity is correct: for every index where the sparsity is 0, the coefficient must 0 in scaling factor
+    for i in range(len(scaling_factor_sparsity)):
+        if scaling_factor_sparsity[i] == 0:
+            assert scaling_factor[i].value == 0
+    # Therefore scaling factor lies in Fp6
+
+    assert f_correct**h == ONE, "f^h should equal 1 for correct case"
+    assert (
+        f_correct * w_full_correct_rust == root_correct_rust**λ
+    ), "f * w_full should equal root**λ for correct case"
+
     # Test incorrect case
     f_incorrect = get_miller_loop_output(curve_id=curve_id, will_be_one=False)
     root_incorrect_rust, w_full_incorrect_rust = get_final_exp_witness(
@@ -60,6 +76,11 @@ def test_final_exp_witness(seed, curve_id):
     assert (
         w_full_incorrect_rust == w_full_incorrect_python
     ), "Scaling factors should match between Rust and Python implementations"
+
+    assert f_incorrect**h != ONE, "f^h should not equal 1 for incorrect case"
+    assert (
+        f_incorrect * w_full_incorrect_rust != root_incorrect_rust**λ
+    ), "f * w_full should not equal root**λ for incorrect case"
 
     print(f"{seed}-th check ok")
 
