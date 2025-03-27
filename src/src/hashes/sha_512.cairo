@@ -101,7 +101,6 @@ impl U64IntoWord of Into<u64, Word64> {
 pub trait WordOperations<T> {
     fn shr(self: T, n: u64) -> T;
     fn shl(self: T, n: u64) -> T;
-    fn rotr(self: T, n: u64) -> T;
     fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> T;
     fn rotl(self: T, n: u64) -> T;
 }
@@ -112,12 +111,6 @@ pub impl Word64WordOperations of WordOperations<Word64> {
     }
     fn shl(self: Word64, n: u64) -> Word64 {
         Word64 { data: math_shl_u64(self.data, n) }
-    }
-    fn rotr(self: Word64, n: u64) -> Word64 {
-        let data = BitOr::bitor(
-            math_shr_u64(self.data, n), math_shl_u64(self.data, (U64_BIT_NUM - n)),
-        );
-        Word64 { data }
     }
     // does the work of rotr but with precomputed values 2**n and 2**(64-n)
     fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> Word64 {
@@ -438,98 +431,54 @@ pub fn sha512(mut data: Array<u8>) -> Array<u8> {
 
 
 const H: [Word64; 8] = [
-    Word64 { data: 0x6a09e667f3bcc908 },
-    Word64 { data: 0xbb67ae8584caa73b },
-    Word64 { data: 0x3c6ef372fe94f82b },
-    Word64 { data: 0xa54ff53a5f1d36f1 },
-    Word64 { data: 0x510e527fade682d1 },
-    Word64 { data: 0x9b05688c2b3e6c1f },
-    Word64 { data: 0x1f83d9abfb41bd6b },
-    Word64 { data: 0x5be0cd19137e2179 },
+    Word64 { data: 0x6a09e667f3bcc908 }, Word64 { data: 0xbb67ae8584caa73b },
+    Word64 { data: 0x3c6ef372fe94f82b }, Word64 { data: 0xa54ff53a5f1d36f1 },
+    Word64 { data: 0x510e527fade682d1 }, Word64 { data: 0x9b05688c2b3e6c1f },
+    Word64 { data: 0x1f83d9abfb41bd6b }, Word64 { data: 0x5be0cd19137e2179 },
 ];
 
 
 const K: [Word64; 80] = [
-    Word64 { data: 0x428a2f98d728ae22 },
-    Word64 { data: 0x7137449123ef65cd },
-    Word64 { data: 0xb5c0fbcfec4d3b2f },
-    Word64 { data: 0xe9b5dba58189dbbc },
-    Word64 { data: 0x3956c25bf348b538 },
-    Word64 { data: 0x59f111f1b605d019 },
-    Word64 { data: 0x923f82a4af194f9b },
-    Word64 { data: 0xab1c5ed5da6d8118 },
-    Word64 { data: 0xd807aa98a3030242 },
-    Word64 { data: 0x12835b0145706fbe },
-    Word64 { data: 0x243185be4ee4b28c },
-    Word64 { data: 0x550c7dc3d5ffb4e2 },
-    Word64 { data: 0x72be5d74f27b896f },
-    Word64 { data: 0x80deb1fe3b1696b1 },
-    Word64 { data: 0x9bdc06a725c71235 },
-    Word64 { data: 0xc19bf174cf692694 },
-    Word64 { data: 0xe49b69c19ef14ad2 },
-    Word64 { data: 0xefbe4786384f25e3 },
-    Word64 { data: 0x0fc19dc68b8cd5b5 },
-    Word64 { data: 0x240ca1cc77ac9c65 },
-    Word64 { data: 0x2de92c6f592b0275 },
-    Word64 { data: 0x4a7484aa6ea6e483 },
-    Word64 { data: 0x5cb0a9dcbd41fbd4 },
-    Word64 { data: 0x76f988da831153b5 },
-    Word64 { data: 0x983e5152ee66dfab },
-    Word64 { data: 0xa831c66d2db43210 },
-    Word64 { data: 0xb00327c898fb213f },
-    Word64 { data: 0xbf597fc7beef0ee4 },
-    Word64 { data: 0xc6e00bf33da88fc2 },
-    Word64 { data: 0xd5a79147930aa725 },
-    Word64 { data: 0x06ca6351e003826f },
-    Word64 { data: 0x142929670a0e6e70 },
-    Word64 { data: 0x27b70a8546d22ffc },
-    Word64 { data: 0x2e1b21385c26c926 },
-    Word64 { data: 0x4d2c6dfc5ac42aed },
-    Word64 { data: 0x53380d139d95b3df },
-    Word64 { data: 0x650a73548baf63de },
-    Word64 { data: 0x766a0abb3c77b2a8 },
-    Word64 { data: 0x81c2c92e47edaee6 },
-    Word64 { data: 0x92722c851482353b },
-    Word64 { data: 0xa2bfe8a14cf10364 },
-    Word64 { data: 0xa81a664bbc423001 },
-    Word64 { data: 0xc24b8b70d0f89791 },
-    Word64 { data: 0xc76c51a30654be30 },
-    Word64 { data: 0xd192e819d6ef5218 },
-    Word64 { data: 0xd69906245565a910 },
-    Word64 { data: 0xf40e35855771202a },
-    Word64 { data: 0x106aa07032bbd1b8 },
-    Word64 { data: 0x19a4c116b8d2d0c8 },
-    Word64 { data: 0x1e376c085141ab53 },
-    Word64 { data: 0x2748774cdf8eeb99 },
-    Word64 { data: 0x34b0bcb5e19b48a8 },
-    Word64 { data: 0x391c0cb3c5c95a63 },
-    Word64 { data: 0x4ed8aa4ae3418acb },
-    Word64 { data: 0x5b9cca4f7763e373 },
-    Word64 { data: 0x682e6ff3d6b2b8a3 },
-    Word64 { data: 0x748f82ee5defb2fc },
-    Word64 { data: 0x78a5636f43172f60 },
-    Word64 { data: 0x84c87814a1f0ab72 },
-    Word64 { data: 0x8cc702081a6439ec },
-    Word64 { data: 0x90befffa23631e28 },
-    Word64 { data: 0xa4506cebde82bde9 },
-    Word64 { data: 0xbef9a3f7b2c67915 },
-    Word64 { data: 0xc67178f2e372532b },
-    Word64 { data: 0xca273eceea26619c },
-    Word64 { data: 0xd186b8c721c0c207 },
-    Word64 { data: 0xeada7dd6cde0eb1e },
-    Word64 { data: 0xf57d4f7fee6ed178 },
-    Word64 { data: 0x06f067aa72176fba },
-    Word64 { data: 0x0a637dc5a2c898a6 },
-    Word64 { data: 0x113f9804bef90dae },
-    Word64 { data: 0x1b710b35131c471b },
-    Word64 { data: 0x28db77f523047d84 },
-    Word64 { data: 0x32caab7b40c72493 },
-    Word64 { data: 0x3c9ebe0a15c9bebc },
-    Word64 { data: 0x431d67c49c100d4c },
-    Word64 { data: 0x4cc5d4becb3e42b6 },
-    Word64 { data: 0x597f299cfc657e2a },
-    Word64 { data: 0x5fcb6fab3ad6faec },
-    Word64 { data: 0x6c44198c4a475817 },
+    Word64 { data: 0x428a2f98d728ae22 }, Word64 { data: 0x7137449123ef65cd },
+    Word64 { data: 0xb5c0fbcfec4d3b2f }, Word64 { data: 0xe9b5dba58189dbbc },
+    Word64 { data: 0x3956c25bf348b538 }, Word64 { data: 0x59f111f1b605d019 },
+    Word64 { data: 0x923f82a4af194f9b }, Word64 { data: 0xab1c5ed5da6d8118 },
+    Word64 { data: 0xd807aa98a3030242 }, Word64 { data: 0x12835b0145706fbe },
+    Word64 { data: 0x243185be4ee4b28c }, Word64 { data: 0x550c7dc3d5ffb4e2 },
+    Word64 { data: 0x72be5d74f27b896f }, Word64 { data: 0x80deb1fe3b1696b1 },
+    Word64 { data: 0x9bdc06a725c71235 }, Word64 { data: 0xc19bf174cf692694 },
+    Word64 { data: 0xe49b69c19ef14ad2 }, Word64 { data: 0xefbe4786384f25e3 },
+    Word64 { data: 0x0fc19dc68b8cd5b5 }, Word64 { data: 0x240ca1cc77ac9c65 },
+    Word64 { data: 0x2de92c6f592b0275 }, Word64 { data: 0x4a7484aa6ea6e483 },
+    Word64 { data: 0x5cb0a9dcbd41fbd4 }, Word64 { data: 0x76f988da831153b5 },
+    Word64 { data: 0x983e5152ee66dfab }, Word64 { data: 0xa831c66d2db43210 },
+    Word64 { data: 0xb00327c898fb213f }, Word64 { data: 0xbf597fc7beef0ee4 },
+    Word64 { data: 0xc6e00bf33da88fc2 }, Word64 { data: 0xd5a79147930aa725 },
+    Word64 { data: 0x06ca6351e003826f }, Word64 { data: 0x142929670a0e6e70 },
+    Word64 { data: 0x27b70a8546d22ffc }, Word64 { data: 0x2e1b21385c26c926 },
+    Word64 { data: 0x4d2c6dfc5ac42aed }, Word64 { data: 0x53380d139d95b3df },
+    Word64 { data: 0x650a73548baf63de }, Word64 { data: 0x766a0abb3c77b2a8 },
+    Word64 { data: 0x81c2c92e47edaee6 }, Word64 { data: 0x92722c851482353b },
+    Word64 { data: 0xa2bfe8a14cf10364 }, Word64 { data: 0xa81a664bbc423001 },
+    Word64 { data: 0xc24b8b70d0f89791 }, Word64 { data: 0xc76c51a30654be30 },
+    Word64 { data: 0xd192e819d6ef5218 }, Word64 { data: 0xd69906245565a910 },
+    Word64 { data: 0xf40e35855771202a }, Word64 { data: 0x106aa07032bbd1b8 },
+    Word64 { data: 0x19a4c116b8d2d0c8 }, Word64 { data: 0x1e376c085141ab53 },
+    Word64 { data: 0x2748774cdf8eeb99 }, Word64 { data: 0x34b0bcb5e19b48a8 },
+    Word64 { data: 0x391c0cb3c5c95a63 }, Word64 { data: 0x4ed8aa4ae3418acb },
+    Word64 { data: 0x5b9cca4f7763e373 }, Word64 { data: 0x682e6ff3d6b2b8a3 },
+    Word64 { data: 0x748f82ee5defb2fc }, Word64 { data: 0x78a5636f43172f60 },
+    Word64 { data: 0x84c87814a1f0ab72 }, Word64 { data: 0x8cc702081a6439ec },
+    Word64 { data: 0x90befffa23631e28 }, Word64 { data: 0xa4506cebde82bde9 },
+    Word64 { data: 0xbef9a3f7b2c67915 }, Word64 { data: 0xc67178f2e372532b },
+    Word64 { data: 0xca273eceea26619c }, Word64 { data: 0xd186b8c721c0c207 },
+    Word64 { data: 0xeada7dd6cde0eb1e }, Word64 { data: 0xf57d4f7fee6ed178 },
+    Word64 { data: 0x06f067aa72176fba }, Word64 { data: 0x0a637dc5a2c898a6 },
+    Word64 { data: 0x113f9804bef90dae }, Word64 { data: 0x1b710b35131c471b },
+    Word64 { data: 0x28db77f523047d84 }, Word64 { data: 0x32caab7b40c72493 },
+    Word64 { data: 0x3c9ebe0a15c9bebc }, Word64 { data: 0x431d67c49c100d4c },
+    Word64 { data: 0x4cc5d4becb3e42b6 }, Word64 { data: 0x597f299cfc657e2a },
+    Word64 { data: 0x5fcb6fab3ad6faec }, Word64 { data: 0x6c44198c4a475817 },
 ];
 
 
@@ -868,148 +817,156 @@ mod sha512_test {
     #[available_gas(20000000000)]
     fn test_sha512_lorem_ipsum() {
         let msg = get_lorem_ipsum();
-        let res = sha512(msg);
+        let res = sha512(msg).span();
 
-        assert_eq!(res.len(), 64);
-
-        assert_eq!(*res[0], 0xd5);
-        assert_eq!(*res[1], 0xa2);
-        assert_eq!(*res[2], 0xe1);
-        assert_eq!(*res[3], 0x4e);
-        assert_eq!(*res[4], 0xf4);
-        assert_eq!(*res[5], 0x20);
-        assert_eq!(*res[6], 0xf8);
-        assert_eq!(*res[7], 0x2d);
-        assert_eq!(*res[8], 0x68);
-        assert_eq!(*res[9], 0x2b);
-        assert_eq!(*res[10], 0x19);
-        assert_eq!(*res[11], 0xc3);
-        assert_eq!(*res[12], 0xd0);
-        assert_eq!(*res[13], 0x70);
-        assert_eq!(*res[14], 0xf4);
-        assert_eq!(*res[15], 0x81);
-        assert_eq!(*res[16], 0x14);
-        assert_eq!(*res[17], 0xcb);
-        assert_eq!(*res[18], 0xb9);
-        assert_eq!(*res[19], 0x74);
-        assert_eq!(*res[20], 0x7c);
-        assert_eq!(*res[21], 0x7d);
-        assert_eq!(*res[22], 0xb1);
-        assert_eq!(*res[23], 0x15);
-        assert_eq!(*res[24], 0xce);
-        assert_eq!(*res[25], 0xa5);
-        assert_eq!(*res[26], 0x41);
-        assert_eq!(*res[27], 0x3e);
-        assert_eq!(*res[28], 0xf8);
-        assert_eq!(*res[29], 0xcb);
-        assert_eq!(*res[30], 0x8f);
-        assert_eq!(*res[31], 0xba);
-        assert_eq!(*res[32], 0xc6);
-        assert_eq!(*res[33], 0x90);
-        assert_eq!(*res[34], 0x17);
-        assert_eq!(*res[35], 0xc5);
-        assert_eq!(*res[36], 0x17);
-        assert_eq!(*res[37], 0x0f);
-        assert_eq!(*res[38], 0x01);
-        assert_eq!(*res[39], 0xc4);
-        assert_eq!(*res[40], 0x77);
-        assert_eq!(*res[41], 0xb3);
-        assert_eq!(*res[42], 0xdf);
-        assert_eq!(*res[43], 0x3d);
-        assert_eq!(*res[44], 0xfb);
-        assert_eq!(*res[45], 0x34);
-        assert_eq!(*res[46], 0xd3);
-        assert_eq!(*res[47], 0x50);
-        assert_eq!(*res[48], 0x8f);
-        assert_eq!(*res[49], 0xa0);
-        assert_eq!(*res[50], 0xb2);
-        assert_eq!(*res[51], 0xb1);
-        assert_eq!(*res[52], 0x37);
-        assert_eq!(*res[53], 0xd4);
-        assert_eq!(*res[54], 0xcb);
-        assert_eq!(*res[55], 0x54);
-        assert_eq!(*res[56], 0x60);
-        assert_eq!(*res[57], 0x9e);
-        assert_eq!(*res[58], 0x63);
-        assert_eq!(*res[59], 0x3d);
-        assert_eq!(*res[60], 0x14);
-        assert_eq!(*res[61], 0x45);
-        assert_eq!(*res[62], 0x82);
-        assert_eq!(*res[63], 0xc9);
+        assert_eq!(
+            res,
+            array![
+                0xd5,
+                0xa2,
+                0xe1,
+                0x4e,
+                0xf4,
+                0x20,
+                0xf8,
+                0x2d,
+                0x68,
+                0x2b,
+                0x19,
+                0xc3,
+                0xd0,
+                0x70,
+                0xf4,
+                0x81,
+                0x14,
+                0xcb,
+                0xb9,
+                0x74,
+                0x7c,
+                0x7d,
+                0xb1,
+                0x15,
+                0xce,
+                0xa5,
+                0x41,
+                0x3e,
+                0xf8,
+                0xcb,
+                0x8f,
+                0xba,
+                0xc6,
+                0x90,
+                0x17,
+                0xc5,
+                0x17,
+                0x0f,
+                0x01,
+                0xc4,
+                0x77,
+                0xb3,
+                0xdf,
+                0x3d,
+                0xfb,
+                0x34,
+                0xd3,
+                0x50,
+                0x8f,
+                0xa0,
+                0xb2,
+                0xb1,
+                0x37,
+                0xd4,
+                0xcb,
+                0x54,
+                0x60,
+                0x9e,
+                0x63,
+                0x3d,
+                0x14,
+                0x45,
+                0x82,
+                0xc9,
+            ]
+                .span(),
+        );
     }
 
     #[test]
     #[available_gas(20000000000)]
     fn test_sha512_size_one() {
         let mut arr: Array<u8> = array![49];
-        let mut res = sha512(arr);
+        let res = sha512(arr).span();
 
-        assert_eq!(res.len(), 64);
-
-        assert_eq!(*res[0], 0x4d);
-        assert_eq!(*res[1], 0xff);
-        assert_eq!(*res[2], 0x4e);
-        assert_eq!(*res[3], 0xa3);
-        assert_eq!(*res[4], 0x40);
-        assert_eq!(*res[5], 0xf0);
-        assert_eq!(*res[6], 0xa8);
-        assert_eq!(*res[7], 0x23);
-        assert_eq!(*res[8], 0xf1);
-        assert_eq!(*res[9], 0x5d);
-        assert_eq!(*res[10], 0x3f);
-        assert_eq!(*res[11], 0x4f);
-        assert_eq!(*res[12], 0x01);
-        assert_eq!(*res[13], 0xab);
-        assert_eq!(*res[14], 0x62);
-        assert_eq!(*res[15], 0xea);
-        assert_eq!(*res[16], 0xe0);
-        assert_eq!(*res[17], 0xe5);
-        assert_eq!(*res[18], 0xda);
-        assert_eq!(*res[19], 0x57);
-        assert_eq!(*res[20], 0x9c);
-        assert_eq!(*res[21], 0xcb);
-        assert_eq!(*res[22], 0x85);
-        assert_eq!(*res[23], 0x1f);
-        assert_eq!(*res[24], 0x8d);
-        assert_eq!(*res[25], 0xb9);
-        assert_eq!(*res[26], 0xdf);
-        assert_eq!(*res[27], 0xe8);
-        assert_eq!(*res[28], 0x4c);
-        assert_eq!(*res[29], 0x58);
-        assert_eq!(*res[30], 0xb2);
-        assert_eq!(*res[31], 0xb3);
-        assert_eq!(*res[32], 0x7b);
-        assert_eq!(*res[33], 0x89);
-        assert_eq!(*res[34], 0x90);
-        assert_eq!(*res[35], 0x3a);
-        assert_eq!(*res[36], 0x74);
-        assert_eq!(*res[37], 0x0e);
-        assert_eq!(*res[38], 0x1e);
-        assert_eq!(*res[39], 0xe1);
-        assert_eq!(*res[40], 0x72);
-        assert_eq!(*res[41], 0xda);
-        assert_eq!(*res[42], 0x79);
-        assert_eq!(*res[43], 0x3a);
-        assert_eq!(*res[44], 0x6e);
-        assert_eq!(*res[45], 0x79);
-        assert_eq!(*res[46], 0xd5);
-        assert_eq!(*res[47], 0x60);
-        assert_eq!(*res[48], 0xe5);
-        assert_eq!(*res[49], 0xf7);
-        assert_eq!(*res[50], 0xf9);
-        assert_eq!(*res[51], 0xbd);
-        assert_eq!(*res[52], 0x05);
-        assert_eq!(*res[53], 0x8a);
-        assert_eq!(*res[54], 0x12);
-        assert_eq!(*res[55], 0xa2);
-        assert_eq!(*res[56], 0x80);
-        assert_eq!(*res[57], 0x43);
-        assert_eq!(*res[58], 0x3e);
-        assert_eq!(*res[59], 0xd6);
-        assert_eq!(*res[60], 0xfa);
-        assert_eq!(*res[61], 0x46);
-        assert_eq!(*res[62], 0x51);
-        assert_eq!(*res[63], 0x0a);
+        assert_eq!(
+            res,
+            array![
+                0x4d,
+                0xff,
+                0x4e,
+                0xa3,
+                0x40,
+                0xf0,
+                0xa8,
+                0x23,
+                0xf1,
+                0x5d,
+                0x3f,
+                0x4f,
+                0x01,
+                0xab,
+                0x62,
+                0xea,
+                0xe0,
+                0xe5,
+                0xda,
+                0x57,
+                0x9c,
+                0xcb,
+                0x85,
+                0x1f,
+                0x8d,
+                0xb9,
+                0xdf,
+                0xe8,
+                0x4c,
+                0x58,
+                0xb2,
+                0xb3,
+                0x7b,
+                0x89,
+                0x90,
+                0x3a,
+                0x74,
+                0x0e,
+                0x1e,
+                0xe1,
+                0x72,
+                0xda,
+                0x79,
+                0x3a,
+                0x6e,
+                0x79,
+                0xd5,
+                0x60,
+                0xe5,
+                0xf7,
+                0xf9,
+                0xbd,
+                0x05,
+                0x8a,
+                0x12,
+                0xa2,
+                0x80,
+                0x43,
+                0x3e,
+                0xd6,
+                0xfa,
+                0x46,
+                0x51,
+                0x0a,
+            ]
+                .span(),
+        );
     }
 
     #[test]
@@ -1017,72 +974,77 @@ mod sha512_test {
     fn test_size_zero() {
         let msg = array![];
 
-        let res = sha512(msg);
+        let res = sha512(msg).span();
 
-        assert_eq!(res.len(), 64);
-        assert_eq!(*res[0], 0xcf);
-        assert_eq!(*res[1], 0x83);
-        assert_eq!(*res[2], 0xe1);
-        assert_eq!(*res[3], 0x35);
-        assert_eq!(*res[4], 0x7e);
-        assert_eq!(*res[5], 0xef);
-        assert_eq!(*res[6], 0xb8);
-        assert_eq!(*res[7], 0xbd);
-        assert_eq!(*res[8], 0xf1);
-        assert_eq!(*res[9], 0x54);
-        assert_eq!(*res[10], 0x28);
-        assert_eq!(*res[11], 0x50);
-        assert_eq!(*res[12], 0xd6);
-        assert_eq!(*res[13], 0x6d);
-        assert_eq!(*res[14], 0x80);
-        assert_eq!(*res[15], 0x07);
-        assert_eq!(*res[16], 0xd6);
-        assert_eq!(*res[17], 0x20);
-        assert_eq!(*res[18], 0xe4);
-        assert_eq!(*res[19], 0x05);
-        assert_eq!(*res[20], 0x0b);
-        assert_eq!(*res[21], 0x57);
-        assert_eq!(*res[22], 0x15);
-        assert_eq!(*res[23], 0xdc);
-        assert_eq!(*res[24], 0x83);
-        assert_eq!(*res[25], 0xf4);
-        assert_eq!(*res[26], 0xa9);
-        assert_eq!(*res[27], 0x21);
-        assert_eq!(*res[28], 0xd3);
-        assert_eq!(*res[29], 0x6c);
-        assert_eq!(*res[30], 0xe9);
-        assert_eq!(*res[31], 0xce);
-        assert_eq!(*res[32], 0x47);
-        assert_eq!(*res[33], 0xd0);
-        assert_eq!(*res[34], 0xd1);
-        assert_eq!(*res[35], 0x3c);
-        assert_eq!(*res[36], 0x5d);
-        assert_eq!(*res[37], 0x85);
-        assert_eq!(*res[38], 0xf2);
-        assert_eq!(*res[39], 0xb0);
-        assert_eq!(*res[40], 0xff);
-        assert_eq!(*res[41], 0x83);
-        assert_eq!(*res[42], 0x18);
-        assert_eq!(*res[43], 0xd2);
-        assert_eq!(*res[44], 0x87);
-        assert_eq!(*res[45], 0x7e);
-        assert_eq!(*res[46], 0xec);
-        assert_eq!(*res[47], 0x2f);
-        assert_eq!(*res[48], 0x63);
-        assert_eq!(*res[49], 0xb9);
-        assert_eq!(*res[50], 0x31);
-        assert_eq!(*res[51], 0xbd);
-        assert_eq!(*res[52], 0x47);
-        assert_eq!(*res[53], 0x41);
-        assert_eq!(*res[54], 0x7a);
-        assert_eq!(*res[55], 0x81);
-        assert_eq!(*res[56], 0xa5);
-        assert_eq!(*res[57], 0x38);
-        assert_eq!(*res[58], 0x32);
-        assert_eq!(*res[59], 0x7a);
-        assert_eq!(*res[60], 0xf9);
-        assert_eq!(*res[61], 0x27);
-        assert_eq!(*res[62], 0xda);
-        assert_eq!(*res[63], 0x3e);
+        assert_eq!(
+            res,
+            array![
+                0xcf,
+                0x83,
+                0xe1,
+                0x35,
+                0x7e,
+                0xef,
+                0xb8,
+                0xbd,
+                0xf1,
+                0x54,
+                0x28,
+                0x50,
+                0xd6,
+                0x6d,
+                0x80,
+                0x07,
+                0xd6,
+                0x20,
+                0xe4,
+                0x05,
+                0x0b,
+                0x57,
+                0x15,
+                0xdc,
+                0x83,
+                0xf4,
+                0xa9,
+                0x21,
+                0xd3,
+                0x6c,
+                0xe9,
+                0xce,
+                0x47,
+                0xd0,
+                0xd1,
+                0x3c,
+                0x5d,
+                0x85,
+                0xf2,
+                0xb0,
+                0xff,
+                0x83,
+                0x18,
+                0xd2,
+                0x87,
+                0x7e,
+                0xec,
+                0x2f,
+                0x63,
+                0xb9,
+                0x31,
+                0xbd,
+                0x47,
+                0x41,
+                0x7a,
+                0x81,
+                0xa5,
+                0x38,
+                0x32,
+                0x7a,
+                0xf9,
+                0x27,
+                0xda,
+                0x3e,
+            ]
+                .span(),
+        );
     }
 }
