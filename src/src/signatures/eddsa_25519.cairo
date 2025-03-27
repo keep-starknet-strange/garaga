@@ -28,15 +28,15 @@ pub fn eddsa_25519_verify(signature: EDDSASignature, msg: Array<u8>) -> bool {
     let mut h: Span<Word64> = _sha512(msg).span();
     let [h0, h1, h2, h3, h4, h5, h6, h7] = (*h.multi_pop_front::<8>().unwrap()).unbox();
 
-    let (al_0, al_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
-    let (al_2, al_3) = DivRem::div_rem(h1.data, POW_2_32_u64);
-    let (al_4, al_5) = DivRem::div_rem(h2.data, POW_2_32_u64);
-    let (al_6, al_7) = DivRem::div_rem(h3.data, POW_2_32_u64);
+    let (ah_0, ah_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
+    let (ah_2, ah_3) = DivRem::div_rem(h1.data, POW_2_32_u64);
+    let (ah_4, ah_5) = DivRem::div_rem(h2.data, POW_2_32_u64);
+    let (ah_6, ah_7) = DivRem::div_rem(h3.data, POW_2_32_u64);
 
-    let (ah_0, ah_1) = DivRem::div_rem(h4.data, POW_2_32_u64);
-    let (ah_2, ah_3) = DivRem::div_rem(h5.data, POW_2_32_u64);
-    let (ah_4, ah_5) = DivRem::div_rem(h6.data, POW_2_32_u64);
-    let (ah_6, ah_7) = DivRem::div_rem(h7.data, POW_2_32_u64);
+    let (al_0, al_1) = DivRem::div_rem(h4.data, POW_2_32_u64);
+    let (al_2, al_3) = DivRem::div_rem(h5.data, POW_2_32_u64);
+    let (al_4, al_5) = DivRem::div_rem(h6.data, POW_2_32_u64);
+    let (al_6, al_7) = DivRem::div_rem(h7.data, POW_2_32_u64);
 
     let order_modulus = get_curve_order_modulus(4);
 
@@ -53,8 +53,6 @@ pub fn eddsa_25519_verify(signature: EDDSASignature, msg: Array<u8>) -> bool {
         ],
         order_modulus,
     );
-
-    // let high_256 =
 
     return true;
 }

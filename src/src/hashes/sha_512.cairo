@@ -252,7 +252,10 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
 
     let block_nb = msg_len / 128;
 
-    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = (*h.multi_pop_front::<8>().unwrap()).unbox();
+    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = (*h
+        .multi_pop_front::<8>()
+        .unwrap())
+        .unbox();
 
     let mut i = 0;
 
