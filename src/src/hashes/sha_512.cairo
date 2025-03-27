@@ -248,18 +248,11 @@ fn from_WordArray_to_u8array(data: Span<Word64>) -> Array<u8> {
 
 fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
     let k = K.span();
-    let h = H.span();
+    let mut h = H.span();
 
     let block_nb = msg_len / 128;
 
-    let mut h_0: Word64 = *h[0];
-    let mut h_1: Word64 = *h[1];
-    let mut h_2: Word64 = *h[2];
-    let mut h_3: Word64 = *h[3];
-    let mut h_4: Word64 = *h[4];
-    let mut h_5: Word64 = *h[5];
-    let mut h_6: Word64 = *h[6];
-    let mut h_7: Word64 = *h[7];
+    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = (*h.multi_pop_front::<8>().unwrap()).unbox();
 
     let mut i = 0;
 
