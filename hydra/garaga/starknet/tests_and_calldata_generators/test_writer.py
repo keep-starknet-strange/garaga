@@ -189,7 +189,6 @@ def write_test_file(
                 f.write(result)
                 f.write("\n")
         f.write("}")
-    subprocess.run(["scarb", "fmt"], check=True, cwd=f"{TESTS_DIR}")
 
 
 def get_tower_pairing_config():
@@ -329,6 +328,8 @@ def write_all_tests():
     ]:
         file_path, header, test_generators, curve_ids = config_fn()
         write_test_file(file_path, header, test_generators, curve_ids, seed=0)
+
+    subprocess.run(["scarb", "fmt", f"{TESTS_DIR}"], check=True)
 
 
 if __name__ == "__main__":
