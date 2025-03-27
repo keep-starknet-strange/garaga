@@ -1,3 +1,4 @@
+use core::circuit::conversions::upcast;
 use core::circuit::{
     AddInputResultTrait, AddMod, CircuitElement, CircuitElement as CE, CircuitInput,
     CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
@@ -30,12 +31,11 @@ pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     return outputs.get_output(neg);
 }
 
-
 pub fn is_even_u384(a: u384) -> bool {
-    let limb0: felt252 = a.limb0.into();
-    let limb0_u128: u128 = limb0.try_into().unwrap();
+    let limb0_u128: u128 = upcast(a.limb0);
     limb0_u128 % 2 == 0
 }
+
 
 pub fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
