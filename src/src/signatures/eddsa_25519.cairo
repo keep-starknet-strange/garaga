@@ -13,6 +13,10 @@ use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, ec_sa
 use garaga::hashes::sha_512::{Word64, _sha512};
 use garaga::utils::u384_eq_zero;
 
+const POW_2_32_u64: NonZero<u64> = 0x100000000;
+const POW_2_127_u128: NonZero<u128> = 0x80000000000000000000000000000000;
+const POW_2_8_u128: NonZero<u128> = 0x100;
+
 const X22519_u256: u256 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed;
 const D_TWISTED: u384 = u384 {
     limb0: 0x4141d8ab75eb4dca135978a3,
@@ -43,31 +47,90 @@ const G_neg: G1Point = G1Point {
 };
 
 
-/// An EDDSA signature with associated public key and message hash.
 #[derive(Drop, Debug, PartialEq)]
 struct EDDSASignature {
     Ry_twisted_le: u256, // Compressed form of Ry in little endian (compliant with RFC 8032)
     s: u256,
+    Py_twisted_le: u256 // Compressed form of Public Key y in little endian (compliant with RFC 8032)
 }
 
 #[derive(Drop, Debug, PartialEq)]
-struct EDDSaSignatureWithHint {
+struct EDDSASignatureWithHint {
     signature: EDDSASignature,
     msm_hint: MSMHint,
     msm_derive_hint: DerivePointFromXHint,
-    sqrt_hint: u256,
+    sqrt_Rx_hint: u256,
+    sqrt_Px_hint: u256,
 }
 
-const POW_2_32_u64: NonZero<u64> = 0x100000000;
-const POW_2_127_u128: NonZero<u128> = 0x80000000000000000000000000000000;
+pub fn eddsa_25519_verify(signature: EDDSASignatureWithHint, msg: Array<u8>) -> bool {
+    let EDDSASignatureWithHint {
+        signature, msm_hint, msm_derive_hint, sqrt_Rx_hint, sqrt_Px_hint,
+    } = signature;
+    let EDDSASignature { Ry_twisted_le, s, Py_twisted_le } = signature;
 
-#[inline]
-fn u256_byte_reverse(word: u256) -> u256 {
-    u256 {
-        low: core::integer::u128_byte_reverse(word.high),
-        high: core::integer::u128_byte_reverse(word.low),
+    let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
+        Ry_twisted_le, sqrt_Rx_hint,
+    );
+
+    let P_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
+        Py_twisted_le, sqrt_Px_hint,
+    );
+
+    if R_opt.is_none() || P_opt.is_none() {
+        return false;
     }
+    let R: G1Point = R_opt.unwrap();
+    let P: G1Point = P_opt.unwrap();
+
+    if !R.is_on_curve(4) || !P.is_on_curve(4) {
+        return false;
+    }
+
+    let mut data: Array<u8> = array![];
+
+    let [h0, h1, h2, h3, h4, h5, h6, h7] = _sha512(msg);
+
+    let (ah_0, ah_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
+    let (ah_2, ah_3) = DivRem::div_rem(h1.data, POW_2_32_u64);
+    let (ah_4, ah_5) = DivRem::div_rem(h2.data, POW_2_32_u64);
+    let (ah_6, ah_7) = DivRem::div_rem(h3.data, POW_2_32_u64);
+
+    let (al_0, al_1) = DivRem::div_rem(h4.data, POW_2_32_u64);
+    let (al_2, al_3) = DivRem::div_rem(h5.data, POW_2_32_u64);
+    let (al_4, al_5) = DivRem::div_rem(h6.data, POW_2_32_u64);
+    let (al_6, al_7) = DivRem::div_rem(h7.data, POW_2_32_u64);
+
+    let order_modulus = get_curve_order_modulus(4);
+
+    let h_mod_p = u512_mod_p(
+        [
+            ah_0.try_into().unwrap(), ah_1.try_into().unwrap(), ah_2.try_into().unwrap(),
+            ah_3.try_into().unwrap(), ah_4.try_into().unwrap(), ah_5.try_into().unwrap(),
+            ah_6.try_into().unwrap(), ah_7.try_into().unwrap(),
+        ],
+        [
+            al_0.try_into().unwrap(), al_1.try_into().unwrap(), al_2.try_into().unwrap(),
+            al_3.try_into().unwrap(), al_4.try_into().unwrap(), al_5.try_into().unwrap(),
+            al_6.try_into().unwrap(), al_7.try_into().unwrap(),
+        ],
+        order_modulus,
+    );
+
+    // Calculate h = hash(R + pubKey + msg) mod q
+    // Calculate P1 = s * G
+    // Calculate P2 = R + h * pubKey
+    // Return s*G == R + h * pubKey
+    // <=> s*(-G) +  h * pubKey + R == 0
+
+    let points: Span<G1Point> = array![G_neg, P].span();
+    let scalars: Span<u256> = array![s, h_mod_p.try_into().unwrap()].span();
+
+    let msm_result = msm_g1(None, msm_hint, msm_derive_hint, points, scalars, 4);
+
+    return ec_safe_add(msm_result, R, 4).is_infinity();
 }
+
 
 fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
     y_twisted_le: u256, sqrt_hint: u256,
@@ -164,65 +227,28 @@ pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
 }
 
 
-pub fn eddsa_25519_verify(
-    signature: EDDSaSignatureWithHint, msg: Array<u8>, public_key: G1Point,
-) -> bool {
-    let EDDSaSignatureWithHint { signature, msm_hint, msm_derive_hint, sqrt_hint } = signature;
-    let EDDSASignature { Ry_twisted_le, s } = signature;
-
-    let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
-        Ry_twisted_le, sqrt_hint,
-    );
-
-    if R_opt.is_none() {
-        return false;
+#[inline]
+fn u256_byte_reverse(word: u256) -> u256 {
+    u256 {
+        low: core::integer::u128_byte_reverse(word.high),
+        high: core::integer::u128_byte_reverse(word.low),
     }
-    let R: G1Point = R_opt.unwrap();
-
-    if !R.is_on_curve(4) || !public_key.is_on_curve(4) {
-        return false;
-    }
-
-    let mut data: Array<u8> = array![];
-
-    let [h0, h1, h2, h3, h4, h5, h6, h7] = _sha512(msg);
-
-    let (ah_0, ah_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
-    let (ah_2, ah_3) = DivRem::div_rem(h1.data, POW_2_32_u64);
-    let (ah_4, ah_5) = DivRem::div_rem(h2.data, POW_2_32_u64);
-    let (ah_6, ah_7) = DivRem::div_rem(h3.data, POW_2_32_u64);
-
-    let (al_0, al_1) = DivRem::div_rem(h4.data, POW_2_32_u64);
-    let (al_2, al_3) = DivRem::div_rem(h5.data, POW_2_32_u64);
-    let (al_4, al_5) = DivRem::div_rem(h6.data, POW_2_32_u64);
-    let (al_6, al_7) = DivRem::div_rem(h7.data, POW_2_32_u64);
-
-    let order_modulus = get_curve_order_modulus(4);
-
-    let h_mod_p = u512_mod_p(
-        [
-            ah_0.try_into().unwrap(), ah_1.try_into().unwrap(), ah_2.try_into().unwrap(),
-            ah_3.try_into().unwrap(), ah_4.try_into().unwrap(), ah_5.try_into().unwrap(),
-            ah_6.try_into().unwrap(), ah_7.try_into().unwrap(),
-        ],
-        [
-            al_0.try_into().unwrap(), al_1.try_into().unwrap(), al_2.try_into().unwrap(),
-            al_3.try_into().unwrap(), al_4.try_into().unwrap(), al_5.try_into().unwrap(),
-            al_6.try_into().unwrap(), al_7.try_into().unwrap(),
-        ],
-        order_modulus,
-    );
-
-    // Calculate h = hash(R + pubKey + msg) mod q
-    // Calculate P1 = s * G
-    // Calculate P2 = R + h * pubKey
-    // Return s*G == R + h * pubKey
-    // <=> s*(-G) +  h * pubKey + R == 0
-
-    let points: Span<G1Point> = array![G_neg, public_key].span();
-    let scalars: Span<u256> = array![s, h_mod_p.try_into().unwrap()].span();
-
-    let msm_result = msm_g1(None, msm_hint, msm_derive_hint, points, scalars, 4);
-
-    return ec_safe_add(msm_result, R, 4).is_infinity();
 }
+
+
+fn u256_to_u8_span(x: u256) -> Span<u8> {
+    let mut ret = array![];
+    let mut high = x.high;
+    let mut low = x.low;
+
+    let mut i: felt252 = 0;
+    while (i != 32) {
+        let (temp_remaining, byte) = DivRem::div_rem(high, POW_2_8_u128);
+        ret.append(byte.try_into().unwrap());
+        high = temp_remaining;
+        i += 1;
+    }
+
+    ret.span()
+}
+
