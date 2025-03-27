@@ -318,6 +318,11 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
 }
 
 pub fn sha512(mut data: Array<u8>) -> Array<u8> {
+    let hash = _sha512(data);
+    from_WordArray_to_u8array(hash.span())
+}
+
+pub fn _sha512(mut data: Array<u8>) -> Array<Word64> {
     let bit_numbers: u128 = data.len().into() * 8;
     // any u32 * 8 fits in u64
     // let bit_numbers = bit_numbers & Bounded::<u64>::MAX.into();
@@ -354,7 +359,7 @@ pub fn sha512(mut data: Array<u8>) -> Array<u8> {
     let mut data = from_u8Array_to_WordArray(data);
 
     let hash = digest_hash(data.span(), msg_len);
-    from_WordArray_to_u8array(hash.span())
+    hash
 }
 
 
