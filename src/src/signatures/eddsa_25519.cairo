@@ -3,20 +3,17 @@ use core::circuit::{
     CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
     circuit_mul, circuit_sub, u384, u96,
 };
-use garaga::basic_field_ops::{
-    add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p, u384_mod_2, u512_mod_p,
-};
+use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p, u512_mod_p};
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{
     Zero, deserialize_u384, get_ED25519_modulus, get_G, get_curve_order_modulus, get_modulus, get_n,
     serialize_u384, u288,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1};
+use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, ec_safe_add, msm_g1};
 use garaga::hashes::sha_512::{Word64, _sha512};
 use garaga::utils::u384_eq_zero;
 
 const X22519_u256: u256 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed;
-
 const D_TWISTED: u384 = u384 {
     limb0: 0x4141d8ab75eb4dca135978a3,
     limb1: 0x8cc740797779e89800700a4d,
@@ -30,15 +27,27 @@ const A_TWISTED: u384 = u384 {
     limb3: 0x0,
 };
 
+const G_neg: G1Point = G1Point {
+    x: u384 {
+        limb0: 0xd617c9aca55c89b025aef35,
+        limb1: 0xf00b8f02f1c20618a9c13fdf,
+        limb2: 0x2a78dd0fd02c0339,
+        limb3: 0x0,
+    },
+    y: u384 {
+        limb0: 0x7f8ece9a6487cf0c09d3e2d9,
+        limb1: 0x41b7c45a9c867cdc30902f9e,
+        limb2: 0x5639bb5a38e25dd1,
+        limb3: 0x0,
+    },
+};
+
 
 /// An EDDSA signature with associated public key and message hash.
 #[derive(Drop, Debug, PartialEq)]
 struct EDDSASignature {
     Ry_twisted_le: u256, // Compressed form of Ry in little endian (compliant with RFC 8032)
     s: u256,
-    rx_sign: bool, // 0 (false) if Ry is even, 1 (true) if odd
-    Px: u256,
-    Py: u256,
 }
 
 #[derive(Drop, Debug, PartialEq)]
@@ -46,7 +55,7 @@ struct EDDSaSignatureWithHint {
     signature: EDDSASignature,
     msm_hint: MSMHint,
     msm_derive_hint: DerivePointFromXHint,
-    sqrt_hint: u288,
+    sqrt_hint: u256,
 }
 
 const POW_2_32_u64: NonZero<u64> = 0x100000000;
@@ -170,9 +179,24 @@ pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
 }
 
 
-pub fn eddsa_25519_verify(signature: EDDSaSignatureWithHint, msg: Array<u8>) -> bool {
+pub fn eddsa_25519_verify(
+    signature: EDDSaSignatureWithHint, msg: Array<u8>, public_key: G1Point,
+) -> bool {
     let EDDSaSignatureWithHint { signature, msm_hint, msm_derive_hint, sqrt_hint } = signature;
-    let EDDSASignature { Ry_twisted_le, s, rx_sign, Px, Py } = signature;
+    let EDDSASignature { Ry_twisted_le, s } = signature;
+
+    let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
+        Ry_twisted_le, sqrt_hint,
+    );
+
+    if R_opt.is_none() {
+        return false;
+    }
+    let R: G1Point = R_opt.unwrap();
+
+    if !R.is_on_curve(4) || !public_key.is_on_curve(4) {
+        return false;
+    }
 
     let mut data: Array<u8> = array![];
 
@@ -205,5 +229,16 @@ pub fn eddsa_25519_verify(signature: EDDSaSignatureWithHint, msg: Array<u8>) -> 
         order_modulus,
     );
 
-    return true;
+    // Calculate h = hash(R + pubKey + msg) mod q
+    // Calculate P1 = s * G
+    // Calculate P2 = R + h * pubKey
+    // Return s*G == R + h * pubKey
+    // <=> s*(-G) +  h * pubKey + R == 0
+
+    let points: Span<G1Point> = array![G_neg, public_key].span();
+    let scalars: Span<u256> = array![s, h_mod_p.try_into().unwrap()].span();
+
+    let msm_result = msm_g1(None, msm_hint, msm_derive_hint, points, scalars, 4);
+
+    return ec_safe_add(msm_result, R, 4).is_infinity();
 }
