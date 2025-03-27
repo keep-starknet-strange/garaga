@@ -8,7 +8,8 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x27F0E206537AFBDABD0606F9C9A0545DF8B71441D1848D9D9B0905DC129C1FA
+ECIP_OPS_CLASS_HASH = 0x25387ED45CD336DBDCA62F1EEC9AC2A393EFA68AE197843CBD1BC7F15CBF1B3
+CAIRO_VERSION = "2.11.2"
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -119,7 +120,7 @@ mod Groth16Verifier{curve_id.name} {{
 
                     // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
                     // to obtain vk_x.
-                    let mut _vx_x_serialized = core::starknet::syscalls::library_call_syscall(
+                    let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
                         selector!("msm_g1"),
                         msm_calldata.span()
@@ -158,7 +159,7 @@ mod Groth16Verifier{curve_id.name} {{
     create_directory(src_dir)
 
     with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write("scarb 2.9.2\n")
+        f.write(f"scarb {CAIRO_VERSION}\n")
 
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)
@@ -180,7 +181,7 @@ mod groth16_verifier_constants;
     return constants_code
 
 
-def get_scarb_toml_file(package_name: str, cli_mode: bool):
+def get_scarb_toml_file(package_name: str, cli_mode: bool, inlining_level: int = 2):
     version = get_package_version()
     if version == "dev":
         suffix = ""
@@ -194,17 +195,18 @@ def get_scarb_toml_file(package_name: str, cli_mode: bool):
     return f"""[package]
 name = "{package_name}"
 version = "0.1.0"
-edition = "2023_10"
+edition = "2024_07"
 
 [dependencies]
 garaga = {{ {dep} }}
-starknet = "2.9.2"
+starknet = "{CAIRO_VERSION}"
 
 [cairo]
 sierra-replace-ids = false
+inlining-strategy = {inlining_level}
 
 [dev-dependencies]
-cairo_test = "2.9.2"
+cairo_test = "{CAIRO_VERSION}"
 
 [[target.starknet-contract]]
 casm = true

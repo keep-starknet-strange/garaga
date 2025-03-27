@@ -1,18 +1,17 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait,
-    CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
+    AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement as CE,
+    CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
-use garaga::core::circuit::AddInputResultTrait2;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
-use garaga::definitions::{
-    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
-    get_BLS12_381_modulus, get_BN254_modulus,
-};
-use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
+use garaga::core::circuit::AddInputResultTrait2;
+use garaga::definitions::{
+    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
+    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
+    get_g, get_min_one, get_modulus, u288,
+};
+use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
 #[inline(always)]
 pub fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // INPUT stack
@@ -6024,19 +6023,17 @@ pub fn run_FP6_NEG_circuit(
 
 #[cfg(test)]
 mod tests {
-    use core::traits::TryInto;
-
     use core::circuit::{
-        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+        AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
+        CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add,
+        circuit_inverse, circuit_mul, circuit_sub, u384, u96,
     };
+    use core::traits::TryInto;
     use garaga::definitions::{
-        G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line,
+        BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line,
+        G2Point, MillerLoopResultScalingFactor,
     };
-    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
-
+    use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
     use super::{
         run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit,
         run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit,

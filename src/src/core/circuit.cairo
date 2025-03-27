@@ -1,20 +1,17 @@
-use core::circuit::conversions::{DivRemU128By96, NZ_POW96_TYPED};
+use core::circuit::conversions::{
+    AddHelperTo128By64Impl, AddHelperTo128By96Impl, AddHelperTo96By32Impl, DivRemU128By96,
+    DivRemU96By32, DivRemU96By64, MulHelper32By96Impl, MulHelper64By32Impl, MulHelper64By64Impl,
+    NZ_POW32_TYPED, NZ_POW64_TYPED, NZ_POW96_TYPED, POW64_TYPED, POW96_TYPED, upcast,
+};
 use core::circuit::{
     AddInputResult, CircuitData, CircuitDefinition, CircuitInputAccumulator, IntoCircuitInputValue,
     U96Guarantee, add_circuit_input, init_circuit_data, into_u96_guarantee, u384, u96,
 };
-use core::panic_with_felt252;
-use garaga::definitions::{E12D, G2Line, u288};
-use garaga::utils::hashing::{hades_permutation, PoseidonState};
 // use core::panics::panic;
 use core::internal::bounded_int;
-use core::circuit::conversions::{
-    NZ_POW64_TYPED, NZ_POW32_TYPED, POW64_TYPED, POW96_TYPED, upcast, DivRemU96By64, DivRemU96By32,
-};
-use core::circuit::conversions::{
-    AddHelperTo96By32Impl, AddHelperTo128By64Impl, AddHelperTo128By96Impl,
-};
-use core::circuit::conversions::{MulHelper64By64Impl, MulHelper32By96Impl, MulHelper64By32Impl};
+use core::panic_with_felt252;
+use garaga::definitions::{E12D, G2Line, u288};
+use garaga::utils::hashing::{PoseidonState, hades_permutation};
 
 
 impl U32IntoU384 of Into<u32, u384> {
@@ -211,7 +208,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                     },
                     (*v).into_circuit_input_value(),
                 );
-        };
+        }
         add_input_result
     }
     // Inlining to make sure possibly huge `C` won't be in a user function name.

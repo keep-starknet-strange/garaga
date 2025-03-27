@@ -101,8 +101,8 @@ echo "All done!"
 
 # Check Scarb version and print warning if it's not
 cd src/ # To use the .tool-versions file with asdf.
-if ! scarb --version | grep -q "2.9.2"; then
-    echo "Warning: Scarb is not installed or its version is not 2.9.2."
+if ! scarb --version | grep -q "2.11.2"; then
+    echo "Warning: Scarb is not installed or its version is not 2.11.2."
     echo "Got: $(scarb --version)"
-    echo "Please install Scarb 2.9.2 before continuing. https://docs.swmansion.com/scarb/download.html"
+    echo "Please install Scarb 2.11.2 before continuing. https://docs.swmansion.com/scarb/download.html"
 fi

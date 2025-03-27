@@ -1,9 +1,9 @@
-use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
-    run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
+    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+    run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
+use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
 trait IUltraStarknetHonkVerifier<TContractState> {
@@ -14,28 +14,28 @@ trait IUltraStarknetHonkVerifier<TContractState> {
 
 #[starknet::contract]
 mod UltraStarknetHonkVerifier {
-    use garaga::definitions::{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus};
-    use garaga::pairing_check::{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254};
-    use garaga::ec_ops::{
-        G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
-        compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
-    };
-    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
-    use garaga::circuits::ec;
-    use garaga::utils::neg_3;
-    use super::{
-        vk, precomputed_lines, run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
-    };
-    use garaga::utils::noir::{HonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
-    use garaga::utils::noir::honk_transcript::{
-        HonkTranscriptTrait, Point256IntoCircuitPoint, BATCHED_RELATION_PARTIAL_LENGTH,
-        StarknetHasherState,
-    };
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
+    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
+    use garaga::circuits::ec;
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked};
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus};
+    use garaga::ec_ops::{
+        DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
+        compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
+    };
+    use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
+    use garaga::utils::neg_3;
+    use garaga::utils::noir::honk_transcript::{
+        BATCHED_RELATION_PARTIAL_LENGTH, HonkTranscriptTrait, Point256IntoCircuitPoint,
+        StarknetHasherState,
+    };
+    use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
+    use super::{
+        precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
+        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+        run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
+    };
 
     #[storage]
     struct Storage {}
@@ -61,8 +61,6 @@ mod UltraStarknetHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
 
             let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
@@ -139,8 +137,7 @@ mod UltraStarknetHonkVerifier {
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
             );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
+            // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
                 vk.qm,
                 vk.qc,
@@ -181,7 +178,7 @@ mod UltraStarknetHonkVerifier {
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
-            };
+            }
             _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
 
@@ -233,7 +230,6 @@ mod UltraStarknetHonkVerifier {
                 .span();
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(41);
-
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -257,7 +253,7 @@ mod UltraStarknetHonkVerifier {
                 s0 = _s0;
                 s1 = _s1;
                 s2 = _s2;
-            };
+            }
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
                 full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
@@ -288,7 +284,7 @@ mod UltraStarknetHonkVerifier {
                 s0 = _s0;
                 s1 = _s1;
                 s2 = _s2;
-            };
+            }
 
             let base_rlc_coeff = s1;
 

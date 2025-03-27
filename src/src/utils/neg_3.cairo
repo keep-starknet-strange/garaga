@@ -1,5 +1,5 @@
-use garaga::definitions::get_min_one;
 use core::circuit::{u384, u96};
+use garaga::definitions::get_min_one;
 
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
@@ -23,49 +23,6 @@ pub fn sign_to_u384(sign: felt252, curve_index: usize) -> u384 {
     } else {
         return u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
     }
-}
-
-// Decomposes a scalar into base -3 representation.
-// :param scalar: The integer to be decomposed.
-// :return: A list of coefficients in base -3 representation. (Least significant bit first),
-// with digits [-1, 0, 1] such that scalar = sum((-3) ** i * d for (i, d) in enumerate(digits))
-pub fn neg_3_base_le(scalar: u128) -> Array<felt252> {
-    let mut digits: Array<felt252> = ArrayTrait::new();
-
-    if scalar == 0 {
-        digits.append(0);
-        return digits;
-    }
-
-    let mut scalar: u128 = scalar;
-
-    let mut scalar_negative: bool = false;
-
-    while scalar != 0 {
-        let (q, r) = core::traits::DivRem::div_rem(scalar, 3);
-        let r: felt252 = r.into();
-
-        if r == 2 {
-            if scalar_negative {
-                scalar = q + 1;
-                digits.append(1);
-            } else {
-                scalar = q + 1;
-                digits.append(-1);
-            }
-        } else {
-            if scalar_negative {
-                scalar = q;
-                digits.append(-r);
-            } else {
-                scalar = q;
-                digits.append(r);
-            }
-        }
-        scalar_negative = !scalar_negative;
-    };
-
-    return digits;
 }
 
 pub fn u256_array_to_low_high_epns(
@@ -146,33 +103,37 @@ pub fn scalar_to_epns(mut scalar: u128) -> (felt252, felt252, felt252, felt252) 
 
     let mut base_power = 1; // Init to (-3)^0
 
-    let mut scalar_negative: bool = false;
-
     while scalar != 0 {
-        let (q, r) = core::traits::DivRem::div_rem(scalar, 3);
-        let r: felt252 = r.into();
-        if r == 0 {
-            scalar = q;
-        } else if r == 2 {
-            if scalar_negative {
-                scalar = q + 1;
-                sum_p += base_power;
-            } else {
-                scalar = q + 1;
-                sum_n += base_power;
-            }
+        let (q0, r0) = core::traits::DivRem::div_rem(scalar, 3);
+        let r0: felt252 = r0.into();
+        if r0 == 0 {
+            scalar = q0;
+        } else if r0 == 2 {
+            scalar = q0 + 1;
+            sum_n += base_power;
         } else {
-            if scalar_negative {
-                scalar = q;
-                sum_n += base_power;
-            } else {
-                scalar = q;
-                sum_p += base_power;
-            }
+            scalar = q0;
+            sum_p += base_power;
         }
-        scalar_negative = !scalar_negative;
+        if scalar == 0 {
+            break;
+        }
         base_power = base_power * (-3);
-    };
+        let (q1, r1) = core::traits::DivRem::div_rem(scalar, 3);
+        let r1: felt252 = r1.into();
+
+        if r1 == 0 {
+            scalar = q1;
+        } else if r1 == 2 {
+            scalar = q1 + 1;
+            sum_p += base_power;
+        } else {
+            scalar = q1;
+            sum_n += base_power;
+        }
+
+        base_power = base_power * (-3);
+    }
 
     let sign_p = sign(sum_p);
     let sign_n = sign(sum_n);
@@ -199,7 +160,7 @@ pub fn scalar_to_epns_with_digits(
         }
 
         base_power = base_power * (-3);
-    };
+    }
 
     assert!(
         scalar.into() == sum_p - sum_n,
@@ -214,9 +175,9 @@ pub fn scalar_to_epns_with_digits(
 
 #[cfg(test)]
 mod tests {
+    use core::circuit::u384;
     use core::traits::TryInto;
-    use core::circuit::{u384};
-    use super::{scalar_to_epns, neg_3_base_le};
+    use super::scalar_to_epns;
 
     #[test]
     fn test_scalar_to_epns() {
@@ -277,14 +238,6 @@ mod tests {
         assert_eq!(sum_n, 5887422510900535104465367136271582218);
         assert_eq!(sign_p, 1);
         assert_eq!(sign_n, -1);
-    }
-    #[test]
-    fn test_neg_3_base_le_single() {
-        let digits: Array<felt252> = neg_3_base_le(16);
-
-        let expected: Array<felt252> = array![1, 1, -1, -1];
-
-        assert_eq!(digits, expected);
     }
 }
 

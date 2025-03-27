@@ -1,6 +1,5 @@
-pub use core::circuit::{u96, u384, CircuitModulus};
-
-use garaga::definitions::{G1Point, G2Point, G1PointZero};
+pub use core::circuit::{CircuitModulus, u384, u96};
+use garaga::definitions::{G1Point, G1PointZero, G2Point};
 // scalar_to_base_neg3_le(0xD201000000010000**2)
 pub const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
 pub const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) = (

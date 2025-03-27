@@ -12,6 +12,9 @@ bytecode-check:
 rewrite:
 	./tools/make/rewrite.sh
 
+rewrite-no-tests:
+	./tools/make/rewrite.sh no-tests
+
 steps:
 	./tools/make/steps.sh
 

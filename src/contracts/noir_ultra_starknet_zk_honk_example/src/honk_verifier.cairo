@@ -1,12 +1,12 @@
-use super::honk_verifier_constants::{vk, precomputed_lines};
 use super::honk_verifier_circuits::{
-    run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-    run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-    run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+    run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
+use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
 trait IUltraStarknetZKHonkVerifier<TContractState> {
@@ -17,31 +17,31 @@ trait IUltraStarknetZKHonkVerifier<TContractState> {
 
 #[starknet::contract]
 mod UltraStarknetZKHonkVerifier {
-    use garaga::definitions::{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus};
-    use garaga::pairing_check::{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254};
-    use garaga::ec_ops::{
-        G1PointTrait, ec_safe_add, FunctionFeltTrait, DerivePointFromXHint, MSMHint,
-        compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput,
-    };
+    use core::num::traits::Zero;
+    use core::poseidon::hades_permutation;
     use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
-    use garaga::utils::neg_3;
-    use super::{
-        vk, precomputed_lines, run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
-        run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-        run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384};
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus};
+    use garaga::ec_ops::{
+        DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
+        compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
     };
-    use garaga::utils::noir::{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2};
+    use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
+    use garaga::utils::neg_3;
     use garaga::utils::noir::honk_transcript::{Point256IntoCircuitPoint, StarknetHasherState};
     use garaga::utils::noir::zk_honk_transcript::{
         ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
     };
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, u256_to_u384, into_u256_unchecked};
-    use core::num::traits::Zero;
-    use core::poseidon::hades_permutation;
+    use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
+    use super::{
+        precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
+        run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
+    };
 
     #[storage]
     struct Storage {}
@@ -67,8 +67,6 @@ mod UltraStarknetZKHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
-            // let mpcheck_hint = fph.mpcheck_hint;
-            // let msm_hint = fph.msm_hint;
 
             let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
@@ -110,7 +108,7 @@ mod UltraStarknetZKHonkVerifier {
                 );
                 challenge_poly_eval = new_challenge_poly_eval;
                 root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
-            };
+            }
             let (vanishing_check, diff_check) = run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit(
                 p_libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 p_libra_poly_evals: full_proof.proof.libra_poly_evals,
@@ -177,8 +175,7 @@ mod UltraStarknetZKHonkVerifier {
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
             );
 
-            // Starts with 1 * shplonk_q, not included in msm.
-
+            // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
                 full_proof.proof.gemini_masking_poly.into(),
                 vk.qm,
@@ -220,15 +217,14 @@ mod UltraStarknetZKHonkVerifier {
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
-            };
+            }
             for lib_comm in full_proof.proof.libra_commitments {
                 _points.append((*lib_comm).into());
-            };
+            }
             _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
 
             let points = _points.span();
-
             let scalars: Span<u256> = array![
                 into_u256_unchecked(scalar_1),
                 into_u256_unchecked(scalar_2),
@@ -279,7 +275,6 @@ mod UltraStarknetZKHonkVerifier {
                 .span();
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(45);
-
             // HASHING: GET ECIP BASE RLC COEFF.
             // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -303,7 +298,7 @@ mod UltraStarknetZKHonkVerifier {
                 s0 = _s0;
                 s1 = _s1;
                 s2 = _s2;
-            };
+            }
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
                 full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
@@ -334,7 +329,7 @@ mod UltraStarknetZKHonkVerifier {
                 s0 = _s0;
                 s1 = _s1;
                 s2 = _s2;
-            };
+            }
 
             let base_rlc_coeff = s1;
 
@@ -410,7 +405,6 @@ mod UltraStarknetZKHonkVerifier {
                 0,
             );
 
-            let mod_bn = get_modulus(0);
             let zk_ecip_batched_rhs = batch_3_mod_p(
                 rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn,
             );

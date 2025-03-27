@@ -1,12 +1,10 @@
 use core::circuit::{
-    u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse, EvalCircuitTrait,
-    CircuitOutputsTrait, CircuitInputs,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use garaga::core::circuit::AddInputResultTrait2;
+use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus};
 use garaga::ec_ops::FunctionFelt;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};
 
 #[inline(always)]
 pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
@@ -912,28 +910,28 @@ pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
 
     for val in p_public_inputs {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in27 - in27
+    } // in27 - in27
 
     circuit_inputs = circuit_inputs.next_2(p_public_inputs_offset); // in28
     circuit_inputs = circuit_inputs.next_2(libra_sum); // in29
 
     for val in sumcheck_univariates_flat {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in30 - in74
+    } // in30 - in74
 
     for val in sumcheck_evaluations {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in75 - in114
+    } // in75 - in114
 
     circuit_inputs = circuit_inputs.next_2(libra_evaluation); // in115
 
     for val in tp_sum_check_u_challenges {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in116 - in120
+    } // in116 - in120
 
     for val in tp_gate_challenges {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in121 - in125
+    } // in121 - in125
 
     circuit_inputs = circuit_inputs.next_2(tp_eta_1); // in126
     circuit_inputs = circuit_inputs.next_2(tp_eta_2); // in127
@@ -944,7 +942,7 @@ pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
 
     for val in tp_alphas {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in132 - in156
+    } // in132 - in156
 
     circuit_inputs = circuit_inputs.next_2(tp_libra_challenge); // in157
 
@@ -1546,17 +1544,17 @@ pub fn run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
 
     for val in p_sumcheck_evaluations {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in3 - in42
+    } // in3 - in42
 
     circuit_inputs = circuit_inputs.next_2(p_gemini_masking_eval); // in43
 
     for val in p_gemini_a_evaluations {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in44 - in48
+    } // in44 - in48
 
     for val in p_libra_poly_evals {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in49 - in52
+    } // in49 - in52
 
     circuit_inputs = circuit_inputs.next_2(tp_gemini_r); // in53
     circuit_inputs = circuit_inputs.next_2(tp_rho); // in54
@@ -1565,7 +1563,7 @@ pub fn run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
 
     for val in tp_sum_check_u_challenges {
         circuit_inputs = circuit_inputs.next_u128(*val);
-    }; // in57 - in61
+    } // in57 - in61
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let scalar_1: u384 = outputs.get_output(t10);
@@ -1836,7 +1834,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit(
 
     for val in p_libra_poly_evals {
         circuit_inputs = circuit_inputs.next_u256(*val);
-    }; // in4 - in7
+    } // in4 - in7
 
     circuit_inputs = circuit_inputs.next_2(tp_gemini_r); // in8
     circuit_inputs = circuit_inputs.next_2(challenge_poly_eval); // in9
@@ -1847,7 +1845,6 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit(
     let diff_check: u384 = outputs.get_output(t31);
     return (vanishing_check, diff_check);
 }
-#[inline(always)]
 pub fn run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
     A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt,
 ) -> (u384,) {
@@ -2327,19 +2324,19 @@ pub fn run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit(
 
     for val in SumDlogDivBatched.a_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.a_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_num {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
 
     for val in SumDlogDivBatched.b_den {
         circuit_inputs = circuit_inputs.next_2(*val);
-    };
+    }
     // in3 - in200
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();

@@ -404,7 +404,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
     let R_n_minus_2_of_z = *evals.pop_front().unwrap();
     let R_n_minus_1_of_z = *evals.pop_front().unwrap();
 
@@ -648,7 +648,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
         c_i = _c_i;
-    };
+    }
 
     let R_last_of_z = evals.pop_front().unwrap();
 

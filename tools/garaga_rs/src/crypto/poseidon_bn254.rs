@@ -47,13 +47,13 @@ pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldEle
 
     // First half of full rounds.
     for r in 0..(N_ROUNDS_F / 2 - 1) {
-        state = state.iter().map(|x| sigma(x)).collect();
+        state = state.iter().map(sigma).collect();
         state = ark(&state, &POSEIDON_C_VEC, (r + 1) * T);
         state = mix(&state, &POSEIDON_M_MAT);
     }
 
     // Middle round.
-    state = state.iter().map(|x| sigma(x)).collect();
+    state = state.iter().map(sigma).collect();
     state = ark(&state, &POSEIDON_C_VEC, (N_ROUNDS_F / 2) * T);
     state = mix(&state, &POSEIDON_P_MAT);
 
@@ -67,7 +67,7 @@ pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldEle
 
     // Second half of full rounds.
     for r in 0..(N_ROUNDS_F / 2 - 1) {
-        state = state.iter().map(|x| sigma(x)).collect();
+        state = state.iter().map(sigma).collect();
         state = ark(
             &state,
             &POSEIDON_C_VEC,
@@ -77,7 +77,7 @@ pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldEle
     }
 
     // Final round.
-    state = state.iter().map(|x| sigma(x)).collect();
+    state = state.iter().map(sigma).collect();
 
     mix_last(&state, &POSEIDON_M_MAT)
 }

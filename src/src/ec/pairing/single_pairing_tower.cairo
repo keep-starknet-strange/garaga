@@ -1,16 +1,14 @@
-use garaga::definitions::{u384};
 use core::num::traits::{One, Zero};
-use garaga::definitions::{G1Point, G2Point, BNProcessedPair, E12T};
+use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
 use garaga::circuits::multi_pairing_check::{
-    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
-
 use garaga::circuits::tower_circuits as tw;
 use garaga::circuits::tower_circuits::{
-    run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
     run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit,
+    run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
 };
-use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
+use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point, u384};
 use garaga::ec_ops_g2::G2PointTrait;
 
 
@@ -75,7 +73,7 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
         };
         Qi = _Qi;
         Mi = _Mi;
-    };
+    }
 
     tw::run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
         Q, processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi,
@@ -110,7 +108,7 @@ pub fn expt_bn254_tower(X: E12T) -> (E12T,) {
     for _ in 0..6_u8 {
         let (_t6) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t6);
         t6 = _t6;
-    };
+    }
     // Step 18
     let (t5) = tw::run_BN254_E12T_MUL_circuit(t5, t6);
     // Step 19
@@ -119,14 +117,14 @@ pub fn expt_bn254_tower(X: E12T) -> (E12T,) {
     for _ in 0..7_u8 {
         let (_t5) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t5);
         t5 = _t5;
-    };
+    }
     // Step 27
     let (mut t4) = tw::run_BN254_E12T_MUL_circuit(t4, t5);
     // Step 35
     for _ in 0..8_u8 {
         let (_t4) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t4);
         t4 = _t4;
-    };
+    }
     // Step 36
     let (t4) = tw::run_BN254_E12T_MUL_circuit(t0, t4);
     // Step 37
@@ -135,14 +133,14 @@ pub fn expt_bn254_tower(X: E12T) -> (E12T,) {
     for _ in 0..6_u8 {
         let (_t3) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t3);
         t3 = _t3;
-    };
+    }
     // Step 44
     let (mut t2) = tw::run_BN254_E12T_MUL_circuit(t2, t3);
     // Step 52
     for _ in 0..8_u8 {
         let (_t2) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t2);
         t2 = _t2;
-    };
+    }
     // Step 53
     let (mut t2) = tw::run_BN254_E12T_MUL_circuit(t0, t2);
 
@@ -150,7 +148,7 @@ pub fn expt_bn254_tower(X: E12T) -> (E12T,) {
     for _ in 0..6_u8 {
         let (_t2) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t2);
         t2 = _t2;
-    };
+    }
 
     // Step 60
     let (mut t2) = tw::run_BN254_E12T_MUL_circuit(t0, t2);
@@ -158,14 +156,14 @@ pub fn expt_bn254_tower(X: E12T) -> (E12T,) {
     for _ in 0..10_u8 {
         let (_t2) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t2);
         t2 = _t2;
-    };
+    }
     // Step 71
     let (mut t1) = tw::run_BN254_E12T_MUL_circuit(t1, t2);
     // Step 77
     for _ in 0..6_u8 {
         let (_t1) = tw::run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
         t1 = _t1;
-    };
+    }
     // Step 78
     let (t0) = tw::run_BN254_E12T_MUL_circuit(t0, t1);
     // Step 79
@@ -340,7 +338,7 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
         xc1b0a1 = _xc1b0a1;
         xc1b2a0 = _xc1b2a0;
         xc1b2a1 = _xc1b2a1;
-    };
+    }
 
     let t0c0b1a0 = xc0b1a0;
     let t0c0b1a1 = xc0b1a1;
@@ -377,7 +375,7 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
         xc1b0a1 = _xc1b0a1;
         xc1b2a0 = _xc1b2a0;
         xc1b2a1 = _xc1b2a1;
-    };
+    }
 
     let (t0) = decompress_karabina_bls12_381(
         E12T {
@@ -418,12 +416,12 @@ pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
     for _ in 0..9_u32 {
         let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
         t1 = _t1;
-    };
+    }
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
     for _ in 0..3_u32 {
         let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
         t1 = _t1;
-    };
+    }
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
     // 2 sq
     let (t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
@@ -473,7 +471,7 @@ pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
         };
         Qi = _Qi;
         Mi = _Mi;
-    };
+    }
 
     return fp12_conjugate(Mi, 1);
 }
