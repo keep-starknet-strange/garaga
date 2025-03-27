@@ -28,6 +28,9 @@ pub mod ec {
 
 pub mod hashes {
     pub mod poseidon_bn254;
+    pub mod sha_512;
+    pub use poseidon_bn254::poseidon_hash_2_bn254;
+    pub use sha_512::sha512;
 }
 
 pub mod signatures {
