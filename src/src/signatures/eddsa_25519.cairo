@@ -51,7 +51,8 @@ const G_neg: G1Point = G1Point {
 struct EDDSASignature {
     Ry_twisted_le: u256, // Compressed form of Ry in little endian (compliant with RFC 8032)
     s: u256,
-    Py_twisted_le: u256 // Compressed form of Public Key y in little endian (compliant with RFC 8032)
+    Py_twisted_le: u256, // Compressed form of Public Key y in little endian (compliant with RFC 8032)
+    msg: Array<u8>,
 }
 
 #[derive(Drop, Debug, PartialEq)]
@@ -63,11 +64,12 @@ struct EDDSASignatureWithHint {
     sqrt_Px_hint: u256,
 }
 
-pub fn eddsa_25519_verify(signature: EDDSASignatureWithHint, msg: Array<u8>) -> bool {
+
+pub fn eddsa_25519_verify(signature: EDDSASignatureWithHint) -> bool {
     let EDDSASignatureWithHint {
         signature, msm_hint, msm_derive_hint, sqrt_Rx_hint, sqrt_Px_hint,
     } = signature;
-    let EDDSASignature { Ry_twisted_le, s, Py_twisted_le } = signature;
+    let EDDSASignature { Ry_twisted_le, s, Py_twisted_le, msg } = signature;
 
     let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Ry_twisted_le, sqrt_Rx_hint,
@@ -89,7 +91,14 @@ pub fn eddsa_25519_verify(signature: EDDSASignatureWithHint, msg: Array<u8>) -> 
 
     let mut data: Array<u8> = array![];
 
-    let [h0, h1, h2, h3, h4, h5, h6, h7] = _sha512(msg);
+    // Hash(Ry + Py + msg)
+    append_u256_le_to_u8_be_array(Ry_twisted_le, ref data);
+    append_u256_le_to_u8_be_array(Py_twisted_le, ref data);
+    for byte in msg.span() {
+        data.append(*byte);
+    }
+
+    let [h0, h1, h2, h3, h4, h5, h6, h7] = _sha512(data);
 
     let (ah_0, ah_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
     let (ah_2, ah_3) = DivRem::div_rem(h1.data, POW_2_32_u64);
@@ -236,19 +245,38 @@ fn u256_byte_reverse(word: u256) -> u256 {
 }
 
 
-fn u256_to_u8_span(x: u256) -> Span<u8> {
-    let mut ret = array![];
-    let mut high = x.high;
-    let mut low = x.low;
+// Append u256 in little endian to u8 array but in big endian
+fn append_u256_le_to_u8_be_array(x_le: u256, ref arr: Array<u8>) {
+    let mut high = x_le.high;
+    let mut low = x_le.low;
 
     let mut i: felt252 = 0;
-    while (i != 32) {
-        let (temp_remaining, byte) = DivRem::div_rem(high, POW_2_8_u128);
-        ret.append(byte.try_into().unwrap());
-        high = temp_remaining;
+    while (i != 16) {
+        let (temp_remaining, byte) = DivRem::div_rem(low, POW_2_8_u128);
+        arr.append(byte.try_into().unwrap());
+        low = temp_remaining;
         i += 1;
     }
 
-    ret.span()
+    let mut j: felt252 = 0;
+    while (j != 16) {
+        let (temp_remaining, byte) = DivRem::div_rem(high, POW_2_8_u128);
+        arr.append(byte.try_into().unwrap());
+        high = temp_remaining;
+        j += 1;
+    }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::{EDDSASignature, EDDSASignatureWithHint, eddsa_25519_verify};
+    // #[test]
+// fn test_eddsa_25519_verify() {
+//     let signature = EDDSASignature { Ry_twisted_le: 0x0, s: 0x0, Py_twisted_le: 0x0 };
+//     let sig_with_hint = EDDSASignatureWithHint { signature, msm_hint: MSMHint::default(),
+//     msm_derive_hint: DerivePointFromXHint::default(), sqrt_Rx_hint: 0x0, sqrt_Px_hint: 0x0 };
+//     let msg = array![];
+//     let result = eddsa_25519_verify(sig_with_hint, msg);
+//     assert_eq!(result, false);
+// }
+}

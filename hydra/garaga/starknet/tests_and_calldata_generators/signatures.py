@@ -1,8 +1,9 @@
 import random
 from dataclasses import dataclass
+from hashlib import sha512
 
 from garaga import garaga_rs
-from garaga.definitions import BASE, CURVES, N_LIMBS, CurveID, G1Point
+from garaga.definitions import BASE, CURVES, N_LIMBS, CurveID, G1Point, WeierstrassCurve
 from garaga.hints.io import bigint_split, split_128
 
 
@@ -274,3 +275,111 @@ class ECDSASignature:
         )[1:]
         cd.extend(msm_calldata)
         return cd
+
+
+@dataclass(slots=True)
+class EdDSA25519Signature:
+    """
+    An EdDSA25519 signature with associated public key and message.
+    """
+
+    Ry_twisted_le: int
+    s: int
+    Py_twisted_le: int
+    msg: bytes
+
+    def __post_init__(self):
+        assert 0 <= self.Ry_twisted_le < 2**256
+        assert 0 <= self.Py_twisted_le < 2**256
+        assert 0 <= self.s < 2**256
+
+    @property
+    def curve_id(self) -> CurveID:
+        return CurveID.ED25519
+
+    @property
+    def curve(self) -> WeierstrassCurve:
+        return CURVES[CurveID.ED25519.value]
+
+    @classmethod
+    def from_json(cls, json):
+        public_key_hex = json["public_key"]
+        message_hex = json["message"]
+        signature_hex = json["signature"]
+
+        return cls(
+            Ry_twisted_le=int(signature_hex[:64], 16),  # 32 bytes
+            s=int(signature_hex[64:128], 16),  # 32 bytes
+            Py_twisted_le=int(public_key_hex, 16),  # 32 bytes
+            msg=bytes.fromhex(message_hex),  # arbitrary length
+        )
+
+    def serialize(self) -> list[int]:
+        cd = []
+        cd.extend(split_128(self.Ry_twisted_le))
+        cd.extend(split_128(self.s))
+        cd.extend(split_128(self.Py_twisted_le))
+
+        return cd
+
+    def xrecover(self, y: int) -> int:
+        q = self.curve.p
+        D = self.curve.d_twisted
+        I = pow(2, (q - 1) // 4, q)
+
+        xx = (y * y - 1) * pow(D * y * y + 1, -1, q)
+        x = pow(xx, (q + 3) // 8, q)
+
+        if (x * x - xx) % q != 0:
+            x = (x * I) % q
+
+        if x % 2 != 0:
+            x = q - x
+
+        return x
+
+    def decode_point(self, compressed_point_le: int) -> G1Point:
+        sign_bit, y = divmod(compressed_point_le, 2 ** (255))
+        x = self.xrecover(y)
+        if x % 2 != sign_bit:
+            x = self.curve.p - x
+
+        return G1Point(x, y, self.curve_id)
+
+    def is_valid(self) -> bool:
+        R = self.decode_point(self.Ry_twisted_le)
+        A = self.decode_point(self.Py_twisted_le)
+
+        s = self.s
+
+        preimage = (
+            self.Ry_twisted_le.to_bytes(32, "big")
+            + self.Py_twisted_le.to_bytes(32, "big")
+            + self.msg
+        )
+
+        H = sha512(preimage)
+
+        if R.is_infinity() or A.is_infinity():
+            return False
+        if R.x != A.x or R.y != A.y:
+            return False
+        return True
+
+    # def serialize_with_hints(self, use_rust=False) -> list[int]:
+    #     """Serialize the signature with hints for verification"""
+    #     if use_rust:
+    #         pass
+    #     cd = self.serialize()
+    #     cd
+
+
+if __name__ == "__main__":
+    import json
+
+    with open("build/ed25519_test_vectors.json", "r") as f:
+        test_vectors = json.load(f)
+
+    for test_vector in test_vectors:
+        signature = EdDSA25519Signature.from_json(test_vector)
+        print(signature.serialize())
