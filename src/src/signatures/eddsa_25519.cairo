@@ -120,21 +120,6 @@ fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
     return Some(to_weierstrass(x_384, y_be_u384));
 }
 
-// def to_weierstrass(self, x_twisted, y_twisted):
-// a = self.a_twisted
-// d = self.d_twisted
-// return (
-//     (5 * a + a * y_twisted - 5 * d * y_twisted - d)
-//     * pow(12 - 12 * y_twisted, -1, self.p)
-//     % self.p,
-//     (a + a * y_twisted - d * y_twisted - d)
-//     * pow(4 * x_twisted - 4 * x_twisted * y_twisted, -1, self.p)
-//     % self.p,
-// )
-
-// a_twisted = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEC
-// d_twisted = 0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3
-
 pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
     let x_t = CircuitElement::<CircuitInput<0>> {};
     let y_t = CircuitElement::<CircuitInput<1>> {};
@@ -200,8 +185,7 @@ pub fn eddsa_25519_verify(
 
     let mut data: Array<u8> = array![];
 
-    let mut h: Span<Word64> = _sha512(msg).span();
-    let [h0, h1, h2, h3, h4, h5, h6, h7] = (*h.multi_pop_front::<8>().unwrap()).unbox();
+    let [h0, h1, h2, h3, h4, h5, h6, h7] = _sha512(msg);
 
     let (ah_0, ah_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
     let (ah_2, ah_3) = DivRem::div_rem(h1.data, POW_2_32_u64);

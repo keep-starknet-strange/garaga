@@ -246,7 +246,7 @@ fn from_WordArray_to_u8array(data: Span<Word64>) -> Array<u8> {
     arr
 }
 
-fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
+fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
     let k = K.span();
     let mut h = H.span();
 
@@ -309,7 +309,7 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
         i += 1;
     }
 
-    array![h_0, h_1, h_2, h_3, h_4, h_5, h_6, h_7]
+    return [h_0, h_1, h_2, h_3, h_4, h_5, h_6, h_7];
 }
 
 pub fn sha512(mut data: Array<u8>) -> Array<u8> {
@@ -317,7 +317,7 @@ pub fn sha512(mut data: Array<u8>) -> Array<u8> {
     from_WordArray_to_u8array(hash.span())
 }
 
-pub fn _sha512(mut data: Array<u8>) -> Array<Word64> {
+pub fn _sha512(mut data: Array<u8>) -> [Word64; 8] {
     let bit_numbers: u128 = data.len().into() * 8;
     // any u32 * 8 fits in u64
     // let bit_numbers = bit_numbers & Bounded::<u64>::MAX.into();
