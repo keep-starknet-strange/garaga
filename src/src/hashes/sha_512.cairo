@@ -192,7 +192,7 @@ fn add_trailing_zeroes(ref data: Array<u8>, msg_len: usize) {
     };
 
     let mut i = 0;
-    while (i < padding_len) {
+    while (i != padding_len) {
         data.append(0);
         i += 1;
     };
@@ -204,7 +204,7 @@ fn from_u8Array_to_WordArray(data: Array<u8>) -> Array<Word64> {
 
     // Use precomputed powers of 2 for shift left to avoid recomputation
     // Safe to use u64 coz we shift u8 to the left by max 56 bits in u64
-    while (i < data.len()) {
+    while (i != data.len()) {
         let new_word: u64 = math_shl_precomputed::<u64>((*data[i + 0]).into(), TWO_POW_56)
             + math_shl_precomputed((*data[i + 1]).into(), TWO_POW_48)
             + math_shl_precomputed((*data[i + 2]).into(), TWO_POW_40)
