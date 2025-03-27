@@ -287,9 +287,9 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
         let mut g = h_6;
         let mut h = h_7;
 
-        let mut t: usize = 0;
-        while (t != 80) {
-            let T1 = h + bsig1(e) + ch(e, f, g) + *k.at(t) + *W.at(t);
+        let mut W = W.span();
+        for _k in k {
+            let T1 = h + bsig1(e) + ch(e, f, g) +  *_k + *W.pop_front().unwrap();
             let T2 = bsig0(a) + maj(a, b, c);
             h = g;
             g = f;
@@ -300,7 +300,6 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> Array<Word64> {
             b = a;
             a = T1 + T2;
 
-            t += 1;
         }
 
         h_0 = a + h_0;
