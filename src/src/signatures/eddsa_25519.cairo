@@ -47,16 +47,16 @@ const G_neg: G1Point = G1Point {
 };
 
 
-#[derive(Drop, Debug, PartialEq)]
-struct EdDSASignature {
+#[derive(Drop, Debug, PartialEq, Serde)]
+pub struct EdDSASignature {
     Ry_twisted_le: u256, // Compressed form of Ry in little endian (compliant with RFC 8032)
     s: u256,
     Py_twisted_le: u256, // Compressed form of Public Key y in little endian (compliant with RFC 8032)
     msg: Array<u8>,
 }
 
-#[derive(Drop, Debug, PartialEq)]
-struct EdDSASignatureWithHint {
+#[derive(Drop, Debug, PartialEq, Serde)]
+pub struct EdDSASignatureWithHint {
     signature: EdDSASignature,
     msm_hint: MSMHint,
     msm_derive_hint: DerivePointFromXHint,
@@ -65,35 +65,51 @@ struct EdDSASignatureWithHint {
 }
 
 
-pub fn eddsa_25519_verify(signature: EdDSASignatureWithHint) -> bool {
+pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let EdDSASignatureWithHint {
         signature, msm_hint, msm_derive_hint, sqrt_Rx_hint, sqrt_Px_hint,
     } = signature;
     let EdDSASignature { Ry_twisted_le, s, Py_twisted_le, msg } = signature;
 
+    let Ry_twisted_be = u256_byte_reverse(Ry_twisted_le);
+    println!("Ry_twisted_be: 0x{:x}", Ry_twisted_be);
+    println!("Ry_twisted_le: 0x{:x}", Ry_twisted_le);
+
+    println!("sqrt_Rx_hint: 0x{:x}", sqrt_Rx_hint);
+    println!("sqrt_Px_hint: 0x{:x}", sqrt_Px_hint);
+
     let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Ry_twisted_le, sqrt_Rx_hint,
     );
+    if R_opt.is_none() {
+        println!("R_opt is none");
+        return false;
+    }
+    let R: G1Point = R_opt.unwrap();
+    println!("R: {:?}", R);
+
+    let Py_twisted_be = u256_byte_reverse(Py_twisted_le);
 
     let P_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Py_twisted_le, sqrt_Px_hint,
     );
 
-    if R_opt.is_none() || P_opt.is_none() {
+    if P_opt.is_none() {
         return false;
     }
-    let R: G1Point = R_opt.unwrap();
     let P: G1Point = P_opt.unwrap();
+    println!("P: {:?}", P);
 
     if !R.is_on_curve(4) || !P.is_on_curve(4) {
+        println!("R or P is not on curve");
         return false;
     }
 
     let mut data: Array<u8> = array![];
 
     // Hash(Ry + Py + msg)
-    append_u256_le_to_u8_be_array(Ry_twisted_le, ref data);
-    append_u256_le_to_u8_be_array(Py_twisted_le, ref data);
+    append_u256_le_to_u8_be_array(Ry_twisted_be, ref data);
+    append_u256_le_to_u8_be_array(Py_twisted_be, ref data);
     for byte in msg.span() {
         data.append(*byte);
     }
@@ -141,20 +157,26 @@ pub fn eddsa_25519_verify(signature: EdDSASignatureWithHint) -> bool {
 }
 
 
-fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
-    y_twisted_le: u256, sqrt_hint: u256,
+pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
+    y_twisted_be_compressed: u256, sqrt_hint: u256,
 ) -> Option<G1Point> {
-    let y_be_compressed = u256_byte_reverse(y_twisted_le);
+    let y_be_compressed = y_twisted_be_compressed;
     let (bit_sign, y_be_high): (u128, u128) = DivRem::div_rem(y_be_compressed.high, POW_2_127_u128);
     let modulus = get_ED25519_modulus();
 
+    println!("sqrt_hint: 0x{:x}", sqrt_hint);
     let sqrt_hint_384: u384 = sqrt_hint.into();
 
     let x_384: u384 = match sqrt_hint.low % 2 == bit_sign % 2 {
         true => sqrt_hint_384,
         false => neg_mod_p(sqrt_hint_384, modulus),
     };
+
+    let x_recovered: u256 = x_384.try_into().unwrap();
+    println!("x_recovered: 0x{:x}", x_recovered);
+
     let y_be = u256 { low: y_be_compressed.low, high: y_be_high };
+    println!("y_be: 0x{:x}", y_be);
     let y_be_u384: u384 = y_be.into();
 
     let y = CircuitElement::<CircuitInput<0>> {};
@@ -185,7 +207,13 @@ fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
 
     let sqrt_check = outputs.get_output(check);
 
-    if sqrt_check.is_non_zero() || sqrt_hint >= X22519_u256 {
+    if sqrt_check.is_non_zero() {
+        println!("sqrt_check is non_zero");
+        return None;
+    }
+
+    if sqrt_hint >= X22519_u256 {
+        println!("sqrt_hint is >= X22519_u256");
         return None;
     }
 
@@ -193,6 +221,11 @@ fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
 }
 
 pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
+    println!("TO WEIERSTRASS");
+    let x_u256: u256 = x_twisted.try_into().unwrap();
+    let y_u256: u256 = y_twisted.try_into().unwrap();
+    println!("x_twisted: 0x{:x}", x_u256);
+    println!("y_twisted: 0x{:x}", y_u256);
     let x_t = CircuitElement::<CircuitInput<0>> {};
     let y_t = CircuitElement::<CircuitInput<1>> {};
     let a = CircuitElement::<CircuitInput<2>> {};
@@ -207,11 +240,11 @@ pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
     let d_y_twisted = circuit_mul(d, y_t);
     let five_d_y_twisted = circuit_mul(five, d_y_twisted);
 
-    let num_x = circuit_sub(circuit_add(five_a, a_y_twisted), circuit_sub(five_d_y_twisted, d));
+    let num_x = circuit_sub(circuit_add(five_a, a_y_twisted), circuit_add(five_d_y_twisted, d));
     let den_x = circuit_sub(twelve, circuit_mul(twelve, y_t));
     let _x = circuit_mul(num_x, circuit_inverse(den_x));
 
-    let num_y = circuit_sub(circuit_add(a, a_y_twisted), circuit_sub(d_y_twisted, d));
+    let num_y = circuit_sub(circuit_add(a, a_y_twisted), circuit_add(d_y_twisted, d));
     let four_xt = circuit_mul(four, x_t);
     let den_y = circuit_sub(four_xt, circuit_mul(four_xt, y_t));
     let _y = circuit_mul(num_y, circuit_inverse(den_y));
@@ -237,7 +270,7 @@ pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
 
 
 #[inline]
-fn u256_byte_reverse(word: u256) -> u256 {
+pub fn u256_byte_reverse(word: u256) -> u256 {
     u256 {
         low: core::integer::u128_byte_reverse(word.high),
         high: core::integer::u128_byte_reverse(word.low),
@@ -265,18 +298,4 @@ fn append_u256_le_to_u8_be_array(x_le: u256, ref arr: Array<u8>) {
         high = temp_remaining;
         j += 1;
     }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{EDDSASignature, EDDSASignatureWithHint, eddsa_25519_verify};
-    // #[test]
-// fn test_eddsa_25519_verify() {
-//     let signature = EDDSASignature { Ry_twisted_le: 0x0, s: 0x0, Py_twisted_le: 0x0 };
-//     let sig_with_hint = EDDSASignatureWithHint { signature, msm_hint: MSMHint::default(),
-//     msm_derive_hint: DerivePointFromXHint::default(), sqrt_Rx_hint: 0x0, sqrt_Px_hint: 0x0 };
-//     let msg = array![];
-//     let result = eddsa_25519_verify(sig_with_hint, msg);
-//     assert_eq!(result, false);
-// }
 }
