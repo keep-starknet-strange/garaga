@@ -269,7 +269,7 @@ pub fn eddsa_calldata_builder(
             .unwrap();
         let x = xx.pow(exp);
         let x = if x.square() != xx { x * i } else { x };
-        let is_even = element_to_biguint(&x) % 2 as u32 == BigUint::zero();
+        let is_even = element_to_biguint(&x) % 2_u32 == BigUint::zero();
         if is_even {
             x
         } else {
@@ -290,7 +290,7 @@ pub fn eddsa_calldata_builder(
         let y_twisted = element_from_biguint(&y_twisted);
         let x_twisted = xrecover(y_twisted.clone());
 
-        let x_twisted = if element_to_biguint(&x_twisted.clone()) % 2 as u32 != sign_bit {
+        let x_twisted = if element_to_biguint(&x_twisted.clone()) % 2_u32 != sign_bit {
             -x_twisted
         } else {
             x_twisted
