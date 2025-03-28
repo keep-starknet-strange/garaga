@@ -195,27 +195,27 @@ pub fn ecdsa_calldata_builder(
 }
 
 pub fn eddsa_calldata_builder(
-    ry_twisted_le: BigUint,
+    ry_twisted: BigUint,
     s: BigUint,
-    py_twisted_le: BigUint,
+    py_twisted: BigUint,
     msg: Vec<u8>,
 ) -> Result<Vec<BigUint>, String> {
     let mut cd = Vec::new();
 
     let max_value = BigUint::from(1u64) << 256;
-    if ry_twisted_le >= max_value {
+    if ry_twisted >= max_value {
         return Err("Invalid Ry value".to_string());
     }
-    if py_twisted_le >= max_value {
+    if py_twisted >= max_value {
         return Err("Invalid Py value".to_string());
     }
     if s >= max_value {
         return Err("Invalid s value".to_string());
     }
 
-    cd.extend(biguint_split::<2, 128>(&ry_twisted_le).map(BigUint::from));
+    cd.extend(biguint_split::<2, 128>(&ry_twisted).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&s).map(BigUint::from));
-    cd.extend(biguint_split::<2, 128>(&py_twisted_le).map(BigUint::from));
+    cd.extend(biguint_split::<2, 128>(&py_twisted).map(BigUint::from));
     cd.push(BigUint::from(msg.len() as u64));
     for byte in msg.clone() {
         cd.push(BigUint::from(byte as u64));
@@ -223,8 +223,8 @@ pub fn eddsa_calldata_builder(
 
     let mut hasher = Sha512::new();
 
-    let ry_bytes = ry_twisted_le.to_bytes_le();
-    let py_bytes = py_twisted_le.to_bytes_le();
+    let ry_bytes = ry_twisted.to_bytes_le();
+    let py_bytes = py_twisted.to_bytes_le();
 
     // Ensure the byte arrays are of length 32
     let ry_bytes_padded = if ry_bytes.len() < 32 {
@@ -248,7 +248,6 @@ pub fn eddsa_calldata_builder(
     hasher.update(msg);
 
     let hash = hasher.finalize();
-    // println!("hash rust {:?}", hash.encode_hex::<String>());
 
     let hash_biguint = BigUint::from_bytes_le(&hash);
 
@@ -300,8 +299,8 @@ pub fn eddsa_calldata_builder(
         (x_twisted, y_twisted)
     }
 
-    let (r_point_x_twisted, r_point_y_twisted) = decode_point(ry_twisted_le);
-    let (p_point_x_twisted, p_point_y_twisted) = decode_point(py_twisted_le);
+    let (r_point_x_twisted, r_point_y_twisted) = decode_point(ry_twisted);
+    let (p_point_x_twisted, p_point_y_twisted) = decode_point(py_twisted);
 
     let (r_point_x_weierstrass, r_point_y_weierstrass) =
         X25519PrimeField::to_weirstrass(r_point_x_twisted.clone(), r_point_y_twisted);

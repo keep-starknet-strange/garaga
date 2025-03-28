@@ -295,27 +295,27 @@ class EdDSA25519Signature:
     An EdDSA25519 signature with associated public key and message.
     """
 
-    Ry_twisted_le: int
+    Ry_twisted: int
     s: int
-    Py_twisted_le: int
+    Py_twisted: int
     msg: bytes
 
     def __eq__(self, other) -> bool:
         if not isinstance(other, EdDSA25519Signature):
             return NotImplemented
         return (
-            self.Ry_twisted_le == other.Ry_twisted_le
+            self.Ry_twisted == other.Ry_twisted
             and self.s == other.s
-            and self.Py_twisted_le == other.Py_twisted_le
+            and self.Py_twisted == other.Py_twisted
             and self.msg == other.msg
         )
 
     def __hash__(self) -> int:
-        return hash((self.Ry_twisted_le, self.s, self.Py_twisted_le, self.msg))
+        return hash((self.Ry_twisted, self.s, self.Py_twisted, self.msg))
 
     def __post_init__(self):
-        assert 0 <= self.Ry_twisted_le < 2**256
-        assert 0 <= self.Py_twisted_le < 2**256
+        assert 0 <= self.Ry_twisted < 2**256
+        assert 0 <= self.Py_twisted < 2**256
         assert 0 <= self.s < 2**256
 
     @property
@@ -344,9 +344,9 @@ class EdDSA25519Signature:
 
     def serialize(self) -> list[int]:
         cd = []
-        cd.extend(split_128(self.Ry_twisted_le))
+        cd.extend(split_128(self.Ry_twisted))
         cd.extend(split_128(self.s))
-        cd.extend(split_128(self.Py_twisted_le))
+        cd.extend(split_128(self.Py_twisted))
         cd.append(len(self.msg))
         cd.extend(list(self.msg))
 
@@ -367,41 +367,25 @@ class EdDSA25519Signature:
 
     def decode_point(self, compressed_point_le: int) -> G1Point:
         sign_bit, y_twisted = divmod(compressed_point_le, 2 ** (255))
-        # print(f"y_be: {hex(y_twisted)}")
         x_twisted = self.xrecover(y_twisted)
-        # print(f"x_recovered: {hex(x_twisted)}")
         if x_twisted % 2 != sign_bit:
             x_twisted = self.curve.p - x_twisted
         x_weierstrass, y_weierstrass = self.curve.to_weierstrass(x_twisted, y_twisted)
-        # print(f"x_weierstrass: {hex(x_weierstrass)}")
-        # print(f"y_weierstrass: {hex(y_weierstrass)}")
         return G1Point(x_weierstrass, y_weierstrass, self.curve_id)
 
     @lru_cache(maxsize=None)
     def deserialize_R_A_h(self) -> tuple[G1Point, G1Point, int]:
-        # print(f"Ry_twisted_le: {hex(self.Ry_twisted_le)}")
-        # print(f"Py_twisted_le: {hex(self.Py_twisted_le)}")
-        R = self.decode_point(self.Ry_twisted_le)
-        # print(f"R: {R.to_cairo_1(as_hex=False)}")
-        # print(f"Rx: {hex(R.x)}")
-        A = self.decode_point(self.Py_twisted_le)
-        # print(f"P: {A.to_cairo_1(as_hex=False)}")
+        R = self.decode_point(self.Ry_twisted)
+        A = self.decode_point(self.Py_twisted)
 
         preimage = (
-            self.Ry_twisted_le.to_bytes(32, "little")
-            + self.Py_twisted_le.to_bytes(32, "little")
+            self.Ry_twisted.to_bytes(32, "little")
+            + self.Py_twisted.to_bytes(32, "little")
             + self.msg
         )
-
-        # print(f"preimage: {list(preimage)}")
-
         H_bytes = sha512(preimage).digest()
-        # print(f"hash py: {H_bytes.hex()}")
-        # print(f"H_bytes: {list(H_bytes)}")
         H = int.from_bytes(H_bytes, "little")
-        # print(f"H: {H}")
         h = H % self.curve.n
-        # print(f"h: {h}")
         return R, A, h
 
     def is_valid(self) -> bool:
@@ -423,9 +407,9 @@ class EdDSA25519Signature:
         """Serialize the signature with hints for verification"""
         if use_rust:
             return garaga_rs.eddsa_calldata_builder(
-                self.Ry_twisted_le,
+                self.Ry_twisted,
                 self.s,
-                self.Py_twisted_le,
+                self.Py_twisted,
                 self.msg,
             )
 
@@ -448,10 +432,8 @@ class EdDSA25519Signature:
 
         cd.extend(msm_calldata)
         (Rx_twisted, _) = self.curve.to_twistededwards(R.x, R.y)
-        # print(f"Rx_twisted: {hex(Rx_twisted)}")
         cd.extend(split_128(Rx_twisted))  # sqrt_Rx_hint
         (Px_twisted, _) = self.curve.to_twistededwards(A.x, A.y)
-        # print(f"Px_twisted: {hex(Px_twisted)}")
         cd.extend(split_128(Px_twisted))  # sqrt_Px_hint
 
         if as_str:
@@ -462,14 +444,14 @@ class EdDSA25519Signature:
         if not isinstance(other, EdDSA25519Signature):
             return NotImplemented
         return (
-            self.Ry_twisted_le == other.Ry_twisted_le
+            self.Ry_twisted == other.Ry_twisted
             and self.s == other.s
-            and self.Py_twisted_le == other.Py_twisted_le
+            and self.Py_twisted == other.Py_twisted
             and self.msg == other.msg
         )
 
     def __hash__(self) -> int:
-        return hash((self.Ry_twisted_le, self.s, self.Py_twisted_le, self.msg))
+        return hash((self.Ry_twisted, self.s, self.Py_twisted, self.msg))
 
 
 if __name__ == "__main__":
