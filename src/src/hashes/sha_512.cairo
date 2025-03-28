@@ -31,6 +31,7 @@ const TWO_POW_34: u64 = 0x400000000;
 const TWO_POW_39: u64 = 0x8000000000;
 const TWO_POW_41: u64 = 0x20000000000;
 const TWO_POW_61: u64 = 0x2000000000000000;
+const TWO_POW_64: u128 = 0x1000000000000000;
 
 const TWO_POW_64_MINUS_1: u64 = 0x8000000000000000;
 const TWO_POW_64_MINUS_6: u64 = 0x40;
@@ -92,6 +93,12 @@ impl U128IntoWord of Into<u128, Word64> {
 impl U64IntoWord of Into<u64, Word64> {
     fn into(self: u64) -> Word64 {
         Word64 { data: self }
+    }
+}
+
+impl WordIntoFelt252 of Into<Word64, felt252> {
+    fn into(self: Word64) -> felt252 {
+        self.data.into()
     }
 }
 
@@ -167,10 +174,8 @@ const two_squarings: [u64; 6] = [
 ];
 
 // Shift left with precomputed powers of 2
-fn math_shl_precomputed_u128(
-    x: u128, two_power_n: u128,
-) -> u128 {
-    let mul:felt252 = x.into() * two_power_n.into();
+fn math_shl_precomputed_u128(x: u128, two_power_n: u128) -> u128 {
+    let mul: felt252 = x.into() * two_power_n.into();
     mul.try_into().unwrap()
 }
 
@@ -249,14 +254,10 @@ fn from_WordArray_to_u8array(data: Span<Word64>) -> Array<u8> {
 
 fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
     let k = K.span();
-    let mut h = H.span();
 
     let block_nb = msg_len / 128;
 
-    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = (*h
-        .multi_pop_front::<8>()
-        .unwrap())
-        .unbox();
+    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = H;
 
     let mut i = 0;
 
