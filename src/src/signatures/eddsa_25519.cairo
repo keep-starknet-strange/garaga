@@ -48,7 +48,7 @@ const G_neg: G1Point = G1Point {
 
 
 #[derive(Drop, Debug, PartialEq)]
-struct EDDSASignature {
+struct EdDSASignature {
     Ry_twisted_le: u256, // Compressed form of Ry in little endian (compliant with RFC 8032)
     s: u256,
     Py_twisted_le: u256, // Compressed form of Public Key y in little endian (compliant with RFC 8032)
@@ -56,8 +56,8 @@ struct EDDSASignature {
 }
 
 #[derive(Drop, Debug, PartialEq)]
-struct EDDSASignatureWithHint {
-    signature: EDDSASignature,
+struct EdDSASignatureWithHint {
+    signature: EdDSASignature,
     msm_hint: MSMHint,
     msm_derive_hint: DerivePointFromXHint,
     sqrt_Rx_hint: u256,
@@ -65,11 +65,11 @@ struct EDDSASignatureWithHint {
 }
 
 
-pub fn eddsa_25519_verify(signature: EDDSASignatureWithHint) -> bool {
-    let EDDSASignatureWithHint {
+pub fn eddsa_25519_verify(signature: EdDSASignatureWithHint) -> bool {
+    let EdDSASignatureWithHint {
         signature, msm_hint, msm_derive_hint, sqrt_Rx_hint, sqrt_Px_hint,
     } = signature;
-    let EDDSASignature { Ry_twisted_le, s, Py_twisted_le, msg } = signature;
+    let EdDSASignature { Ry_twisted_le, s, Py_twisted_le, msg } = signature;
 
     let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Ry_twisted_le, sqrt_Rx_hint,
