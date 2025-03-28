@@ -329,16 +329,16 @@ export function ecdsa_calldata_builder(r, s, v, px, py, z, curve_id) {
 }
 
 /**
- * @param {any} ry_twisted_le
+ * @param {any} ry_twisted
  * @param {any} s
- * @param {any} py_twisted_le
+ * @param {any} py_twisted
  * @param {any} msg
  * @returns {any[]}
  */
-export function eddsa_calldata_builder(ry_twisted_le, s, py_twisted_le, msg) {
+export function eddsa_calldata_builder(ry_twisted, s, py_twisted, msg) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.eddsa_calldata_builder(retptr, addHeapObject(ry_twisted_le), addHeapObject(s), addHeapObject(py_twisted_le), addHeapObject(msg));
+        wasm.eddsa_calldata_builder(retptr, addHeapObject(ry_twisted), addHeapObject(s), addHeapObject(py_twisted), addHeapObject(msg));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
