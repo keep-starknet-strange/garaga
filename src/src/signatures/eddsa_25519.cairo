@@ -73,24 +73,21 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     } = signature;
     let EdDSASignature { Ry_twisted_le, s, Py_twisted_le, msg } = signature;
 
-    let Ry_twisted_be = u256_byte_reverse(Ry_twisted_le);
-    println!("Ry_twisted_be: 0x{:x}", Ry_twisted_be);
-    println!("Ry_twisted_le: 0x{:x}", Ry_twisted_le);
+    // println!("Ry_twisted_be: 0x{:x}", Ry_twisted_be);
+    // println!("Ry_twisted_le: 0x{:x}", Ry_twisted_le);
 
-    println!("sqrt_Rx_hint: 0x{:x}", sqrt_Rx_hint);
-    println!("sqrt_Px_hint: 0x{:x}", sqrt_Px_hint);
+    // println!("sqrt_Rx_hint: 0x{:x}", sqrt_Rx_hint);
+    // println!("sqrt_Px_hint: 0x{:x}", sqrt_Px_hint);
 
     let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Ry_twisted_le, sqrt_Rx_hint,
     );
     if R_opt.is_none() {
-        println!("R_opt is none");
+        // println!("R_opt is none");
         return false;
     }
     let R: G1Point = R_opt.unwrap();
-    println!("R: {:?}", R);
-
-    let Py_twisted_be = u256_byte_reverse(Py_twisted_le);
+    // println!("R: {:?}", R);
 
     let P_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Py_twisted_le, sqrt_Px_hint,
@@ -100,10 +97,10 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
         return false;
     }
     let P: G1Point = P_opt.unwrap();
-    println!("P: {:?}", P);
+    // println!("P: {:?}", P);
 
     if !R.is_on_curve(4) || !P.is_on_curve(4) {
-        println!("R or P is not on curve");
+        // println!("R or P is not on curve");
         return false;
     }
 
@@ -116,14 +113,12 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
         data.append(*byte);
     }
 
-    println!("preimage: {:?}", data);
+    // println!("preimage: {:?}", data);
 
     let hash = _sha512(data);
     let [h0, h1, h2, h3, h4, h5, h6, h7] = hash;
 
-    let hash_bytes = from_WordArray_to_u8array(hash.span());
-
-    println!("hash_bytes: {:?}", hash_bytes);
+    // println!("hash_bytes: {:?}", hash_bytes);
 
     let high_high_128: u128 = h1.data.into() + h0.data.into() * POW_2_64_u128;
     let high_low_128: u128 = h3.data.into() + h2.data.into() * POW_2_64_u128;
@@ -146,8 +141,8 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let h_le: u384 = u256 { low: hl_le, high: hh_le }.into();
     let l_le: u384 = u256 { low: ll_le, high: lh_le }.into();
 
-    println!("h_le: {:?}", h_le);
-    println!("l_le: {:?}", l_le);
+    // println!("h_le: {:?}", h_le);
+    // println!("l_le: {:?}", l_le);
 
     let order_modulus = get_curve_order_modulus(4);
 
@@ -175,7 +170,7 @@ pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
     let (bit_sign, y_be_high): (u128, u128) = DivRem::div_rem(y_be_compressed.high, POW_2_127_u128);
     let modulus = get_ED25519_modulus();
 
-    println!("sqrt_hint: 0x{:x}", sqrt_hint);
+    // println!("sqrt_hint: 0x{:x}", sqrt_hint);
     let sqrt_hint_384: u384 = sqrt_hint.into();
 
     let x_384: u384 = match sqrt_hint.low % 2 == bit_sign % 2 {
@@ -183,11 +178,8 @@ pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         false => neg_mod_p(sqrt_hint_384, modulus),
     };
 
-    let x_recovered: u256 = x_384.try_into().unwrap();
-    println!("x_recovered: 0x{:x}", x_recovered);
-
     let y_be = u256 { low: y_be_compressed.low, high: y_be_high };
-    println!("y_be: 0x{:x}", y_be);
+    // println!("y_be: 0x{:x}", y_be);
     let y_be_u384: u384 = y_be.into();
 
     let y = CircuitElement::<CircuitInput<0>> {};
@@ -219,12 +211,10 @@ pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
     let sqrt_check = outputs.get_output(check);
 
     if sqrt_check.is_non_zero() {
-        println!("sqrt_check is non_zero");
         return None;
     }
 
     if sqrt_hint >= X22519_u256 {
-        println!("sqrt_hint is >= X22519_u256");
         return None;
     }
 
@@ -232,11 +222,6 @@ pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
 }
 
 pub fn to_weierstrass(x_twisted: u384, y_twisted: u384) -> G1Point {
-    println!("TO WEIERSTRASS");
-    let x_u256: u256 = x_twisted.try_into().unwrap();
-    let y_u256: u256 = y_twisted.try_into().unwrap();
-    println!("x_twisted: 0x{:x}", x_u256);
-    println!("y_twisted: 0x{:x}", y_u256);
     let x_t = CircuitElement::<CircuitInput<0>> {};
     let y_t = CircuitElement::<CircuitInput<1>> {};
     let a = CircuitElement::<CircuitInput<2>> {};

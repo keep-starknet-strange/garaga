@@ -367,28 +367,28 @@ class EdDSA25519Signature:
 
     def decode_point(self, compressed_point_le: int) -> G1Point:
         sign_bit, y_twisted = divmod(compressed_point_le, 2 ** (255))
-        print(f"y_be: {hex(y_twisted)}")
+        # print(f"y_be: {hex(y_twisted)}")
         x_twisted = self.xrecover(y_twisted)
-        print(f"x_recovered: {hex(x_twisted)}")
+        # print(f"x_recovered: {hex(x_twisted)}")
         if x_twisted % 2 != sign_bit:
             x_twisted = self.curve.p - x_twisted
 
-        print(f"x_twisted: {hex(x_twisted)}")
-        print(f"y_twisted: {hex(y_twisted)}")
+        # print(f"x_twisted: {hex(x_twisted)}")
+        # print(f"y_twisted: {hex(y_twisted)}")
         x_weierstrass, y_weierstrass = self.curve.to_weierstrass(x_twisted, y_twisted)
-        print(f"x_weierstrass: {hex(x_weierstrass)}")
-        print(f"y_weierstrass: {hex(y_weierstrass)}")
+        # print(f"x_weierstrass: {hex(x_weierstrass)}")
+        # print(f"y_weierstrass: {hex(y_weierstrass)}")
         return G1Point(x_weierstrass, y_weierstrass, self.curve_id)
 
     @lru_cache(maxsize=None)
     def deserialize_R_A_h(self) -> tuple[G1Point, G1Point, int]:
-        print(f"Ry_twisted_le: {hex(self.Ry_twisted_le)}")
-        print(f"Py_twisted_le: {hex(self.Py_twisted_le)}")
+        # print(f"Ry_twisted_le: {hex(self.Ry_twisted_le)}")
+        # print(f"Py_twisted_le: {hex(self.Py_twisted_le)}")
         R = self.decode_point(self.Ry_twisted_le)
-        print(f"R: {R.to_cairo_1(as_hex=False)}")
-        print(f"Rx: {hex(R.x)}")
+        # print(f"R: {R.to_cairo_1(as_hex=False)}")
+        # print(f"Rx: {hex(R.x)}")
         A = self.decode_point(self.Py_twisted_le)
-        print(f"P: {A.to_cairo_1(as_hex=False)}")
+        # print(f"P: {A.to_cairo_1(as_hex=False)}")
 
         preimage = (
             self.Ry_twisted_le.to_bytes(32, "little")
@@ -396,14 +396,14 @@ class EdDSA25519Signature:
             + self.msg
         )
 
-        print(f"preimage: {list(preimage)}")
+        # print(f"preimage: {list(preimage)}")
 
         H_bytes = sha512(preimage).digest()
-        print(f"H_bytes: {list(H_bytes)}")
+        # print(f"H_bytes: {list(H_bytes)}")
         H = int.from_bytes(H_bytes, "little")
-        print(f"H: {H}")
+        # print(f"H: {H}")
         h = H % self.curve.n
-        print(f"h: {h}")
+        # print(f"h: {h}")
         return R, A, h
 
     def is_valid(self) -> bool:
@@ -443,10 +443,10 @@ class EdDSA25519Signature:
         )[1:]
         cd.extend(msm_calldata)
         (Rx_twisted, _) = self.curve.to_twistededwards(R.x, R.y)
-        print(f"Rx_twisted: {hex(Rx_twisted)}")
+        # print(f"Rx_twisted: {hex(Rx_twisted)}")
         cd.extend(split_128(Rx_twisted))  # sqrt_Rx_hint
         (Px_twisted, _) = self.curve.to_twistededwards(A.x, A.y)
-        print(f"Px_twisted: {hex(Px_twisted)}")
+        # print(f"Px_twisted: {hex(Px_twisted)}")
         cd.extend(split_128(Px_twisted))  # sqrt_Px_hint
 
         if as_str:

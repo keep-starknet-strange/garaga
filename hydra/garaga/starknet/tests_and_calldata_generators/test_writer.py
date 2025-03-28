@@ -190,23 +190,20 @@ def write_test_file(
             for result in results:
                 f.write(result)
                 f.write("\n")
-        f.write("}")
 
 
 def get_tower_pairing_config():
     """Configuration for tower pairing tests"""
     header = """
-    #[cfg(test)]
-    mod tower_pairing_tests {
-        use garaga::single_pairing_tower::{
-            E12TOne, u384,G1Point, G2Point, E12T, miller_loop_bls12_381_tower,
-            miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
-        };
-        use garaga::ec_ops::{G1PointImpl};
-        use garaga::ec_ops_g2::{G2PointImpl};
-        use garaga::circuits::tower_circuits::{
-            run_BN254_E12T_MUL_circuit, run_BLS12_381_E12T_MUL_circuit
-        };
+    use garaga::single_pairing_tower::{
+        E12TOne, u384,G1Point, G2Point, E12T, miller_loop_bls12_381_tower,
+        miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
+    };
+    use garaga::ec_ops::{G1PointImpl};
+    use garaga::ec_ops_g2::{G2PointImpl};
+    use garaga::circuits::tower_circuits::{
+        run_BN254_E12T_MUL_circuit, run_BLS12_381_E12T_MUL_circuit
+    };
     """
 
     test_generators = [
@@ -221,8 +218,6 @@ def get_tower_pairing_config():
 def get_pairing_config():
     """Configuration for pairing tests"""
     header = """
-    #[cfg(test)]
-    mod pairing_tests {
         use garaga::pairing_check::{
             G1G2Pair, G1Point, G2Point, G2Line, E12D, MillerLoopResultScalingFactor,
             multi_pairing_check_bn254_2P_2F,
@@ -248,8 +243,6 @@ def get_pairing_config():
 def get_msm_config():
     """Configuration for MSM tests"""
     header = """
-    #[cfg(test)]
-    mod msm_tests {
         use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1, MSMHint, DerivePointFromXHint};
     """
 
@@ -275,8 +268,6 @@ def get_msm_config():
 def get_schnorr_config():
     """Configuration for Schnorr signature tests"""
     header = """
-    #[cfg(test)]
-    mod schnorr_tests {
         use garaga::signatures::schnorr::{
             SchnorrSignature, SchnorrSignatureWithHint, is_valid_schnorr_signature,
         };
@@ -297,8 +288,6 @@ def get_schnorr_config():
 def get_ecdsa_config():
     """Configuration for ECDSA signature tests"""
     header = """
-    #[cfg(test)]
-    mod ecdsa_tests {
         use garaga::signatures::ecdsa::{
             ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature,
         };
@@ -318,9 +307,10 @@ def get_ecdsa_config():
 
 def generate_eddsa_test(sig: EdDSA25519Signature, test_index: int) -> str:
     assert sig.is_valid()
+    msg_bytes_len = len(sig.msg)
     code = f"""
 #[test]
-fn test_eddsa_{test_index}() {{
+fn test_eddsa_{test_index}_{msg_bytes_len}B() {{
     let mut eddsa_sig_with_hints_serialized = array!{sig.serialize_with_hints(as_str=True)}.span();
     let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
@@ -335,14 +325,12 @@ def generate_test(index, vector):
     return generate_eddsa_test(signature, index)
 
 
-def generate_eddsa_test_file(n_tests: int = 1) -> str:
+def generate_eddsa_test_file(n_tests: int = 64) -> str:
     """Configuration for EDDSA signature tests"""
     code = """
-    #[cfg(test)]
-    mod eddsa_tests {
-        use garaga::signatures::eddsa_25519::{
-            EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature,
-        };
+    use garaga::signatures::eddsa_25519::{
+        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature,
+    };
     """
 
     with open("build/ed25519_test_vectors.json", "r") as f:
@@ -363,7 +351,6 @@ def generate_eddsa_test_file(n_tests: int = 1) -> str:
 
     for result in results:
         code += result
-    code += "}"
     return code
 
 
