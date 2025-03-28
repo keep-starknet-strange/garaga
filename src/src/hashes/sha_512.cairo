@@ -119,24 +119,19 @@ impl Felt252IntoWord of Into<felt252, Word64> {
 }
 
 pub trait WordOperations<T> {
-    fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> T;
+    fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> u128;
 }
 
 pub impl Word64WordOperations of WordOperations<Word64> {
     // does the work of rotr but with precomputed values 2**n and 2**(64-n)
-    fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> Word64 {
+    fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> u128 {
         let data = self.data.into();
         let data: u128 = BitOr::bitor(
             math_shr_precomputed::<u128>(data, two_pow_n.into()),
             math_shl_precomputed_u128(data, two_pow_64_n.into()),
         );
 
-        let data: u64 = match data.try_into() {
-            Option::Some(data) => data,
-            Option::None => (data & MAX_U64).try_into().unwrap(),
-        };
-
-        Word64 { data }
+        data
     }
 }
 
@@ -158,7 +153,7 @@ fn maj(x: Word64, y: Word64, z: Word64) -> felt252 {
 
 /// Performs x.rotr(28) ^ x.rotr(34) ^ x.rotr(39),
 /// Using precomputed values to avoid recomputation
-fn bsig0(x: Word64) -> Word64 {
+fn bsig0(x: Word64) -> u128 {
     // x.rotr(28) ^ x.rotr(34) ^ x.rotr(39)
     x.rotr_precomputed(TWO_POW_28, TWO_POW_64_MINUS_28)
         ^ x.rotr_precomputed(TWO_POW_34, TWO_POW_64_MINUS_34)
@@ -167,7 +162,7 @@ fn bsig0(x: Word64) -> Word64 {
 
 /// Performs x.rotr(14) ^ x.rotr(18) ^ x.rotr(41),
 /// Using precomputed values to avoid recomputation
-fn bsig1(x: Word64) -> Word64 {
+fn bsig1(x: Word64) -> u128 {
     // x.rotr(14) ^ x.rotr(18) ^ x.rotr(41)
     x.rotr_precomputed(TWO_POW_14, TWO_POW_64_MINUS_14)
         ^ x.rotr_precomputed(TWO_POW_18, TWO_POW_64_MINUS_18)
@@ -176,7 +171,7 @@ fn bsig1(x: Word64) -> Word64 {
 
 /// Performs x.rotr(1) ^ x.rotr(8) ^ x.shr(7),
 /// Using precomputed values to avoid recomputation
-fn ssig0(x: Word64) -> Word64 {
+fn ssig0(x: Word64) -> u128 {
     // x.rotr(1) ^ x.rotr(8) ^ x.shr(7)
     x.rotr_precomputed(TWO_POW_1, TWO_POW_64_MINUS_1)
         ^ x.rotr_precomputed(TWO_POW_8, TWO_POW_64_MINUS_8)
@@ -185,7 +180,7 @@ fn ssig0(x: Word64) -> Word64 {
 
 /// Performs x.rotr(19) ^ x.rotr(61) ^ x.shr(6),
 /// Using precomputed values to avoid recomputation
-fn ssig1(x: Word64) -> Word64 {
+fn ssig1(x: Word64) -> u128 {
     // x.rotr(19) ^ x.rotr(61) ^ x.shr(6)
     x.rotr_precomputed(TWO_POW_19, TWO_POW_64_MINUS_19)
         ^ x.rotr_precomputed(TWO_POW_61, TWO_POW_64_MINUS_61)
