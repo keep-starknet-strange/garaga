@@ -7,9 +7,14 @@ use core::traits::{BitAnd, BitOr, BitXor};
 
 pub const SHA512_LEN: usize = 64;
 
-pub const U64_BIT_NUM: u64 = 64;
+pub const TWO_POW_56_NZ: NonZero<u64> = 0x100000000000000;
+pub const TWO_POW_48_NZ: NonZero<u64> = 0x1000000000000;
+pub const TWO_POW_40_NZ: NonZero<u64> = 0x10000000000;
+pub const TWO_POW_32_NZ: NonZero<u64> = 0x100000000;
+pub const TWO_POW_24_NZ: NonZero<u64> = 0x1000000;
+pub const TWO_POW_16_NZ: NonZero<u64> = 0x10000;
+pub const TWO_POW_8_NZ: NonZero<u64> = 0x100;
 
-// Powers of two to avoid recomputing
 pub const TWO_POW_56: u64 = 0x100000000000000;
 pub const TWO_POW_48: u64 = 0x1000000000000;
 pub const TWO_POW_40: u64 = 0x10000000000;
@@ -17,11 +22,14 @@ pub const TWO_POW_32: u64 = 0x100000000;
 pub const TWO_POW_24: u64 = 0x1000000;
 pub const TWO_POW_16: u64 = 0x10000;
 pub const TWO_POW_8: u64 = 0x100;
+
+
 pub const TWO_POW_4: u64 = 0x10;
 pub const TWO_POW_2: u64 = 0x4;
 pub const TWO_POW_1: u64 = 0x2;
 pub const TWO_POW_0: u64 = 0x1;
 
+const TWO_POW_6: u64 = 0x40;
 const TWO_POW_7: u64 = 0x80;
 const TWO_POW_14: u64 = 0x4000;
 const TWO_POW_18: u64 = 0x40000;
@@ -34,7 +42,6 @@ const TWO_POW_61: u64 = 0x2000000000000000;
 const TWO_POW_64: u128 = 0x1000000000000000;
 
 const TWO_POW_64_MINUS_1: u64 = 0x8000000000000000;
-const TWO_POW_64_MINUS_6: u64 = 0x40;
 const TWO_POW_64_MINUS_8: u64 = 0x100000000000000;
 const TWO_POW_64_MINUS_14: u64 = 0x4000000000000;
 const TWO_POW_64_MINUS_18: u64 = 0x400000000000;
@@ -166,14 +173,12 @@ fn ssig1(x: Word64) -> Word64 {
     // x.rotr(19) ^ x.rotr(61) ^ x.shr(6)
     x.rotr_precomputed(TWO_POW_19, TWO_POW_64_MINUS_19)
         ^ x.rotr_precomputed(TWO_POW_61, TWO_POW_64_MINUS_61)
-        ^ math_shr_precomputed::<u64>(x.data, TWO_POW_64_MINUS_6).into() // 2 ** 6
+        ^ math_shr_precomputed::<u64>(x.data, TWO_POW_6).into() // 2 ** 6
 }
 
-const two_squarings: [u64; 6] = [
-    TWO_POW_1, TWO_POW_2, TWO_POW_4, TWO_POW_8, TWO_POW_16, TWO_POW_32,
-];
 
 // Shift left with precomputed powers of 2
+// Only use in this file. Unsafe otherwise.
 fn math_shl_precomputed_u128(x: u128, two_power_n: u128) -> u128 {
     let mul: felt252 = x.into() * two_power_n.into();
     mul.try_into().unwrap()
@@ -228,26 +233,25 @@ fn from_u8Array_to_WordArray(mut data: Span<u8>) -> Array<Word64> {
 fn from_WordArray_to_u8array(data: Span<Word64>) -> Array<u8> {
     let mut arr: Array<u8> = array![];
 
-    let mut i = 0;
     // Use precomputed powers of 2 for shift right to avoid recomputation
-    while (i != data.len()) {
-        let mut res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_56) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_48) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_40) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_32) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_24) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_16) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_8) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_0) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        i += 1;
+    for word in data {
+        let data_i: u64 = *word.data;
+        let (w7, w) = DivRem::div_rem(data_i, TWO_POW_56_NZ);
+        let (w6, w) = DivRem::div_rem(w, TWO_POW_48_NZ);
+        let (w5, w) = DivRem::div_rem(w, TWO_POW_40_NZ);
+        let (w4, w) = DivRem::div_rem(w, TWO_POW_32_NZ);
+        let (w3, w) = DivRem::div_rem(w, TWO_POW_24_NZ);
+        let (w2, w) = DivRem::div_rem(w, TWO_POW_16_NZ);
+        let (w1, w0) = DivRem::div_rem(w, TWO_POW_8_NZ);
+
+        arr.append(w7.try_into().unwrap());
+        arr.append(w6.try_into().unwrap());
+        arr.append(w5.try_into().unwrap());
+        arr.append(w4.try_into().unwrap());
+        arr.append(w3.try_into().unwrap());
+        arr.append(w2.try_into().unwrap());
+        arr.append(w1.try_into().unwrap());
+        arr.append(w0.try_into().unwrap());
     }
     arr
 }
