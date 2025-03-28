@@ -39,7 +39,7 @@ const TWO_POW_34: u64 = 0x400000000;
 const TWO_POW_39: u64 = 0x8000000000;
 const TWO_POW_41: u64 = 0x20000000000;
 const TWO_POW_61: u64 = 0x2000000000000000;
-const TWO_POW_64: u128 = 0x1000000000000000;
+const TWO_POW_64: u128 = 0x10000000000000000;
 
 const TWO_POW_64_MINUS_1: u64 = 0x8000000000000000;
 const TWO_POW_64_MINUS_8: u64 = 0x100000000000000;
@@ -106,6 +106,13 @@ impl U64IntoWord of Into<u64, Word64> {
 impl WordIntoFelt252 of Into<Word64, felt252> {
     fn into(self: Word64) -> felt252 {
         self.data.into()
+    }
+}
+
+impl Felt252IntoWord of Into<felt252, Word64> {
+    fn into(self: felt252) -> Word64 {
+        let f_128: u128 = self.try_into().unwrap() % TWO_POW_64;
+        Word64 { data: f_128.try_into().unwrap() }
     }
 }
 
@@ -274,7 +281,11 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
             if t < 16 {
                 W.append(*data.at(i * 16 + t));
             } else {
-                let buf = ssig1(*W.at(t - 2)) + *W.at(t - 7) + ssig0(*W.at(t - 15)) + *W.at(t - 16);
+                let buf_felt252: felt252 = ssig1(*W.at(t - 2)).into()
+                    + (*W.at(t - 7)).into()
+                    + ssig0(*W.at(t - 15)).into()
+                    + (*W.at(t - 16)).into();
+                let buf: Word64 = buf_felt252.into();
                 W.append(buf);
             }
             t += 1;
@@ -291,7 +302,12 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
 
         let mut W = W.span();
         for _k in k {
-            let T1 = h + bsig1(e) + ch(e, f, g) + *_k + *W.pop_front().unwrap();
+            let T1_felt252: felt252 = h.into()
+                + bsig1(e).into()
+                + ch(e, f, g).into()
+                + (*_k).into()
+                + (*W.pop_front().unwrap()).into();
+            let T1: Word64 = T1_felt252.into();
             let T2 = bsig0(a) + maj(a, b, c);
             h = g;
             g = f;
