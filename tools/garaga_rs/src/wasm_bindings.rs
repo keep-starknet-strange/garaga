@@ -129,6 +129,26 @@ pub fn ecdsa_calldata_builder(
     Ok(result.into_iter().map(biguint_to_jsvalue).collect())
 }
 
+#[wasm_bindgen]
+pub fn eddsa_calldata_builder(
+    ry_twisted_le: JsValue,
+    s: JsValue,
+    py_twisted_le: JsValue,
+    msg: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
+    let r: BigUint = jsvalue_to_biguint(ry_twisted_le)?;
+    let s: BigUint = jsvalue_to_biguint(s)?;
+    let py: BigUint = jsvalue_to_biguint(py_twisted_le)?;
+    let msg: Vec<u8> = msg.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+
+    let result = crate::calldata::signatures::eddsa_calldata_builder(r, s, py, msg)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
 fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
     let s = (JsValue::from_str("") + v)
         .as_string()

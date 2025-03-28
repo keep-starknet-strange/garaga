@@ -5,6 +5,7 @@ import {
   mpc_calldata_builder,
   schnorr_calldata_builder,
   ecdsa_calldata_builder,
+  eddsa_calldata_builder,
   to_twistededwards,
   to_weirstrass,
   get_groth16_calldata,
@@ -60,6 +61,10 @@ export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: big
 
 export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint, py: bigint, z: bigint, curveId: CurveId): bigint[] {
   return ecdsa_calldata_builder(r, s, v, px, py, z, curveId);
+}
+
+export function eddsaCalldataBuilder(ry_twisted_le: bigint, s: bigint, py_twisted_le: bigint, msg: Uint8Array): bigint[] {
+  return eddsa_calldata_builder(ry_twisted_le, s, py_twisted_le, msg);
 }
 
 export function toWeirstrass(x_twisted: bigint, y_twisted: bigint): [bigint, bigint] {
