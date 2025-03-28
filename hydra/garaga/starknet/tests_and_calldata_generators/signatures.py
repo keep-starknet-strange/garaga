@@ -336,9 +336,9 @@ class EdDSA25519Signature:
         assert len(signature_bytes) == 64
 
         return cls(
-            Ry_twisted_le=int.from_bytes(signature_bytes[:32], "little"),
+            Ry_twisted=int.from_bytes(signature_bytes[:32], "little"),
             s=int.from_bytes(signature_bytes[32:64], "little"),
-            Py_twisted_le=int.from_bytes(public_key_bytes, "little"),
+            Py_twisted=int.from_bytes(public_key_bytes, "little"),
             msg=message_bytes,
         )
 
