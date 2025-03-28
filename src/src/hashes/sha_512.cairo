@@ -1,7 +1,9 @@
 // Originally taken from Alexandria library.
 
+use core::integer::{bitwise, u64_bitwise};
 use core::num::traits::{Bounded, WrappingAdd};
 use core::traits::{BitAnd, BitOr, BitXor};
+
 
 // Variable naming is compliant to RFC-6234 (https://datatracker.ietf.org/doc/html/rfc6234)
 
@@ -139,12 +141,19 @@ pub impl Word64WordOperations of WordOperations<Word64> {
 }
 
 
-fn ch(x: Word64, y: Word64, z: Word64) -> Word64 {
-    (x & y) ^ (~x & z)
+fn ch(e: Word64, f: Word64, g: Word64) -> felt252 {
+    (e & f).into() + (~e & g).into()
 }
 
-fn maj(x: Word64, y: Word64, z: Word64) -> Word64 {
-    (x & y) ^ (x & z) ^ (y & z)
+fn maj(x: Word64, y: Word64, z: Word64) -> felt252 {
+    // (x & y) ^ (x & z) ^ (y & z)
+    let x_xor_y = x ^ y;
+    let x_xor_y_xor_z = x_xor_y ^ z;
+
+    let res: felt252 = core::felt252_div(
+        (x.into() + y.into() + z.into() - x_xor_y_xor_z.into()), 2,
+    );
+    res
 }
 
 /// Performs x.rotr(28) ^ x.rotr(34) ^ x.rotr(39),
@@ -304,19 +313,19 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
         for _k in k {
             let T1_felt252: felt252 = h.into()
                 + bsig1(e).into()
-                + ch(e, f, g).into()
+                + ch(e, f, g)
                 + (*_k).into()
                 + (*W.pop_front().unwrap()).into();
-            let T1: Word64 = T1_felt252.into();
-            let T2 = bsig0(a) + maj(a, b, c);
+
+            let T1_T2_felt252: felt252 = bsig0(a).into() + maj(a, b, c) + T1_felt252;
             h = g;
             g = f;
             f = e;
-            e = d + T1;
+            e = d + T1_felt252.into();
             d = c;
             c = b;
             b = a;
-            a = T1 + T2;
+            a = T1_T2_felt252.into();
         }
 
         h_0 = a + h_0;
