@@ -403,7 +403,7 @@ fn msm_g1(
     let n = scalars.len();
     assert!(n == points.len(), "scalars and points length mismatch");
     if n == 0 {
-        panic!("Msm size must be >= 1");
+        panic_with_felt252('Msm size must be >= 1');
     }
 
     // Check result points are either on curve, or the point at infinity

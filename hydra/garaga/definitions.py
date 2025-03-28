@@ -640,14 +640,14 @@ class G1Point:
         """
         return self.x == 0 and self.y == 0
 
-    def to_cairo_1(self) -> str:
+    def to_cairo_1(self, as_hex: bool = True) -> str:
         """
         Converts the point to a Cairo 1 representation.
 
         Returns:
             str: The Cairo 1 representation of the point.
         """
-        return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}}"
+        return f"G1Point{{x: {int_to_u384(self.x, as_hex)}, y: {int_to_u384(self.y, as_hex)}}}"
 
     @staticmethod
     def gen_random_point_not_in_subgroup(
@@ -848,7 +848,7 @@ class G1Point:
             str(CURVES[self.curve_id.value].Gx),
             str(CURVES[self.curve_id.value].Gy),
         )
-
+        # NB : Fastecdsa returns (0, 0) for the identity element.
         return G1Point(int(x), int(y), self.curve_id, self.iso_point)
 
     def __neg__(self) -> "G1Point":

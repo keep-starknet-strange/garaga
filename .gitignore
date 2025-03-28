@@ -2,6 +2,7 @@
 !*_input.json
 !*Proof.json
 !frobenius_*.json
+!*test_vectors.json
 __pycache__
 venv
 *.env

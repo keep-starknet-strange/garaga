@@ -4,6 +4,7 @@ export function msm_calldata_builder(values: any[], scalars: any[], curve_id: nu
 export function mpc_calldata_builder(curve_id: number, values1: any[], n_fixed_g2: number, values2: any[]): any[];
 export function schnorr_calldata_builder(rx: any, s: any, e: any, px: any, py: any, curve_id: number): any[];
 export function ecdsa_calldata_builder(r: any, s: any, v: number, px: any, py: any, z: any, curve_id: number): any[];
+export function eddsa_calldata_builder(ry_twisted_le: any, s: any, py_twisted_le: any, msg: any): any[];
 export function to_weirstrass(x_twisted: any, y_twisted: any): any[];
 export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
@@ -22,6 +23,7 @@ export interface InitOutput {
   readonly mpc_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly schnorr_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly ecdsa_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
+  readonly eddsa_calldata_builder: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly to_weirstrass: (a: number, b: number, c: number) => void;
   readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;

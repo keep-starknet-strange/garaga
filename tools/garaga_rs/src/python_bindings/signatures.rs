@@ -48,3 +48,23 @@ pub fn ecdsa_calldata_builder(
     let py_list = PyList::new(py, result);
     Ok(py_list?.into())
 }
+
+#[pyfunction]
+pub fn eddsa_calldata_builder(
+    py: Python,
+    rx: &Bound<'_, PyInt>,
+    s: &Bound<'_, PyInt>,
+    py_coord: &Bound<'_, PyInt>,
+    msg: &Bound<'_, PyBytes>,
+) -> PyResult<PyObject> {
+    let rx: BigUint = rx.extract()?;
+    let s: BigUint = s.extract()?;
+    let py_coord: BigUint = py_coord.extract()?;
+    let msg: Vec<u8> = msg.extract()?;
+
+    let result = crate::calldata::signatures::eddsa_calldata_builder(rx, s, py_coord, msg)
+        .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+
+    let py_list = PyList::new(py, result);
+    Ok(py_list?.into())
+}

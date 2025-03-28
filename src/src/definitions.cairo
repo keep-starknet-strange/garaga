@@ -67,14 +67,12 @@ fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
 }
 
 fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
-    match input.pop_front() {
-        Option::Some(value) => {
-            serialize_u384(value, ref output);
-            serialize_u384_array_helper(input, ref output);
-        },
-        Option::None => {},
+    if let Option::Some(value) = input.pop_front() {
+        serialize_u384(value, ref output);
+        serialize_u384_array_helper(input, ref output);
     }
 }
+
 fn deserialize_u384_array(ref serialized: Span<felt252>) -> Array<u384> {
     let length = *serialized.pop_front().unwrap();
     let mut arr = array![];
