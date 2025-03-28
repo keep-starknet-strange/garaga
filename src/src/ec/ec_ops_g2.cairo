@@ -141,27 +141,24 @@ fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
     if pt.is_zero() {
         // Input point is at infinity, return it
         return Option::Some(pt);
-    } else {
-        // Point is not at infinity
-        if pt.is_on_curve(curve_index) {
-            if s == 0 {
-                return Option::Some(G2PointZero::zero());
-            } else if s == 1 {
-                return Option::Some(pt);
-            } else {
-                // Point is on the curve.
-                // s is >= 2.
-                let bits = get_bits_little(s);
-                let pt = ec_mul_inner(pt, bits, curve_index);
-                match pt {
-                    Option::Some(r) => Option::Some(r),
-                    Option::None => Option::Some(G2PointZero::zero()),
-                }
-            }
+    } else if pt.is_on_curve(curve_index) {
+        if s == 0 {
+            return Option::Some(G2PointZero::zero());
+        } else if s == 1 {
+            return Option::Some(pt);
         } else {
-            // Point is not on the curve
-            return Option::None;
+            // Point is on the curve.
+            // s is >= 2.
+            let bits = get_bits_little(s);
+            let pt = ec_mul_inner(pt, bits, curve_index);
+            match pt {
+                Option::Some(r) => Option::Some(r),
+                Option::None => Option::Some(G2PointZero::zero()),
+            }
         }
+    } else {
+        // Point is not on the curve
+        return Option::None;
     }
 }
 

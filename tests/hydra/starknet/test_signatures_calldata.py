@@ -1,8 +1,11 @@
+import json
+
 import pytest
 
 from garaga.definitions import CurveID
 from garaga.starknet.tests_and_calldata_generators.signatures import (
     ECDSASignature,
+    EdDSA25519Signature,
     SchnorrSignature,
 )
 
@@ -44,6 +47,27 @@ def test_ecdsa_calldata_builder(curve_id):
         assert (
             calldata1 == calldata2
         ), f"Mismatch in ECDSA calldata for curve {curve_id.name}"
+
+
+def test_eddsa_25519_signatures(full=False):
+    with open("build/ed25519_test_vectors.json", "r") as f:
+        test_vectors = json.load(f)
+
+    if full:
+        test_vectors = test_vectors
+    else:
+        test_vectors = test_vectors[0:96]
+
+    for i, test_vector in enumerate(test_vectors):
+        signature = EdDSA25519Signature.from_json(test_vector)
+        assert signature.is_valid(), f"Signature {i} is invalid"
+
+        calldata_py = signature.serialize_with_hints(use_rust=False)
+        calldata_rust = signature.serialize_with_hints(use_rust=True)
+
+        assert (
+            calldata_py == calldata_rust
+        ), f"Mismatch in EdDSA calldata for test vector {i}"
 
 
 if __name__ == "__main__":
