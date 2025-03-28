@@ -55,22 +55,19 @@ pub struct Word64 {
 
 impl WordBitAnd of BitAnd<Word64> {
     fn bitand(lhs: Word64, rhs: Word64) -> Word64 {
-        let data = BitAnd::bitand(lhs.data, rhs.data);
-        Word64 { data }
+        Word64 { data: lhs.data & rhs.data }
     }
 }
 
 impl WordBitXor of BitXor<Word64> {
     fn bitxor(lhs: Word64, rhs: Word64) -> Word64 {
-        let data = BitXor::bitxor(lhs.data, rhs.data);
-        Word64 { data }
+        Word64 { data: lhs.data ^ rhs.data }
     }
 }
 
 impl WordBitOr of BitOr<Word64> {
     fn bitor(lhs: Word64, rhs: Word64) -> Word64 {
-        let data = BitOr::bitor(lhs.data, rhs.data);
-        Word64 { data }
+        Word64 { data: lhs.data | rhs.data }
     }
 }
 
