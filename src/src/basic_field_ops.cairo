@@ -37,7 +37,7 @@ pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 pub fn is_opposite_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> bool {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let in2 = CircuitElement::<CircuitInput<1>> {};
-    let sum = circuit_sub(in1, in2);
+    let sum = circuit_add(in1, in2);
     let outputs = (sum,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
 
     return outputs.get_output(sum).is_zero();
