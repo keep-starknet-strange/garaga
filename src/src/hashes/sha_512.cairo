@@ -7,9 +7,14 @@ use core::traits::{BitAnd, BitOr, BitXor};
 
 pub const SHA512_LEN: usize = 64;
 
-pub const U64_BIT_NUM: u64 = 64;
+pub const TWO_POW_56_NZ: NonZero<u64> = 0x100000000000000;
+pub const TWO_POW_48_NZ: NonZero<u64> = 0x1000000000000;
+pub const TWO_POW_40_NZ: NonZero<u64> = 0x10000000000;
+pub const TWO_POW_32_NZ: NonZero<u64> = 0x100000000;
+pub const TWO_POW_24_NZ: NonZero<u64> = 0x1000000;
+pub const TWO_POW_16_NZ: NonZero<u64> = 0x10000;
+pub const TWO_POW_8_NZ: NonZero<u64> = 0x100;
 
-// Powers of two to avoid recomputing
 pub const TWO_POW_56: u64 = 0x100000000000000;
 pub const TWO_POW_48: u64 = 0x1000000000000;
 pub const TWO_POW_40: u64 = 0x10000000000;
@@ -17,11 +22,14 @@ pub const TWO_POW_32: u64 = 0x100000000;
 pub const TWO_POW_24: u64 = 0x1000000;
 pub const TWO_POW_16: u64 = 0x10000;
 pub const TWO_POW_8: u64 = 0x100;
+
+
 pub const TWO_POW_4: u64 = 0x10;
 pub const TWO_POW_2: u64 = 0x4;
 pub const TWO_POW_1: u64 = 0x2;
 pub const TWO_POW_0: u64 = 0x1;
 
+const TWO_POW_6: u64 = 0x40;
 const TWO_POW_7: u64 = 0x80;
 const TWO_POW_14: u64 = 0x4000;
 const TWO_POW_18: u64 = 0x40000;
@@ -31,9 +39,9 @@ const TWO_POW_34: u64 = 0x400000000;
 const TWO_POW_39: u64 = 0x8000000000;
 const TWO_POW_41: u64 = 0x20000000000;
 const TWO_POW_61: u64 = 0x2000000000000000;
+const TWO_POW_64: u128 = 0x10000000000000000;
 
 const TWO_POW_64_MINUS_1: u64 = 0x8000000000000000;
-const TWO_POW_64_MINUS_6: u64 = 0x40;
 const TWO_POW_64_MINUS_8: u64 = 0x100000000000000;
 const TWO_POW_64_MINUS_14: u64 = 0x4000000000000;
 const TWO_POW_64_MINUS_18: u64 = 0x400000000000;
@@ -55,22 +63,19 @@ pub struct Word64 {
 
 impl WordBitAnd of BitAnd<Word64> {
     fn bitand(lhs: Word64, rhs: Word64) -> Word64 {
-        let data = BitAnd::bitand(lhs.data, rhs.data);
-        Word64 { data }
+        Word64 { data: lhs.data & rhs.data }
     }
 }
 
 impl WordBitXor of BitXor<Word64> {
     fn bitxor(lhs: Word64, rhs: Word64) -> Word64 {
-        let data = BitXor::bitxor(lhs.data, rhs.data);
-        Word64 { data }
+        Word64 { data: lhs.data ^ rhs.data }
     }
 }
 
 impl WordBitOr of BitOr<Word64> {
     fn bitor(lhs: Word64, rhs: Word64) -> Word64 {
-        let data = BitOr::bitor(lhs.data, rhs.data);
-        Word64 { data }
+        Word64 { data: lhs.data | rhs.data }
     }
 }
 
@@ -98,6 +103,19 @@ impl U64IntoWord of Into<u64, Word64> {
     }
 }
 
+impl WordIntoFelt252 of Into<Word64, felt252> {
+    fn into(self: Word64) -> felt252 {
+        self.data.into()
+    }
+}
+
+impl Felt252IntoWord of Into<felt252, Word64> {
+    fn into(self: felt252) -> Word64 {
+        let f_128: u128 = self.try_into().unwrap() % TWO_POW_64;
+        Word64 { data: f_128.try_into().unwrap() }
+    }
+}
+
 pub trait WordOperations<T> {
     fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> T;
 }
@@ -108,7 +126,7 @@ pub impl Word64WordOperations of WordOperations<Word64> {
         let data = self.data.into();
         let data: u128 = BitOr::bitor(
             math_shr_precomputed::<u128>(data, two_pow_n.into()),
-            math_shl_precomputed::<u128>(data, two_pow_64_n.into()),
+            math_shl_precomputed_u128(data, two_pow_64_n.into()),
         );
 
         let data: u64 = match data.try_into() {
@@ -162,18 +180,15 @@ fn ssig1(x: Word64) -> Word64 {
     // x.rotr(19) ^ x.rotr(61) ^ x.shr(6)
     x.rotr_precomputed(TWO_POW_19, TWO_POW_64_MINUS_19)
         ^ x.rotr_precomputed(TWO_POW_61, TWO_POW_64_MINUS_61)
-        ^ math_shr_precomputed::<u64>(x.data, TWO_POW_64_MINUS_6).into() // 2 ** 6
+        ^ math_shr_precomputed::<u64>(x.data, TWO_POW_6).into() // 2 ** 6
 }
 
-const two_squarings: [u64; 6] = [
-    TWO_POW_1, TWO_POW_2, TWO_POW_4, TWO_POW_8, TWO_POW_16, TWO_POW_32,
-];
 
 // Shift left with precomputed powers of 2
-fn math_shl_precomputed<T, +Mul<T>, +Rem<T>, +Drop<T>, +Copy<T>, +Into<T, u128>>(
-    x: T, two_power_n: T,
-) -> T {
-    x * two_power_n
+// Only use in this file. Unsafe otherwise.
+fn math_shl_precomputed_u128(x: u128, two_power_n: u128) -> u128 {
+    let mul: felt252 = x.into() * two_power_n.into();
+    mul.try_into().unwrap()
 }
 
 // Shift right with precomputed powers of 2
@@ -198,23 +213,26 @@ fn add_trailing_zeroes(ref data: Array<u8>, msg_len: usize) {
     };
 }
 
-fn from_u8Array_to_WordArray(data: Array<u8>) -> Array<Word64> {
+// Input must be a multiple of 8.
+fn from_u8Array_to_WordArray(mut data: Span<u8>) -> Array<Word64> {
     let mut new_arr: Array<Word64> = array![];
-    let mut i = 0;
 
-    // Use precomputed powers of 2 for shift left to avoid recomputation
-    // Safe to use u64 coz we shift u8 to the left by max 56 bits in u64
-    while (i != data.len()) {
-        let new_word: u64 = math_shl_precomputed::<u64>((*data[i + 0]).into(), TWO_POW_56)
-            + math_shl_precomputed((*data[i + 1]).into(), TWO_POW_48)
-            + math_shl_precomputed((*data[i + 2]).into(), TWO_POW_40)
-            + math_shl_precomputed((*data[i + 3]).into(), TWO_POW_32)
-            + math_shl_precomputed((*data[i + 4]).into(), TWO_POW_24)
-            + math_shl_precomputed((*data[i + 5]).into(), TWO_POW_16)
-            + math_shl_precomputed((*data[i + 6]).into(), TWO_POW_8)
-            + math_shl_precomputed((*data[i + 7]).into(), TWO_POW_0);
-        new_arr.append(Word64 { data: new_word });
-        i += 8;
+    while let Some(b8) = data.multi_pop_front::<8>() {
+        let [b7, b6, b5, b4, b3, b2, b1, b0] = b8.unbox();
+        let b0: felt252 = b0.into();
+        let b1: felt252 = b1.into();
+        let b2: felt252 = b2.into();
+        let b3: felt252 = b3.into();
+        let b4: felt252 = b4.into();
+        let b5: felt252 = b5.into();
+        let b6: felt252 = b6.into();
+        let b7: felt252 = b7.into();
+
+        let new_word: felt252 = b0
+            + 256
+                * (b1 + 256 * (b2 + 256 * (b3 + 256 * (b4 + 256 * (b5 + 256 * (b6 + 256 * b7))))));
+
+        new_arr.append(Word64 { data: new_word.try_into().unwrap() });
     }
     new_arr
 }
@@ -222,40 +240,35 @@ fn from_u8Array_to_WordArray(data: Array<u8>) -> Array<Word64> {
 fn from_WordArray_to_u8array(data: Span<Word64>) -> Array<u8> {
     let mut arr: Array<u8> = array![];
 
-    let mut i = 0;
     // Use precomputed powers of 2 for shift right to avoid recomputation
-    while (i != data.len()) {
-        let mut res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_56) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_48) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_40) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_32) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_24) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_16) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_8) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        res = math_shr_precomputed((*data.at(i).data).into(), TWO_POW_0) & MAX_U8;
-        arr.append(res.try_into().unwrap());
-        i += 1;
+    for word in data {
+        let data_i: u64 = *word.data;
+        let (w7, w) = DivRem::div_rem(data_i, TWO_POW_56_NZ);
+        let (w6, w) = DivRem::div_rem(w, TWO_POW_48_NZ);
+        let (w5, w) = DivRem::div_rem(w, TWO_POW_40_NZ);
+        let (w4, w) = DivRem::div_rem(w, TWO_POW_32_NZ);
+        let (w3, w) = DivRem::div_rem(w, TWO_POW_24_NZ);
+        let (w2, w) = DivRem::div_rem(w, TWO_POW_16_NZ);
+        let (w1, w0) = DivRem::div_rem(w, TWO_POW_8_NZ);
+
+        arr.append(w7.try_into().unwrap());
+        arr.append(w6.try_into().unwrap());
+        arr.append(w5.try_into().unwrap());
+        arr.append(w4.try_into().unwrap());
+        arr.append(w3.try_into().unwrap());
+        arr.append(w2.try_into().unwrap());
+        arr.append(w1.try_into().unwrap());
+        arr.append(w0.try_into().unwrap());
     }
     arr
 }
 
 fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
     let k = K.span();
-    let mut h = H.span();
 
     let block_nb = msg_len / 128;
 
-    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = (*h
-        .multi_pop_front::<8>()
-        .unwrap())
-        .unbox();
+    let [mut h_0, mut h_1, mut h_2, mut h_3, mut h_4, mut h_5, mut h_6, mut h_7] = H;
 
     let mut i = 0;
 
@@ -268,7 +281,11 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
             if t < 16 {
                 W.append(*data.at(i * 16 + t));
             } else {
-                let buf = ssig1(*W.at(t - 2)) + *W.at(t - 7) + ssig0(*W.at(t - 15)) + *W.at(t - 16);
+                let buf_felt252: felt252 = ssig1(*W.at(t - 2)).into()
+                    + (*W.at(t - 7)).into()
+                    + ssig0(*W.at(t - 15)).into()
+                    + (*W.at(t - 16)).into();
+                let buf: Word64 = buf_felt252.into();
                 W.append(buf);
             }
             t += 1;
@@ -285,7 +302,12 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
 
         let mut W = W.span();
         for _k in k {
-            let T1 = h + bsig1(e) + ch(e, f, g) + *_k + *W.pop_front().unwrap();
+            let T1_felt252: felt252 = h.into()
+                + bsig1(e).into()
+                + ch(e, f, g).into()
+                + (*_k).into()
+                + (*W.pop_front().unwrap()).into();
+            let T1: Word64 = T1_felt252.into();
             let T2 = bsig0(a) + maj(a, b, c);
             h = g;
             g = f;
@@ -351,7 +373,7 @@ pub fn _sha512(mut data: Array<u8>) -> [Word64; 8] {
 
     msg_len = data.len();
 
-    let mut data = from_u8Array_to_WordArray(data);
+    let mut data = from_u8Array_to_WordArray(data.span());
 
     let hash = digest_hash(data.span(), msg_len);
     hash
