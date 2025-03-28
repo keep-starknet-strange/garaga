@@ -3,6 +3,7 @@ use core::circuit::{
     CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
     circuit_mul, circuit_sub, u384, u96,
 };
+use core::integer::u128_byte_reverse;
 use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p, u512_mod_p};
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{
@@ -10,13 +11,14 @@ use garaga::definitions::{
     serialize_u384, u288,
 };
 use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, ec_safe_add, msm_g1};
-use garaga::hashes::sha_512::{Word64, _sha512};
+use garaga::hashes::sha_512::{Word64, _sha512, from_WordArray_to_u8array};
 use garaga::utils::u384_eq_zero;
 
 const POW_2_32_u64: NonZero<u64> = 0x100000000;
 const POW_2_127_u128: NonZero<u128> = 0x80000000000000000000000000000000;
 const POW_2_8_u128: NonZero<u128> = 0x100;
 
+const POW_2_64_u128: u128 = 0x10000000000000000;
 const X22519_u256: u256 = 0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed;
 const D_TWISTED: u384 = u384 {
     limb0: 0x4141d8ab75eb4dca135978a3,
@@ -108,39 +110,48 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let mut data: Array<u8> = array![];
 
     // Hash(Ry + Py + msg)
-    append_u256_le_to_u8_be_array(Ry_twisted_be, ref data);
-    append_u256_le_to_u8_be_array(Py_twisted_be, ref data);
+    append_u256_le_to_u8_be_array(Ry_twisted_le, ref data);
+    append_u256_le_to_u8_be_array(Py_twisted_le, ref data);
     for byte in msg.span() {
         data.append(*byte);
     }
 
-    let [h0, h1, h2, h3, h4, h5, h6, h7] = _sha512(data);
+    println!("preimage: {:?}", data);
 
-    let (ah_0, ah_1) = DivRem::div_rem(h0.data, POW_2_32_u64);
-    let (ah_2, ah_3) = DivRem::div_rem(h1.data, POW_2_32_u64);
-    let (ah_4, ah_5) = DivRem::div_rem(h2.data, POW_2_32_u64);
-    let (ah_6, ah_7) = DivRem::div_rem(h3.data, POW_2_32_u64);
+    let hash = _sha512(data);
+    let [h0, h1, h2, h3, h4, h5, h6, h7] = hash;
 
-    let (al_0, al_1) = DivRem::div_rem(h4.data, POW_2_32_u64);
-    let (al_2, al_3) = DivRem::div_rem(h5.data, POW_2_32_u64);
-    let (al_4, al_5) = DivRem::div_rem(h6.data, POW_2_32_u64);
-    let (al_6, al_7) = DivRem::div_rem(h7.data, POW_2_32_u64);
+    let hash_bytes = from_WordArray_to_u8array(hash.span());
+
+    println!("hash_bytes: {:?}", hash_bytes);
+
+    let high_high_128: u128 = h1.data.into() + h0.data.into() * POW_2_64_u128;
+    let high_low_128: u128 = h3.data.into() + h2.data.into() * POW_2_64_u128;
+    let low_high_128: u128 = h5.data.into() + h4.data.into() * POW_2_64_u128;
+    let low_low_128: u128 = h7.data.into() + h6.data.into() * POW_2_64_u128;
+
+    let high_256 = u256 { low: high_low_128, high: high_high_128 };
+    let low_256 = u256 { low: low_low_128, high: low_high_128 };
+
+    // [hh0, ..., hh15] [hl0, ..., hl15] [lh0, ..., lh15] [ll0, ..., ll15]
+
+    let hh_le = u128_byte_reverse(low_256.low);
+    let hl_le = u128_byte_reverse(low_256.high);
+    let lh_le = u128_byte_reverse(high_256.low);
+    let ll_le = u128_byte_reverse(high_256.high);
+
+    // u512 from hash bytes (little endian)
+    // [ll15, ..., ll0] [lh15, ..., lh0] [hl15, ..., hl0] [hh15, ..., hh0]
+
+    let h_le: u384 = u256 { low: hl_le, high: hh_le }.into();
+    let l_le: u384 = u256 { low: ll_le, high: lh_le }.into();
+
+    println!("h_le: {:?}", h_le);
+    println!("l_le: {:?}", l_le);
 
     let order_modulus = get_curve_order_modulus(4);
 
-    let h_mod_p = u512_mod_p(
-        [
-            ah_0.try_into().unwrap(), ah_1.try_into().unwrap(), ah_2.try_into().unwrap(),
-            ah_3.try_into().unwrap(), ah_4.try_into().unwrap(), ah_5.try_into().unwrap(),
-            ah_6.try_into().unwrap(), ah_7.try_into().unwrap(),
-        ],
-        [
-            al_0.try_into().unwrap(), al_1.try_into().unwrap(), al_2.try_into().unwrap(),
-            al_3.try_into().unwrap(), al_4.try_into().unwrap(), al_5.try_into().unwrap(),
-            al_6.try_into().unwrap(), al_7.try_into().unwrap(),
-        ],
-        order_modulus,
-    );
+    let h_mod_p = u512_mod_p(h_le, l_le, order_modulus);
 
     // Calculate h = hash(R + pubKey + msg) mod q
     // Calculate P1 = s * G

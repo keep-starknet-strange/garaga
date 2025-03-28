@@ -389,13 +389,17 @@ class EdDSA25519Signature:
         print(f"Rx: {hex(R.x)}")
         A = self.decode_point(self.Py_twisted_le)
         print(f"P: {A.to_cairo_1(as_hex=False)}")
+
         preimage = (
             self.Ry_twisted_le.to_bytes(32, "little")
             + self.Py_twisted_le.to_bytes(32, "little")
             + self.msg
         )
+
+        print(f"preimage: {list(preimage)}")
+
         H_bytes = sha512(preimage).digest()
-        print(f"H_bytes: {H_bytes}")
+        print(f"H_bytes: {list(H_bytes)}")
         H = int.from_bytes(H_bytes, "little")
         print(f"H: {H}")
         h = H % self.curve.n

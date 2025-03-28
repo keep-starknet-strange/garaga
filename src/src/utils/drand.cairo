@@ -5,7 +5,7 @@ use core::circuit::{
 };
 use core::num::traits::Zero;
 use core::sha256::compute_sha256_u32_array;
-use garaga::basic_field_ops::{is_even_u384, u512_mod_p};
+use garaga::basic_field_ops::{is_even_u384, u32_8_to_u384, u512_mod_p};
 use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
 use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
 use garaga::core::circuit::AddInputResultTrait2;
@@ -294,7 +294,10 @@ fn hash_to_two_bls_felts(message: [u32; 8]) -> (u384, u384) {
     let bi_3 = compute_sha256_u32_array(array, I_DST_PRIME_LAST_WORD, 1);
 
     let modulus = get_BLS12_381_modulus();
-    return (u512_mod_p(bi, bi_1, modulus), u512_mod_p(bi_2, bi_3, modulus));
+    return (
+        u512_mod_p(u32_8_to_u384(bi), u32_8_to_u384(bi_1), modulus),
+        u512_mod_p(u32_8_to_u384(bi_2), u32_8_to_u384(bi_3), modulus),
+    );
 }
 
 

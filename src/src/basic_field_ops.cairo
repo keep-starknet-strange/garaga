@@ -82,39 +82,31 @@ pub fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
+
+pub fn u32_8_to_u384(a: [u32; 8]) -> u384 {
+    let [a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7] = a;
+    let l0: felt252 = a_7.into() + a_6.into() * POW_2_32_252 + a_5.into() * POW_2_64_252;
+    let l1: felt252 = a_4.into() + a_3.into() * POW_2_32_252 + a_2.into() * POW_2_64_252;
+    let l2: felt252 = a_1.into() + a_0.into() * POW_2_32_252;
+    u384 {
+        limb0: l0.try_into().unwrap(),
+        limb1: l1.try_into().unwrap(),
+        limb2: l2.try_into().unwrap(),
+        limb3: 0,
+    }
+}
+
 // Takes big endian u512 and returns a u384 mod modulus
 // u512 = low_256 + high_256 * 2^256
 // u512 % p = (low_256 + high_256 * 2^256) % p
 // = (low_256 % p + high_256 * 2^256 % p) % p
-pub fn u512_mod_p(a_high: [u32; 8], a_low: [u32; 8], modulus: CircuitModulus) -> u384 {
+// CAUTION : a_high and a_low are expected to be < 2^256. No check is performed.
+pub fn u512_mod_p(high_256: u384, low_256: u384, modulus: CircuitModulus) -> u384 {
     let low = CircuitElement::<CircuitInput<0>> {};
     let high = CircuitElement::<CircuitInput<1>> {};
     let shift = CircuitElement::<CircuitInput<2>> {};
     let high_shifted = circuit_mul(high, shift);
     let res = circuit_add(low, high_shifted);
-
-    let [al_0, al_1, al_2, al_3, al_4, al_5, al_6, al_7] = a_low;
-    let ll0: felt252 = al_7.into() + al_6.into() * POW_2_32_252 + al_5.into() * POW_2_64_252;
-    let ll1: felt252 = al_4.into() + al_3.into() * POW_2_32_252 + al_2.into() * POW_2_64_252;
-    let ll2: felt252 = al_1.into() + al_0.into() * POW_2_32_252;
-
-    let low_256 = u384 {
-        limb0: ll0.try_into().unwrap(),
-        limb1: ll1.try_into().unwrap(),
-        limb2: ll2.try_into().unwrap(),
-        limb3: 0,
-    };
-
-    let [ah_0, ah_1, ah_2, ah_3, ah_4, ah_5, ah_6, ah_7] = a_high;
-    let hl0: felt252 = ah_7.into() + ah_6.into() * POW_2_32_252 + ah_5.into() * POW_2_64_252;
-    let hl1: felt252 = ah_4.into() + ah_3.into() * POW_2_32_252 + ah_2.into() * POW_2_64_252;
-    let hl2: felt252 = ah_1.into() + ah_0.into() * POW_2_32_252;
-    let high_256 = u384 {
-        limb0: hl0.try_into().unwrap(),
-        limb1: hl1.try_into().unwrap(),
-        limb2: hl2.try_into().unwrap(),
-        limb3: 0,
-    };
 
     let outputs = (res,)
         .new_inputs()
