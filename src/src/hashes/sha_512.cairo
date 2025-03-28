@@ -105,7 +105,7 @@ pub impl Word64WordOperations of WordOperations<Word64> {
         let data = self.data.into();
         let data: u128 = BitOr::bitor(
             math_shr_precomputed::<u128>(data, two_pow_n.into()),
-            math_shl_precomputed::<u128>(data, two_pow_64_n.into()),
+            math_shl_precomputed_u128(data, two_pow_64_n.into()),
         );
 
         let data: u64 = match data.try_into() {
@@ -167,10 +167,11 @@ const two_squarings: [u64; 6] = [
 ];
 
 // Shift left with precomputed powers of 2
-fn math_shl_precomputed<T, +Mul<T>, +Rem<T>, +Drop<T>, +Copy<T>, +Into<T, u128>>(
-    x: T, two_power_n: T,
-) -> T {
-    x * two_power_n
+fn math_shl_precomputed_u128(
+    x: u128, two_power_n: u128,
+) -> u128 {
+    let mul:felt252 = x.into() * two_power_n.into();
+    mul.try_into().unwrap()
 }
 
 // Shift right with precomputed powers of 2
@@ -195,23 +196,26 @@ fn add_trailing_zeroes(ref data: Array<u8>, msg_len: usize) {
     };
 }
 
-fn from_u8Array_to_WordArray(data: Array<u8>) -> Array<Word64> {
+// Input must be a multiple of 8.
+fn from_u8Array_to_WordArray(mut data: Span<u8>) -> Array<Word64> {
     let mut new_arr: Array<Word64> = array![];
-    let mut i = 0;
 
-    // Use precomputed powers of 2 for shift left to avoid recomputation
-    // Safe to use u64 coz we shift u8 to the left by max 56 bits in u64
-    while (i != data.len()) {
-        let new_word: u64 = math_shl_precomputed::<u64>((*data[i + 0]).into(), TWO_POW_56)
-            + math_shl_precomputed((*data[i + 1]).into(), TWO_POW_48)
-            + math_shl_precomputed((*data[i + 2]).into(), TWO_POW_40)
-            + math_shl_precomputed((*data[i + 3]).into(), TWO_POW_32)
-            + math_shl_precomputed((*data[i + 4]).into(), TWO_POW_24)
-            + math_shl_precomputed((*data[i + 5]).into(), TWO_POW_16)
-            + math_shl_precomputed((*data[i + 6]).into(), TWO_POW_8)
-            + math_shl_precomputed((*data[i + 7]).into(), TWO_POW_0);
-        new_arr.append(Word64 { data: new_word });
-        i += 8;
+    while let Some(b8) = data.multi_pop_front::<8>() {
+        let [b7, b6, b5, b4, b3, b2, b1, b0] = b8.unbox();
+        let b0: felt252 = b0.into();
+        let b1: felt252 = b1.into();
+        let b2: felt252 = b2.into();
+        let b3: felt252 = b3.into();
+        let b4: felt252 = b4.into();
+        let b5: felt252 = b5.into();
+        let b6: felt252 = b6.into();
+        let b7: felt252 = b7.into();
+
+        let new_word: felt252 = b0
+            + 256
+                * (b1 + 256 * (b2 + 256 * (b3 + 256 * (b4 + 256 * (b5 + 256 * (b6 + 256 * b7))))));
+
+        new_arr.append(Word64 { data: new_word.try_into().unwrap() });
     }
     new_arr
 }
@@ -348,7 +352,7 @@ pub fn _sha512(mut data: Array<u8>) -> [Word64; 8] {
 
     msg_len = data.len();
 
-    let mut data = from_u8Array_to_WordArray(data);
+    let mut data = from_u8Array_to_WordArray(data.span());
 
     let hash = digest_hash(data.span(), msg_len);
     hash
