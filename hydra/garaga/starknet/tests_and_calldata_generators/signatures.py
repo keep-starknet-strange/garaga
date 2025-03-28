@@ -3,7 +3,14 @@ from dataclasses import dataclass
 from hashlib import sha512
 
 from garaga import garaga_rs
-from garaga.definitions import BASE, CURVES, N_LIMBS, CurveID, G1Point, WeierstrassCurve
+from garaga.definitions import (
+    BASE,
+    CURVES,
+    N_LIMBS,
+    CurveID,
+    G1Point,
+    TwistedEdwardsCurve,
+)
 from garaga.hints.io import bigint_split, split_128
 
 
@@ -298,20 +305,23 @@ class EdDSA25519Signature:
         return CurveID.ED25519
 
     @property
-    def curve(self) -> WeierstrassCurve:
+    def curve(self) -> TwistedEdwardsCurve:
         return CURVES[CurveID.ED25519.value]
 
     @classmethod
     def from_json(cls, json):
-        public_key_hex = json["public_key"]
-        message_hex = json["message"]
-        signature_hex = json["signature"]
+        public_key_bytes = bytes.fromhex(json["public_key"])
+        message_bytes = bytes.fromhex(json["message"])
+        signature_bytes = bytes.fromhex(json["signature"])
+
+        assert len(public_key_bytes) == 32
+        assert len(signature_bytes) == 64
 
         return cls(
-            Ry_twisted_le=int(signature_hex[:64], 16),  # 32 bytes
-            s=int(signature_hex[64:128], 16),  # 32 bytes
-            Py_twisted_le=int(public_key_hex, 16),  # 32 bytes
-            msg=bytes.fromhex(message_hex),  # arbitrary length
+            Ry_twisted_le=int.from_bytes(signature_bytes[:32], "little"),
+            s=int.from_bytes(signature_bytes[32:64], "little"),
+            Py_twisted_le=int.from_bytes(public_key_bytes, "little"),
+            msg=message_bytes,
         )
 
     def serialize(self) -> list[int]:
@@ -323,18 +333,18 @@ class EdDSA25519Signature:
         return cd
 
     def xrecover(self, y: int) -> int:
-        q = self.curve.p
+        p = self.curve.p
         D = self.curve.d_twisted
-        I = pow(2, (q - 1) // 4, q)
+        I = pow(2, (p - 1) // 4, p)
 
-        xx = (y * y - 1) * pow(D * y * y + 1, -1, q)
-        x = pow(xx, (q + 3) // 8, q)
+        xx = (y * y - 1) * pow(D * y * y + 1, -1, p)
+        x = pow(xx, (p + 3) // 8, p)
 
-        if (x * x - xx) % q != 0:
-            x = (x * I) % q
+        if (x * x - xx) % p != 0:
+            x = (x * I) % p
 
         if x % 2 != 0:
-            x = q - x
+            x = p - x
 
         return x
 
@@ -343,8 +353,8 @@ class EdDSA25519Signature:
         x = self.xrecover(y)
         if x % 2 != sign_bit:
             x = self.curve.p - x
-
-        return G1Point(x, y, self.curve_id)
+        x_weierstrass, y_weierstrass = self.curve.to_weierstrass(x, y)
+        return G1Point(x_weierstrass, y_weierstrass, self.curve_id)
 
     def is_valid(self) -> bool:
         R = self.decode_point(self.Ry_twisted_le)
@@ -353,23 +363,31 @@ class EdDSA25519Signature:
         s = self.s
 
         preimage = (
-            self.Ry_twisted_le.to_bytes(32, "big")
-            + self.Py_twisted_le.to_bytes(32, "big")
+            self.Ry_twisted_le.to_bytes(32, "little")
+            + self.Py_twisted_le.to_bytes(32, "little")
             + self.msg
         )
 
-        H = sha512(preimage)
+        H = int.from_bytes(sha512(preimage).digest(), "little")
+
+        h = H % self.curve.n
+
+        P = G1Point.get_nG(self.curve_id, s)
+
+        Q = A.scalar_mul(h)
+        Q = Q.add(R)
 
         if R.is_infinity() or A.is_infinity():
             return False
-        if R.x != A.x or R.y != A.y:
+
+        if P != Q:
             return False
+
         return True
 
     # def serialize_with_hints(self, use_rust=False) -> list[int]:
     #     """Serialize the signature with hints for verification"""
     #     if use_rust:
-    #         pass
     #     cd = self.serialize()
     #     cd
 
@@ -380,6 +398,6 @@ if __name__ == "__main__":
     with open("build/ed25519_test_vectors.json", "r") as f:
         test_vectors = json.load(f)
 
-    for test_vector in test_vectors:
+    for i, test_vector in enumerate(test_vectors):
         signature = EdDSA25519Signature.from_json(test_vector)
-        print(signature.serialize())
+        assert signature.is_valid(), f"Signature {i} is invalid"
