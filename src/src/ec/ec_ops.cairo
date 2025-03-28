@@ -8,7 +8,9 @@ use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
 use core::result::ResultTrait;
-use garaga::basic_field_ops::{add_mod_p, batch_3_mod_p, mul_mod_p, neg_mod_p, sub_mod_p};
+use garaga::basic_field_ops::{
+    add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
+};
 use garaga::circuits::ec;
 use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
@@ -92,12 +94,10 @@ pub fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
         return p;
     }
     let modulus = get_modulus(curve_index);
-    let same_x = sub_mod_p(p.x, q.x, modulus) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+    let same_x = sub_mod_p(p.x, q.x, modulus).is_zero();
 
     if same_x {
-        let opposite_y = sub_mod_p(
-            p.y, neg_mod_p(q.y, modulus), modulus,
-        ) == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+        let opposite_y = is_opposite_mod_p(p.y, q.y, modulus);
         if opposite_y {
             return G1PointZero::zero();
         } else {
