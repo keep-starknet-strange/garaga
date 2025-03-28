@@ -49,15 +49,15 @@ const G_neg: G1Point = G1Point {
 };
 
 
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 pub struct EdDSASignature {
     Ry_twisted_le: u256, // Compressed form of Ry in little endian (compliant with RFC 8032)
     s: u256,
     Py_twisted_le: u256, // Compressed form of Public Key y in little endian (compliant with RFC 8032)
-    msg: Array<u8>,
+    msg: Span<u8>,
 }
 
-#[derive(Drop, Debug, PartialEq, Serde)]
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
 pub struct EdDSASignatureWithHint {
     signature: EdDSASignature,
     msm_hint: MSMHint,
@@ -109,7 +109,7 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     // Hash(Ry + Py + msg)
     append_u256_le_to_u8_be_array(Ry_twisted_le, ref data);
     append_u256_le_to_u8_be_array(Py_twisted_le, ref data);
-    for byte in msg.span() {
+    for byte in msg {
         data.append(*byte);
     }
 
