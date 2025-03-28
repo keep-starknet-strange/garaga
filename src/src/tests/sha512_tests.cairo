@@ -1,4 +1,4 @@
-use garaga_rs::hashes::sha_512::{Word64WordOperations, sha512};
+use garaga::hashes::sha_512::{Word64WordOperations, sha512};
 
 fn get_lorem_ipsum() -> Array<u8> {
     let mut input: Array<u8> = array![
@@ -328,7 +328,6 @@ fn get_lorem_ipsum() -> Array<u8> {
 }
 
 #[test]
-#[available_gas(20000000000)]
 fn test_sha512_lorem_ipsum() {
     let msg = get_lorem_ipsum();
     let res = sha512(msg).span();
@@ -406,7 +405,6 @@ fn test_sha512_lorem_ipsum() {
 }
 
 #[test]
-#[available_gas(20000000000)]
 fn test_sha512_size_one() {
     let mut arr: Array<u8> = array![49];
     let res = sha512(arr).span();
@@ -484,7 +482,6 @@ fn test_sha512_size_one() {
 }
 
 #[test]
-#[available_gas(20000000000)]
 fn test_size_zero() {
     let msg = array![];
 
