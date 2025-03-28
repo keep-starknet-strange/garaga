@@ -325,7 +325,7 @@ def generate_test(index, vector):
     return generate_eddsa_test(signature, index)
 
 
-def generate_eddsa_test_file(n_tests: int = 64) -> str:
+def generate_eddsa_test_file() -> str:
     """Configuration for EDDSA signature tests"""
     code = """
     use garaga::signatures::eddsa_25519::{
@@ -336,8 +336,7 @@ def generate_eddsa_test_file(n_tests: int = 64) -> str:
     with open("build/ed25519_test_vectors.json", "r") as f:
         test_vectors = json.load(f)
 
-    if n_tests > 0:
-        test_vectors = test_vectors[:n_tests]
+    test_vectors = test_vectors[0:64:2]
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = {

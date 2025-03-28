@@ -372,9 +372,6 @@ class EdDSA25519Signature:
         # print(f"x_recovered: {hex(x_twisted)}")
         if x_twisted % 2 != sign_bit:
             x_twisted = self.curve.p - x_twisted
-
-        # print(f"x_twisted: {hex(x_twisted)}")
-        # print(f"y_twisted: {hex(y_twisted)}")
         x_weierstrass, y_weierstrass = self.curve.to_weierstrass(x_twisted, y_twisted)
         # print(f"x_weierstrass: {hex(x_weierstrass)}")
         # print(f"y_weierstrass: {hex(y_weierstrass)}")
@@ -399,6 +396,7 @@ class EdDSA25519Signature:
         # print(f"preimage: {list(preimage)}")
 
         H_bytes = sha512(preimage).digest()
+        # print(f"hash py: {H_bytes.hex()}")
         # print(f"H_bytes: {list(H_bytes)}")
         H = int.from_bytes(H_bytes, "little")
         # print(f"H: {H}")
@@ -424,7 +422,13 @@ class EdDSA25519Signature:
     def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
-            pass
+            return garaga_rs.eddsa_calldata_builder(
+                self.Ry_twisted_le,
+                self.s,
+                self.Py_twisted_le,
+                self.msg,
+            )
+
         cd = self.serialize()
         R, A, h = self.deserialize_R_A_h()
         msm_calldata = garaga_rs.msm_calldata_builder(
@@ -441,6 +445,7 @@ class EdDSA25519Signature:
             False,  # serialize_as_pure_felt252_array
             False,  # risc0_mode
         )[1:]
+
         cd.extend(msm_calldata)
         (Rx_twisted, _) = self.curve.to_twistededwards(R.x, R.y)
         # print(f"Rx_twisted: {hex(Rx_twisted)}")
