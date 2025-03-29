@@ -83,7 +83,7 @@ impl WordBitOr of BitOr<Word64> {
 
 impl WordBitNot of BitNot<Word64> {
     fn bitnot(a: Word64) -> Word64 {
-        Word64 { data: Bounded::MAX - a.data }
+        Word64 { data: ~a.data }
     }
 }
 
@@ -110,11 +110,16 @@ impl WordIntoFelt252 of Into<Word64, felt252> {
         self.data.into()
     }
 }
+use core::circuit::conversions::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt,
+};
+use core::circuit::conversions::{DivRemU128By64, NZ_POW64_TYPED, bounded_int, upcast};
 
 impl Felt252IntoWord of Into<felt252, Word64> {
     fn into(self: felt252) -> Word64 {
-        let f_128: u128 = self.try_into().unwrap() % TWO_POW_64;
-        Word64 { data: f_128.try_into().unwrap() }
+        let f_128: u128 = self.try_into().unwrap();
+        let (_, rem) = bounded_int::div_rem(f_128, NZ_POW64_TYPED);
+        Word64 { data: upcast(rem) }
     }
 }
 
@@ -126,10 +131,8 @@ pub impl Word64WordOperations of WordOperations<Word64> {
     // does the work of rotr but with precomputed values 2**n and 2**(64-n)
     fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> u128 {
         let data = self.data.into();
-        let data: u128 = BitOr::bitor(
-            math_shr_precomputed::<u128>(data, two_pow_n.into()),
-            math_shl_precomputed_u128(data, two_pow_64_n.into()),
-        );
+        let data: u128 = math_shr_precomputed::<u128>(data, two_pow_n.into())
+            | math_shl_precomputed_u128(data, two_pow_64_n.into());
 
         data
     }
