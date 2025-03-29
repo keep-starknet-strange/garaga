@@ -9,12 +9,12 @@ pub trait IMutatorSetContract<TContractState> {
 #[starknet::contract]
 mod MutatorSetContract {
     use garaga::crypto::mmr::trailing_ones;
-    use garaga::definitions::u384;
+    use garaga::definitions::u384, get_n;
     use garaga::hashes::poseidon_hash_2_bn254;
     use starknet::storage::{
         MutableVecTrait, StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
     };
-
+    const BN254_CURVE_ORDER: u256 = u256 { low: 0x2833e84879b9709143e1f593f0000001, high: 0x30644e72e131a029b85045b68181585d };
     #[storage]
     struct Storage {
         n_leaves_aocl: u64,
@@ -54,7 +54,7 @@ mod MutatorSetContract {
         }
 
         fn append_leaf_aocl(ref self: ContractState, leaf: u256) {
-            // TODO : assert leaf is reduced mod bn254 scalar field
+            assert(leaf < BN254_CURVE_ORDER, 'Invalid leaf value');
             let n_leaves = self.n_leaves_aocl.read();
             let n_parents = trailing_ones(n_leaves);
             let mut last_peak_idx = self.last_peak_index_aocl.read();
@@ -94,7 +94,6 @@ mod MutatorSetContract {
                     let parent: u256 = hash_2(last_peak, leaf);
 
                     last_peak_ptr.write(parent);
-                    // last_peak_idx -= 1;
                     for _ in 0..n_parents - 1 {
                         let in_progress_peak = self.peaks_aocl.get(last_peak_idx).unwrap().read();
                         let previous_peak = self.peaks_aocl.get(last_peak_idx - 1).unwrap().read();

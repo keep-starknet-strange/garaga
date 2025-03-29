@@ -12,7 +12,9 @@ pub mod circuits {
     // mod ec_batched;
     mod tower_circuits;
 }
-
+pub mod crypto {
+    pub mod mmr;
+}
 
 pub mod definitions;
 
@@ -122,10 +124,6 @@ pub mod utils {
         }
         true
     }
-}
-
-pub mod crypto {
-    pub mod mmr;
 }
 
 
