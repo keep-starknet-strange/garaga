@@ -32,6 +32,12 @@ install_parallel() {
     esac
 }
 
+# Clean up any existing venv directory
+if [ -d "venv" ]; then
+    echo "Cleaning up existing venv directory..."
+    rm -rf venv
+fi
+
 # Check if parallel is installed, if not, attempt to install it
 if ! command -v parallel >/dev/null; then
     echo "GNU parallel not found. Attempting to install..."
@@ -95,6 +101,11 @@ uv pip install -r tools/make/requirements.txt
 pre-commit install
 
 echo "Compiling garaga_rs Rust extension..."
+# Create target directory with proper permissions in the correct location
+mkdir -p build/garaga_rs/target
+chmod 755 build/garaga_rs/target
+
+# Build the Rust extension
 maturin develop --release
 
 echo "All done!"

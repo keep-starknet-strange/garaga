@@ -1,10 +1,10 @@
 [package]
-name = "risc0_bn254_verifier"
+name = "noir_ultra_starknet_zk_honk_example"
 version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = { path = "../../" }
+garaga = { path = "../../../" }
 starknet = "2.11.2"
 
 [cairo]
