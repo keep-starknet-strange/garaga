@@ -40,6 +40,18 @@ mod MutatorSetContract {
         poseidon_hash_2_bn254(x_u384, y_u384).try_into().unwrap()
     }
 
+    #[event]
+    #[derive(Drop, starknet::Event)]
+    pub enum Event {
+        LeafAppended: LeafAppended,
+    }
+
+    #[derive(Drop, starknet::Event)]
+    struct LeafAppended {
+        leaf: u256,
+        n_leaves: u64,
+    }
+
     #[abi(embed_v0)]
     impl MutatorSetContractImpl of super::IMutatorSetContract<ContractState> {
         fn get_n_leaves_aocl(self: @ContractState) -> u64 {
@@ -111,7 +123,12 @@ mod MutatorSetContract {
                     self.last_peak_index_aocl.write(last_peak_idx);
                 },
             }
-            self.n_leaves_aocl.write(n_leaves + 1);
+            let new_n_leaves = n_leaves + 1;
+            self.n_leaves_aocl.write(new_n_leaves);
+            self.emit(LeafAppended {
+                leaf,
+                n_leaves: new_n_leaves,
+            });
         }
 
         fn verify_inclusion_proof_aocl(
