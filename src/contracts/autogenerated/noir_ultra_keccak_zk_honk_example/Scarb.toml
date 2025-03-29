@@ -4,7 +4,7 @@ version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = { path = "../../" }
+garaga = { path = "../../../" }
 starknet = "2.11.2"
 
 [cairo]
