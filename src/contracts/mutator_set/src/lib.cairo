@@ -8,12 +8,12 @@ pub trait IMutatorSetContract<TContractState> {
 
 #[starknet::contract]
 mod MutatorSetContract {
-    use core::starknet::storage::{
-        MutableVecTrait, StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
-    };
     use garaga::crypto::mmr::trailing_ones;
     use garaga::definitions::u384;
     use garaga::hashes::poseidon_hash_2_bn254;
+    use starknet::storage::{
+        MutableVecTrait, StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
+    };
 
     #[storage]
     struct Storage {
@@ -24,7 +24,7 @@ mod MutatorSetContract {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        self.peaks_aocl.append().write(0);
+        self.peaks_aocl.push(0);
         self.n_leaves_aocl.write(1);
         self.last_peak_index_aocl.write(0);
     }
@@ -69,7 +69,7 @@ mod MutatorSetContract {
                             self.last_peak_index_aocl.write(new_peak_idx);
                         },
                         false => {
-                            self.peaks_aocl.append().write(leaf);
+                            self.peaks_aocl.push(leaf);
                             self.last_peak_index_aocl.write(new_peak_idx);
                         },
                     }
