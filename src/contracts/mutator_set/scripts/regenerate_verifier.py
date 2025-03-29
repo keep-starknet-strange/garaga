@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 class VerifierConfig:
     """Configuration for verifier generation."""
 
-    program_name: str = "zk"
+    program_name: str = "zk_program"
     bb_path: str = "bb"
     scheme: str = "ultra_honk"
     oracle_hash: str = "keccak"
@@ -37,7 +37,7 @@ class VerifierConfig:
         return {
             "noir_program_dir": project_root / self.program_name,
             "target_dir": project_root / self.program_name / "target",
-            "verifier_dir": project_root / "src" / f"{self.program_name}_verifier",
+            "verifier_dir": project_root / "src" / f"zk_verifier",
         }
 
 
