@@ -18,26 +18,32 @@ jobs:
         with:
           concurrent_skipping: 'same_content_newer'
 
-
   test-cairo:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: software-mansion/setup-scarb@v1
-        with:
-          scarb-version: "2.11.2"
-      - run: scarb fmt --check
-        working-directory: src/
-      - run: cd src/ && scarb test
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  test-contracts:
-    needs: pre_job
-    if: needs.pre_job.outputs.should_skip != 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - run: scarb fmt --check
+      - name: Setup Starknet Foundry
+        uses: foundry-rs/setup-snfoundry@v4
+      - name: Setup Scarb
+        uses: software-mansion/setup-scarb@v1
+        with:
+          scarb-lock: ./src/Scarb.lock
+
+      - name: Run scarb fmt check in src
+        working-directory: src/
+        run: scarb fmt --check
+      - name: Run scarb test in src
+        working-directory: src/
+        run: scarb test
+
+      - name: Run scarb fmt check in mutator_set
         working-directory: src/contracts/mutator_set
-      - run: cd src/contracts/mutator_set && snforge test
+        run: scarb fmt --check
+      - name: Run snforge test in mutator_set
+        working-directory: src/contracts/mutator_set
+        run: snforge test

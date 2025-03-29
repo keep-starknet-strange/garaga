@@ -14,7 +14,7 @@ pub fn trailing_ones(n: u64) -> usize {
         n = _n;
         mod_n = _mod_n;
         count += 1;
-    };
+    }
     return count;
 }
 

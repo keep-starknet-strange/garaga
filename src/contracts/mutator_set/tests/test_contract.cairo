@@ -1,11 +1,11 @@
-use starknet::ContractAddress;
-
-use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
-use garaga::hashes::poseidon_hash_2_bn254;
 use garaga::definitions::u384;
-use mutator_set::IMutatorSetContractSafeDispatcher;
-use mutator_set::IMutatorSetContractDispatcherTrait;
-use mutator_set::IMutatorSetContractDispatcher;
+use garaga::hashes::poseidon_hash_2_bn254;
+use mutator_set::{
+    IMutatorSetContractDispatcher, IMutatorSetContractDispatcherTrait,
+    IMutatorSetContractSafeDispatcher,
+};
+use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
+use starknet::ContractAddress;
 
 fn deploy_contract(name: ByteArray) -> ContractAddress {
     let contract = declare(name).unwrap().contract_class();
@@ -99,7 +99,7 @@ fn test_append_leaf_aocl() {
         dispatcher.append_leaf_aocl(0);
         // let n_leaves_aocl_after = dispatcher.get_n_leaves_aocl();
     // println!("       LOOP: n_leaves_aocl: {}", n_leaves_aocl_after);
-    };
+    }
 
     let n_leaves_aocl_after = dispatcher.get_n_leaves_aocl();
     let n_peaks_after = dispatcher.get_n_peaks_aocl();
