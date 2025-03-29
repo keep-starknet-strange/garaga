@@ -1,6 +1,8 @@
 use garaga::definitions::u384;
 use garaga::hashes::poseidon_hash_2_bn254;
-use mutator_set::{IMutatorSetContractDispatcher, IMutatorSetContractDispatcherTrait};
+use mutator_set::mutator_set_contract::{
+    IMutatorSetContractDispatcher, IMutatorSetContractDispatcherTrait,
+};
 // use mutator_set::IMutatorSetContractSafeDispatcher;
 
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
