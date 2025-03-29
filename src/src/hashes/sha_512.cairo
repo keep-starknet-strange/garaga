@@ -1,7 +1,9 @@
 // Originally taken from Alexandria library.
 
+use core::integer::{bitwise, u64_bitwise};
 use core::num::traits::{Bounded, WrappingAdd};
 use core::traits::{BitAnd, BitOr, BitXor};
+
 
 // Variable naming is compliant to RFC-6234 (https://datatracker.ietf.org/doc/html/rfc6234)
 
@@ -81,7 +83,7 @@ impl WordBitOr of BitOr<Word64> {
 
 impl WordBitNot of BitNot<Word64> {
     fn bitnot(a: Word64) -> Word64 {
-        Word64 { data: Bounded::MAX - a.data }
+        Word64 { data: ~a.data }
     }
 }
 
@@ -108,48 +110,53 @@ impl WordIntoFelt252 of Into<Word64, felt252> {
         self.data.into()
     }
 }
+use core::circuit::conversions::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt,
+};
+use core::circuit::conversions::{DivRemU128By64, NZ_POW64_TYPED, bounded_int, upcast};
 
 impl Felt252IntoWord of Into<felt252, Word64> {
     fn into(self: felt252) -> Word64 {
-        let f_128: u128 = self.try_into().unwrap() % TWO_POW_64;
-        Word64 { data: f_128.try_into().unwrap() }
+        let f_128: u128 = self.try_into().unwrap();
+        let (_, rem) = bounded_int::div_rem(f_128, NZ_POW64_TYPED);
+        Word64 { data: upcast(rem) }
     }
 }
 
 pub trait WordOperations<T> {
-    fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> T;
+    fn rotr_precomputed(self: T, two_pow_n: u64, two_pow_64_n: u64) -> u128;
 }
 
 pub impl Word64WordOperations of WordOperations<Word64> {
     // does the work of rotr but with precomputed values 2**n and 2**(64-n)
-    fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> Word64 {
+    fn rotr_precomputed(self: Word64, two_pow_n: u64, two_pow_64_n: u64) -> u128 {
         let data = self.data.into();
-        let data: u128 = BitOr::bitor(
-            math_shr_precomputed::<u128>(data, two_pow_n.into()),
-            math_shl_precomputed_u128(data, two_pow_64_n.into()),
-        );
+        let data: u128 = math_shr_precomputed::<u128>(data, two_pow_n.into())
+            | math_shl_precomputed_u128(data, two_pow_64_n.into());
 
-        let data: u64 = match data.try_into() {
-            Option::Some(data) => data,
-            Option::None => (data & MAX_U64).try_into().unwrap(),
-        };
-
-        Word64 { data }
+        data
     }
 }
 
 
-fn ch(x: Word64, y: Word64, z: Word64) -> Word64 {
-    (x & y) ^ (~x & z)
+fn ch(e: Word64, f: Word64, g: Word64) -> felt252 {
+    (e & f).into() + (~e & g).into()
 }
 
-fn maj(x: Word64, y: Word64, z: Word64) -> Word64 {
-    (x & y) ^ (x & z) ^ (y & z)
+fn maj(x: Word64, y: Word64, z: Word64) -> felt252 {
+    // (x & y) ^ (x & z) ^ (y & z)
+    let x_xor_y = x ^ y;
+    let x_xor_y_xor_z = x_xor_y ^ z;
+
+    let res: felt252 = core::felt252_div(
+        (x.into() + y.into() + z.into() - x_xor_y_xor_z.into()), 2,
+    );
+    res
 }
 
 /// Performs x.rotr(28) ^ x.rotr(34) ^ x.rotr(39),
 /// Using precomputed values to avoid recomputation
-fn bsig0(x: Word64) -> Word64 {
+fn bsig0(x: Word64) -> u128 {
     // x.rotr(28) ^ x.rotr(34) ^ x.rotr(39)
     x.rotr_precomputed(TWO_POW_28, TWO_POW_64_MINUS_28)
         ^ x.rotr_precomputed(TWO_POW_34, TWO_POW_64_MINUS_34)
@@ -158,7 +165,7 @@ fn bsig0(x: Word64) -> Word64 {
 
 /// Performs x.rotr(14) ^ x.rotr(18) ^ x.rotr(41),
 /// Using precomputed values to avoid recomputation
-fn bsig1(x: Word64) -> Word64 {
+fn bsig1(x: Word64) -> u128 {
     // x.rotr(14) ^ x.rotr(18) ^ x.rotr(41)
     x.rotr_precomputed(TWO_POW_14, TWO_POW_64_MINUS_14)
         ^ x.rotr_precomputed(TWO_POW_18, TWO_POW_64_MINUS_18)
@@ -167,7 +174,7 @@ fn bsig1(x: Word64) -> Word64 {
 
 /// Performs x.rotr(1) ^ x.rotr(8) ^ x.shr(7),
 /// Using precomputed values to avoid recomputation
-fn ssig0(x: Word64) -> Word64 {
+fn ssig0(x: Word64) -> u128 {
     // x.rotr(1) ^ x.rotr(8) ^ x.shr(7)
     x.rotr_precomputed(TWO_POW_1, TWO_POW_64_MINUS_1)
         ^ x.rotr_precomputed(TWO_POW_8, TWO_POW_64_MINUS_8)
@@ -176,7 +183,7 @@ fn ssig0(x: Word64) -> Word64 {
 
 /// Performs x.rotr(19) ^ x.rotr(61) ^ x.shr(6),
 /// Using precomputed values to avoid recomputation
-fn ssig1(x: Word64) -> Word64 {
+fn ssig1(x: Word64) -> u128 {
     // x.rotr(19) ^ x.rotr(61) ^ x.shr(6)
     x.rotr_precomputed(TWO_POW_19, TWO_POW_64_MINUS_19)
         ^ x.rotr_precomputed(TWO_POW_61, TWO_POW_64_MINUS_61)
@@ -304,19 +311,19 @@ fn digest_hash(data: Span<Word64>, msg_len: usize) -> [Word64; 8] {
         for _k in k {
             let T1_felt252: felt252 = h.into()
                 + bsig1(e).into()
-                + ch(e, f, g).into()
+                + ch(e, f, g)
                 + (*_k).into()
                 + (*W.pop_front().unwrap()).into();
-            let T1: Word64 = T1_felt252.into();
-            let T2 = bsig0(a) + maj(a, b, c);
+
+            let T1_T2_felt252: felt252 = bsig0(a).into() + maj(a, b, c) + T1_felt252;
             h = g;
             g = f;
             f = e;
-            e = d + T1;
+            e = d + T1_felt252.into();
             d = c;
             c = b;
             b = a;
-            a = T1 + T2;
+            a = T1_T2_felt252.into();
         }
 
         h_0 = a + h_0;
