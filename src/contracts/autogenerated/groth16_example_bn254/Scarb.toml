@@ -1,10 +1,10 @@
 [package]
-name = "noir_ultra_starknet_honk_example"
+name = "groth16_example_bn254"
 version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = { path = "../../" }
+garaga = { path = "../../../" }
 starknet = "2.11.2"
 
 [cairo]
