@@ -318,4 +318,4 @@ def format_cairo_files_in_parallel(
                 future.result()  # Wait for all formatting tasks to complete
         print("Done!")
     elif compilation_mode == 1:
-        subprocess.run(["scarb", "fmt"], check=True, cwd=precompiled_circuits_dir)
+        subprocess.run(["scarb", "fmt", f"{precompiled_circuits_dir}"], check=True)
