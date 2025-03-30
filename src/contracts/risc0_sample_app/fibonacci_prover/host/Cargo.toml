@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 methods = { path = "../methods" }
-risc0-zkvm = { version = "1.2.0" }
-risc0-ethereum-contracts = { version = "1.2.0" }
+risc0-zkvm = { version = "2.0.0" }
+risc0-ethereum-contracts = { version = "2.0.0" }
 garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.16.0" }
 hex = "0.4"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
