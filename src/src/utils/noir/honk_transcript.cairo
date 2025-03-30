@@ -447,8 +447,8 @@ pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
 ) -> u256 {
     let mut hasher = Hasher::new();
     hasher.update(prev_hasher_output);
-    for i in 0..NUMBER_OF_ENTITIES {
-        hasher.update(*sumcheck_evaluations.at(i));
+    for eval in sumcheck_evaluations {
+        hasher.update(*eval);
     }
 
     hasher.digest()
