@@ -195,7 +195,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         public_inputs_size: usize,
         public_inputs_offset: usize,
         honk_proof: HonkProof,
-    ) -> (HonkTranscript, felt252) {
+    ) -> (HonkTranscript, felt252, felt252) {
         let (etas, challenge) = get_eta_challenges::<
             T,
         >(
@@ -232,7 +232,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         >(gemini_r, honk_proof.gemini_a_evaluations);
         let shplonk_z = generate_shplonk_z_challenge::<T>(shplonk_nu, honk_proof.shplonk_q.into());
 
-        let (base_rlc, _, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
+        let (transcript_state, base_rlc, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
 
         return (
             HonkTranscript {
@@ -249,6 +249,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
                 shplonk_nu: shplonk_nu.low,
                 shplonk_z: shplonk_z.low,
             },
+            transcript_state
             base_rlc,
         );
     }
