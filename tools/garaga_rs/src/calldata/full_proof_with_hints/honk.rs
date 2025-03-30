@@ -79,6 +79,7 @@ pub struct HonkVerificationKey {
     pub t4: G1PointBigUint,
     pub lagrange_first: G1PointBigUint,
     pub lagrange_last: G1PointBigUint,
+    pub vk_hash: BigUint,
 }
 
 impl HonkVerificationKey {
@@ -86,6 +87,8 @@ impl HonkVerificationKey {
         if bytes.len() != 4 * 8 + 27 * 2 * 32 {
             return Err(format!("Invalid input length: {}", bytes.len()));
         }
+        let vk_hash = Keccak256::digest(bytes);
+        let vk_hash_biguint = BigUint::from_bytes_be(&vk_hash);
 
         let mut values = vec![];
 
@@ -97,9 +100,9 @@ impl HonkVerificationKey {
             values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
         }
 
-        Self::from(values)
+        Self::from(values, vk_hash_biguint)
     }
-    pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
+    pub fn from(values: Vec<BigUint>, vk_hash: BigUint) -> Result<Self, String> {
         if values.len() != 4 + 27 * 2 {
             return Err(format!("Invalid input length: {}", values.len()));
         }
@@ -170,6 +173,7 @@ impl HonkVerificationKey {
             t4,
             lagrange_first,
             lagrange_last,
+            vk_hash,
         };
 
         Ok(vk)

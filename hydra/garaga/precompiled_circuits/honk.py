@@ -369,6 +369,7 @@ class HonkVk:
     t4: G1Point
     lagrange_first: G1Point
     lagrange_last: G1Point
+    vk_hash: int
 
     def __repr__(self) -> str:
         # Print all fields line by line :
@@ -382,6 +383,9 @@ class HonkVk:
 
     @classmethod
     def from_bytes(cls, bytes: bytes) -> "HonkVk":
+        vk_hash = sha3.keccak_256(bytes).digest()
+        vk_hash_int = int.from_bytes(vk_hash, "big")
+
         circuit_size = int.from_bytes(bytes[0:8], "big")
         log_circuit_size = int.from_bytes(bytes[8:16], "big")
         public_inputs_size = int.from_bytes(bytes[16:24], "big")
@@ -429,6 +433,7 @@ class HonkVk:
             public_inputs_size=public_inputs_size,
             public_inputs_offset=public_inputs_offset,
             **points,
+            vk_hash=vk_hash_int,
         )
 
     def serialize_to_cairo(self, name: str = "vk") -> str:
