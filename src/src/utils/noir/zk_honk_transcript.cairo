@@ -109,8 +109,6 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
 }
 
 
-
-
 #[inline]
 pub fn generate_libra_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     prev_hasher_output: u256, libra_commitments: Span<G1Point256>, libra_sum: u256,
