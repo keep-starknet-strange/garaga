@@ -457,7 +457,7 @@ class EdDSA25519Signature:
 if __name__ == "__main__":
     import json
 
-    with open("build/ed25519_test_vectors.json", "r") as f:
+    with open("tests/ed25519_test_vectors.json", "r") as f:
         test_vectors = json.load(f)
 
     for i, test_vector in enumerate(test_vectors):
