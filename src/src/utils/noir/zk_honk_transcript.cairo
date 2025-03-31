@@ -85,7 +85,9 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
         >(gemini_r, honk_proof.gemini_a_evaluations, honk_proof.libra_poly_evals);
         let shplonk_z = generate_shplonk_z_challenge::<T>(shplonk_nu, honk_proof.shplonk_q.into());
 
-        let (transcript_state, base_rlc, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
+        let (transcript_state, base_rlc, _) = hades_permutation(
+            shplonk_z.low.into(), shplonk_z.high.into(), 2,
+        );
 
         return (
             ZKHonkTranscript {
