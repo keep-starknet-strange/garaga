@@ -9,7 +9,7 @@ use super::honk_verifier_circuits::{
 use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
-trait IUltraKeccakZKHonkVerifier<TContractState> {
+pub trait IUltraKeccakZKHonkVerifier<TContractState> {
     fn verify_ultra_keccak_zk_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
