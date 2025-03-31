@@ -10,7 +10,7 @@ use pyo3::types::PyList;
 pub fn get_honk_calldata(
     py: Python,
     proof: &Bound<'_, PyList>,
-    vk: &Bound<'_, PyList>,
+    vk: &Bound<'_, PyBytes>,
     flavor: usize,
     zk: bool,
 ) -> PyResult<PyObject> {
@@ -18,15 +18,12 @@ pub fn get_honk_calldata(
         .into_iter()
         .map(|x| x.extract())
         .collect::<Result<Vec<BigUint>, _>>()?;
-    let vk_values = vk
-        .into_iter()
-        .map(|x| x.extract())
-        .collect::<Result<Vec<BigUint>, _>>()?;
+    let vk_bytes = vk.as_bytes();
 
     let flavor =
         HonkFlavor::try_from(flavor).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
-    let vk = HonkVerificationKey::from(vk_values)
+    let vk = HonkVerificationKey::from_bytes(vk_bytes)
         .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
     let result = if zk {

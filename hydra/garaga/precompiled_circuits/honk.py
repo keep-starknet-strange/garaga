@@ -370,6 +370,7 @@ class HonkVk:
     lagrange_first: G1Point
     lagrange_last: G1Point
     vk_hash: int
+    vk_bytes: bytes
 
     def __repr__(self) -> str:
         # Print all fields line by line :
@@ -382,14 +383,14 @@ class HonkVk:
     #     return self.__repr__()
 
     @classmethod
-    def from_bytes(cls, bytes: bytes) -> "HonkVk":
-        vk_hash = sha3.keccak_256(bytes).digest()
+    def from_bytes(cls, _bytes: bytes) -> "HonkVk":
+        vk_hash = sha3.keccak_256(_bytes).digest()
         vk_hash_int = int.from_bytes(vk_hash, "big")
 
-        circuit_size = int.from_bytes(bytes[0:8], "big")
-        log_circuit_size = int.from_bytes(bytes[8:16], "big")
-        public_inputs_size = int.from_bytes(bytes[16:24], "big")
-        public_inputs_offset = int.from_bytes(bytes[24:32], "big")
+        circuit_size = int.from_bytes(_bytes[0:8], "big")
+        log_circuit_size = int.from_bytes(_bytes[8:16], "big")
+        public_inputs_size = int.from_bytes(_bytes[16:24], "big")
+        public_inputs_offset = int.from_bytes(_bytes[24:32], "big")
 
         assert circuit_size <= MAX_CIRCUIT_SIZE, f"invalid circuit size: {circuit_size}"
         assert (
@@ -401,7 +402,7 @@ class HonkVk:
 
         cursor = 32
 
-        rest = bytes[cursor:]
+        rest = _bytes[cursor:]
         assert len(rest) % 32 == 0
 
         # print(f"circuit_size: {circuit_size}")
@@ -420,8 +421,8 @@ class HonkVk:
         # Parse all G1Points into a dictionary
         points = {}
         for field_name in g1_fields:
-            x = int.from_bytes(bytes[cursor : cursor + 32], "big")
-            y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
+            x = int.from_bytes(_bytes[cursor : cursor + 32], "big")
+            y = int.from_bytes(_bytes[cursor + 32 : cursor + 64], "big")
             points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
             cursor += 64
         # print(f"points: {points}")
@@ -434,6 +435,7 @@ class HonkVk:
             public_inputs_offset=public_inputs_offset,
             **points,
             vk_hash=vk_hash_int,
+            vk_bytes=_bytes,
         )
 
     def serialize_to_cairo(self, name: str = "vk") -> str:
