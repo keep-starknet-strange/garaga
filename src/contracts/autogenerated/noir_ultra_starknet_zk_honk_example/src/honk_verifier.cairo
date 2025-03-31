@@ -68,7 +68,7 @@ mod UltraStarknetZKHonkVerifier {
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
 
-            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
+            let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
             >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
