@@ -1,2 +1,2 @@
 [build]
-target-dir = "build/garaga_rs/target"
+target-dir = ".cargo/garaga_rs/target"

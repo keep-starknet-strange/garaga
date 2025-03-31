@@ -18,7 +18,7 @@ from garaga.hints.extf_mul import (
     nondeterministic_extension_field_mul_divmod,
     nondeterministic_square_torus,
 )
-from garaga.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
+from garaga.hints.frobenius import get_frobenius_maps, get_V_torus_powers
 from garaga.modulo_circuit import WriteOps
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 
@@ -36,7 +36,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         self.frobenius_maps = {}
         self.v_torus_powers_inv = {}
         for i in [1, 2, 3]:
-            _, self.frobenius_maps[i] = generate_frobenius_maps(
+            _, self.frobenius_maps[i] = get_frobenius_maps(
                 curve_id=curve_id, extension_degree=extension_degree, frob_power=i
             )
             self.v_torus_powers_inv[i] = get_V_torus_powers(

@@ -7,7 +7,7 @@ from garaga.definitions import (
     get_base_field,
     get_sparsity,
 )
-from garaga.hints.frobenius import generate_frobenius_maps
+from garaga.hints.frobenius import get_frobenius_maps
 from garaga.hints.multi_miller_witness import get_final_exp_witness
 from garaga.hints.tower_backup import E6, E12
 from garaga.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
@@ -133,7 +133,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         )
         self.frobenius_maps = {}
         for i in [1, 2, 3]:
-            _, self.frobenius_maps[i] = generate_frobenius_maps(
+            _, self.frobenius_maps[i] = get_frobenius_maps(
                 curve_id=curve_id, extension_degree=self.extension_degree, frob_power=i
             )
 
