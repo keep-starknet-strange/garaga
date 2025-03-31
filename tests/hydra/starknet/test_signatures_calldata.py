@@ -50,7 +50,7 @@ def test_ecdsa_calldata_builder(curve_id):
 
 
 def test_eddsa_25519_signatures(full=False):
-    with open("build/ed25519_test_vectors.json", "r") as f:
+    with open("tests/ed25519_test_vectors.json", "r") as f:
         test_vectors = json.load(f)
 
     if full:

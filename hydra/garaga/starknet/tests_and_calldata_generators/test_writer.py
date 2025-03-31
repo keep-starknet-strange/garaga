@@ -333,7 +333,7 @@ def generate_eddsa_test_file() -> str:
     };
     """
 
-    with open("build/ed25519_test_vectors.json", "r") as f:
+    with open("tests/ed25519_test_vectors.json", "r") as f:
         test_vectors = json.load(f)
 
     test_vectors = test_vectors[0:64:2]
