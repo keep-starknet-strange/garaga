@@ -471,6 +471,8 @@ class HonkVk:
                 for field in fields(self)
                 if field.type == G1Point and field.name != "name"
             },
+            vk_hash=self.vk_hash,
+            vk_bytes=self.vk_bytes,
         )
 
     def flatten(self) -> list[int]:
