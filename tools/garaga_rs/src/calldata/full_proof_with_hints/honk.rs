@@ -102,7 +102,7 @@ impl HonkVerificationKey {
 
         Self::from(values, vk_hash_biguint)
     }
-    pub fn from(values: Vec<BigUint>, vk_hash: BigUint) -> Result<Self, String> {
+    fn from(values: Vec<BigUint>, vk_hash: BigUint) -> Result<Self, String> {
         if values.len() != 4 + 27 * 2 {
             return Err(format!("Invalid input length: {}", values.len()));
         }

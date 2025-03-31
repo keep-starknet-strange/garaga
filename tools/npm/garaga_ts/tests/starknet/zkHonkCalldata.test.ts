@@ -16,16 +16,14 @@ describe('ZK Honk Getting calldata', () => {
     await garaga.init();
 
     const vkBytes = new Uint8Array(fs.readFileSync(vkPath as string));
-    const vk = garaga.parseHonkVerifyingKeyFromBytes(vkBytes);
 
     const proofBytes = new Uint8Array(fs.readFileSync(proofPath as string));
-    const proof = garaga.parseZKHonkProofFromBytes(proofBytes);
 
-    console.log("proof", proof);
-    console.log("vk", vk);
+    console.log("proof", proofBytes);
+    console.log("vk", vkBytes);
     console.log("flavor", flavor);
 
-    const honkCalldata = garaga.getZKHonkCallData(proof, vk, flavor as HonkFlavor);
+    const honkCalldata = garaga.getZKHonkCallData(proofBytes, vkBytes, flavor as HonkFlavor);
 
     console.log("honkCalldata", honkCalldata);
 
