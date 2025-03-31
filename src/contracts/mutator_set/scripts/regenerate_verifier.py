@@ -38,6 +38,11 @@ class VerifierConfig:
             "noir_program_dir": project_root / self.program_name,
             "target_dir": project_root / self.program_name / "target",
             "verifier_dir": project_root / "src" / f"zk_verifier",
+            "lib_cairo": project_root / "src" / "lib.cairo",
+            "contract_class": project_root
+            / "target"
+            / "dev"
+            / "mutator_set_UltraKeccakZKHonkVerifier.contract_class.json",
         }
 
 
@@ -56,8 +61,29 @@ class VerifierGenerator:
             )
             return result.stdout.strip()
         except subprocess.CalledProcessError as e:
-            error_msg = f"Command failed: {e.stderr.strip()}"
+            error_msg = f"Command failed with output:\nstdout: {e.stdout.strip()}\nstderr: {e.stderr.strip()}"
             logger.error(error_msg)
+            raise
+
+    def update_class_hash(self, class_hash: str):
+        """Update the class hash in lib.cairo."""
+        try:
+            content = f"""pub mod mutator_set_contract;
+
+pub mod zk_verifier {{
+    pub mod honk_verifier_circuits;
+    pub mod honk_verifier_constants;
+    pub mod honk_verifier_contract;
+}}
+
+const VERIFIER_CLASS_HASH: felt252 = {class_hash};
+"""
+            with open(self.paths["lib_cairo"], "w") as f:
+                f.write(content)
+
+            logger.info(f"Updated class hash in {self.paths['lib_cairo']}")
+        except Exception as e:
+            logger.error(f"Failed to update class hash: {str(e)}")
             raise
 
     def generate(self) -> bool:
@@ -106,6 +132,23 @@ class VerifierGenerator:
                     f.write(content)
 
             self.run_command(["scarb", "fmt", str(self.paths["verifier_dir"])])
+
+            # Change to project root and run scarb build
+            os.chdir(self.paths["noir_program_dir"].parent)
+            self.run_command(["scarb", "build"])
+
+            # Get class hash
+            class_hash = self.run_command(
+                ["starkli", "class-hash", str(self.paths["contract_class"])]
+            )
+            logger.info(f"Generated class hash: {class_hash}")
+
+            # Update class hash in lib.cairo
+            self.update_class_hash(class_hash)
+
+            # Format lib.cairo
+            self.run_command(["scarb", "fmt", str(self.paths["lib_cairo"])])
+
             os.chdir(original_dir)
             return True
 

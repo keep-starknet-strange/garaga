@@ -1,3 +1,5 @@
+use mutator_set::zk_verifier::honk_verifier_contract::IUltraKeccakZKHonkVerifier;
+
 #[starknet::interface]
 pub trait IMutatorSetContract<TContractState> {
     fn get_n_leaves_aocl(self: @TContractState) -> u64;
@@ -5,7 +7,7 @@ pub trait IMutatorSetContract<TContractState> {
     fn append_leaf_aocl(ref self: TContractState, leaf: u256);
     fn get_peaks_aocl(self: @TContractState) -> Array<u256>;
     fn verify_inclusion_proof_aocl(
-        ref self: TContractState, full_proof_with_hints: Array<felt252>,
+        ref self: TContractState, full_proof_with_hints: Span<felt252>,
     ) -> bool;
 }
 
@@ -14,6 +16,8 @@ mod MutatorSetContract {
     use garaga::crypto::mmr::trailing_ones;
     use garaga::definitions::u384;
     use garaga::hashes::poseidon_hash_2_bn254;
+    use mutator_set::VERIFIER_CLASS_HASH;
+    use starknet::SyscallResultTrait;
     use starknet::storage::{
         MutableVecTrait, StoragePointerReadAccess, StoragePointerWriteAccess, Vec, VecTrait,
     };
@@ -126,15 +130,20 @@ mod MutatorSetContract {
             let new_n_leaves = n_leaves + 1;
             self.n_leaves_aocl.write(new_n_leaves);
             self.emit(LeafAppended {
-                leaf,
+                leaf: leaf,
                 n_leaves: new_n_leaves,
             });
         }
 
         fn verify_inclusion_proof_aocl(
-            ref self: ContractState, full_proof_with_hints: Array<felt252>,
+            ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
-            return true;
+            let mut res = starknet::syscalls::library_call_syscall(
+                VERIFIER_CLASS_HASH.try_into().unwrap(), selector!("verify_ultra_keccak_zk_honk_proof"), full_proof_with_hints,
+            )
+                .unwrap_syscall();
+
+            Serde::<bool>::deserialize(ref res).unwrap()
         }
     }
 }
