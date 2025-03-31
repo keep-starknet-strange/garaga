@@ -1,0 +1,6 @@
+[package]
+name = "zk_program"
+type = "bin"
+authors = [""]
+
+[dependencies]

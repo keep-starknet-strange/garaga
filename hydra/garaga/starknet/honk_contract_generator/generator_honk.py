@@ -339,7 +339,7 @@ use super::honk_verifier_constants::{{vk, precomputed_lines}};
 use super::honk_verifier_circuits::{{{imports_str}}};
 
 #[starknet::interface]
-trait {trait_name}<TContractState> {{
+pub trait {trait_name}<TContractState> {{
     fn {endpoint_name}(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
