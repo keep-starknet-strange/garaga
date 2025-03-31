@@ -46,7 +46,7 @@ python-source = "hydra"
 profile = "black"
 
 [tool.pytest.ini_options]
-cache_dir = "build/.pytest_cache"
+cache_dir = ".cargo/.pytest_cache"
 testpaths = ["tests/hydra"]
 # addopts = "--tb=short --showlocals"
 asyncio_default_fixture_loop_scope = "function"  # Explicitly set the loop scope
