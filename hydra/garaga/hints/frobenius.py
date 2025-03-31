@@ -6,6 +6,9 @@ from garaga.algebra import BaseField, Polynomial, PyFelt
 from garaga.definitions import CURVES, CurveID, get_irreducible_poly
 from garaga.hints.tower_backup import E6, E12
 
+# Cache directory path
+CACHE_DIR = "build/frobenius_cache"
+
 
 @lru_cache(maxsize=32)
 def get_p_powers_of_V(curve_id: int, extension_degree: int, k: int) -> list[Polynomial]:
@@ -95,19 +98,18 @@ def frobenius(
     return acc
 
 
-CACHE_DIR = "build/frobenius_cache"
-os.makedirs(CACHE_DIR, exist_ok=True)
-
-
 def save_frobenius_maps(
     curve_id, extension_degree, frob_power, k_expressions, constants_list
 ):
+    """Save frobenius maps to cache file"""
+    os.makedirs(CACHE_DIR, exist_ok=True)
     filename = f"{CACHE_DIR}/frobenius_{curve_id}_{extension_degree}_{frob_power}.json"
     with open(filename, "w") as f:
         json.dump({"k_expressions": k_expressions, "constants_list": constants_list}, f)
 
 
 def load_frobenius_maps(curve_id, extension_degree, frob_power):
+    """Load frobenius maps from cache file if it exists"""
     filename = f"{CACHE_DIR}/frobenius_{curve_id}_{extension_degree}_{frob_power}.json"
     if os.path.exists(filename):
         with open(filename, "r") as f:

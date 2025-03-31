@@ -28,5 +28,5 @@ tests/contracts_e2e/devnet/*
 
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json
 
-
+*snfoundry_cache
 !tools/npm/garaga_rs/*.json
