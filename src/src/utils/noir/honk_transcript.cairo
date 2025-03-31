@@ -525,7 +525,7 @@ mod tests {
     fn test_transcript_keccak() {
         let vk = get_vk();
         let proof = get_proof_keccak();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = HonkTranscriptTrait::from_proof::<
             KeccakHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {
@@ -643,7 +643,7 @@ mod tests {
     fn test_transcript_starknet() {
         let vk = get_vk();
         let proof = get_proof_starknet();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = HonkTranscriptTrait::from_proof::<
             StarknetHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {

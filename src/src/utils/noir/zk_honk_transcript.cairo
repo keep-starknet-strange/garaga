@@ -105,6 +105,7 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
                 shplonk_nu: shplonk_nu.low,
                 shplonk_z: shplonk_z.low,
             },
+            transcript_state,
             base_rlc,
         );
     }
@@ -214,7 +215,7 @@ mod tests {
     fn test_zk_transcript_keccak() {
         let vk = get_vk();
         let proof = get_zk_proof_keccak();
-        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = ZKHonkTranscriptTrait::from_proof::<
             KeccakHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = ZKHonkTranscript {
@@ -334,7 +335,7 @@ mod tests {
     fn test_zk_transcript_starknet() {
         let vk = get_vk();
         let proof = get_zk_proof_starknet();
-        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = ZKHonkTranscriptTrait::from_proof::<
             StarknetHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = ZKHonkTranscript {
