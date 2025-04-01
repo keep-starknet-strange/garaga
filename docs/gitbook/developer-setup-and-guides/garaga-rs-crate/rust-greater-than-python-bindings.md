@@ -164,7 +164,7 @@ result = garaga_rs.example_function(
 
 ## Testing
 
-1. Add Python tests in `tests/hydra/test_garaga_rs.py`
+1. Add Python tests in `tests/hydra/`
 2. Test both successful and error cases
 3. Test edge cases (empty lists, zero values)
 
