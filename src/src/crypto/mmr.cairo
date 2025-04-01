@@ -44,7 +44,6 @@ pub fn bag_peaks(mut peaks: Span<u256>) -> u256 {
 }
 
 
-
 #[cfg(test)]
 mod tests {
     use super::trailing_ones;

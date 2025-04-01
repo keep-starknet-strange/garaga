@@ -160,14 +160,14 @@ mod MutatorSetContract {
     }
 
     // Private function
-    fn _update_aocl_state(ref self: ContractState, peaks: Array<u256>, n_leaves: u64, last_peak_index: u64) {
+    fn _update_aocl_state(
+        ref self: ContractState, peaks: Array<u256>, n_leaves: u64, last_peak_index: u64,
+    ) {
         // Copy the AOCL into the AOCL state
         for i in 0..peaks.len() {
             self.aocl_state.peaks.get(i.into()).unwrap().write(*peaks[i]);
         }
         self.aocl_state.n_leaves.write(n_leaves);
         self.aocl_state.last_peak_index.write(last_peak_index);
-
-
     }
 }
