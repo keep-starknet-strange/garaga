@@ -221,8 +221,8 @@ mod UltraStarknetZKHonkVerifier {
             for lib_comm in full_proof.proof.libra_commitments {
                 _points.append((*lib_comm).into());
             }
-            _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
+            _points.append(BN254_G1_GENERATOR);
 
             let points = _points.span();
             let scalars: Span<u256> = array![
@@ -269,8 +269,8 @@ mod UltraStarknetZKHonkVerifier {
                 into_u256_unchecked(scalar_69),
                 into_u256_unchecked(scalar_70),
                 into_u256_unchecked(scalar_71),
-                into_u256_unchecked(scalar_72),
                 transcript.shplonk_z.into(),
+                into_u256_unchecked(scalar_72),
             ]
                 .span();
 

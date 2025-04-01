@@ -462,8 +462,8 @@ def _get_msm_points_array_code(zk: bool) -> str:
 
     # Add common final points
     code += """
-            _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
+            _points.append(BN254_G1_GENERATOR);
 
             let points = _points.span();"""
 
@@ -491,9 +491,14 @@ def _gen_honk_verifier_files(
     ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = ",\n            ".join(
+    scalars_tuple_into = [
         f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    )
+    ]
+
+    scalars_tuple_into.append("transcript.shplonk_z.into()")
+    # Swap position of last two elements of scalars_tuple_into :
+    scalars_tuple_into = scalars_tuple_into[:-2] + scalars_tuple_into[-2:][::-1]
+    scalars_tuple_into = ",\n            ".join(scalars_tuple_into)
 
     # Generate contract header
     contract_header = _gen_contract_header(
@@ -540,7 +545,7 @@ def _gen_honk_verifier_files(
 
             {_get_msm_points_array_code(zk=False)}
 
-            let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
+            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
             {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
 
@@ -580,9 +585,14 @@ def _gen_zk_honk_verifier_files(
     ) = _gen_circuits_code(vk, True)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = ",\n            ".join(
+    scalars_tuple_into = [
         f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    )
+    ]
+
+    scalars_tuple_into.append("transcript.shplonk_z.into()")
+    # Swap position of last two elements of scalars_tuple_into :
+    scalars_tuple_into = scalars_tuple_into[:-2] + scalars_tuple_into[-2:][::-1]
+    scalars_tuple_into = ",\n            ".join(scalars_tuple_into)
 
     # Generate contract header
     contract_header = _gen_contract_header(
@@ -657,7 +667,7 @@ def _gen_zk_honk_verifier_files(
         );
 
             {_get_msm_points_array_code(zk=True)}
-            let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
+            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
             {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
             if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{

@@ -179,8 +179,8 @@ mod UltraStarknetHonkVerifier {
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
             }
-            _points.append(BN254_G1_GENERATOR);
             _points.append(full_proof.proof.kzg_quotient.into());
+            _points.append(BN254_G1_GENERATOR);
 
             let points = _points.span();
 
@@ -224,8 +224,8 @@ mod UltraStarknetHonkVerifier {
                 into_u256_unchecked(scalar_42),
                 into_u256_unchecked(scalar_43),
                 into_u256_unchecked(scalar_44),
-                into_u256_unchecked(scalar_68),
                 transcript.shplonk_z.into(),
+                into_u256_unchecked(scalar_68),
             ]
                 .span();
 
