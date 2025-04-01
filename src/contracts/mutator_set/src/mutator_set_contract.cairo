@@ -15,7 +15,7 @@ pub trait IMutatorSetContract<TContractState> {
 mod MutatorSetContract {
     use garaga::crypto::mmr::trailing_ones;
     use garaga::definitions::u384;
-    use garaga::hashes::poseidon_hash_2_bn254;
+    use garaga::hashes::poseidon_bn254::poseidon_hash_2 as hash_2;
     use mutator_set::VERIFIER_CLASS_HASH;
     use starknet::SyscallResultTrait;
     use starknet::storage::{
@@ -54,12 +54,6 @@ mod MutatorSetContract {
         self.aocl_state.peaks.push(AOCL_INIT_VALUE);
         self.aocl_state.n_leaves.write(1);
         self.aocl_state.last_peak_index.write(0);
-    }
-
-    fn hash_2(x: u256, y: u256) -> u256 {
-        let x_u384: u384 = x.into();
-        let y_u384: u384 = y.into();
-        poseidon_hash_2_bn254(x_u384, y_u384).try_into().unwrap()
     }
 
     #[event]

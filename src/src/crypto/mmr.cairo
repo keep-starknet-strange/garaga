@@ -1,3 +1,4 @@
+use crate::hashes::poseidon_bn254::poseidon_hash_2;
 // Return the number of trailing ones in a 64-bit unsigned integer.
 // Ex : trailing_ones(0b111) = 3
 // The number of parents that need to be added when a new leaf is inserted (using the # of leaves
@@ -29,15 +30,15 @@ pub fn trailing_ones(n: u64) -> usize {
 
 // return bags
 
-pub fn root_from_peaks(n_leaves: u64, peaks: Array<u256>) -> u256 {
+pub fn root_from_peaks(n_leaves: u64, peaks: Span<u256>) -> u256 {
     let bagged_peaks = bag_peaks(peaks);
     return bagged_peaks;
 }
 
-pub fn bag_peaks(peaks: Array<u256>) -> u256 {
-    let mut res = peaks.pop_back().unwrap();
+pub fn bag_peaks(mut peaks: Span<u256>) -> u256 {
+    let mut res = *peaks.pop_back().unwrap();
     while let Some(peak) = peaks.pop_back() {
-        res = hash_2(peak, res);
+        res = poseidon_hash_2(*peak, res);
     }
     return res;
 }
