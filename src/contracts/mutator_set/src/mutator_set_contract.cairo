@@ -15,7 +15,7 @@ pub trait IMutatorSetContract<TContractState> {
 mod MutatorSetContract {
     use garaga::crypto::mmr::trailing_ones;
     use garaga::definitions::u384;
-    use garaga::hashes::poseidon_hash_2_bn254;
+    use garaga::hashes::poseidon_bn254::poseidon_hash_2 as hash_2;
     use mutator_set::VERIFIER_CLASS_HASH;
     use starknet::SyscallResultTrait;
     use starknet::storage::{
@@ -24,7 +24,7 @@ mod MutatorSetContract {
     const BN254_CURVE_ORDER: u256 = u256 {
         low: 0x2833e84879b9709143e1f593f0000001, high: 0x30644e72e131a029b85045b68181585d,
     };
-
+    const AOCL_INIT_VALUE: u256 = 0;
     // Append-only commitment list
     #[starknet::storage_node]
     struct AOCL {
@@ -32,22 +32,28 @@ mod MutatorSetContract {
         peaks: Vec<u256>,
         last_peak_index: u64,
     }
+    #[starknet::storage_node]
+    struct AOCLState {
+        n_leaves: u64,
+        root: u256,
+    }
+
     #[storage]
     struct Storage {
         aocl: AOCL,
+        aocl_state: AOCL,
     }
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        self.aocl.peaks.push(0);
+        // Init both AOCLs
+        self.aocl.peaks.push(AOCL_INIT_VALUE);
         self.aocl.n_leaves.write(1);
         self.aocl.last_peak_index.write(0);
-    }
 
-    fn hash_2(x: u256, y: u256) -> u256 {
-        let x_u384: u384 = x.into();
-        let y_u384: u384 = y.into();
-        poseidon_hash_2_bn254(x_u384, y_u384).try_into().unwrap()
+        self.aocl_state.peaks.push(AOCL_INIT_VALUE);
+        self.aocl_state.n_leaves.write(1);
+        self.aocl_state.last_peak_index.write(0);
     }
 
     #[event]
@@ -139,7 +145,6 @@ mod MutatorSetContract {
             self.aocl.n_leaves.write(new_n_leaves);
             self.emit(LeafAppended { leaf: leaf, n_leaves: new_n_leaves });
         }
-
         fn verify_inclusion_proof_aocl(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
@@ -152,5 +157,17 @@ mod MutatorSetContract {
 
             Serde::<bool>::deserialize(ref res).unwrap()
         }
+    }
+
+    // Private function
+    fn _update_aocl_state(
+        ref self: ContractState, peaks: Array<u256>, n_leaves: u64, last_peak_index: u64,
+    ) {
+        // Copy the AOCL into the AOCL state
+        for i in 0..peaks.len() {
+            self.aocl_state.peaks.get(i.into()).unwrap().write(*peaks[i]);
+        }
+        self.aocl_state.n_leaves.write(n_leaves);
+        self.aocl_state.last_peak_index.write(last_peak_index);
     }
 }
