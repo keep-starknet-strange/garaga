@@ -232,7 +232,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 
 def _honk_calldata_from_vk_and_proof_rust(
     vk: HonkVk,
-    proof: HonkProof,
+    proof: Union[HonkProof, ZKHonkProof],
     system: ProofSystem = ProofSystem.UltraKeccakHonk,
 ) -> list[int]:
     match system:
@@ -251,4 +251,4 @@ def _honk_calldata_from_vk_and_proof_rust(
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
-    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor, zk)
+    return garaga_rs.get_honk_calldata(proof.proof_bytes, vk.vk_bytes, flavor, zk)

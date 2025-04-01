@@ -68,6 +68,7 @@ class HonkProof:
     gemini_a_evaluations: list[int]
     shplonk_q: G1Point
     kzg_quotient: G1Point
+    proof_bytes: bytes
 
     def __post_init__(self):
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
@@ -80,11 +81,11 @@ class HonkProof:
         assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
 
     @classmethod
-    def from_bytes(cls, bytes: bytes, vk: "HonkVk") -> "HonkProof":
-        n_elements = int.from_bytes(bytes[:4], "big")
-        assert len(bytes[4:]) % 32 == 0
+    def from_bytes(cls, _bytes: bytes, vk: "HonkVk") -> "HonkProof":
+        n_elements = int.from_bytes(_bytes[:4], "big")
+        assert len(_bytes[4:]) % 32 == 0
         elements = [
-            int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
+            int.from_bytes(_bytes[i : i + 32], "big") for i in range(4, len(_bytes), 32)
         ]
         assert len(elements) == n_elements
 
@@ -172,6 +173,7 @@ class HonkProof:
             gemini_a_evaluations=gemini_a_evaluations,
             shplonk_q=shplonk_q,
             kzg_quotient=kzg_quotient,
+            proof_bytes=_bytes,
         )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkProof":
@@ -219,6 +221,7 @@ class HonkProof:
             kzg_quotient=circuit.write_struct(
                 structs.G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
             ),
+            proof_bytes=self.proof_bytes,
         )
 
     def to_cairo(self) -> str:
@@ -1896,6 +1899,7 @@ class ZKHonkProof:
     libra_poly_evals: list[int]
     shplonk_q: G1Point
     kzg_quotient: G1Point
+    proof_bytes: bytes
 
     def __post_init__(self):
         assert len(self.libra_commitments) == 3
@@ -1910,11 +1914,11 @@ class ZKHonkProof:
         assert len(self.libra_poly_evals) == 4
 
     @classmethod
-    def from_bytes(cls, bytes: bytes, vk: HonkVk) -> "ZKHonkProof":
-        n_elements = int.from_bytes(bytes[:4], "big")
-        assert len(bytes[4:]) % 32 == 0
+    def from_bytes(cls, _bytes: bytes, vk: HonkVk) -> "ZKHonkProof":
+        n_elements = int.from_bytes(_bytes[:4], "big")
+        assert len(_bytes[4:]) % 32 == 0
         elements = [
-            int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
+            int.from_bytes(_bytes[i : i + 32], "big") for i in range(4, len(_bytes), 32)
         ]
         assert len(elements) == n_elements
 
@@ -2033,6 +2037,7 @@ class ZKHonkProof:
             libra_poly_evals=libra_poly_evals,
             shplonk_q=shplonk_q,
             kzg_quotient=kzg_quotient,
+            proof_bytes=_bytes,
         )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "ZKHonkProof":
@@ -2095,6 +2100,7 @@ class ZKHonkProof:
             kzg_quotient=circuit.write_struct(
                 structs.G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
             ),
+            proof_bytes=self.proof_bytes,
         )
 
     def to_cairo(self) -> str:
