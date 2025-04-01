@@ -177,7 +177,6 @@ mod UltraStarknetZKHonkVerifier {
 
             // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
-                full_proof.proof.gemini_masking_poly.into(),
                 vk.qm,
                 vk.qc,
                 vk.ql,
@@ -205,28 +204,28 @@ mod UltraStarknetZKHonkVerifier {
                 vk.t4,
                 vk.lagrange_first,
                 vk.lagrange_last,
-                full_proof.proof.w1.into(),
-                full_proof.proof.w2.into(),
-                full_proof.proof.w3.into(),
-                full_proof.proof.w4.into(),
-                full_proof.proof.z_perm.into(),
-                full_proof.proof.lookup_inverses.into(),
-                full_proof.proof.lookup_read_counts.into(),
-                full_proof.proof.lookup_read_tags.into(),
+                full_proof.proof.gemini_masking_poly.into(), // Proof point 1,
+                full_proof.proof.w1.into(), // Proof point 2,
+                full_proof.proof.w2.into(), // Proof point 3,
+                full_proof.proof.w3.into(), // Proof point 4,
+                full_proof.proof.w4.into(), // Proof point 5,
+                full_proof.proof.z_perm.into(), // Proof point 6,
+                full_proof.proof.lookup_inverses.into(), // Proof point 7,
+                full_proof.proof.lookup_read_counts.into(), // Proof point 8,
+                full_proof.proof.lookup_read_tags.into() // Proof point 9
             ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
-            }
+            } // log_n -1 = 4 points || Proof points 10-13
             for lib_comm in full_proof.proof.libra_commitments {
                 _points.append((*lib_comm).into());
-            }
-            _points.append(full_proof.proof.kzg_quotient.into());
+            } // 3 points || Proof points 14-16
+            _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 17
             _points.append(BN254_G1_GENERATOR);
 
             let points = _points.span();
             let scalars: Span<u256> = array![
-                into_u256_unchecked(scalar_1),
                 into_u256_unchecked(scalar_2),
                 into_u256_unchecked(scalar_3),
                 into_u256_unchecked(scalar_4),
@@ -254,6 +253,7 @@ mod UltraStarknetZKHonkVerifier {
                 into_u256_unchecked(scalar_26),
                 into_u256_unchecked(scalar_27),
                 into_u256_unchecked(scalar_28),
+                into_u256_unchecked(scalar_1),
                 into_u256_unchecked(scalar_29),
                 into_u256_unchecked(scalar_30),
                 into_u256_unchecked(scalar_31),
@@ -291,11 +291,18 @@ mod UltraStarknetZKHonkVerifier {
 
             // Check input points are on curve. No need to hash them : they are already in the
             // transcript + we precompute the VK hash.
-
-            for point in points {
+            // Skip the first 27 points as they are from VK and keep the last 17 proof points
+            for point in points.slice(27, 17) {
                 if !point.is_infinity() {
                     point.assert_on_curve(0);
                 }
+            }
+
+            // Assert shplonk_q is on curve
+            let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
+
+            if !shplonk_q_pt.is_infinity() {
+                shplonk_q_pt.assert_on_curve(0);
             }
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
@@ -401,7 +408,7 @@ mod UltraStarknetZKHonkVerifier {
             let P_1 = ec_safe_add(
                 full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0,
             );
-            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
+            let P_1 = ec_safe_add(P_1, shplonk_q_pt, 0);
             let P_2: G1Point = full_proof.proof.kzg_quotient.into();
 
             // Perform the KZG pairing check.
