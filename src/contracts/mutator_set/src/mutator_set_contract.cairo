@@ -24,7 +24,7 @@ mod MutatorSetContract {
     const BN254_CURVE_ORDER: u256 = u256 {
         low: 0x2833e84879b9709143e1f593f0000001, high: 0x30644e72e131a029b85045b68181585d,
     };
-
+    const AOCL_INIT_VALUE: u256 = 0;
     // Append-only commitment list
     #[starknet::storage_node]
     struct AOCL {
@@ -39,7 +39,7 @@ mod MutatorSetContract {
 
     #[constructor]
     fn constructor(ref self: ContractState) {
-        self.aocl.peaks.push(0);
+        self.aocl.peaks.push(AOCL_INIT_VALUE);
         self.aocl.n_leaves.write(1);
         self.aocl.last_peak_index.write(0);
     }
@@ -143,6 +143,7 @@ mod MutatorSetContract {
         fn verify_inclusion_proof_aocl(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
+
             let mut res = starknet::syscalls::library_call_syscall(
                 VERIFIER_CLASS_HASH.try_into().unwrap(),
                 selector!("verify_ultra_keccak_zk_honk_proof"),
