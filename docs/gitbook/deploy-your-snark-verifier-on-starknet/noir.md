@@ -95,6 +95,8 @@ bb prove -s ultra_honk --oracle_hash keccak --zk -b target/hello.json -w target/
 
 {% tabs %}
 {% tab title="CLI" %}
+Finalizing the above CLI example, you can obtain the `full_proof_with_hints` array using the garaga CLI. From within the "target" directory:
+
 ```bash
 garaga calldata --system ultra_keccak_zk_honk --proof proof --vk vk
 ```
@@ -221,8 +223,6 @@ calldata: list[int] = get_ultra_flavor_honk_calldata_from_vk_and_proof(
 ```
 {% endtab %}
 {% endtabs %}
-
-Finally, you can obtain the `full_proof_with_hints` array using the garaga CLI. From within the "target" directory:
 
 
 
