@@ -388,7 +388,8 @@ class HonkVk:
     @classmethod
     def from_bytes(cls, _bytes: bytes) -> "HonkVk":
         vk_hash = sha3.keccak_256(_bytes).digest()
-        vk_hash_int = int.from_bytes(vk_hash, "big")
+        vk_hash_int_low, vk_hash_int_high = io.split_128(int.from_bytes(vk_hash, "big"))
+        (vk_hash_int, _, _) = hades_permutation(vk_hash_int_low, vk_hash_int_high, 2)
 
         circuit_size = int.from_bytes(_bytes[0:8], "big")
         log_circuit_size = int.from_bytes(_bytes[8:16], "big")
@@ -561,6 +562,7 @@ class HonkTranscript:
     gemini_r: int | ModuloCircuitElement
     shplonk_nu: int | ModuloCircuitElement
     shplonk_z: int | ModuloCircuitElement
+    last_state: tuple[int, int, int]
     public_inputs_delta: int | None = None  # Derived.
 
     def __post_init__(self):
@@ -748,9 +750,10 @@ class HonkTranscript:
         hasher.update(int.to_bytes(y1, 32, "big"))
 
         c8 = hasher.digest_reset()
-        shplonk_z, _ = split_challenge(c8)
+        shplonk_z_low, shplonk_z_high = split_challenge(c8)
 
         # print(f"shplonk_z: {hex(shplonk_z)}")
+        s0, s1, s2 = hades_permutation(shplonk_z_low, shplonk_z_high, 2)
 
         return cls(
             eta=eta,
@@ -764,7 +767,8 @@ class HonkTranscript:
             rho=rho,
             gemini_r=gemini_r,
             shplonk_nu=shplonk_nu,
-            shplonk_z=shplonk_z,
+            shplonk_z=shplonk_z_low,
+            last_state=(s0, s1, s2),
             public_inputs_delta=None,
         )
 
@@ -782,6 +786,7 @@ class HonkTranscript:
             gemini_r=circuit.write_element(self.gemini_r),
             shplonk_nu=circuit.write_element(self.shplonk_nu),
             shplonk_z=circuit.write_element(self.shplonk_z),
+            last_state=self.last_state,
             public_inputs_delta=None,
         )
 
@@ -2269,6 +2274,7 @@ class ZKHonkTranscript:
     gemini_r: int | ModuloCircuitElement
     shplonk_nu: int | ModuloCircuitElement
     shplonk_z: int | ModuloCircuitElement
+    last_state: tuple[int, int, int]
     public_inputs_delta: int | None = None  # Derived.
 
     def __post_init__(self):
@@ -2489,9 +2495,11 @@ class ZKHonkTranscript:
         hasher.update(int.to_bytes(y1, 32, "big"))
 
         c8 = hasher.digest_reset()
-        shplonk_z, _ = split_challenge(c8)
+        shplonk_z_low, shplonk_z_high = split_challenge(c8)
 
         # print(f"shplonk_z: {hex(shplonk_z)}")
+
+        s0, s1, s2 = hades_permutation(shplonk_z_low, shplonk_z_high, 2)
 
         return cls(
             eta=eta,
@@ -2506,7 +2514,8 @@ class ZKHonkTranscript:
             rho=rho,
             gemini_r=gemini_r,
             shplonk_nu=shplonk_nu,
-            shplonk_z=shplonk_z,
+            shplonk_z=shplonk_z_low,
+            last_state=(s0, s1, s2),
             public_inputs_delta=None,
         )
 
@@ -2525,6 +2534,7 @@ class ZKHonkTranscript:
             gemini_r=circuit.write_element(self.gemini_r),
             shplonk_nu=circuit.write_element(self.shplonk_nu),
             shplonk_z=circuit.write_element(self.shplonk_z),
+            last_state=self.last_state,
             public_inputs_delta=None,
         )
 

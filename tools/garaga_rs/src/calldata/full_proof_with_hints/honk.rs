@@ -10,7 +10,8 @@ use crate::definitions::FieldElement;
 use crate::definitions::GrumpkinPrimeField;
 use crate::definitions::Stark252PrimeField;
 use crate::io::{
-    element_from_biguint, element_from_bytes_be, element_to_biguint, field_element_to_u256_limbs,
+    biguint_split, element_from_biguint, element_from_bytes_be, element_from_u128,
+    element_to_biguint, field_element_to_u256_limbs,
 };
 use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
 use lambdaworks_crypto::hash::poseidon::Poseidon;
@@ -79,7 +80,7 @@ pub struct HonkVerificationKey {
     pub t4: G1PointBigUint,
     pub lagrange_first: G1PointBigUint,
     pub lagrange_last: G1PointBigUint,
-    pub vk_hash: BigUint,
+    pub vk_hash: FieldElement<Stark252PrimeField>,
 }
 
 impl HonkVerificationKey {
@@ -89,6 +90,16 @@ impl HonkVerificationKey {
         }
         let vk_hash = Keccak256::digest(bytes);
         let vk_hash_biguint = BigUint::from_bytes_be(&vk_hash);
+        let [vk_hash_low, vk_hash_high] = biguint_split::<2, 128>(&vk_hash_biguint);
+        let mut state = [
+            element_from_u128(vk_hash_low),
+            element_from_u128(vk_hash_high),
+            FieldElement::one().double(),
+        ];
+
+        PoseidonCairoStark252::hades_permutation(&mut state);
+
+        let [vk_hash, _, _] = state;
 
         let mut values = vec![];
 
@@ -100,9 +111,12 @@ impl HonkVerificationKey {
             values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
         }
 
-        Self::from(values, vk_hash_biguint)
+        Self::from(values, vk_hash)
     }
-    fn from(values: Vec<BigUint>, vk_hash: BigUint) -> Result<Self, String> {
+    pub fn from(
+        values: Vec<BigUint>,
+        vk_hash: FieldElement<Stark252PrimeField>,
+    ) -> Result<Self, String> {
         if values.len() != 4 + 27 * 2 {
             return Err(format!("Invalid input length: {}", values.len()));
         }
@@ -354,7 +368,14 @@ impl HonkTranscript {
         vk: &HonkVerificationKey,
         proof: &HonkProof,
         flavor: HonkFlavor,
-    ) -> Result<Self, String> {
+    ) -> Result<
+        (
+            Self,
+            FieldElement<Stark252PrimeField>,
+            FieldElement<Stark252PrimeField>,
+        ),
+        String,
+    > {
         if proof.public_inputs.len() != vk.public_inputs_size {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
@@ -374,7 +395,7 @@ pub fn get_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = HonkTranscript::from_proof(vk, proof, flavor)?;
+    let (transcript, transcript_state, _) = HonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -596,6 +617,12 @@ pub fn get_honk_calldata(
     points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
 
+    let two = FieldElement::<Stark252PrimeField>::one().double();
+
+    let mut state = [vk.vk_hash, transcript_state, two];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [external_s0, external_s1, _] = state;
+
     let msm_data = msm_calldata::calldata_builder(
         &points,
         &scalars,
@@ -604,6 +631,7 @@ pub fn get_honk_calldata(
         false,
         false,
         false,
+        Some((external_s0, external_s1)),
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -759,7 +787,11 @@ fn compute_transcript<T: Hasher>(
     vk: &HonkVerificationKey,
     proof: &HonkProof,
     mut hasher: T,
-) -> HonkTranscript {
+) -> (
+    HonkTranscript,
+    FieldElement<Stark252PrimeField>,
+    FieldElement<Stark252PrimeField>,
+) {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -875,22 +907,34 @@ fn compute_transcript<T: Hasher>(
     hasher.update_as_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
-    let [shplonk_z, _] = split(&c8);
+    let [shplonk_z_low, shplonk_z_high] = split(&c8);
 
-    HonkTranscript {
-        eta,
-        eta_two,
-        eta_three,
-        beta,
-        gamma,
-        alphas,
-        gate_challenges,
-        sumcheck_u_challenges,
-        rho,
-        gemini_r,
-        shplonk_nu,
-        shplonk_z,
-    }
+    let mut state = [
+        element_from_biguint(&shplonk_z_low),
+        element_from_biguint(&shplonk_z_high),
+        FieldElement::one().double(),
+    ];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [s0, s1, _] = state;
+
+    (
+        HonkTranscript {
+            eta,
+            eta_two,
+            eta_three,
+            beta,
+            gamma,
+            alphas,
+            gate_challenges,
+            sumcheck_u_challenges,
+            rho,
+            gemini_r,
+            shplonk_nu,
+            shplonk_z: shplonk_z_low,
+        },
+        s0,
+        s1,
+    )
 }
 
 #[allow(clippy::needless_range_loop, clippy::too_many_arguments)]

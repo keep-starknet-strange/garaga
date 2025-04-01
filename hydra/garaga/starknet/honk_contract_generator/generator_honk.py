@@ -87,9 +87,14 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
                 s0 + 0.into(), s1 + {msm_len}.into(), s2
             ); // Include curve_index and msm size
 
-            // Update with precomputed VK hash and last transcript state
+            // Hash precomputed VK hash with last transcript state
+            let (_s0, _s1, _s2) = hades_permutation(
+                VK_HASH, transcript_state, 2
+            );
+
+            // Update sponge state :
             let (s0, s1, s2) = hades_permutation(
-                s0 + VK_HASH, s1 + transcript_state, s2
+                s0 + _s0, s1 + _s1, s2
             );
 
             // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
