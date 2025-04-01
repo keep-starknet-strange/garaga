@@ -32,16 +32,28 @@ mod MutatorSetContract {
         peaks: Vec<u256>,
         last_peak_index: u64,
     }
+    #[starknet::storage_node]
+    struct AOCLState {
+        n_leaves: u64,
+        root: u256,
+    }
+
     #[storage]
     struct Storage {
         aocl: AOCL,
+        aocl_state: AOCL,
     }
 
     #[constructor]
     fn constructor(ref self: ContractState) {
+        // Init both AOCLs
         self.aocl.peaks.push(AOCL_INIT_VALUE);
         self.aocl.n_leaves.write(1);
         self.aocl.last_peak_index.write(0);
+
+        self.aocl_state.peaks.push(AOCL_INIT_VALUE);
+        self.aocl_state.n_leaves.write(1);
+        self.aocl_state.last_peak_index.write(0);
     }
 
     fn hash_2(x: u256, y: u256) -> u256 {
@@ -139,11 +151,9 @@ mod MutatorSetContract {
             self.aocl.n_leaves.write(new_n_leaves);
             self.emit(LeafAppended { leaf: leaf, n_leaves: new_n_leaves });
         }
-
         fn verify_inclusion_proof_aocl(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
-
             let mut res = starknet::syscalls::library_call_syscall(
                 VERIFIER_CLASS_HASH.try_into().unwrap(),
                 selector!("verify_ultra_keccak_zk_honk_proof"),
@@ -153,5 +163,17 @@ mod MutatorSetContract {
 
             Serde::<bool>::deserialize(ref res).unwrap()
         }
+    }
+
+    // Private function
+    fn _update_aocl_state(ref self: ContractState, peaks: Array<u256>, n_leaves: u64, last_peak_index: u64) {
+        // Copy the AOCL into the AOCL state
+        for i in 0..peaks.len() {
+            self.aocl_state.peaks.get(i.into()).unwrap().write(*peaks[i]);
+        }
+        self.aocl_state.n_leaves.write(n_leaves);
+        self.aocl_state.last_peak_index.write(last_peak_index);
+
+
     }
 }

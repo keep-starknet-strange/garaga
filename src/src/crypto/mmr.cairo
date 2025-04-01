@@ -18,6 +18,32 @@ pub fn trailing_ones(n: u64) -> usize {
     return count;
 }
 
+// //
+// def bag_peaks(self, peaks: List[int]) -> int:
+// bags = peaks[-1]
+// for peak in reversed(peaks[:-1]):
+//     self._hasher.update(peak)
+//     self._hasher.update(bags)
+
+//     bags = self._hasher.digest()
+
+// return bags
+
+pub fn root_from_peaks(n_leaves: u64, peaks: Array<u256>) -> u256 {
+    let bagged_peaks = bag_peaks(peaks);
+    return bagged_peaks;
+}
+
+pub fn bag_peaks(peaks: Array<u256>) -> u256 {
+    let mut res = peaks.pop_back().unwrap();
+    while let Some(peak) = peaks.pop_back() {
+        res = hash_2(peak, res);
+    }
+    return res;
+}
+
+
+
 #[cfg(test)]
 mod tests {
     use super::trailing_ones;
