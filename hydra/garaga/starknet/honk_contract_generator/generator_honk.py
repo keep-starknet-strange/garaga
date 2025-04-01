@@ -77,9 +77,15 @@ def gen_honk_verifier_files(
 
 
 def get_msm_kzg_template(
-    msm_size: int, lhs_ecip_function_name: str, n_vk_points: int, n_proof_points: int
+    msm_size: int,
+    lhs_ecip_function_name: str,
+    n_vk_points: int,
+    n_proof_points: int,
+    is_on_curve_function_name: str,
 ):
     TEMPLATE = """\n
+            let mod_bn = get_BN254_modulus();
+
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -102,26 +108,23 @@ def get_msm_kzg_template(
             // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
             // Skip the first {n_vk_points} points as they are from VK and keep the last {n_proof_points} proof points
             for point in points.slice({n_vk_points}, {n_proof_points}) {{
-                if !point.is_infinity() {{
-                    point.assert_on_curve(0);
-                }}
+                // assert({is_on_curve_function_name}(*point, mod_bn), 'proof point not on curve');
+                let is_on_curve = {is_on_curve_function_name}(*point, mod_bn);
+                println!("is_on_curve: {{}}", is_on_curve);
             }};
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt:G1Point = full_proof.proof.shplonk_q.into();
-
-            if !shplonk_q_pt.is_infinity() {{
-                shplonk_q_pt.assert_on_curve(0);
-            }}
+            assert({is_on_curve_function_name}(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
+                assert({is_on_curve_function_name}(full_proof.msm_hint_batched.Q_low, mod_bn), 'Q_low not on curve');
             }}
             if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
+                assert({is_on_curve_function_name}(full_proof.msm_hint_batched.Q_high, mod_bn), 'Q_high not on curve');
             }}
             if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
+                assert({is_on_curve_function_name}(full_proof.msm_hint_batched.Q_high_shifted, mod_bn), 'Q_high_shifted not on curve');
             }}
 
             // Hash result points
@@ -159,7 +162,6 @@ def get_msm_kzg_template(
 
             let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
             let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let mod_bn = get_modulus(0);
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
@@ -200,6 +202,7 @@ def get_msm_kzg_template(
         msm_len=msm_size,
         n_vk_points=n_vk_points,
         n_proof_points=n_proof_points,
+        is_on_curve_function_name=is_on_curve_function_name,
     )
     return TEMPLATE
 
@@ -227,7 +230,7 @@ def _get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
+    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
 };
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::ec_ops::FunctionFelt;
@@ -318,6 +321,34 @@ def _gen_circuits_code(
     code += lhs_ecip_code
     code += get_circuit_definition_impl_template(len(scalar_indexes))
 
+    is_on_curve_code = """
+#[inline(never)]
+pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
+    // INPUT stack
+    // y^2 = x^3 + 3
+    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+    let y2 = circuit_mul(in1, in1);
+    let x2 = circuit_mul(in0, in0);
+    let x3 = circuit_mul(in0, x2);
+    let x3_plus_3 = circuit_add(x3, in2);
+    let y2_minus_x3_plus_3 = circuit_sub(y2, x3_plus_3);
+
+    let mut circuit_inputs = (y2_minus_x3_plus_3,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x); // in0
+    circuit_inputs = circuit_inputs.next_2(p.y); // in1
+    circuit_inputs = circuit_inputs.next_2([3,0,0,0]); // in2
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let zero_check: u384 = outputs.get_output(y2_minus_x3_plus_3);
+    return zero_check == u384{limb0: 0, limb1: 0, limb2: 0, limb3: 0};
+}
+    """
+    code += is_on_curve_code
+    is_on_curve_function_name = f"is_on_curve_bn254"
+
     return (
         code,
         sumcheck_function_name,
@@ -326,6 +357,7 @@ def _gen_circuits_code(
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     )
 
 
@@ -350,7 +382,7 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_BN254_modulus}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
@@ -517,6 +549,7 @@ def _gen_honk_verifier_files(
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
@@ -537,6 +570,7 @@ def _gen_honk_verifier_files(
             sumcheck_function_name,
             prepare_scalars_function_name,
             lhs_ecip_function_name,
+            is_on_curve_function_name,
         ],
     )
 
@@ -580,7 +614,7 @@ def _gen_honk_verifier_files(
 
             let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points, is_on_curve_function_name)}
 
             if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
@@ -615,6 +649,7 @@ def _gen_zk_honk_verifier_files(
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     ) = _gen_circuits_code(vk, True)
 
     points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
@@ -649,6 +684,7 @@ def _gen_zk_honk_verifier_files(
             consistency_function_names[1],
             consistency_function_names[2],
             lhs_ecip_function_name,
+            is_on_curve_function_name,
         ],
     )
 
@@ -713,7 +749,7 @@ def _gen_zk_honk_verifier_files(
             {points_code}
             let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points, is_on_curve_function_name)}
             if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{

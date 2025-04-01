@@ -70,6 +70,14 @@ class HonkProof:
     kzg_quotient: G1Point
     proof_bytes: bytes
 
+    def __repr__(self) -> str:
+        # Print all fields line by line except proof_bytes :
+        return "\n".join(
+            f"{field.name}: {getattr(self, field.name).__repr__()}"
+            for field in fields(self)
+            if field.name != "proof_bytes"
+        )
+
     def __post_init__(self):
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
@@ -1905,6 +1913,14 @@ class ZKHonkProof:
     shplonk_q: G1Point
     kzg_quotient: G1Point
     proof_bytes: bytes
+
+    def __repr__(self) -> str:
+        # Print all fields line by line except proof_bytes :
+        return "\n".join(
+            f"{field.name}: {getattr(self, field.name).__repr__()}"
+            for field in fields(self)
+            if field.name != "proof_bytes"
+        )
 
     def __post_init__(self):
         assert len(self.libra_commitments) == 3
