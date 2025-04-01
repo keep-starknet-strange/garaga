@@ -3,11 +3,8 @@ from typing import Dict, List, Optional, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import BLS12_381_ID, BN254_ID, get_irreducible_poly
-from garaga.extension_field_modulo_circuit import (
-    ExtensionFieldModuloCircuit,
-    ModuloCircuit,
-    PyFelt,
-)
+from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, PyFelt
+from garaga.modulo_circuit import ModuloCircuit
 from garaga.modulo_circuit_structs import (
     E12D,
     BLSProcessedPair,
@@ -656,8 +653,8 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
 
         input_map.update(
             {
-                "R_n_minus_2": E12D,
-                "R_n_minus_1": E12D,
+                "R_n_minus_2_of_z": u384,
+                "R_n_minus_1_of_z": u384,
                 "c_n_minus_3": u384,
                 "w_of_z": u384,
                 "z": u384,
@@ -691,17 +688,13 @@ class FixedG2MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
                 split_4_sized_object_into_tuple_of_2_size(vars.get(f"Q_{k}", None))
             )
 
-        circuit.create_powers_of_Z(vars["z"], max_degree=12)
+        circuit.create_lines_z_powers(vars["z"], add_extf_power=True)
 
         c_n_minus_2 = circuit.square(vars["c_n_minus_3"])
         c_n_minus_1 = circuit.square(c_n_minus_2)
 
-        R_n_minus_2_of_z = circuit.eval_poly_in_precomputed_Z(
-            vars["R_n_minus_2"], poly_name="R_n_minus_2"
-        )
-        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(
-            vars["R_n_minus_1"], poly_name="R_n_minus_1"
-        )
+        R_n_minus_2_of_z = vars["R_n_minus_2_of_z"]
+        R_n_minus_1_of_z = vars["R_n_minus_1_of_z"]
 
         # Relation n-2 : f * lines
         prod_k_P_of_z_n_minus_2 = vars["R_n_minus_3_of_z"]  # Init
@@ -776,7 +769,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
     @property
     def input_map(self):
         return {
-            "R_n_minus_1": E12D,
+            "R_n_minus_1_of_z": u384,
             "c_n_minus_2": u384,
             "w_of_z": u384,
             "z": u384,
@@ -793,9 +786,7 @@ class MPCheckFinalizeBLS(BaseFixedG2PointsMPCheck):
         circuit.create_powers_of_Z(vars["z"], max_degree=12)
 
         c_n_minus_1 = circuit.square(vars["c_n_minus_2"])
-        R_n_minus_1_of_z = circuit.eval_poly_in_precomputed_Z(
-            vars["R_n_minus_1"], poly_name="R_n_minus_1"
-        )
+        R_n_minus_1_of_z = vars["R_n_minus_1_of_z"]
 
         # Relation n-1 (last one) : f * w * c_inv_frob_1
         prod_k_P_of_z_n_minus_1 = circuit.mul(

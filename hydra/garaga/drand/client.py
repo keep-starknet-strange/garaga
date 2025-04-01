@@ -51,26 +51,28 @@ class RandomnessBeacon:
 BASE_URLS = [
     "https://drand.cloudflare.com",
     "https://api.drand.sh",
-    "https://api.drand.secureweb3.com:6875/",
-    "https://api2.drand.sh/",
-    "https://api3.drand.sh/",
+    "https://api2.drand.sh",
+    "https://api3.drand.sh",
 ]
 
 
 def make_request(endpoint: str) -> requests.Response:
+    # Create a copy and shuffle instead of random.choice for better distribution
     base_urls = BASE_URLS.copy()
-    url = random.choice(base_urls)
-    while len(base_urls) > 0:
+    random.shuffle(base_urls)
+
+    last_error = None
+    for url in base_urls:
         try:
-            response = requests.get(f"{url}{endpoint}")
+            response = requests.get(f"{url}{endpoint}", timeout=5)  # Add timeout
             response.raise_for_status()
             return response
-        except RequestException as e:
-            print(f"Request to {url} failed: {str(e)}. Removing from list.")
-            base_urls.remove(url)
-            if len(base_urls) == 0:
-                raise RequestException("All URLs failed")
-            url = random.choice(base_urls)
+        except Exception as e:
+            print(f"Request to {url} failed: {str(e)}")
+            last_error = e
+            continue
+
+    raise RequestException(f"All URLs failed. Last error: {last_error}")
 
 
 def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
@@ -200,32 +202,60 @@ def _parse_randomness_beacon(data: dict) -> RandomnessBeacon:
 
 
 def print_all_chain_info() -> dict[DrandNetwork, NetworkInfo]:
-    chains = get_chains()
-    print(f"Found {len(chains)} chains: {chains}")
-    print("-" * 40)
-
-    chain_infos = {}
-
-    for chain_hash in chains:
+    # Try multiple times to get chains
+    max_retries = 3
+    for attempt in range(max_retries):
         try:
-            info = get_chain_info(chain_hash)
-            chain_infos[DrandNetwork(chain_hash)] = info
-            print(f"Chain: {chain_hash}")
-            print(f"  Public Key: {info.public_key}")
-            print(f"  Period: {info.period} seconds")
-            print(f"  Genesis Time: {info.genesis_time}")
-            print(f"  Hash: {info.hash}")
-            print(f"  Group Hash: {info.group_hash}")
-            print(f"  Scheme ID: {info.scheme_id}")
-            if info.beacon_id:
-                print(f"  Beacon ID: {info.beacon_id}")
-            print("-" * 40)
-        except Exception as e:
-            print(f"Error fetching info for chain {chain_hash}: {str(e)}")
-            print("-" * 40)
-            raise e
+            chains = get_chains()
+            if not chains:
+                raise ValueError("No chains returned")
 
-    return chain_infos
+            print(f"Found {len(chains)} chains: {chains}")
+            print("-" * 40)
+
+            chain_infos = {}
+            expected_networks = set(DrandNetwork)
+
+            for chain_hash in chains:
+                try:
+                    info = get_chain_info(chain_hash)
+                    try:
+                        network = DrandNetwork(chain_hash)
+                        chain_infos[network] = info
+                        expected_networks.remove(network)
+
+                        print(f"Chain: {chain_hash}")
+                        print(f"  Public Key: {info.public_key}")
+                        print(f"  Period: {info.period} seconds")
+                        print(f"  Genesis Time: {info.genesis_time}")
+                        print(f"  Hash: {info.hash}")
+                        print(f"  Group Hash: {info.group_hash}")
+                        print(f"  Scheme ID: {info.scheme_id}")
+                        if info.beacon_id:
+                            print(f"  Beacon ID: {info.beacon_id}")
+                        print("-" * 40)
+                    except ValueError:
+                        print(f"Unknown chain hash: {chain_hash}")
+                        continue
+                except Exception as e:
+                    print(f"Error fetching info for chain {chain_hash}: {str(e)}")
+                    continue
+
+            # If we found all expected networks, return the results
+            if not expected_networks:
+                return chain_infos
+
+            print(f"Missing networks: {[n.name for n in expected_networks]}")
+
+        except Exception as e:
+            print(f"Attempt {attempt + 1}/{max_retries} failed: {str(e)}")
+            if attempt < max_retries - 1:
+                print("Retrying...")
+                continue
+
+    raise RuntimeError(
+        f"Failed to get complete chain info after {max_retries} attempts"
+    )
 
 
 # Example usage

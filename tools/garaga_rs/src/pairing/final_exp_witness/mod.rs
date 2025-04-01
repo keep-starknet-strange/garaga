@@ -1,78 +1,143 @@
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
+use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
+use crate::io::{element_from_biguint, element_to_biguint};
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254;
 
-use ark_ff::PrimeField;
+use lambdaworks_math::field::element::FieldElement;
 use num_bigint::BigUint;
+
+pub fn to_bn(v: FieldElement<bn_254::field_extension::Degree12ExtensionField>) -> [BigUint; 12] {
+    let [c0, c1] = v.value();
+    let [c0b0, c0b1, c0b2] = c0.value();
+    let [c1b0, c1b1, c1b2] = c1.value();
+    let [c0b0a0, c0b0a1] = c0b0.value();
+    let [c0b1a0, c0b1a1] = c0b1.value();
+    let [c0b2a0, c0b2a1] = c0b2.value();
+    let [c1b0a0, c1b0a1] = c1b0.value();
+    let [c1b1a0, c1b1a1] = c1b1.value();
+    let [c1b2a0, c1b2a1] = c1b2.value();
+    [
+        element_to_biguint(c0b0a0),
+        element_to_biguint(c0b0a1),
+        element_to_biguint(c0b1a0),
+        element_to_biguint(c0b1a1),
+        element_to_biguint(c0b2a0),
+        element_to_biguint(c0b2a1),
+        element_to_biguint(c1b0a0),
+        element_to_biguint(c1b0a1),
+        element_to_biguint(c1b1a0),
+        element_to_biguint(c1b1a1),
+        element_to_biguint(c1b2a0),
+        element_to_biguint(c1b2a1),
+    ]
+}
+
+pub fn to_bls(
+    v: FieldElement<bls12_381::field_extension::Degree12ExtensionField>,
+) -> [BigUint; 12] {
+    let [c0, c1] = v.value();
+    let [c0b0, c0b1, c0b2] = c0.value();
+    let [c1b0, c1b1, c1b2] = c1.value();
+    let [c0b0a0, c0b0a1] = c0b0.value();
+    let [c0b1a0, c0b1a1] = c0b1.value();
+    let [c0b2a0, c0b2a1] = c0b2.value();
+    let [c1b0a0, c1b0a1] = c1b0.value();
+    let [c1b1a0, c1b1a1] = c1b1.value();
+    let [c1b2a0, c1b2a1] = c1b2.value();
+    [
+        element_to_biguint(c0b0a0),
+        element_to_biguint(c0b0a1),
+        element_to_biguint(c0b1a0),
+        element_to_biguint(c0b1a1),
+        element_to_biguint(c0b2a0),
+        element_to_biguint(c0b2a1),
+        element_to_biguint(c1b0a0),
+        element_to_biguint(c1b0a1),
+        element_to_biguint(c1b1a0),
+        element_to_biguint(c1b1a1),
+        element_to_biguint(c1b2a0),
+        element_to_biguint(c1b2a1),
+    ]
+}
 
 pub fn get_final_exp_witness(curve_id: usize, f: [BigUint; 12]) -> ([BigUint; 12], [BigUint; 12]) {
     let [f_0, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10, f_11] = f;
 
     if curve_id == 0 {
-        use ark_bn254::{Fq, Fq12, Fq2, Fq6};
-        let f = Fq12::new(
-            Fq6::new(
-                Fq2::new(Fq::from(f_0), Fq::from(f_1)),
-                Fq2::new(Fq::from(f_2), Fq::from(f_3)),
-                Fq2::new(Fq::from(f_4), Fq::from(f_5)),
-            ),
-            Fq6::new(
-                Fq2::new(Fq::from(f_6), Fq::from(f_7)),
-                Fq2::new(Fq::from(f_8), Fq::from(f_9)),
-                Fq2::new(Fq::from(f_10), Fq::from(f_11)),
-            ),
-        );
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::{Degree12ExtensionField, Degree6ExtensionField, Degree2ExtensionField};
+
+        let f = FieldElement::<Degree12ExtensionField>::new([
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_0),
+                    element_from_biguint::<BN254PrimeField>(&f_1),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_2),
+                    element_from_biguint::<BN254PrimeField>(&f_3),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_4),
+                    element_from_biguint::<BN254PrimeField>(&f_5),
+                ]),
+            ]),
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_6),
+                    element_from_biguint::<BN254PrimeField>(&f_7),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_8),
+                    element_from_biguint::<BN254PrimeField>(&f_9),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BN254PrimeField>(&f_10),
+                    element_from_biguint::<BN254PrimeField>(&f_11),
+                ]),
+            ]),
+        ]);
         let (c, wi) = bn254_final_exp_witness::get_final_exp_witness(f);
-        fn to(v: Fq12) -> [BigUint; 12] {
-            [
-                BigUint::from(v.c0.c0.c0.into_bigint()),
-                BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()),
-                BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()),
-                BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()),
-                BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()),
-                BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()),
-                BigUint::from(v.c1.c2.c1.into_bigint()),
-            ]
-        }
-        return (to(c), to(wi));
+
+        return (to_bn(c), to_bn(wi));
     }
 
     if curve_id == 1 {
-        use ark_bls12_381::{Fq, Fq12, Fq2, Fq6};
-        let f = Fq12::new(
-            Fq6::new(
-                Fq2::new(Fq::from(f_0), Fq::from(f_1)),
-                Fq2::new(Fq::from(f_2), Fq::from(f_3)),
-                Fq2::new(Fq::from(f_4), Fq::from(f_5)),
-            ),
-            Fq6::new(
-                Fq2::new(Fq::from(f_6), Fq::from(f_7)),
-                Fq2::new(Fq::from(f_8), Fq::from(f_9)),
-                Fq2::new(Fq::from(f_10), Fq::from(f_11)),
-            ),
-        );
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::{Degree12ExtensionField, Degree6ExtensionField, Degree2ExtensionField};
+
+        let f = FieldElement::<Degree12ExtensionField>::new([
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_0),
+                    element_from_biguint::<BLS12381PrimeField>(&f_1),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_2),
+                    element_from_biguint::<BLS12381PrimeField>(&f_3),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_4),
+                    element_from_biguint::<BLS12381PrimeField>(&f_5),
+                ]),
+            ]),
+            FieldElement::<Degree6ExtensionField>::new([
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_6),
+                    element_from_biguint::<BLS12381PrimeField>(&f_7),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_8),
+                    element_from_biguint::<BLS12381PrimeField>(&f_9),
+                ]),
+                FieldElement::<Degree2ExtensionField>::new([
+                    element_from_biguint::<BLS12381PrimeField>(&f_10),
+                    element_from_biguint::<BLS12381PrimeField>(&f_11),
+                ]),
+            ]),
+        ]);
         let (c, wi) = bls12_381_final_exp_witness::get_final_exp_witness(f);
-        fn to(v: Fq12) -> [BigUint; 12] {
-            [
-                BigUint::from(v.c0.c0.c0.into_bigint()),
-                BigUint::from(v.c0.c0.c1.into_bigint()),
-                BigUint::from(v.c0.c1.c0.into_bigint()),
-                BigUint::from(v.c0.c1.c1.into_bigint()),
-                BigUint::from(v.c0.c2.c0.into_bigint()),
-                BigUint::from(v.c0.c2.c1.into_bigint()),
-                BigUint::from(v.c1.c0.c0.into_bigint()),
-                BigUint::from(v.c1.c0.c1.into_bigint()),
-                BigUint::from(v.c1.c1.c0.into_bigint()),
-                BigUint::from(v.c1.c1.c1.into_bigint()),
-                BigUint::from(v.c1.c2.c0.into_bigint()),
-                BigUint::from(v.c1.c2.c1.into_bigint()),
-            ]
-        }
-        return (to(c), to(wi));
+        return (to_bls(c), to_bls(wi));
     }
 
     panic!("Curve ID {} not supported", curve_id);

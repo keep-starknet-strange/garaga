@@ -340,8 +340,7 @@ class u256Span(Cairo1SerializableStruct):
 
     def dump_to_circuit_input(self) -> str:
         code = f"""
-    let mut {self.name} = {self.name};
-    while let Option::Some(val) = {self.name}.pop_front() {{
+    for val in {self.name} {{
         circuit_inputs = circuit_inputs.next_u256(*val);
     }};"""
         return code
@@ -379,7 +378,7 @@ class u128(Cairo1SerializableStruct):
         raise NotImplementedError
 
     def dump_to_circuit_input(self) -> str:
-        raise NotImplementedError
+        return f"circuit_inputs = circuit_inputs.next_u128({self.name});\n"
 
     def __len__(self) -> int:
         if self.elmts is not None:
@@ -408,8 +407,7 @@ class u128Span(Cairo1SerializableStruct):
 
     def dump_to_circuit_input(self) -> str:
         code = f"""
-    let mut {self.name} = {self.name};
-    while let Option::Some(val) = {self.name}.pop_front() {{
+    for val in {self.name} {{
         circuit_inputs = circuit_inputs.next_u128(*val);
     }};"""
         return code
@@ -554,9 +552,8 @@ class u384Array(Cairo1SerializableStruct):
         else:
             next_fn = "next_2"
         code = f"""
-    let mut {self.name} = {self.name};
-    while let Option::Some(val) = {self.name}.pop_front() {{
-        circuit_inputs = circuit_inputs.{next_fn}(val);
+    for val in {self.name}.span() {{
+        circuit_inputs = circuit_inputs.{next_fn}(*val);
     }};"""
         return code
 
@@ -626,8 +623,8 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
     def dump_to_circuit_input(self) -> str:
         code = ""
         for mem_name in self.members_names:
-            code += f"""let mut {self.name}_{mem_name} = {self.name}.{mem_name};
-            while let Option::Some(val) = {self.name}_{mem_name}.pop_front() {{
+            code += f"""
+            for val in {self.name}.{mem_name} {{
                 circuit_inputs = circuit_inputs.next_2(*val);
             }};
             """
@@ -664,7 +661,7 @@ class u384Span(Cairo1SerializableStruct):
 
     def dump_to_circuit_input(self) -> str:
         code = f"""let mut {self.name} = {self.name};
-    while let Option::Some(val) = {self.name}.pop_front() {{
+    for val in {self.name} {{
         circuit_inputs = circuit_inputs.next_2(*val);
     }};
     """

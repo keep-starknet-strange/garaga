@@ -17,7 +17,7 @@ from garaga.precompiled_circuits.multi_pairing_check import (
 )
 
 
-@pytest.mark.parametrize("seed", range(5))
+@pytest.mark.parametrize("seed", range(4))
 @pytest.mark.parametrize("curve_id", [CurveID.BN254, CurveID.BLS12_381])
 def test_final_exp_witness(seed, curve_id):
     random.seed(seed)
@@ -29,13 +29,26 @@ def test_final_exp_witness(seed, curve_id):
 
     # Test correct case
     f_correct = get_miller_loop_output(curve_id=curve_id, will_be_one=True)
-    root_correct, w_full_correct = get_final_exp_witness(curve_id.value, f_correct)
+    root_correct_rust, w_full_correct_rust = get_final_exp_witness(
+        curve_id.value, f_correct, use_rust=True
+    )
+    root_correct_python, w_full_correct_python = get_final_exp_witness(
+        curve_id.value, f_correct, use_rust=False
+    )
+
+    # Compare Rust and Python implementations
+    assert (
+        root_correct_rust == root_correct_python
+    ), "Roots should match between Rust and Python implementations"
+    assert (
+        w_full_correct_rust == w_full_correct_python
+    ), "Scaling factors should match between Rust and Python implementations"
 
     e6_subfield = E12(
         [E6.random(curve_id.value), E6.zero(curve_id.value)], curve_id.value
     )
     scaling_factor_sparsity = get_sparsity(e6_subfield.to_direct())
-    scaling_factor = w_full_correct.to_direct()
+    scaling_factor = w_full_correct_rust.to_direct()
     # Assert sparsity is correct: for every index where the sparsity is 0, the coefficient must 0 in scaling factor
     for i in range(len(scaling_factor_sparsity)):
         if scaling_factor_sparsity[i] == 0:
@@ -44,18 +57,29 @@ def test_final_exp_witness(seed, curve_id):
 
     assert f_correct**h == ONE, "f^h should equal 1 for correct case"
     assert (
-        f_correct * w_full_correct == root_correct**λ
+        f_correct * w_full_correct_rust == root_correct_rust**λ
     ), "f * w_full should equal root**λ for correct case"
 
     # Test incorrect case
     f_incorrect = get_miller_loop_output(curve_id=curve_id, will_be_one=False)
-    root_incorrect, w_full_incorrect = get_final_exp_witness(
-        curve_id.value, f_incorrect
+    root_incorrect_rust, w_full_incorrect_rust = get_final_exp_witness(
+        curve_id.value, f_incorrect, use_rust=True
     )
+    root_incorrect_python, w_full_incorrect_python = get_final_exp_witness(
+        curve_id.value, f_incorrect, use_rust=False
+    )
+
+    # Compare Rust and Python implementations
+    assert (
+        root_incorrect_rust == root_incorrect_python
+    ), "Roots should match between Rust and Python implementations"
+    assert (
+        w_full_incorrect_rust == w_full_incorrect_python
+    ), "Scaling factors should match between Rust and Python implementations"
 
     assert f_incorrect**h != ONE, "f^h should not equal 1 for incorrect case"
     assert (
-        f_incorrect * w_full_incorrect != root_incorrect**λ
+        f_incorrect * w_full_incorrect_rust != root_incorrect_rust**λ
     ), "f * w_full should not equal root**λ for incorrect case"
 
     print(f"{seed}-th check ok")

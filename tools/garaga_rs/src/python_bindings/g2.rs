@@ -1,5 +1,8 @@
 use super::*;
-
+use crate::io::{biguint_to_u256, element_from_biguint};
+use lambdaworks_math::cyclic_group::IsGroup;
+use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
+use lambdaworks_math::elliptic_curve::traits::FromAffine;
 #[pyfunction]
 pub fn g2_add(
     py: Python,
@@ -17,46 +20,98 @@ pub fn g2_add(
     let b_3: BigUint = py_tuple_2.get_item(3)?.extract()?;
 
     if curve_id == CURVE_BN254 {
-        use ark_bn254::{Fq, Fq2, G2Affine};
-        let a = G2Affine::new(
-            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
-            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
-        );
-        let b = G2Affine::new(
-            Fq2::new(Fq::from(b_0), Fq::from(b_1)),
-            Fq2::new(Fq::from(b_2), Fq::from(b_3)),
-        );
-        let c: G2Affine = (a + b).into();
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::twist::BN254TwistCurve;
+        let a = ShortWeierstrassProjectivePoint::<BN254TwistCurve>::from_affine(
+            FieldElement::new([
+                element_from_biguint::<BN254PrimeField>(&a_0),
+                element_from_biguint::<BN254PrimeField>(&a_1),
+            ]),
+            FieldElement::new([
+                element_from_biguint::<BN254PrimeField>(&a_2),
+                element_from_biguint::<BN254PrimeField>(&a_3),
+            ]),
+        )
+        .unwrap();
+        let b = ShortWeierstrassProjectivePoint::<BN254TwistCurve>::from_affine(
+            FieldElement::new([
+                element_from_biguint::<BN254PrimeField>(&b_0),
+                element_from_biguint::<BN254PrimeField>(&b_1),
+            ]),
+            FieldElement::new([
+                element_from_biguint::<BN254PrimeField>(&b_2),
+                element_from_biguint::<BN254PrimeField>(&b_3),
+            ]),
+        )
+        .unwrap();
+        let c = a.operate_with(&b);
+        let c_affine = c.to_affine();
+        let [[x0, x1], [y0, y1]] = match c_affine.z() == &FieldElement::zero() {
+            true => [
+                &[FieldElement::zero(), FieldElement::zero()],
+                &[FieldElement::zero(), FieldElement::zero()],
+            ],
+            false => [c_affine.x().value(), c_affine.y().value()],
+        };
         let py_tuple = PyTuple::new(
             py,
             [
-                BigUint::from(c.x.c0.into_bigint()),
-                BigUint::from(c.x.c1.into_bigint()),
-                BigUint::from(c.y.c0.into_bigint()),
-                BigUint::from(c.y.c1.into_bigint()),
+                element_to_biguint::<BN254PrimeField>(x0),
+                element_to_biguint::<BN254PrimeField>(x1),
+                element_to_biguint::<BN254PrimeField>(y0),
+                element_to_biguint::<BN254PrimeField>(y1),
             ],
         );
-        return Ok(py_tuple?.into_any().into());
+        return Ok(py_tuple?.into());
     }
 
     if curve_id == CURVE_BLS12_381 {
-        use ark_bls12_381::{Fq, Fq2, G2Affine};
-        let a = G2Affine::new(
-            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
-            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
-        );
-        let b = G2Affine::new(
-            Fq2::new(Fq::from(b_0), Fq::from(b_1)),
-            Fq2::new(Fq::from(b_2), Fq::from(b_3)),
-        );
-        let c: G2Affine = (a + b).into();
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::twist::BLS12381TwistCurve;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
+        let a = ShortWeierstrassProjectivePoint::<BLS12381TwistCurve>::from_affine(
+            FieldElement::new([
+                element_from_biguint::<BLS12381PrimeField>(&a_0),
+                element_from_biguint::<BLS12381PrimeField>(&a_1),
+            ]),
+            FieldElement::new([
+                element_from_biguint::<BLS12381PrimeField>(&a_2),
+                element_from_biguint::<BLS12381PrimeField>(&a_3),
+            ]),
+        )
+        .unwrap();
+        let b = ShortWeierstrassProjectivePoint::<BLS12381TwistCurve>::from_affine(
+            FieldElement::new([
+                element_from_biguint::<BLS12381PrimeField>(&b_0),
+                element_from_biguint::<BLS12381PrimeField>(&b_1),
+            ]),
+            FieldElement::new([
+                element_from_biguint::<BLS12381PrimeField>(&b_2),
+                element_from_biguint::<BLS12381PrimeField>(&b_3),
+            ]),
+        )
+        .unwrap();
+        let c = a.operate_with(&b);
+        let c_affine = c.to_affine();
+        let [[x0, x1], [y0, y1]] = match c_affine.z() == &FieldElement::zero() {
+            true => [
+                &[FieldElement::zero(), FieldElement::zero()],
+                &[FieldElement::zero(), FieldElement::zero()],
+            ],
+            false => [c_affine.x().value(), c_affine.y().value()],
+        };
+
+        println!("x0: {:?}", x0.representative());
+        println!("x1: {:?}", x1.representative());
+        println!("y0: {:?}", y0.representative());
+        println!("y1: {:?}", y1.representative());
+
         let py_tuple = PyTuple::new(
             py,
             [
-                BigUint::from(c.x.c0.into_bigint()),
-                BigUint::from(c.x.c1.into_bigint()),
-                BigUint::from(c.y.c0.into_bigint()),
-                BigUint::from(c.y.c1.into_bigint()),
+                element_to_biguint::<BLS12381PrimeField>(x0),
+                element_to_biguint::<BLS12381PrimeField>(x1),
+                element_to_biguint::<BLS12381PrimeField>(y0),
+                element_to_biguint::<BLS12381PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());
@@ -79,38 +134,73 @@ pub fn g2_scalar_mul(
     let k: BigUint = py_int_2.extract()?;
 
     if curve_id == CURVE_BN254 {
-        use ark_bn254::{Fq, Fq2, G2Affine};
-        let a = G2Affine::new(
-            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
-            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
-        );
-        let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::BN254PrimeField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::twist::BN254TwistCurve;
+        let a = ShortWeierstrassProjectivePoint::<BN254TwistCurve>::from_affine(
+            FieldElement::new([
+                element_from_biguint::<BN254PrimeField>(&a_0),
+                element_from_biguint::<BN254PrimeField>(&a_1),
+            ]),
+            FieldElement::new([
+                element_from_biguint::<BN254PrimeField>(&a_2),
+                element_from_biguint::<BN254PrimeField>(&a_3),
+            ]),
+        )
+        .unwrap();
+
+        let c = a.operate_with_self(biguint_to_u256(&k));
+        let c_affine = c.to_affine();
+        let [[x0, x1], [y0, y1]] = match c_affine.z() == &FieldElement::zero() {
+            true => [
+                &[FieldElement::zero(), FieldElement::zero()],
+                &[FieldElement::zero(), FieldElement::zero()],
+            ],
+            false => [c_affine.x().value(), c_affine.y().value()],
+        };
         let py_tuple = PyTuple::new(
             py,
             [
-                BigUint::from(c.x.c0.into_bigint()),
-                BigUint::from(c.x.c1.into_bigint()),
-                BigUint::from(c.y.c0.into_bigint()),
-                BigUint::from(c.y.c1.into_bigint()),
+                element_to_biguint::<BN254PrimeField>(x0),
+                element_to_biguint::<BN254PrimeField>(x1),
+                element_to_biguint::<BN254PrimeField>(y0),
+                element_to_biguint::<BN254PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());
     }
 
     if curve_id == CURVE_BLS12_381 {
-        use ark_bls12_381::{Fq, Fq2, G2Affine};
-        let a = G2Affine::new(
-            Fq2::new(Fq::from(a_0), Fq::from(a_1)),
-            Fq2::new(Fq::from(a_2), Fq::from(a_3)),
-        );
-        let c: G2Affine = a.mul_bigint(k.to_u64_digits()).into();
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::BLS12381PrimeField;
+        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::twist::BLS12381TwistCurve;
+        let a = ShortWeierstrassProjectivePoint::<BLS12381TwistCurve>::from_affine(
+            FieldElement::new([
+                element_from_biguint::<BLS12381PrimeField>(&a_0),
+                element_from_biguint::<BLS12381PrimeField>(&a_1),
+            ]),
+            FieldElement::new([
+                element_from_biguint::<BLS12381PrimeField>(&a_2),
+                element_from_biguint::<BLS12381PrimeField>(&a_3),
+            ]),
+        )
+        .unwrap();
+
+        let c = a.operate_with_self(biguint_to_u256(&k));
+
+        let c_affine = c.to_affine();
+        let [[x0, x1], [y0, y1]] = match c_affine.z() == &FieldElement::zero() {
+            true => [
+                &[FieldElement::zero(), FieldElement::zero()],
+                &[FieldElement::zero(), FieldElement::zero()],
+            ],
+            false => [c_affine.x().value(), c_affine.y().value()],
+        };
         let py_tuple = PyTuple::new(
             py,
             [
-                BigUint::from(c.x.c0.into_bigint()),
-                BigUint::from(c.x.c1.into_bigint()),
-                BigUint::from(c.y.c0.into_bigint()),
-                BigUint::from(c.y.c1.into_bigint()),
+                element_to_biguint::<BLS12381PrimeField>(x0),
+                element_to_biguint::<BLS12381PrimeField>(x1),
+                element_to_biguint::<BLS12381PrimeField>(y0),
+                element_to_biguint::<BLS12381PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());

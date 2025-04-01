@@ -52,7 +52,8 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             numerator / denominator
         } else {
             (&other.y - &self.y) / (&other.x - &self.x)
-        };
+        }
+        .unwrap();
 
         let x3 = &lambda.square() - &self.x - &other.x;
 
@@ -133,6 +134,16 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         let generator_x = curve_params.g_x;
         let generator_y = curve_params.g_y;
         G1Point::new(generator_x, generator_y).unwrap()
+    }
+
+    pub fn msm(points: &[Self], scalars: &[BigUint]) -> Self {
+        assert_eq!(points.len(), scalars.len());
+        let mut result =
+            G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+        for i in 0..points.len() {
+            result = result.add(&points[i].scalar_mul(scalars[i].clone().into()));
+        }
+        result
     }
 }
 

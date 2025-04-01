@@ -160,7 +160,7 @@ class IsOnCurveG2Circuit(BaseModuloCircuit):
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = BasicEC(
+        circuit = BasicECG2(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
         x0, x1, y0, y1 = circuit.write_struct(
@@ -392,6 +392,93 @@ class RHSFinalizeAccCircuit(BaseModuloCircuit):
         )
         res_acc = circuit._RHS_finalize_acc(acc, (m, b), xA, (Qx, Qy))
         circuit.extend_struct_output(u384("rhs", [res_acc]))
+
+        return circuit
+
+
+class EvalFunctionChallengeSingleCircuit(BaseModuloCircuit):
+    def __init__(
+        self,
+        curve_id: int,
+        n_points: int = 1,
+        auto_run: bool = True,
+        compilation_mode: int = 0,
+        batched: bool = False,
+        generic_circuit: bool = True,
+    ) -> None:
+        self.n_points = n_points
+        self.batched = batched
+        self.generic_circuit = generic_circuit
+        super().__init__(
+            name=f"eval_fn_challenge_sing_{n_points}P" + ("_rlc" if batched else ""),
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        circuit = SlopeInterceptSamePointCircuit(self.curve_id, auto_run=False)
+        xA, _yA, _A = circuit.build_input()
+        m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = circuit._run_circuit_inner(
+            [xA, _yA, _A]
+        ).output
+        input.extend([xA0.felt, _yA.felt, coeff0.felt])
+        n_coeffs = n_coeffs_from_n_points(self.n_points, self.batched)
+        for _ in range(sum(n_coeffs)):
+            input.append(self.field(randint(0, CURVES[self.curve_id].p - 1)))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = ECIPCircuits(
+            self.name,
+            self.curve_id,
+            compilation_mode=self.compilation_mode,
+            generic_circuit=self.generic_circuit,
+        )
+
+        xA0, yA0 = circuit.write_struct(
+            G1PointCircuit("A", [input[0], input[1]]), WriteOps.INPUT
+        )
+        coeff0 = circuit.write_struct(u384("coeff", [input[2]]), WriteOps.INPUT)
+
+        all_coeffs = input[3:]
+
+        def split_list(input_list, lengths):
+            start_idx, result = 0, []
+            for length in lengths:
+                result.append(input_list[start_idx : start_idx + length])
+                start_idx += length
+            return result
+
+        n_points = n_points_from_n_coeffs(len(all_coeffs), self.batched)
+        _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
+            all_coeffs, n_coeffs_from_n_points(n_points, self.batched)
+        )
+        log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = (
+            circuit.write_struct(
+                structs.FunctionFeltCircuit(
+                    name="SumDlogDiv" + ("Batched" if self.batched else ""),
+                    elmts=[
+                        structs.u384Span("log_div_a_num", _log_div_a_num),
+                        structs.u384Span("log_div_a_den", _log_div_a_den),
+                        structs.u384Span("log_div_b_num", _log_div_b_num),
+                        structs.u384Span("log_div_b_den", _log_div_b_den),
+                    ],
+                ),
+                WriteOps.INPUT,
+            )
+        )
+
+        res = circuit._eval_function_challenge_single(
+            (xA0, yA0),
+            coeff0,
+            log_div_a_num,
+            log_div_a_den,
+            log_div_b_num,
+            log_div_b_den,
+        )
+        circuit.extend_struct_output(u384("res", [res]))
 
         return circuit
 

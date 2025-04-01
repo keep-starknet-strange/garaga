@@ -1,9 +1,6 @@
+use fibonacci_sequencer::{IFibonacciSequencerDispatcher, IFibonacciSequencerDispatcherTrait};
+use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
 use starknet::ContractAddress;
-
-use snforge_std::{declare, ContractClassTrait, DeclareResultTrait};
-
-use fibonacci_sequencer::IFibonacciSequencerDispatcher;
-use fibonacci_sequencer::IFibonacciSequencerDispatcherTrait;
 
 fn deploy_contract(name: ByteArray) -> ContractAddress {
     let contract = declare(name).unwrap().contract_class();

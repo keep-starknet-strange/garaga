@@ -7,13 +7,9 @@ from garaga.hints.extf_mul import (
     nondeterministic_extension_field_div,
     nondeterministic_extension_field_mul_divmod,
 )
-from garaga.modulo_circuit import (
-    BATCH_SIZE,
-    ModuloCircuit,
-    ModuloCircuitElement,
-    WriteOps,
-)
+from garaga.modulo_circuit import BATCH_SIZE, ModuloCircuitElement, WriteOps
 from garaga.poseidon_transcript import CairoPoseidonTranscript
+from garaga.precompiled_circuits.fp2 import Fp2Circuits
 
 POSEIDON_BUILTIN_SIZE = 6
 POSEIDON_OUTPUT_S1_INDEX = 4
@@ -67,7 +63,7 @@ class AccumulatePolyInstructions:
         self.n += 1
 
 
-class ExtensionFieldModuloCircuit(ModuloCircuit):
+class ExtensionFieldModuloCircuit(Fp2Circuits):
     def __init__(
         self,
         name: str,
@@ -141,32 +137,49 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             for offset in sorted(self.values_segment.segment_stacks[WriteOps.INPUT])
         ]
 
-    def create_lines_z_powers(self, z: PyFelt):
-        powers = [z]
+    def create_lines_z_powers(self, z: PyFelt, add_extf_power: bool = False):
+        """
+        Create powers of z for the evaluation of lines functions and the irreducible polynomial if add_extf_power is True.
+        """
+        powers = [z]  # z^1 at index 0
         if self.curve_id == 0:
             powers.append(self.square(z, "compute z^2"))  # z^2 at index 1
             powers.append(self.mul(powers[-1], z, "compute z^3"))  # z^3 at index 2
-            powers.append(None)  # No z^4
-            powers.append(None)  # No z^5
+            powers.append(None)  # No z^4 at index 3
+            powers.append(None)  # No z^5 at index 4
             powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
             powers.append(self.mul(powers[5], z, "compute z^7"))  # z^7 at index 6
-            powers.append(None)  # No z^8
+            powers.append(None)  # No z^8 at index 7
             powers.append(
                 self.mul(powers[6], powers[1], "compute z^9")
             )  # z^9 at index 8
+            if add_extf_power:
+                # Need to add z^12 :
+                # z^12 = z^9 * z^3
+                powers.append(None)  # No z^10 at index 9
+                powers.append(None)  # No z^11 at index 10
+                powers.append(self.mul(powers[8], powers[2], "compute z^12"))
             self.z_powers = powers
+
         elif self.curve_id == 1:
             # Need z^2, z^3, z^6, Z^8:
             powers.append(self.square(z, "compute z^2"))  # z^2 at index 1
             powers.append(self.mul(powers[-1], z, "compute z^3"))  # z^3 at index 2
-            powers.append(None)  # No z^4
-            powers.append(None)  # No z^5
+            powers.append(None)  # No z^4 at index 3
+            powers.append(None)  # No z^5 at index 4
             powers.append(self.square(powers[2], "compute z^6"))  # z^6 at index 5
-            powers.append(None)  # No z^7
+            powers.append(None)  # No z^7 at index 6
             powers.append(
                 self.mul(powers[5], powers[1], "compute z^8")
-            )  # z^8 at index 4
+            )  # z^8 at index 7
             self.z_powers = powers
+            if add_extf_power:
+                # Need to add z^12 :
+                # z^12 = z^7 * z^5
+                powers.append(None)  # No z^9 at index 8
+                powers.append(None)  # No z^10 at index 9
+                powers.append(None)  # No z^11 at index 10
+                powers.append(self.mul(powers[7], powers[4], "compute z^12"))
         else:
             raise ValueError(f"Invalid curve id: {self.curve_id}")
 
@@ -284,52 +297,6 @@ class ExtensionFieldModuloCircuit(ModuloCircuit):
             X_of_z = self.eval_poly(X, self.z_powers, poly_name, "z")
 
         return X_of_z
-
-    def extf_add(
-        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        """
-        Adds two polynomials with coefficients `X` and `Y`.
-        Returns R = [x0 + y0, x1 + y1, x2 + y2, ... + xn-1 + yn-1] mod p
-        """
-        assert len(X) == len(Y), f"len(X)={len(X)} != len(Y)={len(Y)}"
-        return [
-            self.add(x_i, y_i, comment=f"Fp{len(X)} add coeff {i}/{len(X)-1}")
-            for i, (x_i, y_i) in enumerate(zip(X, Y))
-        ]
-
-    def extf_scalar_mul(
-        self, X: list[ModuloCircuitElement], c: ModuloCircuitElement
-    ) -> list[ModuloCircuitElement]:
-        """
-        Multiplies a polynomial with coefficients `X` by a scalar `c`.
-        Input : I(x) = i0 + i1*x + i2*x^2 + ... + in-1*x^n-1
-        Output : O(x) = ci0 + ci1*x + ci2*x^2 + ... + cin-1*x^n-1.
-        This is done in the circuit.
-        """
-        assert isinstance(c, ModuloCircuitElement), "c must be a ModuloCircuitElement"
-        return [
-            self.mul(x_i, c, comment=f"Fp{len(X)} scalar mul coeff {i}/{len(X)-1}")
-            for i, x_i in enumerate(X)
-        ]
-
-    def extf_neg(self, X: list[ModuloCircuitElement]) -> list[ModuloCircuitElement]:
-        """
-        Negates a polynomial with coefficients `X`.
-        Returns R = [-x0, -x1, -x2, ... -xn-1] mod p
-        """
-        return [
-            self.neg(x_i, comment=f"Fp{len(X)} neg coeff {i}/{len(X)-1}")
-            for i, x_i in enumerate(X)
-        ]
-
-    def extf_sub(
-        self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]
-    ) -> list[ModuloCircuitElement]:
-        return [
-            self.sub(x, y, comment=f"Fp{len(X)} sub coeff {i}/{len(X)-1}")
-            for i, (x, y) in enumerate(zip(X, Y))
-        ]
 
     def extf_mul(
         self,

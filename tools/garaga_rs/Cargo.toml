@@ -1,17 +1,12 @@
 [package]
 name = "garaga_rs"
-version = "0.15.3"
+version = "0.16.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "garaga_rs"
 crate-type = ["cdylib", "rlib"]
-
-[profile.release]
-lto = true
-debug = false
-opt-level = 3
 
 [features]
 # both features are on by default, but note that
@@ -37,13 +32,12 @@ pyo3 = { version = "0.23", features = ["extension-module", "num-bigint"], option
 wasm-bindgen = { version = "0.2", optional = true }
 num-bigint = "0.4"
 num-traits = "0.2"
-ark-bn254 = "0.4"
-ark-bls12-381 = "0.4"
-ark-ec = "0.4"
-ark-ff = "0.4"
 hex = "0.4"
 sha2 = "0.10"
+sha3 = "0.10"
 js-sys = "0.3"
+lazy_static = "1.4"
+itertools = "0.14"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
-lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git" }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git" }
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "be4a329dad5c847a37ab3831b6fdee546b2d0af9" }
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev ="be4a329dad5c847a37ab3831b6fdee546b2d0af9" }
