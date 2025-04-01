@@ -12,7 +12,10 @@ use crate::definitions::BN254PrimeField;
 use crate::definitions::CurveID;
 use crate::definitions::FieldElement;
 use crate::definitions::GrumpkinPrimeField;
+use crate::definitions::Stark252PrimeField;
 use crate::io::{element_from_biguint, element_to_biguint, field_element_to_u256_limbs};
+use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
+use lambdaworks_crypto::hash::poseidon::Poseidon;
 use lambdaworks_math::field::errors::FieldError;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
@@ -239,7 +242,14 @@ impl ZKHonkTranscript {
         vk: &HonkVerificationKey,
         proof: &ZKHonkProof,
         flavor: HonkFlavor,
-    ) -> Result<Self, String> {
+    ) -> Result<
+        (
+            Self,
+            FieldElement<Stark252PrimeField>,
+            FieldElement<Stark252PrimeField>,
+        ),
+        String,
+    > {
         if proof.public_inputs.len() != vk.public_inputs_size {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
@@ -259,7 +269,7 @@ pub fn get_zk_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = ZKHonkTranscript::from_proof(vk, proof, flavor)?;
+    let (transcript, transcript_state, _) = ZKHonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -521,6 +531,12 @@ pub fn get_zk_honk_calldata(
     points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
 
+    let two = FieldElement::<Stark252PrimeField>::one().double();
+
+    let mut state = [vk.vk_hash, transcript_state, two];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [external_s0, external_s1, _] = state;
+
     let msm_data = msm_calldata::calldata_builder(
         &points,
         &scalars,
@@ -529,6 +545,7 @@ pub fn get_zk_honk_calldata(
         false,
         false,
         false,
+        Some((external_s0, external_s1)),
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -582,7 +599,11 @@ fn compute_zk_transcript<T: Hasher>(
     vk: &HonkVerificationKey,
     proof: &ZKHonkProof,
     mut hasher: T,
-) -> ZKHonkTranscript {
+) -> (
+    ZKHonkTranscript,
+    FieldElement<Stark252PrimeField>,
+    FieldElement<Stark252PrimeField>,
+) {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -717,23 +738,35 @@ fn compute_zk_transcript<T: Hasher>(
     hasher.update_as_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
-    let [shplonk_z, _] = split(&c8);
+    let [shplonk_z_low, shplonk_z_high] = split(&c8);
 
-    ZKHonkTranscript {
-        eta,
-        eta_two,
-        eta_three,
-        beta,
-        gamma,
-        alphas,
-        gate_challenges,
-        libra_challenge,
-        sumcheck_u_challenges,
-        rho,
-        gemini_r,
-        shplonk_nu,
-        shplonk_z,
-    }
+    let mut state = [
+        element_from_biguint(&shplonk_z_low), // StarknetHonk
+        element_from_biguint(&shplonk_z_high),
+        FieldElement::one().double(),
+    ];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [s0, s1, _] = state;
+
+    (
+        ZKHonkTranscript {
+            eta,
+            eta_two,
+            eta_three,
+            beta,
+            gamma,
+            alphas,
+            gate_challenges,
+            libra_challenge,
+            sumcheck_u_challenges,
+            rho,
+            gemini_r,
+            shplonk_nu,
+            shplonk_z: shplonk_z_low,
+        },
+        s0,
+        s1,
+    )
 }
 
 #[allow(clippy::needless_range_loop, clippy::too_many_arguments)]
@@ -983,8 +1016,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            125, 85, 239, 129, 30, 251, 252, 169, 54, 43, 80, 131, 68, 74, 229, 44, 56, 244, 58,
-            236, 166, 205, 209, 228, 52, 127, 78, 156, 52, 143, 243, 20,
+            236, 76, 29, 27, 134, 191, 48, 78, 191, 232, 38, 224, 20, 205, 169, 119, 130, 248, 215,
+            193, 160, 105, 111, 106, 204, 183, 124, 59, 169, 55, 121, 75,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1001,8 +1034,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            228, 82, 60, 144, 112, 204, 209, 43, 72, 227, 232, 132, 190, 76, 60, 70, 232, 6, 94,
-            10, 205, 96, 33, 110, 153, 194, 135, 97, 114, 123, 126, 178,
+            186, 33, 241, 17, 63, 250, 217, 11, 62, 195, 104, 230, 180, 74, 100, 180, 241, 14, 84,
+            30, 73, 120, 79, 73, 203, 169, 182, 21, 70, 222, 128, 176,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

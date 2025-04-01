@@ -2,6 +2,7 @@ from typing import Union
 
 from garaga import garaga_rs
 from garaga.definitions import G1G2Pair, ProofSystem
+from garaga.poseidon_transcript import hades_permutation
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
@@ -199,8 +200,13 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         points.append(G1Point.get_nG(CurveID.BN254, 1))
         points.append(proof.kzg_quotient)
 
+    external_s0, external_s1, _ = hades_permutation(vk.vk_hash, tp.last_state[0], 2)
     msm_builder = MSMCalldataBuilder(
-        CurveID.BN254, points=points, scalars=scalars_msm, risc0_mode=False
+        CurveID.BN254,
+        points=points,
+        scalars=scalars_msm,
+        risc0_mode=False,
+        external_points_scalars_hash=(external_s0, external_s1),
     )
 
     P_0 = G1Point.msm(points=points, scalars=scalars_msm).add(proof.shplonk_q)
@@ -232,7 +238,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
 
 def _honk_calldata_from_vk_and_proof_rust(
     vk: HonkVk,
-    proof: HonkProof,
+    proof: Union[HonkProof, ZKHonkProof],
     system: ProofSystem = ProofSystem.UltraKeccakHonk,
 ) -> list[int]:
     match system:
@@ -251,4 +257,4 @@ def _honk_calldata_from_vk_and_proof_rust(
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
-    return garaga_rs.get_honk_calldata(proof.flatten(), vk.flatten(), flavor, zk)
+    return garaga_rs.get_honk_calldata(proof.proof_bytes, vk.vk_bytes, flavor, zk)

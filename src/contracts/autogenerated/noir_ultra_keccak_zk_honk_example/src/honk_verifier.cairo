@@ -6,7 +6,7 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
-use super::honk_verifier_constants::{precomputed_lines, vk};
+use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
 
 #[starknet::interface]
 pub trait IUltraKeccakZKHonkVerifier<TContractState> {
@@ -35,7 +35,7 @@ mod UltraKeccakZKHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
-        precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
@@ -68,7 +68,7 @@ mod UltraKeccakZKHonkVerifier {
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
 
-            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
+            let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
             >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
@@ -177,7 +177,6 @@ mod UltraKeccakZKHonkVerifier {
 
             // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
-                full_proof.proof.gemini_masking_poly.into(),
                 vk.qm,
                 vk.qc,
                 vk.ql,
@@ -205,28 +204,28 @@ mod UltraKeccakZKHonkVerifier {
                 vk.t4,
                 vk.lagrange_first,
                 vk.lagrange_last,
-                full_proof.proof.w1.into(),
-                full_proof.proof.w2.into(),
-                full_proof.proof.w3.into(),
-                full_proof.proof.w4.into(),
-                full_proof.proof.z_perm.into(),
-                full_proof.proof.lookup_inverses.into(),
-                full_proof.proof.lookup_read_counts.into(),
-                full_proof.proof.lookup_read_tags.into(),
+                full_proof.proof.gemini_masking_poly.into(), // Proof point 1,
+                full_proof.proof.w1.into(), // Proof point 2,
+                full_proof.proof.w2.into(), // Proof point 3,
+                full_proof.proof.w3.into(), // Proof point 4,
+                full_proof.proof.w4.into(), // Proof point 5,
+                full_proof.proof.z_perm.into(), // Proof point 6,
+                full_proof.proof.lookup_inverses.into(), // Proof point 7,
+                full_proof.proof.lookup_read_counts.into(), // Proof point 8,
+                full_proof.proof.lookup_read_tags.into() // Proof point 9
             ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
-            }
+            } // log_n -1 = 4 points || Proof points 10-13
             for lib_comm in full_proof.proof.libra_commitments {
                 _points.append((*lib_comm).into());
-            }
+            } // 3 points || Proof points 14-16
+            _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 17
             _points.append(BN254_G1_GENERATOR);
-            _points.append(full_proof.proof.kzg_quotient.into());
 
             let points = _points.span();
             let scalars: Span<u256> = array![
-                into_u256_unchecked(scalar_1),
                 into_u256_unchecked(scalar_2),
                 into_u256_unchecked(scalar_3),
                 into_u256_unchecked(scalar_4),
@@ -254,6 +253,7 @@ mod UltraKeccakZKHonkVerifier {
                 into_u256_unchecked(scalar_26),
                 into_u256_unchecked(scalar_27),
                 into_u256_unchecked(scalar_28),
+                into_u256_unchecked(scalar_1),
                 into_u256_unchecked(scalar_29),
                 into_u256_unchecked(scalar_30),
                 into_u256_unchecked(scalar_31),
@@ -269,14 +269,13 @@ mod UltraKeccakZKHonkVerifier {
                 into_u256_unchecked(scalar_69),
                 into_u256_unchecked(scalar_70),
                 into_u256_unchecked(scalar_71),
-                into_u256_unchecked(scalar_72),
                 transcript.shplonk_z.into(),
+                into_u256_unchecked(scalar_72),
             ]
                 .span();
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(45);
             // HASHING: GET ECIP BASE RLC COEFF.
-            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
                 'MSM_G1', 0, 1,
             ); // Init Sponge state
@@ -284,20 +283,26 @@ mod UltraKeccakZKHonkVerifier {
                 s0 + 0.into(), s1 + 45.into(), s2,
             ); // Include curve_index and msm size
 
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
+            // Hash precomputed VK hash with last transcript state
+            let (_s0, _s1, _s2) = hades_permutation(VK_HASH, transcript_state, 2);
 
-            // Check input points are on curve and hash them at the same time.
+            // Update sponge state :
+            let (s0, s1, s2) = hades_permutation(s0 + _s0, s1 + _s1, s2);
 
-            for point in points {
+            // Check input points are on curve. No need to hash them : they are already in the
+            // transcript + we precompute the VK hash.
+            // Skip the first 27 points as they are from VK and keep the last 17 proof points
+            for point in points.slice(27, 17) {
                 if !point.is_infinity() {
                     point.assert_on_curve(0);
                 }
-                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
+            }
+
+            // Assert shplonk_q is on curve
+            let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
+
+            if !shplonk_q_pt.is_infinity() {
+                shplonk_q_pt.assert_on_curve(0);
             }
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
@@ -318,18 +323,7 @@ mod UltraKeccakZKHonkVerifier {
                 .Q_high_shifted
                 .update_hash_state(s0, s1, s2);
 
-            // Hash scalars :
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-            for scalar in scalars {
-                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
-                );
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }
+            // No need to hash scalars as they are derived from proof + transcript.
 
             let base_rlc_coeff = s1;
 
@@ -414,7 +408,7 @@ mod UltraKeccakZKHonkVerifier {
             let P_1 = ec_safe_add(
                 full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0,
             );
-            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
+            let P_1 = ec_safe_add(P_1, shplonk_q_pt, 0);
             let P_2: G1Point = full_proof.proof.kzg_quotient.into();
 
             // Perform the KZG pairing check.

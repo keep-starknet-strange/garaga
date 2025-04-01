@@ -195,7 +195,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         public_inputs_size: usize,
         public_inputs_offset: usize,
         honk_proof: HonkProof,
-    ) -> (HonkTranscript, felt252) {
+    ) -> (HonkTranscript, felt252, felt252) {
         let (etas, challenge) = get_eta_challenges::<
             T,
         >(
@@ -232,7 +232,9 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         >(gemini_r, honk_proof.gemini_a_evaluations);
         let shplonk_z = generate_shplonk_z_challenge::<T>(shplonk_nu, honk_proof.shplonk_q.into());
 
-        let (base_rlc, _, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
+        let (transcript_state, base_rlc, _) = hades_permutation(
+            shplonk_z.low.into(), shplonk_z.high.into(), 2,
+        );
 
         return (
             HonkTranscript {
@@ -249,6 +251,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
                 shplonk_nu: shplonk_nu.low,
                 shplonk_z: shplonk_z.low,
             },
+            transcript_state,
             base_rlc,
         );
     }
@@ -447,8 +450,8 @@ pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
 ) -> u256 {
     let mut hasher = Hasher::new();
     hasher.update(prev_hasher_output);
-    for i in 0..NUMBER_OF_ENTITIES {
-        hasher.update(*sumcheck_evaluations.at(i));
+    for eval in sumcheck_evaluations {
+        hasher.update(*eval);
     }
 
     hasher.digest()
@@ -522,7 +525,7 @@ mod tests {
     fn test_transcript_keccak() {
         let vk = get_vk();
         let proof = get_proof_keccak();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = HonkTranscriptTrait::from_proof::<
             KeccakHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {
@@ -640,7 +643,7 @@ mod tests {
     fn test_transcript_starknet() {
         let vk = get_vk();
         let proof = get_proof_starknet();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = HonkTranscriptTrait::from_proof::<
             StarknetHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {
