@@ -352,7 +352,6 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
 
 
 @pytest.mark.asyncio
-@pytest.mark.skip(reason="Risc0 proof not updated to 2.0.0")
 async def test_risc0_sample_app(account_devnet: BaseAccount):
     account = account_devnet
 
