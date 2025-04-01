@@ -1,6 +1,9 @@
 use garaga::definitions::{G1Point, G2Line, u288, u384};
 use garaga::utils::noir::HonkVk;
 
+// _vk_hash = keccak256(vk_bytes)
+// vk_hash = hades_permutation(_vk_hash.low, _vk_hash.high, 2)
+pub const VK_HASH: felt252 = 0x2a9f50f657a70a9862a0e56724aa3b5242cb66d45bc8ae1dfb90adc8850f3f1;
 pub const vk: HonkVk = HonkVk {
     circuit_size: 32,
     log_circuit_size: 5,
