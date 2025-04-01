@@ -10,7 +10,8 @@ use crate::definitions::FieldElement;
 use crate::definitions::GrumpkinPrimeField;
 use crate::definitions::Stark252PrimeField;
 use crate::io::{
-    element_from_biguint, element_from_bytes_be, element_to_biguint, field_element_to_u256_limbs,
+    biguint_split, element_from_biguint, element_from_bytes_be, element_from_u128,
+    element_to_biguint, field_element_to_u256_limbs,
 };
 use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
 use lambdaworks_crypto::hash::poseidon::Poseidon;
@@ -79,6 +80,7 @@ pub struct HonkVerificationKey {
     pub t4: G1PointBigUint,
     pub lagrange_first: G1PointBigUint,
     pub lagrange_last: G1PointBigUint,
+    pub vk_hash: FieldElement<Stark252PrimeField>,
 }
 
 impl HonkVerificationKey {
@@ -86,6 +88,18 @@ impl HonkVerificationKey {
         if bytes.len() != 4 * 8 + 27 * 2 * 32 {
             return Err(format!("Invalid input length: {}", bytes.len()));
         }
+        let vk_hash = Keccak256::digest(bytes);
+        let vk_hash_biguint = BigUint::from_bytes_be(&vk_hash);
+        let [vk_hash_low, vk_hash_high] = biguint_split::<2, 128>(&vk_hash_biguint);
+        let mut state = [
+            element_from_u128(vk_hash_low),
+            element_from_u128(vk_hash_high),
+            FieldElement::one().double(),
+        ];
+
+        PoseidonCairoStark252::hades_permutation(&mut state);
+
+        let [vk_hash, _, _] = state;
 
         let mut values = vec![];
 
@@ -97,9 +111,12 @@ impl HonkVerificationKey {
             values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
         }
 
-        Self::from(values)
+        Self::from(values, vk_hash)
     }
-    pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
+    pub fn from(
+        values: Vec<BigUint>,
+        vk_hash: FieldElement<Stark252PrimeField>,
+    ) -> Result<Self, String> {
         if values.len() != 4 + 27 * 2 {
             return Err(format!("Invalid input length: {}", values.len()));
         }
@@ -170,6 +187,7 @@ impl HonkVerificationKey {
             t4,
             lagrange_first,
             lagrange_last,
+            vk_hash,
         };
 
         Ok(vk)
@@ -350,7 +368,14 @@ impl HonkTranscript {
         vk: &HonkVerificationKey,
         proof: &HonkProof,
         flavor: HonkFlavor,
-    ) -> Result<Self, String> {
+    ) -> Result<
+        (
+            Self,
+            FieldElement<Stark252PrimeField>,
+            FieldElement<Stark252PrimeField>,
+        ),
+        String,
+    > {
         if proof.public_inputs.len() != vk.public_inputs_size {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
@@ -370,7 +395,7 @@ pub fn get_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = HonkTranscript::from_proof(vk, proof, flavor)?;
+    let (transcript, transcript_state, _) = HonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -592,6 +617,12 @@ pub fn get_honk_calldata(
     points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
 
+    let two = FieldElement::<Stark252PrimeField>::one().double();
+
+    let mut state = [vk.vk_hash, transcript_state, two];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [external_s0, external_s1, _] = state;
+
     let msm_data = msm_calldata::calldata_builder(
         &points,
         &scalars,
@@ -600,6 +631,7 @@ pub fn get_honk_calldata(
         false,
         false,
         false,
+        Some((external_s0, external_s1)),
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -755,7 +787,11 @@ fn compute_transcript<T: Hasher>(
     vk: &HonkVerificationKey,
     proof: &HonkProof,
     mut hasher: T,
-) -> HonkTranscript {
+) -> (
+    HonkTranscript,
+    FieldElement<Stark252PrimeField>,
+    FieldElement<Stark252PrimeField>,
+) {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -871,22 +907,34 @@ fn compute_transcript<T: Hasher>(
     hasher.update_as_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
-    let [shplonk_z, _] = split(&c8);
+    let [shplonk_z_low, shplonk_z_high] = split(&c8);
 
-    HonkTranscript {
-        eta,
-        eta_two,
-        eta_three,
-        beta,
-        gamma,
-        alphas,
-        gate_challenges,
-        sumcheck_u_challenges,
-        rho,
-        gemini_r,
-        shplonk_nu,
-        shplonk_z,
-    }
+    let mut state = [
+        element_from_biguint(&shplonk_z_low),
+        element_from_biguint(&shplonk_z_high),
+        FieldElement::one().double(),
+    ];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [s0, s1, _] = state;
+
+    (
+        HonkTranscript {
+            eta,
+            eta_two,
+            eta_three,
+            beta,
+            gamma,
+            alphas,
+            gate_challenges,
+            sumcheck_u_challenges,
+            rho,
+            gemini_r,
+            shplonk_nu,
+            shplonk_z: shplonk_z_low,
+        },
+        s0,
+        s1,
+    )
 }
 
 #[allow(clippy::needless_range_loop, clippy::too_many_arguments)]
@@ -1059,8 +1107,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            0, 114, 105, 230, 232, 63, 110, 100, 74, 147, 156, 143, 183, 170, 25, 146, 248, 91,
-            194, 189, 245, 199, 5, 48, 168, 123, 211, 116, 232, 76, 43, 127,
+            109, 7, 142, 228, 214, 44, 242, 156, 253, 222, 111, 153, 24, 2, 146, 169, 123, 23, 150,
+            48, 181, 26, 147, 197, 82, 157, 162, 191, 44, 142, 184, 34,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1077,8 +1125,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            4, 228, 157, 181, 2, 45, 246, 172, 225, 118, 235, 3, 98, 59, 123, 33, 182, 250, 143,
-            76, 59, 148, 7, 173, 4, 99, 70, 149, 164, 128, 0, 167,
+            110, 120, 222, 91, 37, 231, 138, 100, 27, 77, 147, 250, 29, 208, 29, 204, 154, 100,
+            175, 206, 147, 148, 32, 25, 120, 167, 205, 198, 250, 176, 94, 170,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

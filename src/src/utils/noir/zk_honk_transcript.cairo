@@ -34,7 +34,7 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
         public_inputs_size: usize,
         public_inputs_offset: usize,
         honk_proof: ZKHonkProof,
-    ) -> (ZKHonkTranscript, felt252) {
+    ) -> (ZKHonkTranscript, felt252, felt252) {
         let (etas, challenge) = get_eta_challenges::<
             T,
         >(
@@ -85,7 +85,9 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
         >(gemini_r, honk_proof.gemini_a_evaluations, honk_proof.libra_poly_evals);
         let shplonk_z = generate_shplonk_z_challenge::<T>(shplonk_nu, honk_proof.shplonk_q.into());
 
-        let (base_rlc, _, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
+        let (transcript_state, base_rlc, _) = hades_permutation(
+            shplonk_z.low.into(), shplonk_z.high.into(), 2,
+        );
 
         return (
             ZKHonkTranscript {
@@ -103,9 +105,105 @@ impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
                 shplonk_nu: shplonk_nu.low,
                 shplonk_z: shplonk_z.low,
             },
+            transcript_state,
             base_rlc,
         );
     }
+}
+
+
+#[inline]
+pub fn generate_libra_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, libra_commitments: Span<G1Point256>, libra_sum: u256,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+
+    append_proof_point(ref hasher, (*libra_commitments.at(0)).into());
+
+    hasher.update(libra_sum);
+
+    hasher.digest()
+}
+
+#[inline]
+pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, sumcheck_univariates: Span<u256>,
+) -> (Array<u128>, u256) {
+    let mut sum_check_u_challenges: Array<u128> = array![];
+    let mut challenge: u256 = prev_hasher_output;
+    for i in 0..CONST_PROOF_SIZE_LOG_N {
+        let mut hasher = Hasher::new();
+        hasher.update(challenge);
+
+        match array_slice(
+            sumcheck_univariates.snapshot,
+            i * ZK_BATCHED_RELATION_PARTIAL_LENGTH,
+            ZK_BATCHED_RELATION_PARTIAL_LENGTH,
+        ) {
+            Option::Some(slice) => {
+                let sumcheck_univariates_i = Span { snapshot: slice };
+                for j in 0..ZK_BATCHED_RELATION_PARTIAL_LENGTH {
+                    hasher.update(*sumcheck_univariates_i.at(j));
+                };
+            },
+            Option::None => {
+                for _ in 0..ZK_BATCHED_RELATION_PARTIAL_LENGTH {
+                    hasher.update_0_256();
+                };
+            },
+        }
+        challenge = hasher.digest();
+        sum_check_u_challenges.append(challenge.low);
+    }
+
+    (sum_check_u_challenges, challenge)
+}
+
+
+#[inline]
+pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256,
+    sumcheck_evaluations: Span<u256>,
+    libra_evaluation: u256,
+    libra_commitments: Span<G1Point256>,
+    gemini_masking_poly: G1PointProof,
+    gemini_masking_eval: u256,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    for eval in sumcheck_evaluations {
+        hasher.update(*eval);
+    }
+
+    hasher.update(libra_evaluation);
+    append_proof_point(ref hasher, (*libra_commitments.at(1)).into());
+    append_proof_point(ref hasher, (*libra_commitments.at(2)).into());
+    append_proof_point(ref hasher, gemini_masking_poly);
+    hasher.update(gemini_masking_eval);
+
+    hasher.digest()
+}
+
+#[inline]
+pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    prev_hasher_output: u256, gemini_a_evaluations: Span<u256>, libra_poly_evals: Span<u256>,
+) -> u256 {
+    let mut hasher = Hasher::new();
+    hasher.update(prev_hasher_output);
+    for eval in gemini_a_evaluations {
+        hasher.update(*eval);
+    }
+    let implied_log_n = gemini_a_evaluations.len();
+    for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
+        hasher.update_0_256();
+    }
+
+    for eval in libra_poly_evals {
+        hasher.update(*eval);
+    }
+
+    hasher.digest()
 }
 
 #[cfg(test)]
@@ -117,7 +215,7 @@ mod tests {
     fn test_zk_transcript_keccak() {
         let vk = get_vk();
         let proof = get_zk_proof_keccak();
-        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = ZKHonkTranscriptTrait::from_proof::<
             KeccakHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = ZKHonkTranscript {
@@ -237,7 +335,7 @@ mod tests {
     fn test_zk_transcript_starknet() {
         let vk = get_vk();
         let proof = get_zk_proof_starknet();
-        let (transcript, _) = ZKHonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = ZKHonkTranscriptTrait::from_proof::<
             StarknetHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = ZKHonkTranscript {
@@ -353,99 +451,4 @@ mod tests {
         assert_eq!(transcript.shplonk_nu, expected.shplonk_nu);
         assert_eq!(transcript.shplonk_z, expected.shplonk_z);
     }
-}
-
-
-#[inline]
-pub fn generate_libra_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, libra_commitments: Span<G1Point256>, libra_sum: u256,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-
-    append_proof_point(ref hasher, (*libra_commitments.at(0)).into());
-
-    hasher.update(libra_sum);
-
-    hasher.digest()
-}
-
-#[inline]
-pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, sumcheck_univariates: Span<u256>,
-) -> (Array<u128>, u256) {
-    let mut sum_check_u_challenges: Array<u128> = array![];
-    let mut challenge: u256 = prev_hasher_output;
-    for i in 0..CONST_PROOF_SIZE_LOG_N {
-        let mut hasher = Hasher::new();
-        hasher.update(challenge);
-
-        match array_slice(
-            sumcheck_univariates.snapshot,
-            i * ZK_BATCHED_RELATION_PARTIAL_LENGTH,
-            ZK_BATCHED_RELATION_PARTIAL_LENGTH,
-        ) {
-            Option::Some(slice) => {
-                let sumcheck_univariates_i = Span { snapshot: slice };
-                for j in 0..ZK_BATCHED_RELATION_PARTIAL_LENGTH {
-                    hasher.update(*sumcheck_univariates_i.at(j));
-                };
-            },
-            Option::None => {
-                for _ in 0..ZK_BATCHED_RELATION_PARTIAL_LENGTH {
-                    hasher.update_0_256();
-                };
-            },
-        }
-        challenge = hasher.digest();
-        sum_check_u_challenges.append(challenge.low);
-    }
-
-    (sum_check_u_challenges, challenge)
-}
-
-
-#[inline]
-pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256,
-    sumcheck_evaluations: Span<u256>,
-    libra_evaluation: u256,
-    libra_commitments: Span<G1Point256>,
-    gemini_masking_poly: G1PointProof,
-    gemini_masking_eval: u256,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    for i in 0..NUMBER_OF_ENTITIES {
-        hasher.update(*sumcheck_evaluations.at(i));
-    }
-
-    hasher.update(libra_evaluation);
-    append_proof_point(ref hasher, (*libra_commitments.at(1)).into());
-    append_proof_point(ref hasher, (*libra_commitments.at(2)).into());
-    append_proof_point(ref hasher, gemini_masking_poly);
-    hasher.update(gemini_masking_eval);
-
-    hasher.digest()
-}
-
-#[inline]
-pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
-    prev_hasher_output: u256, gemini_a_evaluations: Span<u256>, libra_poly_evals: Span<u256>,
-) -> u256 {
-    let mut hasher = Hasher::new();
-    hasher.update(prev_hasher_output);
-    for eval in gemini_a_evaluations {
-        hasher.update(*eval);
-    }
-    let implied_log_n = gemini_a_evaluations.len();
-    for _ in 0..(CONST_PROOF_SIZE_LOG_N - implied_log_n) {
-        hasher.update_0_256();
-    }
-
-    for eval in libra_poly_evals {
-        hasher.update(*eval);
-    }
-
-    hasher.digest()
 }

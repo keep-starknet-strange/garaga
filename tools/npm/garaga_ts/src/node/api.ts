@@ -11,14 +11,11 @@ import {
   get_groth16_calldata,
   get_honk_calldata,
   get_zk_honk_calldata,
-  parse_honk_proof,
-  parse_zk_honk_proof,
-  parse_honk_verification_key,
   poseidon_hash,
 } from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
-import { HonkFlavor, HonkProof, ZKHonkProof, HonkVerifyingKey } from './starknet/honkContractGenerator/parsingUtils';
+import { HonkFlavor } from './starknet/honkContractGenerator/parsingUtils';
 
 export type G1Point = [bigint, bigint];
 export type G2Point = [[bigint, bigint], [bigint, bigint]];
@@ -91,25 +88,14 @@ export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16Ver
   return get_groth16_calldata(proof, verifyingKey, curveId);
 }
 
-export function getHonkCallData(proof: HonkProof, verifyingKey: HonkVerifyingKey, flavor: HonkFlavor): bigint[] {
+export function getHonkCallData(proof: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
   return get_honk_calldata(proof, verifyingKey, flavor);
 }
 
-export function getZKHonkCallData(proof: ZKHonkProof, verifyingKey: HonkVerifyingKey, flavor: HonkFlavor): bigint[] {
+export function getZKHonkCallData(proof: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
   return get_zk_honk_calldata(proof, verifyingKey, flavor);
 }
 
-export function parseHonkProofFromBytes(bytes: Uint8Array): HonkProof {
-  return parse_honk_proof(bytes);
-}
-
-export function parseZKHonkProofFromBytes(bytes: Uint8Array): ZKHonkProof {
-  return parse_zk_honk_proof(bytes);
-}
-
-export function parseHonkVerifyingKeyFromBytes(bytes: Uint8Array): HonkVerifyingKey {
-  return parse_honk_verification_key(bytes);
-}
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
   try {

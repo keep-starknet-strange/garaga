@@ -6,7 +6,7 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
-use super::honk_verifier_constants::{precomputed_lines, vk};
+use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
 
 #[starknet::interface]
 pub trait IUltraKeccakZKHonkVerifier<TContractState> {
@@ -35,7 +35,7 @@ mod UltraKeccakZKHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
-        precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
@@ -68,7 +68,7 @@ mod UltraKeccakZKHonkVerifier {
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
 
-            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
+            let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
             >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
@@ -276,7 +276,6 @@ mod UltraKeccakZKHonkVerifier {
 
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(45);
             // HASHING: GET ECIP BASE RLC COEFF.
-            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
                 'MSM_G1', 0, 1,
             ); // Init Sponge state
@@ -284,20 +283,19 @@ mod UltraKeccakZKHonkVerifier {
                 s0 + 0.into(), s1 + 45.into(), s2,
             ); // Include curve_index and msm size
 
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
+            // Hash precomputed VK hash with last transcript state
+            let (_s0, _s1, _s2) = hades_permutation(VK_HASH, transcript_state, 2);
 
-            // Check input points are on curve and hash them at the same time.
+            // Update sponge state :
+            let (s0, s1, s2) = hades_permutation(s0 + _s0, s1 + _s1, s2);
+
+            // Check input points are on curve. No need to hash them : they are already in the
+            // transcript + we precompute the VK hash.
 
             for point in points {
                 if !point.is_infinity() {
                     point.assert_on_curve(0);
                 }
-                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
             }
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
@@ -318,18 +316,7 @@ mod UltraKeccakZKHonkVerifier {
                 .Q_high_shifted
                 .update_hash_state(s0, s1, s2);
 
-            // Hash scalars :
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-            for scalar in scalars {
-                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
-                );
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }
+            // No need to hash scalars as they are derived from proof + transcript.
 
             let base_rlc_coeff = s1;
 
