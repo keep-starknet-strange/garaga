@@ -76,7 +76,9 @@ def gen_honk_verifier_files(
             raise ValueError(f"Proof system {system} not compatible")
 
 
-def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
+def get_msm_kzg_template(
+    msm_size: int, lhs_ecip_function_name: str, n_vk_points: int, n_proof_points: int
+):
     TEMPLATE = """\n
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
             // HASHING: GET ECIP BASE RLC COEFF.
@@ -98,12 +100,19 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
             );
 
             // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
-
-            for point in points {{
+            // Skip the first {n_vk_points} points as they are from VK and keep the last {n_proof_points} proof points
+            for point in points.slice({n_vk_points}, {n_proof_points}) {{
                 if !point.is_infinity() {{
                     point.assert_on_curve(0);
                 }}
             }};
+
+            // Assert shplonk_q is on curve
+            let shplonk_q_pt:G1Point = full_proof.proof.shplonk_q.into();
+
+            if !shplonk_q_pt.is_infinity() {{
+                shplonk_q_pt.assert_on_curve(0);
+            }}
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
                 full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
@@ -175,7 +184,7 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
             let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
 
             let P_1 = ec_safe_add(full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0);
-            let P_1 = ec_safe_add(P_1, full_proof.proof.shplonk_q.into(), 0);
+            let P_1 = ec_safe_add(P_1, shplonk_q_pt, 0);
             let P_2:G1Point = full_proof.proof.kzg_quotient.into();
 
             // Perform the KZG pairing check.
@@ -187,7 +196,10 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
             );
 
         """.format(
-        lhs_ecip_function_name=lhs_ecip_function_name, msm_len=msm_size
+        lhs_ecip_function_name=lhs_ecip_function_name,
+        msm_len=msm_size,
+        n_vk_points=n_vk_points,
+        n_proof_points=n_proof_points,
     )
     return TEMPLATE
 
@@ -401,9 +413,9 @@ pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precompute
 """
 
 
-def _get_msm_points_array_code(zk: bool) -> str:
+def _get_msm_points_array_code(zk: bool, log_n: int) -> tuple[str, (int, int)]:
     # Common points that are shared between ZK and non-ZK versions
-    common_points = [
+    vk_points = [
         "vk.qm",
         "vk.qc",
         "vk.ql",
@@ -431,43 +443,60 @@ def _get_msm_points_array_code(zk: bool) -> str:
         "vk.t4",
         "vk.lagrange_first",
         "vk.lagrange_last",
-        "full_proof.proof.w1.into()",
-        "full_proof.proof.w2.into()",
-        "full_proof.proof.w3.into()",
-        "full_proof.proof.w4.into()",
-        "full_proof.proof.z_perm.into()",
-        "full_proof.proof.lookup_inverses.into()",
-        "full_proof.proof.lookup_read_counts.into()",
-        "full_proof.proof.lookup_read_tags.into()",
     ]
 
-    # ZK-specific points that are added at the beginning
-    zk_points = ["full_proof.proof.gemini_masking_poly.into()"] if zk else []
+    next_proof_point_counter = 1
+    proof_points = (
+        [
+            f"full_proof.proof.gemini_masking_poly.into(), // Proof point {next_proof_point_counter}"
+        ]
+        if zk
+        else []
+    )
+    next_proof_point_counter += 1 if zk else 0
+
+    proof_points += [
+        f"full_proof.proof.w1.into(), // Proof point {next_proof_point_counter}",
+        f"full_proof.proof.w2.into(), // Proof point {next_proof_point_counter+1}",
+        f"full_proof.proof.w3.into(), // Proof point {next_proof_point_counter+2}",
+        f"full_proof.proof.w4.into(), // Proof point {next_proof_point_counter+3}",
+        f"full_proof.proof.z_perm.into(), // Proof point {next_proof_point_counter+4}",
+        f"full_proof.proof.lookup_inverses.into(), // Proof point {next_proof_point_counter+5}",
+        f"full_proof.proof.lookup_read_counts.into(), // Proof point {next_proof_point_counter+6}",
+        f"full_proof.proof.lookup_read_tags.into(), // Proof point {next_proof_point_counter+7}",
+    ]
+    next_proof_point_counter += 8
 
     # Combine all points
-    all_points = zk_points + common_points
+    all_points = vk_points + proof_points
+
     points_str = ",\n".join(all_points)
     code = "// Starts with 1 * shplonk_q, not included in msm\n"
-    code += f"""            let mut _points: Array<G1Point> = array![{points_str}];
+    code += f"""            let mut _points: Array<G1Point> = array![{points_str}\n];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {{
                 _points.append((*gem_comm).into());
-            }};"""
+            }}; // log_n -1 = {log_n-1} points || Proof points {next_proof_point_counter}-{next_proof_point_counter+(log_n-1) - 1}"""
+    next_proof_point_counter += log_n - 1
     # Add ZK-specific commitments
     if zk:
-        code += """
-            for lib_comm in full_proof.proof.libra_commitments {
+        code += f"""
+            for lib_comm in full_proof.proof.libra_commitments {{
                 _points.append((*lib_comm).into());
-            };"""
-
+            }};// 3 points || Proof points {next_proof_point_counter}-{next_proof_point_counter+3-1}"""
+        next_proof_point_counter += 3
     # Add common final points
-    code += """
+    code += f"""
+            _points.append(full_proof.proof.kzg_quotient.into()); // Proof point {next_proof_point_counter}
             _points.append(BN254_G1_GENERATOR);
-            _points.append(full_proof.proof.kzg_quotient.into());
 
             let points = _points.span();"""
 
-    return code
+    proof_point_counter = next_proof_point_counter
+
+    n_vk_points = len(vk_points)
+
+    return code, (n_vk_points, proof_point_counter)
 
 
 def _gen_honk_verifier_files(
@@ -491,9 +520,14 @@ def _gen_honk_verifier_files(
     ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = ",\n            ".join(
+    scalars_tuple_into = [
         f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    )
+    ]
+
+    scalars_tuple_into.append("transcript.shplonk_z.into()")
+    # Swap position of last two elements of scalars_tuple_into :
+    scalars_tuple_into = scalars_tuple_into[:-2] + scalars_tuple_into[-2:][::-1]
+    scalars_tuple_into = ",\n            ".join(scalars_tuple_into)
 
     # Generate contract header
     contract_header = _gen_contract_header(
@@ -504,6 +538,10 @@ def _gen_honk_verifier_files(
             prepare_scalars_function_name,
             lhs_ecip_function_name,
         ],
+    )
+
+    points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
+        zk=False, log_n=vk.log_circuit_size
     )
 
     contract_code = f"""{contract_header}
@@ -538,11 +576,11 @@ def _gen_honk_verifier_files(
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            {_get_msm_points_array_code(zk=False)}
+            {points_code}
 
-            let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
+            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
 
             if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
@@ -579,10 +617,26 @@ def _gen_zk_honk_verifier_files(
         msm_len,
     ) = _gen_circuits_code(vk, True)
 
-    scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = ",\n            ".join(
-        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
+    points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
+        zk=True, log_n=vk.log_circuit_size
     )
+
+    scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
+    scalars_tuple_into = [
+        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
+    ]
+
+    scalars_tuple_into.append("transcript.shplonk_z.into()")
+    # Swap position of last two elements of scalars_tuple_into (KZG quotient & BN254 G1 generator) :
+    scalars_tuple_into = scalars_tuple_into[:-2] + scalars_tuple_into[-2:][::-1]
+    # Move first scalar after the first vk points [a, b, c, d, e] -> [b,c,d,a,e] if [b,c,d] are vk points:
+    scalars_tuple_into = (
+        scalars_tuple_into[1 : n_vk_points + 1]
+        + scalars_tuple_into[:1]
+        + scalars_tuple_into[n_vk_points + 1 :]
+    )
+
+    scalars_tuple_into = ",\n            ".join(scalars_tuple_into)
 
     # Generate contract header
     contract_header = _gen_contract_header(
@@ -656,10 +710,10 @@ def _gen_zk_honk_verifier_files(
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
         );
 
-            {_get_msm_points_array_code(zk=True)}
-            let scalars: Span<u256> = array![{scalars_tuple_into}, transcript.shplonk_z.into()].span();
+            {points_code}
+            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name)}
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
             if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{
