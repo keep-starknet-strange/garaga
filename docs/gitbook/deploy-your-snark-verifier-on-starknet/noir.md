@@ -10,9 +10,7 @@ icon: octopus
 * Barretenberg 0.82.2 (install with `bbup --version 0.82.2`)
 * Garaga CLI [python-package.md](../installation/python-package.md "mention")  version 0.16.0 (install with `pip install garaga==0.16.0`)
 
-To install `noirup` and `bbup`, follow the [quickstart guide from aztec ](https://noir-lang.org/docs/getting_started/quick_start):
-
-We recall the installations commands here:
+To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
 ## Generate a Starknet smart contract for your Noir program
 
@@ -22,7 +20,7 @@ We recall the installations commands here:
 
 
 
-First, we'll create a new Noir project and compile it with `nargo build`.
+First, create a new Noir project and compile it with `nargo build`.
 
 ```bash
 nargo new hello
@@ -32,13 +30,13 @@ nargo build
 
 This will create a json file in `hello/target/hello.json`
 
-Now you can generate the corresponding verifying key using barretenberg :
+Now, generate the corresponding verifying key `vk`using barretenberg :
 
 ```bash
 bb write_vk --scheme ultra_honk --oracle_hash keccak -b target/hello.json -o target
 ```
 
-Finally, you can generate a smart contract from the verifying key using the garaga CLI.&#x20;
+Finally, generate a smart contract from the verifying key using the garaga CLI.&#x20;
 
 ```bash
 garaga gen --system ultra_keccak_zk_honk --vk target/vk
@@ -69,14 +67,13 @@ The contract interface will be
 trait IUltraKeccakZKHonkVerifier<TContractState> {
     fn verify_ultra_keccak_zk_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>;
+    ) -> Option<Span<u256>>; // Returns the public inputs in case of success.  
 }
-
 ```
 
-In order to interact with the endpoint, you need to generate the `full_proof_with_hints`array.
+In order to interact with the endpoint, we need to generate the `full_proof_with_hints`array.
 
-To do so, you need a specific proof for your program. But first, Noir requires you to specify the inputs of your program in `hello/Prover.toml`
+To do so, we need a specific proof for your program. But first, Noir requires to specify the inputs of the program in `hello/Prover.toml`
 
 ```toml
 // The "hello" program simply prove that x!=y, with x being private and y public.
@@ -84,7 +81,7 @@ x = "1"
 y = "2"
 ```
 
-You can now generate a proof with barretenberg, after running the program (notice the `--zk`flag ) :
+Now, generate a proof with barretenberg, after running the program (notice that the `--zk`flag  that occurs only in the proving part, not in the verifying key generation) :
 
 ```bash
 nargo execute witness
