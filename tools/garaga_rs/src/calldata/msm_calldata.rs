@@ -128,6 +128,7 @@ where
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
         risc0_mode,
+        Option::None,
     ))
 }
 
@@ -139,6 +140,10 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
     risc0_mode: bool,
+    external_points_scalars_hash: Option<(
+        FieldElement<Stark252PrimeField>,
+        FieldElement<Stark252PrimeField>,
+    )>,
 ) -> Vec<BigUint>
 where
     FieldElement<F>: ByteConversion,
@@ -162,6 +167,7 @@ where
         [&q_low, &q_high, &q_high_shifted],
         curve_id,
         risc0_mode,
+        external_points_scalars_hash,
     );
     let sum_dlog_div_maybe_batched = match risc0_mode {
         true => &sum_dlog_div_low,
@@ -319,6 +325,10 @@ fn hash_inputs_points_scalars_and_result_points<F>(
     q_list: [&G1Point<F>; 3],
     curve_id: usize,
     risc0_mode: bool,
+    external_points_scalars_hash: Option<(
+        FieldElement<Stark252PrimeField>,
+        FieldElement<Stark252PrimeField>,
+    )>,
 ) -> CairoPoseidonTranscript
 where
     F: IsPrimeField,
@@ -337,10 +347,18 @@ where
         FieldElement::<Stark252PrimeField>::from(scalars.len() as u64),
     );
 
+    if external_points_scalars_hash.is_some() {
+        transcript_ref.update_sponge_state(
+            external_points_scalars_hash.unwrap().0,
+            external_points_scalars_hash.unwrap().1,
+        );
+    }
     // points
-    for point in points {
-        transcript_ref.hash_emulated_field_element(&point.x);
-        transcript_ref.hash_emulated_field_element(&point.y);
+    if external_points_scalars_hash.is_none() {
+        for point in points {
+            transcript_ref.hash_emulated_field_element(&point.x);
+            transcript_ref.hash_emulated_field_element(&point.y);
+        }
     }
 
     // Q_low, Q_high, Q_high_shifted
@@ -353,10 +371,12 @@ where
     }
 
     // scalars
-    if risc0_mode {
-        transcript_ref.hash_u128_multi(scalars);
-    } else {
-        transcript_ref.hash_u256_multi(scalars);
+    if external_points_scalars_hash.is_none() {
+        if risc0_mode {
+            transcript_ref.hash_u128_multi(scalars);
+        } else {
+            transcript_ref.hash_u256_multi(scalars);
+        }
     }
 
     transcript

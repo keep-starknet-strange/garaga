@@ -8,11 +8,6 @@ edition = "2021"
 name = "garaga_rs"
 crate-type = ["cdylib", "rlib"]
 
-[profile.release]
-lto = true
-debug = false
-opt-level = 3
-
 [features]
 # both features are on by default, but note that
 # - python bindings are automatically excluded on wasm32-unknown-unknown

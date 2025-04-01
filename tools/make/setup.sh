@@ -102,8 +102,8 @@ pre-commit install
 
 echo "Compiling garaga_rs Rust extension..."
 # Create target directory with proper permissions in the correct location
-mkdir -p build/garaga_rs/target
-chmod 755 build/garaga_rs/target
+mkdir -p .cargo/garaga_rs/target
+chmod 755 .cargo/garaga_rs/target
 
 # Build the Rust extension
 maturin develop --release

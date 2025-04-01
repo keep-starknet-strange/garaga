@@ -80,7 +80,6 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
     TEMPLATE = """\n
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
             // HASHING: GET ECIP BASE RLC COEFF.
-            // TODO : RE-USE transcript to avoid re-hashing G1 POINTS.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
                 'MSM_G1', 0, 1
             ); // Init Sponge state
@@ -88,20 +87,22 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
                 s0 + 0.into(), s1 + {msm_len}.into(), s2
             ); // Include curve_index and msm size
 
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
+            // Hash precomputed VK hash with last transcript state
+            let (_s0, _s1, _s2) = hades_permutation(
+                VK_HASH, transcript_state, 2
+            );
 
-            // Check input points are on curve and hash them at the same time.
+            // Update sponge state :
+            let (s0, s1, s2) = hades_permutation(
+                s0 + _s0, s1 + _s1, s2
+            );
+
+            // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
 
             for point in points {{
                 if !point.is_infinity() {{
                     point.assert_on_curve(0);
                 }}
-                let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
             }};
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
@@ -119,18 +120,7 @@ def get_msm_kzg_template(msm_size: int, lhs_ecip_function_name: str):
             let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
             let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high_shifted.update_hash_state(s0, s1, s2);
 
-            // Hash scalars :
-            let mut s0 = s0;
-            let mut s1 = s1;
-            let mut s2 = s2;
-            for scalar in scalars {{
-                let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-                    s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2
-                );
-                s0 = _s0;
-                s1 = _s1;
-                s2 = _s2;
-            }};
+            // No need to hash scalars as they are derived from proof + transcript.
 
             let base_rlc_coeff = s1;
 
@@ -335,7 +325,7 @@ def _gen_contract_header(flavor: str, is_zk: bool, function_names: list[str]) ->
     imports_str = ", ".join(function_names)
     proof_struct_name = f"{('ZK' if is_zk else '') + 'HonkProof'}"
     header = f"""
-use super::honk_verifier_constants::{{vk, precomputed_lines}};
+use super::honk_verifier_constants::{{vk, VK_HASH, precomputed_lines}};
 use super::honk_verifier_circuits::{{{imports_str}}};
 
 #[starknet::interface]
@@ -354,7 +344,7 @@ mod {contract_name} {{
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
-    use super::{{vk, precomputed_lines, {imports_str}}};
+    use super::{{vk, VK_HASH, precomputed_lines, {imports_str}}};
     use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
@@ -403,6 +393,9 @@ def _gen_constants_code(vk: HonkVk) -> str:
 use garaga::definitions::{{G1Point, G2Line, u384, u288}};
 use garaga::utils::noir::HonkVk;
 
+// _vk_hash = keccak256(vk_bytes)
+// vk_hash = hades_permutation(_vk_hash.low, _vk_hash.high, 2)
+pub const VK_HASH: felt252 = {hex(vk.vk_hash)};
 {vk.serialize_to_cairo()}\n
 pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
 """
@@ -514,7 +507,7 @@ def _gen_honk_verifier_files(
     )
 
     contract_code = f"""{contract_header}
-            let (transcript, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            let (transcript, transcript_state, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -606,7 +599,7 @@ def _gen_zk_honk_verifier_files(
     )
 
     contract_code = f"""{contract_header}
-            let (transcript, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -716,7 +709,7 @@ mod honk_verifier_constants;
 mod honk_verifier_circuits;
 """
         )
-    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
+    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
 
 
 if __name__ == "__main__":

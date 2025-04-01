@@ -177,7 +177,7 @@ mod groth16_verifier;
 mod groth16_verifier_constants;
 """
         )
-    subprocess.run(["scarb", "fmt"], check=True, cwd=output_folder_path)
+    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
     return constants_code
 
 
