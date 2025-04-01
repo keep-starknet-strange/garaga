@@ -4,6 +4,8 @@ icon: js
 
 # Npm package
 
+### Offical link [https://www.npmjs.com/package/garaga](https://www.npmjs.com/package/garaga)
+
 ## Installation via NPM Registry (recommended)
 
 The easiest way to install Garaga is via your prefered Node.js package manager, such as `npm` or `yarn`.
@@ -20,6 +22,12 @@ The easiest way to install Garaga is via your prefered Node.js package manager, 
     ```bash
     yarn add garaga
     ```
+
+
+
+## Package API
+
+All exported functions are defined within this file : [https://github.com/keep-starknet-strange/garaga/blob/main/tools/npm/garaga\_ts/src/node/api.ts](https://github.com/keep-starknet-strange/garaga/blob/main/tools/npm/garaga_ts/src/node/api.ts)
 
 ## Building the package from source code
 
