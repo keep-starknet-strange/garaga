@@ -7,4 +7,4 @@ pub mod zk_verifier {
 }
 
 const VERIFIER_CLASS_HASH: felt252 =
-    0x01afe9b50480c9b280732c4825f006231dcce1efc991d9f32103f74e96c83a79;
+    0x016578f0cf898e64376ea7c18db6098b6d9c757d1172f739adf46754f8ee7a85;
