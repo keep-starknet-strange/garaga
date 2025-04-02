@@ -121,13 +121,11 @@ where
         let bits = F::field_bit_size();
         let bytes = (bits + 7) / 8; // Round up to nearest byte
 
-        loop {
-            let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
-            let random_num = BigUint::from_bytes_be(&random_bytes);
+        let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
+        let random_num = BigUint::from_bytes_be(&random_bytes);
 
-            // Try to convert to field element
-            return element_from_biguint::<F>(&random_num);
-        }
+        // Try to convert to field element
+        return element_from_biguint::<F>(&random_num);
     }
 }
 
