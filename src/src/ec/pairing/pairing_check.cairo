@@ -86,7 +86,6 @@ fn multi_pairing_check_bn254_2P_2F(
     // Last Ri is known to be 1:
     let (s0, s1, s2) = hashing::hash_E12D_one(s0, s1, s2);
 
-
     let mut evals = evals.span();
     let mut c_i: u384 = s1.into();
 
