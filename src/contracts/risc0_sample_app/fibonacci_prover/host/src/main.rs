@@ -3,7 +3,7 @@
 use garaga_rs::calldata::full_proof_with_hints::groth16::risc0_utils::get_risc0_vk;
 use garaga_rs::calldata::full_proof_with_hints::groth16::{get_groth16_calldata, Groth16Proof};
 use garaga_rs::definitions::CurveID;
-use methods::{FIBONACCI_GUEST_ELF, FIBONACCI_GUEST_ID};
+use methods::FIBONACCI_GUEST_ELF;
 use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{compute_image_id, default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 
