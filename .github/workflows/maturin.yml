@@ -64,6 +64,8 @@ jobs:
           path: dist
 
   musllinux:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -95,6 +97,8 @@ jobs:
           path: dist
 
   windows:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -122,6 +126,8 @@ jobs:
           path: dist
 
   macos:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -148,6 +154,8 @@ jobs:
           path: dist
 
   sdist:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
