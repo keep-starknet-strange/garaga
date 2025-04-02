@@ -8,8 +8,8 @@ icon: wrench
 
 To work with Garaga, you need the following dependencies :
 
-* Python 3.10.  The command `python3.10` should be available and working in your terminal.&#x20;
-* [Scarb](https://docs.swmansion.com/scarb/download.html) with the version specified in [https://github.com/keep-starknet-strange/garaga/blob/main/src/.tool-versions](https://github.com/keep-starknet-strange/garaga/blob/main/src/.tool-versions)
+* Python 3.10. The command `python3.10` should be available and working in your terminal.
+* [Scarb](https://docs.swmansion.com/scarb/download.html) with the version specified in [https://github.com/keep-starknet-strange/garaga/blob/main/src/.tool-versions](https://github.com/keep-starknet-strange/garaga/blob/main/src/.tool-versions/README.md)
 * [Rust](https://www.rust-lang.org/tools/install)
 
 Simply clone the [repository](https://github.com/keep-starknet-strange/garaga) :
@@ -40,6 +40,4 @@ If everything succeeded, you're good to go!
 Make sure to activate the virtual environment created with this setup, using `source/venv/bin/activate`
 {% endhint %}
 
-
-
-### &#x20;
+###
