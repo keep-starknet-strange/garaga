@@ -11,7 +11,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    outputs:
+      only_gitbook: ${{ steps.check_gitbook.outputs.only_gitbook }}
+    steps:
+      - id: check_gitbook
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^docs/gitbook/'; then
+            echo "only_gitbook=false" >> $GITHUB_OUTPUT
+          else
+            echo "only_gitbook=true" >> $GITHUB_OUTPUT
+          fi
+
   test:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     name: Test
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +41,8 @@ jobs:
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features
 
   build:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -44,9 +61,10 @@ jobs:
           if-no-files-found: error
 
   test-integration:
+    needs: [pre_job, build]
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     name: Test integration
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
