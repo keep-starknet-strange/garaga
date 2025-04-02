@@ -11,7 +11,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    outputs:
+      only_gitbook: ${{ steps.check_gitbook.outputs.only_gitbook }}
+    steps:
+      - id: check_gitbook
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^docs/gitbook/'; then
+            echo "only_gitbook=false" >> $GITHUB_OUTPUT
+          else
+            echo "only_gitbook=true" >> $GITHUB_OUTPUT
+          fi
+
   npm-test:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     name: NPM Test
     runs-on: ubuntu-latest
     steps:
