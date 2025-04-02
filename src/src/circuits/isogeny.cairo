@@ -5,7 +5,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::option::Option;
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_a, get_b, get_g, get_min_one,
