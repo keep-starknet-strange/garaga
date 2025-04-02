@@ -9,7 +9,7 @@ fn deploy_contract(name: ByteArray) -> ContractAddress {
 }
 
 #[test]
-#[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_7", block_number: 636052)]
+#[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_8", block_number: 636052)]
 fn test_using_forked_state() {
     let contract_address = deploy_contract("FibonacciSequencer");
 
