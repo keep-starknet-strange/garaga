@@ -1,12 +1,11 @@
-leaf_index = "2"
-leaf_premiage = "0"
-num_leafs = "5"
-peaks = ["0x1069673dcdb12263df301a6ff584a7ec261a44cb9dc68df067a4774460b1f1e1", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"]
+leaf_index = "0x2"
+leaf_premiage = "0x0"
+num_leafs = "0x5"
+peaks = [ "0x1069673dcdb12263df301a6ff584a7ec261a44cb9dc68df067a4774460b1f1e1", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0", "0x0",]
 root_hash = "0x1ba30aaf15c7694786a1f118ca39fcc6c997b48da9dfa62e9ec3e83ac7d6304d"
 
 [proof]
-len = "2"
-
+len = "0x2"
 [[proof.storage]]
 hash = "0"
 
