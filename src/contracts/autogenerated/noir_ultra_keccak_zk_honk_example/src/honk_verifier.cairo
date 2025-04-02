@@ -1,9 +1,9 @@
 use super::honk_verifier_circuits::{
     run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
@@ -36,10 +36,10 @@ mod UltraKeccakZKHonkVerifier {
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
         VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
     };
 
@@ -163,7 +163,7 @@ mod UltraKeccakZKHonkVerifier {
                 scalar_71,
                 scalar_72,
             ) =
-                run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
+                run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 p_gemini_masking_eval: u256_to_u384(full_proof.proof.gemini_masking_eval),
                 p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
