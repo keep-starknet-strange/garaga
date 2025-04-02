@@ -202,7 +202,7 @@ fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 #[inline(always)]
 pub fn eval_and_hash_E12D_u288_transcript(
     transcript: Span<E12D<u288>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Span<u384>) {
+) -> (felt252, felt252, felt252, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
@@ -299,14 +299,14 @@ pub fn eval_and_hash_E12D_u288_transcript(
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals.span());
+    return (s0, s1, s2, evals);
 }
 
 
 #[inline(always)]
 pub fn eval_and_hash_E12D_u384_transcript(
     transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Span<u384>) {
+) -> (felt252, felt252, felt252, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BLS12_381_modulus(); // BN254 prime field modulus
@@ -403,5 +403,5 @@ pub fn eval_and_hash_E12D_u384_transcript(
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals.span());
+    return (s0, s1, s2, evals);
 }
