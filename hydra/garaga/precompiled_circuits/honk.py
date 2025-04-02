@@ -896,7 +896,7 @@ class HonkVerifierCircuits(ModuloCircuit):
 
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.set_or_get_constant(0)
-        check_rlc = self.set_or_get_constant(0)
+        check_rlc = None
 
         rlc_coeff = base_rlc
         for i, round in enumerate(range(log_n)):
@@ -2600,8 +2600,7 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.mul(libra_challenge, libra_sum)
-        # default 0
-        check_rlc = self.set_or_get_constant(0)
+        check_rlc = None
 
         rlc_coeff = base_rlc
         for i, round in enumerate(range(log_n)):
