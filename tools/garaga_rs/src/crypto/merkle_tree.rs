@@ -28,7 +28,7 @@ lazy_static! {
 /// Using a type other than `usize` could enable a higher maximum height, but
 /// would require a different storage mechanism for the Merkle tree's nodes:
 /// indexing into a `Vec<_>` can only be done with `usize`.
-const MAX_NUM_NODES: usize = 1 << 32 - 1;
+const MAX_NUM_NODES: usize = 1 << (32 - 1);
 const MAX_NUM_LEAFS: usize = MAX_NUM_NODES / 2;
 
 /// The maximum height of a Merkle tree.
@@ -143,7 +143,6 @@ impl<H: HashFunction> MerkleTree<H> {
             let node_indices_on_this_level = num_nodes_on_this_level..2 * num_nodes_on_this_level;
             let nodes_on_this_level = node_indices_on_this_level
                 .clone()
-                .into_iter()
                 .map(|i| {
                     Digest::<H>::from_element(H::hash_pair(
                         &nodes[i * 2].data,
@@ -266,7 +265,7 @@ impl<H: HashFunction> MerkleTree<H> {
     }
 
     pub fn root(&self) -> Digest<H> {
-        self.nodes[Self::ROOT_INDEX].clone()
+        self.nodes[Self::ROOT_INDEX]
     }
 
     pub fn num_leafs(&self) -> usize {

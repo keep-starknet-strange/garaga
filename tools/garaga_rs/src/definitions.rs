@@ -125,7 +125,7 @@ where
         let random_num = BigUint::from_bytes_be(&random_bytes);
 
         // Try to convert to field element
-        return element_from_biguint::<F>(&random_num);
+        element_from_biguint::<F>(&random_num)
     }
 }
 
@@ -424,17 +424,17 @@ impl ToWeierstrassCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let x = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
-            + a.clone() * y_twisted.clone()
-            - FieldElement::<X25519PrimeField>::from(5) * d.clone() * y_twisted.clone()
-            - d.clone())
+        let x = (FieldElement::<X25519PrimeField>::from(5) * a
+            + a * y_twisted
+            - FieldElement::<X25519PrimeField>::from(5) * d * y_twisted
+            - d)
             * (FieldElement::<X25519PrimeField>::from(12)
-                - FieldElement::<X25519PrimeField>::from(12) * y_twisted.clone())
+                - FieldElement::<X25519PrimeField>::from(12) * y_twisted)
             .inv()
             .unwrap();
-        let y = (a.clone() + a * y_twisted.clone() - d.clone() * y_twisted.clone() - d)
-            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone()
-                - FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone() * y_twisted)
+        let y = (a + a * y_twisted - d * y_twisted - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted
+                - FieldElement::<X25519PrimeField>::from(4) * x_twisted * y_twisted)
                 .inv()
                 .unwrap();
 
@@ -457,16 +457,16 @@ impl ToTwistedEdwardsCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let y = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
-            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone()
-            - d.clone())
-            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone() - a.clone()
-                + FieldElement::<X25519PrimeField>::from(5) * d.clone())
+        let y = (FieldElement::<X25519PrimeField>::from(5) * a
+            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass
+            - d)
+            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass - a
+                + FieldElement::<X25519PrimeField>::from(5) * d)
             .inv()
             .unwrap();
-        let x = (a.clone() + a.clone() * y.clone() - d.clone() * y.clone() - d)
-            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone()
-                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone() * y.clone())
+        let x = (a + a * y - d * y - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass
+                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass * y)
             .inv()
             .unwrap();
 

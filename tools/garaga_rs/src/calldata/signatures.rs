@@ -261,7 +261,7 @@ pub fn eddsa_calldata_builder(
         )
         .unwrap();
         let y_sq = y_twisted.square();
-        let xx = ((y_sq.clone() - FieldElement::<X25519PrimeField>::one())
+        let xx = ((y_sq - FieldElement::<X25519PrimeField>::one())
             / (d_twisted * y_sq + FieldElement::<X25519PrimeField>::one()))
         .unwrap();
         // exp =(p+3) // 8
@@ -288,7 +288,7 @@ pub fn eddsa_calldata_builder(
         let y_twisted = compressed_point_le % two_pow_255;
 
         let y_twisted = element_from_biguint(&y_twisted);
-        let x_twisted = xrecover(y_twisted.clone());
+        let x_twisted = xrecover(y_twisted);
 
         let x_twisted = if element_to_biguint(&x_twisted.clone()) % 2_u32 != sign_bit {
             -x_twisted
@@ -303,13 +303,13 @@ pub fn eddsa_calldata_builder(
     let (p_point_x_twisted, p_point_y_twisted) = decode_point(py_twisted);
 
     let (r_point_x_weierstrass, r_point_y_weierstrass) =
-        X25519PrimeField::to_weirstrass(r_point_x_twisted.clone(), r_point_y_twisted);
+        X25519PrimeField::to_weirstrass(r_point_x_twisted, r_point_y_twisted);
     let (p_point_x_weierstrass, p_point_y_weierstrass) =
-        X25519PrimeField::to_weirstrass(p_point_x_twisted.clone(), p_point_y_twisted);
+        X25519PrimeField::to_weirstrass(p_point_x_twisted, p_point_y_twisted);
 
-    let _p_pt = G1Point::new(p_point_x_weierstrass.clone(), p_point_y_weierstrass.clone())
+    let _p_pt = G1Point::new(p_point_x_weierstrass, p_point_y_weierstrass)
         .expect("Invalid point P");
-    let _r_pt = G1Point::new(r_point_x_weierstrass.clone(), r_point_y_weierstrass.clone())
+    let _r_pt = G1Point::new(r_point_x_weierstrass, r_point_y_weierstrass)
         .expect("Invalid point R");
 
     let gx = element_to_biguint(&X25519PrimeField::get_curve_params().g_x);

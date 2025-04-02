@@ -950,10 +950,10 @@ fn compute_shplemini_msm_scalars(
 ) -> Result<[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2], FieldError> {
     let powers_of_evaluations_challenge = {
         let mut values = vec![];
-        let mut value = gemini_r.clone();
+        let mut value = *gemini_r;
         for _ in 0..log_circuit_size {
-            values.push(value.clone());
-            value = &value * &value;
+            values.push(value);
+            value = value * value;
         }
         values
     };
@@ -981,8 +981,8 @@ fn compute_shplemini_msm_scalars(
             let unshifted_scalar =
                 -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
             for i in 1..NUMBER_UNSHIFTED + 1 {
-                scalars[i] = Some(&unshifted_scalar * &batching_challenge);
-                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                scalars[i] = Some(unshifted_scalar * batching_challenge);
+                batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
                 batching_challenge *= rho;
             }
         }
@@ -991,8 +991,8 @@ fn compute_shplemini_msm_scalars(
             let shifted_scalar = -(gemini_r.inv()?
                 * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
             for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
-                scalars[i] = Some(&shifted_scalar * &batching_challenge);
-                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                scalars[i] = Some(shifted_scalar * batching_challenge);
+                batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
                 // skip last round:
                 if i < NUMBER_OF_ENTITIES {
                     batching_challenge *= rho;
@@ -1003,7 +1003,7 @@ fn compute_shplemini_msm_scalars(
 
     let fold_pos_evaluations = {
         let mut values = vec![FieldElement::from(0); CONST_PROOF_SIZE_LOG_N];
-        let mut batched_eval_accumulator = batched_evaluation.clone();
+        let mut batched_eval_accumulator = batched_evaluation;
         for i in (0..log_circuit_size).rev() {
             let challenge_power = &powers_of_evaluations_challenge[i];
             let u = &sumcheck_u_challenges[i];
@@ -1015,7 +1015,7 @@ fn compute_shplemini_msm_scalars(
                 - (eval_neg * (&term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
-            values[i] = batched_eval_accumulator.clone();
+            values[i] = batched_eval_accumulator;
         }
         values
     };
@@ -1038,7 +1038,7 @@ fn compute_shplemini_msm_scalars(
                 let scaling_factor_neg =
                     &batching_challenge * shplonk_nu * neg_inverted_denominator;
                 scalars[NUMBER_OF_ENTITIES + i + 1] =
-                    Some(-(&scaling_factor_neg + &scaling_factor_pos));
+                    Some(-(scaling_factor_neg + scaling_factor_pos));
 
                 let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
                 accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
@@ -1051,19 +1051,19 @@ fn compute_shplemini_msm_scalars(
         }
     }
 
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator.clone());
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(shplonk_z.clone());
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator);
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(*shplonk_z);
 
     // proof.w1 : 28 + 36
     // proof.w2 : 29 + 37
     // proof.w3 : 30 + 38
     // proof.w4 : 31 + 39
 
-    scalars[28] = Some(scalars[28].clone().unwrap() + scalars[36].clone().unwrap());
-    scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
-    scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
-    scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
-    scalars[32] = Some(scalars[32].clone().unwrap() + scalars[40].clone().unwrap());
+    scalars[28] = Some(scalars[28].unwrap() + scalars[36].unwrap());
+    scalars[29] = Some(scalars[29].unwrap() + scalars[37].unwrap());
+    scalars[30] = Some(scalars[30].unwrap() + scalars[38].unwrap());
+    scalars[31] = Some(scalars[31].unwrap() + scalars[39].unwrap());
+    scalars[32] = Some(scalars[32].unwrap() + scalars[40].unwrap());
 
     scalars[36] = None;
     scalars[37] = None;
