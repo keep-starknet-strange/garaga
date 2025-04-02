@@ -814,7 +814,9 @@ fn deserialize_full_proof_with_hints_bn254(
 }
 
 
-fn deserialize_mpcheck_hint_bls12_381(ref serialized: Span<felt252>) -> MPCheckHintBLS12_381 {
+fn deserialize_mpcheck_hint_bls12_381(
+    ref serialized: Span<felt252>, two_pairs: bool,
+) -> MPCheckHintBLS12_381 {
     let [
         w0l0,
         w0l1,
@@ -926,10 +928,14 @@ fn deserialize_mpcheck_hint_bls12_381(ref serialized: Span<felt252>) -> MPCheckH
     };
     // assert!(hint.Ris.len() == 36, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
     // 36 * 12 * 4 = 1728
-    let mut ris_slice = serialized.slice(1, 1728);
+    let end_ris = match two_pairs {
+        false => 1728,
+        true => 1680,
+    };
+    let mut ris_slice = serialized.slice(1, end_ris);
 
     let end = serialized.len();
-    serialized = serialized.slice(1729, end - 1728 - 1);
+    serialized = serialized.slice(end_ris + 1, end - end_ris - 1);
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<48>() {
         let [
@@ -1095,7 +1101,7 @@ fn deserialize_full_proof_with_hints_bls12_381(
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
     // Deserialize mpcheck_hint
-    let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);
+    let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized, false);
 
     let [
         w0l0,
