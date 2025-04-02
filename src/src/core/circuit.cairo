@@ -44,7 +44,7 @@ pub fn u256_to_u384(value: u256) -> u384 {
     value.into()
 }
 
-impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
+pub impl u288IntoCircuitInputValue of IntoCircuitInputValue<u288> {
     fn into_circuit_input_value(self: u288) -> [U96Guarantee; 4] {
         [
             into_u96_guarantee(self.limb0), into_u96_guarantee(self.limb1),
@@ -83,20 +83,6 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
                 [
                     into_u96_guarantee(limb0), into_u96_guarantee(limb1), into_u96_guarantee(0_u8),
                     into_u96_guarantee(0_u8),
-                ],
-            ),
-            AddInputResult::Done(_) => panic_with_felt252(0),
-        };
-        c
-    }
-    // #[inline(never)]
-    fn next_u288(self: AddInputResult<C>, value: u288) -> AddInputResult<C> {
-        let c = match self {
-            AddInputResult::More(accumulator) => add_circuit_input(
-                accumulator,
-                [
-                    into_u96_guarantee(value.limb0), into_u96_guarantee(value.limb1),
-                    into_u96_guarantee(value.limb2), into_u96_guarantee(0_u8),
                 ],
             ),
             AddInputResult::Done(_) => panic_with_felt252(0),

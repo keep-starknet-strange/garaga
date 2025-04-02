@@ -2,7 +2,7 @@ use core::circuit::{
     CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
     circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus};
 use garaga::ec_ops::FunctionFelt;
 

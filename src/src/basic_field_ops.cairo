@@ -6,7 +6,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::Zero;
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
 use garaga::utils::hashing::hades_permutation;
 
@@ -281,18 +281,18 @@ pub fn eval_and_hash_E12D_u288_transcript(
         // Prefill constants:
 
         // Fill inputs:
-        circuit_inputs = circuit_inputs.next_u288(elmt.w0); // in0
-        circuit_inputs = circuit_inputs.next_u288(elmt.w1); // in1
-        circuit_inputs = circuit_inputs.next_u288(elmt.w2); // in2
-        circuit_inputs = circuit_inputs.next_u288(elmt.w3); // in3
-        circuit_inputs = circuit_inputs.next_u288(elmt.w4); // in4
-        circuit_inputs = circuit_inputs.next_u288(elmt.w5); // in5
-        circuit_inputs = circuit_inputs.next_u288(elmt.w6); // in6
-        circuit_inputs = circuit_inputs.next_u288(elmt.w7); // in7
-        circuit_inputs = circuit_inputs.next_u288(elmt.w8); // in8
-        circuit_inputs = circuit_inputs.next_u288(elmt.w9); // in9
-        circuit_inputs = circuit_inputs.next_u288(elmt.w10); // in10
-        circuit_inputs = circuit_inputs.next_u288(elmt.w11); // in11
+        circuit_inputs = circuit_inputs.next_2(elmt.w0); // in0
+        circuit_inputs = circuit_inputs.next_2(elmt.w1); // in1
+        circuit_inputs = circuit_inputs.next_2(elmt.w2); // in2
+        circuit_inputs = circuit_inputs.next_2(elmt.w3); // in3
+        circuit_inputs = circuit_inputs.next_2(elmt.w4); // in4
+        circuit_inputs = circuit_inputs.next_2(elmt.w5); // in5
+        circuit_inputs = circuit_inputs.next_2(elmt.w6); // in6
+        circuit_inputs = circuit_inputs.next_2(elmt.w7); // in7
+        circuit_inputs = circuit_inputs.next_2(elmt.w8); // in8
+        circuit_inputs = circuit_inputs.next_2(elmt.w9); // in9
+        circuit_inputs = circuit_inputs.next_2(elmt.w10); // in10
+        circuit_inputs = circuit_inputs.next_2(elmt.w11); // in11
         circuit_inputs = circuit_inputs.next_2(z); // in12
 
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
