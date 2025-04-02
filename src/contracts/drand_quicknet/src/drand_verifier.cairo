@@ -39,7 +39,7 @@ mod DrandQuicknet {
             let round_number = Serde::<u64>::deserialize(ref serialized).unwrap();
             let signature = Serde::<G1Point>::deserialize(ref serialized).unwrap();
             let hash_to_curve_hint = Serde::<HashToCurveHint>::deserialize(ref serialized).unwrap();
-            let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);
+            let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized, true);
             return Option::Some(
                 DrandHint {
                     round_number: round_number,

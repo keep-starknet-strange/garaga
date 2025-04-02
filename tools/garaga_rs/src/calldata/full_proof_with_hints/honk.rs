@@ -950,10 +950,10 @@ fn compute_shplemini_msm_scalars(
 ) -> Result<[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2], FieldError> {
     let powers_of_evaluations_challenge = {
         let mut values = vec![];
-        let mut value = gemini_r.clone();
+        let mut value = *gemini_r;
         for _ in 0..log_circuit_size {
-            values.push(value.clone());
-            value = &value * &value;
+            values.push(value);
+            value = value * value;
         }
         values
     };
@@ -981,8 +981,8 @@ fn compute_shplemini_msm_scalars(
             let unshifted_scalar =
                 -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
             for i in 1..NUMBER_UNSHIFTED + 1 {
-                scalars[i] = Some(&unshifted_scalar * &batching_challenge);
-                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                scalars[i] = Some(unshifted_scalar * batching_challenge);
+                batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
                 batching_challenge *= rho;
             }
         }
@@ -991,8 +991,8 @@ fn compute_shplemini_msm_scalars(
             let shifted_scalar = -(gemini_r.inv()?
                 * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
             for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
-                scalars[i] = Some(&shifted_scalar * &batching_challenge);
-                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                scalars[i] = Some(shifted_scalar * batching_challenge);
+                batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
                 // skip last round:
                 if i < NUMBER_OF_ENTITIES {
                     batching_challenge *= rho;
@@ -1003,7 +1003,7 @@ fn compute_shplemini_msm_scalars(
 
     let fold_pos_evaluations = {
         let mut values = vec![FieldElement::from(0); CONST_PROOF_SIZE_LOG_N];
-        let mut batched_eval_accumulator = batched_evaluation.clone();
+        let mut batched_eval_accumulator = batched_evaluation;
         for i in (0..log_circuit_size).rev() {
             let challenge_power = &powers_of_evaluations_challenge[i];
             let u = &sumcheck_u_challenges[i];
@@ -1015,7 +1015,7 @@ fn compute_shplemini_msm_scalars(
                 - (eval_neg * (&term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
-            values[i] = batched_eval_accumulator.clone();
+            values[i] = batched_eval_accumulator;
         }
         values
     };
@@ -1038,7 +1038,7 @@ fn compute_shplemini_msm_scalars(
                 let scaling_factor_neg =
                     &batching_challenge * shplonk_nu * neg_inverted_denominator;
                 scalars[NUMBER_OF_ENTITIES + i + 1] =
-                    Some(-(&scaling_factor_neg + &scaling_factor_pos));
+                    Some(-(scaling_factor_neg + scaling_factor_pos));
 
                 let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
                 accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
@@ -1051,19 +1051,19 @@ fn compute_shplemini_msm_scalars(
         }
     }
 
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator.clone());
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(shplonk_z.clone());
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator);
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(*shplonk_z);
 
     // proof.w1 : 28 + 36
     // proof.w2 : 29 + 37
     // proof.w3 : 30 + 38
     // proof.w4 : 31 + 39
 
-    scalars[28] = Some(scalars[28].clone().unwrap() + scalars[36].clone().unwrap());
-    scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
-    scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
-    scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
-    scalars[32] = Some(scalars[32].clone().unwrap() + scalars[40].clone().unwrap());
+    scalars[28] = Some(scalars[28].unwrap() + scalars[36].unwrap());
+    scalars[29] = Some(scalars[29].unwrap() + scalars[37].unwrap());
+    scalars[30] = Some(scalars[30].unwrap() + scalars[38].unwrap());
+    scalars[31] = Some(scalars[31].unwrap() + scalars[39].unwrap());
+    scalars[32] = Some(scalars[32].unwrap() + scalars[40].unwrap());
 
     scalars[36] = None;
     scalars[37] = None;
@@ -1107,8 +1107,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            109, 7, 142, 228, 214, 44, 242, 156, 253, 222, 111, 153, 24, 2, 146, 169, 123, 23, 150,
-            48, 181, 26, 147, 197, 82, 157, 162, 191, 44, 142, 184, 34,
+            183, 173, 188, 105, 230, 57, 139, 92, 22, 130, 226, 140, 122, 10, 53, 6, 182, 119, 118,
+            246, 44, 239, 114, 72, 103, 218, 110, 19, 137, 229, 35, 40,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1125,8 +1125,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            110, 120, 222, 91, 37, 231, 138, 100, 27, 77, 147, 250, 29, 208, 29, 204, 154, 100,
-            175, 206, 147, 148, 32, 25, 120, 167, 205, 198, 250, 176, 94, 170,
+            146, 109, 252, 199, 101, 181, 213, 139, 133, 150, 63, 23, 184, 20, 70, 93, 138, 148,
+            238, 243, 146, 93, 208, 184, 116, 192, 35, 89, 28, 174, 85, 1,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
