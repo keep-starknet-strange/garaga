@@ -3069,7 +3069,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6
     let in1 = CE::<CI<1>> {}; // 0x1
-    let in2 = CE::<CI<2>> {}; // 0x100
+    let in2 = CE::<CI<2>> {}; // 0x3033ea246e506e898e97f570caffd704cb0bb460313fb720b29e139e5c100001
 
     // INPUT stack
     let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -3090,34 +3090,36 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
     let t12 = circuit_mul(t11, t11);
     let t13 = circuit_mul(t12, t12);
     let t14 = circuit_sub(t13, in1);
-    let t15 = circuit_inverse(in2);
-    let t16 = circuit_mul(t14, t15);
-    let t17 = circuit_mul(in9, t16);
-    let t18 = circuit_mul(t3, t16);
-    let t19 = circuit_mul(t5, t16);
-    let t20 = circuit_mul(t18, in6);
-    let t21 = circuit_sub(in8, in0);
-    let t22 = circuit_sub(in5, in6);
-    let t23 = circuit_mul(in4, t17);
-    let t24 = circuit_sub(t22, t23);
-    let t25 = circuit_mul(t21, t24);
-    let t26 = circuit_add(t20, t25);
-    let t27 = circuit_sub(in6, in3);
-    let t28 = circuit_mul(t19, t27);
-    let t29 = circuit_add(t26, t28);
-    let t30 = circuit_mul(t14, in7);
-    let t31 = circuit_sub(t29, t30);
+    let t15 = circuit_mul(t14, in2);
+    let t16 = circuit_mul(in9, t15);
+    let t17 = circuit_mul(t3, t15);
+    let t18 = circuit_mul(t5, t15);
+    let t19 = circuit_mul(t17, in6);
+    let t20 = circuit_sub(in8, in0);
+    let t21 = circuit_sub(in5, in6);
+    let t22 = circuit_mul(in4, t16);
+    let t23 = circuit_sub(t21, t22);
+    let t24 = circuit_mul(t20, t23);
+    let t25 = circuit_add(t19, t24);
+    let t26 = circuit_sub(in6, in3);
+    let t27 = circuit_mul(t18, t26);
+    let t28 = circuit_add(t25, t27);
+    let t29 = circuit_mul(t14, in7);
+    let t30 = circuit_sub(t28, t29);
 
     let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
 
-    let mut circuit_inputs = (t14, t31).new_inputs();
+    let mut circuit_inputs = (t14, t30).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs
         .next_2(
             [0x8712848a692c553d0329f5d6, 0x64751ad938e2b5e6a54cf8c6, 0x204bd3277422fad3, 0x0],
         ); // in0
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in1
-    circuit_inputs = circuit_inputs.next_2([0x100, 0x0, 0x0, 0x0]); // in2
+    circuit_inputs = circuit_inputs
+        .next_2(
+            [0x313fb720b29e139e5c100001, 0x8e97f570caffd704cb0bb460, 0x3033ea246e506e89, 0x0],
+        ); // in2
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p_libra_evaluation); // in3
 
@@ -3131,7 +3133,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let vanishing_check: u384 = outputs.get_output(t14);
-    let diff_check: u384 = outputs.get_output(t31);
+    let diff_check: u384 = outputs.get_output(t30);
     return (vanishing_check, diff_check);
 }
 pub fn run_BN254_EVAL_FN_CHALLENGE_SING_57P_RLC_circuit(
