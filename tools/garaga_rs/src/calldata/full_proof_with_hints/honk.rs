@@ -958,8 +958,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let mut pos_inverted_denominator = (shplonk_z - &powers_of_evaluations_challenge[0]).inv()?;
-    let mut neg_inverted_denominator = (shplonk_z + &powers_of_evaluations_challenge[0]).inv()?;
+    let mut pos_inverted_denominator = (shplonk_z - powers_of_evaluations_challenge[0]).inv()?;
+    let mut neg_inverted_denominator = (shplonk_z + powers_of_evaluations_challenge[0]).inv()?;
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
@@ -979,7 +979,7 @@ fn compute_shplemini_msm_scalars(
 
         {
             let unshifted_scalar =
-                -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
+                -(pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator));
             for i in 1..NUMBER_UNSHIFTED + 1 {
                 scalars[i] = Some(unshifted_scalar * batching_challenge);
                 batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
@@ -989,7 +989,7 @@ fn compute_shplemini_msm_scalars(
 
         {
             let shifted_scalar = -(gemini_r.inv()?
-                * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
+                * (pos_inverted_denominator - (shplonk_nu * neg_inverted_denominator)));
             for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
                 scalars[i] = Some(shifted_scalar * batching_challenge);
                 batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
@@ -1011,8 +1011,8 @@ fn compute_shplemini_msm_scalars(
             let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
             let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
                 * challenge_power
-                * &batched_eval_accumulator)
-                - (eval_neg * (&term - u));
+                * batched_eval_accumulator)
+                - (eval_neg * (term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
             values[i] = batched_eval_accumulator;
@@ -1020,8 +1020,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let mut constant_term_accumulator = &fold_pos_evaluations[0] * pos_inverted_denominator;
-    constant_term_accumulator += &gemini_a_evaluations[0] * shplonk_nu * &neg_inverted_denominator;
+    let mut constant_term_accumulator = fold_pos_evaluations[0] * pos_inverted_denominator;
+    constant_term_accumulator += gemini_a_evaluations[0] * shplonk_nu * neg_inverted_denominator;
 
     {
         let mut batching_challenge = shplonk_nu * shplonk_nu;
@@ -1030,18 +1030,17 @@ fn compute_shplemini_msm_scalars(
             let dummy_round = i >= (log_circuit_size - 1);
             if !dummy_round {
                 pos_inverted_denominator =
-                    (shplonk_z - &powers_of_evaluations_challenge[i + 1]).inv()?;
+                    (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
                 neg_inverted_denominator =
-                    (shplonk_z + &powers_of_evaluations_challenge[i + 1]).inv()?;
+                    (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
 
-                let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
-                let scaling_factor_neg =
-                    &batching_challenge * shplonk_nu * neg_inverted_denominator;
+                let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
+                let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
                 scalars[NUMBER_OF_ENTITIES + i + 1] =
                     Some(-(scaling_factor_neg + scaling_factor_pos));
 
-                let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
-                accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
+                let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
+                accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
                 constant_term_accumulator += accum_contribution;
             }
             // skip last round:

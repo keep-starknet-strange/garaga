@@ -347,11 +347,8 @@ where
         FieldElement::<Stark252PrimeField>::from(scalars.len() as u64),
     );
 
-    if external_points_scalars_hash.is_some() {
-        transcript_ref.update_sponge_state(
-            external_points_scalars_hash.unwrap().0,
-            external_points_scalars_hash.unwrap().1,
-        );
+    if let Some((x, y)) = external_points_scalars_hash {
+        transcript_ref.update_sponge_state(x, y);
     }
     // points
     if external_points_scalars_hash.is_none() {
