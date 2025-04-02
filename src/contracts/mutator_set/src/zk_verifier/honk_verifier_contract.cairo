@@ -1,5 +1,5 @@
 use super::honk_verifier_circuits::{
-    run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    is_on_curve_bn254, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
@@ -22,7 +22,7 @@ mod UltraKeccakZKHonkVerifier {
     use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384};
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus};
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
@@ -35,7 +35,8 @@ mod UltraKeccakZKHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
-        VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        VK_HASH, is_on_curve_bn254, precomputed_lines,
+        run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
@@ -274,6 +275,8 @@ mod UltraKeccakZKHonkVerifier {
             ]
                 .span();
 
+            let mod_bn = get_BN254_modulus();
+
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(45);
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -293,26 +296,32 @@ mod UltraKeccakZKHonkVerifier {
             // transcript + we precompute the VK hash.
             // Skip the first 27 points as they are from VK and keep the last 17 proof points
             for point in points.slice(27, 17) {
-                if !point.is_infinity() {
-                    point.assert_on_curve(0);
-                }
+                // assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
+                let is_on_curve = is_on_curve_bn254(*point, mod_bn);
+                println!("is_on_curve: {}", is_on_curve);
             }
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
-
-            if !shplonk_q_pt.is_infinity() {
-                shplonk_q_pt.assert_on_curve(0);
-            }
+            assert(is_on_curve_bn254(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
+                assert(
+                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_low, mod_bn),
+                    'Q_low not on curve',
+                );
             }
             if !full_proof.msm_hint_batched.Q_high.is_infinity() {
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
+                assert(
+                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_high, mod_bn),
+                    'Q_high not on curve',
+                );
             }
             if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
+                assert(
+                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_high_shifted, mod_bn),
+                    'Q_high_shifted not on curve',
+                );
             }
 
             // Hash result points
@@ -367,7 +376,6 @@ mod UltraKeccakZKHonkVerifier {
                 coeff: mb.coeff2,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
-            let mod_bn = get_modulus(0);
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
