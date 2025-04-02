@@ -121,7 +121,7 @@ class SmartContractProject:
 
         try:
             if "eth" in fee.lower():
-                raise ValueError("ETH fee is not obsolete")
+                raise ValueError("ETH fee is now obsolete")
             elif "strk" in fee.lower():
                 declare_result: DeclareResult = await Contract.declare_v3(
                     account=account,
