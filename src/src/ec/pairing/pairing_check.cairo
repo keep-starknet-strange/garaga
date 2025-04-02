@@ -263,7 +263,6 @@ fn multi_pairing_check_bls12_381_2P_2F(
     );
 
     // init bit for bls is 1:
-    let mut Ris = hint.Ris;
     let R_0_of_Z = *evals.pop_front().unwrap();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (_lhs) = run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
