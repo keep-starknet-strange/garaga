@@ -222,6 +222,49 @@ pub fn hash_E12D_u288(
     return (_s0, _s1, _s2);
 }
 
+// Hash a E12D element known to be 1
+pub fn hash_E12D_one(
+    mut s0: felt252, mut s1: felt252, mut s2: felt252,
+) -> (felt252, felt252, felt252) {
+    let in_1 = s0 + 1;
+    let in_2 = s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    return (_s0, _s1, _s2);
+}
+
 // Apply sponge construction to a MillerLoopResultScalingFactor element from an initial state (s0,
 // s1, s2)
 #[inline(always)]

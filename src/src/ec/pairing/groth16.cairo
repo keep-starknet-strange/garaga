@@ -254,6 +254,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
         mpcheck_hint.Ris, s0, s1, s2, z,
     );
+    let mut evals = evals.span();
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
@@ -531,6 +532,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u384_transcript(
         hint.Ris, s0, s1, s2, z,
     );
+    let mut evals = evals.span();
 
     let mut c_i: u384 = s1.into();
 
