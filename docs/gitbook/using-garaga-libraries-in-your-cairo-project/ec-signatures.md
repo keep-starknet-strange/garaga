@@ -247,8 +247,8 @@ fn test_schnorr_BN254() {
         0,
         0,
     ]
-        .span(); // NOTE : This was shortened for conciseness, this won't work, actual 
-                 // Array is larger ! 
+        .span(); // NOTE : This was shortened for conciseness, this won't work, actual
+                 // Array is larger !
     let sch_with_hints = Serde::<
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
@@ -276,8 +276,3 @@ See [https://github.com/keep-starknet-strange/garaga/blob/d23e117a8b861488a47bd5
 See [https://github.com/keep-starknet-strange/garaga/blob/d23e117a8b861488a47bd5530137c366322750d8/tools/npm/garaga\_ts/src/node/api.ts#L54-L56](https://github.com/keep-starknet-strange/garaga/blob/d23e117a8b861488a47bd5530137c366322750d8/tools/npm/garaga_ts/src/node/api.ts#L54-L56)
 {% endtab %}
 {% endtabs %}
-
-
-
-
-
