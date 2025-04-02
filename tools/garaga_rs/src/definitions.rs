@@ -424,14 +424,13 @@ impl ToWeierstrassCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let x = (FieldElement::<X25519PrimeField>::from(5) * a
-            + a * y_twisted
+        let x = (FieldElement::<X25519PrimeField>::from(5) * a + a * y_twisted
             - FieldElement::<X25519PrimeField>::from(5) * d * y_twisted
             - d)
             * (FieldElement::<X25519PrimeField>::from(12)
                 - FieldElement::<X25519PrimeField>::from(12) * y_twisted)
-            .inv()
-            .unwrap();
+                .inv()
+                .unwrap();
         let y = (a + a * y_twisted - d * y_twisted - d)
             * (FieldElement::<X25519PrimeField>::from(4) * x_twisted
                 - FieldElement::<X25519PrimeField>::from(4) * x_twisted * y_twisted)
@@ -462,13 +461,13 @@ impl ToTwistedEdwardsCurve for X25519PrimeField {
             - d)
             * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass - a
                 + FieldElement::<X25519PrimeField>::from(5) * d)
-            .inv()
-            .unwrap();
+                .inv()
+                .unwrap();
         let x = (a + a * y - d * y - d)
             * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass
                 - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass * y)
-            .inv()
-            .unwrap();
+                .inv()
+                .unwrap();
 
         (x, y)
     }

@@ -863,8 +863,7 @@ fn compute_shplemini_msm_scalars(
 
             let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
             let scaling_factor_neg = &batching_challenge * shplonk_nu * neg_inverted_denominator;
-            scalars[NUMBER_OF_ENTITIES + i + 2] =
-                Some(-(scaling_factor_neg + scaling_factor_pos));
+            scalars[NUMBER_OF_ENTITIES + i + 2] = Some(-(scaling_factor_neg + scaling_factor_pos));
 
             let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
             accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
@@ -900,8 +899,7 @@ fn compute_shplemini_msm_scalars(
         Some(batching_scalars[1] + batching_scalars[2]);
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3] = Some(batching_scalars[3]);
 
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 4] =
-        Some(constant_term_accumulator);
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 4] = Some(constant_term_accumulator);
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 5] = Some(*shplonk_z);
 
     // proof.w1 : 29 + 37
@@ -975,9 +973,7 @@ fn check_evals_consistency(
 
     let mut diff = lagrange_first * libra_poly_evals[2];
     diff += (gemini_r - &subgroup_generator_inverse)
-        * (libra_poly_evals[1]
-            - libra_poly_evals[2]
-            - libra_poly_evals[0] * challenge_poly_eval);
+        * (libra_poly_evals[1] - libra_poly_evals[2] - libra_poly_evals[0] * challenge_poly_eval);
     diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_evaluation)
         - vanishing_poly_eval * libra_poly_evals[3];
     if diff != FieldElement::<GrumpkinPrimeField>::from(0) {
