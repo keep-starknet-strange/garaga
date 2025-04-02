@@ -962,12 +962,12 @@ fn check_evals_consistency(
         denominators[idx] = denominators[idx].inv()?;
         challenge_poly_eval =
             &challenge_poly_eval + challenge_poly_lagrange[idx] * denominators[idx];
-        root_power = root_power * subgroup_generator_inverse;
+        root_power *= subgroup_generator_inverse;
     }
 
     let numerator = &vanishing_poly_eval
         * FieldElement::<GrumpkinPrimeField>::from(SUBGROUP_SIZE as u64).inv()?;
-    challenge_poly_eval = challenge_poly_eval * numerator;
+    challenge_poly_eval *= numerator;
     let lagrange_first = denominators[0] * numerator;
     let lagrange_last = denominators[SUBGROUP_SIZE - 1] * numerator;
 
