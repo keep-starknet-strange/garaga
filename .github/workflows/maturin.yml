@@ -14,21 +14,21 @@ permissions:
 
 jobs:
   pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
     runs-on: ubuntu-latest
+    # Map a step output to a job output
     outputs:
-      only_gitbook: ${{ steps.check_gitbook.outputs.only_gitbook }}
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
     steps:
-      - id: check_gitbook
-        run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^docs/gitbook/'; then
-            echo "only_gitbook=false" >> $GITHUB_OUTPUT
-          else
-            echo "only_gitbook=true" >> $GITHUB_OUTPUT
-          fi
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
+          paths_ignore: '["**/README.md", "**/docs/**"]'
 
   linux:
     needs: pre_job
-    if: needs.pre_job.outputs.only_gitbook != 'true'
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -65,7 +65,7 @@ jobs:
 
   musllinux:
     needs: pre_job
-    if: needs.pre_job.outputs.only_gitbook != 'true'
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -98,7 +98,7 @@ jobs:
 
   windows:
     needs: pre_job
-    if: needs.pre_job.outputs.only_gitbook != 'true'
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -127,7 +127,7 @@ jobs:
 
   macos:
     needs: pre_job
-    if: needs.pre_job.outputs.only_gitbook != 'true'
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -155,7 +155,7 @@ jobs:
 
   sdist:
     needs: pre_job
-    if: needs.pre_job.outputs.only_gitbook != 'true'
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
