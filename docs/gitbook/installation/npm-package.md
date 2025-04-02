@@ -4,70 +4,92 @@ icon: js
 
 # Npm package
 
-### Offical link [https://www.npmjs.com/package/garaga](https://www.npmjs.com/package/garaga)
+Garaga is available as an npm package, making it easy to integrate into your Node.js projects. This guide will help you get started with installation and usage.
 
-## Installation via NPM Registry (recommended)
+## Quick Start
 
-The easiest way to install Garaga is via your prefered Node.js package manager, such as `npm` or `yarn`.
+The recommended way to install Garaga is through the npm registry:
 
-1. Open your terminal or command prompt.
-2.  Run the following command:
+```bash
+npm install garaga
+```
 
-    ```bash
-    npm i -S garaga
-    ```
+Or if you prefer using Yarn:
 
-    or
+```bash
+yarn add garaga
+```
 
-    ```bash
-    yarn add garaga
-    ```
+## Available Functions
 
+The package exports several functions that you can use in your project. For a complete list of available functions and their usage, check out the [API Reference](https://github.com/keep-starknet-strange/garaga/blob/main/tools/npm/garaga_ts/src/node/api.ts). This file contains all the exported functions and their TypeScript definitions.
 
+## Package Details
 
-## Package API
+- **NPM Registry**: [garaga on npmjs.com](https://www.npmjs.com/package/garaga)
+- **Source Code**: [GitHub Repository](https://github.com/keep-starknet-strange/garaga/tree/main/tools/npm/garaga_ts)
 
-All exported functions are defined within this file : [https://github.com/keep-starknet-strange/garaga/blob/main/tools/npm/garaga\_ts/src/node/api.ts](https://github.com/keep-starknet-strange/garaga/blob/main/tools/npm/garaga_ts/src/node/api.ts)
+## Building from Source
 
-## Building the package from source code
+If you need to build the package from source (e.g., for development or custom modifications), follow these steps:
 
-The package can be build directly from source code by cloning the garaga repository. Make sure you have both [Rust](https://www.rust-lang.org/tools/install) and [Node.js](https://nodejs.org/en/learn/getting-started/how-to-install-nodejs) installed in you machine.
+### Prerequisites
 
-1. Open your terminal or command prompt.
-2.  Install `wasm-pack` by running:
+- [Rust](https://www.rust-lang.org/tools/install)
+- [Node.js](https://nodejs.org/en/learn/getting-started/how-to-install-nodejs)
+- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
 
-    ```bash
-    cargo install wasm-pack
-    ```
-3.  Run the following commands:
+### Manual Build
 
-    ```bash
-    git clone https://github.com/keep-starknet-strange/garaga.git
-    cd tools/npm/garaga_ts
-    npm ci
-    npm run build
-    npm pack
-    ```
-4. The .tgz file with the package contents will be available in the current folder.
-5.  Install the .tgz file in your project
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/keep-starknet-strange/garaga.git
+   cd tools/npm/garaga_ts
+   ```
 
-    ```bash
-    npm i -S <path-to-tgz-package-file>
-    ```
+2. Install dependencies and build:
+   ```bash
+   npm ci
+   npm run build
+   npm pack
+   ```
 
-For reproducible builds, one can use instead docker compose. Make sure [docker](https://docs.docker.com/engine/install/) is installed in you machine.
+3. Install the generated package:
+   ```bash
+   npm install ./garaga-<version>.tgz
+   ```
 
-1. Open your terminal or command prompt.
-2.  Run the following commands:
+### Docker Build (Recommended)
 
-    ```bash
-    git clone https://github.com/keep-starknet-strange/garaga.git
-    cd tools/npm/garaga_ts
-    docker compose up --build
-    ```
-3. The .tgz file with the package contents will be available in the current folder.
-4.  Install the .tgz file in your project
+For reproducible builds, use Docker:
 
-    ```bash
-    npm i -S <path-to-tgz-package-file>
-    ```
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/keep-starknet-strange/garaga.git
+   cd tools/npm/garaga_ts
+   ```
+
+2. Build using Docker:
+   ```bash
+   docker compose up --build
+   ```
+
+3. Install the generated package:
+   ```bash
+   npm install ./garaga-<version>.tgz
+   ```
+
+## Troubleshooting
+
+If you encounter any issues during installation:
+
+1. Ensure you have the latest version of Node.js installed
+2. Clear your npm cache: `npm cache clean --force`
+3. Delete `node_modules` and `package-lock.json`, then run `npm install` again
+4. For build issues, make sure you have the latest version of Rust and wasm-pack
+
+## Support
+
+For additional help or to report issues:
+
+See [support.md](../support.md "mention")
