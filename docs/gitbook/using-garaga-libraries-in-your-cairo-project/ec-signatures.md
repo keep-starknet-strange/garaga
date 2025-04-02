@@ -2,7 +2,7 @@
 icon: pen-field
 ---
 
-# ECDSA & Schnorr Signatures.
+# ECDSA & Schnorr Signatures
 
 Both signature schemes follow a similar pattern with a Cairo struct containing the signature data and a hint for efficient verification. Garaga provide tooling in Python/Rust/Javascript to generate the full expected Cairo struct given signature information. \
 
