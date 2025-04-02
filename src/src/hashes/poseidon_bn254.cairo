@@ -6,6 +6,11 @@ use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::get_GRUMPKIN_modulus;
 
 
+pub fn poseidon_hash_2(x: u256, y: u256) -> u256 {
+    let x_u384: u384 = x.into();
+    let y_u384: u384 = y.into();
+    poseidon_hash_2_bn254(x_u384, y_u384).try_into().unwrap()
+}
 // Compute the poseidon hash of two elements for the BN254 scalar field (Fr).
 // Comptaible with circomlib poseidon hash (2 inputs) and Noir's hash 2 poseidon::bn254::hash_2
 pub fn poseidon_hash_2_bn254(x: u384, y: u384) -> u384 {

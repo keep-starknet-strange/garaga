@@ -17,6 +17,8 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content_newer'
+          paths_ignore: '["**/README.md", "**/docs/**"]'
+
 
   test-hydra:
     needs: pre_job

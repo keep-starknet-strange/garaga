@@ -7,6 +7,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
 use num_traits::Num;
@@ -64,7 +65,7 @@ pub type Stark252PrimeField = StrkPF;
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct SECP256K1FieldModulus;
 impl IsModulus<U256> for SECP256K1FieldModulus {
     const MODULUS: U256 = SECP256K1_PRIME_FIELD_ORDER;
@@ -86,7 +87,7 @@ pub type SECP256R1PrimeField = MontgomeryBackendPrimeField<SECP256R1FieldModulus
 pub const X25519_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct X25519FieldModulus;
 impl IsModulus<U256> for X25519FieldModulus {
     const MODULUS: U256 = X25519_PRIME_FIELD_ORDER;
@@ -97,13 +98,36 @@ pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 pub const GRUMPKIN_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy, Hash)]
 pub struct GrumpkinFieldModulus;
 impl IsModulus<U256> for GrumpkinFieldModulus {
     const MODULUS: U256 = GRUMPKIN_PRIME_FIELD_ORDER;
 }
 
 pub type GrumpkinPrimeField = MontgomeryBackendPrimeField<GrumpkinFieldModulus, 4>;
+
+/// A trait to generate random field elements.
+pub trait Random<F: IsPrimeField> {
+    fn random() -> Self;
+}
+
+impl<F: IsPrimeField> Random<F> for FieldElement<F>
+where
+    FieldElement<F>: ByteConversion,
+{
+    fn random() -> Self {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        let bits = F::field_bit_size();
+        let bytes = (bits + 7) / 8; // Round up to nearest byte
+
+        let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
+        let random_num = BigUint::from_bytes_be(&random_bytes);
+
+        // Try to convert to field element
+        element_from_biguint::<F>(&random_num)
+    }
+}
 
 pub struct CurveParams<F: IsPrimeField> {
     pub curve_id: CurveID,
@@ -400,17 +424,16 @@ impl ToWeierstrassCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let x = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
-            + a.clone() * y_twisted.clone()
-            - FieldElement::<X25519PrimeField>::from(5) * d.clone() * y_twisted.clone()
-            - d.clone())
+        let x = (FieldElement::<X25519PrimeField>::from(5) * a + a * y_twisted
+            - FieldElement::<X25519PrimeField>::from(5) * d * y_twisted
+            - d)
             * (FieldElement::<X25519PrimeField>::from(12)
-                - FieldElement::<X25519PrimeField>::from(12) * y_twisted.clone())
-            .inv()
-            .unwrap();
-        let y = (a.clone() + a * y_twisted.clone() - d.clone() * y_twisted.clone() - d)
-            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone()
-                - FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone() * y_twisted)
+                - FieldElement::<X25519PrimeField>::from(12) * y_twisted)
+                .inv()
+                .unwrap();
+        let y = (a + a * y_twisted - d * y_twisted - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted
+                - FieldElement::<X25519PrimeField>::from(4) * x_twisted * y_twisted)
                 .inv()
                 .unwrap();
 
@@ -433,18 +456,18 @@ impl ToTwistedEdwardsCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let y = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
-            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone()
-            - d.clone())
-            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone() - a.clone()
-                + FieldElement::<X25519PrimeField>::from(5) * d.clone())
-            .inv()
-            .unwrap();
-        let x = (a.clone() + a.clone() * y.clone() - d.clone() * y.clone() - d)
-            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone()
-                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone() * y.clone())
-            .inv()
-            .unwrap();
+        let y = (FieldElement::<X25519PrimeField>::from(5) * a
+            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass
+            - d)
+            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass - a
+                + FieldElement::<X25519PrimeField>::from(5) * d)
+                .inv()
+                .unwrap();
+        let x = (a + a * y - d * y - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass
+                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass * y)
+                .inv()
+                .unwrap();
 
         (x, y)
     }

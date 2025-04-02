@@ -11,7 +11,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'same_content_newer'
+          paths_ignore: '["**/README.md", "**/docs/**"]'
+
   test:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     name: Test
     runs-on: ubuntu-latest
     steps:
@@ -23,9 +38,11 @@ jobs:
       - run: cargo install wasm-pack
       - name: Run wasm specific tests
         working-directory: tools/garaga_rs
-        run: wasm-pack test --node --release --no-default-features
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features
 
   build:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -44,9 +61,10 @@ jobs:
           if-no-files-found: error
 
   test-integration:
+    needs: [pre_job, build]
+    if: needs.pre_job.outputs.should_skip != 'true'
     name: Test integration
     runs-on: ubuntu-latest
-    needs: [build]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
