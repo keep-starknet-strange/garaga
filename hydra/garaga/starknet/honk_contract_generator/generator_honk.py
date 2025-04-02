@@ -229,7 +229,7 @@ use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
     EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
 };
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;

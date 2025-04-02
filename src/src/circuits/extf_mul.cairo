@@ -5,7 +5,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::option::Option;
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
@@ -264,18 +264,18 @@ pub fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_u288(f.w0); // in0
-    circuit_inputs = circuit_inputs.next_u288(f.w1); // in1
-    circuit_inputs = circuit_inputs.next_u288(f.w2); // in2
-    circuit_inputs = circuit_inputs.next_u288(f.w3); // in3
-    circuit_inputs = circuit_inputs.next_u288(f.w4); // in4
-    circuit_inputs = circuit_inputs.next_u288(f.w5); // in5
-    circuit_inputs = circuit_inputs.next_u288(f.w6); // in6
-    circuit_inputs = circuit_inputs.next_u288(f.w7); // in7
-    circuit_inputs = circuit_inputs.next_u288(f.w8); // in8
-    circuit_inputs = circuit_inputs.next_u288(f.w9); // in9
-    circuit_inputs = circuit_inputs.next_u288(f.w10); // in10
-    circuit_inputs = circuit_inputs.next_u288(f.w11); // in11
+    circuit_inputs = circuit_inputs.next_2(f.w0); // in0
+    circuit_inputs = circuit_inputs.next_2(f.w1); // in1
+    circuit_inputs = circuit_inputs.next_2(f.w2); // in2
+    circuit_inputs = circuit_inputs.next_2(f.w3); // in3
+    circuit_inputs = circuit_inputs.next_2(f.w4); // in4
+    circuit_inputs = circuit_inputs.next_2(f.w5); // in5
+    circuit_inputs = circuit_inputs.next_2(f.w6); // in6
+    circuit_inputs = circuit_inputs.next_2(f.w7); // in7
+    circuit_inputs = circuit_inputs.next_2(f.w8); // in8
+    circuit_inputs = circuit_inputs.next_2(f.w9); // in9
+    circuit_inputs = circuit_inputs.next_2(f.w10); // in10
+    circuit_inputs = circuit_inputs.next_2(f.w11); // in11
     circuit_inputs = circuit_inputs.next_2(z); // in12
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -398,41 +398,41 @@ pub fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
         ); // in1
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_u288(X.w0); // in3
-    circuit_inputs = circuit_inputs.next_u288(X.w1); // in4
-    circuit_inputs = circuit_inputs.next_u288(X.w2); // in5
-    circuit_inputs = circuit_inputs.next_u288(X.w3); // in6
-    circuit_inputs = circuit_inputs.next_u288(X.w4); // in7
-    circuit_inputs = circuit_inputs.next_u288(X.w5); // in8
-    circuit_inputs = circuit_inputs.next_u288(X.w6); // in9
-    circuit_inputs = circuit_inputs.next_u288(X.w7); // in10
-    circuit_inputs = circuit_inputs.next_u288(X.w8); // in11
-    circuit_inputs = circuit_inputs.next_u288(X.w9); // in12
-    circuit_inputs = circuit_inputs.next_u288(X.w10); // in13
-    circuit_inputs = circuit_inputs.next_u288(X.w11); // in14
-    circuit_inputs = circuit_inputs.next_u288(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next_u288(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next_u288(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next_u288(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next_u288(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next_u288(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next_u288(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next_u288(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next_u288(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next_u288(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next_u288(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next_u288(Y.w11); // in26
-    circuit_inputs = circuit_inputs.next_u288(Q.w0); // in27
-    circuit_inputs = circuit_inputs.next_u288(Q.w1); // in28
-    circuit_inputs = circuit_inputs.next_u288(Q.w2); // in29
-    circuit_inputs = circuit_inputs.next_u288(Q.w3); // in30
-    circuit_inputs = circuit_inputs.next_u288(Q.w4); // in31
-    circuit_inputs = circuit_inputs.next_u288(Q.w5); // in32
-    circuit_inputs = circuit_inputs.next_u288(Q.w6); // in33
-    circuit_inputs = circuit_inputs.next_u288(Q.w7); // in34
-    circuit_inputs = circuit_inputs.next_u288(Q.w8); // in35
-    circuit_inputs = circuit_inputs.next_u288(Q.w9); // in36
-    circuit_inputs = circuit_inputs.next_u288(Q.w10); // in37
+    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
+    circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
+    circuit_inputs = circuit_inputs.next_2(Q.w2); // in29
+    circuit_inputs = circuit_inputs.next_2(Q.w3); // in30
+    circuit_inputs = circuit_inputs.next_2(Q.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(Q.w5); // in32
+    circuit_inputs = circuit_inputs.next_2(Q.w6); // in33
+    circuit_inputs = circuit_inputs.next_2(Q.w7); // in34
+    circuit_inputs = circuit_inputs.next_2(Q.w8); // in35
+    circuit_inputs = circuit_inputs.next_2(Q.w9); // in36
+    circuit_inputs = circuit_inputs.next_2(Q.w10); // in37
     circuit_inputs = circuit_inputs.next_2(z); // in38
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
