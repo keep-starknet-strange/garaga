@@ -12,15 +12,24 @@ jobs:
     # Map a step output to a job output
     outputs:
       should_skip: ${{ steps.skip_check.outputs.should_skip }}
+      only_gitbook: ${{ steps.check_gitbook.outputs.only_gitbook }}
     steps:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'same_content_newer'
 
+      - id: check_gitbook
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^docs/gitbook/'; then
+            echo "only_gitbook=false" >> $GITHUB_OUTPUT
+          else
+            echo "only_gitbook=true" >> $GITHUB_OUTPUT
+          fi
+
   test-hydra:
     needs: pre_job
-    if: needs.pre_job.outputs.should_skip != 'true'
+    if: needs.pre_job.outputs.should_skip != 'true' && needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ubuntu-latest
 
     steps:
