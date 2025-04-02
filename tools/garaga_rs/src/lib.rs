@@ -9,6 +9,18 @@ pub mod algebra {
 pub mod calldata;
 
 pub mod crypto {
+    pub mod mmr {
+        pub mod mmr_accumulator;
+        pub mod mmr_membership_proof;
+        pub mod mmr_successor_proof;
+        pub mod mmr_trait;
+        pub mod shared_advanced;
+        pub mod shared_basic;
+        pub const TOO_MANY_LEAFS_ERR: &str =
+            "internal error: Merkle Mountain Ranges should have at most 2^63 leafs";
+    }
+    pub mod digest;
+    pub mod merkle_tree;
     #[allow(dead_code)]
     pub mod poseidon_bn254;
 }
