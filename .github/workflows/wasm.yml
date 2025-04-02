@@ -23,6 +23,7 @@ jobs:
         with:
           concurrent_skipping: 'same_content_newer'
           paths_ignore: '["**/README.md", "**/docs/**"]'
+          paths: '["tools/**"]'
 
   test-wasm:
     needs: pre_job
