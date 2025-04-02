@@ -7,7 +7,7 @@ on:
 
 jobs:
   pre_job:
-    # continue-on-error: true # Uncomment once integration is finished
+    # continue-on-error: true # Uncommfent once integration is finished
     runs-on: ubuntu-latest
     # Map a step output to a job output
     outputs:
@@ -16,7 +16,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
+          concurrent_skipping: 'never'
           paths_ignore: '["**/README.md", "**/docs/**"]'
 
 

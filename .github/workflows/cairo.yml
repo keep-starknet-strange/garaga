@@ -16,7 +16,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
+          concurrent_skipping: 'never'
           paths: '["src/**"]'
 
 
@@ -53,6 +53,7 @@ jobs:
       - name: Run scarb fmt check in risc0_sample_app
         working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
         run: scarb fmt --check
-      - name: Run snforge test in risc0_sample_app
-        working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
-        run: snforge test
+      # Conflicting with the e2e test : we don't want to dedeploy the verifier
+      # - name: Run snforge test in risc0_sample_app
+      #   working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
+      #   run: snforge test
