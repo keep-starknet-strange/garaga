@@ -3015,7 +3015,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
                 )
 
         numerator = self.mul(
-            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+            vanishing_poly_eval,
+            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
         lagrange_first = self.mul(denominators[0], numerator)
@@ -3132,7 +3133,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
             self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
         )
         numerator = self.mul(
-            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+            vanishing_poly_eval,
+            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
         lagrange_first = self.mul(denominator_first, numerator)
