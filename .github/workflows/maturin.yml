@@ -13,7 +13,22 @@ permissions:
   contents: read
 
 jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    outputs:
+      only_gitbook: ${{ steps.check_gitbook.outputs.only_gitbook }}
+    steps:
+      - id: check_gitbook
+        run: |
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -v '^docs/gitbook/'; then
+            echo "only_gitbook=false" >> $GITHUB_OUTPUT
+          else
+            echo "only_gitbook=true" >> $GITHUB_OUTPUT
+          fi
+
   linux:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -49,6 +64,8 @@ jobs:
           path: dist
 
   musllinux:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -80,6 +97,8 @@ jobs:
           path: dist
 
   windows:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -107,6 +126,8 @@ jobs:
           path: dist
 
   macos:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -133,6 +154,8 @@ jobs:
           path: dist
 
   sdist:
+    needs: pre_job
+    if: needs.pre_job.outputs.only_gitbook != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
