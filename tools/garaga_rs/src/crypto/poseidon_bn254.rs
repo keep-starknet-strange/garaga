@@ -109,9 +109,7 @@ fn mix(state: &[FieldElement<F>], matrix: &[Vec<FieldElement<F>>]) -> Vec<FieldE
             state
                 .iter()
                 .enumerate()
-                .fold(FieldElement::zero(), |acc, (j, s)| {
-                    acc + (&matrix[j][i] * s)
-                })
+                .fold(FieldElement::zero(), |acc, (j, s)| acc + (matrix[j][i] * s))
         })
         .collect()
 }
@@ -120,9 +118,7 @@ fn mix_last(state: &[FieldElement<F>], matrix: &[Vec<FieldElement<F>>]) -> Field
     state
         .iter()
         .enumerate()
-        .fold(FieldElement::zero(), |acc, (j, s)| {
-            acc + (&matrix[j][0] * s)
-        })
+        .fold(FieldElement::zero(), |acc, (j, s)| acc + (matrix[j][0] * s))
 }
 
 fn mix_s(
@@ -134,7 +130,7 @@ fn mix_s(
         .iter()
         .enumerate()
         .fold(FieldElement::zero(), |acc, (i, s)| {
-            acc + (&s_constants[(T * 2 - 1) * r + i] * s)
+            acc + (s_constants[(T * 2 - 1) * r + i] * s)
         })];
 
     for i in 1..T {

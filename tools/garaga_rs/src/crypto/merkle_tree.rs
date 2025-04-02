@@ -2,7 +2,7 @@ use crate::crypto::digest::{Digest, HashFunction};
 use arbitrary::{Arbitrary, Unstructured};
 use itertools::Itertools;
 use lazy_static::lazy_static;
-use rayon::prelude::*;
+// use rayon::prelude::*;
 use std::collections::hash_map::Entry::*;
 use std::collections::*;
 use std::fmt::Debug;

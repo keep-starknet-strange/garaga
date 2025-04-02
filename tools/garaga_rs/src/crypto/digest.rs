@@ -84,8 +84,6 @@ where
 impl<H: HashFunction> Digest<H> {
     /// The number of bytes in a digest.
     // pub const BYTES: usize = BFieldElement::BYTES;
-
-    /// The all-zero digest.
     /// The all-zero digest.
     pub(crate) fn all_zero() -> Self {
         Self {
@@ -304,7 +302,7 @@ pub struct TryFromHexDigestError;
 
 // Implement conversion between Digest and FieldElement for PoseidonBn254
 impl From<Digest<PoseidonBn254Hash>> for FieldElement<GrumpkinPrimeField> {
-    fn from(digest: Digest<PoseidonBn254Hash>) -> Self {
+    fn from(_digest: Digest<PoseidonBn254Hash>) -> Self {
         // Implement conversion logic here
         // This might need to be adjusted based on your specific requirements
         unimplemented!("Need to implement conversion from Digest to FieldElement")
@@ -312,7 +310,7 @@ impl From<Digest<PoseidonBn254Hash>> for FieldElement<GrumpkinPrimeField> {
 }
 
 impl From<FieldElement<GrumpkinPrimeField>> for Digest<PoseidonBn254Hash> {
-    fn from(field: FieldElement<GrumpkinPrimeField>) -> Self {
+    fn from(_field: FieldElement<GrumpkinPrimeField>) -> Self {
         // Implement conversion logic here
         // This might need to be adjusted based on your specific requirements
         unimplemented!("Need to implement conversion from FieldElement to Digest")
