@@ -7,4 +7,4 @@ icon: monero
 Supported verifiers:
 
 * [groth16](groth16/ "mention")
-
+* [noir](noir "mention")
