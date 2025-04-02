@@ -24,10 +24,10 @@ jobs:
           concurrent_skipping: 'same_content_newer'
           paths_ignore: '["**/README.md", "**/docs/**"]'
 
-  test:
+  test-wasm:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
-    name: Test
+    name: test-wasm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -40,10 +40,10 @@ jobs:
         working-directory: tools/garaga_rs
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features
 
-  build:
+  build-wasm:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
-    name: Build
+    name: build-wasm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -61,9 +61,9 @@ jobs:
           if-no-files-found: error
 
   test-integration:
-    needs: [pre_job, build]
+    needs: [pre_job, build-wasm]
     if: needs.pre_job.outputs.should_skip != 'true'
-    name: Test integration
+    name: test-integration
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -95,7 +95,7 @@ jobs:
     name: Release
     runs-on: ubuntu-latest
     if: "startsWith(github.ref, 'refs/tags/')"  # Only run on tag pushes
-    needs: [build, test, test-integration]
+    needs: [build-wasm, test-wasm, test-integration]
     steps:
       - uses: actions/checkout@v4
       - name: Set up Rust
