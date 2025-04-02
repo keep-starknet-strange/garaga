@@ -1,7 +1,7 @@
 pub mod mmr;
 pub mod mmr_tests;
 
-use dep::std::hash::poseidon::bn254::hash_2;
+// use dep::std::hash::poseidon::bn254::hash_2;
 use mmr::{MMRProofElement, verify_mmr_inclusion};
 
 fn main(
