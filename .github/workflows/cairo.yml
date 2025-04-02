@@ -49,3 +49,10 @@ jobs:
       - name: Run snforge test in mutator_set
         working-directory: src/contracts/mutator_set
         run: snforge test
+
+      - name: Run scarb fmt check in risc0_sample_app
+        working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
+        run: scarb fmt --check
+      - name: Run snforge test in risc0_sample_app
+        working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
+        run: snforge test
