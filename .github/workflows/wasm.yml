@@ -40,7 +40,7 @@ jobs:
         working-directory: tools/garaga_rs
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features
 
-  build:
+  build-wasm:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     name: Build
