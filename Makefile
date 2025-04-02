@@ -21,6 +21,8 @@ regen:
 steps:
 	./tools/make/steps.sh
 
+fmt:
+	scarb fmt && cargo fmt
 ci-e2e:
 	./tools/make/ci_e2e.sh
 
