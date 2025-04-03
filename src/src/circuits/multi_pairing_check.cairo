@@ -5,7 +5,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
@@ -6552,39 +6552,4 @@ pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit(
         QyNeg1: outputs.get_output(t14),
     };
     return (p_0, p_1, p_2);
-}
-
-#[cfg(test)]
-mod tests {
-    use core::circuit::{
-        AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
-        CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add,
-        circuit_inverse, circuit_mul, circuit_sub, u384, u96,
-    };
-    use core::traits::TryInto;
-    use garaga::definitions::{
-        BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line,
-        G2Point, MillerLoopResultScalingFactor,
-    };
-    use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
-    use super::{
-        run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT00_3P_2F_circuit,
-        run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_3P_2F_circuit,
-        run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT1_3P_2F_circuit,
-        run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
-        run_BLS12_381_MP_CHECK_FINALIZE_BLS_3P_circuit,
-        run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
-        run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit,
-        run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit,
-        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-        run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
-        run_BN254_MP_CHECK_BIT00_3P_2F_circuit, run_BN254_MP_CHECK_BIT01_2P_2F_circuit,
-        run_BN254_MP_CHECK_BIT01_3P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
-        run_BN254_MP_CHECK_BIT10_3P_2F_circuit, run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit,
-        run_BN254_MP_CHECK_FINALIZE_BN_3P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
-        run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-        run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
-        run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
-    };
 }

@@ -5,7 +5,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_a, get_b, get_g, get_min_one,
@@ -623,19 +623,3 @@ const APPLY_ISOGENY_BLS12_381_BLS12_381_CONSTANTS: [u384; 54] = [
         limb3: 0xe0fa1d816ddc03e6b24255e,
     },
 ];
-
-#[cfg(test)]
-mod tests {
-    use core::circuit::{
-        AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
-        CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add,
-        circuit_inverse, circuit_mul, circuit_sub, u384, u96,
-    };
-    use core::traits::TryInto;
-    use garaga::definitions::{
-        BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line,
-        G2Point, MillerLoopResultScalingFactor,
-    };
-    use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
-    use super::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
-}
