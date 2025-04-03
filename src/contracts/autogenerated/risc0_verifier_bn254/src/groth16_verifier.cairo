@@ -35,9 +35,7 @@ mod Risc0Groth16VerifierBN254 {
             // Read the documentation to learn how to generate the full_proof_with_hints array given
             // a proof and a verifying key.
 
-            println!("start DESERIALIZING");
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
-            println!("end DESERIALIZING");
 
             let groth16_proof = fph.groth16_proof;
             let image_id = fph.image_id;

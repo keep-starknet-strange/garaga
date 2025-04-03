@@ -971,6 +971,42 @@ class FunctionFeltEvaluations(Cairo1SerializableStruct):
             return 4
 
 
+class G1G2PairCircuit(Cairo1SerializableStruct):
+    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
+        super().__init__(name, elmts)
+        self.members_names = ("p.x", "p.y", "q.x0", "q.x1", "q.y0", "q.y1")
+
+    @property
+    def struct_name(self) -> str:
+        return "G1G2Pair"
+
+    def serialize(self) -> str:
+        return (
+            f"let {self.name}:{self.struct_name} = {self.struct_name} {{"
+            f"p: G1Point{{ x:{int_to_u384(self.elmts[0].value)}, y: {int_to_u384(self.elmts[1].value)}}}, "
+            f"q: G2Point{{ x0:{int_to_u384(self.elmts[2].value)}, x1: {int_to_u384(self.elmts[3].value)}, y0: {int_to_u384(self.elmts[4].value)}, y1: {int_to_u384(self.elmts[5].value)}}}}};\n"
+        )
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        assert len(self.elmts) == 6
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(6)])} }};"
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for mem_name in self.members_names:
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
+        return code
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 6
+            return 6
+        else:
+            return 6
+
+
 class E12D(Cairo1SerializableStruct):
     def extract_from_circuit_output(
         self, offset_to_reference_map: dict[int, str]
