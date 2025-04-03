@@ -1,5 +1,9 @@
 use core::circuit::{u384, u96};
+use core::integer::{downcast, upcast};
+use core::internal::bounded_int;
+use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt};
 use garaga::definitions::get_min_one;
+
 
 const STARK_MINUS_1_HALF: u256 =
     180925139433306560684866139154753505281553607665798349986546028067936010240; // (STARK-1)//2
@@ -90,6 +94,20 @@ pub fn u128_array_to_epns(
     return epns;
 }
 
+const THREE: felt252 = 3;
+const THREE_NZ_TYPED: NonZero<UnitInt<THREE>> = 3;
+const POW128_DIV_3: felt252 = 113427455640312821154458202477256070485; // ((2^128-1) // 3)
+const POW128: felt252 = 0x100000000000000000000000000000000;
+
+impl DivRemU128By3 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<THREE>> {
+    type DivT = BoundedInt<0, { POW128_DIV_3 }>;
+    type RemT = BoundedInt<0, { THREE - 1 }>;
+}
+
+impl AddOneHelper of AddHelper<BoundedInt<0, { POW128_DIV_3 }>, BoundedInt<0, 1>> {
+    type Result = BoundedInt<0, { POW128_DIV_3 + 1 }>;
+}
+
 // From a 128 bit scalar, returns the positive and negative multiplicities of the scalar in base
 // (-3)
 // scalar = sum(digits[i] * (-3)^i for i in [0, 81])
@@ -97,38 +115,38 @@ pub fn u128_array_to_epns(
 // Where sum_p = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==1)
 // And sum_n = sum(digits[i] * (-3)^i for i in [0, 81] if digits[i]==-1)
 // Returns (abs(sum_p), abs(sum_n), p_sign, n_sign)
-pub fn scalar_to_epns(mut scalar: u128) -> (felt252, felt252, felt252, felt252) {
-    let mut sum_p = 0;
-    let mut sum_n = 0;
+pub fn scalar_to_epns(mut _scalar: u128) -> (felt252, felt252, felt252, felt252) {
+    let mut sum_p: felt252 = 0;
+    let mut sum_n: felt252 = 0;
 
-    let mut base_power = 1; // Init to (-3)^0
+    let mut base_power: felt252 = 1; // Init to (-3)^0
 
+    let mut scalar: BoundedInt<0, { POW128 - 1 }> = upcast(_scalar);
     while scalar != 0 {
-        let (q0, r0) = core::traits::DivRem::div_rem(scalar, 3);
+        let (q0, r0) = bounded_int::div_rem(scalar, THREE_NZ_TYPED);
         let r0: felt252 = r0.into();
+
         if r0 == 0 {
-            scalar = q0;
+            scalar = upcast(q0);
         } else if r0 == 2 {
-            scalar = q0 + 1;
+            scalar = upcast(bounded_int::add(q0, 1));
             sum_n += base_power;
         } else {
-            scalar = q0;
+            scalar = upcast(q0);
             sum_p += base_power;
         }
-        if scalar == 0 {
-            break;
-        }
         base_power = base_power * (-3);
-        let (q1, r1) = core::traits::DivRem::div_rem(scalar, 3);
+
+        let (q1, r1) = bounded_int::div_rem(scalar, THREE_NZ_TYPED);
         let r1: felt252 = r1.into();
 
         if r1 == 0 {
-            scalar = q1;
+            scalar = upcast(q1);
         } else if r1 == 2 {
-            scalar = q1 + 1;
+            scalar = upcast(bounded_int::add(q1, 1));
             sum_p += base_power;
         } else {
-            scalar = q1;
+            scalar = upcast(q1);
             sum_n += base_power;
         }
 
@@ -139,6 +157,7 @@ pub fn scalar_to_epns(mut scalar: u128) -> (felt252, felt252, felt252, felt252) 
     let sign_n = sign(sum_n);
     return (sign_p * sum_p, sign_n * sum_n, sign_p, sign_n);
 }
+
 
 pub fn scalar_to_epns_with_digits(
     scalar: u128, mut digits: Span<felt252>,

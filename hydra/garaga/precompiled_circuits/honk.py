@@ -896,7 +896,7 @@ class HonkVerifierCircuits(ModuloCircuit):
 
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.set_or_get_constant(0)
-        check_rlc = self.set_or_get_constant(0)
+        check_rlc = None
 
         rlc_coeff = base_rlc
         for i, round in enumerate(range(log_n)):
@@ -1264,23 +1264,32 @@ class HonkVerifierCircuits(ModuloCircuit):
     ) -> list[ModuloCircuitElement]:
 
         p = purported_evaluations
+        # Precompute constants
+        minus_one = self.set_or_get_constant(-1)
+
+        # Precompute common terms
+        q_range = p[Wire.Q_RANGE]
+        q_range_times_domain = self.mul(q_range, domain_separator)
+
+        # Compute deltas
         delta_1 = self.sub(p[Wire.W_R], p[Wire.W_L])
         delta_2 = self.sub(p[Wire.W_O], p[Wire.W_R])
         delta_3 = self.sub(p[Wire.W_4], p[Wire.W_O])
         delta_4 = self.sub(p[Wire.W_L_SHIFT], p[Wire.W_4])
 
-        # Contributions 6 - 7 - 8 - 9.
+        # Process each delta
         for i, delta in enumerate([delta_1, delta_2, delta_3, delta_4]):
-            evaluations[6 + i] = self.product(
-                [
-                    delta,
-                    self.add(delta, self.set_or_get_constant(-1)),
-                    self.add(delta, self.set_or_get_constant(-2)),
-                    self.add(delta, self.set_or_get_constant(-3)),
-                    p[Wire.Q_RANGE],
-                    domain_separator,
-                ]
-            )
+            # Compute delta + (-1), delta + (-2), delta + (-3) efficiently
+            delta_minus_1 = self.add(delta, minus_one)
+            delta_minus_2 = self.add(delta_minus_1, minus_one)  # Reuse delta_minus_1
+            delta_minus_3 = self.add(delta_minus_2, minus_one)  # Reuse delta_minus_2
+
+            # Compute product efficiently
+            temp = self.mul(delta, delta_minus_1)
+            temp = self.mul(temp, delta_minus_2)
+            temp = self.mul(temp, delta_minus_3)
+            evaluations[6 + i] = self.mul(temp, q_range_times_domain)
+
         return evaluations
 
     def accumulate_elliptic_relation(
@@ -2600,8 +2609,7 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.mul(libra_challenge, libra_sum)
-        # default 0
-        check_rlc = self.set_or_get_constant(0)
+        check_rlc = None
 
         rlc_coeff = base_rlc
         for i, round in enumerate(range(log_n)):
@@ -3015,7 +3023,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
                 )
 
         numerator = self.mul(
-            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+            vanishing_poly_eval,
+            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
         lagrange_first = self.mul(denominators[0], numerator)
@@ -3132,7 +3141,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
             self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
         )
         numerator = self.mul(
-            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+            vanishing_poly_eval,
+            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
         lagrange_first = self.mul(denominator_first, numerator)
