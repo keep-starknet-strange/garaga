@@ -11,7 +11,7 @@ mod FibonacciSequencer {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
     pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-        0x36c7cf6fdd3b943967beb333231be0b3ee5f42858655dacfd19df9df47a5e6e;
+        0x4f103bee4dec742ef1c66287a8ee8c0f4e2b4b15ea6e04eb98c63ed5a8864bc;
 
     #[storage]
     struct Storage {
