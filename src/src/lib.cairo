@@ -1,16 +1,19 @@
 pub mod definitions;
 pub mod utils;
-pub mod ec_ops;
-pub mod ec_ops_g2;
-pub mod pairing_check;
+pub mod ec;
 pub mod circuits;
-pub mod groth16;
 pub mod hashes;
 pub mod basic_field_ops;
-pub mod single_pairing_tower;
+pub mod signatures;
 mod tests;
 pub mod core;
 
+
+pub use garaga::ec::ec_ops;
+pub use garaga::ec::ec_ops_g2;
+pub use garaga::ec::pairing::groth16;
+pub use garaga::ec::pairing::pairing_check;
+pub use garaga::ec::pairing::single_pairing_tower;
 
 #[cfg(test)]
 mod tests_lib {

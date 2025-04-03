@@ -2,7 +2,6 @@
 mod msm_tests {
     use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1, MSMHint, DerivePointFromXHint};
 
-
     #[test]
     fn test_msm_BN254_1P() {
         let scalars_digits_decompositions = Option::None;
