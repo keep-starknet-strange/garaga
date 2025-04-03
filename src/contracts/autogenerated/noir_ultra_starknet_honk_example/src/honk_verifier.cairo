@@ -18,8 +18,10 @@ mod UltraStarknetHonkVerifier {
     use core::poseidon::hades_permutation;
     use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked};
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus};
+    use garaga::core::circuit::{
+        U32IntoU384, U64IntoU384, into_u256_unchecked, u288IntoCircuitInputValue,
+    };
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus, u288};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
@@ -43,7 +45,7 @@ mod UltraStarknetHonkVerifier {
     #[derive(Drop, Serde)]
     struct FullProof {
         proof: HonkProof,
-        msm_hint_batched: MSMHint,
+        msm_hint_batched: MSMHint<u288>,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint: MPCheckHintBN254,
     }

@@ -2,7 +2,7 @@ use core::circuit::{
     CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
     circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus};
 use garaga::ec_ops::FunctionFelt;
 
@@ -1491,8 +1491,10 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
         scalar_68,
     );
 }
-pub fn run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
-    A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt,
+pub fn run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit<
+    T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
+>(
+    A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt<T>,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
