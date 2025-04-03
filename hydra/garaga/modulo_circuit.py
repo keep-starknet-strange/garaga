@@ -5,7 +5,13 @@ from typing import List, Union
 from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.io import bigint_split
-from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u128, u256, u384
+from garaga.modulo_circuit_structs import (
+    Cairo1SerializableStruct,
+    GenericT,
+    u128,
+    u256,
+    u384,
+)
 
 BATCH_SIZE = 1  # Batch Size, only used in cairo 0 mode.
 
@@ -421,7 +427,7 @@ class ModuloCircuit:
 
         if all_pyfelt:
             self.input_structs.append(struct)
-            if len(struct) == 1 and isinstance(struct, (u384, u256, u128)):
+            if len(struct) == 1 and isinstance(struct, (u384, u256, u128, GenericT)):
                 return self.write_element(struct.elmts[0], write_source)
             else:
                 return self.write_elements(struct.elmts, write_source)
@@ -1181,7 +1187,7 @@ class ModuloCircuit:
                 )
         else:
             signature_input = "mut input: Array<u384>"
-        if "<T>" in signature_input:
+        if "<T>" in signature_input or ":T," in signature_input:
             generic_input = "<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>"
         else:
             generic_input = ""
