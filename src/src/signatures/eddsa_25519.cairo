@@ -5,10 +5,10 @@ use core::circuit::{
 };
 use core::integer::u128_byte_reverse;
 use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p, u512_mod_p};
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
     Zero, deserialize_u384, get_ED25519_modulus, get_G, get_curve_order_modulus, get_modulus, get_n,
-    serialize_u384, u288,
+    serialize_u384, u288, u288Serde,
 };
 use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, ec_safe_add, msm_g1};
 use garaga::hashes::sha_512::{Word64, _sha512, from_WordArray_to_u8array};
@@ -60,7 +60,7 @@ pub struct EdDSASignature {
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 pub struct EdDSASignatureWithHint {
     signature: EdDSASignature,
-    msm_hint: MSMHint,
+    msm_hint: MSMHint<u288>,
     msm_derive_hint: DerivePointFromXHint,
     sqrt_Rx_hint: u256,
     sqrt_Px_hint: u256,

@@ -1,10 +1,13 @@
 use core::circuit::{CircuitModulus, u96};
 use garaga::basic_field_ops::{is_even_u384, neg_mod_p};
+use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
 use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1, u384};
+use garaga::utils::hashing::HashFeltTranscriptTrait;
 use garaga::utils::u384_eq_zero;
+
 /// A Schnorr signature with associated public key and challenge.
 ///
 /// # Fields
@@ -48,9 +51,9 @@ impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
 /// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving the full point from
 /// x-coordinate (part of MSM algo).
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct SchnorrSignatureWithHint {
+struct SchnorrSignatureWithHint<T> {
     signature: SchnorrSignature,
-    msm_hint: MSMHint,
+    msm_hint: MSMHint<T>,
     msm_derive_hint: DerivePointFromXHint,
 }
 
@@ -82,7 +85,11 @@ struct SchnorrSignatureWithHint {
 /// This implements the verification equation: sG - eP = R
 /// Which proves the signer knew the private key x where P = xG
 /// Returns false if the signature is invalid.
-pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id: usize) -> bool {
+pub fn is_valid_schnorr_signature<
+    T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
+>(
+    signature: SchnorrSignatureWithHint<T>, curve_id: usize,
+) -> bool {
     let SchnorrSignatureWithHint { signature, msm_hint, msm_derive_hint } = signature;
     let SchnorrSignature { rx, s, e, px, py } = signature;
     // println!("rx: {rx}");
