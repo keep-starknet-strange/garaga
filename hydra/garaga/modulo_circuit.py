@@ -1181,19 +1181,25 @@ class ModuloCircuit:
                 )
         else:
             signature_input = "mut input: Array<u384>"
-
+        if "<T>" in signature_input:
+            generic_input = "<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>"
+        else:
+            generic_input = ""
         if pub:
             prefix = "pub "
         else:
             prefix = ""
         if inline:
-            attribute = "#[inline(always)]"
+            if generic_input == "":
+                attribute = "#[inline(always)]"
+            else:
+                attribute = "#[inline]"
         else:
             attribute = ""
         if self.generic_circuit:
-            code = f"{attribute}\n{prefix}fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, curve_index:usize)->{signature_output} {{\n"
         else:
-            code = f"{attribute}\n{prefix}fn {function_name}({signature_input})->{signature_output} {{\n"
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input})->{signature_output} {{\n"
 
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
