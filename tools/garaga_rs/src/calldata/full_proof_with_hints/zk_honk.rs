@@ -546,6 +546,7 @@ pub fn get_zk_honk_calldata(
         false,
         false,
         Some((external_s0, external_s1)),
+        true,
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
