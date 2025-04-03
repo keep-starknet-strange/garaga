@@ -15,8 +15,9 @@ use garaga::circuits::ec;
 use garaga::core::circuit::{IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
-    THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u384, deserialize_u384_array, get_a, get_b,
-    get_b2, get_g, get_min_one, get_modulus, get_n, serialize_u384, serialize_u384_array, u384Serde,
+    THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
+    deserialize_u384_array, get_a, get_b, get_b2, get_g, get_min_one, get_modulus, get_n,
+    serialize_u288_array, serialize_u384, serialize_u384_array, u288, u384Serde,
 };
 use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
 
@@ -222,7 +223,8 @@ pub struct FunctionFelt<T> {
     pub b_den: Span<T>,
 }
 
-impl FunctionFeltSerde of Serde<FunctionFelt<u384>> {
+
+impl FunctionFeltSerdeu384 of Serde<FunctionFelt<u384>> {
     fn serialize(self: @FunctionFelt<u384>, ref output: Array<felt252>) {
         serialize_u384_array(*self.a_num.snapshot, ref output);
         serialize_u384_array(*self.a_den.snapshot, ref output);
@@ -240,6 +242,26 @@ impl FunctionFeltSerde of Serde<FunctionFelt<u384>> {
         );
     }
 }
+
+impl FunctionFeltSerdeu288 of Serde<FunctionFelt<u288>> {
+    fn serialize(self: @FunctionFelt<u288>, ref output: Array<felt252>) {
+        serialize_u288_array(*self.a_num.snapshot, ref output);
+        serialize_u288_array(*self.a_den.snapshot, ref output);
+        serialize_u288_array(*self.b_num.snapshot, ref output);
+        serialize_u288_array(*self.b_den.snapshot, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt<u288>> {
+        return Option::Some(
+            FunctionFelt {
+                a_num: deserialize_u288_array(ref serialized).span(),
+                a_den: deserialize_u288_array(ref serialized).span(),
+                b_num: deserialize_u288_array(ref serialized).span(),
+                b_den: deserialize_u288_array(ref serialized).span(),
+            },
+        );
+    }
+}
+
 
 #[derive(Drop, Debug, Copy, PartialEq)]
 pub struct FunctionFeltEvaluations {
