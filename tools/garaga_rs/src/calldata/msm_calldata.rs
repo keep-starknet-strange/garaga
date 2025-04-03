@@ -121,7 +121,7 @@ where
         }
     }
 
-    let use_288 = if curve_id == 1 { false } else { true };
+    let use_288 = curve_id != 1;
 
     Ok(calldata_builder::<F>(
         &points,
