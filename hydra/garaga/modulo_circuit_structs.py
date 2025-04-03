@@ -609,8 +609,11 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
             cd.extend(elmt._serialize_to_calldata())
         return cd
 
+    def serialize_input_signature(self) -> str:
+        return f"{self.name}:FunctionFelt<T>"
+
     def serialize(self, raw: bool = False) -> str:
-        raw_struct = f"{self.struct_name} {{ {','.join([f'{self.members_names[i]}: {self.elmts[i].serialize(raw=True)}' for i in range(4)])} }}"
+        raw_struct = f"FunctionFelt {{ {','.join([f'{self.members_names[i]}: {self.elmts[i].serialize(raw=True)}' for i in range(4)])} }}"
         if raw:
             return raw_struct
         else:
