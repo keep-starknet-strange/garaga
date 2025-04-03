@@ -5,7 +5,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
@@ -6019,35 +6019,4 @@ pub fn run_FP6_NEG_circuit(
     let r4: u384 = outputs.get_output(t4);
     let r5: u384 = outputs.get_output(t5);
     return (r0, r1, r2, r3, r4, r5);
-}
-
-#[cfg(test)]
-mod tests {
-    use core::circuit::{
-        AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
-        CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add,
-        circuit_inverse, circuit_mul, circuit_sub, u384, u96,
-    };
-    use core::traits::TryInto;
-    use garaga::definitions::{
-        BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line,
-        G2Point, MillerLoopResultScalingFactor,
-    };
-    use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
-    use super::{
-        run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit,
-        run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit,
-        run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit,
-        run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit,
-        run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit, run_BLS12_381_E12T_FROBENIUS_CUBE_circuit,
-        run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit, run_BLS12_381_E12T_FROBENIUS_circuit,
-        run_BLS12_381_E12T_INVERSE_circuit, run_BLS12_381_E12T_MUL_circuit,
-        run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit,
-        run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit, run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit,
-        run_BN254_E12T_FROBENIUS_CUBE_circuit, run_BN254_E12T_FROBENIUS_SQUARE_circuit,
-        run_BN254_E12T_FROBENIUS_circuit, run_BN254_E12T_INVERSE_circuit,
-        run_BN254_E12T_MUL_circuit, run_BN254_TOWER_MILLER_BIT0_1P_circuit,
-        run_BN254_TOWER_MILLER_BIT1_1P_circuit, run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit,
-        run_FP6_NEG_circuit,
-    };
 }

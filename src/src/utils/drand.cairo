@@ -130,7 +130,7 @@ impl MapToCurveHintSerde of Serde<MapToCurveHint> {
 struct HashToCurveHint {
     f0_hint: MapToCurveHint,
     f1_hint: MapToCurveHint,
-    scalar_mul_hint: MSMHintSmallScalar,
+    scalar_mul_hint: MSMHintSmallScalar<u384>,
     derive_point_from_x_hint: DerivePointFromXHint,
 }
 
