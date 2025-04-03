@@ -12,9 +12,17 @@ bytecode-check:
 rewrite:
 	./tools/make/rewrite.sh
 
+rewrite-no-tests:
+	./tools/make/rewrite.sh no-tests
+
+regen:
+	cd src/contracts/mutator_set && make regen
+
 steps:
 	./tools/make/steps.sh
 
+fmt:
+	scarb fmt && cargo fmt
 ci-e2e:
 	./tools/make/ci_e2e.sh
 
@@ -27,6 +35,8 @@ ci-cairo:
 ci-wasm:
 	./tools/make/ci_wasm.sh
 
+wasm:
+	./tools/make/wasm.sh
 clean:
 	rm -rf build/compiled_cairo_files
 	mkdir -p build

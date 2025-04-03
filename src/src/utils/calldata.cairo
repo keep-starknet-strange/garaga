@@ -1,11 +1,11 @@
-use garaga::groth16::{Groth16Proof, Groth16ProofRaw, MPCheckHintBN254, MPCheckHintBLS12_381};
-use garaga::definitions::{
-    G1Point, G2Point, E12DMulQuotient, u288, E12D, MillerLoopResultScalingFactor,
-};
 use core::RangeCheck;
 use core::circuit::u384;
+use garaga::definitions::{
+    E12D, E12DMulQuotient, G1Point, G2Point, MillerLoopResultScalingFactor, u288,
+};
+use garaga::groth16::{Groth16Proof, Groth16ProofRaw, MPCheckHintBLS12_381, MPCheckHintBN254};
 
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 pub struct FullProofWithHintsBN254 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBN254,
@@ -13,7 +13,7 @@ pub struct FullProofWithHintsBN254 {
     pub msm_hint: Array<felt252>,
 }
 
-#[derive(Drop, Serde)]
+#[derive(Drop, Debug)]
 pub struct FullProofWithHintsBLS12_381 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBLS12_381,
@@ -21,7 +21,7 @@ pub struct FullProofWithHintsBLS12_381 {
     pub msm_hint: Array<felt252>,
 }
 
-#[derive(Serde, Drop)]
+#[derive(Drop)]
 pub struct FullProofWithHintsRisc0 {
     pub groth16_proof: Groth16ProofRaw,
     pub image_id: Span<u32>,
@@ -115,13 +115,13 @@ fn deserialize_full_proof_with_hints_risc0(
     let mut image_id: Array<u32> = array![];
     for _ in 0..n_image_id {
         image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-    };
+    }
 
     let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut journal: Array<u8> = array![];
     for _ in 0..n_journal {
         journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-    };
+    }
 
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
     let [
@@ -346,7 +346,7 @@ fn deserialize_full_proof_with_hints_risc0(
                     w11: downcast_u288(w11l0, w11l1, w11l2),
                 },
             )
-    };
+    }
     // usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
     let mut big_q_slice = serialized.slice(1, 190 * 3);
     let mut serialized = serialized.slice(190 * 3 + 1, serialized.len() - 190 * 3 - 1);
@@ -355,7 +355,9 @@ fn deserialize_full_proof_with_hints_risc0(
     while let Option::Some(q) = big_q_slice.multi_pop_front::<3>() {
         let [l0, l1, l2] = (*q).unbox();
         big_q.append(downcast_u288(l0, l1, l2))
-    };
+    }
+
+    let z = (*serialized.pop_front().unwrap()).try_into().unwrap();
 
     let mpcheck_hint = MPCheckHintBN254 {
         lambda_root: lambda_root,
@@ -363,6 +365,7 @@ fn deserialize_full_proof_with_hints_risc0(
         w: w,
         Ris: Ris.span(),
         big_Q: big_q,
+        z: z,
     };
 
     let [
@@ -424,7 +427,7 @@ fn deserialize_full_proof_with_hints_risc0(
     serialized.pop_front().unwrap(); // skip len.
     for x in serialized {
         msm_hint.append(*x);
-    };
+    }
     return FullProofWithHintsRisc0 {
         groth16_proof: groth16_proof,
         image_id: image_id.span(),
@@ -503,7 +506,7 @@ fn deserialize_full_proof_with_hints_bn254(
                     high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
                 },
             );
-    };
+    }
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
     let [
@@ -725,7 +728,7 @@ fn deserialize_full_proof_with_hints_bn254(
                     w11: downcast_u288(w11l0, w11l1, w11l2),
                 },
             )
-    };
+    }
     // usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
     let mut big_q_slice = serialized.slice(1, 190 * 3);
     let mut serialized = serialized.slice(190 * 3 + 1, serialized.len() - 190 * 3 - 1);
@@ -734,7 +737,9 @@ fn deserialize_full_proof_with_hints_bn254(
     while let Option::Some(q) = big_q_slice.multi_pop_front::<3>() {
         let [l0, l1, l2] = (*q).unbox();
         big_q.append(downcast_u288(l0, l1, l2))
-    };
+    }
+
+    let z = (*serialized.pop_front().unwrap()).try_into().unwrap();
 
     let mpcheck_hint = MPCheckHintBN254 {
         lambda_root: lambda_root,
@@ -742,6 +747,7 @@ fn deserialize_full_proof_with_hints_bn254(
         w: w,
         Ris: Ris.span(),
         big_Q: big_q,
+        z: z,
     };
 
     let [
@@ -803,84 +809,14 @@ fn deserialize_full_proof_with_hints_bn254(
     serialized.pop_front().unwrap(); // skip len.
     for x in serialized {
         msm_hint.append(*x);
-    };
+    }
     return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }
 
-fn deserialize_full_proof_with_hints_bls12_381(
-    mut serialized: Span<felt252>,
-) -> FullProofWithHintsBLS12_381 {
-    let [
-        a_x_l0,
-        a_x_l1,
-        a_x_l2,
-        a_x_l3,
-        a_y_l0,
-        a_y_l1,
-        a_y_l2,
-        a_y_l3,
-        b_x0_l0,
-        b_x0_l1,
-        b_x0_l2,
-        b_x0_l3,
-        b_x1_l0,
-        b_x1_l1,
-        b_x1_l2,
-        b_x1_l3,
-        b_y0_l0,
-        b_y0_l1,
-        b_y0_l2,
-        b_y0_l3,
-        b_y1_l0,
-        b_y1_l1,
-        b_y1_l2,
-        b_y1_l3,
-        c_x_l0,
-        c_x_l1,
-        c_x_l2,
-        c_x_l3,
-        c_y_l0,
-        c_y_l1,
-        c_y_l2,
-        c_y_l3,
-    ] =
-        (*serialized
-        .multi_pop_front::<32>()
-        .unwrap())
-        .unbox();
 
-    let a = G1Point {
-        x: downcast_u384(a_x_l0, a_x_l1, a_x_l2, a_x_l3),
-        y: downcast_u384(a_y_l0, a_y_l1, a_y_l2, a_y_l3),
-    };
-
-    let b = G2Point {
-        x0: downcast_u384(b_x0_l0, b_x0_l1, b_x0_l2, b_x0_l3),
-        x1: downcast_u384(b_x1_l0, b_x1_l1, b_x1_l2, b_x1_l3),
-        y0: downcast_u384(b_y0_l0, b_y0_l1, b_y0_l2, b_y0_l3),
-        y1: downcast_u384(b_y1_l0, b_y1_l1, b_y1_l2, b_y1_l3),
-    };
-    let c = G1Point {
-        x: downcast_u384(c_x_l0, c_x_l1, c_x_l2, c_x_l3),
-        y: downcast_u384(c_y_l0, c_y_l1, c_y_l2, c_y_l3),
-    };
-
-    let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
-    let mut public_inputs = array![];
-    for _ in 0..n_public_inputs {
-        public_inputs
-            .append(
-                u256 {
-                    low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-                    high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-                },
-            );
-    };
-
-    // full_len -= (1 + 2 * n_public_inputs);
-    // assert(full_len == serialized.len(), 'C');
-
-    let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
+fn deserialize_mpcheck_hint_bls12_381(
+    ref serialized: Span<felt252>, two_pairs: bool,
+) -> MPCheckHintBLS12_381 {
     let [
         w0l0,
         w0l1,
@@ -992,10 +928,14 @@ fn deserialize_full_proof_with_hints_bls12_381(
     };
     // assert!(hint.Ris.len() == 36, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
     // 36 * 12 * 4 = 1728
-    let mut ris_slice = serialized.slice(1, 1728);
+    let end_ris = match two_pairs {
+        false => 1728,
+        true => 1680,
+    };
+    let mut ris_slice = serialized.slice(1, end_ris);
 
     let end = serialized.len();
-    let serialized = serialized.slice(1729, end - 1728 - 1);
+    serialized = serialized.slice(end_ris + 1, end - end_ris - 1);
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<48>() {
         let [
@@ -1067,20 +1007,101 @@ fn deserialize_full_proof_with_hints_bls12_381(
                     w11: downcast_u384(w11l0, w11l1, w11l2, w11l3),
                 },
             )
-    };
-    // usize_assert_eq(mpcheck_hint.big_Q.len(), 105);
-    let mut big_q_slice = serialized.slice(1, 105 * 4);
-    let mut serialized = serialized.slice(105 * 4 + 1, serialized.len() - 105 * 4 - 1);
+    }
 
+    let big_q_len: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let biq_len_n_limbs = big_q_len * 4;
+    let mut big_q_slice = serialized.slice(0, biq_len_n_limbs);
+
+    serialized = serialized.slice(biq_len_n_limbs, serialized.len() - biq_len_n_limbs);
     let mut big_q = array![];
     while let Option::Some(q) = big_q_slice.multi_pop_front::<4>() {
         let [l0, l1, l2, l3] = (*q).unbox();
         big_q.append(downcast_u384(l0, l1, l2, l3))
+    }
+    let z = *serialized.pop_front().unwrap();
+    let mpcheck_hint = MPCheckHintBLS12_381 {
+        lambda_root_inverse: lambda_root_inverse, w: w, Ris: Ris.span(), big_Q: big_q, z: z,
     };
 
-    let mpcheck_hint = MPCheckHintBLS12_381 {
-        lambda_root_inverse: lambda_root_inverse, w: w, Ris: Ris.span(), big_Q: big_q,
+    return mpcheck_hint;
+}
+fn deserialize_full_proof_with_hints_bls12_381(
+    mut serialized: Span<felt252>,
+) -> FullProofWithHintsBLS12_381 {
+    let [
+        a_x_l0,
+        a_x_l1,
+        a_x_l2,
+        a_x_l3,
+        a_y_l0,
+        a_y_l1,
+        a_y_l2,
+        a_y_l3,
+        b_x0_l0,
+        b_x0_l1,
+        b_x0_l2,
+        b_x0_l3,
+        b_x1_l0,
+        b_x1_l1,
+        b_x1_l2,
+        b_x1_l3,
+        b_y0_l0,
+        b_y0_l1,
+        b_y0_l2,
+        b_y0_l3,
+        b_y1_l0,
+        b_y1_l1,
+        b_y1_l2,
+        b_y1_l3,
+        c_x_l0,
+        c_x_l1,
+        c_x_l2,
+        c_x_l3,
+        c_y_l0,
+        c_y_l1,
+        c_y_l2,
+        c_y_l3,
+    ] =
+        (*serialized
+        .multi_pop_front::<32>()
+        .unwrap())
+        .unbox();
+
+    let a = G1Point {
+        x: downcast_u384(a_x_l0, a_x_l1, a_x_l2, a_x_l3),
+        y: downcast_u384(a_y_l0, a_y_l1, a_y_l2, a_y_l3),
     };
+
+    let b = G2Point {
+        x0: downcast_u384(b_x0_l0, b_x0_l1, b_x0_l2, b_x0_l3),
+        x1: downcast_u384(b_x1_l0, b_x1_l1, b_x1_l2, b_x1_l3),
+        y0: downcast_u384(b_y0_l0, b_y0_l1, b_y0_l2, b_y0_l3),
+        y1: downcast_u384(b_y1_l0, b_y1_l1, b_y1_l2, b_y1_l3),
+    };
+    let c = G1Point {
+        x: downcast_u384(c_x_l0, c_x_l1, c_x_l2, c_x_l3),
+        y: downcast_u384(c_y_l0, c_y_l1, c_y_l2, c_y_l3),
+    };
+
+    let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let mut public_inputs = array![];
+    for _ in 0..n_public_inputs {
+        public_inputs
+            .append(
+                u256 {
+                    low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                    high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+                },
+            );
+    }
+
+    // full_len -= (1 + 2 * n_public_inputs);
+    // assert(full_len == serialized.len(), 'C');
+
+    let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
+    // Deserialize mpcheck_hint
+    let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized, false);
 
     let [
         w0l0,
@@ -1152,6 +1173,6 @@ fn deserialize_full_proof_with_hints_bls12_381(
     serialized.pop_front().unwrap(); // skip len.
     for x in serialized {
         msm_hint.append(*x);
-    };
+    }
     return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }

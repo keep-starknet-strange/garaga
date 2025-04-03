@@ -7,6 +7,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
     IsModulus, MontgomeryBackendPrimeField,
 };
 use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
 use num_bigint::BigUint;
 use num_traits::Num;
@@ -62,9 +63,9 @@ pub type BLS12381PrimeField = BLSPF;
 pub type Stark252PrimeField = StrkPF;
 
 pub const SECP256K1_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
+    U256::from_hex_unchecked("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct SECP256K1FieldModulus;
 impl IsModulus<U256> for SECP256K1FieldModulus {
     const MODULUS: U256 = SECP256K1_PRIME_FIELD_ORDER;
@@ -73,7 +74,7 @@ impl IsModulus<U256> for SECP256K1FieldModulus {
 pub type SECP256K1PrimeField = MontgomeryBackendPrimeField<SECP256K1FieldModulus, 4>;
 
 pub const SECP256R1_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
+    U256::from_hex_unchecked("FFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF");
 
 #[derive(Clone, Debug)]
 pub struct SECP256R1FieldModulus;
@@ -86,7 +87,7 @@ pub type SECP256R1PrimeField = MontgomeryBackendPrimeField<SECP256R1FieldModulus
 pub const X25519_PRIME_FIELD_ORDER: U256 =
     U256::from_hex_unchecked("7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy)]
 pub struct X25519FieldModulus;
 impl IsModulus<U256> for X25519FieldModulus {
     const MODULUS: U256 = X25519_PRIME_FIELD_ORDER;
@@ -95,15 +96,38 @@ impl IsModulus<U256> for X25519FieldModulus {
 pub type X25519PrimeField = MontgomeryBackendPrimeField<X25519FieldModulus, 4>;
 
 pub const GRUMPKIN_PRIME_FIELD_ORDER: U256 =
-    U256::from_hex_unchecked("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
+    U256::from_hex_unchecked("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001");
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Copy, Hash)]
 pub struct GrumpkinFieldModulus;
 impl IsModulus<U256> for GrumpkinFieldModulus {
     const MODULUS: U256 = GRUMPKIN_PRIME_FIELD_ORDER;
 }
 
 pub type GrumpkinPrimeField = MontgomeryBackendPrimeField<GrumpkinFieldModulus, 4>;
+
+/// A trait to generate random field elements.
+pub trait Random<F: IsPrimeField> {
+    fn random() -> Self;
+}
+
+impl<F: IsPrimeField> Random<F> for FieldElement<F>
+where
+    FieldElement<F>: ByteConversion,
+{
+    fn random() -> Self {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        let bits = F::field_bit_size();
+        let bytes = (bits + 7) / 8; // Round up to nearest byte
+
+        let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
+        let random_num = BigUint::from_bytes_be(&random_bytes);
+
+        // Try to convert to field element
+        element_from_biguint::<F>(&random_num)
+    }
+}
 
 pub struct CurveParams<F: IsPrimeField> {
     pub curve_id: CurveID,
@@ -113,8 +137,10 @@ pub struct CurveParams<F: IsPrimeField> {
     pub b21: FieldElement<F>,
     pub g_x: FieldElement<F>,
     pub g_y: FieldElement<F>,
-    pub n: BigUint, // Order of the curve
-    pub h: u32,     // Cofactor
+    pub g2_x: Option<[FieldElement<F>; 2]>, // Only for pairing curves
+    pub g2_y: Option<[FieldElement<F>; 2]>, // Only for pairing curves
+    pub n: BigUint,                         // Order of the curve
+    pub h: u32,                             // Cofactor
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
@@ -132,7 +158,7 @@ pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
             -FieldElement::from(-c as u64)
         }
     }
-    return Polynomial::new(coeffs.iter().map(|x| lift::<F>(*x)).collect());
+    Polynomial::new(coeffs.iter().map(|x| lift::<F>(*x)).collect())
 }
 
 /// A trait that provides curve parameters for a specific field type.
@@ -159,6 +185,8 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141",
                 16,
@@ -189,8 +217,10 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
                 "6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296",
             ),
             g_y: FieldElement::from_hex_unchecked(
-                "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162CBCE33576B315ECECBB6406837BF51F",
+                "4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "FFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551",
                 16,
@@ -217,10 +247,14 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             ),
             b20: FieldElement::zero(), // Provide appropriate values here
             b21: FieldElement::zero(), // Provide appropriate values here
-            g_x: FieldElement::from_hex_unchecked("9"),
-            g_y: FieldElement::from_hex_unchecked(
-                "20AE19A1B8A086B4E01EDD2C7748D14C923D4DF667ADCE0B9A9E39E969A2C0DF",
+            g_x: FieldElement::from_hex_unchecked(
+                "2a78dd0fd02c0339f00b8f02f1c20618a9c13fdf0d617c9aca55c89b025aef35",
             ),
+            g_y: FieldElement::from_hex_unchecked(
+                "29c644a5c71da22ebe483ba563798323cf6fd061807131659b7830f3f62c1d14",
+            ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "1000000000000000000000000000000014DEF9DEA2F79CD65812631A5CF5D3ED",
                 16,
@@ -249,6 +283,8 @@ impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
             g_y: FieldElement::from_hex_unchecked(
                 "0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C",
             ),
+            g2_x: None,
+            g2_y: None,
             n: BigUint::from_str_radix(
                 "30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47",
                 16,
@@ -277,6 +313,22 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             ),
             g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
             g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            g2_x: Some([
+                FieldElement::from_hex_unchecked(
+                    "1800DEEF121F1E76426A00665E5C4479674322D4F75EDADD46DEBD5CD992F6ED",
+                ),
+                FieldElement::from_hex_unchecked(
+                    "198E9393920D483A7260BFB731FB5D25F1AA493335A9E71297E485B7AEF312C2",
+                ),
+            ]),
+            g2_y: Some([
+                FieldElement::from_hex_unchecked(
+                    "12C85EA5DB8C6DEB4AAB71808DCB408FE3D1E7690C43D37B4CE6CC0166FA7DAA",
+                ),
+                FieldElement::from_hex_unchecked(
+                    "090689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B",
+                ),
+            ]),
             n: BigUint::from_str_radix(
                 "30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001",
                 16,
@@ -306,8 +358,16 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             b: FieldElement::from(4),
             b20: FieldElement::from_hex_unchecked("4"),
             b21: FieldElement::from_hex_unchecked("4"),
-            g_x: FieldElement::from_hex_unchecked("1"), // Replace with actual 'g_x'
-            g_y: FieldElement::from_hex_unchecked("2"), // Replace with actual 'g_y'
+            g_x: FieldElement::from_hex_unchecked("17F1D3A73197D7942695638C4FA9AC0FC3688C4F9774B905A14E3A3F171BAC586C55E83FF97A1AEFFB3AF00ADB22C6BB"), // Replace with actual 'g_x'
+            g_y: FieldElement::from_hex_unchecked("08B3F481E3AAA0F1A09E30ED741D8AE4FCF5E095D5D00AF600DB18CB2C04B3EDD03CC744A2888AE40CAA232946C5E7E1"), // Replace with actual 'g_y'
+            g2_x: Some([
+                FieldElement::from_hex_unchecked("24AA2B2F08F0A91260805272DC51051C6E47AD4FA403B02B4510B647AE3D1770BAC0326A805BBEFD48056C8C121BDB8"), // Replace with actual 'g2_x.0'
+                FieldElement::from_hex_unchecked("13E02B6052719F607DACD3A088274F65596BD0D09920B61AB5DA61BBDC7F5049334CF11213945D57E5AC7D055D042B7E"), // Replace with actual 'g2_x.1'
+            ]),
+            g2_y: Some([
+                FieldElement::from_hex_unchecked("CE5D527727D6E118CC9CDC6DA2E351AADFD9BAA8CBDD3A76D429A695160D12C923AC9CC3BACA289E193548608B82801"), // Replace with actual 'g2_y.0'
+                FieldElement::from_hex_unchecked("606C4A02EA734CC32ACD2B02BC28B99CB3E287E85A763AF267492AB572E99AB3F370D275CEC1DA1AAA9075FF05F79BE"), // Replace with actual 'g2_y.1'
+            ]),
             n: BigUint::from_str_radix(
                 "73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001",
                 16,
@@ -364,17 +424,16 @@ impl ToWeierstrassCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let x = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
-            + a.clone() * y_twisted.clone()
-            - FieldElement::<X25519PrimeField>::from(5) * d.clone() * y_twisted.clone()
-            - d.clone())
+        let x = (FieldElement::<X25519PrimeField>::from(5) * a + a * y_twisted
+            - FieldElement::<X25519PrimeField>::from(5) * d * y_twisted
+            - d)
             * (FieldElement::<X25519PrimeField>::from(12)
-                - FieldElement::<X25519PrimeField>::from(12) * y_twisted.clone())
-            .inv()
-            .unwrap();
-        let y = (a.clone() + a * y_twisted.clone() - d.clone() * y_twisted.clone() - d)
-            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone()
-                - FieldElement::<X25519PrimeField>::from(4) * x_twisted.clone() * y_twisted)
+                - FieldElement::<X25519PrimeField>::from(12) * y_twisted)
+                .inv()
+                .unwrap();
+        let y = (a + a * y_twisted - d * y_twisted - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * x_twisted
+                - FieldElement::<X25519PrimeField>::from(4) * x_twisted * y_twisted)
                 .inv()
                 .unwrap();
 
@@ -397,18 +456,18 @@ impl ToTwistedEdwardsCurve for X25519PrimeField {
             "0x52036CEE2B6FFE738CC740797779E89800700A4D4141D8AB75EB4DCA135978A3",
         )); // Replace with actual d_twisted
 
-        let y = (FieldElement::<X25519PrimeField>::from(5) * a.clone()
-            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone()
-            - d.clone())
-            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass.clone() - a.clone()
-                + FieldElement::<X25519PrimeField>::from(5) * d.clone())
-            .inv()
-            .unwrap();
-        let x = (a.clone() + a.clone() * y.clone() - d.clone() * y.clone() - d)
-            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone()
-                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass.clone() * y.clone())
-            .inv()
-            .unwrap();
+        let y = (FieldElement::<X25519PrimeField>::from(5) * a
+            - FieldElement::<X25519PrimeField>::from(12) * x_weierstrass
+            - d)
+            * (-FieldElement::<X25519PrimeField>::from(12) * x_weierstrass - a
+                + FieldElement::<X25519PrimeField>::from(5) * d)
+                .inv()
+                .unwrap();
+        let x = (a + a * y - d * y - d)
+            * (FieldElement::<X25519PrimeField>::from(4) * y_weierstrass
+                - FieldElement::<X25519PrimeField>::from(4) * y_weierstrass * y)
+                .inv()
+                .unwrap();
 
         (x, y)
     }

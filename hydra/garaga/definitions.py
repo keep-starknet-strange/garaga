@@ -30,13 +30,25 @@ GRUMPKIN_ID = 5
 
 class ProofSystem(Enum):
     Groth16 = "groth16"
+    Risc0Groth16 = "risc0_groth16"
     UltraKeccakHonk = "ultra_keccak_honk"
+    UltraStarknetHonk = "ultra_starknet_honk"
+    UltraKeccakZKHonk = "ultra_keccak_zk_honk"
+    UltraStarknetZKHonk = "ultra_starknet_zk_honk"
 
     @property
     def supported_curves(self) -> set[int]:
         if self == ProofSystem.Groth16:
             return {BN254_ID, BLS12_381_ID}
+        if self == ProofSystem.Risc0Groth16:
+            return {BN254_ID}
         if self == ProofSystem.UltraKeccakHonk:
+            return {BN254_ID}
+        if self == ProofSystem.UltraStarknetHonk:
+            return {BN254_ID}
+        if self == ProofSystem.UltraKeccakZKHonk:
+            return {BN254_ID}
+        if self == ProofSystem.UltraStarknetZKHonk:
             return {BN254_ID}
         return set()
 
@@ -146,6 +158,7 @@ class WeierstrassCurve:
         code += f"b:{int_to_u384(self.b)},\n"
         code += f"g:{int_to_u384(self.fp_generator)},\n"
         code += f"min_one:{int_to_u384(-1%self.p)},\n"
+        code += f"G: {G1Point(self.Gx, self.Gy, CurveID(self.id)).to_cairo_1()},\n"
         code += "};\n"
         return code
 
@@ -627,14 +640,14 @@ class G1Point:
         """
         return self.x == 0 and self.y == 0
 
-    def to_cairo_1(self) -> str:
+    def to_cairo_1(self, as_hex: bool = True) -> str:
         """
         Converts the point to a Cairo 1 representation.
 
         Returns:
             str: The Cairo 1 representation of the point.
         """
-        return f"G1Point{{x: {int_to_u384(self.x)}, y: {int_to_u384(self.y)}}};"
+        return f"G1Point{{x: {int_to_u384(self.x, as_hex)}, y: {int_to_u384(self.y, as_hex)}}}"
 
     @staticmethod
     def gen_random_point_not_in_subgroup(
@@ -835,7 +848,7 @@ class G1Point:
             str(CURVES[self.curve_id.value].Gx),
             str(CURVES[self.curve_id.value].Gy),
         )
-
+        # NB : Fastecdsa returns (0, 0) for the identity element.
         return G1Point(int(x), int(y), self.curve_id, self.iso_point)
 
     def __neg__(self) -> "G1Point":

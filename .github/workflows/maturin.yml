@@ -1,19 +1,30 @@
 name: CI
 on:
   push:
-    branches:
-      - main
-      - master
     tags:
       - '*'
-  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
 
 jobs:
+  pre_job:
+    # continue-on-error: true # Uncomment once integration is finished
+    runs-on: ubuntu-latest
+    # Map a step output to a job output
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'never'
+          paths_ignore: '["**/README.md", "**/docs/**"]'
+
   linux:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -49,6 +60,8 @@ jobs:
           path: dist
 
   musllinux:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -80,6 +93,8 @@ jobs:
           path: dist
 
   windows:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -107,6 +122,8 @@ jobs:
           path: dist
 
   macos:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ${{ matrix.platform.runner }}
     strategy:
       matrix:
@@ -133,6 +150,8 @@ jobs:
           path: dist
 
   sdist:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -164,7 +183,7 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.9.1"
+          scarb-version: "2.11.2"
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:

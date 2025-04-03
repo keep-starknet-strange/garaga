@@ -7,7 +7,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.tree import Tree
 
 from garaga.definitions import ProofSystem
-from garaga.starknet.cli.utils import complete_proof_system
+from garaga.starknet.cli.utils import complete_proof_system, get_default_vk_path
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     gen_groth16_verifier,
@@ -20,16 +20,6 @@ def gen(
         ProofSystem,
         typer.Option(help="Proof system", autocompletion=complete_proof_system),
     ],
-    vk: Annotated[
-        Path,
-        typer.Option(
-            help="Path to the verification key file. Expects a JSON for groth16, binary format for Honk.",
-            file_okay=True,
-            dir_okay=False,
-            exists=True,
-            autocompletion=lambda: [],  # See https://github.com/fastapi/typer/discussions/731
-        ),
-    ],
     project_name: Annotated[
         str,
         typer.Option(
@@ -38,6 +28,16 @@ def gen(
             default_factory=lambda: "my_project",
         ),
     ],
+    vk: Annotated[
+        Path,
+        typer.Option(
+            help="Path to the verification key file. Expects a JSON for groth16, binary format for Honk. Must be provided, except when the system supports an universal key (ex: Risc0)",
+            file_okay=True,
+            dir_okay=False,
+            exists=True,
+            autocompletion=lambda: [],  # See https://github.com/fastapi/typer/discussions/731
+        ),
+    ] = None,
 ):
     """
     Generate a Cairo verifier for a given proof system.
@@ -53,8 +53,10 @@ def gen(
             f"[bold cyan]Generating Smart Contract project for [bold yellow]{system}[/bold yellow] using [bold yellow]{Path(vk).name}[/bold yellow]...[/bold cyan]",
             total=None,
         )
+        if vk == None:
+            vk = get_default_vk_path(system)
         match system:
-            case ProofSystem.Groth16:
+            case ProofSystem.Groth16 | ProofSystem.Risc0Groth16:
                 gen_groth16_verifier(
                     vk=vk,
                     output_folder_path=cwd,
@@ -62,11 +64,17 @@ def gen(
                     ecip_class_hash=ECIP_OPS_CLASS_HASH,
                     cli_mode=True,
                 )
-            case ProofSystem.UltraKeccakHonk:
+            case (
+                ProofSystem.UltraKeccakHonk
+                | ProofSystem.UltraStarknetHonk
+                | ProofSystem.UltraKeccakZKHonk
+                | ProofSystem.UltraStarknetZKHonk
+            ):
                 gen_honk_verifier(
                     vk=vk,
                     output_folder_path=cwd,
                     output_folder_name=project_name,
+                    system=system,
                     cli_mode=True,
                 )
             case _:

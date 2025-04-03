@@ -358,7 +358,9 @@ def flatten(t):
 
 
 def split_128(a: int) -> tuple[int, int]:
-    assert 0 <= a < 2**256, f"Value {a} is too large to fit in a u256"
+    assert (
+        0 <= a < 2**256
+    ), f"Value {hex(a)} {a.bit_length()}bits is too large to fit in a u256"
     """Takes in value, returns uint256-ish tuple (low, high)."""
     return (a & ((1 << 128) - 1), a >> 128)
 

@@ -2,6 +2,7 @@ import functools
 from dataclasses import dataclass
 from pathlib import Path
 
+import filelock
 import starknet_py
 from starknet_py.common import create_casm_class, create_sierra_compiled_contract
 from starknet_py.contract import Contract, DeclareResult
@@ -32,7 +33,15 @@ import rich
 @lru_cache(maxsize=32)
 def _get_cached_artifacts(folder: Path) -> tuple[str, str]:
     """Module level cache for scarb build artifacts"""
-    return get_sierra_casm_artifacts(folder)
+    # Create lock file in the target directory of the contract
+    lock_file = folder / "target" / ".build.lock"
+    lock_file.parent.mkdir(parents=True, exist_ok=True)
+
+    # Use a timeout to prevent deadlocks
+    lock = filelock.FileLock(str(lock_file), timeout=300)  # 5 minute timeout
+
+    with lock:
+        return get_sierra_casm_artifacts(folder)
 
 
 @dataclass
@@ -85,7 +94,7 @@ class SmartContractProject:
                 return False
             raise e
 
-    async def declare_class_hash(self, account: Account, fee="eth") -> tuple[int, str]:
+    async def declare_class_hash(self, account: Account, fee="strk") -> tuple[int, str]:
         """Returns class hash and abi"""
         rich.print(
             f"[bold cyan]Contract project: {self.smart_contract_folder}[/bold cyan]"
@@ -112,12 +121,7 @@ class SmartContractProject:
 
         try:
             if "eth" in fee.lower():
-                declare_result: DeclareResult = await Contract.declare_v2(
-                    account=account,
-                    compiled_contract=sierra,
-                    compiled_contract_casm=casm,
-                    auto_estimate=True,
-                )
+                raise ValueError("ETH fee is not obsolete")
             elif "strk" in fee.lower():
                 declare_result: DeclareResult = await Contract.declare_v3(
                     account=account,

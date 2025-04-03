@@ -1,6 +1,6 @@
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::polynomial::Polynomial;
-use crate::definitions::{CurveID, CurveParamsProvider};
+use crate::definitions::{CurveID, CurveParamsProvider, Stark252PrimeField};
 use crate::io::{
     element_from_bytes_be, field_element_to_u288_limbs, field_element_to_u384_limbs,
     field_elements_from_big_uints, parse_g1_g2_pairs_from_flattened_field_elements_list,
@@ -152,7 +152,7 @@ fn hash_hints_and_get_base_random_rlc_coeff<F, E2>(
     lambda_root_inverse: &Polynomial<F>,
     scaling_factor: &[FieldElement<F>],
     ris: &[Polynomial<F>],
-) -> FieldElement<F>
+) -> (FieldElement<F>, CairoPoseidonTranscript)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -194,7 +194,10 @@ where
     for ri in ris {
         transcript.hash_emulated_field_elements(&ri.get_coefficients_ext_degree(12), None);
     }
-    element_from_bytes_be(&transcript.state[1].to_bytes_be())
+    (
+        element_from_bytes_be(&transcript.state[1].to_bytes_be()),
+        transcript,
+    )
 }
 
 fn compute_big_q_coeffs<F>(
@@ -227,6 +230,25 @@ where
     big_q_coeffs
 }
 
+// def _hash_big_Q_and_get_z(
+//     self, transcript: CairoPoseidonTranscript, big_Q: list[PyFelt]
+// ):
+//     transcript.hash_limbs_multi(big_Q)
+//     return self.field(transcript.s0)
+
+fn hash_big_q_and_get_z<F, E2>(
+    transcript: &mut CairoPoseidonTranscript,
+    big_q: &[FieldElement<F>],
+) -> FieldElement<Stark252PrimeField>
+where
+    F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+    FieldElement<F>: ByteConversion,
+{
+    transcript.hash_emulated_field_elements(big_q, None);
+    transcript.state[0]
+}
+
 fn build_mpcheck_hint<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
@@ -238,6 +260,7 @@ fn build_mpcheck_hint<F, E2, E6, E12>(
     Vec<FieldElement<F>>,
     Vec<Polynomial<F>>,
     Vec<FieldElement<F>>,
+    FieldElement<Stark252PrimeField>,
     Option<Vec<FieldElement<F>>>,
 )
 where
@@ -256,7 +279,7 @@ where
         .map(|public_pair| extra_miller_loop_result(public_pair));
     let (f, lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
         multi_pairing_check_result(pairs, public_pair, &m);
-    let c0 = hash_hints_and_get_base_random_rlc_coeff(
+    let (c0, mut transcript) = hash_hints_and_get_base_random_rlc_coeff(
         pairs,
         n_fixed_g2,
         &lambda_root,
@@ -265,6 +288,7 @@ where
         &ris,
     );
     let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, ris.len(), &c0);
+    let z = hash_big_q_and_get_z(&mut transcript, &big_q_coeffs);
 
     let small_q = if public_pair.is_none() {
         None
@@ -276,6 +300,12 @@ where
         Some(coeffs)
     };
 
+    let ris = if public_pair.is_none() {
+        ris[..ris.len() - 1].to_vec() // Do not skip last Ri in calldata as it is known to be 1
+    } else {
+        ris
+    };
+
     (
         f,
         lambda_root,
@@ -283,11 +313,12 @@ where
         scaling_factor,
         ris,
         big_q_coeffs,
+        z,
         small_q,
     )
 }
 
-fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(
+pub fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
     public_pair: &Option<G1G2Pair<F, E2>>,
@@ -299,7 +330,7 @@ where
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    let (f, lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, small_q) =
+    let (f, lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, z, small_q) =
         build_mpcheck_hint(pairs, n_fixed_g2, public_pair);
 
     if f != Polynomial::one() {
@@ -370,6 +401,9 @@ where
         push_elements::<USE_288, F>(call_data_ref, &ri.get_coefficients_ext_degree(12), false);
     }
     push_elements::<USE_288, F>(call_data_ref, &big_q_coeffs, true);
+
+    push(call_data_ref, BigUint::from_bytes_be(&z.to_bytes_be()));
+
     if let Some(small_q) = small_q {
         push_elements::<USE_288, F>(call_data_ref, &small_q, false);
     }

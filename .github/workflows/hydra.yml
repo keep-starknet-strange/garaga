@@ -16,7 +16,9 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
+          concurrent_skipping: 'never'
+          paths_ignore: '["**/README.md", "**/docs/**"]'
+
 
   test-hydra:
     needs: pre_job
@@ -54,7 +56,7 @@ jobs:
       - name: Set up Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.9.1"
+          scarb-version: "2.11.2"
       - name: Run make rewrite and check for unstaged changes
         run: |
           source venv/bin/activate

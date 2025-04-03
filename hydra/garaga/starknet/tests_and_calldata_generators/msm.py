@@ -17,6 +17,7 @@ class MSMCalldataBuilder:
     scalars: list[int]
     risc0_mode: bool = False
     transcript: CairoPoseidonTranscript = None
+    external_points_scalars_hash: tuple[int, int] | None = None
 
     def __post_init__(self):
         assert all(
@@ -24,7 +25,7 @@ class MSMCalldataBuilder:
         ), "All points must be on the same curve."
         assert len(self.points) == len(
             self.scalars
-        ), "Number of points and scalars must be equal."
+        ), f"Number of points and scalars must be equal, got {len(self.points)} points and {len(self.scalars)} scalars"
         assert all(
             0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
         ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
@@ -75,9 +76,17 @@ class MSMCalldataBuilder:
         Q_high_shifted: G1Point,
     ):
         self.transcript.update_sponge_state(self.curve_id.value, self.msm_size)
-        for point in self.points:
-            self.transcript.hash_element(self.field(point.x))
-            self.transcript.hash_element(self.field(point.y))
+
+        if isinstance(self.external_points_scalars_hash, tuple):
+            self.transcript.update_sponge_state(
+                x=self.external_points_scalars_hash[0],
+                y=self.external_points_scalars_hash[1],
+            )
+
+        if self.external_points_scalars_hash is None:
+            for point in self.points:
+                self.transcript.hash_element(self.field(point.x))
+                self.transcript.hash_element(self.field(point.y))
 
         if self.risc0_mode:
             results = [Q_low]
@@ -88,11 +97,12 @@ class MSMCalldataBuilder:
             self.transcript.hash_element(self.field(result_point.x))
             self.transcript.hash_element(self.field(result_point.y))
 
-        for scalar in self.scalars:
-            if not self.risc0_mode:
-                self.transcript.hash_u256(scalar)
-            else:
-                self.transcript.hash_u128(scalar)
+        if self.external_points_scalars_hash is None:
+            for scalar in self.scalars:
+                if not self.risc0_mode:
+                    self.transcript.hash_u256(scalar)
+                else:
+                    self.transcript.hash_u128(scalar)
 
         return self.transcript.s1
 
@@ -340,9 +350,9 @@ class MSMCalldataBuilder:
     def to_cairo_1_test(
         self, test_name: str = None, include_digits_decomposition=False
     ):
-        print(
-            f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
-        )
+        # print(
+        #     f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
+        # )
         test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
         inputs = self._get_input_structs()
 

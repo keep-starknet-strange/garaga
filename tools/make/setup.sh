@@ -32,6 +32,12 @@ install_parallel() {
     esac
 }
 
+# Clean up any existing venv directory
+if [ -d "venv" ]; then
+    echo "Cleaning up existing venv directory..."
+    rm -rf venv
+fi
+
 # Check if parallel is installed, if not, attempt to install it
 if ! command -v parallel >/dev/null; then
     echo "GNU parallel not found. Attempting to install..."
@@ -95,14 +101,19 @@ uv pip install -r tools/make/requirements.txt
 pre-commit install
 
 echo "Compiling garaga_rs Rust extension..."
+# Create target directory with proper permissions in the correct location
+mkdir -p .cargo/garaga_rs/target
+chmod 755 .cargo/garaga_rs/target
+
+# Build the Rust extension
 maturin develop --release
 
 echo "All done!"
 
 # Check Scarb version and print warning if it's not
 cd src/ # To use the .tool-versions file with asdf.
-if ! scarb --version | grep -q "2.9.1"; then
-    echo "Warning: Scarb is not installed or its version is not 2.9.1."
+if ! scarb --version | grep -q "2.11.2"; then
+    echo "Warning: Scarb is not installed or its version is not 2.11.2."
     echo "Got: $(scarb --version)"
-    echo "Please install Scarb 2.9.1 before continuing. https://docs.swmansion.com/scarb/download.html"
+    echo "Please install Scarb 2.11.2 before continuing. https://docs.swmansion.com/scarb/download.html"
 fi

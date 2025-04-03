@@ -5,6 +5,7 @@ Tower based arithmetic for BN254 and BLS12-381 on Fq2, Fq6, Fq12.
 import random
 from dataclasses import dataclass
 
+from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
 from garaga.definitions import CURVES, direct_to_tower, get_base_field, tower_to_direct
 
@@ -320,7 +321,7 @@ class E12:
     c1: E6
     curve_id: int
 
-    def __init__(self, x: list[PyFelt | E6], curve_id: int):
+    def __init__(self, x: list[PyFelt | int | E6], curve_id: int):
         self.curve_id = curve_id
         if isinstance(x[0], (PyFelt, int)) and len(x) == 12:
             self.c0 = E6(x=x[0:6], curve_id=curve_id)
@@ -474,6 +475,19 @@ class E12:
             temp = temp.square()
 
         return result
+
+    def final_exp(self, use_rust: bool = True):
+        if use_rust:
+            coeffs = garaga_rs.final_exp(self.curve_id, self.value_coeffs)
+            return E12(coeffs, self.curve_id)
+        else:
+            cofactor = CURVES[self.curve_id].final_exp_cofactor
+            h = (
+                cofactor
+                * (CURVES[self.curve_id].p ** 12 - 1)
+                // CURVES[self.curve_id].n
+            )
+            return self**h
 
     def serialize(self) -> bytes:
         # Implement serialization like ark-ff:

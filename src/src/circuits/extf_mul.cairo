@@ -1,18 +1,17 @@
 use core::circuit::{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait, CircuitModulus, AddInputResultTrait,
-    CircuitInputs, CircuitDefinition, CircuitData, CircuitInputAccumulator,
+    AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement as CE,
+    CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
-use garaga::core::circuit::AddInputResultTrait2;
-use core::circuit::CircuitElement as CE;
-use core::circuit::CircuitInput as CI;
-use garaga::definitions::{
-    get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient,
-    G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T,
-    get_BLS12_381_modulus, get_BN254_modulus,
-};
-use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
 use core::option::Option;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::definitions::{
+    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
+    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
+    get_g, get_min_one, get_modulus, u288,
+};
+use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
 #[inline(always)]
 pub fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     // INPUT stack
@@ -265,18 +264,18 @@ pub fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     // Prefill constants:
 
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_u288(f.w0); // in0
-    circuit_inputs = circuit_inputs.next_u288(f.w1); // in1
-    circuit_inputs = circuit_inputs.next_u288(f.w2); // in2
-    circuit_inputs = circuit_inputs.next_u288(f.w3); // in3
-    circuit_inputs = circuit_inputs.next_u288(f.w4); // in4
-    circuit_inputs = circuit_inputs.next_u288(f.w5); // in5
-    circuit_inputs = circuit_inputs.next_u288(f.w6); // in6
-    circuit_inputs = circuit_inputs.next_u288(f.w7); // in7
-    circuit_inputs = circuit_inputs.next_u288(f.w8); // in8
-    circuit_inputs = circuit_inputs.next_u288(f.w9); // in9
-    circuit_inputs = circuit_inputs.next_u288(f.w10); // in10
-    circuit_inputs = circuit_inputs.next_u288(f.w11); // in11
+    circuit_inputs = circuit_inputs.next_2(f.w0); // in0
+    circuit_inputs = circuit_inputs.next_2(f.w1); // in1
+    circuit_inputs = circuit_inputs.next_2(f.w2); // in2
+    circuit_inputs = circuit_inputs.next_2(f.w3); // in3
+    circuit_inputs = circuit_inputs.next_2(f.w4); // in4
+    circuit_inputs = circuit_inputs.next_2(f.w5); // in5
+    circuit_inputs = circuit_inputs.next_2(f.w6); // in6
+    circuit_inputs = circuit_inputs.next_2(f.w7); // in7
+    circuit_inputs = circuit_inputs.next_2(f.w8); // in8
+    circuit_inputs = circuit_inputs.next_2(f.w9); // in9
+    circuit_inputs = circuit_inputs.next_2(f.w10); // in10
+    circuit_inputs = circuit_inputs.next_2(f.w11); // in11
     circuit_inputs = circuit_inputs.next_2(z); // in12
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -399,41 +398,41 @@ pub fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
         ); // in1
     circuit_inputs = circuit_inputs.next_2([0x1, 0x0, 0x0, 0x0]); // in2
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_u288(X.w0); // in3
-    circuit_inputs = circuit_inputs.next_u288(X.w1); // in4
-    circuit_inputs = circuit_inputs.next_u288(X.w2); // in5
-    circuit_inputs = circuit_inputs.next_u288(X.w3); // in6
-    circuit_inputs = circuit_inputs.next_u288(X.w4); // in7
-    circuit_inputs = circuit_inputs.next_u288(X.w5); // in8
-    circuit_inputs = circuit_inputs.next_u288(X.w6); // in9
-    circuit_inputs = circuit_inputs.next_u288(X.w7); // in10
-    circuit_inputs = circuit_inputs.next_u288(X.w8); // in11
-    circuit_inputs = circuit_inputs.next_u288(X.w9); // in12
-    circuit_inputs = circuit_inputs.next_u288(X.w10); // in13
-    circuit_inputs = circuit_inputs.next_u288(X.w11); // in14
-    circuit_inputs = circuit_inputs.next_u288(Y.w0); // in15
-    circuit_inputs = circuit_inputs.next_u288(Y.w1); // in16
-    circuit_inputs = circuit_inputs.next_u288(Y.w2); // in17
-    circuit_inputs = circuit_inputs.next_u288(Y.w3); // in18
-    circuit_inputs = circuit_inputs.next_u288(Y.w4); // in19
-    circuit_inputs = circuit_inputs.next_u288(Y.w5); // in20
-    circuit_inputs = circuit_inputs.next_u288(Y.w6); // in21
-    circuit_inputs = circuit_inputs.next_u288(Y.w7); // in22
-    circuit_inputs = circuit_inputs.next_u288(Y.w8); // in23
-    circuit_inputs = circuit_inputs.next_u288(Y.w9); // in24
-    circuit_inputs = circuit_inputs.next_u288(Y.w10); // in25
-    circuit_inputs = circuit_inputs.next_u288(Y.w11); // in26
-    circuit_inputs = circuit_inputs.next_u288(Q.w0); // in27
-    circuit_inputs = circuit_inputs.next_u288(Q.w1); // in28
-    circuit_inputs = circuit_inputs.next_u288(Q.w2); // in29
-    circuit_inputs = circuit_inputs.next_u288(Q.w3); // in30
-    circuit_inputs = circuit_inputs.next_u288(Q.w4); // in31
-    circuit_inputs = circuit_inputs.next_u288(Q.w5); // in32
-    circuit_inputs = circuit_inputs.next_u288(Q.w6); // in33
-    circuit_inputs = circuit_inputs.next_u288(Q.w7); // in34
-    circuit_inputs = circuit_inputs.next_u288(Q.w8); // in35
-    circuit_inputs = circuit_inputs.next_u288(Q.w9); // in36
-    circuit_inputs = circuit_inputs.next_u288(Q.w10); // in37
+    circuit_inputs = circuit_inputs.next_2(X.w0); // in3
+    circuit_inputs = circuit_inputs.next_2(X.w1); // in4
+    circuit_inputs = circuit_inputs.next_2(X.w2); // in5
+    circuit_inputs = circuit_inputs.next_2(X.w3); // in6
+    circuit_inputs = circuit_inputs.next_2(X.w4); // in7
+    circuit_inputs = circuit_inputs.next_2(X.w5); // in8
+    circuit_inputs = circuit_inputs.next_2(X.w6); // in9
+    circuit_inputs = circuit_inputs.next_2(X.w7); // in10
+    circuit_inputs = circuit_inputs.next_2(X.w8); // in11
+    circuit_inputs = circuit_inputs.next_2(X.w9); // in12
+    circuit_inputs = circuit_inputs.next_2(X.w10); // in13
+    circuit_inputs = circuit_inputs.next_2(X.w11); // in14
+    circuit_inputs = circuit_inputs.next_2(Y.w0); // in15
+    circuit_inputs = circuit_inputs.next_2(Y.w1); // in16
+    circuit_inputs = circuit_inputs.next_2(Y.w2); // in17
+    circuit_inputs = circuit_inputs.next_2(Y.w3); // in18
+    circuit_inputs = circuit_inputs.next_2(Y.w4); // in19
+    circuit_inputs = circuit_inputs.next_2(Y.w5); // in20
+    circuit_inputs = circuit_inputs.next_2(Y.w6); // in21
+    circuit_inputs = circuit_inputs.next_2(Y.w7); // in22
+    circuit_inputs = circuit_inputs.next_2(Y.w8); // in23
+    circuit_inputs = circuit_inputs.next_2(Y.w9); // in24
+    circuit_inputs = circuit_inputs.next_2(Y.w10); // in25
+    circuit_inputs = circuit_inputs.next_2(Y.w11); // in26
+    circuit_inputs = circuit_inputs.next_2(Q.w0); // in27
+    circuit_inputs = circuit_inputs.next_2(Q.w1); // in28
+    circuit_inputs = circuit_inputs.next_2(Q.w2); // in29
+    circuit_inputs = circuit_inputs.next_2(Q.w3); // in30
+    circuit_inputs = circuit_inputs.next_2(Q.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(Q.w5); // in32
+    circuit_inputs = circuit_inputs.next_2(Q.w6); // in33
+    circuit_inputs = circuit_inputs.next_2(Q.w7); // in34
+    circuit_inputs = circuit_inputs.next_2(Q.w8); // in35
+    circuit_inputs = circuit_inputs.next_2(Q.w9); // in36
+    circuit_inputs = circuit_inputs.next_2(Q.w10); // in37
     circuit_inputs = circuit_inputs.next_2(z); // in38
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
@@ -443,19 +442,17 @@ pub fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
 
 #[cfg(test)]
 mod tests {
-    use core::traits::TryInto;
-
     use core::circuit::{
-        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs,
+        AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
+        CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add,
+        circuit_inverse, circuit_mul, circuit_sub, u384, u96,
     };
+    use core::traits::TryInto;
     use garaga::definitions::{
-        G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair,
-        MillerLoopResultScalingFactor, G2Line,
+        BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line,
+        G2Point, MillerLoopResultScalingFactor,
     };
-    use garaga::ec_ops::{SlopeInterceptOutput, FunctionFeltEvaluations, FunctionFelt};
-
+    use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
     use super::{
         run_BLS12_381_EVAL_E12D_circuit, run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit,
         run_BN254_EVAL_E12D_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,

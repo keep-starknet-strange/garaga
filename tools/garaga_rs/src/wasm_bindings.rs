@@ -1,8 +1,15 @@
 use crate::calldata::full_proof_with_hints::groth16;
 use crate::calldata::full_proof_with_hints::groth16::{Groth16Proof, Groth16VerificationKey};
+use crate::calldata::full_proof_with_hints::honk;
+use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof, HonkVerificationKey};
+use crate::calldata::full_proof_with_hints::zk_honk;
+use crate::calldata::full_proof_with_hints::zk_honk::ZKHonkProof;
 use crate::calldata::{G1PointBigUint, G2PointBigUint};
+use crate::crypto::poseidon_bn254::poseidon_hash_bn254;
 use crate::definitions::CurveID;
-use crate::definitions::{ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField};
+use crate::definitions::{
+    GrumpkinPrimeField, ToTwistedEdwardsCurve, ToWeierstrassCurve, X25519PrimeField,
+};
 use crate::io::{element_from_biguint, element_to_biguint};
 use js_sys::{Array, Uint8Array};
 use num_bigint::BigUint;
@@ -33,7 +40,7 @@ pub fn msm_calldata_builder(
         &values,
         &scalars,
         curve_id,
-        include_digits_decomposition,
+        Some(include_digits_decomposition),
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
         risc0_mode,
@@ -72,6 +79,76 @@ pub fn mpc_calldata_builder(
     Ok(result.into_iter().map(biguint_to_jsvalue).collect())
 }
 
+#[wasm_bindgen]
+pub fn schnorr_calldata_builder(
+    rx: JsValue,
+    s: JsValue,
+    e: JsValue,
+    px: JsValue,
+    py: JsValue,
+    curve_id: usize,
+) -> Result<Vec<JsValue>, JsValue> {
+    let rx: BigUint = jsvalue_to_biguint(rx)?;
+    let s: BigUint = jsvalue_to_biguint(s)?;
+    let e: BigUint = jsvalue_to_biguint(e)?;
+    let px: BigUint = jsvalue_to_biguint(px)?;
+    let py: BigUint = jsvalue_to_biguint(py)?;
+
+    let result = crate::calldata::signatures::schnorr_calldata_builder(rx, s, e, px, py, curve_id)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn ecdsa_calldata_builder(
+    r: JsValue,
+    s: JsValue,
+    v: usize,
+    px: JsValue,
+    py: JsValue,
+    z: JsValue,
+    curve_id: usize,
+) -> Result<Vec<JsValue>, JsValue> {
+    let r: BigUint = jsvalue_to_biguint(r)?;
+    let s: BigUint = jsvalue_to_biguint(s)?;
+    let v: u8 = v
+        .try_into()
+        .map_err(|_| JsValue::from_str("Failed to convert value to u8"))?;
+    let px: BigUint = jsvalue_to_biguint(px)?;
+    let py: BigUint = jsvalue_to_biguint(py)?;
+    let z: BigUint = jsvalue_to_biguint(z)?;
+
+    let result = crate::calldata::signatures::ecdsa_calldata_builder(r, s, v, px, py, z, curve_id)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn eddsa_calldata_builder(
+    ry_twisted: JsValue,
+    s: JsValue,
+    py_twisted: JsValue,
+    msg: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
+    let r: BigUint = jsvalue_to_biguint(ry_twisted)?;
+    let s: BigUint = jsvalue_to_biguint(s)?;
+    let py: BigUint = jsvalue_to_biguint(py_twisted)?;
+    let msg: Vec<u8> = msg.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+
+    let result = crate::calldata::signatures::eddsa_calldata_builder(r, s, py, msg)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
 fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
     let s = (JsValue::from_str("") + v)
         .as_string()
@@ -96,6 +173,17 @@ fn get_property(obj: &js_sys::Object, key: &str) -> Result<JsValue, JsValue> {
     js_sys::Reflect::get(obj, &JsValue::from_str(key))
 }
 
+fn set_property(obj: &js_sys::Object, key: &str, value: &JsValue) -> Result<(), JsValue> {
+    let success = js_sys::Reflect::set(obj, &JsValue::from_str(key), value)?;
+    if !success {
+        return Err(JsValue::from_str(&format!(
+            "Failed to set property: {}",
+            key
+        )));
+    }
+    Ok(())
+}
+
 // Parsing helper for G1PointBigUint
 fn parse_g1_point(value: JsValue) -> Result<G1PointBigUint, JsValue> {
     let obj = value
@@ -107,6 +195,14 @@ fn parse_g1_point(value: JsValue) -> Result<G1PointBigUint, JsValue> {
     let y = jsvalue_to_biguint(get_property(&obj, "y")?)?;
 
     Ok(G1PointBigUint { x, y })
+}
+
+fn jsvalue_from_g1_point(point: &G1PointBigUint, curve_id: usize) -> Result<JsValue, JsValue> {
+    let point_obj = js_sys::Object::new();
+    set_property(&point_obj, "x", &biguint_to_jsvalue(point.x.clone()))?;
+    set_property(&point_obj, "y", &biguint_to_jsvalue(point.y.clone()))?;
+    set_property(&point_obj, "curveId", &curve_id.into())?;
+    Ok(point_obj.into())
 }
 
 // Parsing helper for G2PointBigUint
@@ -149,6 +245,15 @@ fn parse_biguint_array(value: JsValue) -> Result<Vec<BigUint>, JsValue> {
         .collect()
 }
 
+fn jsvalue_from_biguint_array(values: &[BigUint]) -> Result<JsValue, JsValue> {
+    let values = values
+        .iter()
+        .cloned()
+        .map(biguint_to_jsvalue)
+        .collect::<Vec<_>>();
+    Ok(values.into())
+}
+
 // Parses an array of G1 points from JsValue
 fn parse_g1_point_array(value: JsValue) -> Result<Vec<G1PointBigUint>, JsValue> {
     let array = value
@@ -160,6 +265,17 @@ fn parse_g1_point_array(value: JsValue) -> Result<Vec<G1PointBigUint>, JsValue> 
         points.push(point);
     }
     Ok(points)
+}
+
+fn jsvalue_from_g1_point_array(
+    points: &[G1PointBigUint],
+    curve_id: usize,
+) -> Result<JsValue, JsValue> {
+    let points = points
+        .iter()
+        .map(|point| jsvalue_from_g1_point(point, curve_id))
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(points.into())
 }
 
 // Optional parsing helper for Uint8Array
@@ -241,7 +357,7 @@ pub fn get_groth16_calldata(
 
     let vk_obj = vk_js
         .dyn_into::<js_sys::Object>()
-        .map_err(|_| JsValue::from_str("proof_js is not an object"))?;
+        .map_err(|_| JsValue::from_str("vk_js is not an object"))?;
 
     let alpha = parse_g1_point(get_property(&vk_obj, "alpha")?)?;
     let beta = parse_g2_point(get_property(&vk_obj, "beta")?)?;
@@ -274,6 +390,182 @@ pub fn get_groth16_calldata(
         .collect::<Vec<_>>();
 
     Ok(groth16_calldata_js)
+}
+
+#[wasm_bindgen]
+pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
+    let bytes = uint8_array
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
+
+    let proof = HonkProof::from_bytes(&bytes).map_err(|s| JsValue::from_str(&s))?;
+
+    let curve_id = CurveID::BN254 as usize;
+
+    let proof_obj = js_sys::Object::new();
+    set_property(
+        &proof_obj,
+        "publicInputs",
+        &jsvalue_from_biguint_array(&proof.public_inputs)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w1",
+        &jsvalue_from_g1_point(&proof.w1, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w2",
+        &jsvalue_from_g1_point(&proof.w2, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w3",
+        &jsvalue_from_g1_point(&proof.w3, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "w4",
+        &jsvalue_from_g1_point(&proof.w4, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "zPerm",
+        &jsvalue_from_g1_point(&proof.z_perm, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupReadCounts",
+        &jsvalue_from_g1_point(&proof.lookup_read_counts, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupReadTags",
+        &jsvalue_from_g1_point(&proof.lookup_read_tags, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "lookupInverses",
+        &jsvalue_from_g1_point(&proof.lookup_inverses, curve_id)?,
+    )?;
+    let sumcheck_univariates = proof
+        .sumcheck_univariates
+        .iter()
+        .flat_map(|v| v.clone())
+        .collect::<Vec<_>>();
+    set_property(
+        &proof_obj,
+        "sumcheckUnivariates",
+        &jsvalue_from_biguint_array(&sumcheck_univariates)?,
+    )?; // flattened
+    set_property(
+        &proof_obj,
+        "sumcheckEvaluations",
+        &jsvalue_from_biguint_array(&proof.sumcheck_evaluations)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiFoldComms",
+        &jsvalue_from_g1_point_array(&proof.gemini_fold_comms, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "geminiAEvaluations",
+        &jsvalue_from_biguint_array(&proof.gemini_a_evaluations)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "shplonkQ",
+        &jsvalue_from_g1_point(&proof.shplonk_q, curve_id)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "kzgQuotient",
+        &jsvalue_from_g1_point(&proof.kzg_quotient, curve_id)?,
+    )?;
+
+    Ok(proof_obj.into())
+}
+
+#[wasm_bindgen]
+pub fn get_honk_calldata(
+    proof_js: JsValue,
+    vk_js: JsValue,
+    flavor_js: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
+    let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+
+    let proof = HonkProof::from_bytes(&proof_bytes).map_err(|s| JsValue::from_str(&s))?;
+    let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
+
+    //Parse flavor_js into usize
+    let flavor_num = flavor_js
+        .as_f64()
+        .ok_or_else(|| JsValue::from_str("flavor_js is not a number"))?
+        as usize;
+
+    // Convert usize to HonkFlavor using TryFrom
+    let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
+
+    let honk_calldata_biguint = honk::get_honk_calldata(&proof, &vk, flavor);
+
+    let honk_calldata_js = honk_calldata_biguint?
+        .into_iter()
+        .map(biguint_to_jsvalue)
+        .collect::<Vec<_>>();
+
+    Ok(honk_calldata_js)
+}
+
+#[wasm_bindgen]
+pub fn get_zk_honk_calldata(
+    proof_js: JsValue,
+    vk_js: JsValue,
+    flavor_js: JsValue,
+) -> Result<Vec<JsValue>, JsValue> {
+    let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+
+    let proof = ZKHonkProof::from_bytes(&proof_bytes).map_err(|s| JsValue::from_str(&s))?;
+    let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
+
+    //Parse flavor_js into usize
+    let flavor_num = flavor_js
+        .as_f64()
+        .ok_or_else(|| JsValue::from_str("flavor_js is not a number"))?
+        as usize;
+
+    // Convert usize to HonkFlavor using TryFrom
+    let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
+
+    let honk_calldata_biguint = zk_honk::get_zk_honk_calldata(&proof, &vk, flavor);
+
+    let honk_calldata_js = honk_calldata_biguint?
+        .into_iter()
+        .map(biguint_to_jsvalue)
+        .collect::<Vec<_>>();
+
+    Ok(honk_calldata_js)
+}
+
+#[wasm_bindgen]
+pub fn poseidon_hash(x: JsValue, y: JsValue) -> Result<JsValue, JsValue> {
+    // Convert hex strings to field elements, handling potential errors
+
+    let x_biguint =
+        jsvalue_to_biguint(x).map_err(|_| JsValue::from_str("Failed to parse x input as hex"))?;
+    let x_fe = element_from_biguint::<GrumpkinPrimeField>(&x_biguint);
+
+    let y_biguint =
+        jsvalue_to_biguint(y).map_err(|_| JsValue::from_str("Failed to parse y input as hex"))?;
+    let y_fe = element_from_biguint::<GrumpkinPrimeField>(&y_biguint);
+
+    // Compute hash
+    let result = poseidon_hash_bn254(&x_fe, &y_fe);
+    let res_biguint = element_to_biguint::<GrumpkinPrimeField>(&result);
+    // Convert result to hex string
+    Ok(biguint_to_jsvalue(res_biguint))
 }
 
 #[allow(dead_code)]
@@ -482,5 +774,21 @@ mod tests {
         js_sys::Reflect::set(&obj, &JsValue::from_str("ic"), &ic_array).unwrap();
 
         obj.into()
+    }
+
+    #[wasm_bindgen_test]
+    fn test_poseidon_hash() {
+        // Test with valid inputs
+        let x_js = JsValue::from_str("1");
+        let y_js = JsValue::from_str("2");
+        let result = poseidon_hash(x_js, y_js);
+        let expected_js = biguint_to_jsvalue(
+            BigUint::from_str_radix(
+                "115CC0F5E7D690413DF64C6B9662E9CF2A3617F2743245519E19607A4417189A",
+                16,
+            )
+            .unwrap(),
+        );
+        assert_eq!(result.unwrap(), expected_js);
     }
 }

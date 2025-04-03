@@ -18,7 +18,7 @@ from garaga.hints.extf_mul import (
     nondeterministic_extension_field_mul_divmod,
     nondeterministic_square_torus,
 )
-from garaga.hints.frobenius import generate_frobenius_maps, get_V_torus_powers
+from garaga.hints.frobenius import get_frobenius_maps, get_V_torus_powers
 from garaga.modulo_circuit import WriteOps
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 
@@ -36,7 +36,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         self.frobenius_maps = {}
         self.v_torus_powers_inv = {}
         for i in [1, 2, 3]:
-            _, self.frobenius_maps[i] = generate_frobenius_maps(
+            _, self.frobenius_maps[i] = get_frobenius_maps(
                 curve_id=curve_id, extension_degree=extension_degree, frob_power=i
             )
             self.v_torus_powers_inv[i] = get_V_torus_powers(
@@ -67,8 +67,8 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
             X, self.curve_id, biject_from_direct=True
         )
         SQ = self.write_elements(SQ, WriteOps.COMMIT)
-        two_SQ = self.extf_add(SQ, SQ)
-        two_SQ_min_X = self.extf_sub(two_SQ, X)
+        two_SQ = self.vector_add(SQ, SQ)
+        two_SQ_min_X = self.vector_sub(two_SQ, X)
 
         # %{
         Q, V = nondeterministic_extension_field_mul_divmod(
@@ -113,7 +113,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         num = copy.deepcopy(xy)
         num[1] = self.add(xy[1], self.set_or_get_constant(1))
 
-        den = self.extf_add(X, Y)
+        den = self.vector_add(X, Y)
         return self.extf_div(num, den, self.extension_degree)
 
     def inverse_torus(self, X: list[ModuloCircuitElement]):
@@ -165,7 +165,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                 frob[i] = self.add(frob[i], op_res)
 
         if len(self.v_torus_powers_inv[frob_power]) == 1:
-            return self.extf_scalar_mul(frob, self.v_torus_powers_inv[frob_power][0])
+            return self.vector_scale(frob, self.v_torus_powers_inv[frob_power][0])
         else:
             Y = [
                 self.set_or_get_constant(v) for v in self.v_torus_powers_inv[frob_power]
@@ -187,7 +187,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         assert len(den) == 6, f"Expected 6 elements in den, got {len(den)}"
 
         num = self.write_elements(num, operation=WriteOps.INPUT)
-        num = self.extf_neg(num)
+        num = self.vector_neg(num)
         den = self.write_elements(den, WriteOps.INPUT)
 
         c = self.extf_div(num, den, self.extension_degree)
@@ -281,7 +281,7 @@ class GaragaBLS12_381FinalExp(FinalExpTorusCircuit):
         # The final exp result is DecompressTorus(MulTorus(c, t1)
         # MulTorus(t1, c) = (t1*c + v)/(t1 + c).
         # (t1+c = 0) ==> MulTorus(t1, c) is E12.One() in the Torus.
-        _sum = self.extf_add(t1, c)
+        _sum = self.vector_add(t1, c)
         self.extend_output(_sum)
         # From this case we can conclude the result is 1 or !=1 without decompression.
         # In case we want to decompress to get the result in GT,
@@ -379,7 +379,7 @@ class GaragaBN254FinalExp(FinalExpTorusCircuit):
         # The final exp result is DecompressTorus(MulTorus(t0, t2)).
         # MulTorus(t0, t2) = (t0*t2 + v)/(t0 + t2).
         # (T0+T2 = 0) ==> MulTorus(t0, t2) is one in the Torus.
-        _sum = self.extf_add(t0, t2)
+        _sum = self.vector_add(t0, t2)
         self.extend_output(_sum)
         # From this case we can conclude the result is 1 or !=1 without decompression.
         # In case we want to decompress to get the result in GT,

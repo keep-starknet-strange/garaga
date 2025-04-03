@@ -3,10 +3,13 @@ import math
 from garaga import garaga_rs
 from garaga.algebra import PyFelt
 from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
+from garaga.hints.bls import get_root_and_scaling_factor_bls
 from garaga.hints.tower_backup import E12
 
 
-def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
+def get_final_exp_witness(
+    curve_id: int, f: E12, use_rust: bool = True
+) -> tuple[E12, E12]:
     """
     From a miller loop output f of a given curve ID such that f^h == 1,
     Returns the witnesses c, w for the final exponentiation step, such that
@@ -15,11 +18,22 @@ def get_final_exp_witness(curve_id: int, f: E12) -> tuple[E12, E12]:
     """
     if curve_id != CurveID.BN254.value and curve_id != CurveID.BLS12_381.value:
         raise ValueError(f"Curve ID {curve_id} not supported")
+
     curve = CURVES[curve_id]
     f_values = f.value_coeffs
-    c_values, wi_values = garaga_rs.get_final_exp_witness(curve_id, f_values)
-    c = E12([PyFelt(v, curve.p) for v in c_values], curve_id)
-    wi = E12([PyFelt(v, curve.p) for v in wi_values], curve_id)
+
+    if use_rust:
+        c_values, wi_values = garaga_rs.get_final_exp_witness(curve_id, f_values)
+        c = E12([PyFelt(v, curve.p) for v in c_values], curve_id)
+        wi = E12([PyFelt(v, curve.p) for v in wi_values], curve_id)
+    else:
+        if curve_id == CurveID.BN254.value:
+            c, wi = find_c_e12(f, get_27th_bn254_root())
+        elif curve_id == CurveID.BLS12_381.value:
+            c, wi = get_root_and_scaling_factor_bls(f)
+        else:
+            raise ValueError(f"Curve ID {curve_id} not supported")
+
     return c, wi
 
 

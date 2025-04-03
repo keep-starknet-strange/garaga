@@ -16,7 +16,8 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
+          concurrent_skipping: 'never'
+          paths_ignore: '["**/README.md", "**/docs/**"]'
 
   devnet-test:
     needs: pre_job
@@ -32,13 +33,13 @@ jobs:
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.81.0
           override: true
           profile: minimal
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.9.1"
+          scarb-version: "2.11.2"
       - name: Install dependencies
         run: make setup
 
@@ -46,4 +47,4 @@ jobs:
         run: ./tests/contracts_e2e/install_devnet.sh
 
       - name: Run tests
-        run: source venv/bin/activate && pytest -s -x tests/contracts_e2e/e2e_test.py
+        run: source venv/bin/activate && pytest -n auto -s -x tests/contracts_e2e/e2e_test.py

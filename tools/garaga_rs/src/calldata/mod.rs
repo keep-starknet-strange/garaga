@@ -1,9 +1,16 @@
-pub mod full_proof_with_hints;
+pub mod full_proof_with_hints {
+    pub mod groth16;
+    pub mod honk;
+    pub mod zk_honk;
+}
 pub mod mpc_calldata;
 pub mod msm_calldata;
+pub mod signatures;
 
 use crate::definitions::{get_modulus_from_curve_id, CurveID};
 use num_bigint::BigUint;
+
+#[derive(Debug)]
 pub struct G1PointBigUint {
     pub x: BigUint,
     pub y: BigUint,
@@ -53,6 +60,3 @@ impl G2PointBigUint {
         }
     }
 }
-
-// Todo.
-pub fn get_groth16_calldata() {}
