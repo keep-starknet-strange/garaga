@@ -11,6 +11,28 @@ pub struct PoseidonState {
     s2: felt252,
 }
 
+trait HashFeltTranscriptTrait<T> {
+    fn hash_field_element_transcript(
+        transcript: Span<T>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
+    ) -> (felt252, felt252, felt252);
+}
+
+impl HfTImplu384 of HashFeltTranscriptTrait<u384> {
+    fn hash_field_element_transcript(
+        transcript: Span<u384>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
+    ) -> (felt252, felt252, felt252) {
+        return hash_u384_transcript(transcript, s0, s1, s2);
+    }
+}
+
+impl HfTImplu288 of HashFeltTranscriptTrait<u288> {
+    fn hash_field_element_transcript(
+        transcript: Span<u288>, mut s0: felt252, mut s1: felt252, mut s2: felt252,
+    ) -> (felt252, felt252, felt252) {
+        return hash_u288_transcript(transcript, s0, s1, s2);
+    }
+}
+
 // Apply sponge construction to a transcript of u384 elements
 #[inline(always)]
 pub fn hash_u384_transcript(

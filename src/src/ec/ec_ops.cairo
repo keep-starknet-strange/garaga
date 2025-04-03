@@ -12,6 +12,7 @@ use garaga::basic_field_ops::{
     add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
 };
 use garaga::circuits::ec;
+use garaga::core::circuit::{IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
     THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u384, deserialize_u384_array, get_a, get_b,
@@ -37,10 +38,12 @@ impl G1PointImpl of G1PointTrait {
         let modulus = get_modulus(curve_index);
         G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
     }
-    fn assert_in_subgroup(
+    fn assert_in_subgroup<
+        T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
+    >(
         self: @G1Point,
         curve_index: usize,
-        msm_hint: Option<MSMHintSmallScalar>,
+        msm_hint: Option<MSMHintSmallScalar<T>>,
         derive_point_from_x_hint: Option<DerivePointFromXHint>,
     ) {
         match curve_index {
@@ -212,21 +215,21 @@ fn derive_ec_point_from_X(
 // No information about the degrees of the polynomials is stored here as they are derived
 // implicitely from the MSM size.
 #[derive(Drop, Debug, Copy, PartialEq)]
-pub struct FunctionFelt {
-    pub a_num: Span<u384>,
-    pub a_den: Span<u384>,
-    pub b_num: Span<u384>,
-    pub b_den: Span<u384>,
+pub struct FunctionFelt<T> {
+    pub a_num: Span<T>,
+    pub a_den: Span<T>,
+    pub b_num: Span<T>,
+    pub b_den: Span<T>,
 }
 
-impl FunctionFeltSerde of Serde<FunctionFelt> {
-    fn serialize(self: @FunctionFelt, ref output: Array<felt252>) {
+impl FunctionFeltSerde of Serde<FunctionFelt<u384>> {
+    fn serialize(self: @FunctionFelt<u384>, ref output: Array<felt252>) {
         serialize_u384_array(*self.a_num.snapshot, ref output);
         serialize_u384_array(*self.a_den.snapshot, ref output);
         serialize_u384_array(*self.b_num.snapshot, ref output);
         serialize_u384_array(*self.b_den.snapshot, ref output);
     }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt> {
+    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt<u384>> {
         return Option::Some(
             FunctionFelt {
                 a_num: deserialize_u384_array(ref serialized).span(),
@@ -255,44 +258,53 @@ pub struct SlopeInterceptOutput {
     pub coeff0: u384,
     pub coeff2: u384,
 }
+use garaga::utils::hashing::HashFeltTranscriptTrait;
 
 #[generate_trait]
-impl FunctionFeltImpl of FunctionFeltTrait {
-    fn validate_degrees(self: @FunctionFelt, msm_size: usize) {
+impl FunctionFeltImpl<T, +HashFeltTranscriptTrait<T>> of FunctionFeltTrait<T> {
+    fn validate_degrees(self: @FunctionFelt<T>, msm_size: usize) {
         assert!((*self.a_num).len() == msm_size + 1, "a_num wrong degree for given msm size");
         assert!((*self.a_den).len() == msm_size + 2, "a_den wrong degree for given msm size");
         assert!((*self.b_num).len() == msm_size + 2, "b_num wrong degree for given msm size");
         assert!((*self.b_den).len() == msm_size + 5, "b_den wrong degree for given msm size");
     }
-    fn validate_degrees_batched(self: @FunctionFelt, msm_size: usize) {
+    fn validate_degrees_batched(self: @FunctionFelt<T>, msm_size: usize) {
         assert!((*self.a_num).len() == msm_size + 3, "a_num wrong degree for given msm size");
         assert!((*self.a_den).len() == msm_size + 4, "a_den wrong degree for given msm size");
         assert!((*self.b_num).len() == msm_size + 4, "b_num wrong degree for given msm size");
         assert!((*self.b_den).len() == msm_size + 7, "b_den wrong degree for given msm size");
     }
     fn update_hash_state(
-        self: @FunctionFelt, s0: felt252, s1: felt252, s2: felt252,
+        self: @FunctionFelt<T>, s0: felt252, s1: felt252, s2: felt252,
     ) -> (felt252, felt252, felt252) {
-        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.a_num, s0, s1, s2);
-        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.a_den, s0, s1, s2);
-        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.b_num, s0, s1, s2);
-        let (s0, s1, s2) = hashing::hash_u384_transcript(*self.b_den, s0, s1, s2);
+        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
+            *self.a_num, s0, s1, s2,
+        );
+        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
+            *self.a_den, s0, s1, s2,
+        );
+        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
+            *self.b_num, s0, s1, s2,
+        );
+        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
+            *self.b_den, s0, s1, s2,
+        );
         return (s0, s1, s2);
     }
 }
 
 #[derive(Drop, Debug, PartialEq, Serde, Copy)]
-pub struct MSMHint {
+pub struct MSMHint<T> {
     pub Q_low: G1Point,
     pub Q_high: G1Point,
     pub Q_high_shifted: G1Point,
-    pub RLCSumDlogDiv: FunctionFelt,
+    pub RLCSumDlogDiv: FunctionFelt<T>,
 }
 
 #[derive(Drop, Debug, PartialEq, Serde)]
-pub struct MSMHintSmallScalar {
+pub struct MSMHintSmallScalar<T> {
     pub Q: G1Point,
-    pub SumDlogDiv: FunctionFelt,
+    pub SumDlogDiv: FunctionFelt<T>,
 }
 
 
@@ -317,11 +329,13 @@ impl DerivePointFromXHintSerde of Serde<DerivePointFromXHint> {
     }
 }
 
-pub fn scalar_mul_g1_fixed_small_scalar(
+pub fn scalar_mul_g1_fixed_small_scalar<
+    T, +HashFeltTranscriptTrait<T>, +Drop<T>, +IntoCircuitInputValue<T>, +Copy<T>,
+>(
     point: G1Point,
     scalar_epns: (felt252, felt252, felt252, felt252),
     scalar: u128,
-    hint: MSMHintSmallScalar,
+    hint: MSMHintSmallScalar<T>,
     derive_point_from_x_hint: DerivePointFromXHint,
     curve_index: usize,
 ) -> G1Point {
@@ -392,9 +406,9 @@ pub fn scalar_mul_g1_fixed_small_scalar(
 // hint.Q_low + 2**128 * hint.Q_high.
 // Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
 // the hint.
-fn msm_g1(
+fn msm_g1<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
     scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    hint: MSMHint,
+    hint: MSMHint<T>,
     derive_point_from_x_hint: DerivePointFromXHint,
     points: Span<G1Point>,
     scalars: Span<u256>,
@@ -531,9 +545,9 @@ fn msm_g1(
 // hint.Q
 // Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
 // the hint.
-fn msm_g1_u128(
+fn msm_g1_u128<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
     scalars_digits_decompositions: Option<Span<Span<felt252>>>,
-    hint: MSMHintSmallScalar,
+    hint: MSMHintSmallScalar<T>,
     derive_point_from_x_hint: DerivePointFromXHint,
     points: Span<G1Point>,
     scalars: Span<u128>,
@@ -630,13 +644,13 @@ fn msm_g1_u128(
 
 // Verifies equation 3 in https://eprint.iacr.org/2022/596.pdf, using directly the weighted sum by
 // (-3)**i of the logarithmic derivatives of the divisors functions.
-fn zk_ecip_check(
+fn zk_ecip_check<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
     points: Span<G1Point>,
     epns: Array<(felt252, felt252, felt252, felt252)>,
     Q_result: G1Point,
     n: usize,
     mb: SlopeInterceptOutput,
-    sum_dlog_div: FunctionFelt,
+    sum_dlog_div: FunctionFelt<T>,
     random_point: G1Point,
     curve_index: usize,
 ) {
@@ -661,9 +675,9 @@ fn zk_ecip_check(
     u384_assert_eq(lhs, rhs);
 }
 
-#[inline(always)]
-fn compute_lhs_ecip(
-    sum_dlog_div: FunctionFelt,
+#[inline]
+fn compute_lhs_ecip<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
+    sum_dlog_div: FunctionFelt<T>,
     A0: G1Point,
     A2: G1Point,
     coeff0: u384,

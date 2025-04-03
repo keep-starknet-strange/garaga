@@ -52,9 +52,9 @@ impl SerdeECDSASignature of Serde<ECDSASignature> {
 /// * `msm_hint`: `MSMHint` - Hint for multi-scalar multiplication computation.
 /// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving point from x-coordinate.
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct ECDSASignatureWithHint {
+struct ECDSASignatureWithHint<T> {
     signature: ECDSASignature,
-    msm_hint: MSMHint,
+    msm_hint: MSMHint<T>,
     msm_derive_hint: DerivePointFromXHint,
 }
 
