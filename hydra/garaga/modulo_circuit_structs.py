@@ -292,6 +292,48 @@ class u384(Cairo1SerializableStruct):
             return 1
 
 
+class GenericT(Cairo1SerializableStruct):
+    # <T> => u384 or u288
+
+    @property
+    def struct_name(self) -> str:
+        return "T"
+
+    def serialize(self, raw: bool = False) -> str:
+        if self.bits <= 288:
+            curve_id = 0
+        else:
+            curve_id = 1
+        assert len(self.elmts) == 1
+        raw_struct = f"{int_to_u2XX(self.elmts[0].value, curve_id)}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 1
+        if self.bits <= 288:
+            return io.bigint_split_array(self.elmts, prepend_length=False)
+        else:
+            return io.bigint_split_array(self.elmts, n_limbs=3, prepend_length=False)
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError
+
+    def dump_to_circuit_input(self) -> str:
+        return f"circuit_inputs = circuit_inputs.next_2({self.name});\n"
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 1
+            return 1
+        else:
+            return 1
+
+
 class u256(Cairo1SerializableStruct):
     def serialize(self, raw: bool = False) -> str:
         assert len(self.elmts) == 1
@@ -605,8 +647,17 @@ class FunctionFeltCircuit(Cairo1SerializableStruct):
     def _serialize_to_calldata(self) -> list[int]:
         cd = []
         assert len(self.elmts) == 4
-        for elmt in self.elmts:
-            cd.extend(elmt._serialize_to_calldata())
+        bits = self.elmts[0].bits
+        if bits <= 288:
+            for elmt in self.elmts:
+                cd.extend(
+                    io.bigint_split_array(elmt.elmts, n_limbs=3, prepend_length=True)
+                )
+        else:
+            for elmt in self.elmts:
+                cd.extend(
+                    io.bigint_split_array(elmt.elmts, n_limbs=4, prepend_length=True)
+                )
         return cd
 
     def serialize_input_signature(self) -> str:
@@ -918,42 +969,6 @@ class FunctionFeltEvaluations(Cairo1SerializableStruct):
             return 4
         else:
             return 4
-
-
-class G1G2PairCircuit(Cairo1SerializableStruct):
-    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
-        super().__init__(name, elmts)
-        self.members_names = ("p.x", "p.y", "q.x0", "q.x1", "q.y0", "q.y1")
-
-    @property
-    def struct_name(self) -> str:
-        return "G1G2Pair"
-
-    def serialize(self) -> str:
-        return (
-            f"let {self.name}:{self.struct_name} = {self.struct_name} {{"
-            f"p: G1Point{{ x:{int_to_u384(self.elmts[0].value)}, y: {int_to_u384(self.elmts[1].value)}}}, "
-            f"q: G2Point{{ x0:{int_to_u384(self.elmts[2].value)}, x1: {int_to_u384(self.elmts[3].value)}, y0: {int_to_u384(self.elmts[4].value)}, y1: {int_to_u384(self.elmts[5].value)}}}}};\n"
-        )
-
-    def extract_from_circuit_output(
-        self, offset_to_reference_map: dict[int, str]
-    ) -> str:
-        assert len(self.elmts) == 6
-        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(6)])} }};"
-
-    def dump_to_circuit_input(self) -> str:
-        code = ""
-        for mem_name in self.members_names:
-            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
-        return code
-
-    def __len__(self) -> int:
-        if self.elmts is not None:
-            assert len(self.elmts) == 6
-            return 6
-        else:
-            return 6
 
 
 class E12D(Cairo1SerializableStruct):
