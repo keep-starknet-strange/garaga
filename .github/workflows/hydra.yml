@@ -70,5 +70,7 @@ jobs:
             exit 1
           fi
       - name: Check bytecode size limits
-        run: make check-max-log-n
+        run: |
+          source venv/bin/activate
+          make check-max-log-n
         continue-on-error: false
