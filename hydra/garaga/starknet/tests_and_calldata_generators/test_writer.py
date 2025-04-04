@@ -131,12 +131,12 @@ fn test_tower_final_exp_{curve_id.name}() {{
 def generate_schnorr_test(curve_id, seed):
     random.seed(seed)
     schnorr_sig: SchnorrSignature = SchnorrSignature.sample(curve_id)
-
+    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_schnorr_{curve_id.name}() {{
     let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
-    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
+    let sch_with_hints = Serde::<SchnorrSignatureWithHint<{T}>>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_schnorr_signature(sch_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -147,12 +147,12 @@ fn test_schnorr_{curve_id.name}() {{
 def generate_ecdsa_test(curve_id, seed):
     random.seed(seed)
     ecdsa_sig: ECDSASignature = ECDSASignature.sample(curve_id)
-
+    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_ecdsa_{curve_id.name}() {{
     let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
-    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
+    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint<{T}>>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -271,6 +271,8 @@ def get_schnorr_config():
         use garaga::signatures::schnorr::{
             SchnorrSignature, SchnorrSignatureWithHint, is_valid_schnorr_signature,
         };
+        use garaga::definitions::{u288, u384};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     test_generators = [(generate_schnorr_test, [()])]
@@ -291,6 +293,8 @@ def get_ecdsa_config():
         use garaga::signatures::ecdsa::{
             ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature,
         };
+        use garaga::definitions::{u288, u384};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     test_generators = [(generate_ecdsa_test, [()])]
@@ -329,7 +333,7 @@ def generate_eddsa_test_file() -> str:
     """Configuration for EDDSA signature tests"""
     code = """
     use garaga::signatures::eddsa_25519::{
-        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature,
+        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature
     };
     """
 

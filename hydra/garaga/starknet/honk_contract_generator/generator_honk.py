@@ -227,9 +227,9 @@ def _get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
+    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs
 };
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue};
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
@@ -350,7 +350,7 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus, u288}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
@@ -360,7 +360,7 @@ mod {contract_name} {{
     use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}into_u256_unchecked}};
+    use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}into_u256_unchecked}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -370,7 +370,7 @@ mod {contract_name} {{
     #[derive(Drop, Serde)]
     struct FullProof {{
         proof: {proof_struct_name},
-        msm_hint_batched: MSMHint,
+        msm_hint_batched: MSMHint<u288>,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint:MPCheckHintBN254,
     }}

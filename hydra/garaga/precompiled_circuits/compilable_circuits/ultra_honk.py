@@ -475,7 +475,7 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         auto_run: bool = True,
         compilation_mode: int = 1,
     ) -> None:
-        name = f"zk_honk_prep_msm_scalars_size_{vk.log_circuit_size}"
+        name = f"zkhonk_prep_msm_scalars_size_{vk.log_circuit_size}"
         self.vk = vk
         self.scalar_indexes = []
         super().__init__(

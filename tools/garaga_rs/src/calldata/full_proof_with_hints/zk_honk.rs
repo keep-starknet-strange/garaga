@@ -546,6 +546,7 @@ pub fn get_zk_honk_calldata(
         false,
         false,
         Some((external_s0, external_s1)),
+        true,
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -1011,8 +1012,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            181, 228, 20, 28, 177, 38, 26, 198, 225, 202, 62, 190, 83, 23, 147, 21, 118, 74, 25,
-            220, 145, 13, 139, 23, 125, 98, 130, 93, 122, 243, 18, 238,
+            181, 137, 164, 134, 89, 213, 89, 181, 45, 121, 80, 139, 205, 9, 83, 215, 192, 46, 197,
+            15, 235, 67, 53, 133, 104, 65, 26, 173, 116, 252, 55, 204,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1029,8 +1030,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            9, 56, 48, 41, 155, 28, 185, 27, 123, 174, 5, 168, 26, 250, 47, 66, 48, 85, 236, 176,
-            60, 16, 13, 220, 60, 106, 225, 53, 135, 25, 110, 44,
+            48, 251, 67, 183, 107, 161, 100, 217, 217, 9, 80, 133, 42, 84, 72, 172, 2, 205, 103,
+            126, 113, 192, 107, 66, 87, 173, 230, 103, 251, 179, 199, 173,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

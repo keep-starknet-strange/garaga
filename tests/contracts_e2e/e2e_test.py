@@ -162,7 +162,9 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
         print(f"Invoke result : {invoke_result.status}")
 
         receipt = await account.client.get_transaction_receipt(invoke_result.hash)
-        print(receipt.execution_resources)
+        print(
+            f"Execution resources: {contract_project.smart_contract_folder} \n{receipt.execution_resources}"
+        )
 
 
 @pytest.mark.asyncio
@@ -348,7 +350,9 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     print(f"Invoke result : {invoke_result.status}")
 
     receipt = await account.client.get_transaction_receipt(invoke_result.hash)
-    print(receipt.execution_resources)
+    print(
+        f"Execution resources: {contract_project.smart_contract_folder} \n{receipt.execution_resources}\n"
+    )
 
 
 @pytest.mark.asyncio

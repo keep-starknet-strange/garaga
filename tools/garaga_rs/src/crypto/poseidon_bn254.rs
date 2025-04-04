@@ -60,7 +60,7 @@ pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldEle
     // Partial rounds.
     for r in 0..N_ROUNDS_P {
         state[0] = sigma(&state[0]);
-        let mut new_state = vec![state[0] + &POSEIDON_C_VEC[(N_ROUNDS_F / 2 + 1) * T + r]];
+        let mut new_state = vec![state[0] + POSEIDON_C_VEC[(N_ROUNDS_F / 2 + 1) * T + r]];
         new_state.extend_from_slice(&state[1..]);
         state = mix_s(&new_state, &POSEIDON_S_VEC, r);
     }
@@ -99,7 +99,7 @@ fn ark(
     state
         .iter()
         .enumerate()
-        .map(|(i, s)| s + &constants[i + offset])
+        .map(|(i, s)| s + constants[i + offset])
         .collect()
 }
 

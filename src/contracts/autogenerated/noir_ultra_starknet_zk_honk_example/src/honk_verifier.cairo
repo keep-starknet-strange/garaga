@@ -1,9 +1,9 @@
 use super::honk_verifier_circuits::{
     run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
@@ -21,8 +21,10 @@ mod UltraStarknetZKHonkVerifier {
     use core::poseidon::hades_permutation;
     use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384};
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus};
+    use garaga::core::circuit::{
+        U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384, u288IntoCircuitInputValue,
+    };
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus, u288};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
@@ -36,10 +38,10 @@ mod UltraStarknetZKHonkVerifier {
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
         VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
     };
 
@@ -49,7 +51,7 @@ mod UltraStarknetZKHonkVerifier {
     #[derive(Drop, Serde)]
     struct FullProof {
         proof: ZKHonkProof,
-        msm_hint_batched: MSMHint,
+        msm_hint_batched: MSMHint<u288>,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint: MPCheckHintBN254,
     }
@@ -163,7 +165,7 @@ mod UltraStarknetZKHonkVerifier {
                 scalar_71,
                 scalar_72,
             ) =
-                run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
+                run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 p_gemini_masking_eval: u256_to_u384(full_proof.proof.gemini_masking_eval),
                 p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
