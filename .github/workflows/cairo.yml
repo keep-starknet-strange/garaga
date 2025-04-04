@@ -17,7 +17,7 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'never'
-          paths: '["src/**"]'
+          paths: '["src/**", ".github/workflows/cairo.yml"]'
 
 
   test-cairo:
