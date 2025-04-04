@@ -135,11 +135,11 @@ def verify_onchain(
         to_addr=function_call.contract_data.address,
         calldata=calldata,
         selector=function_call.get_selector(function_call.name),
-        l1_resource_bounds=None,
         _contract_data=function_call.contract_data,
         _client=function_call.client,
         _account=function_call.account,
         _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
     )
 
     invoke_result: InvokeResult = asyncio.run(prepare_invoke.invoke(auto_estimate=True))
