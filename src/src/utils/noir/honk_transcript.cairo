@@ -7,6 +7,7 @@ use garaga::utils::noir::{G1Point256, G1PointProof, HonkProof, HonkVk};
 
 const POW2_136: u256 = 0x10000000000000000000000000000000000;
 const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
+const POW2_8: NonZero<u128> = 0x100;
 const Fr: u256 = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
 const NUMBER_OF_SUBRELATIONS: usize = 26;
@@ -24,17 +25,15 @@ impl ProofPointIntoPoint256 of Into<G1PointProof, G1Point256> {
 
 impl Point256IntoProofPoint of Into<G1Point256, G1PointProof> {
     fn into(self: G1Point256) -> G1PointProof {
-        let (x1, x0) = DivRem::div_rem(self.x, POW2_136_NZ);
-        let (y1, y0) = DivRem::div_rem(self.y, POW2_136_NZ);
-        G1PointProof { x0: x0, x1: x1, y0: y0, y1: y1 }
-    }
-}
+        // x and y splitted between low 136 bits and high 120 bits.
+        let (x_high_120, x_mid_8) = DivRem::div_rem(self.x.high, POW2_8);
+        let x_low = u256 { low: self.x.low, high: x_mid_8 };
+        let x_high = u256 { low: x_high_120, high: 0 };
 
-impl ProofPointIntoCircuitPoint of Into<G1PointProof, G1Point> {
-    fn into(self: G1PointProof) -> G1Point {
-        let pt_256: G1Point256 = self.into();
-        let pt: G1Point = G1Point { x: pt_256.x.into(), y: pt_256.y.into() };
-        pt
+        let (y_high_120, y_mid_8) = DivRem::div_rem(self.y.high, POW2_8);
+        let y_low = u256 { low: self.y.low, high: y_mid_8 };
+        let y_high = u256 { low: y_high_120, high: 0 };
+        G1PointProof { x0: x_low, x1: x_high, y0: y_low, y1: y_high }
     }
 }
 
@@ -141,7 +140,7 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     }
     #[inline]
     fn update_gen_point(ref self: StarknetHasherState) {
-        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for keccak.
+        // Constant Gen Point (1, 2) pre-converted into G1PointProof
         let (s0, s1, s2) = hades_permutation(self.s0 + 1, self.s1, self.s2);
         let (s0, s1, s2) = hades_permutation(s0, s1, s2);
         let (s0, s1, s2) = hades_permutation(s0 + 2, s1, s2);
@@ -195,7 +194,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         public_inputs_size: usize,
         public_inputs_offset: usize,
         honk_proof: HonkProof,
-    ) -> (HonkTranscript, felt252) {
+    ) -> (HonkTranscript, felt252, felt252) {
         let (etas, challenge) = get_eta_challenges::<
             T,
         >(
@@ -232,7 +231,9 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
         >(gemini_r, honk_proof.gemini_a_evaluations);
         let shplonk_z = generate_shplonk_z_challenge::<T>(shplonk_nu, honk_proof.shplonk_q.into());
 
-        let (base_rlc, _, _) = hades_permutation(shplonk_z.low.into(), shplonk_z.high.into(), 2);
+        let (transcript_state, base_rlc, _) = hades_permutation(
+            shplonk_z.low.into(), shplonk_z.high.into(), 2,
+        );
 
         return (
             HonkTranscript {
@@ -249,6 +250,7 @@ impl HonkTranscriptImpl of HonkTranscriptTrait {
                 shplonk_nu: shplonk_nu.low,
                 shplonk_z: shplonk_z.low,
             },
+            transcript_state,
             base_rlc,
         );
     }
@@ -447,8 +449,8 @@ pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
 ) -> u256 {
     let mut hasher = Hasher::new();
     hasher.update(prev_hasher_output);
-    for i in 0..NUMBER_OF_ENTITIES {
-        hasher.update(*sumcheck_evaluations.at(i));
+    for eval in sumcheck_evaluations {
+        hasher.update(*eval);
     }
 
     hasher.digest()
@@ -522,7 +524,7 @@ mod tests {
     fn test_transcript_keccak() {
         let vk = get_vk();
         let proof = get_proof_keccak();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = HonkTranscriptTrait::from_proof::<
             KeccakHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {
@@ -640,7 +642,7 @@ mod tests {
     fn test_transcript_starknet() {
         let vk = get_vk();
         let proof = get_proof_starknet();
-        let (transcript, _) = HonkTranscriptTrait::from_proof::<
+        let (transcript, _, _) = HonkTranscriptTrait::from_proof::<
             StarknetHasherState,
         >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, proof);
         let expected = HonkTranscript {

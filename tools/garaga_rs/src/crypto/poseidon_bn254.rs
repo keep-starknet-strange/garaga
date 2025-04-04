@@ -40,34 +40,34 @@ lazy_static! {
 
 /// Computes the Poseidon hash for BN254 given two inputs.
 pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldElement<F> {
-    let mut state = vec![FieldElement::zero(), x.clone(), y.clone()];
+    let mut state = vec![FieldElement::zero(), *x, *y];
 
     // Initial Ark
     state = ark(&state, &POSEIDON_C_VEC, 0);
 
     // First half of full rounds.
     for r in 0..(N_ROUNDS_F / 2 - 1) {
-        state = state.iter().map(|x| sigma(x)).collect();
+        state = state.iter().map(sigma).collect();
         state = ark(&state, &POSEIDON_C_VEC, (r + 1) * T);
         state = mix(&state, &POSEIDON_M_MAT);
     }
 
     // Middle round.
-    state = state.iter().map(|x| sigma(x)).collect();
+    state = state.iter().map(sigma).collect();
     state = ark(&state, &POSEIDON_C_VEC, (N_ROUNDS_F / 2) * T);
     state = mix(&state, &POSEIDON_P_MAT);
 
     // Partial rounds.
     for r in 0..N_ROUNDS_P {
         state[0] = sigma(&state[0]);
-        let mut new_state = vec![state[0].clone() + &POSEIDON_C_VEC[(N_ROUNDS_F / 2 + 1) * T + r]];
+        let mut new_state = vec![state[0] + POSEIDON_C_VEC[(N_ROUNDS_F / 2 + 1) * T + r]];
         new_state.extend_from_slice(&state[1..]);
         state = mix_s(&new_state, &POSEIDON_S_VEC, r);
     }
 
     // Second half of full rounds.
     for r in 0..(N_ROUNDS_F / 2 - 1) {
-        state = state.iter().map(|x| sigma(x)).collect();
+        state = state.iter().map(sigma).collect();
         state = ark(
             &state,
             &POSEIDON_C_VEC,
@@ -77,7 +77,7 @@ pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldEle
     }
 
     // Final round.
-    state = state.iter().map(|x| sigma(x)).collect();
+    state = state.iter().map(sigma).collect();
 
     mix_last(&state, &POSEIDON_M_MAT)
 }
@@ -87,7 +87,7 @@ pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldEle
 fn sigma(value: &FieldElement<F>) -> FieldElement<F> {
     // Computes x^5 = x^2 * x^2 * x.
     let x2 = value * value;
-    let x4 = &x2 * &x2;
+    let x4 = x2 * x2;
     x4 * value
 }
 
@@ -99,7 +99,7 @@ fn ark(
     state
         .iter()
         .enumerate()
-        .map(|(i, s)| s + &constants[i + offset])
+        .map(|(i, s)| s + constants[i + offset])
         .collect()
 }
 
@@ -109,9 +109,7 @@ fn mix(state: &[FieldElement<F>], matrix: &[Vec<FieldElement<F>>]) -> Vec<FieldE
             state
                 .iter()
                 .enumerate()
-                .fold(FieldElement::zero(), |acc, (j, s)| {
-                    acc + (&matrix[j][i] * s)
-                })
+                .fold(FieldElement::zero(), |acc, (j, s)| acc + (matrix[j][i] * s))
         })
         .collect()
 }
@@ -120,9 +118,7 @@ fn mix_last(state: &[FieldElement<F>], matrix: &[Vec<FieldElement<F>>]) -> Field
     state
         .iter()
         .enumerate()
-        .fold(FieldElement::zero(), |acc, (j, s)| {
-            acc + (&matrix[j][0] * s)
-        })
+        .fold(FieldElement::zero(), |acc, (j, s)| acc + (matrix[j][0] * s))
 }
 
 fn mix_s(
@@ -134,11 +130,11 @@ fn mix_s(
         .iter()
         .enumerate()
         .fold(FieldElement::zero(), |acc, (i, s)| {
-            acc + (&s_constants[(T * 2 - 1) * r + i] * s)
+            acc + (s_constants[(T * 2 - 1) * r + i] * s)
         })];
 
     for i in 1..T {
-        result.push(state[i].clone() + (&state[0] * &s_constants[(T * 2 - 1) * r + T + i - 1]));
+        result.push(state[i] + (state[0] * s_constants[(T * 2 - 1) * r + T + i - 1]));
     }
     result
 }

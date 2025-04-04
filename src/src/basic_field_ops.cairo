@@ -1,10 +1,12 @@
+use core::circuit::conversions::upcast;
 use core::circuit::{
     AddInputResultTrait, AddMod, CircuitElement, CircuitElement as CE, CircuitInput,
     CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
     EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
     circuit_mul, circuit_sub, u384, u96,
 };
-use garaga::core::circuit::AddInputResultTrait2;
+use core::num::traits::Zero;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
 use garaga::utils::hashing::hades_permutation;
 
@@ -31,11 +33,21 @@ pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 }
 
 
+// Returns true if a == -b mod p (a + b = 0 mod p)
+pub fn is_opposite_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> bool {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let in2 = CircuitElement::<CircuitInput<1>> {};
+    let sum = circuit_add(in1, in2);
+    let outputs = (sum,).new_inputs().next_2(a).next_2(b).done_2().eval(modulus).unwrap();
+
+    return outputs.get_output(sum).is_zero();
+}
+
 pub fn is_even_u384(a: u384) -> bool {
-    let limb0: felt252 = a.limb0.into();
-    let limb0_u128: u128 = limb0.try_into().unwrap();
+    let limb0_u128: u128 = upcast(a.limb0);
     limb0_u128 % 2 == 0
 }
+
 
 pub fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -82,49 +94,31 @@ pub fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
     return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
-// Takes big endian u512 and returns a u384 mod bls12_381
+
+pub fn u32_8_to_u384(a: [u32; 8]) -> u384 {
+    let [a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7] = a;
+    let l0: felt252 = a_7.into() + a_6.into() * POW_2_32_252 + a_5.into() * POW_2_64_252;
+    let l1: felt252 = a_4.into() + a_3.into() * POW_2_32_252 + a_2.into() * POW_2_64_252;
+    let l2: felt252 = a_1.into() + a_0.into() * POW_2_32_252;
+    u384 {
+        limb0: l0.try_into().unwrap(),
+        limb1: l1.try_into().unwrap(),
+        limb2: l2.try_into().unwrap(),
+        limb3: 0,
+    }
+}
+
+// Takes big endian u512 and returns a u384 mod modulus
 // u512 = low_256 + high_256 * 2^256
 // u512 % p = (low_256 + high_256 * 2^256) % p
 // = (low_256 % p + high_256 * 2^256 % p) % p
-pub fn u512_mod_bls12_381(a_high: [u32; 8], a_low: [u32; 8]) -> u384 {
+// CAUTION : a_high and a_low are expected to be < 2^256. No check is performed.
+pub fn u512_mod_p(high_256: u384, low_256: u384, modulus: CircuitModulus) -> u384 {
     let low = CircuitElement::<CircuitInput<0>> {};
     let high = CircuitElement::<CircuitInput<1>> {};
     let shift = CircuitElement::<CircuitInput<2>> {};
     let high_shifted = circuit_mul(high, shift);
     let res = circuit_add(low, high_shifted);
-
-    let modulus = TryInto::<
-        _, CircuitModulus,
-    >::try_into(
-        [
-            0xb153ffffb9feffffffffaaab, 0x6730d2a0f6b0f6241eabfffe, 0x434bacd764774b84f38512bf,
-            0x1a0111ea397fe69a4b1ba7b6,
-        ],
-    )
-        .unwrap(); // BLS12_381 prime field modulus
-
-    let [al_0, al_1, al_2, al_3, al_4, al_5, al_6, al_7] = a_low;
-    let ll0: felt252 = al_7.into() + al_6.into() * POW_2_32_252 + al_5.into() * POW_2_64_252;
-    let ll1: felt252 = al_4.into() + al_3.into() * POW_2_32_252 + al_2.into() * POW_2_64_252;
-    let ll2: felt252 = al_1.into() + al_0.into() * POW_2_32_252;
-
-    let low_256 = u384 {
-        limb0: ll0.try_into().unwrap(),
-        limb1: ll1.try_into().unwrap(),
-        limb2: ll2.try_into().unwrap(),
-        limb3: 0,
-    };
-
-    let [ah_0, ah_1, ah_2, ah_3, ah_4, ah_5, ah_6, ah_7] = a_high;
-    let hl0: felt252 = ah_7.into() + ah_6.into() * POW_2_32_252 + ah_5.into() * POW_2_64_252;
-    let hl1: felt252 = ah_4.into() + ah_3.into() * POW_2_32_252 + ah_2.into() * POW_2_64_252;
-    let hl2: felt252 = ah_1.into() + ah_0.into() * POW_2_32_252;
-    let high_256 = u384 {
-        limb0: hl0.try_into().unwrap(),
-        limb1: hl1.try_into().unwrap(),
-        limb2: hl2.try_into().unwrap(),
-        limb3: 0,
-    };
 
     let outputs = (res,)
         .new_inputs()
@@ -208,7 +202,7 @@ fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 #[inline(always)]
 pub fn eval_and_hash_E12D_u288_transcript(
     transcript: Span<E12D<u288>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Span<u384>) {
+) -> (felt252, felt252, felt252, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
@@ -287,32 +281,32 @@ pub fn eval_and_hash_E12D_u288_transcript(
         // Prefill constants:
 
         // Fill inputs:
-        circuit_inputs = circuit_inputs.next_u288(elmt.w0); // in0
-        circuit_inputs = circuit_inputs.next_u288(elmt.w1); // in1
-        circuit_inputs = circuit_inputs.next_u288(elmt.w2); // in2
-        circuit_inputs = circuit_inputs.next_u288(elmt.w3); // in3
-        circuit_inputs = circuit_inputs.next_u288(elmt.w4); // in4
-        circuit_inputs = circuit_inputs.next_u288(elmt.w5); // in5
-        circuit_inputs = circuit_inputs.next_u288(elmt.w6); // in6
-        circuit_inputs = circuit_inputs.next_u288(elmt.w7); // in7
-        circuit_inputs = circuit_inputs.next_u288(elmt.w8); // in8
-        circuit_inputs = circuit_inputs.next_u288(elmt.w9); // in9
-        circuit_inputs = circuit_inputs.next_u288(elmt.w10); // in10
-        circuit_inputs = circuit_inputs.next_u288(elmt.w11); // in11
+        circuit_inputs = circuit_inputs.next_2(elmt.w0); // in0
+        circuit_inputs = circuit_inputs.next_2(elmt.w1); // in1
+        circuit_inputs = circuit_inputs.next_2(elmt.w2); // in2
+        circuit_inputs = circuit_inputs.next_2(elmt.w3); // in3
+        circuit_inputs = circuit_inputs.next_2(elmt.w4); // in4
+        circuit_inputs = circuit_inputs.next_2(elmt.w5); // in5
+        circuit_inputs = circuit_inputs.next_2(elmt.w6); // in6
+        circuit_inputs = circuit_inputs.next_2(elmt.w7); // in7
+        circuit_inputs = circuit_inputs.next_2(elmt.w8); // in8
+        circuit_inputs = circuit_inputs.next_2(elmt.w9); // in9
+        circuit_inputs = circuit_inputs.next_2(elmt.w10); // in10
+        circuit_inputs = circuit_inputs.next_2(elmt.w11); // in11
         circuit_inputs = circuit_inputs.next_2(z); // in12
 
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals.span());
+    return (s0, s1, s2, evals);
 }
 
 
 #[inline(always)]
 pub fn eval_and_hash_E12D_u384_transcript(
     transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Span<u384>) {
+) -> (felt252, felt252, felt252, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BLS12_381_modulus(); // BN254 prime field modulus
@@ -409,5 +403,5 @@ pub fn eval_and_hash_E12D_u384_transcript(
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals.span());
+    return (s0, s1, s2, evals);
 }

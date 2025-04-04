@@ -16,7 +16,8 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
+          concurrent_skipping: 'never'
+          paths: '["src/**"]'
 
 
   test-cairo:
@@ -24,10 +25,35 @@ jobs:
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - uses: software-mansion/setup-scarb@v1
+      # Checkout the repository
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Starknet Foundry
+        uses: foundry-rs/setup-snfoundry@v4
+      - name: Setup Scarb
+        uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.11.2"
-      - run: scarb fmt --check
+          scarb-lock: ./src/Scarb.lock
+
+      - name: Run scarb fmt check in src
         working-directory: src/
-      - run: cd src/ && scarb test
+        run: scarb fmt --check
+      - name: Run scarb test in src
+        working-directory: src/
+        run: scarb test
+
+      - name: Run scarb fmt check in mutator_set
+        working-directory: src/contracts/mutator_set
+        run: scarb fmt --check
+      - name: Run snforge test in mutator_set
+        working-directory: src/contracts/mutator_set
+        run: snforge test
+
+      - name: Run scarb fmt check in risc0_sample_app
+        working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
+        run: scarb fmt --check
+      # Conflicting with the e2e test : we don't want to dedeploy the verifier at each commit.
+      # - name: Run snforge test in risc0_sample_app
+      #   working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
+      #   run: snforge test

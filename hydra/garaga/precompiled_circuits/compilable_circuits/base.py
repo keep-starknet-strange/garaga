@@ -157,7 +157,7 @@ use core::circuit::{{
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
     CircuitData, CircuitInputAccumulator
 }};
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue}};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{{get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T, {', '.join(moduluses)}}};
@@ -318,4 +318,4 @@ def format_cairo_files_in_parallel(
                 future.result()  # Wait for all formatting tasks to complete
         print("Done!")
     elif compilation_mode == 1:
-        subprocess.run(["scarb", "fmt"], check=True, cwd=precompiled_circuits_dir)
+        subprocess.run(["scarb", "fmt", f"{precompiled_circuits_dir}"], check=True)

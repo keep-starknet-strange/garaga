@@ -228,6 +228,23 @@ class MPCheckCalldataBuilder:
         z = self._hash_big_Q_and_get_z(transcript, big_Q_coeffs)
         self._sanity_check_verify_rlc_equation(z, cis, Pis, big_Q, Ris)
 
+        if self.public_pair is None:
+            assert [x.value for x in passed_Ris[-1]] == [
+                1,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+                0,
+            ], f"Last Ri must be 1_Fp12, got {[x.value for x in passed_Ris[-1]]}"
+            passed_Ris = passed_Ris[:-1]  # Skip last Ri as it is known to be 1
+
         if self.curve_id == CurveID.BN254:
             hint_struct_list_init = [
                 structs.E12D(name="lambda_root", elmts=lambda_root)
@@ -302,9 +319,9 @@ class MPCheckCalldataBuilder:
         return inputs
 
     def to_cairo_1_test(self):
-        print(
-            f"Generating MPCheck test for {self.curve_id.name} with {len(self.pairs)} pairs and {self.n_fixed_g2} fixed G2 points, using extra Miller loop result: {self.include_miller_loop_result}"
-        )
+        # print(
+        #     f"Generating MPCheck test for {self.curve_id.name} with {len(self.pairs)} pairs and {self.n_fixed_g2} fixed G2 points, using extra Miller loop result: {self.include_miller_loop_result}"
+        # )
         with_extra = (
             "_with_extra_miller_loop_result" if self.include_miller_loop_result else ""
         )

@@ -1,5 +1,8 @@
 pub mod curves;
-pub mod structs;
+pub mod structs {
+    pub mod fields;
+    pub mod points;
+}
 use core::RangeCheck;
 
 pub use core::circuit::{u384, u96};
@@ -64,14 +67,12 @@ fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
 }
 
 fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
-    match input.pop_front() {
-        Option::Some(value) => {
-            serialize_u384(value, ref output);
-            serialize_u384_array_helper(input, ref output);
-        },
-        Option::None => {},
+    if let Option::Some(value) = input.pop_front() {
+        serialize_u384(value, ref output);
+        serialize_u384_array_helper(input, ref output);
     }
 }
+
 fn deserialize_u384_array(ref serialized: Span<felt252>) -> Array<u384> {
     let length = *serialized.pop_front().unwrap();
     let mut arr = array![];
@@ -86,4 +87,42 @@ fn deserialize_u384_array_helper(
     }
     curr_output.append(deserialize_u384(ref serialized));
     deserialize_u384_array_helper(ref serialized, curr_output, remaining - 1)
+}
+
+
+fn serialize_u288_array(self: @Array<u288>, ref output: Array<felt252>) {
+    self.len().serialize(ref output);
+    serialize_u288_array_helper(self.span(), ref output);
+}
+
+fn serialize_u288_array_helper(mut input: Span<u288>, ref output: Array<felt252>) {
+    if let Option::Some(value) = input.pop_front() {
+        u288Serde::serialize(value, ref output);
+        serialize_u288_array_helper(input, ref output);
+    }
+}
+
+fn deserialize_u288_array(ref serialized: Span<felt252>) -> Array<u288> {
+    let length = *serialized.pop_front().unwrap();
+    let mut arr = array![];
+    deserialize_u288_array_helper(ref serialized, arr, length)
+}
+
+
+fn deserialize_u288(ref serialized: Span<felt252>) -> u288 {
+    let [l0, l1, l2] = (*serialized.multi_pop_front::<3>().unwrap()).unbox();
+    let limb0 = downcast(l0).unwrap();
+    let limb1 = downcast(l1).unwrap();
+    let limb2 = downcast(l2).unwrap();
+    return u288 { limb0: limb0, limb1: limb1, limb2: limb2 };
+}
+
+fn deserialize_u288_array_helper(
+    ref serialized: Span<felt252>, mut curr_output: Array<u288>, remaining: felt252,
+) -> Array<u288> {
+    if remaining == 0 {
+        return curr_output;
+    }
+    curr_output.append(deserialize_u288(ref serialized));
+    deserialize_u288_array_helper(ref serialized, curr_output, remaining - 1)
 }

@@ -15,9 +15,14 @@ rewrite:
 rewrite-no-tests:
 	./tools/make/rewrite.sh no-tests
 
+regen:
+	cd src/contracts/mutator_set && make regen
+
 steps:
 	./tools/make/steps.sh
 
+fmt:
+	scarb fmt && cargo fmt
 ci-e2e:
 	./tools/make/ci_e2e.sh
 

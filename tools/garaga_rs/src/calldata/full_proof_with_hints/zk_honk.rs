@@ -12,7 +12,10 @@ use crate::definitions::BN254PrimeField;
 use crate::definitions::CurveID;
 use crate::definitions::FieldElement;
 use crate::definitions::GrumpkinPrimeField;
+use crate::definitions::Stark252PrimeField;
 use crate::io::{element_from_biguint, element_to_biguint, field_element_to_u256_limbs};
+use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
+use lambdaworks_crypto::hash::poseidon::Poseidon;
 use lambdaworks_math::field::errors::FieldError;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
@@ -239,7 +242,14 @@ impl ZKHonkTranscript {
         vk: &HonkVerificationKey,
         proof: &ZKHonkProof,
         flavor: HonkFlavor,
-    ) -> Result<Self, String> {
+    ) -> Result<
+        (
+            Self,
+            FieldElement<Stark252PrimeField>,
+            FieldElement<Stark252PrimeField>,
+        ),
+        String,
+    > {
         if proof.public_inputs.len() != vk.public_inputs_size {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
@@ -259,7 +269,7 @@ pub fn get_zk_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = ZKHonkTranscript::from_proof(vk, proof, flavor)?;
+    let (transcript, transcript_state, _) = ZKHonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -376,7 +386,7 @@ pub fn get_zk_honk_calldata(
     )
     .map_err(|e| format!("Field error: {:?}", e))?;
     if !consistent {
-        return Err(format!("Consistency check failed"));
+        return Err("Consistency check failed".to_string());
     }
 
     let scalars = extract_msm_scalars(
@@ -521,6 +531,12 @@ pub fn get_zk_honk_calldata(
     points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
 
+    let two = FieldElement::<Stark252PrimeField>::one().double();
+
+    let mut state = [vk.vk_hash, transcript_state, two];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [external_s0, external_s1, _] = state;
+
     let msm_data = msm_calldata::calldata_builder(
         &points,
         &scalars,
@@ -529,6 +545,8 @@ pub fn get_zk_honk_calldata(
         false,
         false,
         false,
+        Some((external_s0, external_s1)),
+        true,
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -582,7 +600,11 @@ fn compute_zk_transcript<T: Hasher>(
     vk: &HonkVerificationKey,
     proof: &ZKHonkProof,
     mut hasher: T,
-) -> ZKHonkTranscript {
+) -> (
+    ZKHonkTranscript,
+    FieldElement<Stark252PrimeField>,
+    FieldElement<Stark252PrimeField>,
+) {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -717,23 +739,35 @@ fn compute_zk_transcript<T: Hasher>(
     hasher.update_as_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
-    let [shplonk_z, _] = split(&c8);
+    let [shplonk_z_low, shplonk_z_high] = split(&c8);
 
-    ZKHonkTranscript {
-        eta,
-        eta_two,
-        eta_three,
-        beta,
-        gamma,
-        alphas,
-        gate_challenges,
-        libra_challenge,
-        sumcheck_u_challenges,
-        rho,
-        gemini_r,
-        shplonk_nu,
-        shplonk_z,
-    }
+    let mut state = [
+        element_from_biguint(&shplonk_z_low), // StarknetHonk
+        element_from_biguint(&shplonk_z_high),
+        FieldElement::one().double(),
+    ];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [s0, s1, _] = state;
+
+    (
+        ZKHonkTranscript {
+            eta,
+            eta_two,
+            eta_three,
+            beta,
+            gamma,
+            alphas,
+            gate_challenges,
+            libra_challenge,
+            sumcheck_u_challenges,
+            rho,
+            gemini_r,
+            shplonk_nu,
+            shplonk_z: shplonk_z_low,
+        },
+        s0,
+        s1,
+    )
 }
 
 #[allow(clippy::needless_range_loop, clippy::too_many_arguments)]
@@ -751,16 +785,16 @@ fn compute_shplemini_msm_scalars(
 ) -> Result<[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3], FieldError> {
     let powers_of_evaluations_challenge = {
         let mut values = vec![];
-        let mut value = gemini_r.clone();
+        let mut value = *gemini_r;
         for _ in 0..log_circuit_size {
-            values.push(value.clone());
-            value = &value * &value;
+            values.push(value);
+            value = value * value;
         }
         values
     };
 
-    let mut pos_inverted_denominator = (shplonk_z - &powers_of_evaluations_challenge[0]).inv()?;
-    let mut neg_inverted_denominator = (shplonk_z + &powers_of_evaluations_challenge[0]).inv()?;
+    let mut pos_inverted_denominator = (shplonk_z - powers_of_evaluations_challenge[0]).inv()?;
+    let mut neg_inverted_denominator = (shplonk_z + powers_of_evaluations_challenge[0]).inv()?;
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
@@ -771,25 +805,25 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let unshifted_scalar = -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
+    let unshifted_scalar = -(pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator));
 
     let shifted_scalar =
-        -(gemini_r.inv()? * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
+        -(gemini_r.inv()? * (pos_inverted_denominator - (shplonk_nu * neg_inverted_denominator)));
 
     scalars[0] = Some(FieldElement::one());
 
-    let mut batched_evaluation = gemini_masking_eval.clone();
-    let mut batching_challenge = rho.clone();
-    scalars[1] = Some(unshifted_scalar.clone());
+    let mut batched_evaluation = *gemini_masking_eval;
+    let mut batching_challenge = *rho;
+    scalars[1] = Some(unshifted_scalar);
 
     for i in 2..NUMBER_UNSHIFTED + 2 {
-        scalars[i] = Some(&unshifted_scalar * &batching_challenge);
-        batched_evaluation += &sumcheck_evaluations[i - 2] * &batching_challenge;
+        scalars[i] = Some(unshifted_scalar * batching_challenge);
+        batched_evaluation += sumcheck_evaluations[i - 2] * batching_challenge;
         batching_challenge *= rho;
     }
     for i in NUMBER_UNSHIFTED + 2..NUMBER_OF_ENTITIES + 2 {
-        scalars[i] = Some(&shifted_scalar * &batching_challenge);
-        batched_evaluation += &sumcheck_evaluations[i - 2] * &batching_challenge;
+        scalars[i] = Some(shifted_scalar * batching_challenge);
+        batched_evaluation += sumcheck_evaluations[i - 2] * batching_challenge;
         // skip last round:
         if i < NUMBER_OF_ENTITIES + 1 {
             batching_challenge *= rho;
@@ -798,7 +832,7 @@ fn compute_shplemini_msm_scalars(
 
     let fold_pos_evaluations = {
         let mut values = vec![FieldElement::from(0); CONST_PROOF_SIZE_LOG_N];
-        let mut batched_eval_accumulator = batched_evaluation.clone();
+        let mut batched_eval_accumulator = batched_evaluation;
         for i in (0..log_circuit_size).rev() {
             let challenge_power = &powers_of_evaluations_challenge[i];
             let u = &sumcheck_u_challenges[i];
@@ -806,17 +840,17 @@ fn compute_shplemini_msm_scalars(
             let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
             let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
                 * challenge_power
-                * &batched_eval_accumulator)
-                - (eval_neg * (&term - u));
+                * batched_eval_accumulator)
+                - (eval_neg * (term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
-            values[i] = batched_eval_accumulator.clone();
+            values[i] = batched_eval_accumulator;
         }
         values
     };
 
-    let mut constant_term_accumulator = &fold_pos_evaluations[0] * pos_inverted_denominator;
-    constant_term_accumulator += &gemini_a_evaluations[0] * shplonk_nu * &neg_inverted_denominator;
+    let mut constant_term_accumulator = fold_pos_evaluations[0] * pos_inverted_denominator;
+    constant_term_accumulator += gemini_a_evaluations[0] * shplonk_nu * neg_inverted_denominator;
 
     let mut batching_challenge = shplonk_nu * shplonk_nu;
 
@@ -824,17 +858,16 @@ fn compute_shplemini_msm_scalars(
         let dummy_round = i >= (log_circuit_size - 1);
         if !dummy_round {
             pos_inverted_denominator =
-                (shplonk_z - &powers_of_evaluations_challenge[i + 1]).inv()?;
+                (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
             neg_inverted_denominator =
-                (shplonk_z + &powers_of_evaluations_challenge[i + 1]).inv()?;
+                (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
 
-            let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
-            let scaling_factor_neg = &batching_challenge * shplonk_nu * neg_inverted_denominator;
-            scalars[NUMBER_OF_ENTITIES + i + 2] =
-                Some(-(&scaling_factor_neg + &scaling_factor_pos));
+            let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
+            let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
+            scalars[NUMBER_OF_ENTITIES + i + 2] = Some(-(scaling_factor_neg + scaling_factor_pos));
 
-            let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
-            accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
+            let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
+            accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
             constant_term_accumulator += accum_contribution;
         }
         batching_challenge *= shplonk_nu * shplonk_nu;
@@ -851,36 +884,35 @@ fn compute_shplemini_msm_scalars(
         (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - subgroup_generator * gemini_r))
             .unwrap(),
     );
-    denominators.push(denominators[0].clone());
-    denominators.push(denominators[0].clone());
+    denominators.push(denominators[0]);
+    denominators.push(denominators[0]);
 
     let mut batching_scalars = vec![];
     batching_challenge *= shplonk_nu * shplonk_nu;
     for i in 0..4 {
-        let scaling_factor = &denominators[i] * &batching_challenge;
+        let scaling_factor = denominators[i] * batching_challenge;
         batching_scalars.push(-&scaling_factor);
         batching_challenge *= shplonk_nu;
-        constant_term_accumulator += &scaling_factor * &libra_poly_evals[i];
+        constant_term_accumulator += scaling_factor * libra_poly_evals[i];
     }
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(batching_scalars[0].clone());
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(batching_scalars[0]);
     scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2] =
-        Some(&batching_scalars[1] + &batching_scalars[2]);
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3] = Some(batching_scalars[3].clone());
+        Some(batching_scalars[1] + batching_scalars[2]);
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3] = Some(batching_scalars[3]);
 
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 4] =
-        Some(constant_term_accumulator.clone());
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 5] = Some(shplonk_z.clone());
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 4] = Some(constant_term_accumulator);
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 5] = Some(*shplonk_z);
 
     // proof.w1 : 29 + 37
     // proof.w2 : 30 + 38
     // proof.w3 : 31 + 39
     // proof.w4 : 32 + 40
 
-    scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
-    scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
-    scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
-    scalars[32] = Some(scalars[32].clone().unwrap() + scalars[40].clone().unwrap());
-    scalars[33] = Some(scalars[33].clone().unwrap() + scalars[41].clone().unwrap()); // z_perm
+    scalars[29] = Some(scalars[29].unwrap() + scalars[37].unwrap());
+    scalars[30] = Some(scalars[30].unwrap() + scalars[38].unwrap());
+    scalars[31] = Some(scalars[31].unwrap() + scalars[39].unwrap());
+    scalars[32] = Some(scalars[32].unwrap() + scalars[40].unwrap());
+    scalars[33] = Some(scalars[33].unwrap() + scalars[41].unwrap()); // z_perm
 
     scalars[37] = None;
     scalars[38] = None;
@@ -915,7 +947,7 @@ fn check_evals_consistency(
         challenge_poly_lagrange[curr_idx] = FieldElement::<GrumpkinPrimeField>::from(1);
         for idx in curr_idx + 1..curr_idx + 9 {
             challenge_poly_lagrange[idx] =
-                &challenge_poly_lagrange[idx - 1] * &sumcheck_u_challenges[round];
+                challenge_poly_lagrange[idx - 1] * sumcheck_u_challenges[round];
         }
     }
 
@@ -927,27 +959,23 @@ fn check_evals_consistency(
     let mut challenge_poly_eval = FieldElement::<GrumpkinPrimeField>::from(0);
     let mut denominators = vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
     for idx in 0..SUBGROUP_SIZE {
-        denominators[idx] = &root_power * gemini_r - FieldElement::<GrumpkinPrimeField>::from(1);
+        denominators[idx] = root_power * gemini_r - FieldElement::<GrumpkinPrimeField>::from(1);
         denominators[idx] = denominators[idx].inv()?;
-        challenge_poly_eval =
-            &challenge_poly_eval + &challenge_poly_lagrange[idx] * &denominators[idx];
-        root_power = &root_power * &subgroup_generator_inverse;
+        challenge_poly_eval += challenge_poly_lagrange[idx] * denominators[idx];
+        root_power *= subgroup_generator_inverse;
     }
 
-    let numerator = &vanishing_poly_eval
+    let numerator = vanishing_poly_eval
         * FieldElement::<GrumpkinPrimeField>::from(SUBGROUP_SIZE as u64).inv()?;
-    challenge_poly_eval = &challenge_poly_eval * &numerator;
-    let lagrange_first = &denominators[0] * &numerator;
-    let lagrange_last = &denominators[SUBGROUP_SIZE - 1] * &numerator;
+    challenge_poly_eval *= numerator;
+    let lagrange_first = denominators[0] * numerator;
+    let lagrange_last = denominators[SUBGROUP_SIZE - 1] * numerator;
 
-    let mut diff = &lagrange_first * &libra_poly_evals[2];
-    diff = diff
-        + (gemini_r - &subgroup_generator_inverse)
-            * (&libra_poly_evals[1]
-                - &libra_poly_evals[2]
-                - &libra_poly_evals[0] * &challenge_poly_eval);
-    diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_evaluation)
-        - &vanishing_poly_eval * &libra_poly_evals[3];
+    let mut diff = lagrange_first * libra_poly_evals[2];
+    diff += (gemini_r - subgroup_generator_inverse)
+        * (libra_poly_evals[1] - libra_poly_evals[2] - libra_poly_evals[0] * challenge_poly_eval);
+    diff = diff + lagrange_last * (libra_poly_evals[2] - libra_evaluation)
+        - vanishing_poly_eval * libra_poly_evals[3];
     if diff != FieldElement::<GrumpkinPrimeField>::from(0) {
         return Ok(false);
     }
@@ -984,8 +1012,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            125, 85, 239, 129, 30, 251, 252, 169, 54, 43, 80, 131, 68, 74, 229, 44, 56, 244, 58,
-            236, 166, 205, 209, 228, 52, 127, 78, 156, 52, 143, 243, 20,
+            181, 137, 164, 134, 89, 213, 89, 181, 45, 121, 80, 139, 205, 9, 83, 215, 192, 46, 197,
+            15, 235, 67, 53, 133, 104, 65, 26, 173, 116, 252, 55, 204,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1002,8 +1030,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            228, 82, 60, 144, 112, 204, 209, 43, 72, 227, 232, 132, 190, 76, 60, 70, 232, 6, 94,
-            10, 205, 96, 33, 110, 153, 194, 135, 97, 114, 123, 126, 178,
+            48, 251, 67, 183, 107, 161, 100, 217, 217, 9, 80, 133, 42, 84, 72, 172, 2, 205, 103,
+            126, 113, 192, 107, 66, 87, 173, 230, 103, 251, 179, 199, 173,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

@@ -1,4 +1,5 @@
 import concurrent.futures
+import json
 import random
 import subprocess
 
@@ -17,6 +18,7 @@ from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldat
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.signatures import (
     ECDSASignature,
+    EdDSA25519Signature,
     SchnorrSignature,
 )
 
@@ -129,12 +131,12 @@ fn test_tower_final_exp_{curve_id.name}() {{
 def generate_schnorr_test(curve_id, seed):
     random.seed(seed)
     schnorr_sig: SchnorrSignature = SchnorrSignature.sample(curve_id)
-
+    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_schnorr_{curve_id.name}() {{
-    let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints()}.span();
-    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
+    let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
+    let sch_with_hints = Serde::<SchnorrSignatureWithHint<{T}>>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_schnorr_signature(sch_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -145,12 +147,12 @@ fn test_schnorr_{curve_id.name}() {{
 def generate_ecdsa_test(curve_id, seed):
     random.seed(seed)
     ecdsa_sig: ECDSASignature = ECDSASignature.sample(curve_id)
-
+    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_ecdsa_{curve_id.name}() {{
-    let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints()}.span();
-    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
+    let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
+    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint<{T}>>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -188,24 +190,20 @@ def write_test_file(
             for result in results:
                 f.write(result)
                 f.write("\n")
-        f.write("}")
-    subprocess.run(["scarb", "fmt"], check=True, cwd=f"{TESTS_DIR}")
 
 
 def get_tower_pairing_config():
     """Configuration for tower pairing tests"""
     header = """
-    #[cfg(test)]
-    mod tower_pairing_tests {
-        use garaga::single_pairing_tower::{
-            E12TOne, u384,G1Point, G2Point, E12T, miller_loop_bls12_381_tower,
-            miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
-        };
-        use garaga::ec_ops::{G1PointImpl};
-        use garaga::ec_ops_g2::{G2PointImpl};
-        use garaga::circuits::tower_circuits::{
-            run_BN254_E12T_MUL_circuit, run_BLS12_381_E12T_MUL_circuit
-        };
+    use garaga::single_pairing_tower::{
+        E12TOne, u384,G1Point, G2Point, E12T, miller_loop_bls12_381_tower,
+        miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
+    };
+    use garaga::ec_ops::{G1PointImpl};
+    use garaga::ec_ops_g2::{G2PointImpl};
+    use garaga::circuits::tower_circuits::{
+        run_BN254_E12T_MUL_circuit, run_BLS12_381_E12T_MUL_circuit
+    };
     """
 
     test_generators = [
@@ -220,8 +218,6 @@ def get_tower_pairing_config():
 def get_pairing_config():
     """Configuration for pairing tests"""
     header = """
-    #[cfg(test)]
-    mod pairing_tests {
         use garaga::pairing_check::{
             G1G2Pair, G1Point, G2Point, G2Line, E12D, MillerLoopResultScalingFactor,
             multi_pairing_check_bn254_2P_2F,
@@ -247,8 +243,6 @@ def get_pairing_config():
 def get_msm_config():
     """Configuration for MSM tests"""
     header = """
-    #[cfg(test)]
-    mod msm_tests {
         use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1, MSMHint, DerivePointFromXHint};
     """
 
@@ -274,11 +268,11 @@ def get_msm_config():
 def get_schnorr_config():
     """Configuration for Schnorr signature tests"""
     header = """
-    #[cfg(test)]
-    mod schnorr_tests {
         use garaga::signatures::schnorr::{
             SchnorrSignature, SchnorrSignatureWithHint, is_valid_schnorr_signature,
         };
+        use garaga::definitions::{u288, u384};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     test_generators = [(generate_schnorr_test, [()])]
@@ -296,11 +290,11 @@ def get_schnorr_config():
 def get_ecdsa_config():
     """Configuration for ECDSA signature tests"""
     header = """
-    #[cfg(test)]
-    mod ecdsa_tests {
         use garaga::signatures::ecdsa::{
             ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature,
         };
+        use garaga::definitions::{u288, u384};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     test_generators = [(generate_ecdsa_test, [()])]
@@ -313,6 +307,54 @@ def get_ecdsa_config():
         CurveID.GRUMPKIN,
     ]
     return "ecdsa_tests.cairo", header, test_generators, curve_ids
+
+
+def generate_eddsa_test(sig: EdDSA25519Signature, test_index: int) -> str:
+    assert sig.is_valid()
+    msg_bytes_len = len(sig.msg)
+    code = f"""
+#[test]
+fn test_eddsa_{test_index}_{msg_bytes_len}B() {{
+    let mut eddsa_sig_with_hints_serialized = array!{sig.serialize_with_hints(as_str=True)}.span();
+    let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserialize');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+    assert!(is_valid);
+}}
+"""
+    return code
+
+
+def generate_test(index, vector):
+    signature = EdDSA25519Signature.from_json(vector)
+    return generate_eddsa_test(signature, index)
+
+
+def generate_eddsa_test_file() -> str:
+    """Configuration for EDDSA signature tests"""
+    code = """
+    use garaga::signatures::eddsa_25519::{
+        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature
+    };
+    """
+
+    with open("tests/ed25519_test_vectors.json", "r") as f:
+        test_vectors = json.load(f)
+
+    test_vectors = test_vectors[0:64:2]
+
+    with concurrent.futures.ProcessPoolExecutor() as executor:
+        futures = {
+            executor.submit(generate_test, i, vec): i
+            for i, vec in enumerate(test_vectors)
+        }
+        results = [None] * len(test_vectors)
+        for future in concurrent.futures.as_completed(futures):
+            index = futures[future]
+            results[index] = future.result()
+
+    for result in results:
+        code += result
+    return code
 
 
 def write_all_tests():
@@ -329,6 +371,10 @@ def write_all_tests():
     ]:
         file_path, header, test_generators, curve_ids = config_fn()
         write_test_file(file_path, header, test_generators, curve_ids, seed=0)
+
+    with open("src/src/tests/autogenerated/eddsa_tests.cairo", "w") as f:
+        f.write(generate_eddsa_test_file())
+    subprocess.run(["scarb", "fmt", f"{TESTS_DIR}"], check=True)
 
 
 if __name__ == "__main__":

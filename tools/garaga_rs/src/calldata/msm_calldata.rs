@@ -6,8 +6,8 @@ use crate::definitions::{
 use crate::{
     ecip::core::{neg_3_base_le, run_ecip},
     io::{
-        element_to_biguint, felt252_to_element, field_element_to_u384_limbs,
-        field_elements_from_big_uints, padd_function_felt,
+        element_to_biguint, felt252_to_element, field_element_to_u288_limbs,
+        field_element_to_u384_limbs, field_elements_from_big_uints, padd_function_felt,
         parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
     },
     poseidon_transcript::CairoPoseidonTranscript,
@@ -120,7 +120,10 @@ where
             return Err("Scalar value must be less than the curve order".to_string());
         }
     }
-    Ok(calldata_builder(
+
+    let use_288 = curve_id != 1;
+
+    Ok(calldata_builder::<F>(
         &points,
         scalars,
         curve_id,
@@ -128,6 +131,8 @@ where
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
         risc0_mode,
+        Option::None,
+        use_288,
     ))
 }
 
@@ -139,6 +144,11 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
     risc0_mode: bool,
+    external_points_scalars_hash: Option<(
+        FieldElement<Stark252PrimeField>,
+        FieldElement<Stark252PrimeField>,
+    )>,
+    use_288: bool,
 ) -> Vec<BigUint>
 where
     FieldElement<F>: ByteConversion,
@@ -162,6 +172,7 @@ where
         [&q_low, &q_high, &q_high_shifted],
         curve_id,
         risc0_mode,
+        external_points_scalars_hash,
     );
     let sum_dlog_div_maybe_batched = match risc0_mode {
         true => &sum_dlog_div_low,
@@ -202,14 +213,21 @@ where
         push(call_data_ref, element_to_biguint(&value));
     }
 
-    fn push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
+    fn push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>, use_288: bool)
     where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
-        let limbs = field_element_to_u384_limbs(element);
-        for limb in limbs {
-            push(call_data_ref, limb);
+        if use_288 {
+            let limbs = field_element_to_u288_limbs(element);
+            for limb in limbs {
+                push(call_data_ref, limb);
+            }
+        } else {
+            let limbs = field_element_to_u384_limbs(element);
+            for limb in limbs {
+                push(call_data_ref, limb);
+            }
         }
     }
 
@@ -245,8 +263,8 @@ where
         // Q_low, Q_high, Q_high_shifted
         let q_list = [&q_low, &q_high, &q_high_shifted];
         for q in q_list {
-            push_element(call_data_ref, &q.x);
-            push_element(call_data_ref, &q.y);
+            push_element(call_data_ref, &q.x, false);
+            push_element(call_data_ref, &q.y, false);
             if risc0_mode {
                 break;
             }
@@ -256,7 +274,7 @@ where
         for poly in ff_4_polys {
             push(call_data_ref, poly.len());
             for coeff in poly {
-                push_element(call_data_ref, &coeff);
+                push_element::<F>(call_data_ref, &coeff, use_288);
             }
         }
     }
@@ -265,14 +283,14 @@ where
     {
         // y_last_attempt
         {
-            push_element(call_data_ref, &point.y);
+            push_element::<F>(call_data_ref, &point.y, false);
         }
 
         // g_rhs_sqrt
         {
             push(call_data_ref, roots.len());
             for root in roots {
-                push_element(call_data_ref, &root);
+                push_element::<F>(call_data_ref, &root, false);
             }
         }
     }
@@ -282,8 +300,8 @@ where
         {
             push(call_data_ref, points.len());
             for point in points {
-                push_element(call_data_ref, &point.x);
-                push_element(call_data_ref, &point.y);
+                push_element(call_data_ref, &point.x, false);
+                push_element(call_data_ref, &point.y, false);
             }
         }
 
@@ -319,6 +337,10 @@ fn hash_inputs_points_scalars_and_result_points<F>(
     q_list: [&G1Point<F>; 3],
     curve_id: usize,
     risc0_mode: bool,
+    external_points_scalars_hash: Option<(
+        FieldElement<Stark252PrimeField>,
+        FieldElement<Stark252PrimeField>,
+    )>,
 ) -> CairoPoseidonTranscript
 where
     F: IsPrimeField,
@@ -337,10 +359,15 @@ where
         FieldElement::<Stark252PrimeField>::from(scalars.len() as u64),
     );
 
+    if let Some((x, y)) = external_points_scalars_hash {
+        transcript_ref.update_sponge_state(x, y);
+    }
     // points
-    for point in points {
-        transcript_ref.hash_emulated_field_element(&point.x);
-        transcript_ref.hash_emulated_field_element(&point.y);
+    if external_points_scalars_hash.is_none() {
+        for point in points {
+            transcript_ref.hash_emulated_field_element(&point.x);
+            transcript_ref.hash_emulated_field_element(&point.y);
+        }
     }
 
     // Q_low, Q_high, Q_high_shifted
@@ -353,10 +380,12 @@ where
     }
 
     // scalars
-    if risc0_mode {
-        transcript_ref.hash_u128_multi(scalars);
-    } else {
-        transcript_ref.hash_u256_multi(scalars);
+    if external_points_scalars_hash.is_none() {
+        if risc0_mode {
+            transcript_ref.hash_u128_multi(scalars);
+        } else {
+            transcript_ref.hash_u256_multi(scalars);
+        }
     }
 
     transcript

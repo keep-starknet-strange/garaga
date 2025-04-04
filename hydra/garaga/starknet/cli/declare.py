@@ -66,12 +66,17 @@ def declare(
     account_address = os.getenv(f"{network.name.upper()}_ACCOUNT_ADDRESS")
     account_private_key = os.getenv(f"{network.name.upper()}_ACCOUNT_PRIVATE_KEY")
 
+    if network == Network.MAINNET:
+        chain = StarknetChainId.MAINNET
+    else:
+        chain = StarknetChainId.SEPOLIA
+
     client = FullNodeClient(node_url=rpc_url)
     account = Account(
         address=account_address,
         client=client,
         key_pair=KeyPair.from_private_key(to_int(account_private_key)),
-        chain=StarknetChainId.SEPOLIA,
+        chain=chain,
     )
 
     rich.print(

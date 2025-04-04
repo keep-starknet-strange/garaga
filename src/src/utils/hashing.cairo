@@ -11,6 +11,28 @@ pub struct PoseidonState {
     s2: felt252,
 }
 
+trait HashFeltTranscriptTrait<T> {
+    fn hash_field_element_transcript(
+        transcript: Span<T>, s0: felt252, s1: felt252, s2: felt252,
+    ) -> (felt252, felt252, felt252);
+}
+
+impl HfTImplu384 of HashFeltTranscriptTrait<u384> {
+    fn hash_field_element_transcript(
+        transcript: Span<u384>, s0: felt252, s1: felt252, s2: felt252,
+    ) -> (felt252, felt252, felt252) {
+        return hash_u384_transcript(transcript, s0, s1, s2);
+    }
+}
+
+impl HfTImplu288 of HashFeltTranscriptTrait<u288> {
+    fn hash_field_element_transcript(
+        transcript: Span<u288>, s0: felt252, s1: felt252, s2: felt252,
+    ) -> (felt252, felt252, felt252) {
+        return hash_u288_transcript(transcript, s0, s1, s2);
+    }
+}
+
 // Apply sponge construction to a transcript of u384 elements
 #[inline(always)]
 pub fn hash_u384_transcript(
@@ -218,6 +240,49 @@ pub fn hash_E12D_u288(
     let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
     let in_1 = _s0 + elmt.w11.limb0.into() + base * elmt.w11.limb1.into();
     let in_2 = _s1 + elmt.w11.limb2.into();
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    return (_s0, _s1, _s2);
+}
+
+// Hash a E12D element known to be 1
+pub fn hash_E12D_one(
+    mut s0: felt252, mut s1: felt252, mut s2: felt252,
+) -> (felt252, felt252, felt252) {
+    let in_1 = s0 + 1;
+    let in_2 = s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
+    let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
+    let in_1 = _s0;
+    let in_2 = _s1;
     let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
     return (_s0, _s1, _s2);
 }

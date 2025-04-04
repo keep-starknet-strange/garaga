@@ -56,10 +56,10 @@ pub fn g2_add(
         let py_tuple = PyTuple::new(
             py,
             [
-                element_to_biguint::<BN254PrimeField>(&x0),
-                element_to_biguint::<BN254PrimeField>(&x1),
-                element_to_biguint::<BN254PrimeField>(&y0),
-                element_to_biguint::<BN254PrimeField>(&y1),
+                element_to_biguint::<BN254PrimeField>(x0),
+                element_to_biguint::<BN254PrimeField>(x1),
+                element_to_biguint::<BN254PrimeField>(y0),
+                element_to_biguint::<BN254PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());
@@ -108,10 +108,10 @@ pub fn g2_add(
         let py_tuple = PyTuple::new(
             py,
             [
-                element_to_biguint::<BLS12381PrimeField>(&x0),
-                element_to_biguint::<BLS12381PrimeField>(&x1),
-                element_to_biguint::<BLS12381PrimeField>(&y0),
-                element_to_biguint::<BLS12381PrimeField>(&y1),
+                element_to_biguint::<BLS12381PrimeField>(x0),
+                element_to_biguint::<BLS12381PrimeField>(x1),
+                element_to_biguint::<BLS12381PrimeField>(y0),
+                element_to_biguint::<BLS12381PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());
@@ -160,10 +160,10 @@ pub fn g2_scalar_mul(
         let py_tuple = PyTuple::new(
             py,
             [
-                element_to_biguint::<BN254PrimeField>(&x0),
-                element_to_biguint::<BN254PrimeField>(&x1),
-                element_to_biguint::<BN254PrimeField>(&y0),
-                element_to_biguint::<BN254PrimeField>(&y1),
+                element_to_biguint::<BN254PrimeField>(x0),
+                element_to_biguint::<BN254PrimeField>(x1),
+                element_to_biguint::<BN254PrimeField>(y0),
+                element_to_biguint::<BN254PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());
@@ -197,10 +197,10 @@ pub fn g2_scalar_mul(
         let py_tuple = PyTuple::new(
             py,
             [
-                element_to_biguint::<BLS12381PrimeField>(&x0),
-                element_to_biguint::<BLS12381PrimeField>(&x1),
-                element_to_biguint::<BLS12381PrimeField>(&y0),
-                element_to_biguint::<BLS12381PrimeField>(&y1),
+                element_to_biguint::<BLS12381PrimeField>(x0),
+                element_to_biguint::<BLS12381PrimeField>(x1),
+                element_to_biguint::<BLS12381PrimeField>(y0),
+                element_to_biguint::<BLS12381PrimeField>(y1),
             ],
         );
         return Ok(py_tuple?.into());

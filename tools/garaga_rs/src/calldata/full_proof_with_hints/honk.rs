@@ -10,7 +10,8 @@ use crate::definitions::FieldElement;
 use crate::definitions::GrumpkinPrimeField;
 use crate::definitions::Stark252PrimeField;
 use crate::io::{
-    element_from_biguint, element_from_bytes_be, element_to_biguint, field_element_to_u256_limbs,
+    biguint_split, element_from_biguint, element_from_bytes_be, element_from_u128,
+    element_to_biguint, field_element_to_u256_limbs,
 };
 use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
 use lambdaworks_crypto::hash::poseidon::Poseidon;
@@ -79,6 +80,7 @@ pub struct HonkVerificationKey {
     pub t4: G1PointBigUint,
     pub lagrange_first: G1PointBigUint,
     pub lagrange_last: G1PointBigUint,
+    pub vk_hash: FieldElement<Stark252PrimeField>,
 }
 
 impl HonkVerificationKey {
@@ -86,6 +88,18 @@ impl HonkVerificationKey {
         if bytes.len() != 4 * 8 + 27 * 2 * 32 {
             return Err(format!("Invalid input length: {}", bytes.len()));
         }
+        let vk_hash = Keccak256::digest(bytes);
+        let vk_hash_biguint = BigUint::from_bytes_be(&vk_hash);
+        let [vk_hash_low, vk_hash_high] = biguint_split::<2, 128>(&vk_hash_biguint);
+        let mut state = [
+            element_from_u128(vk_hash_low),
+            element_from_u128(vk_hash_high),
+            FieldElement::one().double(),
+        ];
+
+        PoseidonCairoStark252::hades_permutation(&mut state);
+
+        let [vk_hash, _, _] = state;
 
         let mut values = vec![];
 
@@ -97,9 +111,12 @@ impl HonkVerificationKey {
             values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
         }
 
-        Self::from(values)
+        Self::from(values, vk_hash)
     }
-    pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
+    pub fn from(
+        values: Vec<BigUint>,
+        vk_hash: FieldElement<Stark252PrimeField>,
+    ) -> Result<Self, String> {
         if values.len() != 4 + 27 * 2 {
             return Err(format!("Invalid input length: {}", values.len()));
         }
@@ -170,6 +187,7 @@ impl HonkVerificationKey {
             t4,
             lagrange_first,
             lagrange_last,
+            vk_hash,
         };
 
         Ok(vk)
@@ -350,7 +368,14 @@ impl HonkTranscript {
         vk: &HonkVerificationKey,
         proof: &HonkProof,
         flavor: HonkFlavor,
-    ) -> Result<Self, String> {
+    ) -> Result<
+        (
+            Self,
+            FieldElement<Stark252PrimeField>,
+            FieldElement<Stark252PrimeField>,
+        ),
+        String,
+    > {
         if proof.public_inputs.len() != vk.public_inputs_size {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
@@ -370,7 +395,7 @@ pub fn get_honk_calldata(
     vk: &HonkVerificationKey,
     flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let transcript = HonkTranscript::from_proof(vk, proof, flavor)?;
+    let (transcript, transcript_state, _) = HonkTranscript::from_proof(vk, proof, flavor)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -592,6 +617,12 @@ pub fn get_honk_calldata(
     points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
 
+    let two = FieldElement::<Stark252PrimeField>::one().double();
+
+    let mut state = [vk.vk_hash, transcript_state, two];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [external_s0, external_s1, _] = state;
+
     let msm_data = msm_calldata::calldata_builder(
         &points,
         &scalars,
@@ -600,6 +631,8 @@ pub fn get_honk_calldata(
         false,
         false,
         false,
+        Some((external_s0, external_s1)),
+        true,
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -680,6 +713,12 @@ pub struct KeccakHasher {
     data: Vec<u8>,
 }
 
+impl Default for KeccakHasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl KeccakHasher {
     pub fn new() -> Self {
         KeccakHasher { data: vec![] }
@@ -705,6 +744,12 @@ impl Hasher for KeccakHasher {
 
 pub struct StarknetHasher {
     state: [FieldElement<Stark252PrimeField>; 3],
+}
+
+impl Default for StarknetHasher {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl StarknetHasher {
@@ -743,7 +788,11 @@ fn compute_transcript<T: Hasher>(
     vk: &HonkVerificationKey,
     proof: &HonkProof,
     mut hasher: T,
-) -> HonkTranscript {
+) -> (
+    HonkTranscript,
+    FieldElement<Stark252PrimeField>,
+    FieldElement<Stark252PrimeField>,
+) {
     fn split(value: &BigUint) -> [BigUint; 2] {
         let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
         let limbs = field_element_to_u256_limbs(&element);
@@ -859,22 +908,34 @@ fn compute_transcript<T: Hasher>(
     hasher.update_as_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
-    let [shplonk_z, _] = split(&c8);
+    let [shplonk_z_low, shplonk_z_high] = split(&c8);
 
-    HonkTranscript {
-        eta,
-        eta_two,
-        eta_three,
-        beta,
-        gamma,
-        alphas,
-        gate_challenges,
-        sumcheck_u_challenges,
-        rho,
-        gemini_r,
-        shplonk_nu,
-        shplonk_z,
-    }
+    let mut state = [
+        element_from_biguint(&shplonk_z_low),
+        element_from_biguint(&shplonk_z_high),
+        FieldElement::one().double(),
+    ];
+    PoseidonCairoStark252::hades_permutation(&mut state);
+    let [s0, s1, _] = state;
+
+    (
+        HonkTranscript {
+            eta,
+            eta_two,
+            eta_three,
+            beta,
+            gamma,
+            alphas,
+            gate_challenges,
+            sumcheck_u_challenges,
+            rho,
+            gemini_r,
+            shplonk_nu,
+            shplonk_z: shplonk_z_low,
+        },
+        s0,
+        s1,
+    )
 }
 
 #[allow(clippy::needless_range_loop, clippy::too_many_arguments)]
@@ -890,16 +951,16 @@ fn compute_shplemini_msm_scalars(
 ) -> Result<[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2], FieldError> {
     let powers_of_evaluations_challenge = {
         let mut values = vec![];
-        let mut value = gemini_r.clone();
+        let mut value = *gemini_r;
         for _ in 0..log_circuit_size {
-            values.push(value.clone());
-            value = &value * &value;
+            values.push(value);
+            value = value * value;
         }
         values
     };
 
-    let mut pos_inverted_denominator = (shplonk_z - &powers_of_evaluations_challenge[0]).inv()?;
-    let mut neg_inverted_denominator = (shplonk_z + &powers_of_evaluations_challenge[0]).inv()?;
+    let mut pos_inverted_denominator = (shplonk_z - powers_of_evaluations_challenge[0]).inv()?;
+    let mut neg_inverted_denominator = (shplonk_z + powers_of_evaluations_challenge[0]).inv()?;
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
@@ -919,20 +980,20 @@ fn compute_shplemini_msm_scalars(
 
         {
             let unshifted_scalar =
-                -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
+                -(pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator));
             for i in 1..NUMBER_UNSHIFTED + 1 {
-                scalars[i] = Some(&unshifted_scalar * &batching_challenge);
-                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                scalars[i] = Some(unshifted_scalar * batching_challenge);
+                batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
                 batching_challenge *= rho;
             }
         }
 
         {
             let shifted_scalar = -(gemini_r.inv()?
-                * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
+                * (pos_inverted_denominator - (shplonk_nu * neg_inverted_denominator)));
             for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
-                scalars[i] = Some(&shifted_scalar * &batching_challenge);
-                batched_evaluation += &sumcheck_evaluations[i - 1] * &batching_challenge;
+                scalars[i] = Some(shifted_scalar * batching_challenge);
+                batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
                 // skip last round:
                 if i < NUMBER_OF_ENTITIES {
                     batching_challenge *= rho;
@@ -943,7 +1004,7 @@ fn compute_shplemini_msm_scalars(
 
     let fold_pos_evaluations = {
         let mut values = vec![FieldElement::from(0); CONST_PROOF_SIZE_LOG_N];
-        let mut batched_eval_accumulator = batched_evaluation.clone();
+        let mut batched_eval_accumulator = batched_evaluation;
         for i in (0..log_circuit_size).rev() {
             let challenge_power = &powers_of_evaluations_challenge[i];
             let u = &sumcheck_u_challenges[i];
@@ -951,17 +1012,17 @@ fn compute_shplemini_msm_scalars(
             let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
             let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
                 * challenge_power
-                * &batched_eval_accumulator)
-                - (eval_neg * (&term - u));
+                * batched_eval_accumulator)
+                - (eval_neg * (term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
-            values[i] = batched_eval_accumulator.clone();
+            values[i] = batched_eval_accumulator;
         }
         values
     };
 
-    let mut constant_term_accumulator = &fold_pos_evaluations[0] * pos_inverted_denominator;
-    constant_term_accumulator += &gemini_a_evaluations[0] * shplonk_nu * &neg_inverted_denominator;
+    let mut constant_term_accumulator = fold_pos_evaluations[0] * pos_inverted_denominator;
+    constant_term_accumulator += gemini_a_evaluations[0] * shplonk_nu * neg_inverted_denominator;
 
     {
         let mut batching_challenge = shplonk_nu * shplonk_nu;
@@ -970,18 +1031,17 @@ fn compute_shplemini_msm_scalars(
             let dummy_round = i >= (log_circuit_size - 1);
             if !dummy_round {
                 pos_inverted_denominator =
-                    (shplonk_z - &powers_of_evaluations_challenge[i + 1]).inv()?;
+                    (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
                 neg_inverted_denominator =
-                    (shplonk_z + &powers_of_evaluations_challenge[i + 1]).inv()?;
+                    (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
 
-                let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
-                let scaling_factor_neg =
-                    &batching_challenge * shplonk_nu * neg_inverted_denominator;
+                let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
+                let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
                 scalars[NUMBER_OF_ENTITIES + i + 1] =
-                    Some(-(&scaling_factor_neg + &scaling_factor_pos));
+                    Some(-(scaling_factor_neg + scaling_factor_pos));
 
-                let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
-                accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
+                let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
+                accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
                 constant_term_accumulator += accum_contribution;
             }
             // skip last round:
@@ -991,19 +1051,19 @@ fn compute_shplemini_msm_scalars(
         }
     }
 
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator.clone());
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(shplonk_z.clone());
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N] = Some(constant_term_accumulator);
+    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(*shplonk_z);
 
     // proof.w1 : 28 + 36
     // proof.w2 : 29 + 37
     // proof.w3 : 30 + 38
     // proof.w4 : 31 + 39
 
-    scalars[28] = Some(scalars[28].clone().unwrap() + scalars[36].clone().unwrap());
-    scalars[29] = Some(scalars[29].clone().unwrap() + scalars[37].clone().unwrap());
-    scalars[30] = Some(scalars[30].clone().unwrap() + scalars[38].clone().unwrap());
-    scalars[31] = Some(scalars[31].clone().unwrap() + scalars[39].clone().unwrap());
-    scalars[32] = Some(scalars[32].clone().unwrap() + scalars[40].clone().unwrap());
+    scalars[28] = Some(scalars[28].unwrap() + scalars[36].unwrap());
+    scalars[29] = Some(scalars[29].unwrap() + scalars[37].unwrap());
+    scalars[30] = Some(scalars[30].unwrap() + scalars[38].unwrap());
+    scalars[31] = Some(scalars[31].unwrap() + scalars[39].unwrap());
+    scalars[32] = Some(scalars[32].unwrap() + scalars[40].unwrap());
 
     scalars[36] = None;
     scalars[37] = None;
@@ -1047,8 +1107,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            0, 114, 105, 230, 232, 63, 110, 100, 74, 147, 156, 143, 183, 170, 25, 146, 248, 91,
-            194, 189, 245, 199, 5, 48, 168, 123, 211, 116, 232, 76, 43, 127,
+            78, 12, 30, 28, 236, 52, 212, 197, 167, 133, 18, 252, 171, 98, 87, 48, 4, 133, 250,
+            162, 58, 171, 182, 70, 14, 198, 146, 146, 176, 179, 62, 207,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1065,8 +1125,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            4, 228, 157, 181, 2, 45, 246, 172, 225, 118, 235, 3, 98, 59, 123, 33, 182, 250, 143,
-            76, 59, 148, 7, 173, 4, 99, 70, 149, 164, 128, 0, 167,
+            225, 23, 96, 229, 195, 96, 26, 218, 192, 31, 153, 88, 153, 228, 201, 50, 168, 125, 202,
+            197, 194, 230, 142, 0, 220, 243, 200, 211, 172, 104, 163, 174,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

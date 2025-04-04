@@ -68,6 +68,7 @@ class HonkProof:
     gemini_a_evaluations: list[int]
     shplonk_q: G1Point
     kzg_quotient: G1Point
+    proof_bytes: bytes
 
     def __post_init__(self):
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
@@ -80,11 +81,11 @@ class HonkProof:
         assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
 
     @classmethod
-    def from_bytes(cls, bytes: bytes, vk: "HonkVk") -> "HonkProof":
-        n_elements = int.from_bytes(bytes[:4], "big")
-        assert len(bytes[4:]) % 32 == 0
+    def from_bytes(cls, _bytes: bytes, vk: "HonkVk") -> "HonkProof":
+        n_elements = int.from_bytes(_bytes[:4], "big")
+        assert len(_bytes[4:]) % 32 == 0
         elements = [
-            int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
+            int.from_bytes(_bytes[i : i + 32], "big") for i in range(4, len(_bytes), 32)
         ]
         assert len(elements) == n_elements
 
@@ -172,6 +173,7 @@ class HonkProof:
             gemini_a_evaluations=gemini_a_evaluations,
             shplonk_q=shplonk_q,
             kzg_quotient=kzg_quotient,
+            proof_bytes=_bytes,
         )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkProof":
@@ -219,6 +221,7 @@ class HonkProof:
             kzg_quotient=circuit.write_struct(
                 structs.G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
             ),
+            proof_bytes=self.proof_bytes,
         )
 
     def to_cairo(self) -> str:
@@ -369,6 +372,8 @@ class HonkVk:
     t4: G1Point
     lagrange_first: G1Point
     lagrange_last: G1Point
+    vk_hash: int
+    vk_bytes: bytes
 
     def __repr__(self) -> str:
         # Print all fields line by line :
@@ -381,11 +386,15 @@ class HonkVk:
     #     return self.__repr__()
 
     @classmethod
-    def from_bytes(cls, bytes: bytes) -> "HonkVk":
-        circuit_size = int.from_bytes(bytes[0:8], "big")
-        log_circuit_size = int.from_bytes(bytes[8:16], "big")
-        public_inputs_size = int.from_bytes(bytes[16:24], "big")
-        public_inputs_offset = int.from_bytes(bytes[24:32], "big")
+    def from_bytes(cls, _bytes: bytes) -> "HonkVk":
+        vk_hash = sha3.keccak_256(_bytes).digest()
+        vk_hash_int_low, vk_hash_int_high = io.split_128(int.from_bytes(vk_hash, "big"))
+        (vk_hash_int, _, _) = hades_permutation(vk_hash_int_low, vk_hash_int_high, 2)
+
+        circuit_size = int.from_bytes(_bytes[0:8], "big")
+        log_circuit_size = int.from_bytes(_bytes[8:16], "big")
+        public_inputs_size = int.from_bytes(_bytes[16:24], "big")
+        public_inputs_offset = int.from_bytes(_bytes[24:32], "big")
 
         assert circuit_size <= MAX_CIRCUIT_SIZE, f"invalid circuit size: {circuit_size}"
         assert (
@@ -397,7 +406,7 @@ class HonkVk:
 
         cursor = 32
 
-        rest = bytes[cursor:]
+        rest = _bytes[cursor:]
         assert len(rest) % 32 == 0
 
         # print(f"circuit_size: {circuit_size}")
@@ -416,8 +425,8 @@ class HonkVk:
         # Parse all G1Points into a dictionary
         points = {}
         for field_name in g1_fields:
-            x = int.from_bytes(bytes[cursor : cursor + 32], "big")
-            y = int.from_bytes(bytes[cursor + 32 : cursor + 64], "big")
+            x = int.from_bytes(_bytes[cursor : cursor + 32], "big")
+            y = int.from_bytes(_bytes[cursor + 32 : cursor + 64], "big")
             points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
             cursor += 64
         # print(f"points: {points}")
@@ -429,6 +438,8 @@ class HonkVk:
             public_inputs_size=public_inputs_size,
             public_inputs_offset=public_inputs_offset,
             **points,
+            vk_hash=vk_hash_int,
+            vk_bytes=_bytes,
         )
 
     def serialize_to_cairo(self, name: str = "vk") -> str:
@@ -464,6 +475,8 @@ class HonkVk:
                 for field in fields(self)
                 if field.type == G1Point and field.name != "name"
             },
+            vk_hash=self.vk_hash,
+            vk_bytes=self.vk_bytes,
         )
 
     def flatten(self) -> list[int]:
@@ -549,6 +562,7 @@ class HonkTranscript:
     gemini_r: int | ModuloCircuitElement
     shplonk_nu: int | ModuloCircuitElement
     shplonk_z: int | ModuloCircuitElement
+    last_state: tuple[int, int, int]
     public_inputs_delta: int | None = None  # Derived.
 
     def __post_init__(self):
@@ -736,9 +750,10 @@ class HonkTranscript:
         hasher.update(int.to_bytes(y1, 32, "big"))
 
         c8 = hasher.digest_reset()
-        shplonk_z, _ = split_challenge(c8)
+        shplonk_z_low, shplonk_z_high = split_challenge(c8)
 
         # print(f"shplonk_z: {hex(shplonk_z)}")
+        s0, s1, s2 = hades_permutation(shplonk_z_low, shplonk_z_high, 2)
 
         return cls(
             eta=eta,
@@ -752,7 +767,8 @@ class HonkTranscript:
             rho=rho,
             gemini_r=gemini_r,
             shplonk_nu=shplonk_nu,
-            shplonk_z=shplonk_z,
+            shplonk_z=shplonk_z_low,
+            last_state=(s0, s1, s2),
             public_inputs_delta=None,
         )
 
@@ -770,6 +786,7 @@ class HonkTranscript:
             gemini_r=circuit.write_element(self.gemini_r),
             shplonk_nu=circuit.write_element(self.shplonk_nu),
             shplonk_z=circuit.write_element(self.shplonk_z),
+            last_state=self.last_state,
             public_inputs_delta=None,
         )
 
@@ -879,7 +896,7 @@ class HonkVerifierCircuits(ModuloCircuit):
 
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.set_or_get_constant(0)
-        check_rlc = self.set_or_get_constant(0)
+        check_rlc = None
 
         rlc_coeff = base_rlc
         for i, round in enumerate(range(log_n)):
@@ -1247,23 +1264,32 @@ class HonkVerifierCircuits(ModuloCircuit):
     ) -> list[ModuloCircuitElement]:
 
         p = purported_evaluations
+        # Precompute constants
+        minus_one = self.set_or_get_constant(-1)
+
+        # Precompute common terms
+        q_range = p[Wire.Q_RANGE]
+        q_range_times_domain = self.mul(q_range, domain_separator)
+
+        # Compute deltas
         delta_1 = self.sub(p[Wire.W_R], p[Wire.W_L])
         delta_2 = self.sub(p[Wire.W_O], p[Wire.W_R])
         delta_3 = self.sub(p[Wire.W_4], p[Wire.W_O])
         delta_4 = self.sub(p[Wire.W_L_SHIFT], p[Wire.W_4])
 
-        # Contributions 6 - 7 - 8 - 9.
+        # Process each delta
         for i, delta in enumerate([delta_1, delta_2, delta_3, delta_4]):
-            evaluations[6 + i] = self.product(
-                [
-                    delta,
-                    self.add(delta, self.set_or_get_constant(-1)),
-                    self.add(delta, self.set_or_get_constant(-2)),
-                    self.add(delta, self.set_or_get_constant(-3)),
-                    p[Wire.Q_RANGE],
-                    domain_separator,
-                ]
-            )
+            # Compute delta + (-1), delta + (-2), delta + (-3) efficiently
+            delta_minus_1 = self.add(delta, minus_one)
+            delta_minus_2 = self.add(delta_minus_1, minus_one)  # Reuse delta_minus_1
+            delta_minus_3 = self.add(delta_minus_2, minus_one)  # Reuse delta_minus_2
+
+            # Compute product efficiently
+            temp = self.mul(delta, delta_minus_1)
+            temp = self.mul(temp, delta_minus_2)
+            temp = self.mul(temp, delta_minus_3)
+            evaluations[6 + i] = self.mul(temp, q_range_times_domain)
+
         return evaluations
 
     def accumulate_elliptic_relation(
@@ -1887,6 +1913,7 @@ class ZKHonkProof:
     libra_poly_evals: list[int]
     shplonk_q: G1Point
     kzg_quotient: G1Point
+    proof_bytes: bytes
 
     def __post_init__(self):
         assert len(self.libra_commitments) == 3
@@ -1901,11 +1928,11 @@ class ZKHonkProof:
         assert len(self.libra_poly_evals) == 4
 
     @classmethod
-    def from_bytes(cls, bytes: bytes, vk: HonkVk) -> "ZKHonkProof":
-        n_elements = int.from_bytes(bytes[:4], "big")
-        assert len(bytes[4:]) % 32 == 0
+    def from_bytes(cls, _bytes: bytes, vk: HonkVk) -> "ZKHonkProof":
+        n_elements = int.from_bytes(_bytes[:4], "big")
+        assert len(_bytes[4:]) % 32 == 0
         elements = [
-            int.from_bytes(bytes[i : i + 32], "big") for i in range(4, len(bytes), 32)
+            int.from_bytes(_bytes[i : i + 32], "big") for i in range(4, len(_bytes), 32)
         ]
         assert len(elements) == n_elements
 
@@ -2024,6 +2051,7 @@ class ZKHonkProof:
             libra_poly_evals=libra_poly_evals,
             shplonk_q=shplonk_q,
             kzg_quotient=kzg_quotient,
+            proof_bytes=_bytes,
         )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "ZKHonkProof":
@@ -2086,6 +2114,7 @@ class ZKHonkProof:
             kzg_quotient=circuit.write_struct(
                 structs.G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
             ),
+            proof_bytes=self.proof_bytes,
         )
 
     def to_cairo(self) -> str:
@@ -2254,6 +2283,7 @@ class ZKHonkTranscript:
     gemini_r: int | ModuloCircuitElement
     shplonk_nu: int | ModuloCircuitElement
     shplonk_z: int | ModuloCircuitElement
+    last_state: tuple[int, int, int]
     public_inputs_delta: int | None = None  # Derived.
 
     def __post_init__(self):
@@ -2474,9 +2504,11 @@ class ZKHonkTranscript:
         hasher.update(int.to_bytes(y1, 32, "big"))
 
         c8 = hasher.digest_reset()
-        shplonk_z, _ = split_challenge(c8)
+        shplonk_z_low, shplonk_z_high = split_challenge(c8)
 
         # print(f"shplonk_z: {hex(shplonk_z)}")
+
+        s0, s1, s2 = hades_permutation(shplonk_z_low, shplonk_z_high, 2)
 
         return cls(
             eta=eta,
@@ -2491,7 +2523,8 @@ class ZKHonkTranscript:
             rho=rho,
             gemini_r=gemini_r,
             shplonk_nu=shplonk_nu,
-            shplonk_z=shplonk_z,
+            shplonk_z=shplonk_z_low,
+            last_state=(s0, s1, s2),
             public_inputs_delta=None,
         )
 
@@ -2510,6 +2543,7 @@ class ZKHonkTranscript:
             gemini_r=circuit.write_element(self.gemini_r),
             shplonk_nu=circuit.write_element(self.shplonk_nu),
             shplonk_z=circuit.write_element(self.shplonk_z),
+            last_state=self.last_state,
             public_inputs_delta=None,
         )
 
@@ -2575,8 +2609,7 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
         pow_partial_evaluation = self.set_or_get_constant(1)
         round_target = self.mul(libra_challenge, libra_sum)
-        # default 0
-        check_rlc = self.set_or_get_constant(0)
+        check_rlc = None
 
         rlc_coeff = base_rlc
         for i, round in enumerate(range(log_n)):
@@ -2990,7 +3023,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
                 )
 
         numerator = self.mul(
-            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+            vanishing_poly_eval,
+            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
         lagrange_first = self.mul(denominators[0], numerator)
@@ -3107,7 +3141,8 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
             self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
         )
         numerator = self.mul(
-            vanishing_poly_eval, self.inv(self.set_or_get_constant(SUBGROUP_SIZE))
+            vanishing_poly_eval,
+            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
         )
         challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
         lagrange_first = self.mul(denominator_first, numerator)
