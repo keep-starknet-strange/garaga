@@ -302,7 +302,12 @@ mod UltraKeccakHonkVerifier {
             );
 
             // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(scalars, Option::None);
+            let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            for scalar in scalars {
+                epns_low.append(neg_3::scalar_to_epns(*scalar.low));
+                epns_high.append(neg_3::scalar_to_epns(*scalar.high));
+            }
 
             // Hardcoded epns for 2**128
             let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
