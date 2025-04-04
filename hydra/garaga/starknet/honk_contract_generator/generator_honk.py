@@ -822,9 +822,3 @@ if __name__ == "__main__":
             "ultra_keccak_zk_honk_max_log_n",
             system=ProofSystem.UltraKeccakZKHonk,
         )
-        gen_honk_verifier(
-            vk,
-            CONTRACTS_FOLDER,
-            "ultra_starknet_zk_honk_max_log_n",
-            system=ProofSystem.UltraStarknetZKHonk,
-        )
