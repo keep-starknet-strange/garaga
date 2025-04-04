@@ -115,11 +115,6 @@ def complete_network(incomplete: str):
     return [network for network in networks if network.startswith(incomplete)]
 
 
-def complete_fee(incomplete: str):
-    tokens = ["eth", "strk"]
-    return [token for token in tokens if token.startswith(incomplete)]
-
-
 def get_voyager_network_prefix(network: Network) -> str:
     return "" if network == Network.MAINNET else "sepolia."
 

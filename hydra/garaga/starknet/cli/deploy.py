@@ -24,37 +24,23 @@ app = typer.Typer()
 
 
 async def perform_contract_deployment(
-    account, class_hash: str, fee: str, salt: int, precomputed_address: int
+    account, class_hash: str, salt: int, precomputed_address: int
 ) -> Optional[Contract]:
     """Attempt to deploy a contract with the given parameters."""
     try:
-        if fee.lower() == "eth":
-            deploy_result = await Contract.deploy_contract_v1(
-                account=account,
-                class_hash=class_hash,
-                deployer_address=DEPLOYER_ADDRESS,
-                auto_estimate=True,
-                salt=salt,
-                cairo_version=1,
-                abi=[],
-            )
-        elif fee.lower() == "strk":
-            deploy_result = await Contract.deploy_contract_v3(
-                account=account,
-                class_hash=class_hash,
-                deployer_address=DEPLOYER_ADDRESS,
-                auto_estimate=True,
-                salt=salt,
-                cairo_version=1,
-            )
-        else:
-            raise ValueError(f"Invalid fee type: {fee}, must be 'eth' or 'strk'")
-
+        deploy_result = await Contract.deploy_contract_v3(
+            account=account,
+            class_hash=class_hash,
+            deployer_address=DEPLOYER_ADDRESS,
+            auto_estimate=True,
+            salt=salt,
+            cairo_version=1,
+        )
         deploy_result = await deploy_result.wait_for_acceptance()
         return deploy_result.deployed_contract
     except Exception as e:
         print("Waiting for transaction to be accepted...")
-        await asyncio.sleep(5)
+        await asyncio.sleep(5.5)
         contract = await get_contract_if_exists_async(account, precomputed_address)
         if contract:
             return contract
@@ -97,13 +83,12 @@ def deploy(
             case_sensitive=False,
         ),
     ] = Network.SEPOLIA.value,
-    fee: Annotated[
-        str,
+    salt: Annotated[
+        int,
         typer.Option(
-            help="Fee token type [eth, strk]",
-            case_sensitive=False,
+            help="Salt value for contract address calculation (default: 1)",
         ),
-    ] = "strk",
+    ] = 1,
 ):
     """Deploy an instance of a smart contract class hash to Starknet. Obtain its address, the available endpoints and a explorer link."""
 
@@ -111,7 +96,6 @@ def deploy(
     if not Path(env_file).exists():
         raise FileNotFoundError(f"Environment file {env_file} does not exist")
     load_dotenv(env_file)
-    salt = 12
     # Prepare account and compute address
     account = load_account(network)
     class_hash = to_hex_str(class_hash)
@@ -135,7 +119,7 @@ def deploy(
     # Perform deployment
     rich.print(f"Deploying contract with class hash {class_hash}...")
     contract = asyncio.run(
-        perform_contract_deployment(account, class_hash, fee, salt, precomputed_address)
+        perform_contract_deployment(account, class_hash, salt, precomputed_address)
     )
 
     # Handle deployment result

@@ -94,7 +94,7 @@ class SmartContractProject:
                 return False
             raise e
 
-    async def declare_class_hash(self, account: Account, fee="strk") -> tuple[int, str]:
+    async def declare_class_hash(self, account: Account) -> tuple[int, str]:
         """Returns class hash and abi"""
         rich.print(
             f"[bold cyan]Contract project: {self.smart_contract_folder}[/bold cyan]"
@@ -120,15 +120,12 @@ class SmartContractProject:
         )
 
         try:
-            if "eth" in fee.lower():
-                raise ValueError("ETH fee is now obsolete")
-            elif "strk" in fee.lower():
-                declare_result: DeclareResult = await Contract.declare_v3(
-                    account=account,
-                    compiled_contract=sierra,
-                    compiled_contract_casm=casm,
-                    auto_estimate=True,
-                )
+            declare_result: DeclareResult = await Contract.declare_v3(
+                account=account,
+                compiled_contract=sierra,
+                compiled_contract_casm=casm,
+                auto_estimate=True,
+            )
             await declare_result.wait_for_acceptance()
 
             rich.print(
