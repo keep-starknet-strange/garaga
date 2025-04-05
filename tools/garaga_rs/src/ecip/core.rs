@@ -339,9 +339,9 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
             FieldElement::from(3),
         ]);
 
-    let u = dx.clone() * two_y.clone() + FF::new(vec![poly, Polynomial::zero()]);
+    let u = dx * two_y.clone() + FF::new(vec![poly, Polynomial::zero()]);
 
-    let v = two_y * d.clone();
+    let v = two_y * d;
 
     let num = (u * v.clone().neg_y()).reduce();
 
@@ -355,26 +355,24 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
 
     let den = den_ff.coeffs[0].clone();
 
+    let den_lead_inv = den.leading_coefficient().inv().unwrap();
+
     let (_, _, gcd_0) = Polynomial::xgcd(&num.coeffs[0], &den);
     let (_, _, gcd_1) = Polynomial::xgcd(&num.coeffs[1], &den);
 
-    let a_num = num.coeffs[0].clone().divfloor(&gcd_0);
-    let a_den = den.clone().divfloor(&gcd_0);
-    let b_num = num.coeffs[1].clone().divfloor(&gcd_1);
-    let b_den = den.clone().divfloor(&gcd_1);
+    let a_num = num.coeffs[0].divfloor(&gcd_0);
+    let a_den = den.divfloor(&gcd_0);
+    let b_num = num.coeffs[1].divfloor(&gcd_1);
+    let b_den = den.divfloor(&gcd_1);
 
     FunctionFelt {
         a: RationalFunction::new(
-            a_num.scale_by_coeff(&den.leading_coefficient().inv().unwrap()),
-            a_den
-                .clone()
-                .scale_by_coeff(&a_den.leading_coefficient().inv().unwrap()),
+            a_num.scale_by_coeff(&den_lead_inv),
+            a_den.scale_by_coeff(&a_den.leading_coefficient().inv().unwrap()),
         ),
         b: RationalFunction::new(
-            b_num.scale_by_coeff(&den.leading_coefficient().inv().unwrap()),
-            b_den
-                .clone()
-                .scale_by_coeff(&b_den.leading_coefficient().inv().unwrap()),
+            b_num.scale_by_coeff(&den_lead_inv),
+            b_den.scale_by_coeff(&b_den.leading_coefficient().inv().unwrap()),
         ),
     }
 }
