@@ -261,11 +261,19 @@ impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
     }
 }
 
+impl<F: IsPrimeField> std::ops::Neg for &Polynomial<F> {
+    type Output = Polynomial<F>;
+
+    fn neg(self) -> Polynomial<F> {
+        Polynomial::new(self.coefficients.iter().map(|c| -c).collect())
+    }
+}
+
 impl<F: IsPrimeField> std::ops::Neg for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn neg(self) -> Polynomial<F> {
-        Polynomial::new(self.coefficients.into_iter().map(|c| -c).collect())
+        -&self
     }
 }
 
