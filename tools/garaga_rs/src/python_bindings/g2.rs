@@ -100,11 +100,6 @@ pub fn g2_add(
             false => [c_affine.x().value(), c_affine.y().value()],
         };
 
-        println!("x0: {:?}", x0.representative());
-        println!("x1: {:?}", x1.representative());
-        println!("y0: {:?}", y0.representative());
-        println!("y1: {:?}", y1.representative());
-
         let py_tuple = PyTuple::new(
             py,
             [
