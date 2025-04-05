@@ -19,10 +19,6 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
         self.coeffs.len() - 1
     }
 
-    pub fn get(&self, i: usize) -> Polynomial<F> {
-        self.coeffs.get(i).cloned().unwrap_or_else(Polynomial::zero)
-    }
-
     pub fn neg_y(self) -> FF<F> {
         if self.coeffs.len() < 2 {
             self
