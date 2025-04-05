@@ -4,6 +4,8 @@ use lambdaworks_math::field::traits::IsPrimeField;
 #[derive(Debug, Clone)]
 pub struct Polynomial<F: IsPrimeField> {
     pub coefficients: Vec<FieldElement<F>>,
+    // Cache the degree to avoid recomputing it
+    degree: isize,
 }
 
 impl<F: IsPrimeField> Polynomial<F> {
@@ -21,21 +23,24 @@ impl<F: IsPrimeField> Polynomial<F> {
             .rposition(|x| *x != FieldElement::zero());
 
         // Truncate the vector to remove trailing zeros
-        if let Some(pos) = last_non_zero {
+        let degree = if let Some(pos) = last_non_zero {
             coefficients.truncate(pos + 1);
+            pos as isize
         } else {
             // All coefficients are zero, return a zero polynomial
             coefficients = vec![FieldElement::zero()];
-        }
+            -1
+        };
 
-        Self { coefficients }
+        Self {
+            coefficients,
+            degree,
+        }
     }
 
     pub fn print_as_sage_poly(&self) -> String {
         let var_name = 'x';
-        if self.coefficients.is_empty()
-            || self.coefficients.len() == 1 && self.coefficients[0] == FieldElement::zero()
-        {
+        if self.degree == -1 {
             return String::new();
         }
 
@@ -66,40 +71,53 @@ impl<F: IsPrimeField> Polynomial<F> {
         string
     }
 
+    #[inline]
     pub fn degree(&self) -> isize {
-        self.coefficients
-            .iter()
-            .rposition(|coeff| *coeff != FieldElement::<F>::zero())
-            .map(|pos| pos as isize)
-            .unwrap_or(-1)
+        // Use cached degree value
+        self.degree
     }
 
     pub fn evaluate(&self, x: &FieldElement<F>) -> FieldElement<F> {
-        self.coefficients
-            .iter()
-            .rev()
-            .fold(FieldElement::zero(), |acc, coeff| coeff + acc * x)
+        // Use Horner's method for polynomial evaluation
+        if self.degree == -1 {
+            return FieldElement::zero();
+        }
+
+        let mut result = self.coefficients[self.degree as usize].clone();
+        for i in (0..self.degree as usize).rev() {
+            result = &result * x + &self.coefficients[i];
+        }
+        result
     }
 
     pub fn leading_coefficient(&self) -> FieldElement<F> {
-        let index: usize = self.degree().try_into().unwrap();
-        self.coefficients[index].clone()
+        if self.degree == -1 {
+            return FieldElement::zero();
+        }
+        self.coefficients[self.degree as usize].clone()
     }
 
     pub fn zero() -> Self {
-        Polynomial::new(vec![FieldElement::<F>::zero()])
+        Self {
+            coefficients: vec![FieldElement::<F>::zero()],
+            degree: -1,
+        }
     }
 
     pub fn one() -> Self {
-        Polynomial::new(vec![FieldElement::<F>::one()])
+        Self {
+            coefficients: vec![FieldElement::<F>::one()],
+            degree: 0,
+        }
     }
 
     pub fn mul_with_ref(&self, other: &Polynomial<F>) -> Polynomial<F> {
-        if self.degree() == -1 || other.degree() == -1 {
+        if self.degree == -1 || other.degree == -1 {
             return Polynomial::zero();
         }
-        let mut result_coeffs =
-            vec![FieldElement::<F>::zero(); self.coefficients.len() + other.coefficients.len() - 1];
+
+        let result_len = (self.degree + other.degree + 1) as usize;
+        let mut result_coeffs = vec![FieldElement::<F>::zero(); result_len];
 
         for (i, self_coeff) in self.coefficients.iter().enumerate() {
             for (j, other_coeff) in other.coefficients.iter().enumerate() {
@@ -107,14 +125,19 @@ impl<F: IsPrimeField> Polynomial<F> {
             }
         }
 
-        Polynomial::new(result_coeffs)
+        // We already know the degree, so construct directly
+        let degree = self.degree + other.degree;
+        Polynomial {
+            coefficients: result_coeffs,
+            degree,
+        }
     }
     pub fn divmod(self, denominator: &Self) -> (Self, Self) {
-        let den_deg = denominator.degree();
+        let den_deg = denominator.degree;
         if den_deg == -1 {
             panic!("Division by zero polynomial");
         }
-        let num_deg = self.degree();
+        let num_deg = self.degree;
         let mut remainder = self.clone();
         if num_deg < den_deg {
             return (Polynomial::zero(), self);
@@ -132,17 +155,29 @@ impl<F: IsPrimeField> Polynomial<F> {
                 .scale_by_coeff(&coefficient)
                 .shift(shift as usize);
             remainder = remainder - subtractee;
-            rem_deg = remainder.degree();
+            rem_deg = remainder.degree;
         }
 
-        let quotient = Polynomial::new(quotient_coeffs);
+        let degree = num_deg - den_deg;
+        let quotient = Polynomial {
+            coefficients: quotient_coeffs,
+            degree,
+        };
         (quotient, remainder)
     }
 
     pub fn shift(&self, shift: usize) -> Self {
+        if self.degree == -1 {
+            return Polynomial::zero();
+        }
+
         let mut shifted_coeffs = vec![FieldElement::<F>::zero(); shift];
         shifted_coeffs.extend(self.coefficients.clone());
-        Self::new(shifted_coeffs)
+
+        Self {
+            coefficients: shifted_coeffs,
+            degree: self.degree + shift as isize,
+        }
     }
 
     pub fn divfloor(&self, denominator: &Self) -> Self {
@@ -151,34 +186,34 @@ impl<F: IsPrimeField> Polynomial<F> {
     }
 
     pub fn differentiate(&self) -> Self {
-        if self.coefficients.len() <= 1 {
+        if self.degree <= 0 {
             return Polynomial::zero();
         }
 
-        let mut new_coeffs = vec![FieldElement::<F>::zero(); self.coefficients.len() - 1];
+        let new_deg = self.degree - 1;
+        let mut new_coeffs = vec![FieldElement::<F>::zero(); new_deg as usize + 1];
 
-        for (i, coeff) in self.coefficients.iter().enumerate().skip(1) {
+        for i in 1..=self.degree as usize {
             let u_64 = i as u64;
             let degree = &FieldElement::<F>::from(u_64);
-            new_coeffs[i - 1] = coeff * degree;
+            new_coeffs[i - 1] = &self.coefficients[i] * degree;
         }
-        Polynomial::new(new_coeffs)
+
+        Polynomial {
+            coefficients: new_coeffs,
+            degree: new_deg,
+        }
     }
 
     pub fn xgcd(&self, other: &Polynomial<F>) -> (Polynomial<F>, Polynomial<F>, Polynomial<F>) {
-        // println!(
-        //     "Computing xgcd of polynomials of degree {} and {}",
-        //     self.degree(),
-        //     other.degree()
-        // );
         let mut old_r = self.clone();
         let mut r = other.clone();
-        let mut old_s = Polynomial::new(vec![FieldElement::<F>::one()]);
+        let mut old_s = Polynomial::one();
         let mut s = Polynomial::zero();
         let mut old_t = Polynomial::zero();
-        let mut t = Polynomial::new(vec![FieldElement::<F>::one()]);
+        let mut t = Polynomial::one();
 
-        while r.degree() != -1 {
+        while r.degree != -1 {
             let quotient = old_r.clone().div_with_ref(&r);
 
             let new_r = old_r - quotient.clone().mul_with_ref(&r);
@@ -208,12 +243,29 @@ impl<F: IsPrimeField> Polynomial<F> {
     }
 
     pub fn scale_by_coeff(&self, coeff: &FieldElement<F>) -> Polynomial<F> {
-        Polynomial::new(self.coefficients.iter().map(|c| c * coeff).collect())
+        if *coeff == FieldElement::zero() {
+            return Polynomial::zero();
+        }
+
+        if self.degree == -1 {
+            return Polynomial::zero();
+        }
+
+        let scaled_coeffs = self.coefficients.iter().map(|c| c * coeff).collect();
+
+        // Degree remains the same when scaling by non-zero coefficient
+        Polynomial {
+            coefficients: scaled_coeffs,
+            degree: self.degree,
+        }
     }
 }
 
 pub fn pad_with_zero_coefficients_to_length<F: IsPrimeField>(pa: &mut Polynomial<F>, n: usize) {
-    pa.coefficients.resize(n, FieldElement::zero());
+    if pa.coefficients.len() < n {
+        pa.coefficients.resize(n, FieldElement::zero());
+        // Degree doesn't change when adding trailing zeros
+    }
 }
 pub fn pad_with_zero_coefficients<F: IsPrimeField>(
     pa: &Polynomial<F>,
@@ -235,13 +287,39 @@ impl<F: IsPrimeField> std::ops::Add<&Polynomial<F>> for &Polynomial<F> {
 
     fn add(self, a_polynomial: &Polynomial<F>) -> Self::Output {
         let (pa, pb) = pad_with_zero_coefficients(self, a_polynomial);
-        let new_coefficients = pa
-            .coefficients
-            .iter()
-            .zip(pb.coefficients.iter())
-            .map(|(x, y)| x + y)
-            .collect();
-        Polynomial::new(new_coefficients)
+
+        // Calculate new coefficients
+        let mut new_coefficients = Vec::with_capacity(pa.coefficients.len());
+        for (x, y) in pa.coefficients.iter().zip(pb.coefficients.iter()) {
+            new_coefficients.push(x + y);
+        }
+
+        // Find max degree - this is a potential optimization spot if we find this is slow
+        let degree = if self.degree > a_polynomial.degree {
+            self.degree
+        } else if self.degree < a_polynomial.degree {
+            a_polynomial.degree
+        } else {
+            // If degrees are equal, we need to check if leading terms cancel out
+            let mut max_deg = self.degree;
+            // Find the actual degree by scanning backward for first non-zero term
+            while max_deg >= 0 && new_coefficients[max_deg as usize] == FieldElement::<F>::zero() {
+                max_deg -= 1;
+            }
+            max_deg
+        };
+
+        // If degree is -1, ensure we have a single zero
+        if degree == -1 {
+            Polynomial::zero()
+        } else {
+            // Trim the vector to actual degree + 1
+            new_coefficients.truncate(degree as usize + 1);
+            Polynomial {
+                coefficients: new_coefficients,
+                degree,
+            }
+        }
     }
 }
 
@@ -249,17 +327,41 @@ impl<F: IsPrimeField> std::ops::Add for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn add(self, other: Polynomial<F>) -> Polynomial<F> {
-        let (mut longer, shorter) = if self.coefficients.len() >= other.coefficients.len() {
-            (self.coefficients, other.coefficients)
+        // Fast path for zeros
+        if self.degree == -1 {
+            return other;
+        }
+        if other.degree == -1 {
+            return self;
+        }
+
+        let (mut longer, shorter, longer_deg) = if self.degree >= other.degree {
+            (self.coefficients, other.coefficients, self.degree)
         } else {
-            (other.coefficients, self.coefficients)
+            (other.coefficients, self.coefficients, other.degree)
         };
 
+        // Add shorter polynomial terms to longer one
         for (i, coeff) in shorter.into_iter().enumerate() {
             longer[i] += coeff;
         }
 
-        Polynomial::new(longer)
+        // Check if the degree has changed due to cancellations
+        let mut actual_deg = longer_deg;
+        while actual_deg >= 0 && longer[actual_deg as usize] == FieldElement::<F>::zero() {
+            actual_deg -= 1;
+        }
+
+        if actual_deg == -1 {
+            Polynomial::zero()
+        } else {
+            longer.truncate(actual_deg as usize + 1);
+
+            Polynomial {
+                coefficients: longer,
+                degree: actual_deg,
+            }
+        }
     }
 }
 
@@ -267,7 +369,14 @@ impl<F: IsPrimeField> std::ops::Neg for &Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn neg(self) -> Polynomial<F> {
-        Polynomial::new(self.coefficients.iter().map(|c| -c).collect())
+        if self.degree == -1 {
+            return Polynomial::zero();
+        }
+
+        Polynomial {
+            coefficients: self.coefficients.iter().map(|c| -c).collect(),
+            degree: self.degree,
+        }
     }
 }
 
@@ -283,18 +392,33 @@ impl<F: IsPrimeField> std::ops::Sub for Polynomial<F> {
     type Output = Polynomial<F>;
 
     fn sub(self, other: Polynomial<F>) -> Polynomial<F> {
+        // Fast path for zeros
+        if self.degree == -1 {
+            return -other;
+        }
+        if other.degree == -1 {
+            return self;
+        }
+
         self + (-other)
     }
 }
 
 impl<F: IsPrimeField> PartialEq for Polynomial<F> {
     fn eq(&self, other: &Self) -> bool {
-        if self.coefficients.len() != other.coefficients.len() {
+        // Quick check based on degree
+        if self.degree != other.degree {
             return false;
         }
 
-        for (a, b) in self.coefficients.iter().zip(other.coefficients.iter()) {
-            if a != b {
+        // If both are zero polynomials
+        if self.degree == -1 {
+            return true;
+        }
+
+        // Compare coefficients
+        for i in 0..=self.degree as usize {
+            if self.coefficients[i] != other.coefficients[i] {
                 return false;
             }
         }
