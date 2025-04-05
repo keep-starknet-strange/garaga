@@ -159,3 +159,25 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
         FF::new(coeffs)
     }
 }
+
+impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for &FF<F> {
+    type Output = FF<F>;
+
+    fn mul(self, other: Self) -> Self::Output {
+        let max_degree = self.coeffs.len() + other.coeffs.len() - 1;
+        let mut coeffs = vec![Polynomial::zero(); max_degree];
+
+        if self.coeffs.is_empty() || other.coeffs.is_empty() {
+            return FF::new(vec![Polynomial::zero()]);
+        }
+
+        for (i, self_poly) in self.coeffs.iter().enumerate() {
+            for (j, other_poly) in other.coeffs.iter().enumerate() {
+                let product = self_poly * other_poly;
+                coeffs[i + j] = &coeffs[i + j] + &product;
+            }
+        }
+
+        FF::new(coeffs)
+    }
+}

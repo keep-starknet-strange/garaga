@@ -147,6 +147,9 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
         result
     }
+    pub fn new_infinity() -> Self {
+        G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero())
+    }
 }
 
 impl<F: IsPrimeField> PartialEq for G1Point<F> {

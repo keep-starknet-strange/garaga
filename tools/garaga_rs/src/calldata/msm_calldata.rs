@@ -487,7 +487,7 @@ mod tests {
     #[test]
     fn test_calldata_builder() {
         use std::time::Instant;
-        let points = vec![G1Point::<BN254PrimeField>::generator(); 50];
+        let points = vec![G1Point::<BN254PrimeField>::generator(); 100];
         let scalars = [
             BigUint::from_str_radix(
                 "a91a9d1d7ed6ae224a6403e0136b6e3c4f4e34e5e7d3c796e78ac0c9ed7c891",
@@ -740,10 +740,25 @@ mod tests {
             )
             .unwrap(),
         ];
+
+        let scalars_doubled = scalars
+            .iter()
+            .cloned()
+            .chain(scalars.iter().cloned())
+            .collect::<Vec<_>>();
+
         let curve_id = 0;
         let start_time = Instant::now();
         let _ = calldata_builder(
-            &points, &scalars, curve_id, None, false, false, false, None, false,
+            &points,
+            &scalars_doubled,
+            curve_id,
+            None,
+            false,
+            false,
+            false,
+            None,
+            false,
         );
         let end_time = Instant::now();
         println!("Time taken: {:?}", end_time.duration_since(start_time));
