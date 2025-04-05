@@ -14,19 +14,21 @@ impl<F: IsPrimeField> Polynomial<F> {
         coefficients
     }
 
-    pub fn new(coefficients: Vec<FieldElement<F>>) -> Self {
-        // Removes trailing zero coefficients at the end
-        let mut unpadded_coefficients = coefficients
+    pub fn new(mut coefficients: Vec<FieldElement<F>>) -> Self {
+        // Find the position of the last non-zero coefficient
+        let last_non_zero = coefficients
             .iter()
-            .rev()
-            .skip_while(|x| **x == FieldElement::zero())
-            .cloned()
-            .collect::<Vec<FieldElement<F>>>();
-        unpadded_coefficients.reverse();
+            .rposition(|x| *x != FieldElement::zero());
 
-        Self {
-            coefficients: unpadded_coefficients,
+        // Truncate the vector to remove trailing zeros
+        if let Some(pos) = last_non_zero {
+            coefficients.truncate(pos + 1);
+        } else {
+            // All coefficients are zero, return a zero polynomial
+            coefficients = vec![FieldElement::zero()];
         }
+
+        Self { coefficients }
     }
 
     pub fn print_as_sage_poly(&self) -> String {
