@@ -7,6 +7,13 @@ pub struct G1Point<F: IsPrimeField> {
     pub y: FieldElement<F>,
 }
 
+impl<F: IsPrimeField> G1Point<F> {
+    pub fn is_infinity(&self) -> bool {
+        let zero = FieldElement::zero();
+        self.x.eq(&zero) && self.y.eq(&zero)
+    }
+}
+
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     pub fn get_coords(&self) -> ([FieldElement<F>; 1], [FieldElement<F>; 1]) {
         ([self.x.clone()], [self.y.clone()])
@@ -26,11 +33,6 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
 
     pub fn new_unchecked(x: FieldElement<F>, y: FieldElement<F>) -> Self {
         Self { x, y }
-    }
-
-    pub fn is_infinity(&self) -> bool {
-        let zero = FieldElement::zero();
-        self.x.eq(&zero) && self.y.eq(&zero)
     }
 
     pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {
