@@ -8,7 +8,6 @@ use crate::definitions::CurveParamsProvider;
 #[derive(Debug, Clone)]
 pub struct FF<F: IsPrimeField> {
     pub coeffs: Vec<Polynomial<F>>,
-    // pub y2: Polynomial<F>,
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
@@ -132,11 +131,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Add for FF<F> {
         let mut coeffs = vec![Polynomial::zero(); max_degree];
 
         for i in 0..self.coeffs.len() {
-            coeffs[i] = coeffs[i].clone() + self.coeffs[i].clone();
+            coeffs[i] = &coeffs[i] + &self.coeffs[i];
         }
 
         for i in 0..other.coeffs.len() {
-            coeffs[i] = coeffs[i].clone() + other.coeffs[i].clone();
+            coeffs[i] = &coeffs[i] + &other.coeffs[i];
         }
 
         FF::new(coeffs)
@@ -157,7 +156,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
         for (i, self_poly) in self.coeffs.iter().enumerate() {
             for (j, other_poly) in other.coeffs.iter().enumerate() {
                 let product = self_poly * other_poly;
-                coeffs[i + j] = coeffs[i + j].clone() + product;
+                coeffs[i + j] = &coeffs[i + j] + &product;
             }
         }
 
