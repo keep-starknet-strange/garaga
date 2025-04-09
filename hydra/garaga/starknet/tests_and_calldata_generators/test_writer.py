@@ -2,6 +2,7 @@ import concurrent.futures
 import json
 import random
 import subprocess
+import time
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import (
@@ -46,10 +47,8 @@ def generate_msm_test(curve_id, n_points, seed):
     random.seed(seed)
     builder = MSMCalldataBuilder(
         curve_id=curve_id,
-        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
-        + [G1Point.infinity(curve_id)],
-        scalars=[0]
-        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)],
+        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
+        scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
     )
     return builder.to_cairo_1_test()
 
@@ -243,7 +242,8 @@ def get_pairing_config():
 def get_msm_config():
     """Configuration for MSM tests"""
     header = """
-        use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1, MSMHint, DerivePointFromXHint};
+        use garaga::ec_ops::{G1Point, FunctionFelt, u384, u288, msm_g1, MSMHint, DerivePointFromXHint};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     msm_sizes = [1, 2, 3, 4, 10, 11, 12]
@@ -383,4 +383,4 @@ if __name__ == "__main__":
     start = time.time()
     write_all_tests()
     end = time.time()
-    print(f"Time taken: {end - start} seconds")
+    print(f"Time taken to write all tests: {end - start} seconds")
