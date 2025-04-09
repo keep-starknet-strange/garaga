@@ -66,7 +66,22 @@ def get_contract_if_exists(account: Account, contract_address: int) -> Contract 
     except ClientError as e:
         if "no contract with address" in e.message.lower():
             return None
-        raise
+        raise e
+
+
+async def get_contract_if_exists_async(
+    account: Account, contract_address: int
+) -> Contract | None:
+    try:
+        res = await Contract.from_address(contract_address, account)
+        return res
+    except ContractNotFoundError:
+
+        return None
+    except ClientError as e:
+        if "no contract with address" in e.message.lower():
+            return None
+        raise e
 
 
 def get_contract_iff_exists(account: Account, contract_address: int) -> Contract:
@@ -98,11 +113,6 @@ def complete_proof_system(incomplete: str):
 def complete_network(incomplete: str):
     networks = [network.name for network in StarknetChainId]
     return [network for network in networks if network.startswith(incomplete)]
-
-
-def complete_fee(incomplete: str):
-    tokens = ["eth", "strk"]
-    return [token for token in tokens if token.startswith(incomplete)]
 
 
 def get_voyager_network_prefix(network: Network) -> str:

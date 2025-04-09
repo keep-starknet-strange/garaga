@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 from starknet_py.contract import (
     ContractFunction,
     InvokeResult,
-    PreparedFunctionInvokeV1,
     PreparedFunctionInvokeV3,
 )
 
@@ -18,7 +17,6 @@ from garaga.hints.io import to_int
 from garaga.precompiled_circuits.honk import honk_proof_from_bytes
 from garaga.starknet.cli.utils import (
     Network,
-    complete_fee,
     complete_proof_system,
     get_contract_iff_exists,
     get_default_vk_path,
@@ -105,14 +103,6 @@ def verify_onchain(
             case_sensitive=False,
         ),
     ] = Network.SEPOLIA.value,
-    fee: Annotated[
-        str,
-        typer.Option(
-            help="Fee token type [eth, strk]",
-            case_sensitive=False,
-            autocompletion=complete_fee,
-        ),
-    ] = "eth",
 ):
     """Invoke a SNARK verifier on Starknet given a contract address, a proof and a verification key."""
 
@@ -141,28 +131,16 @@ def verify_onchain(
 
     calldata = get_calldata_generic(system, vk, proof, public_inputs)
 
-    if "eth" in fee.lower():
-        prepare_invoke = PreparedFunctionInvokeV1(
-            to_addr=function_call.contract_data.address,
-            calldata=calldata,
-            selector=function_call.get_selector(function_call.name),
-            max_fee=None,
-            _contract_data=function_call.contract_data,
-            _client=function_call.client,
-            _account=function_call.account,
-            _payload_transformer=function_call._payload_transformer,
-        )
-    elif "strk" in fee.lower():
-        prepare_invoke = PreparedFunctionInvokeV3(
-            to_addr=function_call.contract_data.address,
-            calldata=calldata,
-            selector=function_call.get_selector(function_call.name),
-            l1_resource_bounds=None,
-            _contract_data=function_call.contract_data,
-            _client=function_call.client,
-            _account=function_call.account,
-            _payload_transformer=function_call._payload_transformer,
-        )
+    prepare_invoke = PreparedFunctionInvokeV3(
+        to_addr=function_call.contract_data.address,
+        calldata=calldata,
+        selector=function_call.get_selector(function_call.name),
+        _contract_data=function_call.contract_data,
+        _client=function_call.client,
+        _account=function_call.account,
+        _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
+    )
 
     invoke_result: InvokeResult = asyncio.run(prepare_invoke.invoke(auto_estimate=True))
 
