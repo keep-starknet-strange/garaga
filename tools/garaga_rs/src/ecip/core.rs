@@ -165,7 +165,7 @@ fn line_p_p_neg<F: IsPrimeField + CurveParamsProvider<F>>(p: &G1Point<F>) -> FF<
     }
 
     // (-px + x) + 0 * y
-    return FF::new(vec![Polynomial::new(vec![-&p.x, FieldElement::one()])]);
+    FF::new(vec![Polynomial::new(vec![-&p.x, FieldElement::one()])])
 }
 
 // Equivalent to (line(a, a.neg()) * line(b, b.neg())).to_poly()
@@ -174,19 +174,17 @@ fn mul_line_line_p_p_neg<F: IsPrimeField>(p: &G1Point<F>, q: &G1Point<F>) -> Pol
         // 1
         if q.is_infinity() {
             // 1
-            return Polynomial::one();
+            Polynomial::one()
         } else {
             // -qx + X
-            return Polynomial::new(vec![-&q.x, FieldElement::one()]);
+            Polynomial::new(vec![-&q.x, FieldElement::one()])
         }
+    } else if q.is_infinity() {
+        // -px + X
+        Polynomial::new(vec![-&p.x, FieldElement::one()])
     } else {
-        if q.is_infinity() {
-            // -px + X
-            return Polynomial::new(vec![-&p.x, FieldElement::one()]);
-        } else {
-            // (-px+X) * (-qx+X) = px*qx -px * X - qx* X + X^2 = px*qx -(px + qx)X + X^2
-            return Polynomial::new(vec![&p.x * &q.x, -&p.x - &q.x, FieldElement::one()]);
-        }
+        // (-px+X) * (-qx+X) = px*qx -px * X - qx* X + X^2 = px*qx -(px + qx)X + X^2
+        Polynomial::new(vec![&p.x * &q.x, -&p.x - &q.x, FieldElement::one()])
     }
 }
 
@@ -257,10 +255,10 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
             let (b, b_num) = &xs[2 * n + 1];
             let a_num_b_num = a_num * b_num;
 
-            let line_ab = line(&a, &b);
+            let line_ab = line(a, b);
             let product = a_num_b_num * line_ab;
             let num = product.reduce();
-            let den = mul_line_line_p_p_neg(&a, &b);
+            let den = mul_line_line_p_p_neg(a, b);
             let d = num.div_by_poly(&den);
             xs2.push((a.add(b), d));
         }
