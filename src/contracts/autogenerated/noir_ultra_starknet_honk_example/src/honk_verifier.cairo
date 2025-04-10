@@ -21,9 +21,7 @@ mod UltraStarknetHonkVerifier {
     use garaga::core::circuit::{
         U32IntoU384, U64IntoU384, into_u256_unchecked, u288IntoCircuitInputValue,
     };
-    use garaga::definitions::{
-        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a, u288,
-    };
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, u288};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
@@ -253,11 +251,12 @@ mod UltraStarknetHonkVerifier {
 
             // Check input points are on curve. No need to hash them : they are already in the
             // transcript + we precompute the VK hash.
-            // Skip the first 27 points as they are from VK and keep the last 13 proof points
-            for point in points.slice(27, 13) {
-                // assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
-                let is_on_curve = is_on_curve_bn254(*point, mod_bn);
-                println!("is_on_curve: {}", is_on_curve);
+            // Skip the first 28 points as they are from VK and keep the last 13 proof points
+            // TODO : Remove "+1" IN GENERATOR TEMPLATE ONCE BB IS UPGRADED TO v0.84.0.
+            for point in points.slice(28, 13) {
+                assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
+                // let is_on_curve = is_on_curve_bn254(*point, mod_bn);
+            // println!("is_on_curve: {}", is_on_curve);
             }
 
             // Assert shplonk_q is on curve
@@ -309,11 +308,16 @@ mod UltraStarknetHonkVerifier {
 
             // Get slope, intercept and other constant from random point
             let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0,
+                random_point, Zero::zero(), 0,
             );
 
             // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(scalars, Option::None);
+            let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            for scalar in scalars {
+                epns_low.append(neg_3::scalar_to_epns(*scalar.low));
+                epns_high.append(neg_3::scalar_to_epns(*scalar.high));
+            }
 
             // Hardcoded epns for 2**128
             let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![

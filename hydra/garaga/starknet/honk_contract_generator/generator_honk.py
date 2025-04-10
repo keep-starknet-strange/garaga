@@ -109,10 +109,11 @@ def get_msm_kzg_template(
 
             // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
             // Skip the first {n_vk_points} points as they are from VK and keep the last {n_proof_points} proof points
+            // TODO : Remove "+1" IN GENERATOR TEMPLATE ONCE BB IS UPGRADED TO v0.84.0.
             for point in points.slice({n_vk_points}, {n_proof_points}) {{
-                // assert({is_on_curve_function_name}(*point, mod_bn), 'proof point not on curve');
-                let is_on_curve = {is_on_curve_function_name}(*point, mod_bn);
-                println!("is_on_curve: {{}}", is_on_curve);
+                assert({is_on_curve_function_name}(*point, mod_bn), 'proof point not on curve');
+                // let is_on_curve = {is_on_curve_function_name}(*point, mod_bn);
+                // println!("is_on_curve: {{}}", is_on_curve);
             }};
 
             // Assert shplonk_q is on curve
@@ -149,13 +150,16 @@ def get_msm_kzg_template(
 
             // Get slope, intercept and other constant from random point
             let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0
+                random_point, Zero::zero(), 0
             );
 
             // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-                scalars, Option::None
-            );
+            let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            for scalar in scalars {{
+                epns_low.append(neg_3::scalar_to_epns(*scalar.low));
+                epns_high.append(neg_3::scalar_to_epns(*scalar.high));
+            }}
 
             // Hardcoded epns for 2**128
             let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
@@ -202,7 +206,8 @@ def get_msm_kzg_template(
         """.format(
         lhs_ecip_function_name=lhs_ecip_function_name,
         msm_len=msm_size,
-        n_vk_points=n_vk_points,
+        n_vk_points=n_vk_points
+        + 1,  # TODO : Remove "+1" IN GENERATOR ONCE BB IS UPGRADED TO v0.84.0.
         n_proof_points=n_proof_points,
         is_on_curve_function_name=is_on_curve_function_name,
     )
@@ -384,7 +389,7 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_BN254_modulus, u288}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, u288}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
