@@ -237,7 +237,6 @@ def compile_circuit(
     circuit_class: BaseModuloCircuit,
     params: list[dict],
     compilation_mode: int,
-    filename_key: str,
 ) -> tuple[list[str], list[str], list[BaseModuloCircuit]]:
     """
     Compile a list of circuit instances to Cairo code.

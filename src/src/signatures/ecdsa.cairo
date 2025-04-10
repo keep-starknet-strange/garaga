@@ -4,7 +4,7 @@ use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1, u384};
+use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1_2_points, u384};
 use garaga::utils::hashing::HashFeltTranscriptTrait;
 use garaga::utils::u384_eq_zero;
 
@@ -109,7 +109,9 @@ pub fn is_valid_ecdsa_signature<
     // Compute R' = u₁G + u₂P using MSM
     let points = array![get_G(curve_id), pk_point].span();
     let scalars = array![u1, u2].span();
-    let R_prime = msm_g1(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
+    let R_prime = msm_g1_2_points(
+        Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id,
+    );
 
     // Check R'.x mod n equals r and R'.y parity matches v
     // Note : if cofactor is 1, no need to reduce r_prime.x mod n

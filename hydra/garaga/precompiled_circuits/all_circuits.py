@@ -554,7 +554,6 @@ def compile_circuits(
                 circuit_info["class"],
                 circuit_info["params"],
                 compilation_mode,
-                filename_key,
             )
             codes[filename_key].update(compiled_circuits)
             for circuit_instance in circuit_instances:

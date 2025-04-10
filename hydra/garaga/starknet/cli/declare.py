@@ -13,7 +13,7 @@ from starknet_py.net.signer.stark_curve_signer import KeyPair
 
 from garaga.hints.io import to_int
 from garaga.starknet.cli.smart_contract_project import SmartContractProject
-from garaga.starknet.cli.utils import Network, complete_fee, voyager_link_class
+from garaga.starknet.cli.utils import Network, voyager_link_class
 
 app = typer.Typer()
 
@@ -46,14 +46,6 @@ def declare(
             case_sensitive=False,
         ),
     ] = Network.SEPOLIA.value,
-    fee: Annotated[
-        str,
-        typer.Option(
-            help="Fee token type [eth, strk]",
-            case_sensitive=False,
-            autocompletion=complete_fee,
-        ),
-    ] = "eth",
 ):
     """Declare your smart contract to Starknet. Obtain its class hash and a explorer link."""
 
@@ -85,9 +77,7 @@ def declare(
     project = SmartContractProject(project_path)
 
     try:
-        class_hash, _ = asyncio.run(
-            project.declare_class_hash(account=account, fee=fee)
-        )
+        class_hash, _ = asyncio.run(project.declare_class_hash(account=account))
         rich.print(
             f"[bold green]Class hash: {hex(class_hash)} [/bold green] is available on [bold]{network.name}[/bold]"
         )

@@ -4,7 +4,7 @@ use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1, u384};
+use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1_2_points, u384};
 use garaga::utils::hashing::HashFeltTranscriptTrait;
 use garaga::utils::u384_eq_zero;
 
@@ -120,7 +120,7 @@ pub fn is_valid_schnorr_signature<
     let points = array![get_G(curve_id), pk_point].span();
     let scalars = array![s, e_neg].span();
 
-    let res = msm_g1(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
+    let res = msm_g1_2_points(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
 
     let ry_l0_f252: felt252 = res.y.limb0.into();
     let ry_l0_u128: u128 = ry_l0_f252.try_into().unwrap();

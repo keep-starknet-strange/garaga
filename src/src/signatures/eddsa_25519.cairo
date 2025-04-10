@@ -10,7 +10,9 @@ use garaga::definitions::{
     Zero, deserialize_u384, get_ED25519_modulus, get_G, get_curve_order_modulus, get_modulus, get_n,
     serialize_u384, u288, u288Serde,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, ec_safe_add, msm_g1};
+use garaga::ec_ops::{
+    DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, ec_safe_add, msm_g1_2_points,
+};
 use garaga::hashes::sha_512::{Word64, _sha512, from_WordArray_to_u8array};
 use garaga::utils::u384_eq_zero;
 
@@ -145,7 +147,7 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let points: Span<G1Point> = array![G_neg, P].span();
     let scalars: Span<u256> = array![s, h_mod_p.try_into().unwrap()].span();
 
-    let msm_result = msm_g1(None, msm_hint, msm_derive_hint, points, scalars, 4);
+    let msm_result = msm_g1_2_points(None, msm_hint, msm_derive_hint, points, scalars, 4);
 
     return ec_safe_add(msm_result, R, 4).is_infinity();
 }
