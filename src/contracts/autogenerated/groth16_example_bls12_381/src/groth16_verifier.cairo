@@ -18,7 +18,7 @@ mod Groth16VerifierBLS12_381 {
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x30490df346e1c3b4ff5a8d9d3e296962e3bcb8b3a959211995c9a6620a1e3e2;
+        0x3f93fd5cd2fb9a3b72a91d5f3b465728b6a6af01f6bb1dba576665f70e13b39;
 
     #[storage]
     struct Storage {}
@@ -61,7 +61,7 @@ mod Groth16VerifierBLS12_381 {
                     // to obtain vk_x.
                     let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                        selector!("msm_g1"),
+                        selector!("msm_g1_u384"),
                         msm_calldata.span(),
                     )
                         .unwrap_syscall();

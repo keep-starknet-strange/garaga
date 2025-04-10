@@ -148,11 +148,11 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
                 proof_path=proof_path, public_inputs_path=None
             ),
             selector=function_call.get_selector(function_call.name),
-            l1_resource_bounds=None,
             _contract_data=function_call.contract_data,
             _client=function_call.client,
             _account=function_call.account,
             _payload_transformer=function_call._payload_transformer,
+            resource_bounds=None,
         )
 
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
@@ -162,7 +162,9 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
         print(f"Invoke result : {invoke_result.status}")
 
         receipt = await account.client.get_transaction_receipt(invoke_result.hash)
-        print(receipt.execution_resources)
+        print(
+            f"Execution resources: {contract_project.smart_contract_folder} \n{receipt.execution_resources}"
+        )
 
 
 @pytest.mark.asyncio
@@ -224,11 +226,11 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
             to_addr=function_call.contract_data.address,
             calldata=drand_round_to_calldata(drand_round),
             selector=function_call.get_selector(function_call.name),
-            l1_resource_bounds=None,
             _contract_data=function_call.contract_data,
             _client=function_call.client,
             _account=function_call.account,
             _payload_transformer=function_call._payload_transformer,
+            resource_bounds=None,
         )
 
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
@@ -334,11 +336,11 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
             vk=vk, proof=proof, system=system
         ),
         selector=function_call.get_selector(function_call.name),
-        l1_resource_bounds=None,
         _contract_data=function_call.contract_data,
         _client=function_call.client,
         _account=function_call.account,
         _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
     )
 
     invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
@@ -348,7 +350,9 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     print(f"Invoke result : {invoke_result.status}")
 
     receipt = await account.client.get_transaction_receipt(invoke_result.hash)
-    print(receipt.execution_resources)
+    print(
+        f"Execution resources: {contract_project.smart_contract_folder} \n{receipt.execution_resources}\n"
+    )
 
 
 @pytest.mark.asyncio
@@ -438,11 +442,11 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
             proof_path=proof_path, public_inputs_path=None
         ),
         selector=function_call.get_selector(function_call.name),
-        l1_resource_bounds=None,
         _contract_data=function_call.contract_data,
         _client=function_call.client,
         _account=function_call.account,
         _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
     )
 
     invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)

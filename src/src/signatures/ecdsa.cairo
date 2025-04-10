@@ -1,9 +1,11 @@
 use core::circuit::{CircuitModulus, u96};
 use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p};
+use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1, u384};
+use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1_2_points, u384};
+use garaga::utils::hashing::HashFeltTranscriptTrait;
 use garaga::utils::u384_eq_zero;
 
 /// An ECDSA signature with associated public key and message hash.
@@ -52,9 +54,9 @@ impl SerdeECDSASignature of Serde<ECDSASignature> {
 /// * `msm_hint`: `MSMHint` - Hint for multi-scalar multiplication computation.
 /// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving point from x-coordinate.
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct ECDSASignatureWithHint {
+struct ECDSASignatureWithHint<T> {
     signature: ECDSASignature,
-    msm_hint: MSMHint,
+    msm_hint: MSMHint<T>,
     msm_derive_hint: DerivePointFromXHint,
 }
 
@@ -74,7 +76,11 @@ struct ECDSASignatureWithHint {
 /// 6. Verify that R'.x mod n equals r and R'.y's parity matches v
 /// /!\ Behaviour unclear for cofactor > 1.
 /// (BN254, SECP256K1/R1, GRUMPKIN) A.
-pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usize) -> bool {
+pub fn is_valid_ecdsa_signature<
+    T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
+>(
+    signature: ECDSASignatureWithHint<T>, curve_id: usize,
+) -> bool {
     let ECDSASignatureWithHint { signature, msm_hint, msm_derive_hint } = signature;
     let ECDSASignature { rx, s, v, px, py, z } = signature;
 
@@ -103,7 +109,9 @@ pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usi
     // Compute R' = u₁G + u₂P using MSM
     let points = array![get_G(curve_id), pk_point].span();
     let scalars = array![u1, u2].span();
-    let R_prime = msm_g1(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
+    let R_prime = msm_g1_2_points(
+        Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id,
+    );
 
     // Check R'.x mod n equals r and R'.y parity matches v
     // Note : if cofactor is 1, no need to reduce r_prime.x mod n

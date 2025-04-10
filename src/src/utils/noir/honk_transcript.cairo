@@ -7,6 +7,7 @@ use garaga::utils::noir::{G1Point256, G1PointProof, HonkProof, HonkVk};
 
 const POW2_136: u256 = 0x10000000000000000000000000000000000;
 const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
+const POW2_8: NonZero<u128> = 0x100;
 const Fr: u256 = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
 
 const NUMBER_OF_SUBRELATIONS: usize = 26;
@@ -24,17 +25,15 @@ impl ProofPointIntoPoint256 of Into<G1PointProof, G1Point256> {
 
 impl Point256IntoProofPoint of Into<G1Point256, G1PointProof> {
     fn into(self: G1Point256) -> G1PointProof {
-        let (x1, x0) = DivRem::div_rem(self.x, POW2_136_NZ);
-        let (y1, y0) = DivRem::div_rem(self.y, POW2_136_NZ);
-        G1PointProof { x0: x0, x1: x1, y0: y0, y1: y1 }
-    }
-}
+        // x and y splitted between low 136 bits and high 120 bits.
+        let (x_high_120, x_mid_8) = DivRem::div_rem(self.x.high, POW2_8);
+        let x_low = u256 { low: self.x.low, high: x_mid_8 };
+        let x_high = u256 { low: x_high_120, high: 0 };
 
-impl ProofPointIntoCircuitPoint of Into<G1PointProof, G1Point> {
-    fn into(self: G1PointProof) -> G1Point {
-        let pt_256: G1Point256 = self.into();
-        let pt: G1Point = G1Point { x: pt_256.x.into(), y: pt_256.y.into() };
-        pt
+        let (y_high_120, y_mid_8) = DivRem::div_rem(self.y.high, POW2_8);
+        let y_low = u256 { low: self.y.low, high: y_mid_8 };
+        let y_high = u256 { low: y_high_120, high: 0 };
+        G1PointProof { x0: x_low, x1: x_high, y0: y_low, y1: y_high }
     }
 }
 
@@ -141,7 +140,7 @@ impl StarknetHasher of IHasher<StarknetHasherState> {
     }
     #[inline]
     fn update_gen_point(ref self: StarknetHasherState) {
-        // Constant Gen Point (1, 2) converted into G1PointProof and correctly reversed for keccak.
+        // Constant Gen Point (1, 2) pre-converted into G1PointProof
         let (s0, s1, s2) = hades_permutation(self.s0 + 1, self.s1, self.s2);
         let (s0, s1, s2) = hades_permutation(s0, s1, s2);
         let (s0, s1, s2) = hades_permutation(s0 + 2, s1, s2);

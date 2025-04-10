@@ -632,6 +632,7 @@ pub fn get_honk_calldata(
         false,
         false,
         Some((external_s0, external_s1)),
+        true,
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -958,8 +959,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let mut pos_inverted_denominator = (shplonk_z - &powers_of_evaluations_challenge[0]).inv()?;
-    let mut neg_inverted_denominator = (shplonk_z + &powers_of_evaluations_challenge[0]).inv()?;
+    let mut pos_inverted_denominator = (shplonk_z - powers_of_evaluations_challenge[0]).inv()?;
+    let mut neg_inverted_denominator = (shplonk_z + powers_of_evaluations_challenge[0]).inv()?;
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
@@ -979,7 +980,7 @@ fn compute_shplemini_msm_scalars(
 
         {
             let unshifted_scalar =
-                -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
+                -(pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator));
             for i in 1..NUMBER_UNSHIFTED + 1 {
                 scalars[i] = Some(unshifted_scalar * batching_challenge);
                 batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
@@ -989,7 +990,7 @@ fn compute_shplemini_msm_scalars(
 
         {
             let shifted_scalar = -(gemini_r.inv()?
-                * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
+                * (pos_inverted_denominator - (shplonk_nu * neg_inverted_denominator)));
             for i in NUMBER_UNSHIFTED + 1..NUMBER_OF_ENTITIES + 1 {
                 scalars[i] = Some(shifted_scalar * batching_challenge);
                 batched_evaluation += sumcheck_evaluations[i - 1] * batching_challenge;
@@ -1011,8 +1012,8 @@ fn compute_shplemini_msm_scalars(
             let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
             let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
                 * challenge_power
-                * &batched_eval_accumulator)
-                - (eval_neg * (&term - u));
+                * batched_eval_accumulator)
+                - (eval_neg * (term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
             values[i] = batched_eval_accumulator;
@@ -1020,8 +1021,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let mut constant_term_accumulator = &fold_pos_evaluations[0] * pos_inverted_denominator;
-    constant_term_accumulator += &gemini_a_evaluations[0] * shplonk_nu * &neg_inverted_denominator;
+    let mut constant_term_accumulator = fold_pos_evaluations[0] * pos_inverted_denominator;
+    constant_term_accumulator += gemini_a_evaluations[0] * shplonk_nu * neg_inverted_denominator;
 
     {
         let mut batching_challenge = shplonk_nu * shplonk_nu;
@@ -1030,18 +1031,17 @@ fn compute_shplemini_msm_scalars(
             let dummy_round = i >= (log_circuit_size - 1);
             if !dummy_round {
                 pos_inverted_denominator =
-                    (shplonk_z - &powers_of_evaluations_challenge[i + 1]).inv()?;
+                    (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
                 neg_inverted_denominator =
-                    (shplonk_z + &powers_of_evaluations_challenge[i + 1]).inv()?;
+                    (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
 
-                let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
-                let scaling_factor_neg =
-                    &batching_challenge * shplonk_nu * neg_inverted_denominator;
+                let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
+                let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
                 scalars[NUMBER_OF_ENTITIES + i + 1] =
                     Some(-(scaling_factor_neg + scaling_factor_pos));
 
-                let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
-                accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
+                let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
+                accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
                 constant_term_accumulator += accum_contribution;
             }
             // skip last round:
@@ -1107,8 +1107,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            183, 173, 188, 105, 230, 57, 139, 92, 22, 130, 226, 140, 122, 10, 53, 6, 182, 119, 118,
-            246, 44, 239, 114, 72, 103, 218, 110, 19, 137, 229, 35, 40,
+            78, 12, 30, 28, 236, 52, 212, 197, 167, 133, 18, 252, 171, 98, 87, 48, 4, 133, 250,
+            162, 58, 171, 182, 70, 14, 198, 146, 146, 176, 179, 62, 207,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1125,8 +1125,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            146, 109, 252, 199, 101, 181, 213, 139, 133, 150, 63, 23, 184, 20, 70, 93, 138, 148,
-            238, 243, 146, 93, 208, 184, 116, 192, 35, 89, 28, 174, 85, 1,
+            225, 23, 96, 229, 195, 96, 26, 218, 192, 31, 153, 88, 153, 228, 201, 50, 168, 125, 202,
+            197, 194, 230, 142, 0, 220, 243, 200, 211, 172, 104, 163, 174,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

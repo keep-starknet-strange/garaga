@@ -44,7 +44,7 @@ mod UltraKeccakHonkVerifier {
     #[derive(Drop, Serde)]
     struct FullProof {
         proof: HonkProof,
-        msm_hint_batched: MSMHint,
+        msm_hint_batched: MSMHint<u288>,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint: MPCheckHintBN254,
     }

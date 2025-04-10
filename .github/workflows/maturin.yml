@@ -1,12 +1,8 @@
 name: CI
 on:
   push:
-    branches:
-      - main
-      - master
     tags:
       - '*'
-  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -23,7 +19,7 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
+          concurrent_skipping: 'never'
           paths_ignore: '["**/README.md", "**/docs/**"]'
 
   linux:

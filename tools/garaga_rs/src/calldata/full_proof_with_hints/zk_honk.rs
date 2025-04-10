@@ -546,6 +546,7 @@ pub fn get_zk_honk_calldata(
         false,
         false,
         Some((external_s0, external_s1)),
+        true,
     );
 
     let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
@@ -792,8 +793,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let mut pos_inverted_denominator = (shplonk_z - &powers_of_evaluations_challenge[0]).inv()?;
-    let mut neg_inverted_denominator = (shplonk_z + &powers_of_evaluations_challenge[0]).inv()?;
+    let mut pos_inverted_denominator = (shplonk_z - powers_of_evaluations_challenge[0]).inv()?;
+    let mut neg_inverted_denominator = (shplonk_z + powers_of_evaluations_challenge[0]).inv()?;
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
@@ -804,10 +805,10 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let unshifted_scalar = -(&pos_inverted_denominator + (shplonk_nu * &neg_inverted_denominator));
+    let unshifted_scalar = -(pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator));
 
     let shifted_scalar =
-        -(gemini_r.inv()? * (&pos_inverted_denominator - (shplonk_nu * &neg_inverted_denominator)));
+        -(gemini_r.inv()? * (pos_inverted_denominator - (shplonk_nu * neg_inverted_denominator)));
 
     scalars[0] = Some(FieldElement::one());
 
@@ -839,8 +840,8 @@ fn compute_shplemini_msm_scalars(
             let term = challenge_power * (FieldElement::<GrumpkinPrimeField>::one() - u);
             let batched_eval_round_acc = (FieldElement::<GrumpkinPrimeField>::from(2)
                 * challenge_power
-                * &batched_eval_accumulator)
-                - (eval_neg * (&term - u));
+                * batched_eval_accumulator)
+                - (eval_neg * (term - u));
             let den = term + u;
             batched_eval_accumulator = batched_eval_round_acc * den.inv()?;
             values[i] = batched_eval_accumulator;
@@ -848,8 +849,8 @@ fn compute_shplemini_msm_scalars(
         values
     };
 
-    let mut constant_term_accumulator = &fold_pos_evaluations[0] * pos_inverted_denominator;
-    constant_term_accumulator += &gemini_a_evaluations[0] * shplonk_nu * &neg_inverted_denominator;
+    let mut constant_term_accumulator = fold_pos_evaluations[0] * pos_inverted_denominator;
+    constant_term_accumulator += gemini_a_evaluations[0] * shplonk_nu * neg_inverted_denominator;
 
     let mut batching_challenge = shplonk_nu * shplonk_nu;
 
@@ -857,16 +858,16 @@ fn compute_shplemini_msm_scalars(
         let dummy_round = i >= (log_circuit_size - 1);
         if !dummy_round {
             pos_inverted_denominator =
-                (shplonk_z - &powers_of_evaluations_challenge[i + 1]).inv()?;
+                (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
             neg_inverted_denominator =
-                (shplonk_z + &powers_of_evaluations_challenge[i + 1]).inv()?;
+                (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
 
-            let scaling_factor_pos = &batching_challenge * pos_inverted_denominator;
-            let scaling_factor_neg = &batching_challenge * shplonk_nu * neg_inverted_denominator;
+            let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
+            let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
             scalars[NUMBER_OF_ENTITIES + i + 2] = Some(-(scaling_factor_neg + scaling_factor_pos));
 
-            let mut accum_contribution = scaling_factor_neg * &gemini_a_evaluations[i + 1];
-            accum_contribution += scaling_factor_pos * &fold_pos_evaluations[i + 1];
+            let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
+            accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
             constant_term_accumulator += accum_contribution;
         }
         batching_challenge *= shplonk_nu * shplonk_nu;
@@ -958,23 +959,22 @@ fn check_evals_consistency(
     let mut challenge_poly_eval = FieldElement::<GrumpkinPrimeField>::from(0);
     let mut denominators = vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
     for idx in 0..SUBGROUP_SIZE {
-        denominators[idx] = &root_power * gemini_r - FieldElement::<GrumpkinPrimeField>::from(1);
+        denominators[idx] = root_power * gemini_r - FieldElement::<GrumpkinPrimeField>::from(1);
         denominators[idx] = denominators[idx].inv()?;
-        challenge_poly_eval =
-            &challenge_poly_eval + challenge_poly_lagrange[idx] * denominators[idx];
-        root_power = root_power * subgroup_generator_inverse;
+        challenge_poly_eval += challenge_poly_lagrange[idx] * denominators[idx];
+        root_power *= subgroup_generator_inverse;
     }
 
-    let numerator = &vanishing_poly_eval
+    let numerator = vanishing_poly_eval
         * FieldElement::<GrumpkinPrimeField>::from(SUBGROUP_SIZE as u64).inv()?;
-    challenge_poly_eval = challenge_poly_eval * numerator;
+    challenge_poly_eval *= numerator;
     let lagrange_first = denominators[0] * numerator;
     let lagrange_last = denominators[SUBGROUP_SIZE - 1] * numerator;
 
     let mut diff = lagrange_first * libra_poly_evals[2];
-    diff += (gemini_r - &subgroup_generator_inverse)
+    diff += (gemini_r - subgroup_generator_inverse)
         * (libra_poly_evals[1] - libra_poly_evals[2] - libra_poly_evals[0] * challenge_poly_eval);
-    diff = &diff + &lagrange_last * (&libra_poly_evals[2] - libra_evaluation)
+    diff = diff + lagrange_last * (libra_poly_evals[2] - libra_evaluation)
         - vanishing_poly_eval * libra_poly_evals[3];
     if diff != FieldElement::<GrumpkinPrimeField>::from(0) {
         return Ok(false);
@@ -1012,8 +1012,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            181, 228, 20, 28, 177, 38, 26, 198, 225, 202, 62, 190, 83, 23, 147, 21, 118, 74, 25,
-            220, 145, 13, 139, 23, 125, 98, 130, 93, 122, 243, 18, 238,
+            181, 137, 164, 134, 89, 213, 89, 181, 45, 121, 80, 139, 205, 9, 83, 215, 192, 46, 197,
+            15, 235, 67, 53, 133, 104, 65, 26, 173, 116, 252, 55, 204,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1030,8 +1030,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            9, 56, 48, 41, 155, 28, 185, 27, 123, 174, 5, 168, 26, 250, 47, 66, 48, 85, 236, 176,
-            60, 16, 13, 220, 60, 106, 225, 53, 135, 25, 110, 44,
+            48, 251, 67, 183, 107, 161, 100, 217, 217, 9, 80, 133, 42, 84, 72, 172, 2, 205, 103,
+            126, 113, 192, 107, 66, 87, 173, 230, 103, 251, 179, 199, 173,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

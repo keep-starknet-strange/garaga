@@ -3,7 +3,6 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
@@ -40,7 +39,6 @@ mod UltraStarknetZKHonkVerifier {
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
     };
 
@@ -50,7 +48,7 @@ mod UltraStarknetZKHonkVerifier {
     #[derive(Drop, Serde)]
     struct FullProof {
         proof: ZKHonkProof,
-        msm_hint_batched: MSMHint,
+        msm_hint_batched: MSMHint<u288>,
         derive_point_from_x_hint: DerivePointFromXHint,
         kzg_hint: MPCheckHintBN254,
     }
@@ -164,7 +162,7 @@ mod UltraStarknetZKHonkVerifier {
                 scalar_71,
                 scalar_72,
             ) =
-                run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
+                run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 p_gemini_masking_eval: u256_to_u384(full_proof.proof.gemini_masking_eval),
                 p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
