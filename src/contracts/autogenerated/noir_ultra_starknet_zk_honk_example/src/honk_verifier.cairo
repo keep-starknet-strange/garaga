@@ -1,5 +1,6 @@
 use super::honk_verifier_circuits::{
     is_on_curve_bn254, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+    run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
@@ -20,7 +21,9 @@ mod UltraStarknetZKHonkVerifier {
     use core::poseidon::hades_permutation;
     use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384};
+    use garaga::core::circuit::{
+        U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384, u288IntoCircuitInputValue,
+    };
     use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
@@ -36,6 +39,7 @@ mod UltraStarknetZKHonkVerifier {
     use super::{
         VK_HASH, is_on_curve_bn254, precomputed_lines,
         run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
+        run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
