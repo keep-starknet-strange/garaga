@@ -827,6 +827,141 @@ fn compute_rhs_ecip(
     }
 }
 
+// A version of msm_g1 that works with 2 points only to reduce bytecode size.
+fn msm_g1_2_points<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
+    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
+    hint: MSMHint<T>,
+    derive_point_from_x_hint: DerivePointFromXHint,
+    points: Span<G1Point>,
+    scalars: Span<u256>,
+    curve_index: usize,
+) -> G1Point {
+    let n = scalars.len();
+    assert!(n == points.len(), "scalars and points length mismatch");
+    if n != 2 {
+        panic_with_felt252('Msm size must be 2');
+    }
+
+    // Check result points are either on curve, or the point at infinity
+    if !hint.Q_low.is_infinity() {
+        hint.Q_low.assert_on_curve(curve_index);
+    }
+
+    if !hint.Q_high.is_infinity() {
+        hint.Q_high.assert_on_curve(curve_index);
+    }
+
+    if !hint.Q_high_shifted.is_infinity() {
+        hint.Q_high_shifted.assert_on_curve(curve_index);
+    }
+
+    // Validate the degrees of the functions field elements given the msm size
+    hint.RLCSumDlogDiv.validate_degrees_batched(n);
+
+    // Hash everything to obtain a x coordinate.
+    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
+        'MSM_G1', 0, 1,
+    ); // Init Sponge state
+    let (s0, s1, s2) = hades_permutation(
+        s0 + curve_index.into(), s1 + n.into(), s2,
+    ); // Include curve_index and msm size
+
+    let mut s0 = s0;
+    let mut s1 = s1;
+    let mut s2 = s2;
+
+    // Check input points are on curve and hash them at the same time.
+    for point in points {
+        if !point.is_infinity() {
+            point.assert_on_curve(curve_index);
+        }
+        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
+    }
+    // Hash result points
+    let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
+    let (s0, s1, s2) = hint.Q_high_shifted.update_hash_state(s0, s1, s2);
+    // Hash scalars and verify they are below the curve order
+    let curve_order = get_n(curve_index);
+    let mut s0 = s0;
+    let mut s1 = s1;
+    let mut s2 = s2;
+    for scalar in scalars {
+        assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
+        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
+            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
+        );
+        s0 = _s0;
+        s1 = _s1;
+        s2 = _s2;
+    }
+
+    let base_rlc_coeff = s1;
+
+    let (s0, _, _) = hint.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
+
+    let random_point: G1Point = derive_ec_point_from_X(
+        s0,
+        derive_point_from_x_hint.y_last_attempt,
+        derive_point_from_x_hint.g_rhs_sqrt,
+        curve_index,
+    );
+
+    // Get slope, intercept and other constant from random point
+    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
+        random_point, get_a(curve_index), curve_index,
+    );
+
+    // Get positive and negative multiplicities of low and high part of scalars
+    let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
+        scalars, scalars_digits_decompositions,
+    );
+
+    // Hardcoded epns for 2**128
+    let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
+        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1),
+    ];
+
+    let rhs_low = compute_rhs_ecip(
+        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index,
+    );
+    let rhs_high = compute_rhs_ecip(
+        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index,
+    );
+    let rhs_high_shifted = compute_rhs_ecip(
+        array![hint.Q_high].span(),
+        mb.m_A0,
+        mb.b_A0,
+        random_point.x,
+        epns_shifted,
+        hint.Q_high_shifted,
+        curve_index,
+    );
+
+    let modulus_curve = get_modulus(curve_index);
+
+    let zk_ecip_batched_rhs = batch_3_mod_p(
+        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), modulus_curve,
+    );
+
+    let (batched_lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
+        random_point,
+        G1Point { x: mb.x_A2, y: mb.y_A2 },
+        mb.coeff0,
+        mb.coeff2,
+        hint.RLCSumDlogDiv,
+        curve_index,
+    );
+
+    u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
+
+    // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
+    return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
+}
+
 #[cfg(test)]
 mod tests {
     use core::circuit::u384;
