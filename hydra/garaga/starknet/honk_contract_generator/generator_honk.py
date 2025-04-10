@@ -384,7 +384,7 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_BN254_modulus}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_BN254_modulus, u288}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};

@@ -24,7 +24,9 @@ mod UltraKeccakZKHonkVerifier {
     use garaga::core::circuit::{
         U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384, u288IntoCircuitInputValue,
     };
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a};
+    use garaga::definitions::{
+        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a, u288,
+    };
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,

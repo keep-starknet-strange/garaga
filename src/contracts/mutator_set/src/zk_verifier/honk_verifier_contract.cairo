@@ -1,10 +1,10 @@
 use super::honk_verifier_circuits::{
-    is_on_curve_bn254, run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
-    run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-    run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
+    is_on_curve_bn254, run_BN254_EVAL_FN_CHALLENGE_SING_57P_RLC_circuit,
+    run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit,
+    run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_17_circuit,
+    run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_17_PUB_3_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
 
@@ -21,8 +21,12 @@ mod UltraKeccakZKHonkVerifier {
     use core::poseidon::hades_permutation;
     use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
-    use garaga::core::circuit::{U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384};
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a};
+    use garaga::core::circuit::{
+        U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384, u288IntoCircuitInputValue,
+    };
+    use garaga::definitions::{
+        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_a, u288,
+    };
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
@@ -36,12 +40,12 @@ mod UltraKeccakZKHonkVerifier {
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
         VK_HASH, is_on_curve_bn254, precomputed_lines,
-        run_BN254_EVAL_FN_CHALLENGE_SING_45P_RLC_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
+        run_BN254_EVAL_FN_CHALLENGE_SING_57P_RLC_circuit,
+        run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit,
+        run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_17_circuit,
+        run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_17_PUB_3_circuit, vk,
     };
 
     #[storage]
@@ -302,7 +306,7 @@ mod UltraKeccakZKHonkVerifier {
 
             let mod_bn = get_BN254_modulus();
 
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(45);
+            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(57);
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
                 'MSM_G1', 0, 1,
@@ -319,8 +323,8 @@ mod UltraKeccakZKHonkVerifier {
 
             // Check input points are on curve. No need to hash them : they are already in the
             // transcript + we precompute the VK hash.
-            // Skip the first 27 points as they are from VK and keep the last 17 proof points
-            for point in points.slice(27, 17) {
+            // Skip the first 27 points as they are from VK and keep the last 29 proof points
+            for point in points.slice(27, 29) {
                 // assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
                 let is_on_curve = is_on_curve_bn254(*point, mod_bn);
                 println!("is_on_curve: {}", is_on_curve);
