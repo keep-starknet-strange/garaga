@@ -2,17 +2,18 @@ use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::mpc_calldata;
-use crate::definitions::BLS12381PrimeField;
+use crate::definitions::{BLS12381PrimeField, FieldElement};
 use crate::io::field_element_to_u384_limbs;
+use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::BigUint;
 use sha2::{Digest, Sha256};
 
 pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, String> {
     let round_number = round_number.try_into().map_err(|err| format!("{}", err))?;
+
     let message = digest_func(round_number);
 
-    //let msg_point = hash_to_curve(message, CurveID.BLS12_381, "sha256")
-    let msg_point = G1Point::<BLS12381PrimeField>::msm(&[], &[]);
+    let msg_point = hash_to_curve(message, "sha256");
 
     let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet));
 
@@ -56,10 +57,31 @@ fn digest_func(round_number: u64) -> [u8; 32] {
     digest.try_into().unwrap()
 }
 
+fn hash_to_curve<T: IsPrimeField>(_message: [u8; 32], _hash_name: &str) -> G1Point<T> {
+    // TODO
+    todo!()
+}
+
+struct MapToCurveHint {
+    gx1_is_square: bool,
+    y1: FieldElement<BLS12381PrimeField>,
+    y_flag: bool,
+}
+
+impl MapToCurveHint {
+    fn to_calldata(self) -> Vec<BigUint> {
+        let mut call_data = vec![];
+        call_data.push(self.gx1_is_square.into());
+        call_data.extend(field_element_to_u384_limbs(&self.y1).map(BigUint::from));
+        call_data.push(self.y_flag.into());
+        call_data
+    }
+}
+
 struct HashToCurveHint {
+    f0_hint: MapToCurveHint,
+    f1_hint: MapToCurveHint,
     /*
-    f0_hint: MapToCurveHint
-    f1_hint: MapToCurveHint
     scalar_mul_hint: structs.Struct
     derive_point_from_x_hint: structs.Struct
     */
@@ -67,10 +89,10 @@ struct HashToCurveHint {
 
 impl HashToCurveHint {
     fn to_calldata(self) -> Result<Vec<BigUint>, String> {
-        let /*mut*/ call_data = vec![];
-        /*
+        let mut call_data = vec![];
         call_data.extend(self.f0_hint.to_calldata());
         call_data.extend(self.f1_hint.to_calldata());
+        /*
         call_data.extend(self.scalar_mul_hint.serialize_to_calldata());
         call_data.extend(self.derive_point_from_x_hint.serialize_to_calldata());
         */
@@ -79,6 +101,7 @@ impl HashToCurveHint {
 }
 
 fn build_hash_to_curve_hint(_message: [u8; 32]) -> HashToCurveHint {
+    // TODO
     todo!()
 }
 
