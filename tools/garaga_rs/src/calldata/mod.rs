@@ -1,3 +1,4 @@
+pub mod drand_calldata;
 pub mod full_proof_with_hints {
     pub mod groth16;
     pub mod honk;
