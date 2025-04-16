@@ -1,7 +1,7 @@
 use super::honk_verifier_circuits::{
-    run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
-    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-    run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
+    run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
+    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+    run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
 
@@ -34,9 +34,9 @@ mod UltraStarknetHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
     use super::{
-        VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit,
-        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit,
-        run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit, vk,
+        VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
+        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+        run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit, vk,
     };
 
     #[storage]
@@ -68,8 +68,9 @@ mod UltraStarknetHonkVerifier {
                 StarknetHasherState,
             >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
-            let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit(
+            let (sum_check_rlc, honk_check) = run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
+                p_pairing_point_object: full_proof.proof.pairing_point_object,
                 p_public_inputs_offset: vk.public_inputs_offset.into(),
                 sumcheck_univariates_flat: full_proof
                     .proof
@@ -127,9 +128,16 @@ mod UltraStarknetHonkVerifier {
                 scalar_42,
                 scalar_43,
                 scalar_44,
+                scalar_45,
+                scalar_46,
+                scalar_47,
+                scalar_48,
+                scalar_49,
+                scalar_50,
+                scalar_51,
                 scalar_68,
             ) =
-                run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_5_circuit(
+                run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 p_gemini_a_evaluations: full_proof.proof.gemini_a_evaluations,
                 tp_gemini_r: transcript.gemini_r.into(),
@@ -180,8 +188,8 @@ mod UltraStarknetHonkVerifier {
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
                 _points.append((*gem_comm).into());
-            } // log_n -1 = 4 points || Proof points 9-12
-            _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 13
+            } // log_n -1 = 11 points || Proof points 9-19
+            _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 20
             _points.append(BN254_G1_GENERATOR);
 
             let points = _points.span();
@@ -226,18 +234,25 @@ mod UltraStarknetHonkVerifier {
                 into_u256_unchecked(scalar_42),
                 into_u256_unchecked(scalar_43),
                 into_u256_unchecked(scalar_44),
+                into_u256_unchecked(scalar_45),
+                into_u256_unchecked(scalar_46),
+                into_u256_unchecked(scalar_47),
+                into_u256_unchecked(scalar_48),
+                into_u256_unchecked(scalar_49),
+                into_u256_unchecked(scalar_50),
+                into_u256_unchecked(scalar_51),
                 transcript.shplonk_z.into(),
                 into_u256_unchecked(scalar_68),
             ]
                 .span();
 
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(41);
+            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(48);
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
                 'MSM_G1', 0, 1,
             ); // Init Sponge state
             let (s0, s1, s2) = hades_permutation(
-                s0 + 0.into(), s1 + 41.into(), s2,
+                s0 + 0.into(), s1 + 48.into(), s2,
             ); // Include curve_index and msm size
 
             // Hash precomputed VK hash with last transcript state
@@ -248,8 +263,8 @@ mod UltraStarknetHonkVerifier {
 
             // Check input points are on curve. No need to hash them : they are already in the
             // transcript + we precompute the VK hash.
-            // Skip the first 27 points as they are from VK and keep the last 13 proof points
-            for point in points.slice(27, 13) {
+            // Skip the first 27 points as they are from VK and keep the last 20 proof points
+            for point in points.slice(27, 20) {
                 if !point.is_infinity() {
                     point.assert_on_curve(0);
                 }
@@ -314,12 +329,12 @@ mod UltraStarknetHonkVerifier {
                 ),
             ];
 
-            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
+            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit(
                 A: random_point,
                 coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
-            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_41P_RLC_circuit(
+            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit(
                 A: G1Point { x: mb.x_A2, y: mb.y_A2 },
                 coeff: mb.coeff2,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,

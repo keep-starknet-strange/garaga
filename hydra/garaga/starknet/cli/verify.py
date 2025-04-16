@@ -73,7 +73,7 @@ def verify_onchain(
     public_inputs: Annotated[
         Path,
         typer.Option(
-            help="Path to the public inputs JSON file",
+            help="Path to the public inputs file. Expects a JSON for groth16, binary format for Honk.",
             file_okay=True,
             dir_okay=False,
             exists=True,
@@ -172,7 +172,12 @@ def get_calldata_generic(
             | ProofSystem.UltraStarknetZKHonk
         ):
             vk_obj = HonkVk.from_bytes(open(vk, "rb").read())
-            proof_obj = honk_proof_from_bytes(open(proof, "rb").read(), vk_obj, system)
+            proof_obj = honk_proof_from_bytes(
+                open(proof, "rb").read(),
+                open(public_inputs, "rb").read(),
+                vk_obj,
+                system,
+            )
             return get_ultra_flavor_honk_calldata_from_vk_and_proof(
                 vk_obj, proof_obj, system
             )

@@ -12,6 +12,7 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     PyFelt,
 )
 from garaga.precompiled_circuits.honk import (
+    PAIRING_POINT_OBJECT_LENGTH,
     ZK_BATCHED_RELATION_PARTIAL_LENGTH,
     HonkVerifierCircuits,
     HonkVk,
@@ -161,6 +162,7 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
         auto_run: bool = True,
         compilation_mode: int = 1,
     ) -> None:
+        assert vk.public_inputs_size >= PAIRING_POINT_OBJECT_LENGTH
         name = f"honk_sumcheck_size_{vk.log_circuit_size}_pub_{vk.public_inputs_size}"
         self.vk = vk
 
@@ -172,7 +174,11 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
     def input_map(self) -> dict:
         imap = {}
 
-        imap["p_public_inputs"] = (structs.u256Span, self.vk.public_inputs_size)
+        imap["p_public_inputs"] = (
+            structs.u256Span,
+            self.vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH,
+        )
+        imap["p_pairing_point_object"] = (structs.u256Span, PAIRING_POINT_OBJECT_LENGTH)
         imap["p_public_inputs_offset"] = structs.u384
 
         imap["sumcheck_univariates_flat"] = (
@@ -208,6 +214,7 @@ class SumCheckCircuit(BaseUltraHonkCircuit):
 
         tp_delta = circuit.compute_public_input_delta(
             vars["p_public_inputs"],
+            vars["p_pairing_point_object"],
             vars["tp_beta"],
             vars["tp_gamma"],
             self.vk.circuit_size,
@@ -364,6 +371,7 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         auto_run: bool = True,
         compilation_mode: int = 1,
     ) -> None:
+        assert vk.public_inputs_size >= PAIRING_POINT_OBJECT_LENGTH
         name = (
             f"zk_honk_sumcheck_size_{vk.log_circuit_size}_pub_{vk.public_inputs_size}"
         )
@@ -377,7 +385,11 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
     def input_map(self) -> dict:
         imap = {}
 
-        imap["p_public_inputs"] = (structs.u256Span, self.vk.public_inputs_size)
+        imap["p_public_inputs"] = (
+            structs.u256Span,
+            self.vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH,
+        )
+        imap["p_pairing_point_object"] = (structs.u256Span, PAIRING_POINT_OBJECT_LENGTH)
         imap["p_public_inputs_offset"] = structs.u384
 
         imap["libra_sum"] = structs.u384
@@ -418,6 +430,7 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
 
         tp_delta = circuit.compute_public_input_delta(
             vars["p_public_inputs"],
+            vars["p_pairing_point_object"],
             vars["tp_beta"],
             vars["tp_gamma"],
             self.vk.circuit_size,

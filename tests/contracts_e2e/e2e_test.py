@@ -245,6 +245,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_keccak_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak.bin",
         "system": ProofSystem.UltraKeccakHonk,
     },
@@ -254,6 +255,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_starknet_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet.bin",
         "system": ProofSystem.UltraStarknetHonk,
     },
@@ -263,6 +265,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_keccak_zk_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak_zk.bin",
         "system": ProofSystem.UltraKeccakZKHonk,
     },
@@ -272,6 +275,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_starknet_zk_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet_zk.bin",
         "system": ProofSystem.UltraStarknetZKHonk,
     },
@@ -285,10 +289,13 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     contract_project: SmartContractProject = contract_info["contract_project"]
     vk_path: Path = contract_info["vk_path"]
     proof_path: Path = contract_info["proof_path"]
+    public_inputs_path: Path = contract_info["public_inputs_path"]
     system: ProofSystem = contract_info["system"]
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
-    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
+    proof = honk_proof_from_bytes(
+        open(proof_path, "rb").read(), open(public_inputs_path, "rb").read(), vk, system
+    )
 
     print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
 
