@@ -834,7 +834,7 @@ if __name__ == "__main__":
         #       each additional circuit size increase bytecode by 372 felts.
         vk = HonkVk.from_bytes(open(VK_PATH, "rb").read())
         vk.log_circuit_size = MAX_LOG_N
-        vk.public_inputs_size = 4 + 16
+        vk.public_inputs_size = 3 + 16
 
         gen_honk_verifier(
             vk,

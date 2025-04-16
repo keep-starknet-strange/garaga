@@ -7,7 +7,7 @@ pub const VK_HASH: felt252 = 0x3672c916bc2861e4e85080546e8693744660d836a06859790
 pub const vk: HonkVk = HonkVk {
     circuit_size: 4096,
     log_circuit_size: 23,
-    public_inputs_size: 20,
+    public_inputs_size: 19,
     public_inputs_offset: 1,
     qm: G1Point {
         x: u384 {

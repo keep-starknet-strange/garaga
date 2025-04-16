@@ -4,7 +4,7 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_23_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_23_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_23_circuit,
-    run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_23_PUB_20_circuit,
+    run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_23_PUB_19_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
 
@@ -42,7 +42,7 @@ mod UltraKeccakZKHonkVerifier {
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_23_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_23_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_23_circuit,
-        run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_23_PUB_20_circuit, vk,
+        run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_23_PUB_19_circuit, vk,
     };
 
     #[storage]
@@ -74,7 +74,7 @@ mod UltraKeccakZKHonkVerifier {
                 KeccakHasherState,
             >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
-            let (sum_check_rlc, honk_check) = run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_23_PUB_20_circuit(
+            let (sum_check_rlc, honk_check) = run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_23_PUB_19_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
                 p_pairing_point_object: full_proof.proof.pairing_point_object,
                 p_public_inputs_offset: vk.public_inputs_offset.into(),
