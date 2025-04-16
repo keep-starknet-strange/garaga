@@ -296,7 +296,7 @@ class HonkProof:
                 x=self.pairing_point_object,
                 n_limbs=2,
                 base=2**128,
-                prepend_length=False,
+                prepend_length=True,
             )
         )
         cd.extend(serialize_G1Point256(self.w1))
@@ -2238,7 +2238,7 @@ class ZKHonkProof:
                 x=self.pairing_point_object,
                 n_limbs=2,
                 base=2**128,
-                prepend_length=False,
+                prepend_length=True,
             )
         )
         cd.extend(serialize_G1Point256(self.w1))

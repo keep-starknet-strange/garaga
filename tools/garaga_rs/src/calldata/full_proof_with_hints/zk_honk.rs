@@ -460,7 +460,7 @@ pub fn get_zk_honk_calldata(
         }
 
         push_elements(call_data_ref, &public_inputs, true);
-        push_elements(call_data_ref, &pairing_point_object, false);
+        push_elements(call_data_ref, &pairing_point_object, true);
         push_point(call_data_ref, &w1);
         push_point(call_data_ref, &w2);
         push_point(call_data_ref, &w3);
@@ -1029,8 +1029,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            246, 25, 129, 226, 203, 85, 133, 97, 1, 108, 204, 58, 186, 223, 205, 220, 9, 221, 118,
-            53, 89, 24, 67, 13, 27, 226, 32, 161, 180, 147, 176, 195,
+            104, 164, 11, 18, 175, 206, 95, 69, 150, 19, 209, 251, 49, 129, 92, 74, 156, 200, 181,
+            238, 163, 26, 171, 126, 219, 109, 252, 110, 121, 157, 144, 227,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1047,8 +1047,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            124, 126, 251, 167, 142, 159, 83, 208, 120, 147, 52, 142, 238, 115, 39, 224, 12, 106,
-            225, 171, 204, 38, 233, 110, 199, 140, 68, 114, 244, 235, 18, 12,
+            75, 123, 88, 128, 73, 195, 42, 81, 187, 58, 160, 127, 106, 196, 173, 115, 6, 33, 22,
+            185, 107, 142, 88, 76, 4, 192, 20, 41, 52, 87, 18, 249,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

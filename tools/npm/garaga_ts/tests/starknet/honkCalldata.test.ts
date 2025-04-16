@@ -7,8 +7,8 @@ const PATH = '../../../hydra/garaga/starknet/honk_contract_generator/examples';
 describe('Honk Getting calldata', () => {
 
     const proofAndVkWithFlavors = [
-        [`${PATH}/proof_ultra_keccak.bin`, `${PATH}/public_inputs_ultra_keccak_zk.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.KECCAK],
-        [`${PATH}/proof_ultra_starknet.bin`, `${PATH}/public_inputs_ultra_keccak_zk.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.STARKNET],
+        [`${PATH}/proof_ultra_keccak.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.KECCAK],
+        [`${PATH}/proof_ultra_starknet.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.STARKNET],
     ]
 
     test.each(proofAndVkWithFlavors)("should  get honk calldata from proof %s, public inputs %s, vk %s and pub inputs %s", async (proofPath, publicInputsPath, vkPath, flavor) => {
