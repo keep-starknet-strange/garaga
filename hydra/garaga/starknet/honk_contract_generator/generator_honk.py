@@ -25,6 +25,7 @@ from garaga.precompiled_circuits.honk import (
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,
     MAX_LOG_N,
+    PAIRING_POINT_OBJECT_LENGTH,
     HonkVk,
 )
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
@@ -834,7 +835,7 @@ if __name__ == "__main__":
         #       each additional circuit size increase bytecode by 372 felts.
         vk = HonkVk.from_bytes(open(VK_PATH, "rb").read())
         vk.log_circuit_size = MAX_LOG_N
-        vk.public_inputs_size = 3 + 16
+        vk.public_inputs_size = 4 + PAIRING_POINT_OBJECT_LENGTH
 
         gen_honk_verifier(
             vk,
