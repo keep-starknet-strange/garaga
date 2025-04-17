@@ -257,4 +257,6 @@ def _honk_calldata_from_vk_and_proof_rust(
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
-    return garaga_rs.get_honk_calldata(proof.proof_bytes, vk.vk_bytes, flavor, zk)
+    return garaga_rs.get_honk_calldata(
+        proof.proof_bytes, proof.public_inputs_bytes, vk.vk_bytes, flavor, zk
+    )

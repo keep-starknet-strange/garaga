@@ -25,6 +25,7 @@ from garaga.precompiled_circuits.honk import (
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,
     MAX_LOG_N,
+    PAIRING_POINT_OBJECT_LENGTH,
     HonkVk,
 )
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
@@ -79,7 +80,11 @@ def gen_honk_verifier_files(
 
 
 def get_msm_kzg_template(
-    msm_size: int, lhs_ecip_function_name: str, n_vk_points: int, n_proof_points: int
+    msm_size: int,
+    lhs_ecip_function_name: str,
+    n_vk_points: int,
+    n_proof_points: int,
+    is_on_curve_function_name: str,
 ):
     TEMPLATE = """\n
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
@@ -104,26 +109,21 @@ def get_msm_kzg_template(
             // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
             // Skip the first {n_vk_points} points as they are from VK and keep the last {n_proof_points} proof points
             for point in points.slice({n_vk_points}, {n_proof_points}) {{
-                if !point.is_infinity() {{
-                    point.assert_on_curve(0);
-                }}
+                assert({is_on_curve_function_name}(*point, mod_bn), 'proof point not on curve');
             }};
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt:G1Point = full_proof.proof.shplonk_q.into();
-
-            if !shplonk_q_pt.is_infinity() {{
-                shplonk_q_pt.assert_on_curve(0);
-            }}
+            assert({is_on_curve_function_name}(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
+                assert({is_on_curve_function_name}(full_proof.msm_hint_batched.Q_low, mod_bn), 'Q_low not on curve');
             }}
             if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
+                assert({is_on_curve_function_name}(full_proof.msm_hint_batched.Q_high, mod_bn), 'Q_high not on curve');
             }}
             if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
+                assert({is_on_curve_function_name}(full_proof.msm_hint_batched.Q_high_shifted, mod_bn), 'Q_high_shifted not on curve');
             }}
 
             // Hash result points
@@ -146,32 +146,34 @@ def get_msm_kzg_template(
 
             // Get slope, intercept and other constant from random point
             let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0
+                random_point, Zero::zero(), 0
             );
 
             // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-                scalars, Option::None
-            );
+            let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            for scalar in scalars {{
+                epns_low.append(neg_3::scalar_to_epns(*scalar.low));
+                epns_high.append(neg_3::scalar_to_epns(*scalar.high));
+            }}
 
             // Hardcoded epns for 2**128
             let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
                 (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
             ];
 
-            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let mod_bn = get_modulus(0);
+            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv, modulus:mod_bn);
+            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv, modulus:mod_bn);
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
-            let rhs_low = compute_rhs_ecip(
+            let rhs_low = _compute_rhs_ecip_no_infinity(
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
             );
-            let rhs_high = compute_rhs_ecip(
+            let rhs_high = _compute_rhs_ecip_no_infinity(
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
             );
-            let rhs_high_shifted = compute_rhs_ecip(
+            let rhs_high_shifted = _compute_rhs_ecip_no_infinity(
                 array![full_proof.msm_hint_batched.Q_high].span(),
                 mb.m_A0,
                 mb.b_A0,
@@ -202,6 +204,7 @@ def get_msm_kzg_template(
         msm_len=msm_size,
         n_vk_points=n_vk_points,
         n_proof_points=n_proof_points,
+        is_on_curve_function_name=is_on_curve_function_name,
     )
     return TEMPLATE
 
@@ -229,13 +232,13 @@ def _get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs
+    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
 };
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue};
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
+use garaga::definitions::{G1Point};\n
 """
     return header
 
@@ -267,7 +270,7 @@ def _gen_circuits_code(
     sumcheck_circuit = ZKSumCheckCircuit(vk) if is_zk else SumCheckCircuit(vk)
     sumcheck_function_name = f"{curve_id.name}_{sumcheck_circuit.name.upper()}"
     sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
-        function_name=sumcheck_function_name, pub=True
+        function_name=sumcheck_function_name, pub=True, generic_modulus=True
     )
 
     # Generate prepare scalars circuit
@@ -281,7 +284,7 @@ def _gen_circuits_code(
     )
     prepare_scalars_code, prepare_scalars_function_name = (
         prepare_scalars_circuit.circuit.compile_circuit(
-            function_name=prepare_scalars_function_name, pub=True
+            function_name=prepare_scalars_function_name, pub=True, generic_modulus=True
         )
     )
 
@@ -296,7 +299,7 @@ def _gen_circuits_code(
             circuit = circuit_class(vk)
             function_name = f"{curve_id.name}_{circuit.name.upper()}"
             circuit_code, function_name = circuit.circuit.compile_circuit(
-                function_name=function_name, pub=True
+                function_name=function_name, pub=True, generic_modulus=True
             )
             consistency_circuits.append((circuit_code, function_name))
 
@@ -310,7 +313,10 @@ def _gen_circuits_code(
     )
     lhs_ecip_function_name = f"{CurveID.BN254.name}_{lhs_ecip_circuit.name.upper()}"
     lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
-        function_name=lhs_ecip_function_name, pub=True, inline=False
+        function_name=lhs_ecip_function_name,
+        pub=True,
+        inline=False,
+        generic_modulus=True,
     )
 
     # Combine all circuit code
@@ -320,6 +326,32 @@ def _gen_circuits_code(
     code += lhs_ecip_code
     code += get_circuit_definition_impl_template(len(scalar_indexes))
 
+    is_on_curve_code = """
+#[inline(never)]
+pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
+    // INPUT stack
+    // y^2 = x^3 + 3
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let y2 = circuit_mul(in1, in1);
+    let x2 = circuit_mul(in0, in0);
+    let x3 = circuit_mul(in0, x2);
+    let y2_minus_x3 = circuit_sub(y2, x3);
+
+    let mut circuit_inputs = (y2_minus_x3,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x); // in0
+    circuit_inputs = circuit_inputs.next_2(p.y); // in1
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let zero_check: u384 = outputs.get_output(y2_minus_x3);
+    return zero_check == u384{limb0: 3, limb1: 0, limb2: 0, limb3: 0};
+}
+    """
+    code += is_on_curve_code
+    is_on_curve_function_name = f"is_on_curve_bn254"
+
     return (
         code,
         sumcheck_function_name,
@@ -328,6 +360,7 @@ def _gen_circuits_code(
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     )
 
 
@@ -352,9 +385,9 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus, u288}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;
@@ -389,6 +422,9 @@ mod {contract_name} {{
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
+            let mod_bn = get_BN254_modulus();
+            let mod_grumpkin = get_GRUMPKIN_modulus();
+
 """
     return header
 
@@ -519,6 +555,7 @@ def _gen_honk_verifier_files(
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
@@ -539,6 +576,7 @@ def _gen_honk_verifier_files(
             sumcheck_function_name,
             prepare_scalars_function_name,
             lhs_ecip_function_name,
+            is_on_curve_function_name,
         ],
     )
 
@@ -551,6 +589,7 @@ def _gen_honk_verifier_files(
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
+                p_pairing_point_object: full_proof.proof.pairing_point_object,
                 p_public_inputs_offset: vk.public_inputs_offset.into(),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -563,6 +602,7 @@ def _gen_honk_verifier_files(
                 tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
+                modulus: mod_grumpkin,
             );
 
         let (
@@ -576,13 +616,14 @@ def _gen_honk_verifier_files(
             tp_shplonk_z: transcript.shplonk_z.into(),
             tp_shplonk_nu: transcript.shplonk_nu.into(),
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+            modulus: mod_grumpkin,
         );
 
             {points_code}
 
             let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points, is_on_curve_function_name)}
 
             if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
@@ -617,6 +658,7 @@ def _gen_zk_honk_verifier_files(
         scalar_indexes,
         lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     ) = _gen_circuits_code(vk, True)
 
     points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
@@ -651,6 +693,7 @@ def _gen_zk_honk_verifier_files(
             consistency_function_names[1],
             consistency_function_names[2],
             lhs_ecip_function_name,
+            is_on_curve_function_name,
         ],
     )
 
@@ -659,6 +702,7 @@ def _gen_zk_honk_verifier_files(
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
+                p_pairing_point_object: full_proof.proof.pairing_point_object,
                 p_public_inputs_offset: vk.public_inputs_offset.into(),
                 libra_sum: u256_to_u384(full_proof.proof.libra_sum),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * ZK_BATCHED_RELATION_PARTIAL_LENGTH),
@@ -674,17 +718,20 @@ def _gen_zk_honk_verifier_files(
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
+                modulus: mod_grumpkin,
             );
 
             const CONST_PROOF_SIZE_LOG_N: usize = {CONST_PROOF_SIZE_LOG_N};
             let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) = {consistency_function_names[0]}(
                 tp_gemini_r: transcript.gemini_r.into(),
+                modulus: mod_grumpkin,
             );
             for i in 0..CONST_PROOF_SIZE_LOG_N {{
                 let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) = {consistency_function_names[1]}(
                     challenge_poly_eval: challenge_poly_eval,
                     root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
                     tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
+                    modulus: mod_grumpkin,
                 );
                 challenge_poly_eval = new_challenge_poly_eval;
                 root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
@@ -695,6 +742,7 @@ def _gen_zk_honk_verifier_files(
                 tp_gemini_r: transcript.gemini_r.into(),
                 challenge_poly_eval: challenge_poly_eval,
                 root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
+                modulus: mod_grumpkin,
             );
 
         let (
@@ -710,12 +758,13 @@ def _gen_zk_honk_verifier_files(
             tp_shplonk_z: transcript.shplonk_z.into(),
             tp_shplonk_nu: transcript.shplonk_nu.into(),
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+            modulus: mod_grumpkin,
         );
 
             {points_code}
             let scalars: Span<u256> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
+            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points, is_on_curve_function_name)}
             if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{
@@ -828,11 +877,11 @@ if __name__ == "__main__":
                     print(f"An error occurred: {e}")
 
     if args.max_log_n:
-        # NOTE : each additional public input increase bytecode by 21 felts.
-        #       each additional circuit size increase bytecode by 372 felts.
+        # NOTE : each additional public input increase bytecode by ~ 21 felts.
+        #       each additional circuit size increase bytecode by ~ 372 felts.
         vk = HonkVk.from_bytes(open(VK_PATH, "rb").read())
         vk.log_circuit_size = MAX_LOG_N
-        vk.public_inputs_size = 4
+        vk.public_inputs_size = 4 + PAIRING_POINT_OBJECT_LENGTH
 
         gen_honk_verifier(
             vk,

@@ -3,7 +3,7 @@ use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::full_proof_with_hints::honk::{
     Hasher, HonkFlavor, HonkVerificationKey, KeccakHasher, StarknetHasher, CONST_PROOF_SIZE_LOG_N,
-    NUMBER_OF_ALPHAS, NUMBER_OF_ENTITIES, NUMBER_UNSHIFTED,
+    NUMBER_OF_ALPHAS, NUMBER_OF_ENTITIES, NUMBER_UNSHIFTED, PAIRING_POINT_OBJECT_LENGTH,
 };
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
@@ -21,12 +21,13 @@ use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 
-pub const ZK_PROOF_SIZE: usize = 491;
+pub const ZK_PROOF_SIZE: usize = 507;
 pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 pub const SUBGROUP_SIZE: usize = 256;
 
 pub struct ZKHonkProof {
     pub public_inputs: Vec<BigUint>,
+    pub pairing_point_object: [BigUint; PAIRING_POINT_OBJECT_LENGTH],
     pub w1: G1PointBigUint,
     pub w2: G1PointBigUint,
     pub w3: G1PointBigUint,
@@ -51,37 +52,42 @@ pub struct ZKHonkProof {
 }
 
 impl ZKHonkProof {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        if bytes.len() < 4 {
-            return Err(format!("Invalid input length: {}", bytes.len()));
-        }
-
-        let count: usize = u32::from_be_bytes(bytes[0..4].try_into().unwrap())
-            .try_into()
-            .unwrap();
-
-        if bytes.len() != 4 + 32 * count {
-            return Err(format!("Invalid input length: {}", bytes.len()));
+    pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
+        if proof_bytes.len() != 32 * ZK_PROOF_SIZE {
+            return Err(format!("Invalid input length: {}", proof_bytes.len()));
         }
 
         let mut values = vec![];
 
-        for i in (4..).step_by(32).take(count) {
-            values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
+        for i in (0..).step_by(32).take(ZK_PROOF_SIZE) {
+            values.push(BigUint::from_bytes_be(&proof_bytes[i..i + 32]));
         }
 
-        Self::from(values)
+        if public_inputs_bytes.len() % 32 != 0 {
+            return Err(format!(
+                "Invalid input length: {}",
+                public_inputs_bytes.len()
+            ));
+        }
+
+        let public_inputs_size = public_inputs_bytes.len() / 32;
+
+        let mut public_inputs = vec![];
+
+        for i in (0..).step_by(32).take(public_inputs_size) {
+            public_inputs.push(BigUint::from_bytes_be(&public_inputs_bytes[i..i + 32]));
+        }
+
+        Self::from(values, public_inputs)
     }
-    pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
-        if values.len() < ZK_PROOF_SIZE {
+    pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
+        if values.len() != ZK_PROOF_SIZE {
             return Err(format!("Invalid input length: {}", values.len()));
         }
 
-        let public_inputs_size = values.len() - ZK_PROOF_SIZE;
-
         let mut offset = 0;
 
-        let count = public_inputs_size
+        let count = PAIRING_POINT_OBJECT_LENGTH
             + 11 * 4
             + 1
             + ZK_BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
@@ -97,11 +103,12 @@ impl ZKHonkProof {
             return Err(format!("Invalid input length: {}", values.len()));
         }
 
-        let mut public_inputs = vec![];
-        for i in (offset..).step_by(1).take(public_inputs_size) {
-            public_inputs.push(values[i].clone());
+        let mut pairing_point_object = vec![];
+        for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
+            pairing_point_object.push(values[i].clone());
         }
-        offset += public_inputs_size;
+        let pairing_point_object = pairing_point_object.try_into().unwrap();
+        offset += PAIRING_POINT_OBJECT_LENGTH;
 
         fn parse_g1_proof_point(values: [BigUint; 4]) -> G1PointBigUint {
             let [x0, x1, y0, y1] = values;
@@ -195,6 +202,7 @@ impl ZKHonkProof {
 
         let proof = Self {
             public_inputs,
+            pairing_point_object,
             w1,
             w2,
             w3,
@@ -250,11 +258,11 @@ impl ZKHonkTranscript {
         ),
         String,
     > {
-        if proof.public_inputs.len() != vk.public_inputs_size {
+        if proof.public_inputs.len() != vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
                 proof.public_inputs.len(),
-                vk.public_inputs_size
+                vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
             ));
         }
         match flavor {
@@ -284,6 +292,11 @@ pub fn get_zk_honk_calldata(
 
     let public_inputs = proof
         .public_inputs
+        .iter()
+        .map(element_on_curve)
+        .collect::<Vec<_>>();
+    let pairing_point_object = proof
+        .pairing_point_object
         .iter()
         .map(element_on_curve)
         .collect::<Vec<_>>();
@@ -447,6 +460,7 @@ pub fn get_zk_honk_calldata(
         }
 
         push_elements(call_data_ref, &public_inputs, true);
+        push_elements(call_data_ref, &pairing_point_object, true);
         push_point(call_data_ref, &w1);
         push_point(call_data_ref, &w2);
         push_point(call_data_ref, &w3);
@@ -616,6 +630,9 @@ fn compute_zk_transcript<T: Hasher>(
     hasher.update(&BigUint::from(vk.public_inputs_size));
     hasher.update(&BigUint::from(vk.public_inputs_offset));
     for public_input in &proof.public_inputs {
+        hasher.update(public_input);
+    }
+    for public_input in &proof.pairing_point_object {
         hasher.update(public_input);
     }
     hasher.update_as_point(&proof.w1);
@@ -1012,8 +1029,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            181, 137, 164, 134, 89, 213, 89, 181, 45, 121, 80, 139, 205, 9, 83, 215, 192, 46, 197,
-            15, 235, 67, 53, 133, 104, 65, 26, 173, 116, 252, 55, 204,
+            104, 164, 11, 18, 175, 206, 95, 69, 150, 19, 209, 251, 49, 129, 92, 74, 156, 200, 181,
+            238, 163, 26, 171, 126, 219, 109, 252, 110, 121, 157, 144, 227,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1030,8 +1047,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            48, 251, 67, 183, 107, 161, 100, 217, 217, 9, 80, 133, 42, 84, 72, 172, 2, 205, 103,
-            126, 113, 192, 107, 66, 87, 173, 230, 103, 251, 179, 199, 173,
+            75, 123, 88, 128, 73, 195, 42, 81, 187, 58, 160, 127, 106, 196, 173, 115, 6, 33, 22,
+            185, 107, 142, 88, 76, 4, 192, 20, 41, 52, 87, 18, 249,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1043,9 +1060,9 @@ mod tests {
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin",
         )?;
-        let mut bytes = vec![];
-        file.read_to_end(&mut bytes)?;
-        let vk = HonkVerificationKey::from_bytes(&bytes).unwrap();
+        let mut vk_bytes = vec![];
+        file.read_to_end(&mut vk_bytes)?;
+        let vk = HonkVerificationKey::from_bytes(&vk_bytes).unwrap();
         Ok(vk)
     }
 
@@ -1055,9 +1072,14 @@ mod tests {
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak_zk.bin",
         )?;
-        let mut bytes = vec![];
-        file.read_to_end(&mut bytes)?;
-        let proof = ZKHonkProof::from_bytes(&bytes).unwrap();
+        let mut proof_bytes = vec![];
+        file.read_to_end(&mut proof_bytes)?;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
+        )?;
+        let mut public_inputs_bytes = vec![];
+        file.read_to_end(&mut public_inputs_bytes)?;
+        let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes).unwrap();
         Ok(proof)
     }
 
@@ -1067,9 +1089,14 @@ mod tests {
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_starknet_zk.bin",
         )?;
-        let mut bytes = vec![];
-        file.read_to_end(&mut bytes)?;
-        let proof = ZKHonkProof::from_bytes(&bytes).unwrap();
+        let mut proof_bytes = vec![];
+        file.read_to_end(&mut proof_bytes)?;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
+        )?;
+        let mut public_inputs_bytes = vec![];
+        file.read_to_end(&mut public_inputs_bytes)?;
+        let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes).unwrap();
         Ok(proof)
     }
 }
