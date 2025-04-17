@@ -21,7 +21,9 @@ mod UltraStarknetHonkVerifier {
     use garaga::core::circuit::{
         U32IntoU384, U64IntoU384, into_u256_unchecked, u288IntoCircuitInputValue,
     };
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, u288};
+    use garaga::definitions::{
+        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, u288,
+    };
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, ec_safe_add,
@@ -64,6 +66,8 @@ mod UltraStarknetHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
+            let mod_bn = get_BN254_modulus();
+            let mod_grumpkin = get_GRUMPKIN_modulus();
 
             let (transcript, transcript_state, base_rlc) = HonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
@@ -87,6 +91,7 @@ mod UltraStarknetHonkVerifier {
                 tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
+                modulus: mod_grumpkin,
             );
 
             let (
@@ -146,6 +151,7 @@ mod UltraStarknetHonkVerifier {
                 tp_shplonk_z: transcript.shplonk_z.into(),
                 tp_shplonk_nu: transcript.shplonk_nu.into(),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+                modulus: mod_grumpkin,
             );
 
             // Starts with 1 * shplonk_q, not included in msm
@@ -247,7 +253,6 @@ mod UltraStarknetHonkVerifier {
             ]
                 .span();
 
-            let mod_bn = get_BN254_modulus();
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(48);
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -344,11 +349,13 @@ mod UltraStarknetHonkVerifier {
                 A: random_point,
                 coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+                modulus: mod_bn,
             );
             let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit(
                 A: G1Point { x: mb.x_A2, y: mb.y_A2 },
                 coeff: mb.coeff2,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+                modulus: mod_bn,
             );
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);

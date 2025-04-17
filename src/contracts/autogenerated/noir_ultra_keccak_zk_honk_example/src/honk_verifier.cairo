@@ -24,7 +24,9 @@ mod UltraKeccakZKHonkVerifier {
     use garaga::core::circuit::{
         U32IntoU384, U64IntoU384, into_u256_unchecked, u256_to_u384, u288IntoCircuitInputValue,
     };
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, u288};
+    use garaga::definitions::{
+        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, u288,
+    };
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, ec_safe_add,
@@ -70,6 +72,8 @@ mod UltraKeccakZKHonkVerifier {
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints)
                 .expect('deserialization failed');
+            let mod_bn = get_BN254_modulus();
+            let mod_grumpkin = get_GRUMPKIN_modulus();
 
             let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
@@ -96,12 +100,13 @@ mod UltraKeccakZKHonkVerifier {
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
+                modulus: mod_grumpkin,
             );
 
             const CONST_PROOF_SIZE_LOG_N: usize = 28;
             let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) =
                 run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_12_circuit(
-                tp_gemini_r: transcript.gemini_r.into(),
+                tp_gemini_r: transcript.gemini_r.into(), modulus: mod_grumpkin,
             );
             for i in 0..CONST_PROOF_SIZE_LOG_N {
                 let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) =
@@ -109,6 +114,7 @@ mod UltraKeccakZKHonkVerifier {
                     challenge_poly_eval: challenge_poly_eval,
                     root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
                     tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
+                    modulus: mod_grumpkin,
                 );
                 challenge_poly_eval = new_challenge_poly_eval;
                 root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
@@ -120,6 +126,7 @@ mod UltraKeccakZKHonkVerifier {
                 tp_gemini_r: transcript.gemini_r.into(),
                 challenge_poly_eval: challenge_poly_eval,
                 root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
+                modulus: mod_grumpkin,
             );
 
             let (
@@ -185,6 +192,7 @@ mod UltraKeccakZKHonkVerifier {
                 tp_shplonk_z: transcript.shplonk_z.into(),
                 tp_shplonk_nu: transcript.shplonk_nu.into(),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+                modulus: mod_grumpkin,
             );
 
             // Starts with 1 * shplonk_q, not included in msm
@@ -293,7 +301,6 @@ mod UltraKeccakZKHonkVerifier {
             ]
                 .span();
 
-            let mod_bn = get_BN254_modulus();
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(52);
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -390,11 +397,13 @@ mod UltraKeccakZKHonkVerifier {
                 A: random_point,
                 coeff: mb.coeff0,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+                modulus: mod_bn,
             );
             let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_52P_RLC_circuit(
                 A: G1Point { x: mb.x_A2, y: mb.y_A2 },
                 coeff: mb.coeff2,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
+                modulus: mod_bn,
             );
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);

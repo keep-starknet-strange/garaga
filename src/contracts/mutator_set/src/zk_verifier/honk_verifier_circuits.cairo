@@ -3,7 +3,7 @@ use core::circuit::{
     EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
-use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus};
+use garaga::definitions::G1Point;
 use garaga::ec_ops::FunctionFelt;
 
 #[inline(always)]
@@ -25,6 +25,7 @@ pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_17_PUB_19_circuit(
     tp_base_rlc: u384,
     tp_alphas: Span<u128>,
     tp_libra_challenge: u384,
+    modulus: CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -1939,7 +1940,7 @@ pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_17_PUB_19_circuit(
     let t1782 = circuit_add(t1780, t1781);
     let t1783 = circuit_sub(t1782, t1355);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t1291, t1783).new_inputs();
     // Prefill constants:
@@ -2074,6 +2075,7 @@ pub fn run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit(
     tp_shplonk_z: u384,
     tp_shplonk_nu: u384,
     tp_sum_check_u_challenges: Span<u128>,
+    modulus: CircuitModulus,
 ) -> (
     u384,
     u384,
@@ -2825,7 +2827,7 @@ pub fn run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit(
     let t656 = circuit_add(t148, t180);
     let t657 = circuit_add(t152, t184);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (
         t22,
@@ -3035,7 +3037,9 @@ pub fn run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit(
     );
 }
 #[inline(always)]
-pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit(tp_gemini_r: u384) -> (u384, u384) {
+pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit(
+    tp_gemini_r: u384, modulus: CircuitModulus,
+) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
     let in1 = CE::<CI<1>> {}; // 0x204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6
@@ -3046,7 +3050,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit(tp_gemini_r: u384) -
     let t1 = circuit_inverse(t0);
     let t2 = circuit_mul(in1, in2);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t1, t2).new_inputs();
     // Prefill constants:
@@ -3065,7 +3069,10 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit(tp_gemini_r: u384) -
 }
 #[inline(always)]
 pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_17_circuit(
-    challenge_poly_eval: u384, root_power_times_tp_gemini_r: u384, tp_sumcheck_u_challenge: u384,
+    challenge_poly_eval: u384,
+    root_power_times_tp_gemini_r: u384,
+    tp_sumcheck_u_challenge: u384,
+    modulus: CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -3127,7 +3134,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_17_circuit(
     let t51 = circuit_add(t45, t50);
     let t52 = circuit_mul(t46, in1);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t51, t52).new_inputs();
     // Prefill constants:
@@ -3153,6 +3160,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
     tp_gemini_r: u384,
     challenge_poly_eval: u384,
     root_power_times_tp_gemini_r: u384,
+    modulus: CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6
@@ -3195,7 +3203,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
     let t29 = circuit_mul(t14, in7);
     let t30 = circuit_sub(t28, t29);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t14, t30).new_inputs();
     // Prefill constants:
@@ -3227,7 +3235,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
 pub fn run_BN254_EVAL_FN_CHALLENGE_SING_57P_RLC_circuit<
     T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
 >(
-    A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt<T>,
+    A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt<T>, modulus: CircuitModulus,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -3805,7 +3813,7 @@ pub fn run_BN254_EVAL_FN_CHALLENGE_SING_57P_RLC_circuit<
     let t489 = circuit_add(t239, t488);
     let t490 = circuit_mul(in2, t489);
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t490,).new_inputs();
     // Prefill constants:

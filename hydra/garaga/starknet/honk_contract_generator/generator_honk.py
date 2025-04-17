@@ -87,7 +87,6 @@ def get_msm_kzg_template(
     is_on_curve_function_name: str,
 ):
     TEMPLATE = """\n
-            let mod_bn = get_BN254_modulus();
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -163,8 +162,8 @@ def get_msm_kzg_template(
                 (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
             ];
 
-            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
+            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv, modulus:mod_bn);
+            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv, modulus:mod_bn);
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
@@ -239,7 +238,7 @@ use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, Int
 use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
+use garaga::definitions::{G1Point};\n
 """
     return header
 
@@ -271,7 +270,7 @@ def _gen_circuits_code(
     sumcheck_circuit = ZKSumCheckCircuit(vk) if is_zk else SumCheckCircuit(vk)
     sumcheck_function_name = f"{curve_id.name}_{sumcheck_circuit.name.upper()}"
     sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
-        function_name=sumcheck_function_name, pub=True
+        function_name=sumcheck_function_name, pub=True, generic_modulus=True
     )
 
     # Generate prepare scalars circuit
@@ -285,7 +284,7 @@ def _gen_circuits_code(
     )
     prepare_scalars_code, prepare_scalars_function_name = (
         prepare_scalars_circuit.circuit.compile_circuit(
-            function_name=prepare_scalars_function_name, pub=True
+            function_name=prepare_scalars_function_name, pub=True, generic_modulus=True
         )
     )
 
@@ -300,7 +299,7 @@ def _gen_circuits_code(
             circuit = circuit_class(vk)
             function_name = f"{curve_id.name}_{circuit.name.upper()}"
             circuit_code, function_name = circuit.circuit.compile_circuit(
-                function_name=function_name, pub=True
+                function_name=function_name, pub=True, generic_modulus=True
             )
             consistency_circuits.append((circuit_code, function_name))
 
@@ -314,7 +313,10 @@ def _gen_circuits_code(
     )
     lhs_ecip_function_name = f"{CurveID.BN254.name}_{lhs_ecip_circuit.name.upper()}"
     lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
-        function_name=lhs_ecip_function_name, pub=True, inline=False
+        function_name=lhs_ecip_function_name,
+        pub=True,
+        inline=False,
+        generic_modulus=True,
     )
 
     # Combine all circuit code
@@ -383,7 +385,7 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, u288}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
@@ -420,6 +422,9 @@ mod {contract_name} {{
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
+            let mod_bn = get_BN254_modulus();
+            let mod_grumpkin = get_GRUMPKIN_modulus();
+
 """
     return header
 
@@ -597,6 +602,7 @@ def _gen_honk_verifier_files(
                 tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
+                modulus: mod_grumpkin,
             );
 
         let (
@@ -610,6 +616,7 @@ def _gen_honk_verifier_files(
             tp_shplonk_z: transcript.shplonk_z.into(),
             tp_shplonk_nu: transcript.shplonk_nu.into(),
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+            modulus: mod_grumpkin,
         );
 
             {points_code}
@@ -711,17 +718,20 @@ def _gen_zk_honk_verifier_files(
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
+                modulus: mod_grumpkin,
             );
 
             const CONST_PROOF_SIZE_LOG_N: usize = {CONST_PROOF_SIZE_LOG_N};
             let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) = {consistency_function_names[0]}(
                 tp_gemini_r: transcript.gemini_r.into(),
+                modulus: mod_grumpkin,
             );
             for i in 0..CONST_PROOF_SIZE_LOG_N {{
                 let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) = {consistency_function_names[1]}(
                     challenge_poly_eval: challenge_poly_eval,
                     root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
                     tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
+                    modulus: mod_grumpkin,
                 );
                 challenge_poly_eval = new_challenge_poly_eval;
                 root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
@@ -732,6 +742,7 @@ def _gen_zk_honk_verifier_files(
                 tp_gemini_r: transcript.gemini_r.into(),
                 challenge_poly_eval: challenge_poly_eval,
                 root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
+                modulus: mod_grumpkin,
             );
 
         let (
@@ -747,6 +758,7 @@ def _gen_zk_honk_verifier_files(
             tp_shplonk_z: transcript.shplonk_z.into(),
             tp_shplonk_nu: transcript.shplonk_nu.into(),
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+            modulus: mod_grumpkin,
         );
 
             {points_code}

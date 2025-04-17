@@ -3,7 +3,7 @@ use core::circuit::{
     EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
-use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus};
+use garaga::definitions::G1Point;
 use garaga::ec_ops::FunctionFelt;
 
 #[inline(always)]
@@ -22,6 +22,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit(
     tp_gamma: u128,
     tp_base_rlc: u384,
     tp_alphas: Span<u128>,
+    modulus: CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -1433,7 +1434,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit(
     let t1301 = circuit_add(t1299, t1300);
     let t1302 = circuit_sub(t1301, t893);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t836, t1302).new_inputs();
     // Prefill constants:
@@ -1573,6 +1574,7 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit(
     tp_shplonk_z: u384,
     tp_shplonk_nu: u384,
     tp_sum_check_u_challenges: Span<u128>,
+    modulus: CircuitModulus,
 ) -> (
     u384,
     u384,
@@ -2126,7 +2128,7 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit(
     let t473 = circuit_add(t143, t175);
     let t474 = circuit_add(t147, t179);
 
-    let modulus = get_GRUMPKIN_modulus(); // GRUMPKIN prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (
         t23,
@@ -2301,7 +2303,7 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit(
 pub fn run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit<
     T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
 >(
-    A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt<T>,
+    A: G1Point, coeff: u384, SumDlogDivBatched: FunctionFelt<T>, modulus: CircuitModulus,
 ) -> (u384,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
@@ -2795,7 +2797,7 @@ pub fn run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit<
     let t417 = circuit_add(t203, t416);
     let t418 = circuit_mul(in2, t417);
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = modulus;
 
     let mut circuit_inputs = (t418,).new_inputs();
     // Prefill constants:
