@@ -3523,23 +3523,21 @@ impl MyDrp_51<
 pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
     // INPUT stack
     // y^2 = x^3 + 3
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
     let y2 = circuit_mul(in1, in1);
     let x2 = circuit_mul(in0, in0);
     let x3 = circuit_mul(in0, x2);
-    let x3_plus_3 = circuit_add(x3, in2);
-    let y2_minus_x3_plus_3 = circuit_sub(y2, x3_plus_3);
+    let y2_minus_x3 = circuit_sub(y2, x3);
 
-    let mut circuit_inputs = (y2_minus_x3_plus_3,).new_inputs();
+    let mut circuit_inputs = (y2_minus_x3,).new_inputs();
     // Prefill constants:
 
     // Fill inputs:
     circuit_inputs = circuit_inputs.next_2(p.x); // in0
     circuit_inputs = circuit_inputs.next_2(p.y); // in1
-    circuit_inputs = circuit_inputs.next_2([3, 0, 0, 0]); // in2
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let zero_check: u384 = outputs.get_output(y2_minus_x3_plus_3);
-    return zero_check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+    let zero_check: u384 = outputs.get_output(y2_minus_x3);
+    return zero_check == u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 };
 }
 
