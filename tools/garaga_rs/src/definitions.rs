@@ -141,6 +141,7 @@ pub struct CurveParams<F: IsPrimeField> {
     pub g2_y: Option<[FieldElement<F>; 2]>, // Only for pairing curves
     pub n: BigUint,                         // Order of the curve
     pub h: u32,                             // Cofactor
+    pub x: i128,
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
@@ -193,6 +194,7 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             )
             .unwrap(),
             h: 1,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
@@ -227,6 +229,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             )
             .unwrap(),
             h: 1,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
@@ -261,6 +264,7 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             )
             .unwrap(),
             h: 8,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
@@ -291,6 +295,7 @@ impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
             )
             .unwrap(),
             h: 1,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(5),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
@@ -335,6 +340,7 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             )
             .unwrap(),
             h: 1, // Replace with actual 'h'
+            x: 0x44E992B44A6909F1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
@@ -374,6 +380,7 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             )
             .unwrap(),
             h: 1, // Replace with actual 'h'
+            x: -0xD201000000010000,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),

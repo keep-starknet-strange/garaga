@@ -2,10 +2,11 @@ use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::mpc_calldata;
-use crate::definitions::{BLS12381PrimeField, FieldElement};
-use crate::io::field_element_to_u384_limbs;
+use crate::definitions::{BLS12381PrimeField, CurveID, CurveParamsProvider, FieldElement};
+use crate::io::{element_from_bytes_be, field_element_to_u384_limbs};
 use lambdaworks_math::field::traits::IsPrimeField;
-use num_bigint::BigUint;
+use lambdaworks_math::traits::ByteConversion;
+use num_bigint::{BigInt, BigUint};
 use sha2::{Digest, Sha256};
 
 pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, String> {
@@ -57,9 +58,318 @@ fn digest_func(round_number: u64) -> [u8; 32] {
     digest.try_into().unwrap()
 }
 
-fn hash_to_curve<T: IsPrimeField>(_message: [u8; 32], _hash_name: &str) -> G1Point<T> {
+fn hash_to_curve<F>(message: [u8; 32], hash_name: &str) -> G1Point<F>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let [felt0, felt1] = hash_to_field::<F>(message, 2, hash_name)
+        .try_into()
+        .unwrap();
+
+    let pt0 = map_to_curve(felt0);
+    let pt1 = map_to_curve(felt1);
+    /*
+    assert pt0.iso_point == True, f"Point {pt0} is not an iso point"
+    assert pt1.iso_point == True, f"Point {pt1} is not an iso point"
+    */
+
+    let curve_params = F::get_curve_params();
+    let cofactor = match curve_params.curve_id {
+        CurveID::BLS12_381 => {
+            let x = BigInt::from(curve_params.x);
+            let n: BigInt = curve_params.n.try_into().unwrap();
+            (BigInt::from(1) - (&x % &n)) % &n
+        }
+        _ => BigInt::from(curve_params.h),
+    };
+
+    let sum = pt0.add(&pt1);
+    /*
+    assert sum.iso_point == True, f"Point {sum} is not an iso point"
+    */
+
+    /*apply_isogeny(*/
+    sum /*)*/
+        .scalar_mul(cofactor)
+}
+
+fn map_to_curve<F: IsPrimeField>(_field_element: FieldElement<F>) -> G1Point<F> {
+    /*
+    field = get_base_field(curve_id)
+    a = field(CURVES[curve_id.value].swu_params.A)
+    b = field(CURVES[curve_id.value].swu_params.B)
+    z = field(CURVES[curve_id.value].swu_params.Z)
+
+    u = field_element
+    zeta_u2 = z * u**2
+    ta = zeta_u2**2 + zeta_u2
+    num_x1 = b * (ta + field.one())
+
+    if ta.value == 0:
+        div = a * z
+    else:
+        div = a * -ta
+
+    num2_x1 = num_x1**2
+    div2 = div**2
+    div3 = div2 * div
+    assert div3.value != 0
+
+    num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
+
+    num_x2 = zeta_u2 * num_x1
+
+    gx1 = num_gx1 / div3
+    gx1_square = gx1.is_quad_residue()
+    if gx1_square:
+        y1 = gx1.sqrt(min_root=False)
+        assert y1 * y1 == gx1
+    else:
+        y1 = (z * gx1).sqrt(min_root=False)
+        assert y1 * y1 == z * gx1
+
+    y2 = zeta_u2 * u * y1
+    num_x = num_x1 if gx1_square else num_x2
+    y = y1 if gx1_square else y2
+    x_affine = num_x / div
+    y_affine = -y if y.value % 2 != u.value % 2 else y
+
+    point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
+    return point_on_curvedef map_to_curve(field_element: PyFelt, curve_id: CurveID) -> G1Point:
+    field = get_base_field(curve_id)
+    a = field(CURVES[curve_id.value].swu_params.A)
+    b = field(CURVES[curve_id.value].swu_params.B)
+    z = field(CURVES[curve_id.value].swu_params.Z)
+
+    u = field_element
+    zeta_u2 = z * u**2
+    ta = zeta_u2**2 + zeta_u2
+    num_x1 = b * (ta + field.one())
+
+    if ta.value == 0:
+        div = a * z
+    else:
+        div = a * -ta
+
+    num2_x1 = num_x1**2
+    div2 = div**2
+    div3 = div2 * div
+    assert div3.value != 0
+
+    num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
+
+    num_x2 = zeta_u2 * num_x1
+
+    gx1 = num_gx1 / div3
+    gx1_square = gx1.is_quad_residue()
+    if gx1_square:
+        y1 = gx1.sqrt(min_root=False)
+        assert y1 * y1 == gx1
+    else:
+        y1 = (z * gx1).sqrt(min_root=False)
+        assert y1 * y1 == z * gx1
+
+    y2 = zeta_u2 * u * y1
+    num_x = num_x1 if gx1_square else num_x2
+    y = y1 if gx1_square else y2
+    x_affine = num_x / div
+    y_affine = -y if y.value % 2 != u.value % 2 else y
+
+    point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
+    return point_on_curvedef map_to_curve(field_element: PyFelt, curve_id: CurveID) -> G1Point:
+    field = get_base_field(curve_id)
+    a = field(CURVES[curve_id.value].swu_params.A)
+    b = field(CURVES[curve_id.value].swu_params.B)
+    z = field(CURVES[curve_id.value].swu_params.Z)
+
+    u = field_element
+    zeta_u2 = z * u**2
+    ta = zeta_u2**2 + zeta_u2
+    num_x1 = b * (ta + field.one())
+
+    if ta.value == 0:
+        div = a * z
+    else:
+        div = a * -ta
+
+    num2_x1 = num_x1**2
+    div2 = div**2
+    div3 = div2 * div
+    assert div3.value != 0
+
+    num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
+
+    num_x2 = zeta_u2 * num_x1
+
+    gx1 = num_gx1 / div3
+    gx1_square = gx1.is_quad_residue()
+    if gx1_square:
+        y1 = gx1.sqrt(min_root=False)
+        assert y1 * y1 == gx1
+    else:
+        y1 = (z * gx1).sqrt(min_root=False)
+        assert y1 * y1 == z * gx1
+
+    y2 = zeta_u2 * u * y1
+    num_x = num_x1 if gx1_square else num_x2
+    y = y1 if gx1_square else y2
+    x_affine = num_x / div
+    y_affine = -y if y.value % 2 != u.value % 2 else y
+
+    point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
+    return point_on_curve
+    */
     // TODO
     todo!()
+}
+
+fn hash_to_field<F>(message: [u8; 32], count: usize, hash_name: &str) -> Vec<FieldElement<F>>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    let len_per_elem = get_len_per_elem::<F>(None);
+    let output = match hash_name {
+        "sha256" => hash_to_bytes::<Sha256Hasher>(message, count, len_per_elem),
+        _ => panic!("unsupported hash name"),
+    };
+    output.iter().map(|v| element_from_bytes_be(&v)).collect()
+}
+
+fn hash_to_bytes<H: Hasher>(message: [u8; 32], count: usize, len_per_elem: usize) -> Vec<Vec<u8>> {
+    let len_in_bytes = count * len_per_elem;
+    assert!(len_in_bytes < (1 << 16)); //, "Length should be smaller than 2^16"
+    let mut expander = ExpanderXmd::<H>::new(DST, len_per_elem);
+    let uniform_bytes = expander.expand_message_xmd(&message, len_in_bytes.try_into().unwrap());
+    let mut output = vec![];
+    for i in (0..len_in_bytes).step_by(len_per_elem) {
+        output.push(uniform_bytes[i..i + len_per_elem].to_vec());
+    }
+    output
+}
+
+fn get_len_per_elem<F>(sec_param: Option<usize>) -> usize
+where
+    F: IsPrimeField,
+{
+    let sec_param = match sec_param {
+        Option::None => 128,
+        Option::Some(sec_param) => sec_param,
+    };
+    let base_field_size_in_bits = F::field_bit_size();
+    let base_field_size_with_security_padding_in_bits = base_field_size_in_bits + sec_param;
+    let bytes_per_base_field_elem = (base_field_size_with_security_padding_in_bits + 7) / 8;
+    bytes_per_base_field_elem
+}
+
+trait Hasher: Clone {
+    fn new() -> Self;
+    fn reset(&mut self);
+    fn update(&mut self, bytes: &[u8]);
+    fn digest_size(&self) -> usize;
+    fn digest(&self) -> Vec<u8>;
+}
+
+#[derive(Clone)]
+struct Sha256Hasher {
+    data: Vec<u8>,
+}
+
+impl Hasher for Sha256Hasher {
+    fn new() -> Self {
+        Self { data: vec![] }
+    }
+    fn reset(&mut self) {
+        self.data = vec![];
+    }
+    fn update(&mut self, bytes: &[u8]) {
+        self.data.extend_from_slice(bytes);
+    }
+    fn digest_size(&self) -> usize {
+        32
+    }
+    fn digest(&self) -> Vec<u8> {
+        Sha256::digest(&self.data).to_vec()
+    }
+}
+
+const G1_DOMAIN: &[u8] = b"BLS_SIG_BLS12381G1_XMD:SHA-256_SSWU_RO_NUL_";
+const DST: &[u8] = G1_DOMAIN;
+const LONG_DST_PREFIX: &[u8] = b"H2C-OVERSIZE-DST-";
+const MAX_DST_LENGTH: usize = 255;
+
+struct ExpanderXmd<H: Hasher> {
+    hasher: H,
+    dst: Vec<u8>,
+    block_size: usize,
+}
+
+impl<H: Hasher> ExpanderXmd<H> {
+    fn new(dst: &[u8], block_size: usize) -> Self {
+        Self {
+            hasher: H::new(),
+            dst: dst.to_vec(),
+            block_size,
+        }
+    }
+    fn construct_dst_prime(&self) -> Vec<u8> {
+        let mut dst_prime = if self.dst.len() > MAX_DST_LENGTH {
+            let mut hasher_copy = self.hasher.clone();
+            hasher_copy.update(LONG_DST_PREFIX);
+            hasher_copy.update(&self.dst);
+            hasher_copy.digest()
+        } else {
+            self.dst.clone()
+        };
+        dst_prime.push(dst_prime.len().try_into().unwrap());
+        dst_prime
+    }
+    fn expand_message_xmd(&mut self, msg: &[u8], n: u16) -> Vec<u8> {
+        let mut uniform_bytes = vec![];
+
+        let b_len = self.hasher.digest_size();
+        let ell = (TryInto::<usize>::try_into(n).unwrap() + (b_len - 1)) / b_len;
+        assert!(ell <= 255); //"The ratio of desired output to the output size of hash function is too large!"
+
+        let dst_prime = self.construct_dst_prime();
+        let z_pad = vec![0u8; self.block_size];
+        let lib_str: [u8; 2] = n.to_be_bytes();
+
+        self.hasher.update(&z_pad);
+        self.hasher.update(msg);
+        let mut lib_str_dst_prime = lib_str.to_vec();
+        lib_str_dst_prime.push(0);
+        lib_str_dst_prime.extend_from_slice(&dst_prime);
+        self.hasher.update(&lib_str_dst_prime);
+        let b0 = self.hasher.digest();
+        let mut hasher = self.hasher.clone();
+        hasher.reset();
+        hasher.update(&b0);
+        let mut one_dst_prime = vec![1];
+        one_dst_prime.extend_from_slice(&dst_prime);
+        hasher.update(&one_dst_prime);
+        let mut bi = hasher.digest();
+
+        uniform_bytes.extend_from_slice(&bi);
+
+        for i in 2..ell + 1 {
+            let b0_xor_bi = b0
+                .iter()
+                .zip(bi.iter())
+                .map(|(&x, &y)| x ^ y)
+                .collect::<Vec<u8>>();
+            let mut hasher = self.hasher.clone();
+            hasher.reset();
+            hasher.update(&b0_xor_bi);
+            let mut bytes_i_dst_prime = vec![i.try_into().unwrap()];
+            bytes_i_dst_prime.extend_from_slice(&dst_prime);
+            hasher.update(&bytes_i_dst_prime);
+            bi = hasher.digest();
+            uniform_bytes.extend_from_slice(&bi);
+        }
+        uniform_bytes[0..n.try_into().unwrap()].to_vec()
+    }
 }
 
 struct MapToCurveHint {
