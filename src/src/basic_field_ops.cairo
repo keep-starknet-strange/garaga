@@ -6,7 +6,7 @@ use core::circuit::{
     circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::Zero;
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
 use garaga::utils::hashing::hades_permutation;
 
@@ -202,7 +202,7 @@ fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 #[inline(always)]
 pub fn eval_and_hash_E12D_u288_transcript(
     transcript: Span<E12D<u288>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Span<u384>) {
+) -> (felt252, felt252, felt252, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
@@ -281,32 +281,32 @@ pub fn eval_and_hash_E12D_u288_transcript(
         // Prefill constants:
 
         // Fill inputs:
-        circuit_inputs = circuit_inputs.next_u288(elmt.w0); // in0
-        circuit_inputs = circuit_inputs.next_u288(elmt.w1); // in1
-        circuit_inputs = circuit_inputs.next_u288(elmt.w2); // in2
-        circuit_inputs = circuit_inputs.next_u288(elmt.w3); // in3
-        circuit_inputs = circuit_inputs.next_u288(elmt.w4); // in4
-        circuit_inputs = circuit_inputs.next_u288(elmt.w5); // in5
-        circuit_inputs = circuit_inputs.next_u288(elmt.w6); // in6
-        circuit_inputs = circuit_inputs.next_u288(elmt.w7); // in7
-        circuit_inputs = circuit_inputs.next_u288(elmt.w8); // in8
-        circuit_inputs = circuit_inputs.next_u288(elmt.w9); // in9
-        circuit_inputs = circuit_inputs.next_u288(elmt.w10); // in10
-        circuit_inputs = circuit_inputs.next_u288(elmt.w11); // in11
+        circuit_inputs = circuit_inputs.next_2(elmt.w0); // in0
+        circuit_inputs = circuit_inputs.next_2(elmt.w1); // in1
+        circuit_inputs = circuit_inputs.next_2(elmt.w2); // in2
+        circuit_inputs = circuit_inputs.next_2(elmt.w3); // in3
+        circuit_inputs = circuit_inputs.next_2(elmt.w4); // in4
+        circuit_inputs = circuit_inputs.next_2(elmt.w5); // in5
+        circuit_inputs = circuit_inputs.next_2(elmt.w6); // in6
+        circuit_inputs = circuit_inputs.next_2(elmt.w7); // in7
+        circuit_inputs = circuit_inputs.next_2(elmt.w8); // in8
+        circuit_inputs = circuit_inputs.next_2(elmt.w9); // in9
+        circuit_inputs = circuit_inputs.next_2(elmt.w10); // in10
+        circuit_inputs = circuit_inputs.next_2(elmt.w11); // in11
         circuit_inputs = circuit_inputs.next_2(z); // in12
 
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals.span());
+    return (s0, s1, s2, evals);
 }
 
 
 #[inline(always)]
 pub fn eval_and_hash_E12D_u384_transcript(
     transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Span<u384>) {
+) -> (felt252, felt252, felt252, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BLS12_381_modulus(); // BN254 prime field modulus
@@ -403,5 +403,5 @@ pub fn eval_and_hash_E12D_u384_transcript(
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals.span());
+    return (s0, s1, s2, evals);
 }

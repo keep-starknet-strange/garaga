@@ -5,7 +5,13 @@ from typing import List, Union
 from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
 from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
 from garaga.hints.io import bigint_split
-from garaga.modulo_circuit_structs import Cairo1SerializableStruct, u128, u256, u384
+from garaga.modulo_circuit_structs import (
+    Cairo1SerializableStruct,
+    GenericT,
+    u128,
+    u256,
+    u384,
+)
 
 BATCH_SIZE = 1  # Batch Size, only used in cairo 0 mode.
 
@@ -421,7 +427,7 @@ class ModuloCircuit:
 
         if all_pyfelt:
             self.input_structs.append(struct)
-            if len(struct) == 1 and isinstance(struct, (u384, u256, u128)):
+            if len(struct) == 1 and isinstance(struct, (u384, u256, u128, GenericT)):
                 return self.write_element(struct.elmts[0], write_source)
             else:
                 return self.write_elements(struct.elmts, write_source)
@@ -909,7 +915,11 @@ class ModuloCircuit:
         self.values_segment.print()
 
     def compile_circuit(
-        self, function_name: str = None, pub: bool = True, inline: bool = True
+        self,
+        function_name: str = None,
+        pub: bool = True,
+        inline: bool = True,
+        generic_modulus: bool = False,
     ):
         if self.is_empty_circuit():
             return "", ""
@@ -917,7 +927,9 @@ class ModuloCircuit:
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
-            return self.compile_circuit_cairo_1(function_name, pub, inline)
+            return self.compile_circuit_cairo_1(
+                function_name, pub, inline, generic_modulus
+            )
 
     def compile_circuit_cairo_zero(
         self,
@@ -1147,7 +1159,8 @@ class ModuloCircuit:
         function_name: str = None,
         pub: bool = False,
         inline: bool = True,
-    ) -> str:
+        generic_modulus: bool = False,
+    ) -> tuple[str, str]:
         """
         Defines the Cairo 1 function code for the compiled circuit.
         """
@@ -1181,19 +1194,27 @@ class ModuloCircuit:
                 )
         else:
             signature_input = "mut input: Array<u384>"
-
+        if "<T>" in signature_input or ":T," in signature_input:
+            generic_input = "<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>"
+        else:
+            generic_input = ""
         if pub:
             prefix = "pub "
         else:
             prefix = ""
         if inline:
-            attribute = "#[inline(always)]"
+            if generic_input == "":
+                attribute = "#[inline(always)]"
+            else:
+                attribute = "#[inline]"
         else:
             attribute = ""
-        if self.generic_circuit:
-            code = f"{attribute}\n{prefix}fn {function_name}({signature_input}, curve_index:usize)->{signature_output} {{\n"
+        if generic_modulus:
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, modulus:CircuitModulus)->{signature_output} {{\n"
+        elif self.generic_circuit:
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, curve_index:usize)->{signature_output} {{\n"
         else:
-            code = f"{attribute}\n{prefix}fn {function_name}({signature_input})->{signature_output} {{\n"
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input})->{signature_output} {{\n"
 
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
@@ -1232,7 +1253,9 @@ class ModuloCircuit:
         else:
             outputs_refs_needed = outputs_refs
 
-        if curve_index is not None:
+        if generic_modulus:
+            code += "\nlet modulus = modulus;\n"
+        elif curve_index is not None:
             code += f"""
     let modulus = get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
         """

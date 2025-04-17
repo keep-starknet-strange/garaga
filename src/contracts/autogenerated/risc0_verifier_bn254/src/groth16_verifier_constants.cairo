@@ -2,21 +2,21 @@ use garaga::definitions::{E12D, G1Point, G2Line, G2Point, u288, u384};
 use garaga::groth16::Groth16VerifyingKey;
 
 pub const N_FREE_PUBLIC_INPUTS: usize = 2;
-// CONTROL ROOT USED : 0x8cdad9242664be3112aba377c5425a4df735eb1c6966472b561d2855932c0469
-// CONTROL_ROOT_0 : 0x4d5a42c577a3ab1231be642624d9da8c
-// CONTROL_ROOT_1 : 0x69042c9355281d562b4766691ceb35f7
+// CONTROL ROOT USED : 0x539032186827b06719244873b17b2d4c122e2d02cfb1994fe958b2523b844576
+// CONTROL_ROOT_0 : 0x4c2d7bb17348241967b0276818329053
+// CONTROL_ROOT_1 : 0x7645843b52b258e94f99b1cf022d2e12
 // BN254 CONTROL ID USED : 0x4446e66d300eb7fb45c9726bb53c793dda407a62e9601618bb43c5c14657ac0
 pub const T: G1Point = G1Point {
     x: u384 {
-        limb0: 0xebb965721eb4af9f6949e2b,
-        limb1: 0xa75fa146dd3c81e9bf0d8d1d,
-        limb2: 0x2b861a1a797c17ab,
+        limb0: 0xc8b074a3643fef5264ff5104,
+        limb1: 0xde3812753cc713dee4d4901c,
+        limb2: 0x284cb2b3d5512423,
         limb3: 0x0,
     },
     y: u384 {
-        limb0: 0x2c91cd670109a3f468862e7f,
-        limb1: 0x1cc46565e82743edcd0ece27,
-        limb2: 0x17546941087b4a40,
+        limb0: 0xbcc25401ebd533cf0c4b7e24,
+        limb1: 0xd151093d0974bd5dea9ba760,
+        limb2: 0x226c122d31d931de,
         limb3: 0x0,
     },
 }; // IC[0] + IC[1] * CONTROL_ROOT_0 + IC[2] * CONTROL_ROOT_1 + IC[5] * BN254_CONTROL_ID

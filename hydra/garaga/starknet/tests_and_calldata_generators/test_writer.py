@@ -2,6 +2,7 @@ import concurrent.futures
 import json
 import random
 import subprocess
+import time
 
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import (
@@ -46,10 +47,8 @@ def generate_msm_test(curve_id, n_points, seed):
     random.seed(seed)
     builder = MSMCalldataBuilder(
         curve_id=curve_id,
-        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
-        + [G1Point.infinity(curve_id)],
-        scalars=[0]
-        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)],
+        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
+        scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
     )
     return builder.to_cairo_1_test()
 
@@ -131,12 +130,12 @@ fn test_tower_final_exp_{curve_id.name}() {{
 def generate_schnorr_test(curve_id, seed):
     random.seed(seed)
     schnorr_sig: SchnorrSignature = SchnorrSignature.sample(curve_id)
-
+    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_schnorr_{curve_id.name}() {{
     let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
-    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
+    let sch_with_hints = Serde::<SchnorrSignatureWithHint<{T}>>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_schnorr_signature(sch_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -147,12 +146,12 @@ fn test_schnorr_{curve_id.name}() {{
 def generate_ecdsa_test(curve_id, seed):
     random.seed(seed)
     ecdsa_sig: ECDSASignature = ECDSASignature.sample(curve_id)
-
+    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_ecdsa_{curve_id.name}() {{
     let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
-    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
+    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint<{T}>>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -243,7 +242,8 @@ def get_pairing_config():
 def get_msm_config():
     """Configuration for MSM tests"""
     header = """
-        use garaga::ec_ops::{G1Point, FunctionFelt, u384, msm_g1, MSMHint, DerivePointFromXHint};
+        use garaga::ec_ops::{G1Point, FunctionFelt, u384, u288, msm_g1, MSMHint, DerivePointFromXHint};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     msm_sizes = [1, 2, 3, 4, 10, 11, 12]
@@ -271,6 +271,8 @@ def get_schnorr_config():
         use garaga::signatures::schnorr::{
             SchnorrSignature, SchnorrSignatureWithHint, is_valid_schnorr_signature,
         };
+        use garaga::definitions::{u288, u384};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     test_generators = [(generate_schnorr_test, [()])]
@@ -291,6 +293,8 @@ def get_ecdsa_config():
         use garaga::signatures::ecdsa::{
             ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature,
         };
+        use garaga::definitions::{u288, u384};
+        use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
     test_generators = [(generate_ecdsa_test, [()])]
@@ -329,7 +333,7 @@ def generate_eddsa_test_file() -> str:
     """Configuration for EDDSA signature tests"""
     code = """
     use garaga::signatures::eddsa_25519::{
-        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature,
+        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature
     };
     """
 
@@ -379,4 +383,4 @@ if __name__ == "__main__":
     start = time.time()
     write_all_tests()
     end = time.time()
-    print(f"Time taken: {end - start} seconds")
+    print(f"Time taken to write all tests: {end - start} seconds")

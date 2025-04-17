@@ -18,18 +18,22 @@ wasm = ["dep:wasm-bindgen"]
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
+#proptest = "1.6.0"
+#proptest-arbitrary-interop = "0.1"
+test-strategy = "0.4.0"
 
 # assumes python dependencies when not on wasm32-unknown-unknown
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pyo3 = { version = "0.23", features = ["extension-module", "num-bigint"] }
+pyo3 = { version = "0.24", features = ["extension-module", "num-bigint"] }
 
 # assumes wasm dependencies when on wasm32-unknown-unknown
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = "0.2"
 
 [dependencies]
-pyo3 = { version = "0.23", features = ["extension-module", "num-bigint"], optional = true }
+pyo3 = { version = "0.24", features = ["extension-module", "num-bigint"], optional = true }
 wasm-bindgen = { version = "0.2", optional = true }
+getrandom = { version = "0.3.1", features = ["wasm_js"] }
 num-bigint = "0.4"
 num-traits = "0.2"
 hex = "0.4"
@@ -37,7 +41,11 @@ sha2 = "0.10"
 sha3 = "0.10"
 js-sys = "0.3"
 lazy_static = "1.4"
-itertools = "0.14"
+rand = "0.9.0"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
-lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev = "be4a329dad5c847a37ab3831b6fdee546b2d0af9" }
-lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev ="be4a329dad5c847a37ab3831b6fdee546b2d0af9" }
+lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329" }
+lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329" }
+arbitrary = "1.0"
+thiserror = "2.0.11"
+itertools = "0.14"
+rayon = "1.8"

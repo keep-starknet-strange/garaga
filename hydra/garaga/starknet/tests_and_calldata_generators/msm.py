@@ -354,27 +354,31 @@ class MSMCalldataBuilder:
         #     f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
         # )
         test_name = test_name or f"test_msm_{self.curve_id.name}_{len(self.scalars)}P"
-        inputs = self._get_input_structs()
+        inputs = garaga_rs.msm_calldata_builder(
+            [value for point in self.points for value in [point.x, point.y]],
+            self.scalars,
+            self.curve_id.value,
+            include_digits_decomposition,
+            True,
+            False,
+            self.risc0_mode,
+        )
+        Q = structs.G1PointCircuit.from_G1Point(
+            "Q", G1Point.msm(self.points, self.scalars)
+        )
 
-        input_code = ""
-        for struct in inputs:
-            if struct.name == "scalars_digits_decompositions":
-                if include_digits_decomposition:
-                    input_code += struct.serialize(is_option=True)
-                else:
-                    struct.elmts = None
-                    input_code += struct.serialize()
-            else:
-                input_code += struct.serialize()
-
-        _Q = G1Point.msm(points=self.points, scalars=self.scalars)
-
-        Q = structs.G1PointCircuit.from_G1Point("Q", _Q)
+        T = "u384" if self.curve_id == CurveID.BLS12_381 else "u288"
         code = f"""
         #[test]
         fn {test_name}() {{
-            {input_code}
-            let res = msm_g1({', '.join([struct.name for struct in inputs])}, {self.curve_id.value});
+            let mut data = array![{','.join([hex(value) for value in inputs])}].span();
+            let scalars_digits_decompositions = Serde::deserialize(ref data).unwrap();
+            let hint = Serde::<MSMHint<{T}>>::deserialize(ref data).unwrap();
+            let derive_point_from_x_hint = Serde::deserialize(ref data).unwrap();
+            let points = Serde::deserialize(ref data).unwrap();
+            let scalars = Serde::deserialize(ref data).unwrap();
+            let curve_id = Serde::deserialize(ref data).unwrap();
+            let res = msm_g1(scalars_digits_decompositions, hint, derive_point_from_x_hint, points, scalars, curve_id);
             assert!(res == {Q.serialize(raw=True)});
         }}
         """

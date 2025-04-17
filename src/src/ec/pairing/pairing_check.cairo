@@ -58,7 +58,7 @@ fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 145);
-    usize_assert_eq(hint.Ris.len(), 35);
+    usize_assert_eq(hint.Ris.len(), 34);
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
@@ -83,6 +83,10 @@ fn multi_pairing_check_bn254_2P_2F(
     let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
         hint.Ris, s0, s1, s2, z,
     );
+    // Last Ri is known to be 1:
+    let (s0, s1, s2) = hashing::hash_E12D_one(s0, s1, s2);
+
+    let mut evals = evals.span();
     let mut c_i: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
@@ -191,7 +195,7 @@ fn multi_pairing_check_bn254_2P_2F(
     }
 
     let R_n_minus_2_of_z = *evals.pop_front().unwrap();
-    let R_n_minus_1_of_z = *evals.pop_front().unwrap();
+    let R_n_minus_1_of_z: u384 = One::one();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
         yInv_0,
@@ -215,10 +219,7 @@ fn multi_pairing_check_bn254_2P_2F(
         hint.big_Q,
     );
 
-    assert!(check.is_zero(), "Final check failed");
-
-    assert!(R_n_minus_1_of_z.is_one());
-    return true;
+    return check.is_zero();
 }
 
 #[inline(always)]
@@ -226,7 +227,7 @@ fn multi_pairing_check_bls12_381_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 81);
-    usize_assert_eq(hint.Ris.len(), 36);
+    usize_assert_eq(hint.Ris.len(), 35);
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BLS12_381(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BLS12_381(pair1.p.x, pair1.p.y);
@@ -244,6 +245,10 @@ fn multi_pairing_check_bls12_381_2P_2F(
     let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u384_transcript(
         hint.Ris, s0, s1, s2, z,
     );
+    // Last Ri is known to be 1:
+    let (s0, s1, s2) = hashing::hash_E12D_one(s0, s1, s2);
+
+    let mut evals = evals.span();
 
     let mut c_i: u384 = s1.into();
 
@@ -258,7 +263,6 @@ fn multi_pairing_check_bls12_381_2P_2F(
     );
 
     // init bit for bls is 1:
-    let mut Ris = hint.Ris;
     let R_0_of_Z = *evals.pop_front().unwrap();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (_lhs) = run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
@@ -348,13 +352,10 @@ fn multi_pairing_check_bls12_381_2P_2F(
         c_i = _c_i;
     }
 
-    let R_last_of_z = *evals.pop_front().unwrap();
+    let R_last_of_z: u384 = One::one();
     let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
         R_last_of_z, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
     );
 
-    assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
-
-    assert!(Ris.at(35).is_one());
-    return true;
+    return check.is_zero();
 }

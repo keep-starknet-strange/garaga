@@ -9,6 +9,9 @@ setup:
 bytecode-check:
 	./tools/make/bytecode_check.sh
 
+check-max-log-n:
+	./tools/make/bytecode_check_max_log_n.sh
+
 rewrite:
 	./tools/make/rewrite.sh
 
@@ -21,6 +24,8 @@ regen:
 steps:
 	./tools/make/steps.sh
 
+fmt:
+	scarb fmt && cargo fmt
 ci-e2e:
 	./tools/make/ci_e2e.sh
 

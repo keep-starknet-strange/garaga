@@ -18,7 +18,8 @@ from garaga.modulo_circuit_structs import (
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 # https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-RISC0_CONTROL_ROOT = 0x8CDAD9242664BE3112ABA377C5425A4DF735EB1C6966472B561D2855932C0469
+# release 2.0
+RISC0_CONTROL_ROOT = 0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576
 RISC0_BN254_CONTROL_ID = (
     0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0
 )

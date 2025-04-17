@@ -7,11 +7,11 @@ pub trait IFibonacciSequencer<TContractState> {
 
 #[starknet::contract]
 mod FibonacciSequencer {
-    use core::starknet::ClassHash;
-    use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::ClassHash;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
     pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-        0x639e6ae597b758573e67625d59eaf03c8e30231722f2a4b20cb4d9293648599;
+        0x4f103bee4dec742ef1c66287a8ee8c0f4e2b4b15ea6e04eb98c63ed5a8864bc;
 
     #[storage]
     struct Storage {

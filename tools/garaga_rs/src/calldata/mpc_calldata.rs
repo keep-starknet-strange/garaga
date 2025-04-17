@@ -300,6 +300,12 @@ where
         Some(coeffs)
     };
 
+    let ris = if public_pair.is_none() {
+        ris[..ris.len() - 1].to_vec() // Do not skip last Ri in calldata as it is known to be 1
+    } else {
+        ris
+    };
+
     (
         f,
         lambda_root,

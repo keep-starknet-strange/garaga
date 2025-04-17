@@ -296,7 +296,7 @@ pub mod risc0_utils {
 
     pub fn get_risc0_constants() -> (BigUint, BigUint) {
         let risc0_control_root = BigUint::from_str_radix(
-            "8CDAD9242664BE3112ABA377C5425A4DF735EB1C6966472B561D2855932C0469",
+            "539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576",
             16,
         )
         .unwrap();
