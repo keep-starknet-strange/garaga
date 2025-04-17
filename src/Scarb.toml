@@ -1,6 +1,6 @@
 [package]
 name = "garaga"
-version = "0.16.0"
+version = "0.17.0"
 edition = "2023_10"
 licence = "MIT"
 keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]
@@ -19,7 +19,7 @@ full = []
 [dependencies]
 
 [dev-dependencies]
-cairo_test = "2.11.2"
+cairo_test = "2.11.4"
 
 #snforge_std = { git = "https://github.com/foundry-rs/starknet-foundry.git", tag = "v0.30.0" }
 #assert_macros = "2.8."

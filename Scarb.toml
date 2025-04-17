@@ -4,5 +4,5 @@ members = [
 ]
 
 [workspace.dependencies]
-cairo_test = "2.11.2"
-starknet = "2.11.2"
+cairo_test = "2.11.4"
+starknet = "2.11.4"
