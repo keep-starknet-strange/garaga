@@ -1,5 +1,5 @@
 use super::honk_verifier_circuits::{
-    run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
+    is_on_curve_bn254, run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
     run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit,
 };
@@ -21,7 +21,7 @@ mod UltraKeccakHonkVerifier {
     use garaga::core::circuit::{
         U32IntoU384, U64IntoU384, into_u256_unchecked, u288IntoCircuitInputValue,
     };
-    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_a, get_modulus, u288};
+    use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, u288};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
         compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
@@ -34,7 +34,8 @@ mod UltraKeccakHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
     use super::{
-        VK_HASH, precomputed_lines, run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
+        VK_HASH, is_on_curve_bn254, precomputed_lines,
+        run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
         run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit, vk,
     };
@@ -246,6 +247,7 @@ mod UltraKeccakHonkVerifier {
             ]
                 .span();
 
+            let mod_bn = get_BN254_modulus();
             full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(48);
             // HASHING: GET ECIP BASE RLC COEFF.
             let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
@@ -265,26 +267,30 @@ mod UltraKeccakHonkVerifier {
             // transcript + we precompute the VK hash.
             // Skip the first 27 points as they are from VK and keep the last 20 proof points
             for point in points.slice(27, 20) {
-                if !point.is_infinity() {
-                    point.assert_on_curve(0);
-                }
+                assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
             }
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
-
-            if !shplonk_q_pt.is_infinity() {
-                shplonk_q_pt.assert_on_curve(0);
-            }
+            assert(is_on_curve_bn254(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
             if !full_proof.msm_hint_batched.Q_low.is_infinity() {
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
+                assert(
+                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_low, mod_bn),
+                    'Q_low not on curve',
+                );
             }
             if !full_proof.msm_hint_batched.Q_high.is_infinity() {
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
+                assert(
+                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_high, mod_bn),
+                    'Q_high not on curve',
+                );
             }
             if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
+                assert(
+                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_high_shifted, mod_bn),
+                    'Q_high_shifted not on curve',
+                );
             }
 
             // Hash result points
@@ -313,11 +319,16 @@ mod UltraKeccakHonkVerifier {
 
             // Get slope, intercept and other constant from random point
             let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0,
+                random_point, Zero::zero(), 0,
             );
 
             // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(scalars, Option::None);
+            let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
+            for scalar in scalars {
+                epns_low.append(neg_3::scalar_to_epns(*scalar.low));
+                epns_high.append(neg_3::scalar_to_epns(*scalar.high));
+            }
 
             // Hardcoded epns for 2**128
             let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
@@ -339,7 +350,6 @@ mod UltraKeccakHonkVerifier {
                 coeff: mb.coeff2,
                 SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
             );
-            let mod_bn = get_modulus(0);
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
