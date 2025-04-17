@@ -24,7 +24,7 @@ mod UltraStarknetHonkVerifier {
     use garaga::definitions::{BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, u288};
     use garaga::ec_ops::{
         DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
-        compute_rhs_ecip, derive_ec_point_from_X, ec_safe_add,
+        _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, ec_safe_add,
     };
     use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
     use garaga::utils::neg_3;
@@ -353,7 +353,7 @@ mod UltraStarknetHonkVerifier {
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
-            let rhs_low = compute_rhs_ecip(
+            let rhs_low = _compute_rhs_ecip_no_infinity(
                 points,
                 mb.m_A0,
                 mb.b_A0,
@@ -362,7 +362,7 @@ mod UltraStarknetHonkVerifier {
                 full_proof.msm_hint_batched.Q_low,
                 0,
             );
-            let rhs_high = compute_rhs_ecip(
+            let rhs_high = _compute_rhs_ecip_no_infinity(
                 points,
                 mb.m_A0,
                 mb.b_A0,
@@ -371,7 +371,7 @@ mod UltraStarknetHonkVerifier {
                 full_proof.msm_hint_batched.Q_high,
                 0,
             );
-            let rhs_high_shifted = compute_rhs_ecip(
+            let rhs_high_shifted = _compute_rhs_ecip_no_infinity(
                 array![full_proof.msm_hint_batched.Q_high].span(),
                 mb.m_A0,
                 mb.b_A0,

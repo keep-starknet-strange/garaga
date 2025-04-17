@@ -168,13 +168,13 @@ def get_msm_kzg_template(
 
             let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
 
-            let rhs_low = compute_rhs_ecip(
+            let rhs_low = _compute_rhs_ecip_no_infinity(
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
             );
-            let rhs_high = compute_rhs_ecip(
+            let rhs_high = _compute_rhs_ecip_no_infinity(
                 points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
             );
-            let rhs_high_shifted = compute_rhs_ecip(
+            let rhs_high_shifted = _compute_rhs_ecip_no_infinity(
                 array![full_proof.msm_hint_batched.Q_high].span(),
                 mb.m_A0,
                 mb.b_A0,
@@ -387,7 +387,7 @@ pub trait {trait_name}<TContractState> {{
 mod {contract_name} {{
     use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, u288}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, SlopeInterceptOutput}};
     use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
     use garaga::circuits::ec;
     use garaga::utils::neg_3;

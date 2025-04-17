@@ -827,6 +827,48 @@ fn compute_rhs_ecip(
     }
 }
 
+// A version of compute_rhs_ecip that does not check if the points are infinity and expect them to
+// be on curve.
+// Do not use unless all points are known to be on curve.
+fn _compute_rhs_ecip_no_infinity(
+    mut points: Span<G1Point>,
+    m_A0: u384,
+    b_A0: u384,
+    x_A0: u384,
+    mut epns: Array<(felt252, felt252, felt252, felt252)>,
+    Q_result: G1Point,
+    curve_index: usize,
+) -> u384 {
+    let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
+    while let Option::Some(point) = points.pop_front() {
+        let (ep, en, sp, sn) = epns.pop_front().unwrap();
+        if ep - en != 0 {
+            let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
+                basis_sum,
+                m_A0,
+                b_A0,
+                x_A0,
+                *point,
+                ep.into(),
+                en.into(),
+                neg_3::sign_to_u384(sp, curve_index),
+                neg_3::sign_to_u384(sn, curve_index),
+                curve_index,
+            );
+            basis_sum = _basis_sum;
+        }
+    }
+
+    if Q_result.is_infinity() {
+        return basis_sum;
+    } else {
+        let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
+            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index,
+        );
+        return rhs;
+    }
+}
+
 // A version of msm_g1 that works with 2 points only to reduce bytecode size.
 fn msm_g1_2_points<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
     scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
