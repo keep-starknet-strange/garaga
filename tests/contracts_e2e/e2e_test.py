@@ -403,7 +403,7 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
 
     assert (
         hex(lib_groth16_class_hash) in open(src_path).read()
-    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date, expected {hex(lib_groth16_class_hash)}, got {hex(lib_groth16_class_hash)}"
+    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date, expected {hex(lib_groth16_class_hash)}"
 
     # Declare the risc0 sample app contract
     groth16_class_hash, groth16_abi = await contract_project.declare_class_hash(account)
