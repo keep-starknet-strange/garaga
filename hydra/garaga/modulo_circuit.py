@@ -915,7 +915,11 @@ class ModuloCircuit:
         self.values_segment.print()
 
     def compile_circuit(
-        self, function_name: str = None, pub: bool = True, inline: bool = True
+        self,
+        function_name: str = None,
+        pub: bool = True,
+        inline: bool = True,
+        generic_modulus: bool = False,
     ):
         if self.is_empty_circuit():
             return "", ""
@@ -923,7 +927,9 @@ class ModuloCircuit:
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
-            return self.compile_circuit_cairo_1(function_name, pub, inline)
+            return self.compile_circuit_cairo_1(
+                function_name, pub, inline, generic_modulus
+            )
 
     def compile_circuit_cairo_zero(
         self,
@@ -1153,7 +1159,8 @@ class ModuloCircuit:
         function_name: str = None,
         pub: bool = False,
         inline: bool = True,
-    ) -> str:
+        generic_modulus: bool = False,
+    ) -> tuple[str, str]:
         """
         Defines the Cairo 1 function code for the compiled circuit.
         """
@@ -1202,7 +1209,9 @@ class ModuloCircuit:
                 attribute = "#[inline]"
         else:
             attribute = ""
-        if self.generic_circuit:
+        if generic_modulus:
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, modulus:CircuitModulus)->{signature_output} {{\n"
+        elif self.generic_circuit:
             code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, curve_index:usize)->{signature_output} {{\n"
         else:
             code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input})->{signature_output} {{\n"
@@ -1244,7 +1253,9 @@ class ModuloCircuit:
         else:
             outputs_refs_needed = outputs_refs
 
-        if curve_index is not None:
+        if generic_modulus:
+            code += "\nlet modulus = modulus;\n"
+        elif curve_index is not None:
             code += f"""
     let modulus = get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
         """

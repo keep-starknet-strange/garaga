@@ -13,7 +13,7 @@ from garaga.definitions import CURVES, CurveID, G1Point, G2Point, ProofSystem
 from garaga.modulo_circuit import ModuloCircuit
 from garaga.poseidon_transcript import hades_permutation
 
-PROOF_SIZE = 440
+PROOF_SIZE = 456
 NUMBER_OF_SUBRELATIONS = 26
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
 NUMBER_OF_ENTITIES = 40
@@ -21,6 +21,7 @@ BATCHED_RELATION_PARTIAL_LENGTH = 8
 CONST_PROOF_SIZE_LOG_N = 28
 NUMBER_UNSHIFTED = 35
 NUMBER_TO_BE_SHIFTED = 5
+PAIRING_POINT_OBJECT_LENGTH = 16
 
 
 MAX_LOG_N = 23  # 2^23 = 8388608
@@ -54,6 +55,7 @@ def g1_to_g1_proof_point(g1_proof_point: G1Point) -> list[int]:
 class HonkProof:
     log_circuit_size: int  # from vk
     public_inputs: list[int]
+    pairing_point_object: list[int]
     w1: G1Point
     w2: G1Point
     w3: G1Point
@@ -69,8 +71,10 @@ class HonkProof:
     shplonk_q: G1Point
     kzg_quotient: G1Point
     proof_bytes: bytes
+    public_inputs_bytes: bytes
 
     def __post_init__(self):
+        assert len(self.pairing_point_object) == PAIRING_POINT_OBJECT_LENGTH
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
             len(univariate) == BATCHED_RELATION_PARTIAL_LENGTH
@@ -81,23 +85,35 @@ class HonkProof:
         assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
 
     @classmethod
-    def from_bytes(cls, _bytes: bytes, vk: "HonkVk") -> "HonkProof":
-        n_elements = int.from_bytes(_bytes[:4], "big")
-        assert len(_bytes[4:]) % 32 == 0
+    def from_bytes(
+        cls, proof_bytes: bytes, public_inputs_bytes: bytes, vk: "HonkVk"
+    ) -> "HonkProof":
+        n_elements = len(proof_bytes) // 32
+        assert len(proof_bytes) % 32 == 0
         elements = [
-            int.from_bytes(_bytes[i : i + 32], "big") for i in range(4, len(_bytes), 32)
+            int.from_bytes(proof_bytes[i : i + 32], "big")
+            for i in range(0, len(proof_bytes), 32)
         ]
-        assert len(elements) == n_elements
+        assert len(elements) == n_elements == PROOF_SIZE
 
-        public_inputs_size = n_elements - PROOF_SIZE
-        assert public_inputs_size == vk.public_inputs_size
+        n_public_inputs = len(public_inputs_bytes) // 32
+        assert len(public_inputs_bytes) % 32 == 0
+        public_inputs = [
+            int.from_bytes(public_inputs_bytes[i : i + 32], "big")
+            for i in range(0, len(public_inputs_bytes), 32)
+        ]
+        assert (
+            len(public_inputs)
+            == n_public_inputs
+            == vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
+        )
 
-        public_inputs = []
+        pairing_point_object = []
         cursor = 0
-        for i in range(public_inputs_size):
-            public_inputs.append(elements[cursor + i])
+        for i in range(PAIRING_POINT_OBJECT_LENGTH):
+            pairing_point_object.append(elements[cursor + i])
 
-        cursor += public_inputs_size
+        cursor += PAIRING_POINT_OBJECT_LENGTH
 
         def parse_g1_proof_point(i: int) -> G1Point:
             return G1Point(
@@ -159,6 +175,7 @@ class HonkProof:
         return HonkProof(
             log_circuit_size=vk.log_circuit_size,
             public_inputs=public_inputs,
+            pairing_point_object=pairing_point_object,
             w1=w1,
             w2=w2,
             w3=w3,
@@ -173,7 +190,8 @@ class HonkProof:
             gemini_a_evaluations=gemini_a_evaluations,
             shplonk_q=shplonk_q,
             kzg_quotient=kzg_quotient,
-            proof_bytes=_bytes,
+            proof_bytes=proof_bytes,
+            public_inputs_bytes=public_inputs_bytes,
         )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkProof":
@@ -181,6 +199,7 @@ class HonkProof:
         return HonkProof(
             log_circuit_size=self.log_circuit_size,
             public_inputs=circuit.write_elements(self.public_inputs),
+            pairing_point_object=circuit.write_elements(self.pairing_point_object),
             w1=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w1", self.w1)),
             w2=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w2", self.w2)),
             w3=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w3", self.w3)),
@@ -222,6 +241,7 @@ class HonkProof:
                 structs.G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
             ),
             proof_bytes=self.proof_bytes,
+            public_inputs_bytes=self.public_inputs_bytes,
         )
 
     def to_cairo(self) -> str:
@@ -238,6 +258,7 @@ class HonkProof:
 
         code = f"HonkProof {{\n"
         code += f"public_inputs: {format_array(self.public_inputs, span=True)},\n"
+        code += f"pairing_point_object: {format_array(self.pairing_point_object, span=True)},\n"
         code += f"w1: {g1_to_g1point256(self.w1)},\n"
         code += f"w2: {g1_to_g1point256(self.w2)},\n"
         code += f"w3: {g1_to_g1point256(self.w3)},\n"
@@ -268,6 +289,14 @@ class HonkProof:
         cd.extend(
             io.bigint_split_array(
                 x=self.public_inputs, n_limbs=2, base=2**128, prepend_length=True
+            )
+        )
+        cd.extend(
+            io.bigint_split_array(
+                x=self.pairing_point_object,
+                n_limbs=2,
+                base=2**128,
+                prepend_length=True,
             )
         )
         cd.extend(serialize_G1Point256(self.w1))
@@ -319,6 +348,7 @@ class HonkProof:
 
         lst = []
         lst.extend(self.public_inputs)
+        lst.extend(self.pairing_point_object)
         lst.extend(g1_to_g1_proof_point(self.w1))
         lst.extend(g1_to_g1_proof_point(self.w2))
         lst.extend(g1_to_g1_proof_point(self.w3))
@@ -386,15 +416,15 @@ class HonkVk:
     #     return self.__repr__()
 
     @classmethod
-    def from_bytes(cls, _bytes: bytes) -> "HonkVk":
-        vk_hash = sha3.keccak_256(_bytes).digest()
+    def from_bytes(cls, vk_bytes: bytes) -> "HonkVk":
+        vk_hash = sha3.keccak_256(vk_bytes).digest()
         vk_hash_int_low, vk_hash_int_high = io.split_128(int.from_bytes(vk_hash, "big"))
         (vk_hash_int, _, _) = hades_permutation(vk_hash_int_low, vk_hash_int_high, 2)
 
-        circuit_size = int.from_bytes(_bytes[0:8], "big")
-        log_circuit_size = int.from_bytes(_bytes[8:16], "big")
-        public_inputs_size = int.from_bytes(_bytes[16:24], "big")
-        public_inputs_offset = int.from_bytes(_bytes[24:32], "big")
+        circuit_size = int.from_bytes(vk_bytes[0:8], "big")
+        log_circuit_size = int.from_bytes(vk_bytes[8:16], "big")
+        public_inputs_size = int.from_bytes(vk_bytes[16:24], "big")
+        public_inputs_offset = int.from_bytes(vk_bytes[24:32], "big")
 
         assert circuit_size <= MAX_CIRCUIT_SIZE, f"invalid circuit size: {circuit_size}"
         assert (
@@ -406,7 +436,7 @@ class HonkVk:
 
         cursor = 32
 
-        rest = _bytes[cursor:]
+        rest = vk_bytes[cursor:]
         assert len(rest) % 32 == 0
 
         # print(f"circuit_size: {circuit_size}")
@@ -425,8 +455,8 @@ class HonkVk:
         # Parse all G1Points into a dictionary
         points = {}
         for field_name in g1_fields:
-            x = int.from_bytes(_bytes[cursor : cursor + 32], "big")
-            y = int.from_bytes(_bytes[cursor + 32 : cursor + 64], "big")
+            x = int.from_bytes(vk_bytes[cursor : cursor + 32], "big")
+            y = int.from_bytes(vk_bytes[cursor + 32 : cursor + 64], "big")
             points[field_name] = G1Point(x=x, y=y, curve_id=CurveID.BN254)
             cursor += 64
         # print(f"points: {points}")
@@ -439,7 +469,7 @@ class HonkVk:
             public_inputs_offset=public_inputs_offset,
             **points,
             vk_hash=vk_hash_int,
-            vk_bytes=_bytes,
+            vk_bytes=vk_bytes,
         )
 
     def serialize_to_cairo(self, name: str = "vk") -> str:
@@ -577,7 +607,10 @@ class HonkTranscript:
         proof: HonkProof,
         system: ProofSystem = ProofSystem.UltraKeccakHonk,
     ) -> "HonkTranscript":
-        assert len(proof.public_inputs) == vk.public_inputs_size
+        assert (
+            len(proof.public_inputs)
+            == vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
+        )
 
         def split_challenge(ch: bytes) -> tuple[int, int]:
             ch_int = int.from_bytes(ch, "big")
@@ -600,6 +633,8 @@ class HonkTranscript:
         hasher.update(int.to_bytes(vk.public_inputs_offset, 32, "big"))
 
         for pub_input in proof.public_inputs:
+            hasher.update(int.to_bytes(pub_input, 32, "big"))
+        for pub_input in proof.pairing_point_object:
             hasher.update(int.to_bytes(pub_input, 32, "big"))
 
         for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
@@ -828,6 +863,7 @@ class HonkVerifierCircuits(ModuloCircuit):
     def compute_public_input_delta(
         self,
         public_inputs: list[ModuloCircuitElement],
+        pairing_point_object: list[ModuloCircuitElement],
         beta: ModuloCircuitElement,
         gamma: ModuloCircuitElement,
         domain_size: int,
@@ -850,6 +886,7 @@ class HonkVerifierCircuits(ModuloCircuit):
         # - offset : proof pub input offset
         """
         assert len(public_inputs) > 0
+        assert len(pairing_point_object) == PAIRING_POINT_OBJECT_LENGTH
         num = self.set_or_get_constant(1)
         den = self.set_or_get_constant(1)
 
@@ -866,8 +903,15 @@ class HonkVerifierCircuits(ModuloCircuit):
             num = self.mul(num, self.add(num_acc, pub_input))
             den = self.mul(den, self.add(den_acc, pub_input))
 
+            num_acc = self.add(num_acc, beta)
+            den_acc = self.sub(den_acc, beta)
+
+        for i, pub_input in enumerate(pairing_point_object):
+            num = self.mul(num, self.add(num_acc, pub_input))
+            den = self.mul(den, self.add(den_acc, pub_input))
+
             # skip last round (unused otherwise)
-            if i != len(public_inputs) - 1:
+            if i != len(pairing_point_object) - 1:
                 num_acc = self.add(num_acc, beta)
                 den_acc = self.sub(den_acc, beta)
 
@@ -1880,7 +1924,7 @@ class HonkVerifierCircuits(ModuloCircuit):
         return scalars
 
 
-ZK_PROOF_SIZE = 491
+ZK_PROOF_SIZE = 507
 ZK_BATCHED_RELATION_PARTIAL_LENGTH = 9
 SUBGROUP_SIZE = 256
 SUBGROUP_GENERATOR = 0x07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76
@@ -1893,6 +1937,7 @@ SUBGROUP_GENERATOR_INVERSE = (
 class ZKHonkProof:
     log_circuit_size: int  # from vk
     public_inputs: list[int]
+    pairing_point_object: list[int]
     w1: G1Point
     w2: G1Point
     w3: G1Point
@@ -1914,8 +1959,10 @@ class ZKHonkProof:
     shplonk_q: G1Point
     kzg_quotient: G1Point
     proof_bytes: bytes
+    public_inputs_bytes: bytes
 
     def __post_init__(self):
+        assert len(self.pairing_point_object) == PAIRING_POINT_OBJECT_LENGTH
         assert len(self.libra_commitments) == 3
         assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
@@ -1928,23 +1975,35 @@ class ZKHonkProof:
         assert len(self.libra_poly_evals) == 4
 
     @classmethod
-    def from_bytes(cls, _bytes: bytes, vk: HonkVk) -> "ZKHonkProof":
-        n_elements = int.from_bytes(_bytes[:4], "big")
-        assert len(_bytes[4:]) % 32 == 0
+    def from_bytes(
+        cls, proof_bytes: bytes, public_inputs_bytes: bytes, vk: HonkVk
+    ) -> "ZKHonkProof":
+        n_elements = len(proof_bytes) // 32
+        assert len(proof_bytes) % 32 == 0
         elements = [
-            int.from_bytes(_bytes[i : i + 32], "big") for i in range(4, len(_bytes), 32)
+            int.from_bytes(proof_bytes[i : i + 32], "big")
+            for i in range(0, len(proof_bytes), 32)
         ]
-        assert len(elements) == n_elements
+        assert len(elements) == n_elements == ZK_PROOF_SIZE
 
-        public_inputs_size = n_elements - ZK_PROOF_SIZE
-        assert public_inputs_size == vk.public_inputs_size
+        n_public_inputs = len(public_inputs_bytes) // 32
+        assert len(public_inputs_bytes) % 32 == 0
+        public_inputs = [
+            int.from_bytes(public_inputs_bytes[i : i + 32], "big")
+            for i in range(0, len(public_inputs_bytes), 32)
+        ]
+        assert (
+            len(public_inputs)
+            == n_public_inputs
+            == vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
+        )
 
-        public_inputs = []
+        pairing_point_object = []
         cursor = 0
-        for i in range(public_inputs_size):
-            public_inputs.append(elements[cursor + i])
+        for i in range(PAIRING_POINT_OBJECT_LENGTH):
+            pairing_point_object.append(elements[cursor + i])
 
-        cursor += public_inputs_size
+        cursor += PAIRING_POINT_OBJECT_LENGTH
 
         def parse_g1_proof_point(i: int) -> G1Point:
             return G1Point(
@@ -2031,6 +2090,7 @@ class ZKHonkProof:
         return ZKHonkProof(
             log_circuit_size=vk.log_circuit_size,
             public_inputs=public_inputs,
+            pairing_point_object=pairing_point_object,
             w1=w1,
             w2=w2,
             w3=w3,
@@ -2051,7 +2111,8 @@ class ZKHonkProof:
             libra_poly_evals=libra_poly_evals,
             shplonk_q=shplonk_q,
             kzg_quotient=kzg_quotient,
-            proof_bytes=_bytes,
+            proof_bytes=proof_bytes,
+            public_inputs_bytes=public_inputs_bytes,
         )
 
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "ZKHonkProof":
@@ -2059,6 +2120,7 @@ class ZKHonkProof:
         return ZKHonkProof(
             log_circuit_size=self.log_circuit_size,
             public_inputs=circuit.write_elements(self.public_inputs),
+            pairing_point_object=circuit.write_elements(self.pairing_point_object),
             w1=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w1", self.w1)),
             w2=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w2", self.w2)),
             w3=circuit.write_struct(structs.G1PointCircuit.from_G1Point("w3", self.w3)),
@@ -2115,6 +2177,7 @@ class ZKHonkProof:
                 structs.G1PointCircuit.from_G1Point("kzg_quotient", self.kzg_quotient)
             ),
             proof_bytes=self.proof_bytes,
+            public_inputs_bytes=self.public_inputs_bytes,
         )
 
     def to_cairo(self) -> str:
@@ -2131,6 +2194,7 @@ class ZKHonkProof:
 
         code = f"ZKHonkProof {{\n"
         code += f"public_inputs: {format_array(self.public_inputs, span=True)},\n"
+        code += f"pairing_point_object: {format_array(self.pairing_point_object, span=True)},\n"
         code += f"w1: {g1_to_g1point256(self.w1)},\n"
         code += f"w2: {g1_to_g1point256(self.w2)},\n"
         code += f"w3: {g1_to_g1point256(self.w3)},\n"
@@ -2167,6 +2231,14 @@ class ZKHonkProof:
         cd.extend(
             io.bigint_split_array(
                 x=self.public_inputs, n_limbs=2, base=2**128, prepend_length=True
+            )
+        )
+        cd.extend(
+            io.bigint_split_array(
+                x=self.pairing_point_object,
+                n_limbs=2,
+                base=2**128,
+                prepend_length=True,
             )
         )
         cd.extend(serialize_G1Point256(self.w1))
@@ -2241,6 +2313,7 @@ class ZKHonkProof:
 
         lst = []
         lst.extend(self.public_inputs)
+        lst.extend(self.pairing_point_object)
         lst.extend(g1_to_g1_proof_point(self.w1))
         lst.extend(g1_to_g1_proof_point(self.w2))
         lst.extend(g1_to_g1_proof_point(self.w3))
@@ -2298,7 +2371,10 @@ class ZKHonkTranscript:
         proof: ZKHonkProof,
         system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
     ) -> "ZKHonkTranscript":
-        assert len(proof.public_inputs) == vk.public_inputs_size
+        assert (
+            len(proof.public_inputs)
+            == vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
+        )
 
         def split_challenge(ch: bytes) -> tuple[int, int]:
             ch_int = int.from_bytes(ch, "big")
@@ -2321,6 +2397,8 @@ class ZKHonkTranscript:
         hasher.update(int.to_bytes(vk.public_inputs_offset, 32, "big"))
 
         for pub_input in proof.public_inputs:
+            hasher.update(int.to_bytes(pub_input, 32, "big"))
+        for pub_input in proof.pairing_point_object:
             hasher.update(int.to_bytes(pub_input, 32, "big"))
 
         for g1_proof_point in [proof.w1, proof.w2, proof.w3]:
@@ -3183,13 +3261,16 @@ class ZKHonkVerifierCircuits(HonkVerifierCircuits):
 
 
 def honk_proof_from_bytes(
-    bytes: bytes, vk: HonkVk, system: ProofSystem = ProofSystem.UltraKeccakHonk
+    proof_bytes: bytes,
+    public_inputs_bytes: bytes,
+    vk: HonkVk,
+    system: ProofSystem = ProofSystem.UltraKeccakHonk,
 ) -> Union[HonkProof, ZKHonkProof]:
     match system:
         case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
-            return HonkProof.from_bytes(bytes, vk)
+            return HonkProof.from_bytes(proof_bytes, public_inputs_bytes, vk)
         case ProofSystem.UltraKeccakZKHonk | ProofSystem.UltraStarknetZKHonk:
-            return ZKHonkProof.from_bytes(bytes, vk)
+            return ZKHonkProof.from_bytes(proof_bytes, public_inputs_bytes, vk)
         case _:
             raise ValueError(f"Proof system {system} not compatible")
 
@@ -3301,6 +3382,10 @@ if __name__ == "__main__":
     proof = honk_proof_from_bytes(
         open(
             "hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak.bin",
+            "rb",
+        ).read(),
+        open(
+            "hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
             "rb",
         ).read(),
         vk,

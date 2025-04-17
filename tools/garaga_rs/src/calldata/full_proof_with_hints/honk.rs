@@ -21,7 +21,7 @@ use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 use sha3::{Digest, Keccak256};
 
-pub const PROOF_SIZE: usize = 440;
+pub const PROOF_SIZE: usize = 456;
 pub const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
 pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
 pub const NUMBER_OF_SUBRELATIONS: usize = 26;
@@ -30,6 +30,7 @@ pub const NUMBER_OF_ENTITIES: usize = 40;
 pub const NUMBER_UNSHIFTED: usize = 35;
 pub const MAX_LOG_N: usize = 23;
 pub const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N; // 2^23 = 8388608
+pub const PAIRING_POINT_OBJECT_LENGTH: usize = 16;
 
 pub enum HonkFlavor {
     KECCAK = 0,
@@ -84,11 +85,11 @@ pub struct HonkVerificationKey {
 }
 
 impl HonkVerificationKey {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        if bytes.len() != 4 * 8 + 27 * 2 * 32 {
-            return Err(format!("Invalid input length: {}", bytes.len()));
+    pub fn from_bytes(vk_bytes: &[u8]) -> Result<Self, String> {
+        if vk_bytes.len() != 4 * 8 + 27 * 2 * 32 {
+            return Err(format!("Invalid input length: {}", vk_bytes.len()));
         }
-        let vk_hash = Keccak256::digest(bytes);
+        let vk_hash = Keccak256::digest(vk_bytes);
         let vk_hash_biguint = BigUint::from_bytes_be(&vk_hash);
         let [vk_hash_low, vk_hash_high] = biguint_split::<2, 128>(&vk_hash_biguint);
         let mut state = [
@@ -104,11 +105,13 @@ impl HonkVerificationKey {
         let mut values = vec![];
 
         for i in (0..).step_by(8).take(4) {
-            values.push(BigUint::from_bytes_be(bytes[i..i + 8].try_into().unwrap()));
+            values.push(BigUint::from_bytes_be(
+                vk_bytes[i..i + 8].try_into().unwrap(),
+            ));
         }
 
         for i in (4 * 8..).step_by(32).take(27 * 2) {
-            values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
+            values.push(BigUint::from_bytes_be(&vk_bytes[i..i + 32]));
         }
 
         Self::from(values, vk_hash)
@@ -146,6 +149,13 @@ impl HonkVerificationKey {
 
         if log_circuit_size > CONST_PROOF_SIZE_LOG_N {
             return Err(format!("Invalid log circuit size: {}", log_circuit_size));
+        }
+
+        if public_inputs_size < PAIRING_POINT_OBJECT_LENGTH {
+            return Err(format!(
+                "Invalid public inputs size: {}",
+                public_inputs_size
+            ));
         }
 
         if public_inputs_offset != 1 {
@@ -196,6 +206,7 @@ impl HonkVerificationKey {
 
 pub struct HonkProof {
     pub public_inputs: Vec<BigUint>,
+    pub pairing_point_object: [BigUint; PAIRING_POINT_OBJECT_LENGTH],
     pub w1: G1PointBigUint,
     pub w2: G1PointBigUint,
     pub w3: G1PointBigUint,
@@ -213,37 +224,42 @@ pub struct HonkProof {
 }
 
 impl HonkProof {
-    pub fn from_bytes(bytes: &[u8]) -> Result<Self, String> {
-        if bytes.len() < 4 {
-            return Err(format!("Invalid input length: {}", bytes.len()));
-        }
-
-        let count: usize = u32::from_be_bytes(bytes[0..4].try_into().unwrap())
-            .try_into()
-            .unwrap();
-
-        if bytes.len() != 4 + 32 * count {
-            return Err(format!("Invalid input length: {}", bytes.len()));
+    pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
+        if proof_bytes.len() != 32 * PROOF_SIZE {
+            return Err(format!("Invalid input length: {}", proof_bytes.len()));
         }
 
         let mut values = vec![];
 
-        for i in (4..).step_by(32).take(count) {
-            values.push(BigUint::from_bytes_be(&bytes[i..i + 32]));
+        for i in (0..).step_by(32).take(PROOF_SIZE) {
+            values.push(BigUint::from_bytes_be(&proof_bytes[i..i + 32]));
         }
 
-        Self::from(values)
+        if public_inputs_bytes.len() % 32 != 0 {
+            return Err(format!(
+                "Invalid input length: {}",
+                public_inputs_bytes.len()
+            ));
+        }
+
+        let public_inputs_size = public_inputs_bytes.len() / 32;
+
+        let mut public_inputs = vec![];
+
+        for i in (0..).step_by(32).take(public_inputs_size) {
+            public_inputs.push(BigUint::from_bytes_be(&public_inputs_bytes[i..i + 32]));
+        }
+
+        Self::from(values, public_inputs)
     }
-    pub fn from(values: Vec<BigUint>) -> Result<Self, String> {
-        if values.len() < PROOF_SIZE {
+    pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
+        if values.len() != PROOF_SIZE {
             return Err(format!("Invalid input length: {}", values.len()));
         }
 
-        let public_inputs_size = values.len() - PROOF_SIZE;
-
         let mut offset = 0;
 
-        let count = public_inputs_size
+        let count = PAIRING_POINT_OBJECT_LENGTH
             + 8 * 4
             + BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
             + NUMBER_OF_ENTITIES
@@ -254,11 +270,12 @@ impl HonkProof {
             return Err(format!("Invalid input length: {}", values.len()));
         }
 
-        let mut public_inputs = vec![];
-        for i in (offset..).step_by(1).take(public_inputs_size) {
-            public_inputs.push(values[i].clone());
+        let mut pairing_point_object = vec![];
+        for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
+            pairing_point_object.push(values[i].clone());
         }
-        offset += public_inputs_size;
+        let pairing_point_object = pairing_point_object.try_into().unwrap();
+        offset += PAIRING_POINT_OBJECT_LENGTH;
 
         fn parse_g1_proof_point(values: [BigUint; 4]) -> G1PointBigUint {
             let [x0, x1, y0, y1] = values;
@@ -328,6 +345,7 @@ impl HonkProof {
 
         let proof = Self {
             public_inputs,
+            pairing_point_object,
             w1,
             w2,
             w3,
@@ -376,11 +394,11 @@ impl HonkTranscript {
         ),
         String,
     > {
-        if proof.public_inputs.len() != vk.public_inputs_size {
+        if proof.public_inputs.len() != vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH {
             return Err(format!(
                 "Public inputs length mismatch: proof {}, vk {}",
                 proof.public_inputs.len(),
-                vk.public_inputs_size
+                vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
             ));
         }
         match flavor {
@@ -410,6 +428,11 @@ pub fn get_honk_calldata(
 
     let public_inputs = proof
         .public_inputs
+        .iter()
+        .map(element_on_curve)
+        .collect::<Vec<_>>();
+    let pairing_point_object = proof
+        .pairing_point_object
         .iter()
         .map(element_on_curve)
         .collect::<Vec<_>>();
@@ -544,6 +567,7 @@ pub fn get_honk_calldata(
         }
 
         push_elements(call_data_ref, &public_inputs, true);
+        push_elements(call_data_ref, &pairing_point_object, true);
         push_point(call_data_ref, &w1);
         push_point(call_data_ref, &w2);
         push_point(call_data_ref, &w3);
@@ -804,6 +828,9 @@ fn compute_transcript<T: Hasher>(
     hasher.update(&BigUint::from(vk.public_inputs_size));
     hasher.update(&BigUint::from(vk.public_inputs_offset));
     for public_input in &proof.public_inputs {
+        hasher.update(public_input);
+    }
+    for public_input in &proof.pairing_point_object {
         hasher.update(public_input);
     }
     hasher.update_as_point(&proof.w1);
@@ -1107,8 +1134,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            78, 12, 30, 28, 236, 52, 212, 197, 167, 133, 18, 252, 171, 98, 87, 48, 4, 133, 250,
-            162, 58, 171, 182, 70, 14, 198, 146, 146, 176, 179, 62, 207,
+            112, 251, 38, 124, 218, 76, 193, 224, 3, 93, 19, 10, 6, 229, 182, 146, 221, 69, 56,
+            120, 118, 250, 138, 155, 23, 12, 9, 131, 20, 125, 149, 19,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1125,8 +1152,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            225, 23, 96, 229, 195, 96, 26, 218, 192, 31, 153, 88, 153, 228, 201, 50, 168, 125, 202,
-            197, 194, 230, 142, 0, 220, 243, 200, 211, 172, 104, 163, 174,
+            199, 44, 248, 82, 0, 83, 20, 73, 184, 209, 210, 39, 18, 173, 2, 190, 98, 206, 206, 139,
+            96, 160, 126, 121, 158, 7, 6, 0, 224, 20, 152, 30,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1138,9 +1165,9 @@ mod tests {
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin",
         )?;
-        let mut bytes = vec![];
-        file.read_to_end(&mut bytes)?;
-        let vk = HonkVerificationKey::from_bytes(&bytes).unwrap();
+        let mut vk_bytes = vec![];
+        file.read_to_end(&mut vk_bytes)?;
+        let vk = HonkVerificationKey::from_bytes(&vk_bytes).unwrap();
         Ok(vk)
     }
 
@@ -1150,9 +1177,14 @@ mod tests {
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak.bin",
         )?;
-        let mut bytes = vec![];
-        file.read_to_end(&mut bytes)?;
-        let proof = HonkProof::from_bytes(&bytes).unwrap();
+        let mut proof_bytes = vec![];
+        file.read_to_end(&mut proof_bytes)?;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
+        )?;
+        let mut public_inputs_bytes = vec![];
+        file.read_to_end(&mut public_inputs_bytes)?;
+        let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes).unwrap();
         Ok(proof)
     }
 
@@ -1162,9 +1194,14 @@ mod tests {
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_starknet.bin",
         )?;
-        let mut bytes = vec![];
-        file.read_to_end(&mut bytes)?;
-        let proof = HonkProof::from_bytes(&bytes).unwrap();
+        let mut proof_bytes = vec![];
+        file.read_to_end(&mut proof_bytes)?;
+        let mut file = File::open(
+            "../../hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
+        )?;
+        let mut public_inputs_bytes = vec![];
+        file.read_to_end(&mut public_inputs_bytes)?;
+        let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes).unwrap();
         Ok(proof)
     }
 }
