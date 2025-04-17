@@ -834,7 +834,7 @@ if __name__ == "__main__":
         # NOTE : each additional public input increase bytecode by 21 felts.
         #       each additional circuit size increase bytecode by 372 felts.
         vk = HonkVk.from_bytes(open(VK_PATH, "rb").read())
-        vk.log_circuit_size = MAX_LOG_N
+        vk.log_circuit_size = MAX_LOG_N - 1  # TODO : remove -1
         vk.public_inputs_size = 4 + PAIRING_POINT_OBJECT_LENGTH
 
         gen_honk_verifier(
