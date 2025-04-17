@@ -12,7 +12,7 @@ dependencies = [
   "typer",
   "python-dotenv",
   "pysha3",
-  "starknet-py@git+https://github.com/software-mansion/starknet.py.git@701ddcf2481a5f721ff66713e48399ef11fad330",
+  "starknet-py==0.26.2",
   "requests",
   "filelock",
 ]
