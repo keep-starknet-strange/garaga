@@ -1,12 +1,17 @@
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
+use crate::algebra::polynomial::Polynomial;
+use crate::algebra::rational_function::RationalFunction;
 use crate::calldata::mpc_calldata;
 use crate::definitions::{BLS12381PrimeField, CurveID, CurveParamsProvider, FieldElement};
-use crate::io::{element_from_bytes_be, element_to_biguint, field_element_to_u384_limbs};
+use crate::io::{
+    element_from_biguint, element_from_bytes_be, element_to_biguint, field_element_to_u384_limbs,
+};
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint};
+use num_traits::Num;
 use sha2::{Digest, Sha256};
 
 pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, String> {
@@ -85,9 +90,7 @@ where
     let sum = pt0.add(&pt1);
     assert!(sum.iso_point, "Point {:?} is not an iso point", sum);
 
-    /*apply_isogeny(*/
-    sum /*)*/
-        .scalar_mul(cofactor)
+    apply_isogeny(sum).scalar_mul(cofactor)
 }
 
 fn map_to_curve<F>(field_element: FieldElement<F>) -> G1Point<F>
@@ -342,10 +345,8 @@ fn build_hash_to_curve_hint(message: [u8; 32]) -> HashToCurveHint {
         .unwrap();
     let (pt0, f0_hint) = build_map_to_curve_hint(felt0);
     let (pt1, f1_hint) = build_map_to_curve_hint(felt1);
-    let _sum_pt = pt0.add(&pt1);
-    /*
-    sum_pt = apply_isogeny(sum_pt)
-    */
+    let sum_pt = pt0.add(&pt1);
+    let _sum_pt = apply_isogeny(sum_pt);
     let curve_params = BLS12381PrimeField::get_curve_params();
     let x = BigInt::from(curve_params.x);
     let n = BigInt::from(curve_params.n);
@@ -423,6 +424,107 @@ fn build_map_to_curve_hint(
             y_flag,
         },
     )
+}
+
+fn apply_isogeny<F>(pt: G1Point<F>) -> G1Point<F>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    assert!(pt.iso_point, "Point {:?} is not an iso point", pt);
+    let (x_rational, y_rational) = get_isogeny_to_g1_map::<F>();
+    let x_affine = x_rational.evaluate(pt.x.clone());
+    let y_affine = y_rational.evaluate(pt.x) * pt.y;
+    G1Point::new(x_affine, y_affine, false).unwrap()
+}
+
+fn get_isogeny_to_g1_map<F>() -> (RationalFunction<F>, RationalFunction<F>)
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let curve_params = F::get_curve_params();
+    match curve_params.curve_id {
+        CurveID::BLS12_381 => {
+            let f1 = RationalFunction::new(
+                Polynomial::new(
+                    vec![
+                        BigUint::from_str_radix("11A05F2B1E833340B809101DD99815856B303E88A2D7005FF2627B56CDB4E2C85610C2D5F2E62D6EAEAC1662734649B7", 16).unwrap(),
+                        BigUint::from_str_radix("17294ED3E943AB2F0588BAB22147A81C7C17E75B2F6A8417F565E33C70D1E86B4838F2A6F318C356E834EEF1B3CB83BB", 16).unwrap(),
+                        BigUint::from_str_radix("D54005DB97678EC1D1048C5D10A9A1BCE032473295983E56878E501EC68E25C958C3E3D2A09729FE0179F9DAC9EDCB0", 16).unwrap(),
+                        BigUint::from_str_radix("1778E7166FCC6DB74E0609D307E55412D7F5E4656A8DBF25F1B33289F1B330835336E25CE3107193C5B388641D9B6861", 16).unwrap(),
+                        BigUint::from_str_radix("E99726A3199F4436642B4B3E4118E5499DB995A1257FB3F086EEB65982FAC18985A286F301E77C451154CE9AC8895D9", 16).unwrap(),
+                        BigUint::from_str_radix("1630C3250D7313FF01D1201BF7A74AB5DB3CB17DD952799B9ED3AB9097E68F90A0870D2DCAE73D19CD13C1C66F652983", 16).unwrap(),
+                        BigUint::from_str_radix("D6ED6553FE44D296A3726C38AE652BFB11586264F0F8CE19008E218F9C86B2A8DA25128C1052ECADDD7F225A139ED84", 16).unwrap(),
+                        BigUint::from_str_radix("17B81E7701ABDBE2E8743884D1117E53356DE5AB275B4DB1A682C62EF0F2753339B7C8F8C8F475AF9CCB5618E3F0C88E", 16).unwrap(),
+                        BigUint::from_str_radix("80D3CF1F9A78FC47B90B33563BE990DC43B756CE79F5574A2C596C928C5D1DE4FA295F296B74E956D71986A8497E317", 16).unwrap(),
+                        BigUint::from_str_radix("169B1F8E1BCFA7C42E0C37515D138F22DD2ECB803A0C5C99676314BAF4BB1B7FA3190B2EDC0327797F241067BE390C9E", 16).unwrap(),
+                        BigUint::from_str_radix("10321DA079CE07E272D8EC09D2565B0DFA7DCCDDE6787F96D50AF36003B14866F69B771F8C285DECCA67DF3F1605FB7B", 16).unwrap(),
+                        BigUint::from_str_radix("6E08C248E260E70BD1E962381EDEE3D31D79D7E22C837BC23C0BF1BC24C6B68C24B1B80B64D391FA9C8BA2E8BA2D229", 16).unwrap(),
+                    ].iter().map(element_from_biguint).collect()
+                ),
+                Polynomial::new(
+                    vec![
+                        BigUint::from_str_radix("8CA8D548CFF19AE18B2E62F4BD3FA6F01D5EF4BA35B48BA9C9588617FC8AC62B558D681BE343DF8993CF9FA40D21B1C", 16).unwrap(),
+                        BigUint::from_str_radix("12561A5DEB559C4348B4711298E536367041E8CA0CF0800C0126C2588C48BF5713DAA8846CB026E9E5C8276EC82B3BFF", 16).unwrap(),
+                        BigUint::from_str_radix("B2962FE57A3225E8137E629BFF2991F6F89416F5A718CD1FCA64E00B11ACEACD6A3D0967C94FEDCFCC239BA5CB83E19", 16).unwrap(),
+                        BigUint::from_str_radix("3425581A58AE2FEC83AAFEF7C40EB545B08243F16B1655154CCA8ABC28D6FD04976D5243EECF5C4130DE8938DC62CD8", 16).unwrap(),
+                        BigUint::from_str_radix("13A8E162022914A80A6F1D5F43E7A07DFFDFC759A12062BB8D6B44E833B306DA9BD29BA81F35781D539D395B3532A21E", 16).unwrap(),
+                        BigUint::from_str_radix("E7355F8E4E667B955390F7F0506C6E9395735E9CE9CAD4D0A43BCEF24B8982F7400D24BC4228F11C02DF9A29F6304A5", 16).unwrap(),
+                        BigUint::from_str_radix("772CAACF16936190F3E0C63E0596721570F5799AF53A1894E2E073062AEDE9CEA73B3538F0DE06CEC2574496EE84A3A", 16).unwrap(),
+                        BigUint::from_str_radix("14A7AC2A9D64A8B230B3F5B074CF01996E7F63C21BCA68A81996E1CDF9822C580FA5B9489D11E2D311F7D99BBDCC5A5E", 16).unwrap(),
+                        BigUint::from_str_radix("A10ECF6ADA54F825E920B3DAFC7A3CCE07F8D1D7161366B74100DA67F39883503826692ABBA43704776EC3A79A1D641", 16).unwrap(),
+                        BigUint::from_str_radix("95FC13AB9E92AD4476D6E3EB3A56680F682B4EE96F7D03776DF533978F31C1593174E4B4B7865002D6384D168ECDD0A", 16).unwrap(),
+                        BigUint::from_str_radix("1", 16).unwrap(),
+                    ].iter().map(element_from_biguint).collect()
+                ),
+            );
+            let f2 = RationalFunction::new(
+                Polynomial::new(
+                    vec![
+                        BigUint::from_str_radix("90d97c81ba24ee0259d1f094980dcfa11ad138e48a869522b52af6c956543d3cd0c7aee9b3ba3c2be9845719707bb33", 16).unwrap(),
+                        BigUint::from_str_radix("134996a104ee5811d51036d776fb46831223e96c254f383d0f906343eb67ad34d6c56711962fa8bfe097e75a2e41c696", 16).unwrap(),
+                        BigUint::from_str_radix("cc786baa966e66f4a384c86a3b49942552e2d658a31ce2c344be4b91400da7d26d521628b00523b8dfe240c72de1f6", 16).unwrap(),
+                        BigUint::from_str_radix("1f86376e8981c217898751ad8746757d42aa7b90eeb791c09e4a3ec03251cf9de405aba9ec61deca6355c77b0e5f4cb", 16).unwrap(),
+                        BigUint::from_str_radix("8cc03fdefe0ff135caf4fe2a21529c4195536fbe3ce50b879833fd221351adc2ee7f8dc099040a841b6daecf2e8fedb", 16).unwrap(),
+                        BigUint::from_str_radix("16603fca40634b6a2211e11db8f0a6a074a7d0d4afadb7bd76505c3d3ad5544e203f6326c95a807299b23ab13633a5f0", 16).unwrap(),
+                        BigUint::from_str_radix("4ab0b9bcfac1bbcb2c977d027796b3ce75bb8ca2be184cb5231413c4d634f3747a87ac2460f415ec961f8855fe9d6f2", 16).unwrap(),
+                        BigUint::from_str_radix("987c8d5333ab86fde9926bd2ca6c674170a05bfe3bdd81ffd038da6c26c842642f64550fedfe935a15e4ca31870fb29", 16).unwrap(),
+                        BigUint::from_str_radix("9fc4018bd96684be88c9e221e4da1bb8f3abd16679dc26c1e8b6e6a1f20cabe69d65201c78607a360370e577bdba587", 16).unwrap(),
+                        BigUint::from_str_radix("e1bba7a1186bdb5223abde7ada14a23c42a0ca7915af6fe06985e7ed1e4d43b9b3f7055dd4eba6f2bafaaebca731c30", 16).unwrap(),
+                        BigUint::from_str_radix("19713e47937cd1be0dfd0b8f1d43fb93cd2fcbcb6caf493fd1183e416389e61031bf3a5cce3fbafce813711ad011c132", 16).unwrap(),
+                        BigUint::from_str_radix("18b46a908f36f6deb918c143fed2edcc523559b8aaf0c2462e6bfe7f911f643249d9cdf41b44d606ce07c8a4d0074d8e", 16).unwrap(),
+                        BigUint::from_str_radix("b182cac101b9399d155096004f53f447aa7b12a3426b08ec02710e807b4633f06c851c1919211f20d4c04f00b971ef8", 16).unwrap(),
+                        BigUint::from_str_radix("245a394ad1eca9b72fc00ae7be315dc757b3b080d4c158013e6632d3c40659cc6cf90ad1c232a6442d9d3f5db980133", 16).unwrap(),
+                        BigUint::from_str_radix("5c129645e44cf1102a159f748c4a3fc5e673d81d7e86568d9ab0f5d396a7ce46ba1049b6579afb7866b1e715475224b", 16).unwrap(),
+                        BigUint::from_str_radix("15e6be4e990f03ce4ea50b3b42df2eb5cb181d8f84965a3957add4fa95af01b2b665027efec01c7704b456be69c8b604", 16).unwrap(),
+                    ].iter().map(element_from_biguint).collect()
+                ),
+                Polynomial::new(
+                    vec![
+                        BigUint::from_str_radix("16112c4c3a9c98b252181140fad0eae9601a6de578980be6eec3232b5be72e7a07f3688ef60c206d01479253b03663c1", 16).unwrap(),
+                        BigUint::from_str_radix("1962d75c2381201e1a0cbd6c43c348b885c84ff731c4d59ca4a10356f453e01f78a4260763529e3532f6102c2e49a03d", 16).unwrap(),
+                        BigUint::from_str_radix("58df3306640da276faaae7d6e8eb15778c4855551ae7f310c35a5dd279cd2eca6757cd636f96f891e2538b53dbf67f2", 16).unwrap(),
+                        BigUint::from_str_radix("16b7d288798e5395f20d23bf89edb4d1d115c5dbddbcd30e123da489e726af41727364f2c28297ada8d26d98445f5416", 16).unwrap(),
+                        BigUint::from_str_radix("be0e079545f43e4b00cc912f8228ddcc6d19c9f0f69bbb0542eda0fc9dec916a20b15dc0fd2ededda39142311a5001d", 16).unwrap(),
+                        BigUint::from_str_radix("8d9e5297186db2d9fb266eaac783182b70152c65550d881c5ecd87b6f0f5a6449f38db9dfa9cce202c6477faaf9b7ac", 16).unwrap(),
+                        BigUint::from_str_radix("166007c08a99db2fc3ba8734ace9824b5eecfdfa8d0cf8ef5dd365bc400a0051d5fa9c01a58b1fb93d1a1399126a775c", 16).unwrap(),
+                        BigUint::from_str_radix("16a3ef08be3ea7ea03bcddfabba6ff6ee5a4375efa1f4fd7feb34fd206357132b920f5b00801dee460ee415a15812ed9", 16).unwrap(),
+                        BigUint::from_str_radix("1866c8ed336c61231a1be54fd1d74cc4f9fb0ce4c6af5920abc5750c4bf39b4852cfe2f7bb9248836b233d9d55535d4a", 16).unwrap(),
+                        BigUint::from_str_radix("167a55cda70a6e1cea820597d94a84903216f763e13d87bb5308592e7ea7d4fbc7385ea3d529b35e346ef48bb8913f55", 16).unwrap(),
+                        BigUint::from_str_radix("4d2f259eea405bd48f010a01ad2911d9c6dd039bb61a6290e591b36e636a5c871a5c29f4f83060400f8b49cba8f6aa8", 16).unwrap(),
+                        BigUint::from_str_radix("accbb67481d033ff5852c1e48c50c477f94ff8aefce42d28c0f9a88cea7913516f968986f7ebbea9684b529e2561092", 16).unwrap(),
+                        BigUint::from_str_radix("ad6b9514c767fe3c3613144b45f1496543346d98adf02267d5ceef9a00d9b8693000763e3b90ac11e99b138573345cc", 16).unwrap(),
+                        BigUint::from_str_radix("2660400eb2e4f3b628bdd0d53cd76f2bf565b94e72927c1cb748df27942480e420517bd8714cc80d1fadc1326ed06f7", 16).unwrap(),
+                        BigUint::from_str_radix("e0fa1d816ddc03e6b24255e0d7819c171c40f65e273b853324efcd6356caa205ca2f570f13497804415473a1d634b8f", 16).unwrap(),
+                        BigUint::from_str_radix("1", 16).unwrap(),
+                    ].iter().map(element_from_biguint).collect()
+                ),
+            );
+            (f1, f2)
+        }
+        curve_id => unimplemented!("Isogeny for curve {:?} is not implemented", curve_id),
+    }
 }
 
 const _BASE_URLS: [&str; 4] = [
