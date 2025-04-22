@@ -438,7 +438,7 @@ where
     }
     let y = sqrt(&rhs);
     (
-        G1Point::new_unchecked(felt252_to_element(&x_252), y),
+        G1Point::new_unchecked(felt252_to_element(&x_252), y, false),
         g_rhs_roots,
     )
 }

@@ -5,6 +5,7 @@ use num_bigint::{BigInt, BigUint, Sign};
 pub struct G1Point<F: IsPrimeField> {
     pub x: FieldElement<F>,
     pub y: FieldElement<F>,
+    pub iso_point: bool,
 }
 
 impl<F: IsPrimeField> G1Point<F> {
@@ -19,8 +20,8 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         ([self.x.clone()], [self.y.clone()])
     }
 
-    pub fn new(x: FieldElement<F>, y: FieldElement<F>) -> Result<Self, String> {
-        let point = Self { x, y };
+    pub fn new(x: FieldElement<F>, y: FieldElement<F>, iso_point: bool) -> Result<Self, String> {
+        let point = Self { x, y, iso_point };
         if !point.is_infinity() && !point.is_on_curve() {
             return Err(format!(
                 "Point ({:?}, {:?}) is not on the curve",
@@ -31,8 +32,8 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         Ok(point)
     }
 
-    pub fn new_unchecked(x: FieldElement<F>, y: FieldElement<F>) -> Self {
-        Self { x, y }
+    pub fn new_unchecked(x: FieldElement<F>, y: FieldElement<F>, iso_point: bool) -> Self {
+        Self { x, y, iso_point }
     }
 
     pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {
@@ -44,7 +45,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         if self.x == other.x && self.y != other.y {
-            return G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+            return Self::new_unchecked(
+                FieldElement::<F>::zero(),
+                FieldElement::<F>::zero(),
+                self.iso_point,
+            );
         }
 
         let lambda = if self.eq(other) {
@@ -61,14 +66,14 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
 
         let y3 = &lambda * &(self.x.clone() - &x3) - &self.y;
 
-        G1Point::new_unchecked(x3, y3)
+        Self::new_unchecked(x3, y3, self.iso_point)
     }
 
     pub fn neg(&self) -> Self {
         if self.is_infinity() {
             self.clone()
         } else {
-            G1Point::new_unchecked(self.x.clone(), -self.y.clone())
+            Self::new_unchecked(self.x.clone(), -self.y.clone(), self.iso_point)
         }
     }
 
@@ -82,11 +87,18 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             return self.clone();
         }
         if scalar == BigInt::ZERO {
-            return G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+            return Self::new_unchecked(
+                FieldElement::<F>::zero(),
+                FieldElement::<F>::zero(),
+                self.iso_point,
+            );
         }
 
-        let mut result =
-            G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
+        let mut result = Self::new_unchecked(
+            FieldElement::<F>::zero(),
+            FieldElement::<F>::zero(),
+            self.iso_point,
+        );
         let mut base = self.clone();
 
         //println!("scalar mul scalar: {:?}", scalar);
@@ -135,20 +147,20 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         let curve_params = F::get_curve_params();
         let generator_x = curve_params.g_x;
         let generator_y = curve_params.g_y;
-        G1Point::new(generator_x, generator_y).unwrap()
+        G1Point::new(generator_x, generator_y, false).unwrap()
     }
 
     pub fn msm(points: &[Self], scalars: &[BigUint]) -> Self {
+        assert!(points.len() > 0);
         assert_eq!(points.len(), scalars.len());
-        let mut result =
-            G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero());
-        for i in 0..points.len() {
+        let mut result = points[0].scalar_mul(scalars[0].clone().into());
+        for i in 1..points.len() {
             result = result.add(&points[i].scalar_mul(scalars[i].clone().into()));
         }
         result
     }
     pub fn new_infinity() -> Self {
-        G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero())
+        G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero(), false)
     }
 }
 

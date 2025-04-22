@@ -22,7 +22,7 @@ where
 {
     values
         .chunks(2)
-        .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone()))
+        .map(|chunk| G1Point::new(chunk[0].clone(), chunk[1].clone(), false))
         .collect::<Result<Vec<_>, _>>()
 }
 
@@ -36,7 +36,7 @@ where
     values
         .chunks(6)
         .map(|chunk| {
-            let g1 = G1Point::new(chunk[0].clone(), chunk[1].clone())?;
+            let g1 = G1Point::new(chunk[0].clone(), chunk[1].clone(), false)?;
             let g2 = G2Point::new(
                 [chunk[2].clone(), chunk[3].clone()],
                 [chunk[4].clone(), chunk[5].clone()],

@@ -146,6 +146,13 @@ pub struct CurveParams<F: IsPrimeField> {
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
     pub nr_a0: u64, // E2 non residue
+    pub swu_params: Option<SWUParams<F>>,
+}
+
+pub struct SWUParams<F: IsPrimeField> {
+    pub a: FieldElement<F>,
+    pub b: FieldElement<F>,
+    pub z: FieldElement<F>,
 }
 
 pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -199,6 +206,7 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            swu_params: None,
         }
     }
 }
@@ -234,6 +242,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            swu_params: None,
         }
     }
 }
@@ -269,6 +278,7 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            swu_params: None,
         }
     }
 }
@@ -300,6 +310,7 @@ impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            swu_params: None,
         }
     }
 }
@@ -352,6 +363,7 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
             ],
             nr_a0: 9,
+            swu_params: None,
         }
     }
 }
@@ -392,6 +404,11 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 0, 1, 0, 0, 1, 0, 1, 1,
             ],
             nr_a0: 1,
+            swu_params: Some(SWUParams {
+                a: FieldElement::from_hex_unchecked("144698A3B8E9433D693A02C96D4982B0EA985383EE66A8D8E8981AEFD881AC98936F8DA0E0F97F5CF428082D584C1D"),
+                b: FieldElement::from_hex_unchecked("12E2908D11688030018B12E8753EEE3B2016C1F0F24F4070A0B9C14FCEF35EF55A23215A316CEAA5D1CC48E98E172BE0"),
+                z: FieldElement::from_hex_unchecked("B"),
+            }),
         }
     }
 }

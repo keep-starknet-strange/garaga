@@ -3,7 +3,7 @@ use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::mpc_calldata;
 use crate::definitions::{BLS12381PrimeField, CurveID, CurveParamsProvider, FieldElement};
-use crate::io::{element_from_bytes_be, field_element_to_u384_limbs};
+use crate::io::{element_from_bytes_be, element_to_biguint, field_element_to_u384_limbs};
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint};
@@ -69,10 +69,8 @@ where
 
     let pt0 = map_to_curve(felt0);
     let pt1 = map_to_curve(felt1);
-    /*
-    assert pt0.iso_point == True, f"Point {pt0} is not an iso point"
-    assert pt1.iso_point == True, f"Point {pt1} is not an iso point"
-    */
+    assert!(pt0.iso_point, "Point {:?} is not an iso point", pt0);
+    assert!(pt1.iso_point, "Point {:?} is not an iso point", pt1);
 
     let curve_params = F::get_curve_params();
     let cofactor = match curve_params.curve_id {
@@ -85,143 +83,65 @@ where
     };
 
     let sum = pt0.add(&pt1);
-    /*
-    assert sum.iso_point == True, f"Point {sum} is not an iso point"
-    */
+    assert!(sum.iso_point, "Point {:?} is not an iso point", sum);
 
     /*apply_isogeny(*/
     sum /*)*/
         .scalar_mul(cofactor)
 }
 
-fn map_to_curve<F: IsPrimeField>(_field_element: FieldElement<F>) -> G1Point<F> {
-    /*
-    field = get_base_field(curve_id)
-    a = field(CURVES[curve_id.value].swu_params.A)
-    b = field(CURVES[curve_id.value].swu_params.B)
-    z = field(CURVES[curve_id.value].swu_params.Z)
+fn map_to_curve<F>(field_element: FieldElement<F>) -> G1Point<F>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    let curve_params = F::get_curve_params();
+    let swu_params = curve_params.swu_params.unwrap();
+    let a = swu_params.a;
+    let b = swu_params.b;
+    let z = swu_params.z;
 
-    u = field_element
-    zeta_u2 = z * u**2
-    ta = zeta_u2**2 + zeta_u2
-    num_x1 = b * (ta + field.one())
+    let u = field_element;
 
-    if ta.value == 0:
-        div = a * z
-    else:
-        div = a * -ta
+    let zeta_u2 = &z * (&u * &u);
+    let ta = (&zeta_u2 * &zeta_u2) + &zeta_u2;
+    let num_x1 = &b * (&ta + FieldElement::<F>::from(1));
 
-    num2_x1 = num_x1**2
-    div2 = div**2
-    div3 = div2 * div
-    assert div3.value != 0
+    let div = if ta == FieldElement::from(0) {
+        &a * &z
+    } else {
+        &a * -ta
+    };
 
-    num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
+    let num2_x1 = &num_x1 * &num_x1;
+    let div2 = &div * &div;
+    let div3 = &div2 * &div;
+    assert!(div3 != FieldElement::from(0));
 
-    num_x2 = zeta_u2 * num_x1
+    let num_gx1 = (&num2_x1 + &a * &div2) * &num_x1 + &b * &div3;
+    let num_x2 = &zeta_u2 * &num_x1;
 
-    gx1 = num_gx1 / div3
-    gx1_square = gx1.is_quad_residue()
-    if gx1_square:
-        y1 = gx1.sqrt(min_root=False)
-        assert y1 * y1 == gx1
-    else:
-        y1 = (z * gx1).sqrt(min_root=False)
-        assert y1 * y1 == z * gx1
+    let gx1 = (&num_gx1 / &div3).unwrap();
+    let gx1_square = false; // TODO gx1.is_quad_residue();
+    let y1 = if gx1_square {
+        let (y1, _) = gx1.sqrt(/*min_root=False*/).unwrap(); // TODO
+        assert!(&y1 * &y1 == gx1);
+        y1
+    } else {
+        let (y1, _) = (&z * &gx1).sqrt(/*min_root=False*/).unwrap(); // TODO
+        assert!(&y1 * &y1 == &z * &gx1);
+        y1
+    };
 
-    y2 = zeta_u2 * u * y1
-    num_x = num_x1 if gx1_square else num_x2
-    y = y1 if gx1_square else y2
-    x_affine = num_x / div
-    y_affine = -y if y.value % 2 != u.value % 2 else y
-
-    point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
-    return point_on_curvedef map_to_curve(field_element: PyFelt, curve_id: CurveID) -> G1Point:
-    field = get_base_field(curve_id)
-    a = field(CURVES[curve_id.value].swu_params.A)
-    b = field(CURVES[curve_id.value].swu_params.B)
-    z = field(CURVES[curve_id.value].swu_params.Z)
-
-    u = field_element
-    zeta_u2 = z * u**2
-    ta = zeta_u2**2 + zeta_u2
-    num_x1 = b * (ta + field.one())
-
-    if ta.value == 0:
-        div = a * z
-    else:
-        div = a * -ta
-
-    num2_x1 = num_x1**2
-    div2 = div**2
-    div3 = div2 * div
-    assert div3.value != 0
-
-    num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
-
-    num_x2 = zeta_u2 * num_x1
-
-    gx1 = num_gx1 / div3
-    gx1_square = gx1.is_quad_residue()
-    if gx1_square:
-        y1 = gx1.sqrt(min_root=False)
-        assert y1 * y1 == gx1
-    else:
-        y1 = (z * gx1).sqrt(min_root=False)
-        assert y1 * y1 == z * gx1
-
-    y2 = zeta_u2 * u * y1
-    num_x = num_x1 if gx1_square else num_x2
-    y = y1 if gx1_square else y2
-    x_affine = num_x / div
-    y_affine = -y if y.value % 2 != u.value % 2 else y
-
-    point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
-    return point_on_curvedef map_to_curve(field_element: PyFelt, curve_id: CurveID) -> G1Point:
-    field = get_base_field(curve_id)
-    a = field(CURVES[curve_id.value].swu_params.A)
-    b = field(CURVES[curve_id.value].swu_params.B)
-    z = field(CURVES[curve_id.value].swu_params.Z)
-
-    u = field_element
-    zeta_u2 = z * u**2
-    ta = zeta_u2**2 + zeta_u2
-    num_x1 = b * (ta + field.one())
-
-    if ta.value == 0:
-        div = a * z
-    else:
-        div = a * -ta
-
-    num2_x1 = num_x1**2
-    div2 = div**2
-    div3 = div2 * div
-    assert div3.value != 0
-
-    num_gx1 = (num2_x1 + a * div2) * num_x1 + b * div3
-
-    num_x2 = zeta_u2 * num_x1
-
-    gx1 = num_gx1 / div3
-    gx1_square = gx1.is_quad_residue()
-    if gx1_square:
-        y1 = gx1.sqrt(min_root=False)
-        assert y1 * y1 == gx1
-    else:
-        y1 = (z * gx1).sqrt(min_root=False)
-        assert y1 * y1 == z * gx1
-
-    y2 = zeta_u2 * u * y1
-    num_x = num_x1 if gx1_square else num_x2
-    y = y1 if gx1_square else y2
-    x_affine = num_x / div
-    y_affine = -y if y.value % 2 != u.value % 2 else y
-
-    point_on_curve = G1Point(x_affine.value, y_affine.value, curve_id, iso_point=True)
-    return point_on_curve
-    */
-    // TODO
-    todo!()
+    let y2 = &zeta_u2 * &u * &y1;
+    let num_x = if gx1_square { num_x1 } else { num_x2 };
+    let y = if gx1_square { y1.clone() } else { y2 };
+    let x_affine = (&num_x / &div).unwrap();
+    let y_flag = element_to_biguint(&y) % BigUint::from(2usize)
+        == element_to_biguint(&u) % BigUint::from(2usize);
+    let y_affine = if !y_flag { -y } else { y };
+    let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
+    point_on_curve
 }
 
 fn hash_to_field<F>(message: [u8; 32], count: usize, hash_name: &str) -> Vec<FieldElement<F>>
@@ -239,7 +159,10 @@ where
 
 fn hash_to_bytes<H: Hasher>(message: [u8; 32], count: usize, len_per_elem: usize) -> Vec<Vec<u8>> {
     let len_in_bytes = count * len_per_elem;
-    assert!(len_in_bytes < (1 << 16)); //, "Length should be smaller than 2^16"
+    assert!(
+        len_in_bytes < (1 << 16),
+        "Length should be smaller than 2^16"
+    );
     let mut expander = ExpanderXmd::<H>::new(DST, len_per_elem);
     let uniform_bytes = expander.expand_message_xmd(&message, len_in_bytes.try_into().unwrap());
     let mut output = vec![];
@@ -330,7 +253,10 @@ impl<H: Hasher> ExpanderXmd<H> {
 
         let b_len = self.hasher.digest_size();
         let ell = (TryInto::<usize>::try_into(n).unwrap() + (b_len - 1)) / b_len;
-        assert!(ell <= 255); //"The ratio of desired output to the output size of hash function is too large!"
+        assert!(
+            ell <= 255,
+            "The ratio of desired output to the output size of hash function is too large!"
+        );
 
         let dst_prime = self.construct_dst_prime();
         let z_pad = vec![0u8; self.block_size];
@@ -410,9 +336,93 @@ impl HashToCurveHint {
     }
 }
 
-fn build_hash_to_curve_hint(_message: [u8; 32]) -> HashToCurveHint {
-    // TODO
-    todo!()
+fn build_hash_to_curve_hint(message: [u8; 32]) -> HashToCurveHint {
+    let [felt0, felt1] = hash_to_field::<BLS12381PrimeField>(message, 2, "sha256")
+        .try_into()
+        .unwrap();
+    let (pt0, f0_hint) = build_map_to_curve_hint(felt0);
+    let (pt1, f1_hint) = build_map_to_curve_hint(felt1);
+    let _sum_pt = pt0.add(&pt1);
+    /*
+    sum_pt = apply_isogeny(sum_pt)
+    */
+    let curve_params = BLS12381PrimeField::get_curve_params();
+    let x = BigInt::from(curve_params.x);
+    let n = BigInt::from(curve_params.n);
+    let _cofactor: BigUint = ((BigInt::from(1) - (&x % &n)) % &n).try_into().unwrap();
+
+    /*
+    msm_builder = MSMCalldataBuilder(
+        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
+    )
+    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
+    */
+
+    HashToCurveHint {
+        f0_hint,
+        f1_hint,
+        //scalar_mul_hint=msm_hint,
+        //derive_point_from_x_hint=derive_point_from_x_hint,
+    }
+}
+
+fn build_map_to_curve_hint(
+    u: FieldElement<BLS12381PrimeField>,
+) -> (G1Point<BLS12381PrimeField>, MapToCurveHint) {
+    let curve_params = BLS12381PrimeField::get_curve_params();
+    let swu_params = curve_params.swu_params.unwrap();
+    let a = swu_params.a;
+    let b = swu_params.b;
+    let z = swu_params.z;
+
+    let zeta_u2 = &z * (&u * &u);
+    let ta = (&zeta_u2 * &zeta_u2) + &zeta_u2;
+    let num_x1 = &b * (&ta + FieldElement::<BLS12381PrimeField>::from(1));
+
+    let div = if ta == FieldElement::from(0) {
+        &a * &z
+    } else {
+        &a * -ta
+    };
+
+    let num2_x1 = &num_x1 * &num_x1;
+    let div2 = &div * &div;
+    let div3 = &div2 * &div;
+    assert!(div3 != FieldElement::from(0));
+
+    let num_gx1 = (&num2_x1 + &a * &div2) * &num_x1 + &b * &div3;
+    let num_x2 = &zeta_u2 * &num_x1;
+
+    let gx1 = (&num_gx1 / &div3).unwrap();
+    let gx1_square = false; // TODO gx1.is_quad_residue();
+    let y1 = if gx1_square {
+        let (y1, _) = gx1.sqrt(/*min_root=False*/).unwrap(); // TODO
+        assert!(&y1 * &y1 == gx1);
+        y1
+    } else {
+        let (y1, _) = (&z * &gx1).sqrt(/*min_root=False*/).unwrap(); // TODO
+        assert!(&y1 * &y1 == &z * &gx1);
+        y1
+    };
+
+    let y2 = &zeta_u2 * &u * &y1;
+    let y = if gx1_square { y1.clone() } else { y2 };
+    let y_flag = element_to_biguint(&y) % BigUint::from(2usize)
+        == element_to_biguint(&u) % BigUint::from(2usize);
+
+    let num_x = if gx1_square { num_x1 } else { num_x2 };
+    let x_affine = (&num_x / &div).unwrap();
+    let y_affine = if !y_flag { -y } else { y };
+
+    let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
+    (
+        point_on_curve,
+        MapToCurveHint {
+            gx1_is_square: gx1_square,
+            y1,
+            y_flag,
+        },
+    )
 }
 
 const _BASE_URLS: [&str; 4] = [

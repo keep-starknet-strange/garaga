@@ -423,6 +423,7 @@ pub fn get_honk_calldata(
         G1Point::new(
             element_from_biguint(&point.x),
             element_from_biguint(&point.y),
+            false,
         )
     }
 
