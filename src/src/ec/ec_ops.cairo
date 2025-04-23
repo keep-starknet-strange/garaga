@@ -1004,6 +1004,30 @@ fn msm_g1_2_points<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +D
     return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
 }
 
+
+struct ScalarMulFakeGLVHint {
+    Q: G1Point,
+    u1: felt252, // Encoded as 2^128 * sign + abs(u1)_u64
+    u2: felt252, // Encoded as 2^128 * sign + abs(u2)_u64
+    v1: felt252, // Encoded as 2^128 * sign + abs(v1)_u64
+    v2: felt252, // Encoded as 2^128 * sign + abs(v2)_u64
+}
+
+pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
+
+
+fn scalar_mul_glv_and_fake_glv(point: G1Point, scalar: u256, order_modulus: CircuitModulus, modulus:CircuitModulus, hint: ScalarMulFakeGLVHint, lambda: ) -> G1Point {
+    // # Verifier :
+    // # We need to check that:
+    // # 		s*(v1 + λ*v2) + u1 + λ*u2 = 0
+
+    let lambda =
+    return hint.Q;
+}
+
+
+
+
 #[cfg(test)]
 mod tests {
     use core::circuit::u384;
