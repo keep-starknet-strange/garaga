@@ -336,7 +336,7 @@ impl<'a> std::ops::Mul<&'a BigInt> for &'a EisensteinInteger {
 
     /*Computes the product self * int.*/
     fn mul(self, other: &BigInt) -> Self::Output {
-        other * self 
+        other * self
     }
 }
 
