@@ -244,6 +244,13 @@ def hald_gcd_eisenstein_hint(
     return w.a0, w.a1, v_res.a0, v_res.a1
 
 
+from garaga.hints.io import bigint_split
+
+
+def split(x):
+    return bigint_split(x, 4, 2**64)
+
+
 def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     assert scalar != 0, f"Scalar is 0 for point {point}"
     assert point.is_infinity() == False, f"Point is infinity for scalar {scalar}"
@@ -261,7 +268,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     u1, u2, v1, v2 = hald_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
     Q = point.scalar_mul(scalar)
     # %} #
-    print(f"Q: {Q.x}, {Q.y}")
+    print(f"Q: {split(Q.x)}, {split(Q.y)}")
     print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
 
     # Verifier :
@@ -323,6 +330,8 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     Acc = table_S[1].add(table_Phi_S[1])
     B1 = Acc
 
+    print(f"B1: {split(B1.x)}, {split(B1.y)}")
+
     # then we add G (the base point) to Acc to avoid incomplete additions in
     # the loop, because when doing doubleAndAdd(Acc, Bi) as (Acc+Bi)+Acc it
     # might happen that Acc==Bi or Acc==-Bi. But now we force Acc to be
@@ -365,34 +374,49 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # 		B2  = +P + Q + Φ(P) - Φ(Q)
 
     B2 = table_S[1].add(table_Phi_S[2])
+    print(f"B2: {split(B2.x)}, {split(B2.y)}")
     # 		B3  = +P + Q - Φ(P) + Φ(Q)
     B3 = table_S[1].add(table_Phi_S[3])
+    print(f"B3: {split(B3.x)}, {split(B3.y)}")
     # 		B4  = +P + Q - Φ(P) - Φ(Q)
     B4 = table_S[1].add(table_Phi_S[0])
+    print(f"B4: {split(B4.x)}, {split(B4.y)}")
     # 		B5  = +P - Q + Φ(P) + Φ(Q)
     B5 = table_S[2].add(table_Phi_S[1])
+    print(f"B5: {split(B5.x)}, {split(B5.y)}")
     # 		B6  = +P - Q + Φ(P) - Φ(Q)
     B6 = table_S[2].add(table_Phi_S[2])
+    print(f"B6: {split(B6.x)}, {split(B6.y)}")
     # 		B7  = +P - Q - Φ(P) + Φ(Q)
     B7 = table_S[2].add(table_Phi_S[3])
+    print(f"B7: {split(B7.x)}, {split(B7.y)}")
     # 		B8  = +P - Q - Φ(P) - Φ(Q)
     B8 = table_S[2].add(table_Phi_S[0])
+    print(f"B8: {split(B8.x)}, {split(B8.y)}")
     # 		B9  = -P + Q + Φ(P) + Φ(Q)
     B9 = -B8
+    print(f"B9: {split(B9.x)}, {split(B9.y)}")
     # 		B10 = -P + Q + Φ(P) - Φ(Q)
     B10 = -B7
+    print(f"B10: {split(B10.x)}, {split(B10.y)}")
     # 		B11 = -P + Q - Φ(P) + Φ(Q)
     B11 = -B6
+    print(f"B11: {split(B11.x)}, {split(B11.y)}")
     # 		B12 = -P + Q - Φ(P) - Φ(Q)
     B12 = -B5
+    print(f"B12: {split(B12.x)}, {split(B12.y)}")
     # 		B13 = -P - Q + Φ(P) + Φ(Q)
     B13 = -B4
+    print(f"B13: {split(B13.x)}, {split(B13.y)}")
     # 		B14 = -P - Q + Φ(P) - Φ(Q)
     B14 = -B3
+    print(f"B14: {split(B14.x)}, {split(B14.y)}")
     # 		B15 = -P - Q - Φ(P) + Φ(Q)
     B15 = -B2
+    print(f"B15: {split(B15.x)}, {split(B15.y)}")
     # 		B16 = -P - Q - Φ(P) - Φ(Q)
     B16 = -B1
+    print(f"B16: {split(B16.x)}, {split(B16.y)}")
     # note that half the points are negatives of the other half,
     # hence have the same X coordinates.
 
@@ -402,7 +426,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         # // selectorY takes values in [0,15]
 
         selector_y = u1_bits[i] + 2 * u2_bits[i] + 4 * v1_bits[i] + 8 * v2_bits[i]
-        print(f"selector_y_{i}: {selector_y}")
+        # print(f"selector_y_{i}: {selector_y}")
         # // selectorX takes values in [0,7] s.t.:
         # 		- when selectorY < 8: selectorX = selectorY
         # 		- when selectorY >= 8: selectorX = 15 - selectorY
@@ -411,7 +435,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
             selector_x = selector_y
         else:
             selector_x = 15 - selector_y
-        print(f"selector_x_{i}: {selector_x}")
+        # print(f"selector_x_{i}: {selector_x}")
         Bi = G1Point(Bs[selector_x].x, Bs[selector_y].y, curve_id)
 
         # // Acc = [2]Acc + Bi
@@ -442,7 +466,8 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
     # Acc should be now equal to [2^nbits]G
 
-    gm = G1Point.get_nG(point.curve_id, 2 ** (n_bits))
+    gm = G1Point.get_nG(point.curve_id, 2 ** (n_bits - 1))
+    print(f"gm: {split(gm.x)}, {split(gm.y)}")
     assert Acc == gm, f"Acc is not equal to [2^nbits]G, {Acc} != {gm}"
 
     return Acc
