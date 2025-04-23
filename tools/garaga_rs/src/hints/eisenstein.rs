@@ -259,16 +259,16 @@ impl std::ops::Add for EisensteinInteger {
 
     /*Computes the sum self + other.*/
     fn add(self, other: Self) -> Self::Output {
-        self + &other
+        &self + &other
     }
 }
 
-impl std::ops::Add<&EisensteinInteger> for EisensteinInteger {
-    type Output = Self;
+impl<'a> std::ops::Add<&'a EisensteinInteger> for &'a EisensteinInteger {
+    type Output = EisensteinInteger;
 
     /*Computes the sum self + other.*/
-    fn add(self, other: &Self) -> Self::Output {
-        Self::new(&self.a0 + &other.a0, &self.a1 + &other.a1)
+    fn add(self, other: Self) -> Self::Output {
+        EisensteinInteger::new(&self.a0 + &other.a0, &self.a1 + &other.a1)
     }
 }
 
@@ -277,16 +277,16 @@ impl std::ops::Sub for EisensteinInteger {
 
     /*Computes the difference self - other.*/
     fn sub(self, other: Self) -> Self::Output {
-        self - &other
+        &self - &other
     }
 }
 
-impl std::ops::Sub<&EisensteinInteger> for EisensteinInteger {
-    type Output = Self;
+impl<'a> std::ops::Sub<&'a EisensteinInteger> for &'a EisensteinInteger {
+    type Output = EisensteinInteger;
 
     /*Computes the difference self - other.*/
-    fn sub(self, other: &Self) -> Self::Output {
-        Self::new(&self.a0 - &other.a0, &self.a1 - &other.a1)
+    fn sub(self, other: Self) -> Self::Output {
+        EisensteinInteger::new(&self.a0 - &other.a0, &self.a1 - &other.a1)
     }
 }
 
@@ -300,12 +300,12 @@ impl std::ops::Mul for EisensteinInteger {
     Uses the identity (x0+x1ω)(y0+y1ω) = (x0y0 - x1y1) + (x0y1 + x1y0 - x1y1)ω.
     */
     fn mul(self, other: Self) -> Self::Output {
-        self * &other
+        &self * &other
     }
 }
 
-impl std::ops::Mul<&EisensteinInteger> for EisensteinInteger {
-    type Output = Self;
+impl<'a> std::ops::Mul<&'a EisensteinInteger> for &'a EisensteinInteger {
+    type Output = EisensteinInteger;
 
     /*
     Computes the product self * other.
@@ -313,12 +313,12 @@ impl std::ops::Mul<&EisensteinInteger> for EisensteinInteger {
     Supports multiplication by another EisensteinInteger.
     Uses the identity (x0+x1ω)(y0+y1ω) = (x0y0 - x1y1) + (x0y1 + x1y0 - x1y1)ω.
     */
-    fn mul(self, other: &Self) -> Self::Output {
+    fn mul(self, other: Self) -> Self::Output {
         let (x0, x1) = (&self.a0, &self.a1);
         let (y0, y1) = (&other.a0, &other.a1);
         let res_a0 = x0 * y0 - x1 * y1;
         let res_a1 = x0 * y1 + x1 * y0 - x1 * y1;
-        Self::new(res_a0, res_a1)
+        EisensteinInteger::new(res_a0, res_a1)
     }
 }
 
@@ -327,16 +327,16 @@ impl std::ops::Mul<BigInt> for EisensteinInteger {
 
     /*Computes the product self * int.*/
     fn mul(self, other: BigInt) -> Self::Output {
-        self * &other
+        &self * &other
     }
 }
 
-impl std::ops::Mul<&BigInt> for EisensteinInteger {
-    type Output = Self;
+impl<'a> std::ops::Mul<&'a BigInt> for &'a EisensteinInteger {
+    type Output = EisensteinInteger;
 
     /*Computes the product self * int.*/
     fn mul(self, other: &BigInt) -> Self::Output {
-        Self::new(&self.a0 * other, &self.a1 * other)
+        other * self 
     }
 }
 
@@ -345,16 +345,16 @@ impl std::ops::Mul<EisensteinInteger> for BigInt {
 
     /*Computes the product int * self.*/
     fn mul(self, other: EisensteinInteger) -> Self::Output {
-        self * &other
+        &self * &other
     }
 }
 
-impl std::ops::Mul<&EisensteinInteger> for BigInt {
+impl<'a> std::ops::Mul<&'a EisensteinInteger> for &'a BigInt {
     type Output = EisensteinInteger;
 
     /*Computes the product int * self.*/
     fn mul(self, other: &EisensteinInteger) -> Self::Output {
-        EisensteinInteger::new(&self * &other.a0, &self * &other.a1)
+        EisensteinInteger::new(self * &other.a0, self * &other.a1)
     }
 }
 
@@ -363,15 +363,15 @@ impl std::ops::Div for EisensteinInteger {
 
     /*Computes the quotient self // other using Euclidean rounding division.*/
     fn div(self, other: Self) -> Self::Output {
-        self / &other
+        &self / &other
     }
 }
 
-impl std::ops::Div<&EisensteinInteger> for EisensteinInteger {
-    type Output = Self;
+impl<'a> std::ops::Div<&'a EisensteinInteger> for &'a EisensteinInteger {
+    type Output = EisensteinInteger;
 
     /*Computes the quotient self // other using Euclidean rounding division.*/
-    fn div(self, other: &Self) -> Self::Output {
+    fn div(self, other: Self) -> Self::Output {
         let [q, _] = self.quo_rem(other).unwrap();
         q
     }
@@ -382,15 +382,15 @@ impl std::ops::Rem for EisensteinInteger {
 
     /*Computes the remainder self % other using Euclidean rounding division.*/
     fn rem(self, other: Self) -> Self::Output {
-        self % &other
+        &self % &other
     }
 }
 
-impl std::ops::Rem<&EisensteinInteger> for EisensteinInteger {
-    type Output = Self;
+impl<'a> std::ops::Rem<&'a EisensteinInteger> for &'a EisensteinInteger {
+    type Output = EisensteinInteger;
 
     /*Computes the remainder self % other using Euclidean rounding division.*/
-    fn rem(self, other: &Self) -> Self::Output {
+    fn rem(self, other: Self) -> Self::Output {
         let [_, r] = self.quo_rem(other).unwrap();
         r
     }
@@ -471,8 +471,8 @@ pub fn half_gcd(
         };
 
         // Update coefficients
-        let next_u_ = u - quotient.clone() * &u_;
-        let next_v_ = v - quotient.clone() * &v_;
+        let next_u_ = u - &quotient * &u_;
+        let next_v_ = v - &quotient * &v_;
 
         // Update state
         (a_run, b_run) = (b_run, remainder);
