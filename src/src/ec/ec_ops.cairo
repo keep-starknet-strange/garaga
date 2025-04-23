@@ -4,6 +4,7 @@ use core::circuit::{
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
+use core::internal::bounded_int::upcast;
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
@@ -12,7 +13,7 @@ use garaga::basic_field_ops::{
     add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
 };
 use garaga::circuits::ec;
-use garaga::core::circuit::{IntoCircuitInputValue, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
     THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
@@ -1005,27 +1006,221 @@ fn msm_g1_2_points<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +D
 }
 
 
+#[derive(Drop)]
 struct ScalarMulFakeGLVHint {
     Q: G1Point,
     u1: felt252, // Encoded as 2^128 * sign + abs(u1)_u64
     u2: felt252, // Encoded as 2^128 * sign + abs(u2)_u64
     v1: felt252, // Encoded as 2^128 * sign + abs(v1)_u64
-    v2: felt252, // Encoded as 2^128 * sign + abs(v2)_u64
+    v2: felt252 // Encoded as 2^128 * sign + abs(v2)_u64
 }
 
 pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
 
+fn _scalar_mul_glv_and_fake_glv(
+    point: G1Point,
+    scalar: u256,
+    order_modulus: CircuitModulus,
+    modulus: CircuitModulus,
+    hint: ScalarMulFakeGLVHint,
+    _lambda: u384,
+    minus_one: u384,
+    one_u384: u384,
+    n_bits: usize,
+    n_bits_G: G1Point,
+) -> G1Point {
+    let scalar_u384: u384 = scalar.into();
 
-fn scalar_mul_glv_and_fake_glv(point: G1Point, scalar: u256, order_modulus: CircuitModulus, modulus:CircuitModulus, hint: ScalarMulFakeGLVHint, lambda: ) -> G1Point {
-    // # Verifier :
-    // # We need to check that:
-    // # 		s*(v1 + λ*v2) + u1 + λ*u2 = 0
+    // Retrieve the u1, u2, v1, v2 values from the hint
+    // They are encoded as 2^128 * sign + abs(value)_u64
+    // If high_128 limbs are != 0, we consider the value is negative, otherwise it is positive.
+    // We also precompute the negated value of the y coordinate of the points based on the sign in
+    // the same match condition for efficiency.
+    // u1, u2, v1, v2 are casted to u64 to ensure their expected bounds.
 
-    let lambda =
+    let (_u1_sign, _u1_abs, P0y, P1y): (u384, u64, u384, u384) = match u128s_from_felt252(hint.u1) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, low.try_into().unwrap(), neg_mod_p(point.y, modulus), point.y)
+        },
+        U128sFromFelt252Result::Wide((
+            _, low,
+        )) => { (minus_one, low.try_into().unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+    };
+    let (_u2_sign, _u2_abs, Phi_P0y, Phi_P1y): (u384, u64, u384, u384) =
+        match u128s_from_felt252(hint.u2) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, low.try_into().unwrap(), neg_mod_p(point.y, modulus), point.y)
+        },
+        U128sFromFelt252Result::Wide((
+            _, low,
+        )) => { (minus_one, low.try_into().unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+    };
+    let (_v1_sign, _v1_abs, Q0y, Q1y): (u384, u64, u384, u384) = match u128s_from_felt252(hint.v1) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, low.try_into().unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
+        },
+        U128sFromFelt252Result::Wide((
+            _, low,
+        )) => { (minus_one, low.try_into().unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
+    };
+    let (_v2_sign, _v2_abs, Phi_Q0y, Phi_Q1y): (u384, u64, u384, u384) =
+        match u128s_from_felt252(hint.v2) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, low.try_into().unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
+        },
+        U128sFromFelt252Result::Wide((
+            _, low,
+        )) => { (minus_one, low.try_into().unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
+    };
+
+    // Check that the GLV/FakeGLV decomposition is valid:
+    // # s*(v1 + λ*v2) + u1 + λ*u2 = 0
+    let s = CircuitElement::<CircuitInput<0>> {};
+    let lambda = CircuitElement::<CircuitInput<1>> {};
+    let u1_abs = CircuitElement::<CircuitInput<2>> {};
+    let u1_sign = CircuitElement::<CircuitInput<3>> {};
+    let u2_abs = CircuitElement::<CircuitInput<4>> {};
+    let u2_sign = CircuitElement::<CircuitInput<5>> {};
+    let v1_abs = CircuitElement::<CircuitInput<6>> {};
+    let v1_sign = CircuitElement::<CircuitInput<7>> {};
+    let v2_abs = CircuitElement::<CircuitInput<8>> {};
+    let v2_sign = CircuitElement::<CircuitInput<9>> {};
+
+    let u1 = circuit_mul(u1_abs, u1_sign);
+    let u2 = circuit_mul(u2_abs, u2_sign);
+    let v1 = circuit_mul(v1_abs, v1_sign);
+    let v2 = circuit_mul(v2_abs, v2_sign);
+
+    // u1 + λ*u2
+    let lambda_u2 = circuit_mul(lambda, u2);
+    let u1_lambda_u2 = circuit_add(u1, lambda_u2);
+
+    // s*(v1 + λ*v2)
+    let lambda_v2 = circuit_mul(lambda, v2);
+    let v1_lambda_v2 = circuit_add(v1, lambda_v2);
+    let s_v1_lambda_v2 = circuit_mul(s, v1_lambda_v2);
+
+    // s*(v1 + λ*v2) + u1 + λ*u2
+    let res = circuit_add(s_v1_lambda_v2, u1_lambda_u2);
+
+    let outputs = (res,)
+        .new_inputs()
+        .next_2(scalar_u384)
+        .next_2(_lambda)
+        .next_2([upcast(_u1_abs), 0, 0, 0])
+        .next_2(_u1_sign)
+        .next_2([upcast(_u2_abs), 0, 0, 0])
+        .next_2(_u2_sign)
+        .next_2([upcast(_v1_abs), 0, 0, 0])
+        .next_2(_v1_sign)
+        .next_2([upcast(_v2_abs), 0, 0, 0])
+        .next_2(_v2_sign)
+        .done_2()
+        .eval(order_modulus)
+        .unwrap();
+
+    assert(outputs.get_output(res).is_zero(), 'Wrong GLV/FakeGLV decomposition');
+
+    //
+    let S0 = ec_safe_add(
+        G1Point { x: point.x, y: P0y }, G1Point { x: hint.Q.x, y: Q0y }, curve_index,
+    ); // -P - Q
+    let S1 = G1Point { x: S0.x, y: neg_mod_p(S0.y, modulus) }; // P + Q
+    let S2 = ec_safe_add(
+        G1Point { x: point.x, y: P1y }, G1Point { x: hint.Q.x, y: Q0y }, curve_index,
+    ); // P - Q
+    let S3 = G1Point { x: S2.x, y: neg_mod_p(S2.y, modulus) }; // -P + Q
+
+    let Phi_S0 = ec_safe_add(
+        G1Point { x: point.x, y: Phi_P0y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, curve_index,
+    ); // -Φ(P) - Φ(Q)
+    let Phi_S1 = G1Point { x: Phi_S0.x, y: neg_mod_p(Phi_S0.y, modulus) }; // Φ(P) + Φ(Q)
+    let Phi_S2 = ec_safe_add(
+        G1Point { x: point.x, y: Phi_P1y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, curve_index,
+    ); // Φ(P) - Φ(Q)
+    let Phi_S3 = G1Point { x: Phi_S2.x, y: neg_mod_p(Phi_S2.y, modulus) }; // -Φ(P) + Φ(Q)
+
+    // we suppose that the first bits of the sub-scalars are 1 and set:
+    // Acc = P + Q + Φ(P) + Φ(Q)
+    let mut Acc = ec_safe_add(S1, Phi_S1, curve_index); // P + Q + Φ(P) + Φ(Q)
+
+    let B1 = Acc;
+    let B2 = ec_safe_add(S1, Phi_S2, curve_index); // P + Q + Φ(P) - Φ(Q)
+    let B3 = ec_safe_add(S1, Phi_S3, curve_index); // P + Q - Φ(P) + Φ(Q)
+    let B4 = ec_safe_add(S1, Phi_S0, curve_index); // P + Q - Φ(P) - Φ(Q)
+    let B5 = ec_safe_add(S2, Phi_S1, curve_index); // P - Q + Φ(P) + Φ(Q)
+    let B6 = ec_safe_add(S2, Phi_S2, curve_index); // P - Q + Φ(P) - Φ(Q)
+    let B7 = ec_safe_add(S2, Phi_S3, curve_index); // P - Q - Φ(P) + Φ(Q)
+    let B8 = ec_safe_add(S2, Phi_S0, curve_index); // P - Q - Φ(P) - Φ(Q)
+
+    let B9 = G1Point { x: B8.x, y: neg_mod_p(B8.y, modulus) }; // -P + Q + Φ(P) + Φ(Q)
+    let B10 = G1Point { x: B7.x, y: neg_mod_p(B7.y, modulus) }; // -P + Q + Φ(P) - Φ(Q)
+    let B11 = G1Point { x: B6.x, y: neg_mod_p(B6.y, modulus) }; // -P + Q - Φ(P) + Φ(Q)
+    let B12 = G1Point { x: B5.x, y: neg_mod_p(B5.y, modulus) }; // -P + Q - Φ(P) - Φ(Q)
+    let B13 = G1Point { x: B4.x, y: neg_mod_p(B4.y, modulus) }; // -P - Q + Φ(P) + Φ(Q)
+    let B14 = G1Point { x: B3.x, y: neg_mod_p(B3.y, modulus) }; // -P - Q + Φ(P) - Φ(Q)
+    let B15 = G1Point { x: B2.x, y: neg_mod_p(B2.y, modulus) }; // -P - Q - Φ(P) + Φ(Q)
+    let B16 = G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) }; // -P - Q - Φ(P) - Φ(Q)
+
+    let n_bits = 64 + 9;
+    let u1_bits = get_bits_little_glv_and_fake_glv(_u1_abs, n_bits);
+    let u2_bits = get_bits_little_glv_and_fake_glv(_u2_abs, n_bits);
+    let v1_bits = get_bits_little_glv_and_fake_glv(_v1_abs, n_bits);
+    let v2_bits = get_bits_little_glv_and_fake_glv(_v2_abs, n_bits);
+
+
+    let mut Acc = ec_safe_add(Acc, get_nG(curve_index, 1), curve_index);
+
+    while let Some(u1b) = u1_bits.pop_back() {
+        let u2b = u2_bits.pop_back().unwrap();
+        let v1b = v1_bits.pop_back().unwrap();
+        let v2b = v2_bits.pop_back().unwrap();
+
+        let selector_y: felt252 = u1b + 2 * u2b + 4 * v1b + 8 * v2b;
+
+        let (Bix, Biy) = match selector_y {
+            0 => (B16.x, B16.y),
+            1 => (B8.x, B8.y),
+            2 => (B14.x, B14.y),
+            3 => (B6.x, B6.y),
+            4 => (B12.x, B12.y),
+            5 => (B4.x, B4.y),
+            6 => (B10.x, B10.y),
+            7 => (B2.x, B2.y),
+            8 => (B15.x, B15.y),
+            9 => (B7.x, B7.y),
+            10 => (B13.x, B13.y),
+            11 => (B5.x, B5.y),
+            12 => (B11.x, B11.y),
+            13 => (B3.x, B3.y),
+            14 => (B9.x, B9.y),
+            _ => (B1.x, B1.y),
+        };
+
+        let Bi = G1Point { x: Bix, y: Biy };
+        // Double and add
+        Acc = ec_safe_add(Acc, Acc, curve_index);
+        Acc = ec_safe_add(Acc, Bi, curve_index);
+    }
+
+    assert(Acc == n_bits_G, 'Wrong result');
+
     return hint.Q;
 }
 
-
+#[inline]
+pub fn get_bits_little_glv_and_fake_glv(mut scalar: u64, n_bits: u64) -> Array<felt252> {
+    let mut bits = Array::<felt252>::new();
+    while scalar != 0 {
+        let (q, r) = DivRem::div_rem(scalar, 2);
+        bits.append(r);
+        scalar = q;
+    }
+    while bits.len() != n_bits {
+        bits.append(0);
+    }
+    return bits;
+}
 
 
 #[cfg(test)]
