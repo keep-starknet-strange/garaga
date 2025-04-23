@@ -16,6 +16,7 @@ venv
 *.secrets
 *.pb.gz
 .hypothesis/
+*.go
 
 tools/garaga_rs/target/
 tools/make/requirements.txt
