@@ -261,7 +261,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     u1, u2, v1, v2 = hald_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
     Q = point.scalar_mul(scalar)
     # %} #
-
+    print(f"Q: {Q.x}, {Q.y}")
     print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
 
     # Verifier :
@@ -396,7 +396,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # note that half the points are negatives of the other half,
     # hence have the same X coordinates.
 
-    Bs = [B1, B2, B3, B4, B5, B6, B7, B8, B9, B10, B11, B12, B13, B14, B15, B16]
+    Bs = [B16, B8, B14, B6, B12, B4, B10, B2, B15, B7, B13, B5, B11, B3, B9, B1]
     # for i := nbits - 1; i > 0; i-- {
     for i in range(n_bits - 1, 0, -1):
         # // selectorY takes values in [0,15]
@@ -411,7 +411,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
             selector_x = selector_y
         else:
             selector_x = 15 - selector_y
-
+        print(f"selector_x_{i}: {selector_x}")
         Bi = G1Point(Bs[selector_x].x, Bs[selector_y].y, curve_id)
 
         # // Acc = [2]Acc + Bi
