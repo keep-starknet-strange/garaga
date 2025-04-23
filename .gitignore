@@ -15,6 +15,7 @@ venv
 *.idea
 *.secrets
 *.pb.gz
+.hypothesis/
 
 tools/garaga_rs/target/
 tools/make/requirements.txt

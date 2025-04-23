@@ -29,6 +29,7 @@ dev = [
   "inquirer",
   "pandas",
   "tabulate",
+  "hypothesis",
 ]
 
 [project.scripts]
