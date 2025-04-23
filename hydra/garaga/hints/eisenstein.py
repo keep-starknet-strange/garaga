@@ -4,33 +4,92 @@ import math
 from typing import Tuple
 
 
-def round_half_even(n: int, d: int) -> int:
-    """Rounds the rational n/d to the nearest integer, with ties to even."""
-    if d == 0:
-        raise ZeroDivisionError("denominator cannot be zero")
-    if d < 0:
-        n, d = -n, -d  # Ensure denominator is positive
+def quo_rem_truncated(x: int, y: int) -> Tuple[int, int]:
+    """
+    Computes quotient and remainder using truncated division (towards zero).
 
-    q_floor = n // d
-    rem = n % d
+    This mimics the behavior of Go's `big.Int.QuoRem` method.
+    q = x / y (truncated towards zero)
+    r = x - y * q
 
-    if rem == 0:  # Exact division
-        return q_floor
+    Args:
+        x: Dividend.
+        y: Divisor.
 
-    # Check proximity to floor and ceil multiples
-    diff_floor = rem
-    diff_ceil = d - rem  # Remainder is always positive or zero in Python
+    Returns:
+        A tuple (q, r) representing the quotient and remainder.
 
-    if diff_floor < diff_ceil:  # Closer to floor multiple
-        return q_floor
-    elif diff_ceil < diff_floor:  # Closer to ceil multiple
-        return q_floor + 1
-    else:  # Exactly halfway (diff_floor == diff_ceil)
-        # Round to nearest even integer
-        if q_floor % 2 == 0:
-            return q_floor  # Floor is even
-        else:
-            return q_floor + 1  # Ceil (floor + 1) is even
+    Raises:
+        ZeroDivisionError: If y is 0.
+    """
+    if y == 0:
+        raise ZeroDivisionError("division by zero")
+
+    # Standard division produces a float. int() truncates floats towards zero.
+    q = int(x / y)
+    # The remainder is defined as r = x - y*q based on the truncated quotient.
+    r = x - y * q
+
+    # --- Verification (optional but useful) ---
+    # Check remainder properties for truncated division:
+    # 1. abs(r) < abs(y)
+    # 2. x = y * q + r
+    # 3. sign(r) == sign(x) or r == 0
+    assert abs(r) < abs(
+        y
+    ), f"Truncated: Remainder magnitude |{r}| >= divisor magnitude |{y}|"
+    assert (
+        x == y * q + r
+    ), f"Truncated: Definition x = y*q + r failed: {x} != {y}*{q} + {r}"
+    assert r == 0 or math.copysign(1, r) == math.copysign(
+        1, x
+    ), f"Truncated: Remainder sign mismatch: sign({r}) != sign({x})"
+    # --- End Verification ---
+
+    return q, r
+
+
+def div_euclidean(x: int, y: int) -> int:
+    """
+    Computes the quotient using Euclidean division (floor division).
+
+    This mimics the behavior of Go's `big.Int.Div` method.
+    For Euclidean division:
+    q = floor(x / y)
+    r = x - y * q, such that 0 <= r < |y|
+
+    Python's // operator directly performs Euclidean (floor) division.
+
+    Args:
+        x: Dividend.
+        y: Divisor.
+
+    Returns:
+        The Euclidean quotient q.
+
+    Raises:
+        ZeroDivisionError: If y is 0.
+    """
+    if y == 0:
+        raise ZeroDivisionError("division by zero")
+
+    # Python's // operator performs floor division, which corresponds
+    # to the Euclidean division quotient.
+    q = x // y
+
+    # --- Verification (optional but useful) ---
+    # Calculate the corresponding Euclidean remainder
+    r = x % y  # Or r = x - y * q
+    # Check remainder properties for Euclidean division:
+    # 1. 0 <= r < |y|
+    # 2. x = y * q + r
+    assert 0 <= r < abs(y), f"Euclidean: Remainder {r} not in [0, |{y}|)"
+    assert (
+        x == y * q + r
+    ), f"Euclidean: Definition x = y*q + r failed: {x} != {y}*{q} + {r}"
+    # --- End Verification ---
+
+    return q
 
 
 class EisensteinInteger:
@@ -211,8 +270,8 @@ class EisensteinInteger:
         num = self * y.conjugate()
 
         # Calculate quotient q by rounding components of num/norm_y to nearest int
-        q_a0 = round_half_even(num.a0, norm_y)
-        q_a1 = round_half_even(num.a1, norm_y)
+        q_a0 = div_euclidean(num.a0, norm_y)
+        q_a1 = div_euclidean(num.a1, norm_y)
         q = EisensteinInteger(q_a0, q_a1)
 
         # Calculate remainder r = self - y * q
@@ -312,7 +371,6 @@ def half_gcd(
     return b_run, v_, u_
 
 
-# Example Usage (optional)
 if __name__ == "__main__":
     z1 = EisensteinInteger(3, 2)  # 3 + 2ω
     z2 = EisensteinInteger(1, -1)  # 1 - ω
