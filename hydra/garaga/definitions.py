@@ -124,6 +124,11 @@ class WeierstrassCurve:
     Gx: int  # x-coordinate of the generator point
     Gy: int  # y-coordinate of the generator point
     swu_params: SWUParams
+    eigen_value: int | None  # Endomorphism eigenvalue
+    third_root_of_unity: int | None  # Endomorphism image
+
+    def is_endomorphism_available(self) -> bool:
+        return self.eigen_value is not None and self.third_root_of_unity is not None
 
     def to_cairo_zero(self) -> str:
         code = f"namespace {self.cairo_zero_namespace_name} {{\n"
@@ -187,6 +192,8 @@ class TwistedEdwardsCurve(WeierstrassCurve):
         Gx: int,
         Gy: int,
         swu_params: SWUParams,
+        eigen_value: int | None = None,
+        third_root_of_unity: int | None = None,
     ):
         assert a_twisted != 0 and d_twisted != 0 and a_twisted != d_twisted
         # Set attributes
@@ -194,6 +201,8 @@ class TwistedEdwardsCurve(WeierstrassCurve):
         object.__setattr__(self, "a_twisted", a_twisted)
         object.__setattr__(self, "p", p)
         object.__setattr__(self, "swu_params", swu_params)
+        object.__setattr__(self, "eigen_value", eigen_value)
+        object.__setattr__(self, "third_root_of_unity", third_root_of_unity)
         # Calculate Weierstrass parameters
         a = (
             -1
@@ -220,6 +229,8 @@ class TwistedEdwardsCurve(WeierstrassCurve):
             fp_generator,
             *(self.to_weierstrass(Gx, Gy)),
             swu_params,
+            eigen_value,
+            third_root_of_unity,
         )
 
     def to_weierstrass(self, x_twisted, y_twisted):
@@ -356,6 +367,8 @@ CURVES: dict[int, WeierstrassCurve] = {
             0x90689D0585FF075EC9E99AD690C3395BC4B313370B38EF355ACDADCD122975B,
         ),
         swu_params=None,
+        eigen_value=0xB3C4D79D41A917585BFC41088D8DAAA78B17EA66B99C90DD,
+        third_root_of_unity=0x59E26BCEA0D48BACD4F263F1ACDB5C4F5763473177FFFFFE,
     ),
     BLS12_381_ID: PairingCurve(
         cairo_zero_namespace_name="bls",
@@ -406,6 +419,8 @@ CURVES: dict[int, WeierstrassCurve] = {
             B=0x12E2908D11688030018B12E8753EEE3B2016C1F0F24F4070A0B9C14FCEF35EF55A23215A316CEAA5D1CC48E98E172BE0,
             Z=11,
         ),
+        eigen_value=0xAC45A4010001A40200000000FFFFFFFF,
+        third_root_of_unity=0x1A0111EA397FE699EC02408663D4DE85AA0D857D89759AD4897D29650FB85F9B409427EB4F49FFFD8BFD00000000AAAC,
     ),
     SECP256K1_ID: WeierstrassCurve(
         cairo_zero_namespace_name="secp256k1",
@@ -419,6 +434,8 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gx=0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
         Gy=0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8,
         swu_params=None,
+        eigen_value=0x5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72,
+        third_root_of_unity=0x7AE96A2B657C07106E64479EAC3434E99CF0497512F58995C1396C28719501EE,
     ),
     SECP256R1_ID: WeierstrassCurve(
         cairo_zero_namespace_name="secp256r1",
@@ -432,6 +449,8 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gx=0x6B17D1F2E12C4247F8BCE6E563A440F277037D812DEB33A0F4A13945D898C296,
         Gy=0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5,
         swu_params=None,
+        eigen_value=None,
+        third_root_of_unity=None,
     ),
     ED25519_ID: TwistedEdwardsCurve(
         cairo_zero_namespace_name="ED25519",  # See https://neuromancer.sk/std/other/Ed25519
@@ -445,6 +464,8 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gx=0x216936D3CD6E53FEC0A4E231FDD6DC5C692CC7609525A7B2C9562D608F25D51A,
         Gy=0x6666666666666666666666666666666666666666666666666666666666666658,
         swu_params=None,
+        eigen_value=None,
+        third_root_of_unity=None,
     ),
     GRUMPKIN_ID: WeierstrassCurve(
         cairo_zero_namespace_name="grumpkin",
@@ -458,6 +479,8 @@ CURVES: dict[int, WeierstrassCurve] = {
         Gx=0x1,
         Gy=0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C,
         swu_params=None,
+        eigen_value=None,
+        third_root_of_unity=None,
     ),
 }
 
