@@ -195,6 +195,26 @@ pub fn get_G(curve_index: usize) -> G1Point {
     }
 }
 
+pub fn get_eigenvalue(curve_index: usize) -> u384 {
+    match curve_index {
+        0 => u384 {
+            limb0: 0x8d8daaa78b17ea66b99c90dd,
+            limb1: 0xb3c4d79d41a917585bfc4108,
+            limb2: 0x0,
+            limb3: 0x0,
+        },
+        1 => u384 { limb0: 0x1a40200000000ffffffff, limb1: 0xac45a401, limb2: 0x0, limb3: 0x0 },
+        2 => u384 {
+            limb0: 0x20816678df02967c1b23bd72,
+            limb1: 0xa5261c028812645a122e22ea,
+            limb2: 0x5363ad4cc05c30e0,
+            limb3: 0x0,
+        },
+        _ => core::panic_with_felt252('Invalid curve index'),
+    }
+}
+
+
 // Returns the modulus of BLS12_381
 #[inline(always)]
 pub fn get_BLS12_381_modulus() -> CircuitModulus {

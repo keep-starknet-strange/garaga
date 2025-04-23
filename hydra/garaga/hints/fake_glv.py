@@ -227,7 +227,7 @@ def split_scalar(s: int, l: Lattice) -> Tuple[int, int]:
     return u, v
 
 
-def hald_gcd_eisenstein_hint(
+def half_gcd_eisenstein_hint(
     modulus: int, scalar: int, eigen_value: int
 ) -> Tuple[int, int, int, int]:
     glv_basis = precompute_lattice(modulus, eigen_value)
@@ -265,7 +265,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     third_root_of_unity = curve.third_root_of_unity
 
     # %{ Hint :
-    u1, u2, v1, v2 = hald_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
+    u1, u2, v1, v2 = half_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
     Q = point.scalar_mul(scalar)
     # %} #
     print(f"Q: {split(Q.x)}, {split(Q.y)}")
