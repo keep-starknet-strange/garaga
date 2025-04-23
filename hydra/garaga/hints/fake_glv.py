@@ -345,14 +345,14 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         first) order.
         """
         # Convert to binary string, remove '0b' prefix, pad with zeros, and reverse
-        bits_be = bin(x)[3:].zfill(n_bits)
+        bits_be = bin(x)[2:].zfill(n_bits)
         print(bits_be)
         return [int(b) for b in bits_be[::-1]]
 
-    u1_bits = to_bits_le(u1)
-    u2_bits = to_bits_le(u2)
-    v1_bits = to_bits_le(v1)
-    v2_bits = to_bits_le(v2)
+    u1_bits = to_bits_le(abs(u1))
+    u2_bits = to_bits_le(abs(u2))
+    v1_bits = to_bits_le(abs(v1))
+    v2_bits = to_bits_le(abs(v2))
 
     print(f"length of u1_bits: {len(u1_bits)}")
 
@@ -402,6 +402,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         # // selectorY takes values in [0,15]
 
         selector_y = u1_bits[i] + 2 * u2_bits[i] + 4 * v1_bits[i] + 8 * v2_bits[i]
+        print(f"selector_y_{i}: {selector_y}")
         # // selectorX takes values in [0,7] s.t.:
         # 		- when selectorY < 8: selectorX = selectorY
         # 		- when selectorY >= 8: selectorX = 15 - selectorY
