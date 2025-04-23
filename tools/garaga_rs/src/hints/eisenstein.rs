@@ -486,3 +486,56 @@ pub fn half_gcd(
     // (b_run, v_, u_) which satisfy b_run = a*u_ + b*v_
     Ok([b_run, v_, u_])
 }
+
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_01() -> Result<(), String> {
+        let z1 = EisensteinInteger::new(3.into(), 2.into()); // 3 + 2ω
+        let z2 = EisensteinInteger::new(1.into(), (-1).into()); // 1 - ω
+
+        println!("z1 = {}", z1);
+        println!("z2 = {}", z2);
+        println!("z1 + z2 = {}", &z1 + &z2);
+        println!("z1 - z2 = {}", &z1 - &z2);
+        println!("z1 * z2 = {}", &z1 * &z2);
+        println!("Norm(z1) = {}", z1.norm());
+        println!("Conj(z1) = {}", z1.conjugate());
+        println!("-z1 = {}", -z1.clone());
+
+        let [q, r] = z1.quo_rem(&z2)?;
+        println!("z1 // z2 = {}", q);
+        println!("z1 % z2 = {}", r);
+        println!("Check: z2 * q + r = {}, Expected: {}", &(&z2 * &q) + &r, z1);
+        assert_eq!(&(&z2 * &q) + &r, z1);
+
+        // Half GCD example
+        let a = EisensteinInteger::new(10.into(), 3.into());
+        let b = EisensteinInteger::new(3.into(), 1.into());
+        println!("\nHalf GCD for a = {}, b = {}", a, b);
+        let [w, v_res, u_res] = half_gcd(&a, &b)?;
+        println!("  w = {}", w);
+        println!("  v = {}", v_res);
+        println!("  u = {}", u_res);
+        let check = &a * &u_res + &b * &v_res;
+        println!("  Check: a*u + b*v = {}, Expected w: {}", check, w);
+        println!("  Norm(w) = {}, Limit = {}", w.norm(), a.norm().sqrt());
+        assert_eq!(check, w);
+
+        // a = EisensteinInteger(8+7j * (math.sqrt(3)/2 + 0.5j)) # Approximate large number
+        let a_int = EisensteinInteger::new(13.into(), 14.into()); // Example large int coeffs
+        let b_int = EisensteinInteger::new(5.into(), 3.into());
+        println!("\nHalf GCD for a = {}, b = {}", a_int, b_int);
+        let [w, v_res, u_res] = half_gcd(&a_int, &b_int)?;
+        println!("  w = {}", w);
+        println!("  v = {}", v_res);
+        println!("  u = {}", u_res);
+        let check = &a_int * &u_res + &b_int * &v_res;
+        println!("  Check: a*u + b*v = {}, Expected w: {}", check, w);
+        println!("  Norm(w) = {}, Limit = {}", w.norm(), a_int.norm().sqrt());
+        assert_eq!(check, w);
+
+        Ok(())
+    }
+}
