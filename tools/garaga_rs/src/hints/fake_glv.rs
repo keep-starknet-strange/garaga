@@ -228,7 +228,7 @@ fn split_scalar(s: &BigInt, l: &Lattice) -> [BigInt; 2] {
     [u, v]
 }
 
-pub fn hald_gcd_eisenstein_hint(
+pub fn half_gcd_eisenstein_hint(
     modulus: &BigInt,
     scalar: &BigInt,
     eigen_value: &BigInt,
@@ -250,4 +250,52 @@ pub fn hald_gcd_eisenstein_hint(
         v_res.a0.clone(),
         v_res.a1.clone(),
     ])
+}
+
+mod tests {
+    use super::*;
+    use num_bigint::BigInt;
+    use num_traits::Num;
+
+    #[test]
+    fn test_bn254() -> Result<(), String> {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        for _ in 0..100 {
+            let scalar = rng.random::<u128>().into();
+            let curve_n = BigInt::from_str_radix("30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001", 16).unwrap();
+            let eigen_value = BigInt::from_str_radix("B3C4D79D41A917585BFC41088D8DAAA78B17EA66B99C90DD", 16).unwrap();
+            let [u1, u2, v1, v2] = half_gcd_eisenstein_hint(&curve_n, &scalar, &eigen_value)?;
+            assert!((&scalar * (&v1 + &eigen_value * &v2) + &u1 + &eigen_value * &u2) % &curve_n == 0.into());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_bls12_381() -> Result<(), String> {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        for _ in 0..100 {
+            let scalar = rng.random::<u128>().into();
+            let curve_n = BigInt::from_str_radix("73EDA753299D7D483339D80809A1D80553BDA402FFFE5BFEFFFFFFFF00000001", 16).unwrap();
+            let eigen_value = BigInt::from_str_radix("AC45A4010001A40200000000FFFFFFFF", 16).unwrap();
+            let [u1, u2, v1, v2] = half_gcd_eisenstein_hint(&curve_n, &scalar, &eigen_value)?;
+            assert!((&scalar * (&v1 + &eigen_value * &v2) + &u1 + &eigen_value * &u2) % &curve_n == 0.into());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn test_secp256k1() -> Result<(), String> {
+        use rand::Rng;
+        let mut rng = rand::rng();
+        for _ in 0..100 {
+            let scalar = rng.random::<u128>().into();
+            let curve_n = BigInt::from_str_radix("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141", 16).unwrap();
+            let eigen_value = BigInt::from_str_radix("5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72", 16).unwrap();
+            let [u1, u2, v1, v2] = half_gcd_eisenstein_hint(&curve_n, &scalar, &eigen_value)?;
+            assert!((&scalar * (&v1 + &eigen_value * &v2) + &u1 + &eigen_value * &u2) % &curve_n == 0.into());
+        }
+        Ok(())
+    }
 }
