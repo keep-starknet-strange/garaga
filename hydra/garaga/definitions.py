@@ -1338,3 +1338,15 @@ if __name__ == "__main__":
             print(f"Curve {curve_id}: min_one_order: {int_to_u384(-1 % curve.n)}")
 
     print_min_one_order()
+
+    print()
+
+    def print_third_root_of_unity():
+        for curve_id in CURVES:
+            curve: WeierstrassCurve = CURVES[curve_id]
+            if curve.is_endomorphism_available():
+                print(
+                    f"Curve {curve_id}: third_root_of_unity: {int_to_u384(curve.third_root_of_unity)}"
+                )
+
+    print_third_root_of_unity()
