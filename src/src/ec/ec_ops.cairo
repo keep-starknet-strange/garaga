@@ -106,11 +106,36 @@ pub fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
         if opposite_y {
             return G1PointZero::zero();
         } else {
-            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), curve_index);
+            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), modulus);
             return res;
         }
     } else {
-        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, curve_index);
+        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, modulus);
+        return res;
+    }
+}
+
+pub fn _ec_safe_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point {
+    if p.is_infinity() {
+        return q;
+    }
+    if q.is_infinity() {
+        return p;
+    }
+    let same_x = sub_mod_p(p.x, q.x, modulus).is_zero();
+
+    if same_x {
+        let opposite_y = is_opposite_mod_p(p.y, q.y, modulus);
+        if opposite_y {
+            return G1PointZero::zero();
+        } else {
+            let (res) = ec::run_DOUBLE_EC_POINT_circuit(
+                p, u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, modulus,
+            );
+            return res;
+        }
+    } else {
+        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, modulus);
         return res;
     }
 }
@@ -1033,7 +1058,6 @@ fn _scalar_mul_glv_and_fake_glv(
     // TODO : Handle 0 / 1 scalar
     // TODO : Handle point at infinity
 
-
     let scalar_u384: u384 = scalar.into();
 
     // Retrieve the u1, u2, v1, v2 values from the hint
@@ -1076,6 +1100,9 @@ fn _scalar_mul_glv_and_fake_glv(
             _, low,
         )) => { (minus_one, downcast(low).unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
     };
+
+    // At this point ~ 631 steps.
+
     // Check that the GLV/FakeGLV decomposition is valid:
     // # s*(v1 + λ*v2) + u1 + λ*u2 = 0
     let s = CircuitElement::<CircuitInput<0>> {};
@@ -1124,103 +1151,115 @@ fn _scalar_mul_glv_and_fake_glv(
 
     assert(outputs.get_output(res).is_zero(), 'Wrong GLV/FakeGLV decomposition');
 
+    // At this point, ~ 836 steps
+
     //
-    let S0 = ec_safe_add(
-        G1Point { x: point.x, y: P0y }, G1Point { x: hint.Q.x, y: Q0y }, curve_index,
+    let S0 = _ec_safe_add(
+        G1Point { x: point.x, y: P0y }, G1Point { x: hint.Q.x, y: Q0y }, modulus,
     ); // -P - Q
     let S1 = G1Point { x: S0.x, y: neg_mod_p(S0.y, modulus) }; // P + Q
-    let S2 = ec_safe_add(
-        G1Point { x: point.x, y: P1y }, G1Point { x: hint.Q.x, y: Q0y }, curve_index,
+    let S2 = _ec_safe_add(
+        G1Point { x: point.x, y: P1y }, G1Point { x: hint.Q.x, y: Q0y }, modulus,
     ); // P - Q
     let S3 = G1Point { x: S2.x, y: neg_mod_p(S2.y, modulus) }; // -P + Q
 
-    let Phi_S0 = ec_safe_add(
-        G1Point { x: point.x, y: Phi_P0y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, curve_index,
+    let Phi_S0 = _ec_safe_add(
+        G1Point { x: point.x, y: Phi_P0y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, modulus,
     ); // -Φ(P) - Φ(Q)
     let Phi_S1 = G1Point { x: Phi_S0.x, y: neg_mod_p(Phi_S0.y, modulus) }; // Φ(P) + Φ(Q)
-    let Phi_S2 = ec_safe_add(
-        G1Point { x: point.x, y: Phi_P1y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, curve_index,
+    let Phi_S2 = _ec_safe_add(
+        G1Point { x: point.x, y: Phi_P1y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, modulus,
     ); // Φ(P) - Φ(Q)
     let Phi_S3 = G1Point { x: Phi_S2.x, y: neg_mod_p(Phi_S2.y, modulus) }; // -Φ(P) + Φ(Q)
 
     // we suppose that the first bits of the sub-scalars are 1 and set:
     // Acc = P + Q + Φ(P) + Φ(Q)
-    let mut Acc = ec_safe_add(S1, Phi_S1, curve_index); // P + Q + Φ(P) + Φ(Q)
+    let mut Acc = _ec_safe_add(S1, Phi_S1, modulus); // P + Q + Φ(P) + Φ(Q)
 
-    // let Bs = array![
     let B1 = Acc;
-    let B2 = ec_safe_add(S1, Phi_S2, curve_index); // P + Q + Φ(P) - Φ(Q)
-    let B3 = ec_safe_add(S1, Phi_S3, curve_index); // P + Q - Φ(P) + Φ(Q)
-    let B4 = ec_safe_add(S1, Phi_S0, curve_index); // P + Q - Φ(P) - Φ(Q)
-    let B5 = ec_safe_add(S2, Phi_S1, curve_index); // P - Q + Φ(P) + Φ(Q)
-    let B6 = ec_safe_add(S2, Phi_S2, curve_index); // P - Q + Φ(P) - Φ(Q)
-    let B7 = ec_safe_add(S2, Phi_S3, curve_index); // P - Q - Φ(P) + Φ(Q)
-    let B8 = ec_safe_add(S2, Phi_S0, curve_index); // P - Q - Φ(P) - Φ(Q)
+    let B2 = _ec_safe_add(S1, Phi_S2, modulus); // P + Q + Φ(P) - Φ(Q)
+    let B3 = _ec_safe_add(S1, Phi_S3, modulus); // P + Q - Φ(P) + Φ(Q)
+    let B4 = _ec_safe_add(S1, Phi_S0, modulus); // P + Q - Φ(P) - Φ(Q)
+    let B5 = _ec_safe_add(S2, Phi_S1, modulus); // P - Q + Φ(P) + Φ(Q)
+    let B6 = _ec_safe_add(S2, Phi_S2, modulus); // P - Q + Φ(P) - Φ(Q)
+    let B7 = _ec_safe_add(S2, Phi_S3, modulus); // P - Q - Φ(P) + Φ(Q)
+    let B8 = _ec_safe_add(S2, Phi_S0, modulus); // P - Q - Φ(P) - Φ(Q)
 
-    let B9 = G1Point { x: B8.x, y: neg_mod_p(B8.y, modulus) }; // -P + Q + Φ(P) + Φ(Q)
-    let B10 = G1Point { x: B7.x, y: neg_mod_p(B7.y, modulus) }; // -P + Q + Φ(P) - Φ(Q)
-    let B11 = G1Point { x: B6.x, y: neg_mod_p(B6.y, modulus) }; // -P + Q - Φ(P) + Φ(Q)
-    let B12 = G1Point { x: B5.x, y: neg_mod_p(B5.y, modulus) }; // -P + Q - Φ(P) - Φ(Q)
-    let B13 = G1Point { x: B4.x, y: neg_mod_p(B4.y, modulus) }; // -P - Q + Φ(P) + Φ(Q)
-    let B14 = G1Point { x: B3.x, y: neg_mod_p(B3.y, modulus) }; // -P - Q + Φ(P) - Φ(Q)
-    let B15 = G1Point { x: B2.x, y: neg_mod_p(B2.y, modulus) }; // -P - Q - Φ(P) + Φ(Q)
-    let B16 = G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) }; // -P - Q - Φ(P) - Φ(Q)
+    let Bs: Span<G1Point> = array![
+        B1,
+        B2,
+        B3,
+        B4,
+        B5,
+        B6,
+        B7,
+        B8,
+        G1Point { x: B8.x, y: neg_mod_p(B8.y, modulus) }, // -P + Q + Φ(P) + Φ(Q)
+        G1Point { x: B7.x, y: neg_mod_p(B7.y, modulus) }, // -P + Q + Φ(P) - Φ(Q)
+        G1Point { x: B6.x, y: neg_mod_p(B6.y, modulus) }, // -P + Q - Φ(P) + Φ(Q)
+        G1Point { x: B5.x, y: neg_mod_p(B5.y, modulus) }, // -P + Q - Φ(P) - Φ(Q)
+        G1Point { x: B4.x, y: neg_mod_p(B4.y, modulus) }, // -P - Q + Φ(P) + Φ(Q)
+        G1Point { x: B3.x, y: neg_mod_p(B3.y, modulus) }, // -P - Q + Φ(P) - Φ(Q)
+        G1Point { x: B2.x, y: neg_mod_p(B2.y, modulus) }, // -P - Q - Φ(P) + Φ(Q)
+        G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) } // -P - Q - Φ(P) - Φ(Q)
+    ]
+        .span();
 
-    let mut bits = get_bits_little_glv_and_fake_glv(upcast(_u1_abs), upcast(_u2_abs), upcast(_v1_abs), upcast(_v2_abs), n_bits).span();
 
-    let mut Acc = ec_safe_add(Acc, get_G(curve_index), curve_index);
+    let mut Acc = _ec_safe_add(Acc, get_G(curve_index), modulus);
 
-    while let Some((u1b, u2b, v1b, v2b)) = bits.pop_back() {
-        let selector_y: felt252 = *u1b + 2 * *u2b + 4 * *v1b + 8 * *v2b;
+    let mut _u1:u128 = upcast(_u1_abs);
+    let mut _u2:u128 = upcast(_u2_abs);
+    let mut _v1:u128 = upcast(_v1_abs);
+    let mut _v2:u128 = upcast(_v2_abs);
+
+    for _ in 0..n_bits {
+        let (qu1, u1b) = DivRem::div_rem(_u1, 2);
+        let (qu2, u2b) = DivRem::div_rem(_u2, 2);
+        let (qv1, v1b) = DivRem::div_rem(_v1, 2);
+        let (qv2, v2b) = DivRem::div_rem(_v2, 2);
+
+        _u1 = qu1;
+        _u2 = qu2;
+        _v1 = qv1;
+        _v2 = qv2;
+
+        let selector_y: felt252 = u1b.into() + 2 * u2b.into() + 4 * v1b.into() + 8 * v2b.into();
+        let selector_y: usize = selector_y.try_into().unwrap();
 
 
-        let (Bix, Biy) = match selector_y {
-            0 => (B16.x, B16.y),
-            1 => (B8.x, B8.y),
-            2 => (B14.x, B14.y),
-            3 => (B6.x, B6.y),
-            4 => (B12.x, B12.y),
-            5 => (B4.x, B4.y),
-            6 => (B10.x, B10.y),
-            7 => (B2.x, B2.y),
-            8 => (B15.x, B15.y),
-            9 => (B7.x, B7.y),
-            10 => (B13.x, B13.y),
-            11 => (B5.x, B5.y),
-            12 => (B11.x, B11.y),
-            13 => (B3.x, B3.y),
-            14 => (B9.x, B9.y),
-            _ => (B1.x, B1.y),
-        };
+        let Bi = Bs[selector_y];
 
-        // let Bi = G1Point { x: Bix, y: Biy };
-        // Double and add
-        // Acc = ec_safe_add(Acc, Acc, curve_index);
-        // Acc = ec_safe_add(Acc, Bi, curve_index);
+
+    // // Double and add
+    // // Acc = ec_safe_add(Acc, Acc, curve_index);
+    // // Acc = ec_safe_add(Acc, Bi, curve_index);
     }
 
-    // assert(Acc == n_bits_G, 'Wrong result');
+    // // assert(Acc == n_bits_G, 'Wrong result');
 
     return hint.Q;
 }
 
-#[inline]
-pub fn get_bits_little_glv_and_fake_glv(mut u1: u128, mut u2: u128, mut v1: u128, mut v2: u128, n_bits: usize) -> Array<(felt252, felt252, felt252, felt252)> {
-    let mut bits: Array<(felt252, felt252, felt252, felt252)> = array![];
+// #[inline]
+// pub fn get_bits_little_glv_and_fake_glv(
+//     mut u1: u128, mut u2: u128, mut v1: u128, mut v2: u128, n_bits: usize,
+// ) -> Array<(felt252, felt252, felt252, felt252)> {
+//     let mut bits: Array<(felt252, felt252, felt252, felt252)> = array![];
 
-    while bits.len() != n_bits {
-        let (qu1, ru1) = DivRem::div_rem(u1, 2);
-        let (qu2, ru2) = DivRem::div_rem(u2, 2);
-        let (qv1, rv1) = DivRem::div_rem(v1, 2);
-        let (qv2, rv2) = DivRem::div_rem(v2, 2);
-        u1 = qu1;
-        u2 = qu2;
-        v1 = qv1;
-        v2 = qv2;
-        bits.append((ru1.into(), ru2.into(), rv1.into(), rv2.into()));
-    }
-    return bits;
-}
+//     while bits.len() != n_bits {
+//         let (qu1, ru1) = DivRem::div_rem(u1, 2);
+//         let (qu2, ru2) = DivRem::div_rem(u2, 2);
+//         let (qv1, rv1) = DivRem::div_rem(v1, 2);
+//         let (qv2, rv2) = DivRem::div_rem(v2, 2);
+//         u1 = qu1;
+//         u2 = qu2;
+//         v1 = qv1;
+//         v2 = qv2;
+//         bits.append((ru1.into(), ru2.into(), rv1.into(), rv2.into()));
+//     }
+//     return bits;
+// }
 
 
 #[cfg(test)]
@@ -1292,6 +1331,4 @@ mod tests {
         );
         // assert!(result == nG);
     }
-
-
 }
