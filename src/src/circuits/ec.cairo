@@ -142,7 +142,7 @@ pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) 
     return (result,);
 }
 #[inline(always)]
-pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Point,) {
+pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, modulus: CircuitModulus) -> (G1Point,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -157,7 +157,7 @@ pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (
     let t8 = circuit_mul(t3, t7);
     let t9 = circuit_sub(t8, in1);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t6, t9).new_inputs();
     // Prefill constants:
@@ -246,7 +246,7 @@ pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> 
 }
 #[inline(always)]
 pub fn run_DOUBLE_EC_POINT_circuit(
-    p: G1Point, A_weirstrass: u384, curve_index: usize,
+    p: G1Point, A_weirstrass: u384, modulus: CircuitModulus,
 ) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -266,7 +266,7 @@ pub fn run_DOUBLE_EC_POINT_circuit(
     let t10 = circuit_mul(t5, t9);
     let t11 = circuit_sub(t10, in2);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t8, t11).new_inputs();
     // Prefill constants:

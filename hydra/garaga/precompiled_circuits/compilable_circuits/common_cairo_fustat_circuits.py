@@ -804,6 +804,7 @@ class AddECPointCircuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        circuit.generic_modulus = True
         xP, yP = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
         xQ, yQ = circuit.write_struct(G1PointCircuit("q", input[2:4]), WriteOps.INPUT)
         xR, yR = circuit.add_points((xP, yP), (xQ, yQ))
@@ -838,6 +839,7 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        circuit.generic_modulus = True
         xP, yP = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
         A = circuit.write_struct(u384("A_weirstrass", [input[2]]))
         xR, yR = circuit.double_point((xP, yP), A)

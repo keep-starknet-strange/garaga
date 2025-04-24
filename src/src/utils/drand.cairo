@@ -148,8 +148,8 @@ fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHin
     let (felt0, felt1) = hash_to_two_bls_felts(message);
     let pt0 = map_to_curve(felt0, hash_to_curve_hint.f0_hint);
     let pt1 = map_to_curve(felt1, hash_to_curve_hint.f1_hint);
-
-    let (sum) = run_ADD_EC_POINT_circuit(pt0, pt1, 1);
+    let modulus = get_BLS12_381_modulus();
+    let (sum) = run_ADD_EC_POINT_circuit(pt0, pt1, modulus);
     let (sum) = run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(sum);
 
     // clear cofactor :

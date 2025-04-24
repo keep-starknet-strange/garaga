@@ -328,6 +328,7 @@ class ModuloCircuit:
         name: str,
         curve_id: int,
         generic_circuit: bool = False,
+        generic_modulus: bool = False,
         compilation_mode: int = 0,
     ) -> None:
         assert (
@@ -343,6 +344,9 @@ class ModuloCircuit:
         )
         self.constants: dict[int, ModuloCircuitElement] = dict()
         self.generic_circuit = generic_circuit
+        self.generic_modulus = (
+            generic_modulus  # Generic modulus has precedence over generic_circuit
+        )
         self.compilation_mode = compilation_mode
         self.exact_output_refs_needed = None
         self.input_structs: list[Cairo1SerializableStruct] = []
@@ -1209,6 +1213,7 @@ class ModuloCircuit:
                 attribute = "#[inline]"
         else:
             attribute = ""
+        generic_modulus = generic_modulus or self.generic_modulus
         if generic_modulus:
             code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, modulus:CircuitModulus)->{signature_output} {{\n"
         elif self.generic_circuit:
