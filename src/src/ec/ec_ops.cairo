@@ -1154,7 +1154,7 @@ fn _scalar_mul_glv_and_fake_glv(
     // At this point, ~ 836 steps
 
     //
-    let S0 = _ec_safe_add(
+    let (S0) = ec::run_ADD_EC_POINT_circuit(
         G1Point { x: point.x, y: P0y }, G1Point { x: hint.Q.x, y: Q0y }, modulus,
     ); // -P - Q
     let S1 = G1Point { x: S0.x, y: neg_mod_p(S0.y, modulus) }; // P + Q
@@ -1206,7 +1206,7 @@ fn _scalar_mul_glv_and_fake_glv(
         .span();
 
 
-    let mut Acc = _ec_safe_add(Acc, get_G(curve_index), modulus);
+    let mut Acc = ec::run_ADD_EC_POINT_circuit(Acc, get_G(curve_index), modulus);
 
     let mut _u1:u128 = upcast(_u1_abs);
     let mut _u2:u128 = upcast(_u2_abs);
@@ -1231,9 +1231,9 @@ fn _scalar_mul_glv_and_fake_glv(
         let Bi = Bs[selector_y];
 
 
-    // // Double and add
-    // // Acc = ec_safe_add(Acc, Acc, curve_index);
-    // // Acc = ec_safe_add(Acc, Bi, curve_index);
+        // Double and add
+        // Acc = ec_safe_add(Acc, Acc, curve_index);
+        // Acc = ec_safe_add(Acc, Bi, curve_index);
     }
 
     // // assert(Acc == n_bits_G, 'Wrong result');
