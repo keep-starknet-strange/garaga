@@ -237,7 +237,7 @@ def half_gcd_eisenstein_hint(
     # in-circuit we check that Q - [s]P = 0 or equivalently Q + [-s]P = 0
     # so here we return -s instead of s.
     s = -s
-    print(f"r: {r}, \ns: {s}")
+    # print(f"r: {r}, \ns: {s}")
     w, v_res, _ = eisenstein.half_gcd(r, s)
 
     # Note : outputs can be negative.
@@ -249,6 +249,13 @@ from garaga.hints.io import bigint_split
 
 def split(x):
     return bigint_split(x, 4, 2**64)
+
+
+def encode_glv_hint(u1: int, u2: int, v1: int, v2: int) -> tuple[int, int, int, int]:
+    def encode(value: int) -> int:
+        return abs(value) + 2**128 if value < 0 else value
+
+    return encode(u1), encode(u2), encode(v1), encode(v2)
 
 
 def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
@@ -271,6 +278,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     print(f"Q: {split(Q.x)}, {split(Q.y)}")
     print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
 
+    print(f"encoded hint: {encode_glv_hint(u1, u2, v1, v2)}")
     # Verifier :
     # We need to check that:
     # 		s*(v1 + λ*v2) + u1 + λ*u2 = 0
@@ -346,7 +354,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # // so we need to add 9 bits to r^{1/4}.nbits().
     # nbits := st.Modulus().BitLen()>>2 + 9
 
-    n_bits = (curve.n.bit_length() // 4) + 9
+    n_bits = curve.n.bit_length() // 4
 
     def to_bits_le(x: int) -> List[int]:
         """
@@ -426,7 +434,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         # // selectorY takes values in [0,15]
 
         selector_y = u1_bits[i] + 2 * u2_bits[i] + 4 * v1_bits[i] + 8 * v2_bits[i]
-        # print(f"selector_y_{i}: {selector_y}")
+        print(f"selector_y_{i}: {selector_y}")
         # // selectorX takes values in [0,7] s.t.:
         # 		- when selectorY < 8: selectorX = selectorY
         # 		- when selectorY >= 8: selectorX = 15 - selectorY
@@ -470,7 +478,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     print(f"gm: {split(gm.x)}, {split(gm.y)}")
     assert Acc == gm, f"Acc is not equal to [2^nbits]G, {Acc} != {gm}"
 
-    return Acc
+    return Q
 
     # Print bit sizes and signs :
     print(
@@ -485,4 +493,8 @@ if __name__ == "__main__":
     s = 111793196543967404139194827996419963236210979610743141064269745943111491389390
     print(f"scalar: {s}")
 
-    scalar_mul_glv_and_fake_glv(G1Point.get_nG(CurveID.SECP256K1, 1), s)
+    g = G1Point.get_nG(CurveID.SECP256K1, 1)
+    res = scalar_mul_glv_and_fake_glv(g, s)
+
+    # print(g.to_cairo_1())
+    # print(res.to_cairo_1())

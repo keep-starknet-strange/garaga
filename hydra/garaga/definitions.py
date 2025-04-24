@@ -1316,6 +1316,25 @@ def recode_naf_bits(lst):
 if __name__ == "__main__":
     r = recode_naf_bits(jy00(6 * 0x44E992B44A6909F1 + 2)[2:])
     print(r, len(r))
+    from garaga.hints.io import int_to_u384
 
     # bls = [int(x) for x in bin(0xD201000000010000)[2:]][2:]
     # recode_naf_bits(bls)
+
+    def print_nbits_and_nG_glv_fake_glv():
+        for curve_id in CURVES:
+            curve: WeierstrassCurve = CURVES[curve_id]
+            if curve.is_endomorphism_available():
+                nbits = curve.n.bit_length() // 4 + 9
+                print(
+                    f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits - 1)).to_cairo_1()}"
+                )
+
+    print_nbits_and_nG_glv_fake_glv()
+
+    def print_min_one_order():
+        for curve_id in CURVES:
+            curve: WeierstrassCurve = CURVES[curve_id]
+            print(f"Curve {curve_id}: min_one_order: {int_to_u384(-1 % curve.n)}")
+
+    print_min_one_order()
