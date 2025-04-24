@@ -1055,8 +1055,12 @@ fn _scalar_mul_glv_and_fake_glv(
     n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
-    // TODO : Handle 0 / 1 scalar
-    // TODO : Handle point at infinity
+    if scalar == 0 || point.is_infinity() {
+        return G1PointZero::zero();
+    }
+    if scalar == 1 {
+        return point;
+    }
 
     let scalar_u384: u384 = scalar.into();
 
@@ -1153,7 +1157,7 @@ fn _scalar_mul_glv_and_fake_glv(
 
     // At this point, ~ 836 steps
 
-    //
+    // Note : P != Q (scalar != 1)
     let (S0) = ec::run_ADD_EC_POINT_circuit(
         G1Point { x: point.x, y: P0y }, G1Point { x: hint.Q.x, y: Q0y }, modulus,
     ); // -P - Q
