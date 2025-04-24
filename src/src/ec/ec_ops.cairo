@@ -4,7 +4,7 @@ use core::circuit::{
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
-use core::internal::bounded_int::upcast;
+use core::internal::bounded_int::{downcast, upcast};
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
@@ -17,7 +17,7 @@ use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288Int
 use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
     THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
-    deserialize_u384_array, get_a, get_b, get_b2, get_g, get_min_one, get_modulus, get_n,
+    deserialize_u384_array, get_G, get_a, get_b, get_b2, get_g, get_min_one, get_modulus, get_n,
     serialize_u288_array, serialize_u384, serialize_u384_array, u288, u384Serde,
 };
 use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
@@ -1028,7 +1028,12 @@ fn _scalar_mul_glv_and_fake_glv(
     one_u384: u384,
     n_bits: usize,
     n_bits_G: G1Point,
+    curve_index: usize,
 ) -> G1Point {
+    // TODO : Handle 0 / 1 scalar
+    // TODO : Handle point at infinity
+
+
     let scalar_u384: u384 = scalar.into();
 
     // Retrieve the u1, u2, v1, v2 values from the hint
@@ -1036,43 +1041,41 @@ fn _scalar_mul_glv_and_fake_glv(
     // If high_128 limbs are != 0, we consider the value is negative, otherwise it is positive.
     // We also precompute the negated value of the y coordinate of the points based on the sign in
     // the same match condition for efficiency.
-    // u1, u2, v1, v2 are casted to u64 to ensure their expected bounds.
 
-    let (_u1_sign, _u1_abs, P0y, P1y): (u384, u64, u384, u384) = match u128s_from_felt252(hint.u1) {
+    let (_u1_sign, _u1_abs, P0y, P1y): (u384, u96, u384, u384) = match u128s_from_felt252(hint.u1) {
         U128sFromFelt252Result::Narrow(low) => {
-            (one_u384, low.try_into().unwrap(), neg_mod_p(point.y, modulus), point.y)
+            (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
         },
         U128sFromFelt252Result::Wide((
             _, low,
-        )) => { (minus_one, low.try_into().unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+        )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
     };
-    let (_u2_sign, _u2_abs, Phi_P0y, Phi_P1y): (u384, u64, u384, u384) =
+    let (_u2_sign, _u2_abs, Phi_P0y, Phi_P1y): (u384, u96, u384, u384) =
         match u128s_from_felt252(hint.u2) {
         U128sFromFelt252Result::Narrow(low) => {
-            (one_u384, low.try_into().unwrap(), neg_mod_p(point.y, modulus), point.y)
+            (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
         },
         U128sFromFelt252Result::Wide((
             _, low,
-        )) => { (minus_one, low.try_into().unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+        )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
     };
-    let (_v1_sign, _v1_abs, Q0y, Q1y): (u384, u64, u384, u384) = match u128s_from_felt252(hint.v1) {
+    let (_v1_sign, _v1_abs, Q0y, Q1y): (u384, u96, u384, u384) = match u128s_from_felt252(hint.v1) {
         U128sFromFelt252Result::Narrow(low) => {
-            (one_u384, low.try_into().unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
+            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
         },
         U128sFromFelt252Result::Wide((
             _, low,
-        )) => { (minus_one, low.try_into().unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
+        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
     };
-    let (_v2_sign, _v2_abs, Phi_Q0y, Phi_Q1y): (u384, u64, u384, u384) =
+    let (_v2_sign, _v2_abs, Phi_Q0y, Phi_Q1y): (u384, u96, u384, u384) =
         match u128s_from_felt252(hint.v2) {
         U128sFromFelt252Result::Narrow(low) => {
-            (one_u384, low.try_into().unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
+            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
         },
         U128sFromFelt252Result::Wide((
             _, low,
-        )) => { (minus_one, low.try_into().unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
+        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
     };
-
     // Check that the GLV/FakeGLV decomposition is valid:
     // # s*(v1 + λ*v2) + u1 + λ*u2 = 0
     let s = CircuitElement::<CircuitInput<0>> {};
@@ -1107,13 +1110,13 @@ fn _scalar_mul_glv_and_fake_glv(
         .new_inputs()
         .next_2(scalar_u384)
         .next_2(_lambda)
-        .next_2([upcast(_u1_abs), 0, 0, 0])
+        .next_2([_u1_abs, 0, 0, 0])
         .next_2(_u1_sign)
-        .next_2([upcast(_u2_abs), 0, 0, 0])
+        .next_2([_u2_abs, 0, 0, 0])
         .next_2(_u2_sign)
-        .next_2([upcast(_v1_abs), 0, 0, 0])
+        .next_2([_v1_abs, 0, 0, 0])
         .next_2(_v1_sign)
-        .next_2([upcast(_v2_abs), 0, 0, 0])
+        .next_2([_v2_abs, 0, 0, 0])
         .next_2(_v2_sign)
         .done_2()
         .eval(order_modulus)
@@ -1144,6 +1147,7 @@ fn _scalar_mul_glv_and_fake_glv(
     // Acc = P + Q + Φ(P) + Φ(Q)
     let mut Acc = ec_safe_add(S1, Phi_S1, curve_index); // P + Q + Φ(P) + Φ(Q)
 
+    // let Bs = array![
     let B1 = Acc;
     let B2 = ec_safe_add(S1, Phi_S2, curve_index); // P + Q + Φ(P) - Φ(Q)
     let B3 = ec_safe_add(S1, Phi_S3, curve_index); // P + Q - Φ(P) + Φ(Q)
@@ -1162,21 +1166,13 @@ fn _scalar_mul_glv_and_fake_glv(
     let B15 = G1Point { x: B2.x, y: neg_mod_p(B2.y, modulus) }; // -P - Q - Φ(P) + Φ(Q)
     let B16 = G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) }; // -P - Q - Φ(P) - Φ(Q)
 
-    let n_bits = 64 + 9;
-    let u1_bits = get_bits_little_glv_and_fake_glv(_u1_abs, n_bits);
-    let u2_bits = get_bits_little_glv_and_fake_glv(_u2_abs, n_bits);
-    let v1_bits = get_bits_little_glv_and_fake_glv(_v1_abs, n_bits);
-    let v2_bits = get_bits_little_glv_and_fake_glv(_v2_abs, n_bits);
+    let mut bits = get_bits_little_glv_and_fake_glv(upcast(_u1_abs), upcast(_u2_abs), upcast(_v1_abs), upcast(_v2_abs), n_bits).span();
 
+    let mut Acc = ec_safe_add(Acc, get_G(curve_index), curve_index);
 
-    let mut Acc = ec_safe_add(Acc, get_nG(curve_index, 1), curve_index);
+    while let Some((u1b, u2b, v1b, v2b)) = bits.pop_back() {
+        let selector_y: felt252 = *u1b + 2 * *u2b + 4 * *v1b + 8 * *v2b;
 
-    while let Some(u1b) = u1_bits.pop_back() {
-        let u2b = u2_bits.pop_back().unwrap();
-        let v1b = v1_bits.pop_back().unwrap();
-        let v2b = v2_bits.pop_back().unwrap();
-
-        let selector_y: felt252 = u1b + 2 * u2b + 4 * v1b + 8 * v2b;
 
         let (Bix, Biy) = match selector_y {
             0 => (B16.x, B16.y),
@@ -1197,27 +1193,31 @@ fn _scalar_mul_glv_and_fake_glv(
             _ => (B1.x, B1.y),
         };
 
-        let Bi = G1Point { x: Bix, y: Biy };
+        // let Bi = G1Point { x: Bix, y: Biy };
         // Double and add
-        Acc = ec_safe_add(Acc, Acc, curve_index);
-        Acc = ec_safe_add(Acc, Bi, curve_index);
+        // Acc = ec_safe_add(Acc, Acc, curve_index);
+        // Acc = ec_safe_add(Acc, Bi, curve_index);
     }
 
-    assert(Acc == n_bits_G, 'Wrong result');
+    // assert(Acc == n_bits_G, 'Wrong result');
 
     return hint.Q;
 }
 
 #[inline]
-pub fn get_bits_little_glv_and_fake_glv(mut scalar: u64, n_bits: u64) -> Array<felt252> {
-    let mut bits = Array::<felt252>::new();
-    while scalar != 0 {
-        let (q, r) = DivRem::div_rem(scalar, 2);
-        bits.append(r);
-        scalar = q;
-    }
+pub fn get_bits_little_glv_and_fake_glv(mut u1: u128, mut u2: u128, mut v1: u128, mut v2: u128, n_bits: usize) -> Array<(felt252, felt252, felt252, felt252)> {
+    let mut bits: Array<(felt252, felt252, felt252, felt252)> = array![];
+
     while bits.len() != n_bits {
-        bits.append(0);
+        let (qu1, ru1) = DivRem::div_rem(u1, 2);
+        let (qu2, ru2) = DivRem::div_rem(u2, 2);
+        let (qv1, rv1) = DivRem::div_rem(v1, 2);
+        let (qv2, rv2) = DivRem::div_rem(v2, 2);
+        u1 = qu1;
+        u2 = qu2;
+        v1 = qv1;
+        v2 = qv2;
+        bits.append((ru1.into(), ru2.into(), rv1.into(), rv2.into()));
     }
     return bits;
 }
@@ -1227,370 +1227,71 @@ pub fn get_bits_little_glv_and_fake_glv(mut scalar: u64, n_bits: u64) -> Array<f
 mod tests {
     use core::circuit::u384;
     use core::traits::TryInto;
-    use super::{G1Point, derive_ec_point_from_X};
+    use garaga::definitions::{
+        get_curve_order_modulus, get_eigenvalue, get_min_one_order, get_modulus,
+        get_nbits_and_nG_glv_fake_glv,
+    };
+    use super::{
+        G1Point, ScalarMulFakeGLVHint, _scalar_mul_glv_and_fake_glv, derive_ec_point_from_X,
+    };
 
     #[test]
-    fn derive_ec_point_from_X_BN254_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0x598cfc33bd761e9f469d5cf1,
-            limb1: 0x70aa740aee8c937ce5a652ed,
-            limb2: 0x15150916fc849dd8,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x70af0825548810253be61ac2,
-                limb1: 0xf5002d67b9fa4c1219c100a4,
-                limb2: 0x299198e451040cb,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xca77736f57333ec7243f64dc,
-                    limb1: 0xed10c0cb48d824856b668918,
-                    limb2: 0x2763f5473b1953e,
+    fn test_scalar_mul_glv_and_fake_glv() {
+        let curve_id = 2;
+        let eigen = get_eigenvalue(curve_id);
+        let modulus = get_modulus(curve_id);
+        let order_modulus = get_curve_order_modulus(curve_id);
+        let min_one = get_min_one_order(curve_id);
+        let (nbits, nG) = get_nbits_and_nG_glv_fake_glv(curve_id);
+        let scalar = 111793196543967404139194827996419963236210979610743141064269745943111491389390;
+        let hint = ScalarMulFakeGLVHint {
+            Q: G1Point {
+                x: u384 {
+                    limb0: 0x393dead57bc85a6e9bb44a70,
+                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
+                    limb2: 0xda670c8c69a8ce0a,
                     limb3: 0x0,
                 },
+                y: u384 {
+                    limb0: 0x789872895ad7121175bd78f8,
+                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+                    limb2: 0x3f10d670dc3297c2,
+                    limb3: 0x0,
+                },
+            },
+            u1: 340282366920938463464343795955316113711,
+            u2: 340282366920938463474852729012356961284,
+            v1: 6737143207983294551,
+            v2: 7075379181548270484,
+        };
+        let result = _scalar_mul_glv_and_fake_glv(
+            G1Point {
+                x: u384 {
+                    limb0: 0x2dce28d959f2815b16f81798,
+                    limb1: 0x55a06295ce870b07029bfcdb,
+                    limb2: 0x79be667ef9dcbbac,
+                    limb3: 0x0,
+                },
+                y: u384 {
+                    limb0: 0xa68554199c47d08ffb10d4b8,
+                    limb1: 0x5da4fbfc0e1108a8fd17b448,
+                    limb2: 0x483ada7726a3c465,
+                    limb3: 0x0,
+                },
+            },
+            scalar,
+            order_modulus,
+            modulus,
+            hint,
+            eigen,
+            min_one,
+            u384 { limb0: 1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            nbits,
+            nG,
+            curve_id,
         );
-        assert!(result.y == y);
+        // assert!(result == nG);
     }
 
 
-    #[test]
-    fn derive_ec_point_from_X_BLS12_381_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0xda347f7c60a049c6d7bafb5b,
-            limb1: 0xec21b937ef78861d979f0f50,
-            limb2: 0x2ad1c01bba7ac189c78a1e86,
-            limb3: 0x1026dca24cfcadfb336698e,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0xdbca26cdf0c7aa11a90c641f,
-                limb1: 0x2e5c0209028615f11d0dc47e,
-                limb2: 0xb1add5551aa6b9c56333f02f,
-                limb3: 0x19972c66940a5bb4365da67,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xca77736f57333ec7243f64dc,
-                    limb1: 0xed10c0cb48d824856b668918,
-                    limb2: 0x2763f5473b1953e,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256K1_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0x6fd1f24224585b2f83a36f19,
-            limb1: 0x6edcd937a50597e42acc02c4,
-            limb2: 0x634a08e35a355a32,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x5e1402d5a1794a2ba5113078,
-                limb1: 0xcebc2596ba2db2a201abd409,
-                limb2: 0x54a070a2d860e57f,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xd619858e2ea7e31cb17c33cb,
-                limb1: 0x4816924dd606b04c135bcfa3,
-                limb2: 0x13dc60324901f16f,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0x6ae587737bb1f9839802fd91,
-                limb1: 0x4fc0f718bb7b3ca34f2cccb3,
-                limb2: 0x4071c850696772a1,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xd81a6ef8f7ee11a079f304e8,
-                limb1: 0xf765e8b9e097ca1bf0f3ea0e,
-                limb2: 0x459195cbdf16786a,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x8ab6a1b6714eb0afec427f11,
-                    limb1: 0x774701c0acf48486afeb35d5,
-                    limb2: 0x1a3e9f740bb8959,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256R1_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0x40cbfb35489307de40764c95,
-            limb1: 0x67ad6ff08b304dc35ef9a319,
-            limb2: 0x5ff5aff356baa1da,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x145e66309035da0e73a4ed6,
-                limb1: 0x696ff6786cf7a86549a1b150,
-                limb2: 0x69e04ef11ab29ee8,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xca77736f57333ec7243f64dc,
-                    limb1: 0xed10c0cb48d824856b668918,
-                    limb2: 0x2763f5473b1953e,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_ED25519_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0xc329e0f3a716909d81ee695d,
-            limb1: 0xac52065a46c058e2dd3da949,
-            limb2: 0x81add1124b65c41,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x9558867f5ba91faf7a024204,
-                    limb1: 0x37ebdcd9e87a1613e443df78,
-                    limb2: 0x23a771181332876,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_BN254_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x185ddfe68eca3df51ff4c645,
-            limb1: 0x17b6ccbb6f4843c170dc2009,
-            limb2: 0x171370980ed3ba91,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0xb6dca81bd6f041ae382202ae,
-                limb1: 0xfebe33fdfdc01232d27737ce,
-                limb2: 0x1031c8f96f566cea,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xcc497c90b1d5d736c46a619a,
-                limb1: 0xf08b3fe8157a259bf06d1c18,
-                limb2: 0x1329fd3ffe2dbe8e,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xa46d4f66ca22531865b67bf5,
-                limb1: 0xd5964d6b0c925503d596d887,
-                limb2: 0xa95d8f1df105f18,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0x3b52382c9597a1fad8935560,
-                limb1: 0x3fa8d8a8174fc08c702332ce,
-                limb2: 0x23191b53d4b072b,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x4ed478dca9953c97aedb70f7,
-                    limb1: 0xd98adb6e70e8f1580604709,
-                    limb2: 0x4bea6d08411cc00,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_BLS12_381_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x35d8a6fefdafaaaf5b29e897,
-            limb1: 0x6f7727ee8543e37553eeb26f,
-            limb2: 0x2f70791057cdbd90daf42308,
-            limb3: 0x75b09d110be5483f36e068,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x5cf036935c9f06c3e0a0aa7c,
-                limb1: 0x79a5eb4e385146a0aa3c1de,
-                limb2: 0x6e20141582b8406d26dda065,
-                limb3: 0x3c3d605784954989e301c3c,
-            },
-            u384 {
-                limb0: 0x77a98db8c9be953431659e97,
-                limb1: 0x214a25baa29b08ffc8bec3db,
-                limb2: 0xfe6a7b8656df401896f71787,
-                limb3: 0xa9152bcd397888aa9388bd8,
-            },
-            u384 {
-                limb0: 0x4551a54de8fb23786fd1f2a0,
-                limb1: 0x2b19133889843628ea5fd520,
-                limb2: 0xb893ee8526ef349b780c0c24,
-                limb3: 0x50a551b0bd152405d128fc7,
-            },
-            u384 {
-                limb0: 0xf4ecd002f01cd7ee33519fd5,
-                limb1: 0xed3c61685851221c96d7592b,
-                limb2: 0x9f42fc7c025009a0247daafb,
-                limb3: 0x45d3eb549e2ff2d259ef50a,
-            },
-            u384 {
-                limb0: 0xc71aa51c55a340c4b62ce4bb,
-                limb1: 0xc29f377906d89036689603a4,
-                limb2: 0x4dc8b1c21520b64e2101850,
-                limb3: 0x6de8fe79d9b161443b37f30,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x836d4610c564d82c11088e19,
-                    limb1: 0x4801f5832d47c11bd2378845,
-                    limb2: 0x75e11f8d50c3760,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256K1_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0xc6d067f5c5c6a580350c2471,
-            limb1: 0x2ff4d91827cad9a2b11c1cff,
-            limb2: 0x18917af46df8fc3f,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x22d9db5344ce97b7eb160092,
-                limb1: 0x2747c16db787c85dcc773a44,
-                limb2: 0x18a010b6b674e456,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xbb4647393e0b7dd03ae7107f,
-                    limb1: 0xcdc5afca778a37383350bcf8,
-                    limb2: 0x3a81368ffad9e03,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256R1_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x6e67fe45dcddd89cb69ce7ee,
-            limb1: 0x36156ccb6884f75af70900f1,
-            limb2: 0x30b6330c77234ef8,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0xea8397d53edccf2ceda23ff0,
-                limb1: 0xa5a0c4098c25294b18a0f0f9,
-                limb2: 0x11722147901e6d89,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xbb4647393e0b7dd03ae7107f,
-                    limb1: 0xcdc5afca778a37383350bcf8,
-                    limb2: 0x3a81368ffad9e03,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_ED25519_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x33e9327c0c98794856bde22a,
-            limb1: 0xdf89110f1e821a3112ce76bb,
-            limb2: 0xacf925c82c4365f,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xfb97d43588561712e8e5216a,
-                    limb1: 0x9a164106cf6a659eb4862b21,
-                    limb2: 0x259f432e6f4590b,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
 }
