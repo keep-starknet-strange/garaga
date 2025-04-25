@@ -61,7 +61,7 @@ Under `tools/starknet/tests_and_calldata_generator/`, you will find in the file 
 
 \
 An example contract is already [deployed](https://sepolia.voyager.online/contract/0x012686bdb4ca3f22ffc93dfe1e24d72294aac38a4f6b997b456fb4368fb3390b#readContract) on sepolia, solely holding an endpoint to this function. \
-The source code to the contract is [here](https://github.com/keep-starknet-strange/garaga/blob/main/src/cairo/contracts/universal\_ecip/src/lib.cairo) .\
+The source code to the contract is [here](https://github.com/keep-starknet-strange/garaga/blob/main/src/contracts/universal\_ecip/src/lib.cairo) .\
 \
 You can try this deployed contract on any supported curves modifying the [`msm.py`](https://github.com/keep-starknet-strange/garaga/blob/main/hydra/garaga/starknet/tests\_and\_calldata\_generators/msm.py) script at the end :&#x20;
 
