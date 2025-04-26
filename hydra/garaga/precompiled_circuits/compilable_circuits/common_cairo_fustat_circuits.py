@@ -20,6 +20,7 @@ from garaga.precompiled_circuits.ec import (
     BasicEC,
     BasicECG2,
     ECIPCircuits,
+    FakeGLVCircuits,
     IsOnCurveCircuit,
 )
 
@@ -845,6 +846,97 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         xR, yR = circuit.double_point((xP, yP), A)
         circuit.extend_struct_output(G1PointCircuit("r", [xR, yR]))
 
+        return circuit
+
+
+class PrepareGLVFakeGLVPtsCircuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="prepare_glv_fake_glv_pts",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # P0y
+        input.append(self.field.random())  # P1y
+        input.append(self.field.random())  # Qx
+        input.append(self.field.random())  # Q0y
+        input.append(self.field.random())  # Phi_P0y
+        input.append(self.field.random())  # Phi_P1y
+        input.append(self.field.random())  # Phi_Q0y
+        input.append(self.field.random())  # Gen_x
+        input.append(self.field.random())  # Gen_y
+        input.append(self.field.random())  # third_root
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = FakeGLVCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        Px = circuit.write_struct(u384("Px", [input[0]]), WriteOps.INPUT)
+        P0y = circuit.write_struct(u384("P0y", [input[1]]), WriteOps.INPUT)
+        P1y = circuit.write_struct(u384("P1y", [input[2]]), WriteOps.INPUT)
+        Qx = circuit.write_struct(u384("Qx", [input[3]]), WriteOps.INPUT)
+        Q0y = circuit.write_struct(u384("Q0y", [input[4]]), WriteOps.INPUT)
+        Phi_P0y = circuit.write_struct(u384("Phi_P0y", [input[5]]), WriteOps.INPUT)
+        Phi_P1y = circuit.write_struct(u384("Phi_P1y", [input[6]]), WriteOps.INPUT)
+        Phi_Q0y = circuit.write_struct(u384("Phi_Q0y", [input[7]]), WriteOps.INPUT)
+        Gen = circuit.write_struct(
+            G1PointCircuit("Gen", [input[8], input[9]]), WriteOps.INPUT
+        )
+        third_root = circuit.write_struct(
+            u384("third_root", [input[10]]), WriteOps.INPUT
+        )
+
+        (
+            B1,
+            B2,
+            B3,
+            B4,
+            B5,
+            B6,
+            B7,
+            B8,
+            B9y,
+            B10y,
+            B11y,
+            B12y,
+            B13y,
+            B14y,
+            B15y,
+            B16y,
+            Phi_P0x,
+            Phi_Q0x,
+            Acc,
+        ) = circuit.prepare_points_glv_fake_glv(
+            Px, P0y, P1y, Qx, Q0y, Phi_P0y, Phi_P1y, Phi_Q0y, Gen, third_root
+        )
+        # circuit.exact_output_refs_needed = [B2[0], B3[0], B4[0], B5[0], B6[0], B7[0], B8[0], B10y, B11y, B12y, B13y, B14y, B15y, B16y, Acc[0], Acc[1]]
+        circuit.extend_struct_output(G1PointCircuit("B1", [B1[0], B1[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B2", [B2[0], B2[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B3", [B3[0], B3[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B4", [B4[0], B4[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B5", [B5[0], B5[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B6", [B6[0], B6[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B7", [B7[0], B7[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B8", [B8[0], B8[1]]))
+        circuit.extend_struct_output(u384("B9y", [B9y]))
+        circuit.extend_struct_output(u384("B10y", [B10y]))
+        circuit.extend_struct_output(u384("B11y", [B11y]))
+        circuit.extend_struct_output(u384("B12y", [B12y]))
+        circuit.extend_struct_output(u384("B13y", [B13y]))
+        circuit.extend_struct_output(u384("B14y", [B14y]))
+        circuit.extend_struct_output(u384("B15y", [B15y]))
+        circuit.extend_struct_output(u384("B16y", [B16y]))
+        circuit.extend_struct_output(u384("Phi_P0x", [Phi_P0x]))
+        circuit.extend_struct_output(u384("Phi_Q0x", [Phi_Q0x]))
+        circuit.extend_struct_output(G1PointCircuit("Acc", [Acc[0], Acc[1]]))
         return circuit
 
 

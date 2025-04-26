@@ -53,6 +53,42 @@ impl AddHelperU7ByU8Impl of AddHelper<u7_bi, u8_bi> {
     type Result = u15_bi;
 }
 
+#[inline(always)]
+fn build_selectors(
+    _u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize,
+) -> (Span<usize>, u128, u128, u128, u128) {
+    let mut selectors: Array<usize> = array![];
+
+    let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
+    let mut u2: BoundedInt<0, { POW128 - 1 }> = upcast(_u2);
+    let mut v1: BoundedInt<0, { POW128 - 1 }> = upcast(_v1);
+    let mut v2: BoundedInt<0, { POW128 - 1 }> = upcast(_v2);
+
+    let (qu1, u1lsb) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+    let (qu2, u2lsb) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+    let (qv1, v1lsb) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+    let (qv2, v2lsb) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+    u1 = upcast(qu1);
+    u2 = upcast(qu2);
+    v1 = upcast(qv1);
+    v2 = upcast(qv2);
+
+    for _ in 0..n_bits - 1 {
+        let (qu1, u1b) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+        let (qu2, u2b) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+        let (qv1, v1b) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+        let (qv2, v2b) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+        u1 = upcast(qu1);
+        u2 = upcast(qu2);
+        v1 = upcast(qv1);
+        v2 = upcast(qv2);
+        let selector_y: felt252 = u1b.into() + 2 * u2b.into() + 4 * v1b.into() + 8 * v2b.into();
+        let selector_y: usize = selector_y.try_into().unwrap();
+        selectors.append(selector_y);
+    }
+    return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
+}
+
 
 #[inline(always)]
 pub fn build_selectors_inlined(

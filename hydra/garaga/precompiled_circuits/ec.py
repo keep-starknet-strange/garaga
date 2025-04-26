@@ -791,3 +791,76 @@ class BasicECG2(Fp2Circuits):
     ) -> tuple[list[ModuloCircuitElement], list[ModuloCircuitElement]]:
         x, y = P
         return (x, self.vector_neg(y))
+
+
+class FakeGLVCircuits(BasicEC):
+    def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
+        super().__init__(name, curve_id, compilation_mode)
+
+    def prepare_points_glv_fake_glv(
+        self, Px, P0y, P1y, Qx, Q0y, Phi_P0y, Phi_P1y, Phi_Q0y, Gen, third_root
+    ):
+        P0 = (Px, P0y)
+        P1 = (Px, P1y)
+        Q0 = (Qx, Q0y)
+
+        S0 = self.add_points(P0, Q0)
+        S1 = (S0[0], self.neg(S0[1]))
+
+        S2 = self.add_points(P1, Q0)
+
+        Phi_P0x = self.mul(Px, third_root)
+
+        Phi_P0 = (Phi_P0x, Phi_P0y)
+        Phi_P1 = (Phi_P0x, Phi_P1y)
+
+        Phi_Q0x = self.mul(Q0[0], third_root)
+        Phi_Q0 = (Phi_Q0x, Phi_Q0y)
+
+        Phi_S0 = self.add_points(Phi_P0, Phi_Q0)
+        Phi_S1 = (Phi_S0[0], self.neg(Phi_S0[1]))
+
+        Phi_S2 = self.add_points(Phi_P1, Phi_Q0)
+        Phi_S3 = (Phi_S2[0], self.neg(Phi_S2[1]))
+
+        B1 = self.add_points(S1, Phi_S1)  #  P + Q + Φ(P) + Φ(Q)
+        B2 = self.add_points(S1, Phi_S2)  #  P + Q + Φ(P) - Φ(Q)
+        B3 = self.add_points(S1, Phi_S3)  #  P + Q - Φ(P) + Φ(Q)
+        B4 = self.add_points(S1, Phi_S0)  #  P + Q - Φ(P) - Φ(Q)
+        B5 = self.add_points(S2, Phi_S1)  #  P - Q + Φ(P) + Φ(Q)
+        B6 = self.add_points(S2, Phi_S2)  #  P - Q + Φ(P) - Φ(Q)
+        B7 = self.add_points(S2, Phi_S3)  #  P - Q - Φ(P) + Φ(Q)
+        B8 = self.add_points(S2, Phi_S0)  #  P - Q - Φ(P) - Φ(Q)
+
+        B9y = self.neg(B8[1])  # -P + Q + Φ(P) + Φ(Q)
+        B10y = self.neg(B7[1])  #  -P + Q + Φ(P) - Φ(Q)
+        B11y = self.neg(B6[1])  #  -P + Q - Φ(P) + Φ(Q)
+        B12y = self.neg(B5[1])  #  -P + Q - Φ(P) - Φ(Q)
+        B13y = self.neg(B4[1])  #  -P - Q + Φ(P) + Φ(Q)
+        B14y = self.neg(B3[1])  #  -P - Q + Φ(P) - Φ(Q)
+        B15y = self.neg(B2[1])  #  -P - Q - Φ(P) + Φ(Q)
+        B16y = self.neg(B1[1])  #  -P - Q - Φ(P) - Φ(Q)
+
+        Acc = self.add_points(B1, Gen)
+
+        return (
+            B1,
+            B2,
+            B3,
+            B4,
+            B5,
+            B6,
+            B7,
+            B8,
+            B9y,
+            B10y,
+            B11y,
+            B12y,
+            B13y,
+            B14y,
+            B15y,
+            B16y,
+            Phi_P0x,
+            Phi_Q0x,
+            Acc,
+        )
