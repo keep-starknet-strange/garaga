@@ -4,7 +4,8 @@ use core::circuit::{
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
-use core::internal::bounded_int::{downcast, upcast};
+use core::internal::bounded_int::{downcast, upcast, AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt};
+use core::internal::bounded_int;
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
@@ -1049,6 +1050,7 @@ fn _scalar_mul_glv_and_fake_glv(
     modulus: CircuitModulus,
     hint: ScalarMulFakeGLVHint,
     _lambda: u384,
+    third_root_of_unity: u384,
     minus_one: u384,
     one_u384: u384,
     n_bits: usize,
@@ -1158,113 +1160,234 @@ fn _scalar_mul_glv_and_fake_glv(
     // At this point, ~ 836 steps
 
     // Note : P != Q (scalar != 1)
+    let P0 = G1Point { x: point.x, y: P0y };
+    let Q0 = G1Point { x: hint.Q.x, y: Q0y };
+
     let (S0) = ec::run_ADD_EC_POINT_circuit(
-        G1Point { x: point.x, y: P0y }, G1Point { x: hint.Q.x, y: Q0y }, modulus,
+        P0, Q0, modulus,
     ); // -P - Q
+    // println!("S0: {:?}", S0);
     let S1 = G1Point { x: S0.x, y: neg_mod_p(S0.y, modulus) }; // P + Q
-    let S2 = _ec_safe_add(
+    // println!("S1: {:?}", S1);
+
+    let (S2) = ec::run_ADD_EC_POINT_circuit(
         G1Point { x: point.x, y: P1y }, G1Point { x: hint.Q.x, y: Q0y }, modulus,
     ); // P - Q
-    let S3 = G1Point { x: S2.x, y: neg_mod_p(S2.y, modulus) }; // -P + Q
+    // println!("S2: {:?}", S2);
 
-    let Phi_S0 = _ec_safe_add(
-        G1Point { x: point.x, y: Phi_P0y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, modulus,
+    let S3 = G1Point { x: S2.x, y: neg_mod_p(S2.y, modulus) }; // -P + Q
+    // println!("S3: {:?}", S3);
+
+    // Table S ok.
+    let phi_q_x = mul_mod_p(hint.Q.x, third_root_of_unity, modulus);
+    let Phi_Q0 =  G1Point { x: phi_q_x, y: Phi_Q0y };
+    let phi_p_x = mul_mod_p(point.x, third_root_of_unity, modulus);
+    let Phi_P0 =  G1Point { x: phi_p_x, y: Phi_P0y };
+    let (Phi_S0) = ec::run_ADD_EC_POINT_circuit(
+        Phi_P0, Phi_Q0, modulus,
     ); // -Φ(P) - Φ(Q)
     let Phi_S1 = G1Point { x: Phi_S0.x, y: neg_mod_p(Phi_S0.y, modulus) }; // Φ(P) + Φ(Q)
-    let Phi_S2 = _ec_safe_add(
-        G1Point { x: point.x, y: Phi_P1y }, G1Point { x: hint.Q.x, y: Phi_Q0y }, modulus,
+
+
+    let (Phi_S2) = ec::run_ADD_EC_POINT_circuit(
+        G1Point { x: phi_p_x, y: Phi_P1y }, G1Point { x: phi_q_x, y: Phi_Q0y }, modulus,
     ); // Φ(P) - Φ(Q)
+
+
     let Phi_S3 = G1Point { x: Phi_S2.x, y: neg_mod_p(Phi_S2.y, modulus) }; // -Φ(P) + Φ(Q)
 
     // we suppose that the first bits of the sub-scalars are 1 and set:
     // Acc = P + Q + Φ(P) + Φ(Q)
-    let mut Acc = _ec_safe_add(S1, Phi_S1, modulus); // P + Q + Φ(P) + Φ(Q)
+    let (Acc) = ec::run_ADD_EC_POINT_circuit(S1, Phi_S1, modulus); // P + Q + Φ(P) + Φ(Q)
 
     let B1 = Acc;
-    let B2 = _ec_safe_add(S1, Phi_S2, modulus); // P + Q + Φ(P) - Φ(Q)
-    let B3 = _ec_safe_add(S1, Phi_S3, modulus); // P + Q - Φ(P) + Φ(Q)
-    let B4 = _ec_safe_add(S1, Phi_S0, modulus); // P + Q - Φ(P) - Φ(Q)
-    let B5 = _ec_safe_add(S2, Phi_S1, modulus); // P - Q + Φ(P) + Φ(Q)
-    let B6 = _ec_safe_add(S2, Phi_S2, modulus); // P - Q + Φ(P) - Φ(Q)
-    let B7 = _ec_safe_add(S2, Phi_S3, modulus); // P - Q - Φ(P) + Φ(Q)
-    let B8 = _ec_safe_add(S2, Phi_S0, modulus); // P - Q - Φ(P) - Φ(Q)
+    // println!("B1: {:?}", B1);
+    let (B2) = ec::run_ADD_EC_POINT_circuit(S1, Phi_S2, modulus); // P + Q + Φ(P) - Φ(Q)
+    let (B3) = ec::run_ADD_EC_POINT_circuit(S1, Phi_S3, modulus); // P + Q - Φ(P) + Φ(Q)
+    let (B4) = ec::run_ADD_EC_POINT_circuit(S1, Phi_S0, modulus); // P + Q - Φ(P) - Φ(Q)
+    let (B5) = ec::run_ADD_EC_POINT_circuit(S2, Phi_S1, modulus); // P - Q + Φ(P) + Φ(Q)
+    let (B6) = ec::run_ADD_EC_POINT_circuit(S2, Phi_S2, modulus); // P - Q + Φ(P) - Φ(Q)
+    let (B7) = ec::run_ADD_EC_POINT_circuit(S2, Phi_S3, modulus); // P - Q - Φ(P) + Φ(Q)
+    let (B8) = ec::run_ADD_EC_POINT_circuit(S2, Phi_S0, modulus); // P - Q - Φ(P) - Φ(Q)
+    let B9 = G1Point { x: B8.x, y: neg_mod_p(B8.y, modulus) }; // -P + Q + Φ(P) + Φ(Q)
+    let B10 = G1Point { x: B7.x, y: neg_mod_p(B7.y, modulus) }; // -P + Q + Φ(P) - Φ(Q)
+    let B11 = G1Point { x: B6.x, y: neg_mod_p(B6.y, modulus) }; // -P + Q - Φ(P) + Φ(Q)
+    let B12 = G1Point { x: B5.x, y: neg_mod_p(B5.y, modulus) }; // -P + Q - Φ(P) - Φ(Q)
+    let B13 = G1Point { x: B4.x, y: neg_mod_p(B4.y, modulus) }; // -P - Q + Φ(P) + Φ(Q)
+    let B14 = G1Point { x: B3.x, y: neg_mod_p(B3.y, modulus) }; // -P - Q + Φ(P) - Φ(Q)
+    let B15 = G1Point { x: B2.x, y: neg_mod_p(B2.y, modulus) }; // -P - Q - Φ(P) + Φ(Q)
+    let B16 = G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) }; // -P - Q - Φ(P) - Φ(Q)
 
     let Bs: Span<G1Point> = array![
-        B1,
-        B2,
-        B3,
-        B4,
-        B5,
-        B6,
-        B7,
+        B16,
         B8,
-        G1Point { x: B8.x, y: neg_mod_p(B8.y, modulus) }, // -P + Q + Φ(P) + Φ(Q)
-        G1Point { x: B7.x, y: neg_mod_p(B7.y, modulus) }, // -P + Q + Φ(P) - Φ(Q)
-        G1Point { x: B6.x, y: neg_mod_p(B6.y, modulus) }, // -P + Q - Φ(P) + Φ(Q)
-        G1Point { x: B5.x, y: neg_mod_p(B5.y, modulus) }, // -P + Q - Φ(P) - Φ(Q)
-        G1Point { x: B4.x, y: neg_mod_p(B4.y, modulus) }, // -P - Q + Φ(P) + Φ(Q)
-        G1Point { x: B3.x, y: neg_mod_p(B3.y, modulus) }, // -P - Q + Φ(P) - Φ(Q)
-        G1Point { x: B2.x, y: neg_mod_p(B2.y, modulus) }, // -P - Q - Φ(P) + Φ(Q)
-        G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) } // -P - Q - Φ(P) - Φ(Q)
+        B14,
+        B6,
+        B12,
+        B4,
+        B10,
+        B2,
+        B15,
+        B7,
+        B13,
+        B5,
+        B11,
+        B3,
+        B9,
+        B1,
     ]
         .span();
 
-
-    let mut Acc = ec::run_ADD_EC_POINT_circuit(Acc, get_G(curve_index), modulus);
-
+    // println!("Bs: {:?}", Bs);
+    let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, get_G(curve_index), modulus);
+    // println!("Acc: {:?}", Acc);
     let mut _u1:u128 = upcast(_u1_abs);
     let mut _u2:u128 = upcast(_u2_abs);
     let mut _v1:u128 = upcast(_v1_abs);
     let mut _v2:u128 = upcast(_v2_abs);
 
-    for _ in 0..n_bits {
-        let (qu1, u1b) = DivRem::div_rem(_u1, 2);
-        let (qu2, u2b) = DivRem::div_rem(_u2, 2);
-        let (qv1, v1b) = DivRem::div_rem(_v1, 2);
-        let (qv2, v2b) = DivRem::div_rem(_v2, 2);
+    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = build_selectors(_u1, _u2, _v1, _v2, n_bits);
 
-        _u1 = qu1;
-        _u2 = qu2;
-        _v1 = qv1;
-        _v2 = qv2;
+    while let Some(selector_y) = selectors.pop_back() {
+        // println!("selector_y: {:?}", *selector_y);
 
-        let selector_y: felt252 = u1b.into() + 2 * u2b.into() + 4 * v1b.into() + 8 * v2b.into();
-        let selector_y: usize = selector_y.try_into().unwrap();
-
-
-        let Bi = Bs[selector_y];
-
-
+        let Bi = *Bs[*selector_y];
         // Double and add
-        // Acc = ec_safe_add(Acc, Acc, curve_index);
-        // Acc = ec_safe_add(Acc, Bi, curve_index);
+        Acc = double_and_add(Acc, Bi, modulus);
     }
 
-    // // assert(Acc == n_bits_G, 'Wrong result');
+    // println!("Acc final: {:?}", Acc);
+    let (Acc) = if u1lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, P0, modulus)
+    } else {
+        (Acc,)
+    };
+    let (Acc) = if u2lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, Phi_P0, modulus)
+    } else {
+        (Acc,)
+    };
+
+    let (Acc) = if v1lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, Q0, modulus)
+    } else {
+        (Acc,)
+    };
+
+    let (Acc) = if v2lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, Phi_Q0, modulus)
+    } else {
+        (Acc,)
+    };
+
+    assert(Acc == n_bits_G, 'Wrong result');
 
     return hint.Q;
 }
 
-// #[inline]
-// pub fn get_bits_little_glv_and_fake_glv(
-//     mut u1: u128, mut u2: u128, mut v1: u128, mut v2: u128, n_bits: usize,
-// ) -> Array<(felt252, felt252, felt252, felt252)> {
-//     let mut bits: Array<(felt252, felt252, felt252, felt252)> = array![];
+const TWO: felt252 = 2;
+const TWO_NZ_TYPED: NonZero<UnitInt<TWO>> = 2;
+const POW128_DIV_2: felt252 = 0x7fffffffffffffffffffffffffffffff; // ((2^128-1) // 2)
+const POW128: felt252 = 0x100000000000000000000000000000000;
 
-//     while bits.len() != n_bits {
-//         let (qu1, ru1) = DivRem::div_rem(u1, 2);
-//         let (qu2, ru2) = DivRem::div_rem(u2, 2);
-//         let (qv1, rv1) = DivRem::div_rem(v1, 2);
-//         let (qv2, rv2) = DivRem::div_rem(v2, 2);
-//         u1 = qu1;
-//         u2 = qu2;
-//         v1 = qv1;
-//         v2 = qv2;
-//         bits.append((ru1.into(), ru2.into(), rv1.into(), rv2.into()));
-//     }
-//     return bits;
-// }
+impl DivRemU128By2 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<TWO>> {
+    type DivT = BoundedInt<0, { POW128_DIV_2 }>;
+    type RemT = BoundedInt<0, { TWO - 1 }>;
+}
 
+#[inline(always)]
+fn build_selectors(_u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize) -> (Span<usize>, u128, u128, u128, u128) {
+    let mut selectors: Array<usize> = array![];
+
+    let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
+    let mut u2: BoundedInt<0, { POW128 - 1 }> = upcast(_u2);
+    let mut v1: BoundedInt<0, { POW128 - 1 }> = upcast(_v1);
+    let mut v2: BoundedInt<0, { POW128 - 1 }> = upcast(_v2);
+
+    let (qu1, u1lsb) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+    let (qu2, u2lsb) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+    let (qv1, v1lsb) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+    let (qv2, v2lsb) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+    u1 = upcast(qu1);
+    u2 = upcast(qu2);
+    v1 = upcast(qv1);
+    v2 = upcast(qv2);
+
+    for _ in 0..n_bits-1 {
+        let (qu1, u1b) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+        let (qu2, u2b) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+        let (qv1, v1b) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+        let (qv2, v2b) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+        u1 = upcast(qu1);
+        u2 = upcast(qu2);
+        v1 = upcast(qv1);
+        v2 = upcast(qv2);
+        let selector_y: felt252 = u1b.into() + 2 * u2b.into() + 4 * v1b.into() + 8 * v2b.into();
+        let selector_y: usize = selector_y.try_into().unwrap();
+        selectors.append(selector_y);
+    }
+    return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
+
+}
+
+// doubleAndAdd computes 2p+q as (p+q)+p. It follows [ELM03] (Section 3.1)
+// Saves the computation of the y coordinate of p+q as it is used only in the computation of λ2,
+// which can be computed as
+//
+//	λ2 = -λ1-2*p.y/(x2-p.x)
+//
+// instead.
+//
+// ⚠️  p must be different than q and -q, and both nonzero.
+//
+// [ELM03]: https://arxiv.org/pdf/math/0208038.pdf
+// func (c *Curve[B, S]) doubleAndAdd(p, q *AffinePoint[B]) *AffinePoint[B] {
+#[inline(always)]
+pub fn double_and_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point {
+    let px = CircuitElement::<CircuitInput<0>> {};
+    let py = CircuitElement::<CircuitInput<1>> {};
+    let qx = CircuitElement::<CircuitInput<2>> {};
+    let qy = CircuitElement::<CircuitInput<3>> {};
+
+    // Compute λ1 = (q.y-p.y)/(q.x-p.x)
+    let num_lambda1 = circuit_sub(qy, py);
+    let den_lambda1 = circuit_sub(qx, px);
+    let lambda1 = circuit_mul(num_lambda1, circuit_inverse(den_lambda1));
+
+    // Compute x2 = λ1²-p.x-q.x
+    let x2 = circuit_mul(lambda1, lambda1);
+    let x2 = circuit_sub(x2, px);
+    let x2 = circuit_sub(x2, qx);
+
+    // omit y2 computation
+    // compute -λ2 = λ1+2*p.y/(x2-p.x)
+    let den = circuit_sub(x2, px);
+    let num = circuit_add(py, py);
+
+    let lambda2 = circuit_add(lambda1, circuit_mul(num, circuit_inverse(den)));
+
+    // compute x3 = (-λ2)²-p.x-x2
+    let x3 = circuit_mul(lambda2, lambda2);
+    let x3 = circuit_sub(x3, px);
+    let x3 = circuit_sub(x3, x2);
+
+    // compute y3 = -λ2*(x3 - p.x)-p.y
+    let y3 = circuit_mul(lambda2, circuit_sub(x3, px));
+    let y3 = circuit_sub(y3, py);
+
+    let outputs = (x3, y3)
+        .new_inputs()
+        .next_2(p.x)
+        .next_2(p.y)
+        .next_2(q.x)
+        .next_2(q.y)
+        .done_2()
+        .eval(modulus)
+        .expect('double and add failed');
+    let x3 = outputs.get_output(x3);
+    let y3 = outputs.get_output(y3);
+    return G1Point { x: x3, y: y3 };
+}
 
 #[cfg(test)]
 mod tests {
@@ -1272,7 +1395,7 @@ mod tests {
     use core::traits::TryInto;
     use garaga::definitions::{
         get_curve_order_modulus, get_eigenvalue, get_min_one_order, get_modulus,
-        get_nbits_and_nG_glv_fake_glv,
+        get_nbits_and_nG_glv_fake_glv, get_third_root_of_unity,
     };
     use super::{
         G1Point, ScalarMulFakeGLVHint, _scalar_mul_glv_and_fake_glv, derive_ec_point_from_X,
@@ -1282,6 +1405,7 @@ mod tests {
     fn test_scalar_mul_glv_and_fake_glv() {
         let curve_id = 2;
         let eigen = get_eigenvalue(curve_id);
+        let third_root_of_unity = get_third_root_of_unity(curve_id);
         let modulus = get_modulus(curve_id);
         let order_modulus = get_curve_order_modulus(curve_id);
         let min_one = get_min_one_order(curve_id);
@@ -1327,6 +1451,7 @@ mod tests {
             modulus,
             hint,
             eigen,
+            third_root_of_unity,
             min_one,
             u384 { limb0: 1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             nbits,
