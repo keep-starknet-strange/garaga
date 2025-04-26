@@ -40,7 +40,7 @@ def test_extf_mul(curve_id: CurveID, extension_degree: int):
     X = circuit.write_elements(X, WriteOps.INPUT)
     Y = circuit.write_elements(Y, WriteOps.INPUT)
     circuit.extf_mul([X, Y], extension_degree)
-    circuit.finalize_circuit(mock=False)
+    circuit.finalize_circuit()
     return circuit.summarize(), circuit.ops_counter
 
 
@@ -56,7 +56,7 @@ def test_extf_square(curve_id: CurveID, extension_degree: int):
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
     circuit.extf_mul([X, X], extension_degree)
-    circuit.finalize_circuit(mock=True)
+    circuit.finalize_circuit()
 
     return circuit.summarize(), circuit.ops_counter
 
@@ -90,7 +90,7 @@ def test_square_torus_amortized(curve_id: CurveID, extension_degree: int):
     )
     X = circuit.write_elements(X, WriteOps.INPUT)
     circuit.square_torus(X)
-    circuit.finalize_circuit(mock=True)
+    circuit.finalize_circuit()
     return circuit.summarize(), circuit.ops_counter
 
 
@@ -108,7 +108,7 @@ def test_mul_torus(curve_id: CurveID, extension_degree: int):
     X = circuit.write_elements(X, WriteOps.INPUT)
     Y = circuit.write_elements(Y, WriteOps.INPUT)
     circuit.mul_torus(X, Y)
-    circuit.finalize_circuit(mock=True)
+    circuit.finalize_circuit()
     return circuit.summarize(), circuit.ops_counter
 
 

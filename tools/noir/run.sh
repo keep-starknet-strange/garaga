@@ -17,8 +17,8 @@ reset
 BB_PATH="bb"
 
 
-echo "nargo version : $(nargo --version)" # 1.0.0-beta.2
-echo "bb version : $($BB_PATH --version)" # 0.82.2
+echo "nargo version : $(nargo --version)" # 1.0.0-beta.3
+echo "bb version : $($BB_PATH --version)" # 0.85.0
 
 
 run_noir_proof_basic() {
@@ -27,13 +27,15 @@ run_noir_proof_basic() {
 
     mkdir -p target/proof${suffix}/
     $BB_PATH prove --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
+    mv -f target/proof${suffix}/public_inputs_fields.json target/public_inputs${suffix}.json
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
     mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
-    if $BB_PATH verify -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
@@ -47,13 +49,15 @@ run_noir_proof_ultra() {
 
     mkdir -p target/proof${suffix}/
     $BB_PATH prove -s ultra_honk --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
+    mv -f target/proof${suffix}/public_inputs_fields.json target/public_inputs${suffix}.json
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
     mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
-    if $BB_PATH verify -s ultra_honk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
@@ -67,13 +71,15 @@ run_noir_proof_ultra_keccak() {
 
     mkdir -p target/proof${suffix}/
     $BB_PATH prove -s ultra_honk --oracle_hash keccak --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
+    mv -f target/proof${suffix}/public_inputs_fields.json target/public_inputs${suffix}.json
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
     mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
-    if $BB_PATH verify -s ultra_honk --oracle_hash keccak -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash keccak -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
@@ -88,13 +94,15 @@ run_noir_proof_ultra_starknet() {
 
     mkdir -p target/proof${suffix}/
     $BB_PATH prove -s ultra_honk --oracle_hash starknet --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
+    mv -f target/proof${suffix}/public_inputs_fields.json target/public_inputs${suffix}.json
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
     mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
-    if $BB_PATH verify -s ultra_honk --oracle_hash starknet -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash starknet -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
@@ -108,13 +116,15 @@ run_noir_proof_ultra_keccak_zk() {
 
     mkdir -p target/proof${suffix}/
     $BB_PATH prove -s ultra_honk --oracle_hash keccak --zk --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
+    mv -f target/proof${suffix}/public_inputs_fields.json target/public_inputs${suffix}.json
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
     mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
-    if $BB_PATH verify -s ultra_honk --oracle_hash keccak --zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash keccak --zk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"
@@ -129,13 +139,15 @@ run_noir_proof_ultra_starknet_zk() {
 
     mkdir -p target/proof${suffix}/
     $BB_PATH prove -s ultra_honk --oracle_hash starknet --zk --write_vk --output_format bytes_and_fields -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
+    mv -f target/proof${suffix}/public_inputs_fields.json target/public_inputs${suffix}.json
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/proof_fields.json target/proof${suffix}.json
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
     mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
-    if $BB_PATH verify -s ultra_honk --oracle_hash starknet --zk -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
+    if $BB_PATH verify -s ultra_honk --oracle_hash starknet --zk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
         echo "ok $suffix"
     else
         echo "Verification failed $suffix"

@@ -21,8 +21,8 @@ jobs:
       - id: skip_check
         uses: fkirc/skip-duplicate-actions@v5
         with:
-          concurrent_skipping: 'same_content_newer'
-          paths_ignore: '["**/README.md", "**/docs/**"]'
+          concurrent_skipping: 'never'
+          paths: '["tools/**"]'
 
   test-wasm:
     needs: pre_job
@@ -108,7 +108,7 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.11.2"
+          scarb-version: "2.11.4"
       - name: Set up Python 3.10.14
         uses: actions/setup-python@v5
         with:

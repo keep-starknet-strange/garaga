@@ -19,7 +19,7 @@ mod Risc0Groth16VerifierBN254 {
     use super::{N_FREE_PUBLIC_INPUTS, T, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x30490df346e1c3b4ff5a8d9d3e296962e3bcb8b3a959211995c9a6620a1e3e2;
+        0x70e5526b95cf78a249ea0f80e2b569e193dffb31cf8cb1d6827994f4937925f;
 
     #[storage]
     struct Storage {}
@@ -68,7 +68,7 @@ mod Risc0Groth16VerifierBN254 {
             // to obtain claim0 * IC[3] + claim1 * IC[4].
             let mut _msm_result_serialized = starknet::syscalls::library_call_syscall(
                 ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                selector!("msm_g1_u128"),
+                selector!("msm_g1_u128_u288"),
                 msm_calldata.span(),
             )
                 .unwrap_syscall();

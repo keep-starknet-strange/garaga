@@ -428,13 +428,14 @@ export function get_groth16_calldata(proof_js, vk_js, curve_id_js) {
 }
 
 /**
- * @param {any} uint8_array
+ * @param {any} proof_js
+ * @param {any} public_inputs_js
  * @returns {any}
  */
-export function parse_honk_proof(uint8_array) {
+export function parse_honk_proof(proof_js, public_inputs_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.parse_honk_proof(retptr, addHeapObject(uint8_array));
+        wasm.parse_honk_proof(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -449,14 +450,15 @@ export function parse_honk_proof(uint8_array) {
 
 /**
  * @param {any} proof_js
+ * @param {any} public_inputs_js
  * @param {any} vk_js
  * @param {any} flavor_js
  * @returns {any[]}
  */
-export function get_honk_calldata(proof_js, vk_js, flavor_js) {
+export function get_honk_calldata(proof_js, public_inputs_js, vk_js, flavor_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(vk_js), addHeapObject(flavor_js));
+        wasm.get_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js), addHeapObject(flavor_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -474,14 +476,15 @@ export function get_honk_calldata(proof_js, vk_js, flavor_js) {
 
 /**
  * @param {any} proof_js
+ * @param {any} public_inputs_js
  * @param {any} vk_js
  * @param {any} flavor_js
  * @returns {any[]}
  */
-export function get_zk_honk_calldata(proof_js, vk_js, flavor_js) {
+export function get_zk_honk_calldata(proof_js, public_inputs_js, vk_js, flavor_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_zk_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(vk_js), addHeapObject(flavor_js));
+        wasm.get_zk_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js), addHeapObject(flavor_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);

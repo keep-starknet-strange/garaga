@@ -25,7 +25,7 @@ def circuit(request) -> tuple[ExtensionFieldModuloCircuit, list[ModuloCircuitEle
         c = ExtensionFieldModuloCircuit(
             name="test", curve_id=curve_id.value, extension_degree=extension_degree
         )
-        c.create_powers_of_Z(c.field(z), mock=True)
+        c.create_powers_of_Z(c.field(z))
         X = c.write_elements(
             [PyFelt(i + 1, c.field.p) for i in range(extension_degree)],
             operation=WriteOps.INPUT,

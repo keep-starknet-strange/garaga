@@ -85,3 +85,7 @@ check_docker
 
 cd tools/npm/garaga_ts
 docker compose up --build
+
+cd ../integration-test-suite
+
+# rm -rf node_modules package-lock.json && npm cache clean --force && npm install garaga.tgz

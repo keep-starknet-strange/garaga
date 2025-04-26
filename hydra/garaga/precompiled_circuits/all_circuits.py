@@ -554,7 +554,6 @@ def compile_circuits(
                 circuit_info["class"],
                 circuit_info["params"],
                 compilation_mode,
-                filename_key,
             )
             codes[filename_key].update(compiled_circuits)
             for circuit_instance in circuit_instances:
@@ -618,10 +617,10 @@ def write_compiled_circuits(
         for compiled_circuit in sorted(codes[filename]):
             file.write(compiled_circuit + "\n")
 
-        if compilation_mode == 1:
-            write_cairo1_tests(
-                file, filename, cairo1_full_function_names, cairo1_tests_functions
-            )
+        # if compilation_mode == 1:
+        #     write_cairo1_tests(
+        #         file, filename, cairo1_full_function_names, cairo1_tests_functions
+        #     )
 
 
 def write_cairo1_tests(

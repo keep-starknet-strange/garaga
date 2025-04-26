@@ -105,12 +105,15 @@ class SchnorrSignature:
         cd.extend(bigint_split(self.py, N_LIMBS, BASE))
         return cd
 
-    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
+    def serialize_with_hints(self, use_rust=True, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
-            return garaga_rs.schnorr_calldata_builder(
+            cd = garaga_rs.schnorr_calldata_builder(
                 self.rx, self.s, self.e, self.px, self.py, self.curve_id.value
             )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
 
         cd = self.serialize()
         e_neg = -self.e % CURVES[self.curve_id.value].n
@@ -256,12 +259,15 @@ class ECDSASignature:
         cd.extend(split_128(self.z))
         return cd
 
-    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
+    def serialize_with_hints(self, use_rust=True, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
-            return garaga_rs.ecdsa_calldata_builder(
+            cd = garaga_rs.ecdsa_calldata_builder(
                 self.r, self.s, self.v, self.px, self.py, self.z, self.curve_id.value
             )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
 
         cd = self.serialize()
         n = CURVES[self.curve_id.value].n

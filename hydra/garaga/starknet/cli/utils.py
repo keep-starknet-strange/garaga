@@ -38,13 +38,17 @@ def load_account(network: Network):
     rpc_url = os.getenv(f"{network.name.upper()}_RPC_URL")
     account_address = os.getenv(f"{network.name.upper()}_ACCOUNT_ADDRESS")
     account_private_key = os.getenv(f"{network.name.upper()}_ACCOUNT_PRIVATE_KEY")
+    if network == Network.MAINNET:
+        chain = StarknetChainId.MAINNET
+    else:
+        chain = StarknetChainId.SEPOLIA
 
     client = FullNodeClient(node_url=rpc_url)
     account = Account(
         address=account_address,
         client=client,
         key_pair=KeyPair.from_private_key(to_int(account_private_key)),
-        chain=StarknetChainId.SEPOLIA,
+        chain=chain,
     )
     account.ESTIMATED_AMOUNT_MULTIPLIER = 1.02
     account.ESTIMATED_FEE_MULTIPLIER = 1.02
@@ -62,7 +66,22 @@ def get_contract_if_exists(account: Account, contract_address: int) -> Contract 
     except ClientError as e:
         if "no contract with address" in e.message.lower():
             return None
-        raise
+        raise e
+
+
+async def get_contract_if_exists_async(
+    account: Account, contract_address: int
+) -> Contract | None:
+    try:
+        res = await Contract.from_address(contract_address, account)
+        return res
+    except ContractNotFoundError:
+
+        return None
+    except ClientError as e:
+        if "no contract with address" in e.message.lower():
+            return None
+        raise e
 
 
 def get_contract_iff_exists(account: Account, contract_address: int) -> Contract:
@@ -94,11 +113,6 @@ def complete_proof_system(incomplete: str):
 def complete_network(incomplete: str):
     networks = [network.name for network in StarknetChainId]
     return [network for network in networks if network.startswith(incomplete)]
-
-
-def complete_fee(incomplete: str):
-    tokens = ["eth", "strk"]
-    return [token for token in tokens if token.startswith(incomplete)]
 
 
 def get_voyager_network_prefix(network: Network) -> str:

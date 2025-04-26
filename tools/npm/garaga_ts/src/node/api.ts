@@ -88,12 +88,12 @@ export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16Ver
   return get_groth16_calldata(proof, verifyingKey, curveId);
 }
 
-export function getHonkCallData(proof: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
-  return get_honk_calldata(proof, verifyingKey, flavor);
+export function getHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
+  return get_honk_calldata(proof, publicInputs, verifyingKey, flavor);
 }
 
-export function getZKHonkCallData(proof: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
-  return get_zk_honk_calldata(proof, verifyingKey, flavor);
+export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
+  return get_zk_honk_calldata(proof, publicInputs, verifyingKey, flavor);
 }
 
 

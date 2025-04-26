@@ -696,16 +696,16 @@ class AccumulateFunctionChallengeDuplCircuit(BaseModuloCircuit):
         xA0_power = circuit.write_struct(u384("xA0_power", [input[10]]), WriteOps.INPUT)
         xA2_power = circuit.write_struct(u384("xA2_power", [input[11]]), WriteOps.INPUT)
         next_a_num_coeff = circuit.write_struct(
-            u384("next_a_num_coeff", [input[12]]), WriteOps.INPUT
+            structs.GenericT("next_a_num_coeff", [input[12]]), WriteOps.INPUT
         )
         next_a_den_coeff = circuit.write_struct(
-            u384("next_a_den_coeff", [input[13]]), WriteOps.INPUT
+            structs.GenericT("next_a_den_coeff", [input[13]]), WriteOps.INPUT
         )
         next_b_num_coeff = circuit.write_struct(
-            u384("next_b_num_coeff", [input[14]]), WriteOps.INPUT
+            structs.GenericT("next_b_num_coeff", [input[14]]), WriteOps.INPUT
         )
         next_b_den_coeff = circuit.write_struct(
-            u384("next_b_den_coeff", [input[15]]), WriteOps.INPUT
+            structs.GenericT("next_b_den_coeff", [input[15]]), WriteOps.INPUT
         )
 
         res = circuit._accumulate_function_challenge_dupl(

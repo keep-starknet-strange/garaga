@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "turbo": "^2.1.1"
+  },
+  "dependencies": {
+    "garaga": "file:garaga.tgz"
   }
 }

@@ -7,6 +7,7 @@ export enum HonkFlavor {
 
 // export interface HonkProof {
 //     publicInputs: bigint[],
+//     pairingPointObject: bigint[],
 //     w1: G1Point,
 //     w2: G1Point,
 //     w3: G1Point,
@@ -25,6 +26,7 @@ export enum HonkFlavor {
 
 // export interface ZKHonkProof {
 //     publicInputs: bigint[],
+//     pairingPointObject: bigint[],
 //     w1: G1Point,
 //     w2: G1Point,
 //     w3: G1Point,

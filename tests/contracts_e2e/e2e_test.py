@@ -148,11 +148,11 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
                 proof_path=proof_path, public_inputs_path=None
             ),
             selector=function_call.get_selector(function_call.name),
-            l1_resource_bounds=None,
             _contract_data=function_call.contract_data,
             _client=function_call.client,
             _account=function_call.account,
             _payload_transformer=function_call._payload_transformer,
+            resource_bounds=None,
         )
 
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
@@ -162,7 +162,9 @@ async def test_groth16_contracts(account_devnet: BaseAccount, contract_info: dic
         print(f"Invoke result : {invoke_result.status}")
 
         receipt = await account.client.get_transaction_receipt(invoke_result.hash)
-        print(receipt.execution_resources)
+        print(
+            f"Execution resources: {contract_project.smart_contract_folder} \n{receipt.execution_resources}"
+        )
 
 
 @pytest.mark.asyncio
@@ -224,11 +226,11 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
             to_addr=function_call.contract_data.address,
             calldata=drand_round_to_calldata(drand_round),
             selector=function_call.get_selector(function_call.name),
-            l1_resource_bounds=None,
             _contract_data=function_call.contract_data,
             _client=function_call.client,
             _account=function_call.account,
             _payload_transformer=function_call._payload_transformer,
+            resource_bounds=None,
         )
 
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
@@ -243,6 +245,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_keccak_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak.bin",
         "system": ProofSystem.UltraKeccakHonk,
     },
@@ -252,6 +255,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_starknet_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet.bin",
         "system": ProofSystem.UltraStarknetHonk,
     },
@@ -261,6 +265,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_keccak_zk_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_keccak_zk.bin",
         "system": ProofSystem.UltraKeccakZKHonk,
     },
@@ -270,6 +275,7 @@ HONK_CONTRACTS = [
             / "noir_ultra_starknet_zk_honk_example",
         ),
         "vk_path": NOIR_EXAMPLES_PATH / "vk_ultra_keccak.bin",
+        "public_inputs_path": NOIR_EXAMPLES_PATH / "public_inputs_ultra_keccak.bin",
         "proof_path": NOIR_EXAMPLES_PATH / "proof_ultra_starknet_zk.bin",
         "system": ProofSystem.UltraStarknetZKHonk,
     },
@@ -283,10 +289,13 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     contract_project: SmartContractProject = contract_info["contract_project"]
     vk_path: Path = contract_info["vk_path"]
     proof_path: Path = contract_info["proof_path"]
+    public_inputs_path: Path = contract_info["public_inputs_path"]
     system: ProofSystem = contract_info["system"]
 
     vk = HonkVk.from_bytes(open(vk_path, "rb").read())
-    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
+    proof = honk_proof_from_bytes(
+        open(proof_path, "rb").read(), open(public_inputs_path, "rb").read(), vk, system
+    )
 
     print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
 
@@ -334,11 +343,11 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
             vk=vk, proof=proof, system=system
         ),
         selector=function_call.get_selector(function_call.name),
-        l1_resource_bounds=None,
         _contract_data=function_call.contract_data,
         _client=function_call.client,
         _account=function_call.account,
         _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
     )
 
     invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
@@ -348,7 +357,9 @@ async def test_honk_contracts(account_devnet: BaseAccount, contract_info: dict):
     print(f"Invoke result : {invoke_result.status}")
 
     receipt = await account.client.get_transaction_receipt(invoke_result.hash)
-    print(receipt.execution_resources)
+    print(
+        f"Execution resources: {contract_project.smart_contract_folder} \n{receipt.execution_resources}\n"
+    )
 
 
 @pytest.mark.asyncio
@@ -392,7 +403,7 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
 
     assert (
         hex(lib_groth16_class_hash) in open(src_path).read()
-    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date, expected {hex(lib_groth16_class_hash)}, got {hex(lib_groth16_class_hash)}"
+    ), f"risc0_verifier_bn254 hardcoded class hash is not up to date, expected {hex(lib_groth16_class_hash)}"
 
     # Declare the risc0 sample app contract
     groth16_class_hash, groth16_abi = await contract_project.declare_class_hash(account)
@@ -438,11 +449,11 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
             proof_path=proof_path, public_inputs_path=None
         ),
         selector=function_call.get_selector(function_call.name),
-        l1_resource_bounds=None,
         _contract_data=function_call.contract_data,
         _client=function_call.client,
         _account=function_call.account,
         _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
     )
 
     invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)

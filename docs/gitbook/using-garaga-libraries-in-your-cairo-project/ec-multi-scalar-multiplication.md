@@ -55,7 +55,7 @@ fn msm_g1(
 
 As you can see, this function not only needs points and scalars, but also additional information, to perform the computation much more efficiently. \
 \
-Under `tools/starknet/tests_and_calldata_generator/`, you will find in the file [`msm.py`](https://github.com/keep-starknet-strange/garaga/blob/main/tools/starknet/tests\_and\_calldata\_generators/msm.py) some tools to generate a cairo test (using `MSMCalldataBuilder.to_cairo1_test()`) for this function given some points and scalars, or directly the raw calldata for starknet usage (using `MSMCalldataBuilder.serialize_to_calldata()`).&#x20;
+Under `tools/starknet/tests_and_calldata_generator/`, you will find in the file [`msm.py`](https://github.com/keep-starknet-strange/garaga/blob/main/hydra/garaga/starknet/tests_and_calldata_generators/msm.py) some tools to generate a cairo test (using `MSMCalldataBuilder.to_cairo1_test()`) for this function given some points and scalars, or directly the raw calldata for starknet usage (using `MSMCalldataBuilder.serialize_to_calldata()`).&#x20;
 
 ### Generating and using calldata
 

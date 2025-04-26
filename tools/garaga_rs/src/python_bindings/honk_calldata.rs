@@ -10,11 +10,13 @@ use pyo3::types::PyList;
 pub fn get_honk_calldata(
     py: Python,
     proof: &Bound<'_, PyBytes>,
+    public_inputs: &Bound<'_, PyBytes>,
     vk: &Bound<'_, PyBytes>,
     flavor: usize,
     zk: bool,
 ) -> PyResult<PyObject> {
     let proof_bytes = proof.as_bytes();
+    let public_inputs_bytes = public_inputs.as_bytes();
     let vk_bytes = vk.as_bytes();
 
     let flavor =
@@ -24,12 +26,12 @@ pub fn get_honk_calldata(
         .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
 
     let result = if zk {
-        let proof = ZKHonkProof::from_bytes(proof_bytes)
+        let proof = ZKHonkProof::from_bytes(proof_bytes, public_inputs_bytes)
             .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
         zk_honk::get_zk_honk_calldata(&proof, &vk, flavor)
             .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?
     } else {
-        let proof = HonkProof::from_bytes(proof_bytes)
+        let proof = HonkProof::from_bytes(proof_bytes, public_inputs_bytes)
             .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
         honk::get_honk_calldata(&proof, &vk, flavor)
             .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?

@@ -8,9 +8,9 @@ export function eddsa_calldata_builder(ry_twisted: any, s: any, py_twisted: any,
 export function to_weirstrass(x_twisted: any, y_twisted: any): any[];
 export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
-export function parse_honk_proof(uint8_array: any): any;
-export function get_honk_calldata(proof_js: any, vk_js: any, flavor_js: any): any[];
-export function get_zk_honk_calldata(proof_js: any, vk_js: any, flavor_js: any): any[];
+export function parse_honk_proof(proof_js: any, public_inputs_js: any): any;
+export function get_honk_calldata(proof_js: any, public_inputs_js: any, vk_js: any, flavor_js: any): any[];
+export function get_zk_honk_calldata(proof_js: any, public_inputs_js: any, vk_js: any, flavor_js: any): any[];
 export function poseidon_hash(x: any, y: any): any;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
@@ -25,9 +25,9 @@ export interface InitOutput {
   readonly to_weirstrass: (a: number, b: number, c: number) => void;
   readonly to_twistededwards: (a: number, b: number, c: number) => void;
   readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;
-  readonly parse_honk_proof: (a: number, b: number) => void;
-  readonly get_honk_calldata: (a: number, b: number, c: number, d: number) => void;
-  readonly get_zk_honk_calldata: (a: number, b: number, c: number, d: number) => void;
+  readonly parse_honk_proof: (a: number, b: number, c: number) => void;
+  readonly get_honk_calldata: (a: number, b: number, c: number, d: number, e: number) => void;
+  readonly get_zk_honk_calldata: (a: number, b: number, c: number, d: number, e: number) => void;
   readonly poseidon_hash: (a: number, b: number, c: number) => void;
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
