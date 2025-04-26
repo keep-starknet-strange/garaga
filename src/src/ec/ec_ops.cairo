@@ -15,7 +15,6 @@ use core::result::ResultTrait;
 use garaga::basic_field_ops::{
     add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
 };
-use garaga::ec::selectors;
 use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
@@ -24,6 +23,7 @@ use garaga::definitions::{
     deserialize_u384_array, get_G, get_a, get_b, get_b2, get_g, get_min_one, get_modulus, get_n,
     serialize_u288_array, serialize_u384, serialize_u384_array, u288, u384Serde,
 };
+use garaga::ec::selectors;
 use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
 
 #[generate_trait]
@@ -1096,18 +1096,13 @@ fn _scalar_mul_glv_and_fake_glv(
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
         },
-        U128sFromFelt252Result::Wide((
-            _, low,
-        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
+        U128sFromFelt252Result::Wide((_, low)) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
     };
-    let (_v2_sign, _v2_abs, Phi_Q0y): (u384, u96, u384) =
-        match u128s_from_felt252(hint.v2) {
+    let (_v2_sign, _v2_abs, Phi_Q0y): (u384, u96, u384) = match u128s_from_felt252(hint.v2) {
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
         },
-        U128sFromFelt252Result::Wide((
-            _, low,
-        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
+        U128sFromFelt252Result::Wide((_, low)) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
     };
 
     // At this point ~ 631 steps.
@@ -1176,7 +1171,7 @@ fn _scalar_mul_glv_and_fake_glv(
     ); // P - Q
     // println!("S2: {:?}", S2);
 
-    let S3 = G1Point { x: S2.x, y: neg_mod_p(S2.y, modulus) }; // -P + Q
+    // let S3 = G1Point { x: S2.x, y: neg_mod_p(S2.y, modulus) }; // -P + Q
     // println!("S3: {:?}", S3);
 
     // Table S ok.
@@ -1228,14 +1223,33 @@ fn _scalar_mul_glv_and_fake_glv(
     let mut _v1: u128 = upcast(_v1_abs);
     let mut _v2: u128 = upcast(_v2_abs);
 
-    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(_u1, _u2, _v1, _v2);
+    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
+        _u1, _u2, _v1, _v2,
+    );
 
-    while let Some(selector_y) = selectors.pop_back() {
-        // println!("selector_y: {:?}", *selector_y);
+    while let Some(selector_y) = selectors.multi_pop_back::<8>() {
+        let [
+            selector_y7,
+            selector_y6,
+            selector_y5,
+            selector_y4,
+            selector_y3,
+            selector_y2,
+            selector_y1,
+            selector_y0,
+        ] =
+            (*selector_y)
+            .unbox();
+        let Bi = *Bs[selector_y0];
+        let Bi1 = *Bs[selector_y1];
+        let Bi2 = *Bs[selector_y2];
+        let Bi3 = *Bs[selector_y3];
+        let Bi4 = *Bs[selector_y4];
+        let Bi5 = *Bs[selector_y5];
+        let Bi6 = *Bs[selector_y6];
+        let Bi7 = *Bs[selector_y7];
 
-        let Bi = *Bs[*selector_y];
-        // Double and add
-        Acc = double_and_add(Acc, Bi, modulus);
+        Acc = double_and_add_8(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
     }
 
     // println!("Acc final: {:?}", Acc);
@@ -1372,6 +1386,240 @@ pub fn double_and_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Poin
     return G1Point { x: x3, y: y3 };
 }
 
+#[inline(always)]
+pub fn double_and_add_8(
+    p: G1Point,
+    q0: G1Point,
+    q1: G1Point,
+    q2: G1Point,
+    q3: G1Point,
+    q4: G1Point,
+    q5: G1Point,
+    q6: G1Point,
+    q7: G1Point,
+    modulus: CircuitModulus,
+) -> G1Point {
+    let px = CircuitElement::<CircuitInput<0>> {};
+    let py = CircuitElement::<CircuitInput<1>> {};
+    let q0x = CircuitElement::<CircuitInput<2>> {};
+    let q0y = CircuitElement::<CircuitInput<3>> {};
+    let q1x = CircuitElement::<CircuitInput<4>> {};
+    let q1y = CircuitElement::<CircuitInput<5>> {};
+    let q2x = CircuitElement::<CircuitInput<6>> {};
+    let q2y = CircuitElement::<CircuitInput<7>> {};
+    let q3x = CircuitElement::<CircuitInput<8>> {};
+    let q3y = CircuitElement::<CircuitInput<9>> {};
+    let q4x = CircuitElement::<CircuitInput<10>> {};
+    let q4y = CircuitElement::<CircuitInput<11>> {};
+    let q5x = CircuitElement::<CircuitInput<12>> {};
+    let q5y = CircuitElement::<CircuitInput<13>> {};
+    let q6x = CircuitElement::<CircuitInput<14>> {};
+    let q6y = CircuitElement::<CircuitInput<15>> {};
+    let q7x = CircuitElement::<CircuitInput<16>> {};
+    let q7y = CircuitElement::<CircuitInput<17>> {};
+
+    // --- Step 1: (2 * CurrentP) + Q0 ---
+    let num_lambda1_0 = circuit_sub(q0y, py);
+    let den_lambda1_0 = circuit_sub(q0x, px);
+    let lambda1_0 = circuit_mul(num_lambda1_0, circuit_inverse(den_lambda1_0));
+
+    let lambda1_sq_0 = circuit_mul(lambda1_0, lambda1_0);
+    let x2_0 = circuit_sub(lambda1_sq_0, px);
+    let x2_0 = circuit_sub(x2_0, q0x);
+
+    let den_lambda2_0 = circuit_sub(x2_0, px);
+    let num_lambda2_0 = circuit_add(py, py);
+    let term2_lambda2_0 = circuit_mul(num_lambda2_0, circuit_inverse(den_lambda2_0));
+    let lambda2_0 = circuit_add(lambda1_0, term2_lambda2_0);
+
+    let lambda2_sq_0 = circuit_mul(lambda2_0, lambda2_0);
+    let tx_temp_0 = circuit_sub(lambda2_sq_0, px);
+    let T1x = circuit_sub(tx_temp_0, x2_0);
+
+    let tx_sub_px_0 = circuit_sub(T1x, px);
+    let term1_ty_0 = circuit_mul(lambda2_0, tx_sub_px_0);
+    let T1y = circuit_sub(term1_ty_0, py);
+
+    // --- Step 2: (2 * CurrentP) + Q1 ---
+    let num_lambda1_1 = circuit_sub(q1y, T1y);
+    let den_lambda1_1 = circuit_sub(q1x, T1x);
+    let lambda1_1 = circuit_mul(num_lambda1_1, circuit_inverse(den_lambda1_1));
+
+    let lambda1_sq_1 = circuit_mul(lambda1_1, lambda1_1);
+    let x2_1 = circuit_sub(lambda1_sq_1, T1x);
+    let x2_1 = circuit_sub(x2_1, q1x);
+
+    let den_lambda2_1 = circuit_sub(x2_1, T1x);
+    let num_lambda2_1 = circuit_add(T1y, T1y);
+    let term2_lambda2_1 = circuit_mul(num_lambda2_1, circuit_inverse(den_lambda2_1));
+    let lambda2_1 = circuit_add(lambda1_1, term2_lambda2_1);
+
+    let lambda2_sq_1 = circuit_mul(lambda2_1, lambda2_1);
+    let tx_temp_1 = circuit_sub(lambda2_sq_1, T1x);
+    let T2x = circuit_sub(tx_temp_1, x2_1);
+
+    let tx_sub_px_1 = circuit_sub(T2x, T1x);
+    let term1_ty_1 = circuit_mul(lambda2_1, tx_sub_px_1);
+    let T2y = circuit_sub(term1_ty_1, T1y);
+
+    // --- Step 3: (2 * CurrentP) + Q2 ---
+    let num_lambda1_2 = circuit_sub(q2y, T2y);
+    let den_lambda1_2 = circuit_sub(q2x, T2x);
+    let lambda1_2 = circuit_mul(num_lambda1_2, circuit_inverse(den_lambda1_2));
+
+    let lambda1_sq_2 = circuit_mul(lambda1_2, lambda1_2);
+    let x2_2 = circuit_sub(lambda1_sq_2, T2x);
+    let x2_2 = circuit_sub(x2_2, q2x);
+
+    let den_lambda2_2 = circuit_sub(x2_2, T2x);
+    let num_lambda2_2 = circuit_add(T2y, T2y);
+    let term2_lambda2_2 = circuit_mul(num_lambda2_2, circuit_inverse(den_lambda2_2));
+    let lambda2_2 = circuit_add(lambda1_2, term2_lambda2_2);
+
+    let lambda2_sq_2 = circuit_mul(lambda2_2, lambda2_2);
+    let tx_temp_2 = circuit_sub(lambda2_sq_2, T2x);
+    let T3x = circuit_sub(tx_temp_2, x2_2);
+
+    let tx_sub_px_2 = circuit_sub(T3x, T2x);
+    let term1_ty_2 = circuit_mul(lambda2_2, tx_sub_px_2);
+    let T3y = circuit_sub(term1_ty_2, T2y);
+
+    // --- Step 4: (2 * CurrentP) + Q3 ---
+    let num_lambda1_3 = circuit_sub(q3y, T3y);
+    let den_lambda1_3 = circuit_sub(q3x, T3x);
+    let lambda1_3 = circuit_mul(num_lambda1_3, circuit_inverse(den_lambda1_3));
+
+    let lambda1_sq_3 = circuit_mul(lambda1_3, lambda1_3);
+    let x2_3 = circuit_sub(lambda1_sq_3, T3x);
+    let x2_3 = circuit_sub(x2_3, q3x);
+
+    let den_lambda2_3 = circuit_sub(x2_3, T3x);
+    let num_lambda2_3 = circuit_add(T3y, T3y);
+    let term2_lambda2_3 = circuit_mul(num_lambda2_3, circuit_inverse(den_lambda2_3));
+    let lambda2_3 = circuit_add(lambda1_3, term2_lambda2_3);
+
+    let lambda2_sq_3 = circuit_mul(lambda2_3, lambda2_3);
+    let tx_temp_3 = circuit_sub(lambda2_sq_3, T3x);
+    let T4x = circuit_sub(tx_temp_3, x2_3);
+
+    let tx_sub_px_3 = circuit_sub(T4x, T3x);
+    let term1_ty_3 = circuit_mul(lambda2_3, tx_sub_px_3);
+    let T4y = circuit_sub(term1_ty_3, T3y);
+
+    // --- Step 5: (2 * CurrentP) + Q4 ---
+    let num_lambda1_4 = circuit_sub(q4y, T4y);
+    let den_lambda1_4 = circuit_sub(q4x, T4x);
+    let lambda1_4 = circuit_mul(num_lambda1_4, circuit_inverse(den_lambda1_4));
+
+    let lambda1_sq_4 = circuit_mul(lambda1_4, lambda1_4);
+    let x2_4 = circuit_sub(lambda1_sq_4, T4x);
+    let x2_4 = circuit_sub(x2_4, q4x);
+
+    let den_lambda2_4 = circuit_sub(x2_4, T4x);
+    let num_lambda2_4 = circuit_add(T4y, T4y);
+    let term2_lambda2_4 = circuit_mul(num_lambda2_4, circuit_inverse(den_lambda2_4));
+    let lambda2_4 = circuit_add(lambda1_4, term2_lambda2_4);
+
+    let lambda2_sq_4 = circuit_mul(lambda2_4, lambda2_4);
+    let tx_temp_4 = circuit_sub(lambda2_sq_4, T4x);
+    let T5x = circuit_sub(tx_temp_4, x2_4);
+
+    let tx_sub_px_4 = circuit_sub(T5x, T4x);
+    let term1_ty_4 = circuit_mul(lambda2_4, tx_sub_px_4);
+    let T5y = circuit_sub(term1_ty_4, T4y);
+
+    // --- Step 6: (2 * CurrentP) + Q5 ---
+    let num_lambda1_5 = circuit_sub(q5y, T5y);
+    let den_lambda1_5 = circuit_sub(q5x, T5x);
+    let lambda1_5 = circuit_mul(num_lambda1_5, circuit_inverse(den_lambda1_5));
+
+    let lambda1_sq_5 = circuit_mul(lambda1_5, lambda1_5);
+    let x2_5 = circuit_sub(lambda1_sq_5, T5x);
+    let x2_5 = circuit_sub(x2_5, q5x);
+
+    let den_lambda2_5 = circuit_sub(x2_5, T5x);
+    let num_lambda2_5 = circuit_add(T5y, T5y);
+    let term2_lambda2_5 = circuit_mul(num_lambda2_5, circuit_inverse(den_lambda2_5));
+    let lambda2_5 = circuit_add(lambda1_5, term2_lambda2_5);
+
+    let lambda2_sq_5 = circuit_mul(lambda2_5, lambda2_5);
+    let tx_temp_5 = circuit_sub(lambda2_sq_5, T5x);
+    let T6x = circuit_sub(tx_temp_5, x2_5);
+
+    let tx_sub_px_5 = circuit_sub(T6x, T5x);
+    let term1_ty_5 = circuit_mul(lambda2_5, tx_sub_px_5);
+    let T6y = circuit_sub(term1_ty_5, T5y);
+
+    // --- Step 7: (2 * CurrentP) + Q6 ---
+    let num_lambda1_6 = circuit_sub(q6y, T6y);
+    let den_lambda1_6 = circuit_sub(q6x, T6x);
+    let lambda1_6 = circuit_mul(num_lambda1_6, circuit_inverse(den_lambda1_6));
+
+    let lambda1_sq_6 = circuit_mul(lambda1_6, lambda1_6);
+    let x2_6 = circuit_sub(lambda1_sq_6, T6x);
+    let x2_6 = circuit_sub(x2_6, q6x);
+
+    let den_lambda2_6 = circuit_sub(x2_6, T6x);
+    let num_lambda2_6 = circuit_add(T6y, T6y);
+    let term2_lambda2_6 = circuit_mul(num_lambda2_6, circuit_inverse(den_lambda2_6));
+    let lambda2_6 = circuit_add(lambda1_6, term2_lambda2_6);
+
+    let lambda2_sq_6 = circuit_mul(lambda2_6, lambda2_6);
+    let tx_temp_6 = circuit_sub(lambda2_sq_6, T6x);
+    let T7x = circuit_sub(tx_temp_6, x2_6);
+
+    let tx_sub_px_6 = circuit_sub(T7x, T6x);
+    let term1_ty_6 = circuit_mul(lambda2_6, tx_sub_px_6);
+    let T7y = circuit_sub(term1_ty_6, T6y);
+
+    // --- Step 8: (2 * CurrentP) + Q7 ---
+    let num_lambda1_7 = circuit_sub(q7y, T7y);
+    let den_lambda1_7 = circuit_sub(q7x, T7x);
+    let lambda1_7 = circuit_mul(num_lambda1_7, circuit_inverse(den_lambda1_7));
+
+    let lambda1_sq_7 = circuit_mul(lambda1_7, lambda1_7);
+    let x2_7 = circuit_sub(lambda1_sq_7, T7x);
+    let x2_7 = circuit_sub(x2_7, q7x);
+
+    let den_lambda2_7 = circuit_sub(x2_7, T7x);
+    let num_lambda2_7 = circuit_add(T7y, T7y);
+    let term2_lambda2_7 = circuit_mul(num_lambda2_7, circuit_inverse(den_lambda2_7));
+    let lambda2_7 = circuit_add(lambda1_7, term2_lambda2_7);
+
+    let lambda2_sq_7 = circuit_mul(lambda2_7, lambda2_7);
+    let tx_temp_7 = circuit_sub(lambda2_sq_7, T7x);
+    let T8x = circuit_sub(tx_temp_7, x2_7);
+
+    let tx_sub_px_7 = circuit_sub(T8x, T7x);
+    let term1_ty_7 = circuit_mul(lambda2_7, tx_sub_px_7);
+    let T8y = circuit_sub(term1_ty_7, T7y);
+
+    let outputs = (T8x, T8y)
+        .new_inputs()
+        .next_2(p.x)
+        .next_2(p.y)
+        .next_2(q0.x)
+        .next_2(q0.y)
+        .next_2(q1.x)
+        .next_2(q1.y)
+        .next_2(q2.x)
+        .next_2(q2.y)
+        .next_2(q3.x)
+        .next_2(q3.y)
+        .next_2(q4.x)
+        .next_2(q4.y)
+        .next_2(q5.x)
+        .next_2(q5.y)
+        .next_2(q6.x)
+        .next_2(q6.y)
+        .next_2(q7.x)
+        .next_2(q7.y)
+        .done_2()
+        .eval(modulus)
+        .expect('double_and_add_8 failed');
+
+    return G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) };
+}
 #[cfg(test)]
 mod tests {
     use core::circuit::u384;
