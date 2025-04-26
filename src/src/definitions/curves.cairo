@@ -297,9 +297,24 @@ pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (usize, G1Point) {
 
 pub fn get_third_root_of_unity(curve_index: usize) -> u384 {
     match curve_index {
-        0 => u384{limb0:0xacdb5c4f5763473177fffffe, limb1:0x59e26bcea0d48bacd4f263f1, limb2:0x0, limb3:0x0},
-        1 => u384{limb0:0x4f49fffd8bfd00000000aaac, limb1:0x897d29650fb85f9b409427eb, limb2:0x63d4de85aa0d857d89759ad4, limb3:0x1a0111ea397fe699ec024086},
-        2 => u384{limb0:0x12f58995c1396c28719501ee, limb1:0x6e64479eac3434e99cf04975, limb2:0x7ae96a2b657c0710, limb3:0x0},
+        0 => u384 {
+            limb0: 0xacdb5c4f5763473177fffffe,
+            limb1: 0x59e26bcea0d48bacd4f263f1,
+            limb2: 0x0,
+            limb3: 0x0,
+        },
+        1 => u384 {
+            limb0: 0x4f49fffd8bfd00000000aaac,
+            limb1: 0x897d29650fb85f9b409427eb,
+            limb2: 0x63d4de85aa0d857d89759ad4,
+            limb3: 0x1a0111ea397fe699ec024086,
+        },
+        2 => u384 {
+            limb0: 0x12f58995c1396c28719501ee,
+            limb1: 0x6e64479eac3434e99cf04975,
+            limb2: 0x7ae96a2b657c0710,
+            limb3: 0x0,
+        },
         _ => core::panic_with_felt252('Invalid curve index'),
     }
 }
