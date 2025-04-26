@@ -4,8 +4,10 @@ use core::circuit::{
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
-use core::internal::bounded_int::{downcast, upcast, AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt};
 use core::internal::bounded_int;
+use core::internal::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
+};
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
@@ -13,6 +15,7 @@ use core::result::ResultTrait;
 use garaga::basic_field_ops::{
     add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
 };
+use garaga::ec::selectors;
 use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
@@ -1089,22 +1092,22 @@ fn _scalar_mul_glv_and_fake_glv(
             _, low,
         )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
     };
-    let (_v1_sign, _v1_abs, Q0y, Q1y): (u384, u96, u384, u384) = match u128s_from_felt252(hint.v1) {
+    let (_v1_sign, _v1_abs, Q0y): (u384, u96, u384) = match u128s_from_felt252(hint.v1) {
         U128sFromFelt252Result::Narrow(low) => {
-            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
+            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
         },
         U128sFromFelt252Result::Wide((
             _, low,
-        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
+        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
     };
-    let (_v2_sign, _v2_abs, Phi_Q0y, Phi_Q1y): (u384, u96, u384, u384) =
+    let (_v2_sign, _v2_abs, Phi_Q0y): (u384, u96, u384) =
         match u128s_from_felt252(hint.v2) {
         U128sFromFelt252Result::Narrow(low) => {
-            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus), hint.Q.y)
+            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
         },
         U128sFromFelt252Result::Wide((
             _, low,
-        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y, neg_mod_p(hint.Q.y, modulus)) },
+        )) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
     };
 
     // At this point ~ 631 steps.
@@ -1163,9 +1166,7 @@ fn _scalar_mul_glv_and_fake_glv(
     let P0 = G1Point { x: point.x, y: P0y };
     let Q0 = G1Point { x: hint.Q.x, y: Q0y };
 
-    let (S0) = ec::run_ADD_EC_POINT_circuit(
-        P0, Q0, modulus,
-    ); // -P - Q
+    let (S0) = ec::run_ADD_EC_POINT_circuit(P0, Q0, modulus); // -P - Q
     // println!("S0: {:?}", S0);
     let S1 = G1Point { x: S0.x, y: neg_mod_p(S0.y, modulus) }; // P + Q
     // println!("S1: {:?}", S1);
@@ -1180,19 +1181,15 @@ fn _scalar_mul_glv_and_fake_glv(
 
     // Table S ok.
     let phi_q_x = mul_mod_p(hint.Q.x, third_root_of_unity, modulus);
-    let Phi_Q0 =  G1Point { x: phi_q_x, y: Phi_Q0y };
+    let Phi_Q0 = G1Point { x: phi_q_x, y: Phi_Q0y };
     let phi_p_x = mul_mod_p(point.x, third_root_of_unity, modulus);
-    let Phi_P0 =  G1Point { x: phi_p_x, y: Phi_P0y };
-    let (Phi_S0) = ec::run_ADD_EC_POINT_circuit(
-        Phi_P0, Phi_Q0, modulus,
-    ); // -Φ(P) - Φ(Q)
+    let Phi_P0 = G1Point { x: phi_p_x, y: Phi_P0y };
+    let (Phi_S0) = ec::run_ADD_EC_POINT_circuit(Phi_P0, Phi_Q0, modulus); // -Φ(P) - Φ(Q)
     let Phi_S1 = G1Point { x: Phi_S0.x, y: neg_mod_p(Phi_S0.y, modulus) }; // Φ(P) + Φ(Q)
-
 
     let (Phi_S2) = ec::run_ADD_EC_POINT_circuit(
         G1Point { x: phi_p_x, y: Phi_P1y }, G1Point { x: phi_q_x, y: Phi_Q0y }, modulus,
     ); // Φ(P) - Φ(Q)
-
 
     let Phi_S3 = G1Point { x: Phi_S2.x, y: neg_mod_p(Phi_S2.y, modulus) }; // -Φ(P) + Φ(Q)
 
@@ -1219,34 +1216,19 @@ fn _scalar_mul_glv_and_fake_glv(
     let B16 = G1Point { x: B1.x, y: neg_mod_p(B1.y, modulus) }; // -P - Q - Φ(P) - Φ(Q)
 
     let Bs: Span<G1Point> = array![
-        B16,
-        B8,
-        B14,
-        B6,
-        B12,
-        B4,
-        B10,
-        B2,
-        B15,
-        B7,
-        B13,
-        B5,
-        B11,
-        B3,
-        B9,
-        B1,
+        B16, B8, B14, B6, B12, B4, B10, B2, B15, B7, B13, B5, B11, B3, B9, B1,
     ]
         .span();
 
     // println!("Bs: {:?}", Bs);
     let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, get_G(curve_index), modulus);
     // println!("Acc: {:?}", Acc);
-    let mut _u1:u128 = upcast(_u1_abs);
-    let mut _u2:u128 = upcast(_u2_abs);
-    let mut _v1:u128 = upcast(_v1_abs);
-    let mut _v2:u128 = upcast(_v2_abs);
+    let mut _u1: u128 = upcast(_u1_abs);
+    let mut _u2: u128 = upcast(_u2_abs);
+    let mut _v1: u128 = upcast(_v1_abs);
+    let mut _v2: u128 = upcast(_v2_abs);
 
-    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = build_selectors(_u1, _u2, _v1, _v2, n_bits);
+    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(_u1, _u2, _v1, _v2);
 
     while let Some(selector_y) = selectors.pop_back() {
         // println!("selector_y: {:?}", *selector_y);
@@ -1296,7 +1278,9 @@ impl DivRemU128By2 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<TWO>> 
 }
 
 #[inline(always)]
-fn build_selectors(_u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize) -> (Span<usize>, u128, u128, u128, u128) {
+fn build_selectors(
+    _u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize,
+) -> (Span<usize>, u128, u128, u128, u128) {
     let mut selectors: Array<usize> = array![];
 
     let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
@@ -1313,7 +1297,7 @@ fn build_selectors(_u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize) ->
     v1 = upcast(qv1);
     v2 = upcast(qv2);
 
-    for _ in 0..n_bits-1 {
+    for _ in 0..n_bits - 1 {
         let (qu1, u1b) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
         let (qu2, u2b) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
         let (qv1, v1b) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
@@ -1327,14 +1311,13 @@ fn build_selectors(_u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize) ->
         selectors.append(selector_y);
     }
     return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
-
 }
 
 // doubleAndAdd computes 2p+q as (p+q)+p. It follows [ELM03] (Section 3.1)
 // Saves the computation of the y coordinate of p+q as it is used only in the computation of λ2,
 // which can be computed as
 //
-//	λ2 = -λ1-2*p.y/(x2-p.x)
+//λ2 = -λ1-2*p.y/(x2-p.x)
 //
 // instead.
 //

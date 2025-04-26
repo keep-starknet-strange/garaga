@@ -21,6 +21,7 @@ pub mod definitions;
 pub mod ec {
     pub mod ec_ops;
     pub mod ec_ops_g2;
+    pub mod selectors;
     pub mod pairing {
         pub mod groth16;
         pub mod pairing_check;
