@@ -53,5 +53,5 @@ pip install git+https://github.com/keep-starknet-strange/garaga.git@COMMIT_HASH
 ```
 
 {% hint style="info" %}
-Make sure the dependency on the Garaga Cairo library in `Scarb.toml` is at the same commit to ensure tooling are in sync.&#x20;
+Make sure the dependency on the Garaga Cairo library in `Scarb.toml` is at the same commit to ensure the tooling is in sync.&#x20;
 {% endhint %}
