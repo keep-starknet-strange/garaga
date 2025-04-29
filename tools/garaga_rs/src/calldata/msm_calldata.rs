@@ -106,6 +106,7 @@ where
     ))
 }
 
+#[allow(non_snake_case)]
 pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     points: &[G1Point<F>],
     scalars: &[BigUint],

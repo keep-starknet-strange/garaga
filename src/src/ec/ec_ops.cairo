@@ -278,10 +278,15 @@ fn _scalar_mul_glv_and_fake_glv(
     if scalar == 1 {
         return point;
     }
-    if !hint.Q.is_infinity(){
+    if !hint.Q.is_infinity() {
         hint.Q.assert_on_curve(curve_index);
     }
     let scalar_u384: u384 = scalar.into();
+
+    if scalar_u384 == minus_one {
+        return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
+    }
+
     let one_u384: u384 = u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
 
     // Retrieve the u1, u2, v1, v2 values from the hint

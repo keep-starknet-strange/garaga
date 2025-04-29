@@ -55,14 +55,16 @@ def generate_msm_test(curve_id, n_points, seed):
 
 def generate_msm_test_edge_cases(curve_id, n_points, seed):
     random.seed(seed)
-    points = [G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)] + [
-        G1Point.infinity(curve_id)
-    ]
-    scalars = [0] + [
-        random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)
-    ]
-
-    points
+    points = (
+        [G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
+        + [G1Point.infinity(curve_id)]
+        + [G1Point.get_nG(curve_id, 1)]
+    )
+    scalars = (
+        [0]
+        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)]
+        + [CURVES[curve_id.value].n - 1]
+    )
 
     builder = MSMCalldataBuilder(curve_id=curve_id, points=points, scalars=scalars)
 

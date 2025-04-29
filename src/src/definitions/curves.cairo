@@ -250,36 +250,36 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
 pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (bool, G1Point) {
     match curve_index {
         0 => (
-            false,
+            true,
             G1Point {
                 x: u384 {
-                    limb0: 0x2326b48f300fc56f6982026e,
-                    limb1: 0x502bbba6bf6b07e3b7cef039,
-                    limb2: 0x2e5001cee2faa644,
+                    limb0: 0x804f4c2700adf08a0214e529,
+                    limb1: 0xa68b293da254e1b0049b5825,
+                    limb2: 0x2715e750e68b52fa,
                     limb3: 0x0,
                 },
                 y: u384 {
-                    limb0: 0x98cc7e0376dd079323f80764,
-                    limb1: 0x4dde58a9e671fa092d3ba5db,
-                    limb2: 0x180e823c991af504,
+                    limb0: 0x15c090b1de77447950003fc9,
+                    limb1: 0xfb5afe510e7c4e23f41e4bad,
+                    limb2: 0x3921d1862445f32,
                     limb3: 0x0,
                 },
             },
         ),
         1 => (
-            false,
+            true,
             G1Point {
                 x: u384 {
-                    limb0: 0x673917f8969d906fa8042a5b,
-                    limb1: 0x965a736ba5d1d0cd30a1a120,
-                    limb2: 0xe3aa9975f1d5a589b04d183f,
-                    limb3: 0x113518a56ed2bc43d8673d10,
+                    limb0: 0xcf4357bd59d6560f96d34480,
+                    limb1: 0x1c2b3f4bb7a8579e7473612d,
+                    limb2: 0x44f04a3ee426074a0864fc6e,
+                    limb3: 0x60aa1307100d28a9c44cc51,
                 },
                 y: u384 {
-                    limb0: 0x5fcac5b51d50e598880f3b6d,
-                    limb1: 0x44404f9354bddaab9d049569,
-                    limb2: 0xb6ff3f432523e67bcd95559e,
-                    limb3: 0xc2d434e06ebe212cb59dddd,
+                    limb0: 0x365913fecd5eb4667fe5e1ea,
+                    limb1: 0xa456de882c324863cdfcf5b5,
+                    limb2: 0xbaaa2be88ae9a807b36465b8,
+                    limb3: 0x31152c621ab7ca0e5a2ab1c,
                 },
             },
         ),

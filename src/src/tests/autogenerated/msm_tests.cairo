@@ -6724,7 +6724,7 @@ fn test_msm_GRUMPKIN_12P() {
 #[test]
 fn test_msm_BN254_1P_edge_case() {
     let mut data = array![
-        0x1,
+        0x2,
         0x0,
         0x0,
         0x0,
@@ -6737,6 +6737,15 @@ fn test_msm_BN254_1P_edge_case() {
         0x0,
         0x0,
         0x0,
+        0x2,
+        0x0,
+        0x0,
+        0x0,
+        0x2,
+        0x0,
+        0x0,
+        0x2833e84879b9709143e1f593f0000000,
+        0x30644e72e131a029b85045b68181585d,
         0x0,
         0x0,
         0x0,
@@ -6746,6 +6755,19 @@ fn test_msm_BN254_1P_edge_case() {
         0x0,
         0x0,
         0x0,
+        0x0,
+        0x0,
+        0x1,
+        0x0,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x6871ca8d3c208c16d87cfd45,
+        0xb85045b68181585d97816a91,
+        0x30644e72e131a029,
+        0x0,
+        0x100000000000000000000000000000001,
         0x0,
         0x1,
         0x0,
@@ -6757,8 +6779,13 @@ fn test_msm_BN254_1P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 {
+                limb0: 0x6871ca8d3c208c16d87cfd45,
+                limb1: 0xb85045b68181585d97816a91,
+                limb2: 0x30644e72e131a029,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -6767,7 +6794,7 @@ fn test_msm_BN254_1P_edge_case() {
 #[test]
 fn test_msm_BN254_2P_edge_case() {
     let mut data = array![
-        0x2,
+        0x3,
         0x5c724369afbc772d02aed58e,
         0x2cd3bc838c66439a3d6160b,
         0x72f26b55fb56be1,
@@ -6784,11 +6811,21 @@ fn test_msm_BN254_2P_edge_case() {
         0x0,
         0x0,
         0x0,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
         0x2,
+        0x0,
+        0x0,
+        0x0,
+        0x3,
         0x0,
         0x0,
         0xb4862b21fb97d43588561712e8e5216a,
         0x967d0cae6f4590b9a164106cf6a659e,
+        0x2833e84879b9709143e1f593f0000000,
+        0x30644e72e131a029b85045b68181585d,
         0x0,
         0x0,
         0x0,
@@ -6814,6 +6851,18 @@ fn test_msm_BN254_2P_edge_case() {
         0x100000000000000002b0cbbab157eeb83,
         0xb6a7a4f55a0c47de,
         0x54f46f1150a30caf,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x6871ca8d3c208c16d87cfd45,
+        0xb85045b68181585d97816a91,
+        0x30644e72e131a029,
+        0x0,
+        0x100000000000000000000000000000001,
+        0x0,
+        0x1,
+        0x0,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -6822,8 +6871,13 @@ fn test_msm_BN254_2P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 {
+                limb0: 0x6871ca8d3c208c16d87cfd45,
+                limb1: 0xb85045b68181585d97816a91,
+                limb2: 0x30644e72e131a029,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -6832,7 +6886,7 @@ fn test_msm_BN254_2P_edge_case() {
 #[test]
 fn test_msm_BN254_3P_edge_case() {
     let mut data = array![
-        0x3,
+        0x4,
         0x5c724369afbc772d02aed58e,
         0x2cd3bc838c66439a3d6160b,
         0x72f26b55fb56be1,
@@ -6857,13 +6911,23 @@ fn test_msm_BN254_3P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x3,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x2,
+        0x0,
+        0x0,
+        0x0,
+        0x4,
         0x0,
         0x0,
         0x12e0c8b2bad640fb19488dec4f65d4d9,
         0x1521f387af19922ad9b8a714e61a441c,
         0x5a92118719c78df48f4ff31e78de5857,
         0x28fcb26f9c6316b950f244556f25e2a2,
+        0x2833e84879b9709143e1f593f0000000,
+        0x30644e72e131a029b85045b68181585d,
         0x0,
         0x0,
         0x0,
@@ -6901,6 +6965,18 @@ fn test_msm_BN254_3P_edge_case() {
         0x5fcd1b724f1296a6,
         0x100000000000000004dedbb9d523e91ef,
         0x100000000000000004dac40f4f32b51f2,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x6871ca8d3c208c16d87cfd45,
+        0xb85045b68181585d97816a91,
+        0x30644e72e131a029,
+        0x0,
+        0x100000000000000000000000000000001,
+        0x0,
+        0x1,
+        0x0,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -6910,15 +6986,15 @@ fn test_msm_BN254_3P_edge_case() {
     assert!(
         res == G1Point {
             x: u384 {
-                limb0: 0x21725fdb9f487676e547051,
-                limb1: 0xc23930e4f96498a77a316418,
-                limb2: 0x1244cb13309195ed,
+                limb0: 0x8cb92121f4f98343b28bd83d,
+                limb1: 0xa60bedf2a6dc9ea3a4503a84,
+                limb2: 0x242282a9381754f,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x6251c487cf0f5a44ac24a45b,
-                limb1: 0xf1db336c10ce7fae206dd8dd,
-                limb2: 0x1da9c56792006d76,
+                limb0: 0x41c01095a54c1bf16eec174b,
+                limb1: 0x84b781a7f16d430823b44408,
+                limb2: 0x26bc23f1f4abf016,
                 limb3: 0x0,
             },
         },
@@ -6929,6 +7005,28 @@ fn test_msm_BN254_3P_edge_case() {
 #[test]
 fn test_msm_BLS12_381_1P_edge_case() {
     let mut data = array![
+        0x2,
+        0x0,
+        0x0,
+        0x0,
+        0x0,
+        0x0,
+        0x0,
+        0x0,
+        0x0,
+        0xf97a1aeffb3af00adb22c6bb,
+        0xa14e3a3f171bac586c55e83f,
+        0x4fa9ac0fc3688c4f9774b905,
+        0x17f1d3a73197d7942695638c,
+        0xa2888ae40caa232946c5e7e1,
+        0xdb18cb2c04b3edd03cc744,
+        0x741d8ae4fcf5e095d5d00af6,
+        0x8b3f481e3aaa0f1a09e30ed,
+        0x2,
+        0x0,
+        0x0,
+        0x53bda402fffe5bfeffffffff00000000,
+        0x73eda753299d7d483339d80809a1d805,
         0x1,
         0x0,
         0x0,
@@ -6938,19 +7036,19 @@ fn test_msm_BLS12_381_1P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x1,
         0x0,
         0x0,
         0x1,
         0x0,
-        0x0,
-        0x0,
-        0x0,
-        0x0,
-        0x0,
-        0x0,
-        0x0,
-        0x0,
+        0xf97a1aeffb3af00adb22c6bb,
+        0xa14e3a3f171bac586c55e83f,
+        0x4fa9ac0fc3688c4f9774b905,
+        0x17f1d3a73197d7942695638c,
+        0xecb751bad54dcd6b939c2ca,
+        0x6655b9d5caac42364e6f38ba,
+        0xcf2e21f267816aef1db507c9,
+        0x114d1d6855d545a8aa7d76c8,
+        0x100000000000000000000000000000001,
         0x0,
         0x1,
         0x0,
@@ -6962,8 +7060,18 @@ fn test_msm_BLS12_381_1P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0xf97a1aeffb3af00adb22c6bb,
+                limb1: 0xa14e3a3f171bac586c55e83f,
+                limb2: 0x4fa9ac0fc3688c4f9774b905,
+                limb3: 0x17f1d3a73197d7942695638c,
+            },
+            y: u384 {
+                limb0: 0xecb751bad54dcd6b939c2ca,
+                limb1: 0x6655b9d5caac42364e6f38ba,
+                limb2: 0xcf2e21f267816aef1db507c9,
+                limb3: 0x114d1d6855d545a8aa7d76c8,
+            },
         },
     );
 }
@@ -6972,7 +7080,7 @@ fn test_msm_BLS12_381_1P_edge_case() {
 #[test]
 fn test_msm_BLS12_381_2P_edge_case() {
     let mut data = array![
-        0x2,
+        0x3,
         0xe4f817e54aede0613c17035c,
         0xdff1f15010392a6da1f95a6,
         0xbed78d3d341e911d49f15454,
@@ -6989,11 +7097,21 @@ fn test_msm_BLS12_381_2P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x2,
+        0xf97a1aeffb3af00adb22c6bb,
+        0xa14e3a3f171bac586c55e83f,
+        0x4fa9ac0fc3688c4f9774b905,
+        0x17f1d3a73197d7942695638c,
+        0xa2888ae40caa232946c5e7e1,
+        0xdb18cb2c04b3edd03cc744,
+        0x741d8ae4fcf5e095d5d00af6,
+        0x8b3f481e3aaa0f1a09e30ed,
+        0x3,
         0x0,
         0x0,
         0xb4862b21fb97d43588561712e8e5216a,
         0x12cfa194e6f4590b9a164106cf6a659e,
+        0x53bda402fffe5bfeffffffff00000000,
+        0x73eda753299d7d483339d80809a1d805,
         0x1,
         0x0,
         0x0,
@@ -7019,6 +7137,18 @@ fn test_msm_BLS12_381_2P_edge_case() {
         0x100000000000000006dd46d41fa43d112,
         0x100000000000000003fd278ca4e89080e,
         0x100000000000000011c13a94b5280f2a5,
+        0xf97a1aeffb3af00adb22c6bb,
+        0xa14e3a3f171bac586c55e83f,
+        0x4fa9ac0fc3688c4f9774b905,
+        0x17f1d3a73197d7942695638c,
+        0xecb751bad54dcd6b939c2ca,
+        0x6655b9d5caac42364e6f38ba,
+        0xcf2e21f267816aef1db507c9,
+        0x114d1d6855d545a8aa7d76c8,
+        0x100000000000000000000000000000001,
+        0x0,
+        0x1,
+        0x0,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7027,8 +7157,18 @@ fn test_msm_BLS12_381_2P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0xf97a1aeffb3af00adb22c6bb,
+                limb1: 0xa14e3a3f171bac586c55e83f,
+                limb2: 0x4fa9ac0fc3688c4f9774b905,
+                limb3: 0x17f1d3a73197d7942695638c,
+            },
+            y: u384 {
+                limb0: 0xecb751bad54dcd6b939c2ca,
+                limb1: 0x6655b9d5caac42364e6f38ba,
+                limb2: 0xcf2e21f267816aef1db507c9,
+                limb3: 0x114d1d6855d545a8aa7d76c8,
+            },
         },
     );
 }
@@ -7037,7 +7177,7 @@ fn test_msm_BLS12_381_2P_edge_case() {
 #[test]
 fn test_msm_BLS12_381_3P_edge_case() {
     let mut data = array![
-        0x3,
+        0x4,
         0xe4f817e54aede0613c17035c,
         0xdff1f15010392a6da1f95a6,
         0xbed78d3d341e911d49f15454,
@@ -7062,13 +7202,23 @@ fn test_msm_BLS12_381_3P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x3,
+        0xf97a1aeffb3af00adb22c6bb,
+        0xa14e3a3f171bac586c55e83f,
+        0x4fa9ac0fc3688c4f9774b905,
+        0x17f1d3a73197d7942695638c,
+        0xa2888ae40caa232946c5e7e1,
+        0xdb18cb2c04b3edd03cc744,
+        0x741d8ae4fcf5e095d5d00af6,
+        0x8b3f481e3aaa0f1a09e30ed,
+        0x4,
         0x0,
         0x0,
         0x12e0c8b2bad640fb19488dec4f65d4d9,
         0x2a43e70faf19922ad9b8a714e61a441c,
         0x5a92118719c78df48f4ff31e78de5857,
         0x51f964df9c6316b950f244556f25e2a2,
+        0x53bda402fffe5bfeffffffff00000000,
+        0x73eda753299d7d483339d80809a1d805,
         0x1,
         0x0,
         0x0,
@@ -7106,6 +7256,18 @@ fn test_msm_BLS12_381_3P_edge_case() {
         0x10000000000000000219c430914f67fad,
         0x100000000000000002f4183d416809c9a,
         0x10000000000000000a5e789d0b6f6e2a4,
+        0xf97a1aeffb3af00adb22c6bb,
+        0xa14e3a3f171bac586c55e83f,
+        0x4fa9ac0fc3688c4f9774b905,
+        0x17f1d3a73197d7942695638c,
+        0xecb751bad54dcd6b939c2ca,
+        0x6655b9d5caac42364e6f38ba,
+        0xcf2e21f267816aef1db507c9,
+        0x114d1d6855d545a8aa7d76c8,
+        0x100000000000000000000000000000001,
+        0x0,
+        0x1,
+        0x0,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7115,16 +7277,16 @@ fn test_msm_BLS12_381_3P_edge_case() {
     assert!(
         res == G1Point {
             x: u384 {
-                limb0: 0x2b828af1f5fe30bbe7a1074a,
-                limb1: 0x5669beaa69827b52dc874c9f,
-                limb2: 0x648af2c24d82a5a758c96b8e,
-                limb3: 0x188bc245620ae6b6afec9dc3,
+                limb0: 0xba6f9a258a5c81eb5c00d6d3,
+                limb1: 0xa5d26fbf164440da345149b7,
+                limb2: 0xf226b85ccdee44779e368a95,
+                limb3: 0x187795607228007e29c792fb,
             },
             y: u384 {
-                limb0: 0xdc96192f803ef92f56d59758,
-                limb1: 0xfc6139925c05a030065d564,
-                limb2: 0xb24447300bec56efec94dcf4,
-                limb3: 0x156f97e5d31055c0a5fe154d,
+                limb0: 0x7393cfd2196053529ef8ea01,
+                limb1: 0xf856ee4c4e2adaa88c09b7d9,
+                limb2: 0x499710d15a098f2ff8b26e13,
+                limb3: 0x119aed04afd21b50d616ee0e,
             },
         },
     );
@@ -7134,7 +7296,7 @@ fn test_msm_BLS12_381_3P_edge_case() {
 #[test]
 fn test_msm_SECP256R1_1P_edge_case() {
     let mut data = array![
-        0x1,
+        0x2,
         0x0,
         0x0,
         0x0,
@@ -7143,9 +7305,19 @@ fn test_msm_SECP256R1_1P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x1,
+        0x2deb33a0f4a13945d898c296,
+        0xf8bce6e563a440f277037d81,
+        0x6b17d1f2e12c4247,
+        0x0,
+        0x6b315ececbb6406837bf51f5,
+        0x8ee7eb4a7c0f9e162bce3357,
+        0x4fe342e2fe1a7f9b,
+        0x0,
+        0x2,
         0x0,
         0x0,
+        0xbce6faada7179e84f3b9cac2fc632550,
+        0xffffffff00000000ffffffffffffffff,
         0x3,
         0x0,
         0x0,
@@ -7157,6 +7329,16 @@ fn test_msm_SECP256R1_1P_edge_case() {
         0x0,
         0x1,
         0x100000000000000000000000000000001,
+        0x2deb33a0f4a13945d898c296,
+        0xf8bce6e563a440f277037d81,
+        0x6b17d1f2e12c4247,
+        0x0,
+        0x94cea1313449bf97c840ae0a,
+        0x711814b583f061e9d431cca9,
+        0xb01cbd1c01e58065,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7165,8 +7347,18 @@ fn test_msm_SECP256R1_1P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0x2deb33a0f4a13945d898c296,
+                limb1: 0xf8bce6e563a440f277037d81,
+                limb2: 0x6b17d1f2e12c4247,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x94cea1313449bf97c840ae0a,
+                limb1: 0x711814b583f061e9d431cca9,
+                limb2: 0xb01cbd1c01e58065,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7175,7 +7367,7 @@ fn test_msm_SECP256R1_1P_edge_case() {
 #[test]
 fn test_msm_SECP256R1_2P_edge_case() {
     let mut data = array![
-        0x2,
+        0x3,
         0x113c8d620e3745e45e4389b8,
         0x85b8ff52d905fd02fe191c3f,
         0xf5d132d685201517,
@@ -7192,11 +7384,21 @@ fn test_msm_SECP256R1_2P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x2,
+        0x2deb33a0f4a13945d898c296,
+        0xf8bce6e563a440f277037d81,
+        0x6b17d1f2e12c4247,
+        0x0,
+        0x6b315ececbb6406837bf51f5,
+        0x8ee7eb4a7c0f9e162bce3357,
+        0x4fe342e2fe1a7f9b,
+        0x0,
+        0x3,
         0x0,
         0x0,
         0xeb1167b367a9c3787c65c1e582e2e662,
         0xf7c1bd874da5e709d4713d60c8a70639,
+        0xbce6faada7179e84f3b9cac2fc632550,
+        0xffffffff00000000ffffffffffffffff,
         0x3,
         0x113c8d620e3745e45e4389b8,
         0x85b8ff52d905fd02fe191c3f,
@@ -7218,6 +7420,16 @@ fn test_msm_SECP256R1_2P_edge_case() {
         0x0,
         0x35a5b9ab55bd33dd4dec8ec8c85b8754,
         0x1256a1018e9a2606d3efc444e5bc9e97,
+        0x2deb33a0f4a13945d898c296,
+        0xf8bce6e563a440f277037d81,
+        0x6b17d1f2e12c4247,
+        0x0,
+        0x94cea1313449bf97c840ae0a,
+        0x711814b583f061e9d431cca9,
+        0xb01cbd1c01e58065,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7226,8 +7438,18 @@ fn test_msm_SECP256R1_2P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0x2deb33a0f4a13945d898c296,
+                limb1: 0xf8bce6e563a440f277037d81,
+                limb2: 0x6b17d1f2e12c4247,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x94cea1313449bf97c840ae0a,
+                limb1: 0x711814b583f061e9d431cca9,
+                limb2: 0xb01cbd1c01e58065,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7236,7 +7458,7 @@ fn test_msm_SECP256R1_2P_edge_case() {
 #[test]
 fn test_msm_SECP256R1_3P_edge_case() {
     let mut data = array![
-        0x3,
+        0x4,
         0x113c8d620e3745e45e4389b8,
         0x85b8ff52d905fd02fe191c3f,
         0xf5d132d685201517,
@@ -7261,13 +7483,23 @@ fn test_msm_SECP256R1_3P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x3,
+        0x2deb33a0f4a13945d898c296,
+        0xf8bce6e563a440f277037d81,
+        0x6b17d1f2e12c4247,
+        0x0,
+        0x6b315ececbb6406837bf51f5,
+        0x8ee7eb4a7c0f9e162bce3357,
+        0x4fe342e2fe1a7f9b,
+        0x0,
+        0x4,
         0x0,
         0x0,
         0xe443df789558867f5ba91faf7a024204,
         0x23a7711a8133287637ebdcd9e87a1613,
         0x1846d424c17c627923c6612f48268673,
         0xfcbd04c340212ef7cca5a5a19e4d6e3c,
+        0xbce6faada7179e84f3b9cac2fc632550,
+        0xffffffff00000000ffffffffffffffff,
         0x3,
         0x113c8d620e3745e45e4389b8,
         0x85b8ff52d905fd02fe191c3f,
@@ -7299,6 +7531,16 @@ fn test_msm_SECP256R1_3P_edge_case() {
         0x0,
         0x44faf735503f8d6a4fd7c1f1541b0e83,
         0x108efc1b039167d94064f65615a509dcb,
+        0x2deb33a0f4a13945d898c296,
+        0xf8bce6e563a440f277037d81,
+        0x6b17d1f2e12c4247,
+        0x0,
+        0x94cea1313449bf97c840ae0a,
+        0x711814b583f061e9d431cca9,
+        0xb01cbd1c01e58065,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7308,15 +7550,15 @@ fn test_msm_SECP256R1_3P_edge_case() {
     assert!(
         res == G1Point {
             x: u384 {
-                limb0: 0x33ee7695471a03192ef22266,
-                limb1: 0xb449dd8cfd0c3438e14a718c,
-                limb2: 0x1fbb33f079b828e2,
+                limb0: 0xdffcaf62be678f4d3d103700,
+                limb1: 0x4ae0c3b5a4fb0e4e7ee75279,
+                limb2: 0x651ce75927276c9a,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0xb411f97aeec2eae6044122ec,
-                limb1: 0xcdce180b60667260d7ce284e,
-                limb2: 0xa73a7381dd3b07c,
+                limb0: 0xb27867c3cd0eb05ed74c5f9c,
+                limb1: 0xd30f6d2e04931e22def1d510,
+                limb2: 0x645a0d9d9776e75f,
                 limb3: 0x0,
             },
         },
@@ -7327,7 +7569,7 @@ fn test_msm_SECP256R1_3P_edge_case() {
 #[test]
 fn test_msm_SECP256K1_1P_edge_case() {
     let mut data = array![
-        0x1,
+        0x2,
         0x0,
         0x0,
         0x0,
@@ -7336,9 +7578,19 @@ fn test_msm_SECP256K1_1P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x1,
+        0x2dce28d959f2815b16f81798,
+        0x55a06295ce870b07029bfcdb,
+        0x79be667ef9dcbbac,
+        0x0,
+        0xa68554199c47d08ffb10d4b8,
+        0x5da4fbfc0e1108a8fd17b448,
+        0x483ada7726a3c465,
+        0x0,
+        0x2,
         0x0,
         0x0,
+        0xbaaedce6af48a03bbfd25e8cd0364140,
+        0xfffffffffffffffffffffffffffffffe,
         0x2,
         0x0,
         0x0,
@@ -7349,6 +7601,18 @@ fn test_msm_SECP256K1_1P_edge_case() {
         0x0,
         0x0,
         0x0,
+        0x0,
+        0x1,
+        0x0,
+        0x2dce28d959f2815b16f81798,
+        0x55a06295ce870b07029bfcdb,
+        0x79be667ef9dcbbac,
+        0x0,
+        0x597aabe663b82f6f04ef2777,
+        0xa25b0403f1eef75702e84bb7,
+        0xb7c52588d95c3b9a,
+        0x0,
+        0x100000000000000000000000000000001,
         0x0,
         0x1,
         0x0,
@@ -7360,8 +7624,18 @@ fn test_msm_SECP256K1_1P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0x2dce28d959f2815b16f81798,
+                limb1: 0x55a06295ce870b07029bfcdb,
+                limb2: 0x79be667ef9dcbbac,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x597aabe663b82f6f04ef2777,
+                limb1: 0xa25b0403f1eef75702e84bb7,
+                limb2: 0xb7c52588d95c3b9a,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7370,7 +7644,7 @@ fn test_msm_SECP256K1_1P_edge_case() {
 #[test]
 fn test_msm_SECP256K1_2P_edge_case() {
     let mut data = array![
-        0x2,
+        0x3,
         0x393dead57bc85a6e9bb44a70,
         0x64d4b065b3ede27cf9fb9e5c,
         0xda670c8c69a8ce0a,
@@ -7387,11 +7661,21 @@ fn test_msm_SECP256K1_2P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x2,
+        0x2dce28d959f2815b16f81798,
+        0x55a06295ce870b07029bfcdb,
+        0x79be667ef9dcbbac,
+        0x0,
+        0xa68554199c47d08ffb10d4b8,
+        0x5da4fbfc0e1108a8fd17b448,
+        0x483ada7726a3c465,
+        0x0,
+        0x3,
         0x0,
         0x0,
         0xeb1167b367a9c3787c65c1e582e2e662,
         0xf7c1bd874da5e709d4713d60c8a70639,
+        0xbaaedce6af48a03bbfd25e8cd0364140,
+        0xfffffffffffffffffffffffffffffffe,
         0x2,
         0x0,
         0x0,
@@ -7417,6 +7701,18 @@ fn test_msm_SECP256K1_2P_edge_case() {
         0x10000000000000000d26ed5ec3fed4a10,
         0x100000000000000000244ef30aafa6bea,
         0x10000000000000000acd6f7f5c44d1c84,
+        0x2dce28d959f2815b16f81798,
+        0x55a06295ce870b07029bfcdb,
+        0x79be667ef9dcbbac,
+        0x0,
+        0x597aabe663b82f6f04ef2777,
+        0xa25b0403f1eef75702e84bb7,
+        0xb7c52588d95c3b9a,
+        0x0,
+        0x100000000000000000000000000000001,
+        0x0,
+        0x1,
+        0x0,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7425,8 +7721,18 @@ fn test_msm_SECP256K1_2P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0x2dce28d959f2815b16f81798,
+                limb1: 0x55a06295ce870b07029bfcdb,
+                limb2: 0x79be667ef9dcbbac,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x597aabe663b82f6f04ef2777,
+                limb1: 0xa25b0403f1eef75702e84bb7,
+                limb2: 0xb7c52588d95c3b9a,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7435,7 +7741,7 @@ fn test_msm_SECP256K1_2P_edge_case() {
 #[test]
 fn test_msm_SECP256K1_3P_edge_case() {
     let mut data = array![
-        0x3,
+        0x4,
         0x393dead57bc85a6e9bb44a70,
         0x64d4b065b3ede27cf9fb9e5c,
         0xda670c8c69a8ce0a,
@@ -7460,13 +7766,23 @@ fn test_msm_SECP256K1_3P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x3,
+        0x2dce28d959f2815b16f81798,
+        0x55a06295ce870b07029bfcdb,
+        0x79be667ef9dcbbac,
+        0x0,
+        0xa68554199c47d08ffb10d4b8,
+        0x5da4fbfc0e1108a8fd17b448,
+        0x483ada7726a3c465,
+        0x0,
+        0x4,
         0x0,
         0x0,
         0xe443df789558867f5ba91faf7a024204,
         0x23a7711a8133287637ebdcd9e87a1613,
         0x1846d424c17c627923c6612f48268673,
         0xfcbd04c340212ef7cca5a5a19e4d6e3c,
+        0xbaaedce6af48a03bbfd25e8cd0364140,
+        0xfffffffffffffffffffffffffffffffe,
         0x2,
         0x0,
         0x0,
@@ -7504,6 +7820,18 @@ fn test_msm_SECP256K1_3P_edge_case() {
         0x10000000000000000677cf4ed9b6a956c,
         0x16639a91e7090d725,
         0x20a20dbde89c97516,
+        0x2dce28d959f2815b16f81798,
+        0x55a06295ce870b07029bfcdb,
+        0x79be667ef9dcbbac,
+        0x0,
+        0x597aabe663b82f6f04ef2777,
+        0xa25b0403f1eef75702e84bb7,
+        0xb7c52588d95c3b9a,
+        0x0,
+        0x100000000000000000000000000000001,
+        0x0,
+        0x1,
+        0x0,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7513,15 +7841,15 @@ fn test_msm_SECP256K1_3P_edge_case() {
     assert!(
         res == G1Point {
             x: u384 {
-                limb0: 0x55909ba28af82ea934a4b85d,
-                limb1: 0x4bf448ca5d57fb119c843e0a,
-                limb2: 0x6a2275491b991ee3,
+                limb0: 0x8ae1b945a4bee5df2482580e,
+                limb1: 0x113a509c4213fb90b017895a,
+                limb2: 0xdb53345431b0c359,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x5bf4bf0cefc9553422e60eb0,
-                limb1: 0x178d55925d3d72f44783f626,
-                limb2: 0xe13a21d7302f8139,
+                limb0: 0x5f8a05f7d421794bf1c2f718,
+                limb1: 0xf026f2017517996e6dc446ce,
+                limb2: 0xc09762999f005286,
                 limb3: 0x0,
             },
         },
@@ -7532,7 +7860,7 @@ fn test_msm_SECP256K1_3P_edge_case() {
 #[test]
 fn test_msm_ED25519_1P_edge_case() {
     let mut data = array![
-        0x1,
+        0x2,
         0x0,
         0x0,
         0x0,
@@ -7541,9 +7869,19 @@ fn test_msm_ED25519_1P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x1,
+        0xd617c9aca55c89b025aef35,
+        0xf00b8f02f1c20618a9c13fdf,
+        0x2a78dd0fd02c0339,
+        0x0,
+        0x807131659b7830f3f62c1d14,
+        0xbe483ba563798323cf6fd061,
+        0x29c644a5c71da22e,
+        0x0,
+        0x2,
         0x0,
         0x0,
+        0x14def9dea2f79cd65812631a5cf5d3ec,
+        0x10000000000000000000000000000000,
         0x4,
         0x0,
         0x0,
@@ -7555,6 +7893,16 @@ fn test_msm_ED25519_1P_edge_case() {
         0x0,
         0x1,
         0x100000000000000000000000000000001,
+        0xd617c9aca55c89b025aef35,
+        0xf00b8f02f1c20618a9c13fdf,
+        0x2a78dd0fd02c0339,
+        0x0,
+        0x7f8ece9a6487cf0c09d3e2d9,
+        0x41b7c45a9c867cdc30902f9e,
+        0x5639bb5a38e25dd1,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7563,8 +7911,18 @@ fn test_msm_ED25519_1P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0xd617c9aca55c89b025aef35,
+                limb1: 0xf00b8f02f1c20618a9c13fdf,
+                limb2: 0x2a78dd0fd02c0339,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x7f8ece9a6487cf0c09d3e2d9,
+                limb1: 0x41b7c45a9c867cdc30902f9e,
+                limb2: 0x5639bb5a38e25dd1,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7573,7 +7931,7 @@ fn test_msm_ED25519_1P_edge_case() {
 #[test]
 fn test_msm_ED25519_2P_edge_case() {
     let mut data = array![
-        0x2,
+        0x3,
         0x7238f02b9f20e09c2181a557,
         0x2cedcc5b0be371c337fd7e9e,
         0x41f3bbeb280fe8a2,
@@ -7590,11 +7948,21 @@ fn test_msm_ED25519_2P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x2,
+        0xd617c9aca55c89b025aef35,
+        0xf00b8f02f1c20618a9c13fdf,
+        0x2a78dd0fd02c0339,
+        0x0,
+        0x807131659b7830f3f62c1d14,
+        0xbe483ba563798323cf6fd061,
+        0x29c644a5c71da22e,
+        0x0,
+        0x3,
         0x0,
         0x0,
         0xb4862b21fb97d43588561712e8e5216a,
         0x4b3e865e6f4590b9a164106cf6a659e,
+        0x14def9dea2f79cd65812631a5cf5d3ec,
+        0x10000000000000000000000000000000,
         0x4,
         0x7238f02b9f20e09c2181a557,
         0x2cedcc5b0be371c337fd7e9e,
@@ -7616,6 +7984,16 @@ fn test_msm_ED25519_2P_edge_case() {
         0x0,
         0x21ef407bea1953254c1bc318a0af2527,
         0x1c147c0993c84eed5f426b94b3350045,
+        0xd617c9aca55c89b025aef35,
+        0xf00b8f02f1c20618a9c13fdf,
+        0x2a78dd0fd02c0339,
+        0x0,
+        0x7f8ece9a6487cf0c09d3e2d9,
+        0x41b7c45a9c867cdc30902f9e,
+        0x5639bb5a38e25dd1,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7624,8 +8002,18 @@ fn test_msm_ED25519_2P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 {
+                limb0: 0xd617c9aca55c89b025aef35,
+                limb1: 0xf00b8f02f1c20618a9c13fdf,
+                limb2: 0x2a78dd0fd02c0339,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x7f8ece9a6487cf0c09d3e2d9,
+                limb1: 0x41b7c45a9c867cdc30902f9e,
+                limb2: 0x5639bb5a38e25dd1,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7634,7 +8022,7 @@ fn test_msm_ED25519_2P_edge_case() {
 #[test]
 fn test_msm_ED25519_3P_edge_case() {
     let mut data = array![
-        0x3,
+        0x4,
         0x7238f02b9f20e09c2181a557,
         0x2cedcc5b0be371c337fd7e9e,
         0x41f3bbeb280fe8a2,
@@ -7659,13 +8047,23 @@ fn test_msm_ED25519_3P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x3,
+        0xd617c9aca55c89b025aef35,
+        0xf00b8f02f1c20618a9c13fdf,
+        0x2a78dd0fd02c0339,
+        0x0,
+        0x807131659b7830f3f62c1d14,
+        0xbe483ba563798323cf6fd061,
+        0x29c644a5c71da22e,
+        0x0,
+        0x4,
         0x0,
         0x0,
         0x12e0c8b2bad640fb19488dec4f65d4d9,
         0xa90f9c3af19922ad9b8a714e61a441c,
         0xeb2083e6ce164dba0ff18e0242af9fc3,
         0x2fc154703983ca8ea7e9d498c778ea6,
+        0x14def9dea2f79cd65812631a5cf5d3ec,
+        0x10000000000000000000000000000000,
         0x4,
         0x7238f02b9f20e09c2181a557,
         0x2cedcc5b0be371c337fd7e9e,
@@ -7697,6 +8095,16 @@ fn test_msm_ED25519_3P_edge_case() {
         0x0,
         0x3242668a77ced3cb6ca4b87c1b759c91,
         0x128e825972592d2a632df711368a1c105,
+        0xd617c9aca55c89b025aef35,
+        0xf00b8f02f1c20618a9c13fdf,
+        0x2a78dd0fd02c0339,
+        0x0,
+        0x7f8ece9a6487cf0c09d3e2d9,
+        0x41b7c45a9c867cdc30902f9e,
+        0x5639bb5a38e25dd1,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7706,15 +8114,15 @@ fn test_msm_ED25519_3P_edge_case() {
     assert!(
         res == G1Point {
             x: u384 {
-                limb0: 0xf7d884feff5aba51d9990dce,
-                limb1: 0x999f1d302046c6266257ff5,
-                limb2: 0x7f9caa5ee5815899,
+                limb0: 0xea1930f7f9c99711b76d5726,
+                limb1: 0xa06d0a2a0011cdaa581c307a,
+                limb2: 0x6a9d379c7dcfb5b6,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x6d71279424538e87f8ecf2cc,
-                limb1: 0x8a8a1d74581da5996a52bbaf,
-                limb2: 0x29acff692eccea25,
+                limb0: 0xe529194a47d7db7a9a8b88b1,
+                limb1: 0xebb88d8901d42d55b9966ff5,
+                limb2: 0x2ea083fb0eb0877c,
                 limb3: 0x0,
             },
         },
@@ -7725,7 +8133,7 @@ fn test_msm_ED25519_3P_edge_case() {
 #[test]
 fn test_msm_GRUMPKIN_1P_edge_case() {
     let mut data = array![
-        0x1,
+        0x2,
         0x0,
         0x0,
         0x0,
@@ -7737,6 +8145,16 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
         0x1,
         0x0,
         0x0,
+        0x0,
+        0xf1181294833fc48d823f272c,
+        0xcf135e7506a45d632d270d45,
+        0x2,
+        0x0,
+        0x2,
+        0x0,
+        0x0,
+        0x97816a916871ca8d3c208c16d87cfd46,
+        0x30644e72e131a029b85045b68181585d,
         0x5,
         0x0,
         0x0,
@@ -7748,6 +8166,16 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
         0x0,
         0x1,
         0x100000000000000000000000000000001,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x88a15dfcc0a231066dc0d8d5,
+        0xe93ce7417adcfaf9fb0cdb02,
+        0x30644e72e131a026,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7756,8 +8184,13 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 {
+                limb0: 0x88a15dfcc0a231066dc0d8d5,
+                limb1: 0xe93ce7417adcfaf9fb0cdb02,
+                limb2: 0x30644e72e131a026,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7766,7 +8199,7 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
 #[test]
 fn test_msm_GRUMPKIN_2P_edge_case() {
     let mut data = array![
-        0x2,
+        0x3,
         0x86b402ce02e7c7ca81f13d51,
         0x39493672733a9289a36020c1,
         0x7f40d91dc5413d3,
@@ -7783,11 +8216,21 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
         0x0,
         0x0,
         0x0,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0xf1181294833fc48d823f272c,
+        0xcf135e7506a45d632d270d45,
         0x2,
+        0x0,
+        0x3,
         0x0,
         0x0,
         0xb4862b21fb97d43588561712e8e5216a,
         0x967d0cae6f4590b9a164106cf6a659e,
+        0x97816a916871ca8d3c208c16d87cfd46,
+        0x30644e72e131a029b85045b68181585d,
         0x5,
         0x86b402ce02e7c7ca81f13d51,
         0x39493672733a9289a36020c1,
@@ -7809,6 +8252,16 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
         0x0,
         0x5520c252aad219e02bf5055a4ed023b7,
         0x197e50b8e7adb6dd93eeede129c12721,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x88a15dfcc0a231066dc0d8d5,
+        0xe93ce7417adcfaf9fb0cdb02,
+        0x30644e72e131a026,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7817,8 +8270,13 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
     let res = msm_g1(points, scalars, curve_id, data);
     assert!(
         res == G1Point {
-            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 {
+                limb0: 0x88a15dfcc0a231066dc0d8d5,
+                limb1: 0xe93ce7417adcfaf9fb0cdb02,
+                limb2: 0x30644e72e131a026,
+                limb3: 0x0,
+            },
         },
     );
 }
@@ -7827,7 +8285,7 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
 #[test]
 fn test_msm_GRUMPKIN_3P_edge_case() {
     let mut data = array![
-        0x3,
+        0x4,
         0x86b402ce02e7c7ca81f13d51,
         0x39493672733a9289a36020c1,
         0x7f40d91dc5413d3,
@@ -7852,13 +8310,23 @@ fn test_msm_GRUMPKIN_3P_edge_case() {
         0x0,
         0x0,
         0x0,
-        0x3,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0xf1181294833fc48d823f272c,
+        0xcf135e7506a45d632d270d45,
+        0x2,
+        0x0,
+        0x4,
         0x0,
         0x0,
         0x12e0c8b2bad640fb19488dec4f65d4d9,
         0x1521f387af19922ad9b8a714e61a441c,
         0x5a92118719c78df48f4ff31e78de5857,
         0x28fcb26f9c6316b950f244556f25e2a2,
+        0x97816a916871ca8d3c208c16d87cfd46,
+        0x30644e72e131a029b85045b68181585d,
         0x5,
         0x86b402ce02e7c7ca81f13d51,
         0x39493672733a9289a36020c1,
@@ -7890,6 +8358,16 @@ fn test_msm_GRUMPKIN_3P_edge_case() {
         0x0,
         0x10a2e45b33049f11b360c09b6389565b,
         0x63f1d0c59d848c415389772b72561b3d,
+        0x1,
+        0x0,
+        0x0,
+        0x0,
+        0x88a15dfcc0a231066dc0d8d5,
+        0xe93ce7417adcfaf9fb0cdb02,
+        0x30644e72e131a026,
+        0x0,
+        0x1,
+        0x1,
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -7899,15 +8377,15 @@ fn test_msm_GRUMPKIN_3P_edge_case() {
     assert!(
         res == G1Point {
             x: u384 {
-                limb0: 0xf47b4ee8eecf8576c38173d8,
-                limb1: 0x755d90a26c30d7d6fb33afd3,
-                limb2: 0x5e835e05fdb55c5,
+                limb0: 0xf8c1f1ea2f76ef32e8aaa1e5,
+                limb1: 0x4f332469fd3c88e2a2a255c6,
+                limb2: 0x25bea91cb12ea60f,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x990d5f4767a8d057f8695e4e,
-                limb1: 0x5f8dd4e272c268c0d2ce4a39,
-                limb2: 0x1704905427d31a82,
+                limb0: 0x13dd399b7d2ee3c5048e382d,
+                limb1: 0x8d9fd23cff123740ae29ea9a,
+                limb2: 0x8aa44466337bea4,
                 limb3: 0x0,
             },
         },

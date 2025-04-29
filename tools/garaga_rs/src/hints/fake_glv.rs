@@ -239,7 +239,13 @@ pub fn half_gcd_eisenstein_hint(
 ) -> Result<[BigInt; 4], String> {
     let glv_basis = precompute_lattice(modulus, eigen_value)?;
     let r = eisenstein::EisensteinInteger::new(glv_basis.v1[0].clone(), glv_basis.v1[1].clone());
-    let sp = split_scalar(scalar, &glv_basis);
+    let scalar = if scalar % modulus == modulus - 1 {
+        BigInt::from(1)
+    } else {
+        scalar.clone()
+    };
+
+    let sp = split_scalar(&scalar, &glv_basis);
     let s = eisenstein::EisensteinInteger::new(sp[0].clone(), sp[1].clone());
     // in-circuit we check that Q - [s]P = 0 or equivalently Q + [-s]P = 0
     // so here we return -s instead of s.
