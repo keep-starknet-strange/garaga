@@ -13,10 +13,7 @@ use garaga::definitions::{
     BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, get_BLS12_381_modulus, serialize_u384,
     u384Serde,
 };
-use garaga::ec_ops::{
-    DerivePointFromXHint, FunctionFelt, MSMHintSmallScalar, ec_safe_add, msm_g1_u128,
-    scalar_mul_g1_fixed_small_scalar,
-};
+use garaga::ec_ops::{ec_safe_add, msm_g1};
 use garaga::ec_ops_g2;
 use garaga::single_pairing_tower::{final_exp_bls12_381_tower, miller_loop_bls12_381_tower};
 use garaga::utils::usize_assert_eq;
@@ -132,8 +129,7 @@ impl MapToCurveHintSerde of Serde<MapToCurveHint> {
 struct HashToCurveHint {
     f0_hint: MapToCurveHint,
     f1_hint: MapToCurveHint,
-    scalar_mul_hint: MSMHintSmallScalar<u384>,
-    derive_point_from_x_hint: DerivePointFromXHint,
+    scalar_mul_hint: Span<felt252>,
 }
 
 
@@ -153,13 +149,11 @@ fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHin
     let (sum) = run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(sum);
 
     // clear cofactor :
-    let res = scalar_mul_g1_fixed_small_scalar(
-        sum,
-        BLS_COFACTOR_EPNS,
-        BLS_COFACTOR,
-        hash_to_curve_hint.scalar_mul_hint,
-        hash_to_curve_hint.derive_point_from_x_hint,
+    let res = msm_g1(
+        array![sum].span(),
+        array![u256 { low: BLS_COFACTOR, high: 0 }].span(),
         1,
+        hash_to_curve_hint.scalar_mul_hint,
     );
     return res;
 }
@@ -842,9 +836,8 @@ pub fn round_to_timestamp(round: u64) -> u64 {
 mod tests {
     use garaga::ec_ops_g2::G2PointTrait;
     use super::{
-        CipherText, DRAND_QUICKNET_PUBLIC_KEY, DerivePointFromXHint, FunctionFelt, G1Point, G2Point,
-        HashToCurveHint, MSMHintSmallScalar, MapToCurveHint, decrypt_at_round,
-        hash_to_curve_bls12_381, hash_to_two_bls_felts, map_to_curve,
+        CipherText, DRAND_QUICKNET_PUBLIC_KEY, G1Point, G2Point, HashToCurveHint, MapToCurveHint,
+        decrypt_at_round, hash_to_curve_bls12_381, hash_to_two_bls_felts, map_to_curve,
         run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit, u384,
     };
 
@@ -974,109 +967,22 @@ mod tests {
                 },
                 y_flag: false,
             },
-            scalar_mul_hint: MSMHintSmallScalar {
-                Q: G1Point {
-                    x: u384 {
-                        limb0: 0x931f614913b4e856c2a5dd1b,
-                        limb1: 0xce68eade0d43210615956b1d,
-                        limb2: 0x4f2c8c74301387552679068d,
-                        limb3: 0xcc12bfa116dae0017adb178,
-                    },
-                    y: u384 {
-                        limb0: 0x6b02cc408fda040be6918d1e,
-                        limb1: 0x325a198e22c4131c6fed473b,
-                        limb2: 0xf0bbbddfea59e5a96a11bd20,
-                        limb3: 0xeb05659d43180b59cee2ea0,
-                    },
-                },
-                SumDlogDiv: FunctionFelt {
-                    a_num: array![
-                        u384 {
-                            limb0: 0xe9547e3c22c368f3668c26d2,
-                            limb1: 0x75bc3174101565eeb65968d6,
-                            limb2: 0x3afe08b77f8913061d67f0b2,
-                            limb3: 0xc3a508ed77d2e5fd684d134,
-                        },
-                        u384 { limb0: 0x3f41b003a7dbf839, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                    ]
-                        .span(),
-                    a_den: array![
-                        u384 {
-                            limb0: 0xe992bce6bcd56741b4be8dda,
-                            limb1: 0x975f2e11a8fc4e110f1b44ba,
-                            limb2: 0xc1e9530f84e3a7e0a46d33e1,
-                            limb3: 0x88dd6a0666b7d5a4c14ea85,
-                        },
-                        u384 {
-                            limb0: 0x4d6f4786473f4ff1643a5ee,
-                            limb1: 0x25cb9788a504f44e94bddec4,
-                            limb2: 0xe8adc9bc8ead85ba812bddf7,
-                            limb3: 0x53655ff5e6a7e350e3028ac,
-                        },
-                        u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                    ]
-                        .span(),
-                    b_num: array![
-                        u384 {
-                            limb0: 0x743a827dc9c4737c7a70322d,
-                            limb1: 0x7bfda798292e0429f35febf0,
-                            limb2: 0x7bca28663f0d7795d8629dc2,
-                            limb3: 0x1eb8b6c2989bb00ee12bd00,
-                        },
-                        u384 {
-                            limb0: 0xdc2fa95b1c3dadfa185f4ff4,
-                            limb1: 0x9daea3eea2647b9adc25d4ea,
-                            limb2: 0x24dbf64222ab9fcb34052520,
-                            limb3: 0x124e8c93a451aaeb0b256a,
-                        },
-                        u384 {
-                            limb0: 0x3e58c1d601349a222ca499e8,
-                            limb1: 0x6c6aaf8d55c9039164e09e20,
-                            limb2: 0xfb431077e445c903bc81ed03,
-                            limb3: 0xc08aa0954aa40b81be4fdf9,
-                        },
-                    ]
-                        .span(),
-                    b_den: array![
-                        u384 {
-                            limb0: 0xf4f6f39b39569d06d2fa8cbd,
-                            limb1: 0xf64be5a5ad4042201dc112ec,
-                            limb2: 0xc4599f66af1753fd9e2fbcc6,
-                            limb3: 0x8364897602e0ecee5380260,
-                        },
-                        u384 {
-                            limb0: 0x135bd1e191cfd3fc590e97b8,
-                            limb1: 0x972e5e229413d13a52f77b10,
-                            limb2: 0xa2b726f23ab616ea04af77dc,
-                            limb3: 0x14d957fd79a9f8d438c0a2b3,
-                        },
-                        u384 { limb0: 0x4, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                        u384 {
-                            limb0: 0xe992bce6bcd56741b4be8dda,
-                            limb1: 0x975f2e11a8fc4e110f1b44ba,
-                            limb2: 0xc1e9530f84e3a7e0a46d33e1,
-                            limb3: 0x88dd6a0666b7d5a4c14ea85,
-                        },
-                        u384 {
-                            limb0: 0x4d6f4786473f4ff1643a5ee,
-                            limb1: 0x25cb9788a504f44e94bddec4,
-                            limb2: 0xe8adc9bc8ead85ba812bddf7,
-                            limb3: 0x53655ff5e6a7e350e3028ac,
-                        },
-                        u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-                    ]
-                        .span(),
-                },
-            },
-            derive_point_from_x_hint: DerivePointFromXHint {
-                y_last_attempt: u384 {
-                    limb0: 0x6515783d21f573c7cd61fbae,
-                    limb1: 0x1013607aa988eeb0dbea896a,
-                    limb2: 0xc459d27f6d3a34be79bbb31a,
-                    limb3: 0xb32862ff9309b9044f09471,
-                },
-                g_rhs_sqrt: array![].span(),
-            },
+            scalar_mul_hint: array![
+                1,
+                45532232561726949585200733467,
+                63880749438326825307923114781,
+                24503171786543479751748159117,
+                3947350475742397264074486136,
+                33118278456242879678441950494,
+                15583174495937448575431952187,
+                74503368143166723743387073824,
+                4545968862318898773943529120,
+                15132376222941642751,
+                0,
+                340282366920938463493639359877651496959,
+                340282366920938463493639359877651496958,
+            ]
+                .span(),
         };
 
         let expected = G1Point {

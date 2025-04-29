@@ -251,11 +251,45 @@ def split(x):
     return bigint_split(x, 4, 2**64)
 
 
-def encode_glv_hint(u1: int, u2: int, v1: int, v2: int) -> tuple[int, int, int, int]:
-    def encode(value: int) -> int:
-        return abs(value) + 2**128 if value < 0 else value
+def get_glv_fake_glv_hint(
+    point: G1Point, scalar: int
+) -> tuple[G1Point, int, int, int, int]:
+    curve = CURVES[point.curve_id.value]
+    assert (
+        curve.is_endomorphism_available()
+    ), f"Curve {point.curve_id} does not have an endomorphism, use get_fake_glv_hint instead"
+    eigen_value = curve.eigen_value
+    u1, u2, v1, v2 = encode_glv_fake_glv_hint(
+        *half_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
+    )
+    Q = point.scalar_mul(scalar)
+    return Q, u1, u2, v1, v2
+
+
+def encode(value: int) -> int:
+    return abs(value) + 2**128 if value < 0 else value
+
+
+def encode_glv_fake_glv_hint(
+    u1: int, u2: int, v1: int, v2: int
+) -> tuple[int, int, int, int]:
 
     return encode(u1), encode(u2), encode(v1), encode(v2)
+
+
+def get_fake_glv_hint(point: G1Point, scalar: int) -> tuple[G1Point, int, int]:
+    curve = CURVES[point.curve_id.value]
+    if scalar == 0:
+        scalar = 1
+    assert (
+        not curve.is_endomorphism_available()
+    ), f"Curve {point.curve_id} has an endomorphism, use get_glv_fake_glv_hint instead"
+    glv_basis = precompute_lattice(curve.n, scalar)
+    s1, s2 = glv_basis.V1[0], glv_basis.V1[1]
+    assert (s1 + scalar * s2) % curve.n == 0
+    assert 0 < s1 and s2 != 0
+    Q = point.scalar_mul(scalar)
+    return Q, s1, encode(s2)
 
 
 def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
@@ -278,7 +312,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     print(f"Q: {split(Q.x)}, {split(Q.y)}")
     print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
 
-    print(f"encoded hint: {encode_glv_hint(u1, u2, v1, v2)}")
+    print(f"encoded hint: {encode_glv_fake_glv_hint(u1, u2, v1, v2)}")
     # Verifier :
     # We need to check that:
     # 		s*(v1 + λ*v2) + u1 + λ*u2 = 0
@@ -328,6 +362,9 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     table_S[2] = table_P[1].add(table_Q[0])  # P-Q
     table_S[3] = -table_S[2]  # -P+Q
 
+    for i in range(4):
+        print(f"\nS{i}: {table_S[i].to_cairo_1(as_hex=False)}\n")
+
     table_Phi_S[0] = table_Phi_P[0].add(table_Phi_Q[0])  # -Φ(P)-Φ(Q)
     table_Phi_S[1] = -table_Phi_S[0]  # Φ(P)+Φ(Q)
     table_Phi_S[2] = table_Phi_P[1].add(table_Phi_Q[0])  # Φ(P)-Φ(Q)
@@ -337,8 +374,8 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # 		Acc = P + Q + Φ(P) + Φ(Q)
     Acc = table_S[1].add(table_Phi_S[1])
     B1 = Acc
-
-    print(f"B1: {split(B1.x)}, {split(B1.y)}")
+    print(f"B1: {B1.to_cairo_1(as_hex=False)}")
+    # print(f"B1: {split(B1.x)}, {split(B1.y)}")
 
     # then we add G (the base point) to Acc to avoid incomplete additions in
     # the loop, because when doing doubleAndAdd(Acc, Bi) as (Acc+Bi)+Acc it
@@ -354,7 +391,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # // so we need to add 9 bits to r^{1/4}.nbits().
     # nbits := st.Modulus().BitLen()>>2 + 9
 
-    n_bits = curve.n.bit_length() // 4
+    n_bits = curve.n.bit_length() // 4 + 9
 
     def to_bits_le(x: int) -> List[int]:
         """
@@ -363,7 +400,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         """
         # Convert to binary string, remove '0b' prefix, pad with zeros, and reverse
         bits_be = bin(x)[2:].zfill(n_bits)
-        print(bits_be)
+        # print(bits_be)
         return [int(b) for b in bits_be[::-1]]
 
     u1_bits = to_bits_le(abs(u1))
@@ -371,7 +408,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     v1_bits = to_bits_le(abs(v1))
     v2_bits = to_bits_le(abs(v2))
 
-    print(f"length of u1_bits: {len(u1_bits)}")
+    # print(f"length of u1_bits: {len(u1_bits)}")
 
     # // At each iteration we look up the point Bi from:
     # // 		B1  = +P + Q + Φ(P) + Φ(Q)
@@ -430,11 +467,12 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
     Bs = [B16, B8, B14, B6, B12, B4, B10, B2, B15, B7, B13, B5, B11, B3, B9, B1]
     # for i := nbits - 1; i > 0; i-- {
+    print(f"Acc; {Acc.to_cairo_1(as_hex=False)}")
     for i in range(n_bits - 1, 0, -1):
         # // selectorY takes values in [0,15]
 
         selector_y = u1_bits[i] + 2 * u2_bits[i] + 4 * v1_bits[i] + 8 * v2_bits[i]
-        print(f"selector_y_{i}: {selector_y}")
+        # print(f"selector_y_{i}: {selector_y}")
         # // selectorX takes values in [0,7] s.t.:
         # 		- when selectorY < 8: selectorX = selectorY
         # 		- when selectorY >= 8: selectorX = 15 - selectorY
@@ -450,6 +488,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
         Acc = Acc.add(Acc).add(Bi)
 
+    print("Acc final: ", Acc.to_cairo_1(as_hex=False))
     # i = 0
     #
     # // i = 0
@@ -498,3 +537,17 @@ if __name__ == "__main__":
 
     # print(g.to_cairo_1())
     # print(res.to_cairo_1())
+
+    from garaga.definitions import *
+
+    for curve_id in CURVES:
+        curve: WeierstrassCurve = CURVES[curve_id]
+        if curve.is_endomorphism_available():
+            nbits = curve.n.bit_length() // 4 + 9
+            used_nbits = 72
+            assert (
+                used_nbits >= nbits
+            ), f"Curve {curve_id} has {nbits} bits, but used {used_nbits} bits"
+            print(
+                f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits -1)).to_cairo_1()}"
+            )

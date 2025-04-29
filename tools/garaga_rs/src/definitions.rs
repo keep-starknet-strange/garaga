@@ -9,6 +9,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
+use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::Num;
 use std::cmp::PartialEq;
@@ -144,7 +145,8 @@ pub struct CurveParams<F: IsPrimeField> {
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
-    pub nr_a0: u64, // E2 non residue
+    pub nr_a0: u64,                  // E2 non residue
+    pub eigen_value: Option<BigInt>, // Endomorphism eigenvalue
 }
 
 pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -197,6 +199,13 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: Some(
+                BigInt::from_str_radix(
+                    "5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72",
+                    16,
+                )
+                .unwrap(),
+            ),
         }
     }
 }
@@ -231,6 +240,7 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: None, // SECP256R1 does not have a known endomorphism eigenvalue for GLV
         }
     }
 }
@@ -265,6 +275,7 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: None, // X25519 (Edwards/Montgomery) does not typically use this type of endomorphism
         }
     }
 }
@@ -295,6 +306,7 @@ impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: None, // Grumpkin does not have a known endomorphism eigenvalue for GLV
         }
     }
 }
@@ -346,6 +358,10 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
             ],
             nr_a0: 9,
+            eigen_value: Some(
+                BigInt::from_str_radix("B3C4D79D41A917585BFC41088D8DAAA78B17EA66B99C90DD", 16)
+                    .unwrap(),
+            ),
         }
     }
 }
@@ -385,6 +401,9 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 0, 1, 0, 0, 1, 0, 1, 1,
             ],
             nr_a0: 1,
+            eigen_value: Some(
+                BigInt::from_str_radix("AC45A4010001A40200000000FFFFFFFF", 16).unwrap(),
+            ),
         }
     }
 }

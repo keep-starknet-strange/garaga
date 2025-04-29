@@ -235,7 +235,6 @@ use core::circuit::{
     EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
 };
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue};
-use garaga::ec_ops::FunctionFelt;
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{G1Point};\n

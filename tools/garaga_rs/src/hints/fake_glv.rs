@@ -1,7 +1,11 @@
+use crate::algebra::g1point::G1Point;
+use crate::definitions::{CurveID, CurveParamsProvider, FieldElement};
 use crate::hints::eisenstein;
-use num_bigint::BigInt;
+use lambdaworks_math::field::traits::IsPrimeField;
+use num_bigint::{BigInt, BigUint, Sign, ToBigInt};
 use num_integer::Integer;
 use num_traits::Signed;
+use std::str::FromStr;
 
 /*
 Represents a 2D lattice basis (V1, V2) derived from GLV decomposition.
@@ -240,7 +244,7 @@ pub fn half_gcd_eisenstein_hint(
     // in-circuit we check that Q - [s]P = 0 or equivalently Q + [-s]P = 0
     // so here we return -s instead of s.
     let s = -s;
-    println!("r: {}, \ns: {}", r, s);
+    // println!("r: {}, \ns: {}", r, s);
     let [w, v_res, _] = eisenstein::half_gcd(&r, &s)?;
 
     // Note : outputs can be negative.
@@ -250,6 +254,113 @@ pub fn half_gcd_eisenstein_hint(
         v_res.a0.clone(),
         v_res.a1.clone(),
     ])
+}
+
+fn encode_value(value: &BigInt) -> BigUint {
+    // Corresponds to Python: abs(value) + 2**128 if value < 0 else value
+    let power_128_bigint: BigInt = BigInt::from(1) << 128;
+    let power_128_biguint = power_128_bigint.to_biguint().unwrap(); // Safe because 2^128 > 0
+
+    if value.sign() == Sign::Minus {
+        // Convert `value.abs()` (BigInt) to BigUint before adding power_128 (BigUint)
+        value.abs().to_biguint().unwrap() + power_128_biguint
+    } else {
+        // value is non-negative, safe to convert to BigUint
+        value.to_biguint().unwrap()
+    }
+}
+
+fn encode_glv_fake_glv_hint(u1: &BigInt, u2: &BigInt, v1: &BigInt, v2: &BigInt) -> [BigUint; 4] {
+    // Re-use the standalone encode_value function
+    [
+        encode_value(u1),
+        encode_value(u2),
+        encode_value(v1),
+        encode_value(v2),
+    ]
+}
+
+/// Corresponds to Python `get_glv_fake_glv_hint`.
+/// Computes the GLV hint components (u1, u2, v1, v2) encoded for Cairo, and the scalar multiplication result Q.
+pub fn get_glv_fake_glv_hint<F>(
+    point: &G1Point<F>,
+    scalar: &BigUint,
+) -> Result<(G1Point<F>, BigUint, BigUint, BigUint, BigUint), String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    let curve_params = F::get_curve_params();
+    let curve_n_bigint = curve_params.n.to_bigint().unwrap();
+    let scalar_bigint = scalar.to_bigint().unwrap();
+
+    // Get eigen_value from curve_params
+    let eigen_value = match &curve_params.eigen_value {
+        Some(ev) => ev,
+        None => {
+            return Err(format!(
+                "Curve {:?} does not have a known endomorphism eigenvalue or is not supported here.",
+                curve_params.curve_id
+            ));
+        }
+    };
+
+    // Call half_gcd_eisenstein_hint to get raw u1, u2, v1, v2
+    let hint_result = half_gcd_eisenstein_hint(&curve_n_bigint, &scalar_bigint, eigen_value)?;
+    let [u1_raw, u2_raw, v1_raw, v2_raw] = hint_result;
+
+    // Encode the results for Cairo compatibility
+    let encoded_hints = encode_glv_fake_glv_hint(&u1_raw, &u2_raw, &v1_raw, &v2_raw);
+    let [u1_encoded, u2_encoded, v1_encoded, v2_encoded] = encoded_hints;
+
+    // Compute Q = [scalar]P
+    let q = point.scalar_mul(scalar_bigint.clone()); // Assumes G1Point::scalar_mul takes BigInt
+
+    Ok((q, u1_encoded, u2_encoded, v1_encoded, v2_encoded))
+}
+
+pub fn get_fake_glv_hint<F>(
+    point: &G1Point<F>,
+    scalar: &BigUint,
+) -> Result<(G1Point<F>, BigUint, BigUint), String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    let curve_params = F::get_curve_params();
+    let curve_n_bigint = curve_params.n.to_bigint().unwrap();
+    let scalar_bigint = scalar.to_bigint().unwrap();
+
+    // Check if the curve has an endomorphism; if so, this hint shouldn't be used.
+    if curve_params.eigen_value.is_some() {
+        return Err(format!(
+            "Curve {:?} has an endomorphism, use get_glv_fake_glv_hint instead",
+            curve_params.curve_id
+        ));
+    }
+
+    // Call precompute_lattice using the scalar as the 'lambda' parameter,
+    // mimicking the Python implementation.
+    let glv_basis = precompute_lattice(&curve_n_bigint, &scalar_bigint)?;
+    let s1 = &glv_basis.v1[0];
+    let s2 = &glv_basis.v1[1];
+
+    // Assertions from Python code converted to Rust checks
+    if !((s1 + &scalar_bigint * s2).mod_floor(&curve_n_bigint) == BigInt::from(0)) {
+        return Err("Assertion failed: (s1 + scalar * s2) % curve.n != 0".to_string());
+    }
+    // Check s1 > 0 and s2 != 0
+    if !(s1.sign() == Sign::Plus && s2.sign() != Sign::NoSign) {
+        return Err("Assertion failed: !(s1 > 0 and s2 != 0)".to_string());
+    }
+
+    // Compute Q = [scalar]P
+    let q = point.scalar_mul(scalar_bigint.clone());
+
+    // Convert s1 (known positive) to BigUint
+    let s1_biguint = s1.to_biguint().unwrap();
+    // Encode s2
+    let s2_encoded = encode_value(s2);
+
+    Ok((q, s1_biguint, s2_encoded))
 }
 
 mod tests {

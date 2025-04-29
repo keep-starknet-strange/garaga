@@ -44,22 +44,15 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import
     TowerMillerInitBit,
 )
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
-    AccumulateEvalPointChallengeSignedCircuit,
-    AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
     AddECPointsG2Circuit,
     DoubleECPointCircuit,
     DoubleECPointG2AEq0Circuit,
     DummyCircuit,
-    EvalFunctionChallengeDuplCircuit,
-    FinalizeFunctionChallengeDuplCircuit,
-    InitFunctionChallengeDuplCircuit,
     IsOnCurveG1Circuit,
     IsOnCurveG1G2Circuit,
     IsOnCurveG2Circuit,
     PrepareGLVFakeGLVPtsCircuit,
-    RHSFinalizeAccCircuit,
-    SlopeInterceptSamePointCircuit,
 )
 from garaga.starknet.cli.utils import create_directory
 
@@ -77,22 +70,6 @@ class CircuitID(Enum):
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
     IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
     IS_ON_CURVE_G2 = int.from_bytes(b"is_on_curve_g2", "big")
-    DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
-    SLOPE_INTERCEPT_SAME_POINT = int.from_bytes(b"slope_intercept_same_point", "big")
-    ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED = int.from_bytes(
-        b"acc_eval_point_challenge", "big"
-    )
-    RHS_FINALIZE_ACC = int.from_bytes(b"rhs_finalize_acc", "big")
-    EVAL_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
-        b"eval_function_challenge_dupl", "big"
-    )
-    INIT_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
-        b"init_function_challenge_dupl", "big"
-    )
-    ACC_FUNCTION_CHALLENGE_DUPL = int.from_bytes(b"acc_function_challenge_dupl", "big")
-    FINALIZE_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
-        b"finalize_function_challenge_dupl", "big"
-    )
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
     PREPARE_GLV_FAKE_GLV_PTS = int.from_bytes(b"prepare_glv_fake_glv_pts", "big")
@@ -157,44 +134,6 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.IS_ON_CURVE_G2: {
         "class": IsOnCurveG2Circuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
-        "class": SlopeInterceptSamePointCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
-        "class": AccumulateEvalPointChallengeSignedCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.RHS_FINALIZE_ACC: {
-        "class": RHSFinalizeAccCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
-        "class": EvalFunctionChallengeDuplCircuit,
-        "params": [
-            {"n_points": k, "batched": True} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        ]
-        + [{"n_points": k, "batched": False} for k in [1, 2]],
-        "filename": "ec",
-    },
-    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
-        "class": InitFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k, "batched": True} for k in [11]],
-        "filename": "ec",
-    },
-    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
-        "class": AccumulateFunctionChallengeDuplCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
-        "class": FinalizeFunctionChallengeDuplCircuit,
         "params": None,
         "filename": "ec",
     },

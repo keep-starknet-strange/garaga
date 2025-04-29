@@ -4,6 +4,7 @@ use core::circuit::{
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
+pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
 use core::internal::bounded_int;
 use core::internal::bounded_int::{
     AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
@@ -20,8 +21,10 @@ use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288Int
 use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
     THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
-    deserialize_u384_array, get_G, get_a, get_b, get_b2, get_g, get_min_one, get_modulus, get_n,
-    serialize_u288_array, serialize_u384, serialize_u384_array, u288, u384Serde,
+    deserialize_u384_array, get_G, get_a, get_b, get_b2, get_curve_order_modulus, get_eigenvalue,
+    get_g, get_min_one, get_min_one_order, get_modulus, get_n, get_nbits_and_nG_glv_fake_glv,
+    get_third_root_of_unity, serialize_u288_array, serialize_u384, serialize_u384_array, u288,
+    u384Serde,
 };
 use garaga::ec::selectors;
 use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
@@ -44,36 +47,35 @@ impl G1PointImpl of G1PointTrait {
         let modulus = get_modulus(curve_index);
         G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
     }
-    fn assert_in_subgroup<
-        T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
-    >(
+    fn assert_in_subgroup(
         self: @G1Point,
         curve_index: usize,
-        msm_hint: Option<MSMHintSmallScalar<T>>,
-        derive_point_from_x_hint: Option<DerivePointFromXHint>,
-    ) {
-        match curve_index {
-            0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
-            1 => {
-                // https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
-                let modulus = get_modulus(curve_index);
-                let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
-                    G1Point {
-                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, modulus),
-                        y: *self.y,
-                    },
-                    BLS_X_SEED_SQ_EPNS,
-                    BLS_X_SEED_SQ,
-                    msm_hint.unwrap(),
-                    derive_point_from_x_hint.unwrap(),
-                    curve_index,
-                );
-                if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
-                    panic_with_felt252('g1 pt not in subgroup');
-                }
-            }, // BLS12-381
-            _ => { panic_with_felt252('invalid curve index') },
-        }
+        hint: Span<felt252> // msm_hint: Option<MSMHintSmallScalar<T>>,
+        // derive_point_from_x_hint: Option<DerivePointFromXHint>,
+    ) { // match curve_index {
+    //     0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
+    //     1 => {
+    //         //
+    //         https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
+    //         let modulus = get_modulus(curve_index);
+    //         let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
+    //             G1Point {
+    //                 x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, modulus),
+    //                 y: *self.y,
+    //             },
+    //             BLS_X_SEED_SQ_EPNS,
+    //             BLS_X_SEED_SQ,
+    //             msm_hint.unwrap(),
+    //             derive_point_from_x_hint.unwrap(),
+    //             curve_index,
+    //         );
+    //         if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
+    //             panic_with_felt252('g1 pt not in subgroup');
+    //         }
+    //     }, // BLS12-381
+    //     _ => { panic_with_felt252('invalid curve index') },
+    // }
+
     }
     fn is_infinity(self: @G1Point) -> bool {
         return self.is_zero();
@@ -119,7 +121,9 @@ pub fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
     }
 }
 
-pub fn _ec_safe_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point {
+pub fn _ec_safe_add(
+    p: G1Point, q: G1Point, modulus: CircuitModulus, curve_index: usize,
+) -> G1Point {
     if p.is_infinity() {
         return q;
     }
@@ -133,9 +137,7 @@ pub fn _ec_safe_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point 
         if opposite_y {
             return G1PointZero::zero();
         } else {
-            let (res) = ec::run_DOUBLE_EC_POINT_circuit(
-                p, u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, modulus,
-            );
+            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), modulus);
             return res;
         }
     } else {
@@ -143,900 +145,8 @@ pub fn _ec_safe_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point 
         return res;
     }
 }
-
-#[derive(Drop)]
-pub struct DerivePointFromXOutput {
-    pub rhs: u384,
-    pub g_rhs: u384,
-    pub should_be_rhs_or_g_rhs: u384,
-}
-
-#[inline(always)]
-fn get_DERIVE_POINT_FROM_X_circuit(
-    x: u384, sqrt_rhs_or_g_rhs: u384, curve_index: usize,
-) -> DerivePointFromXOutput {
-    // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // x - "random" x coordinate
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // a - a in Weierstrass equation
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // b - b in Weierstrass equation
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // g - Fp* Generator
-
-    // WITNESS stack
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs)
-    let t0 = circuit_mul(in0, in0); // x^2
-    let t1 = circuit_mul(in0, t0); // x^3
-    let t2 = circuit_mul(in1, in0); // a*x
-    let t3 = circuit_add(t2, in2); // a*x + b
-    let t4 = circuit_add(t1, t3); // x^3 + (a*x + b) = rhs
-    let t5 = circuit_mul(in3, t4); // g * (x^3 + (a*x + b)) = g*rhs
-    let t6 = circuit_mul(in4, in4); // should be rhs if sqrt(rhs) or g*rhs if sqrt(g*rhs) exists
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t4, t5, t6).new_inputs();
-
-    circuit_inputs = circuit_inputs.next(x);
-    circuit_inputs = circuit_inputs.next(get_a(curve_index));
-    circuit_inputs = circuit_inputs.next(get_b(curve_index));
-    circuit_inputs = circuit_inputs.next(get_g(curve_index));
-    circuit_inputs = circuit_inputs.next(sqrt_rhs_or_g_rhs);
-
-    let outputs = circuit_inputs.done().eval(modulus).unwrap();
-
-    let rhs = outputs.get_output(t4); // rhs
-    let g_rhs = outputs.get_output(t5); // g*rhs
-    let should_be_rhs_or_grhs = outputs
-        .get_output(t6); // should be rhs if sqrt(rhs) or g*rhs if sqrt(g*rhs) exists
-
-    return DerivePointFromXOutput {
-        rhs: rhs, g_rhs: g_rhs, should_be_rhs_or_g_rhs: should_be_rhs_or_grhs,
-    };
-}
-
-// Derives a random elliptic curve (EC) point on a given curve from a (random) x coordinate.
-//
-// This function attempts to find a valid y-coordinate from a given x-coordinate on an elliptic
-// curve defined by the equation y^2 = x^3 + ax + b.
-// Parameters:
-// - x: felt252 - The x-coordinate for which we want to derive the corresponding y-coordinate.
-// - y_last_attempt: u384 - The valid y-coordinate of the last attempt.
-// - g_rhs_sqrt: Array<u384> - An array of square roots of g*rhs, where g is a generator
-// in Fp.
-// - curve_index: usize - The index of the elliptic curve parameters to use.
-//
-// Returns:
-// - G1Point - A point on the elliptic curve with the given x-coordinate and a valid y-coordinate.
-//
-// The inner principle of this function is that, if Fp is a prime field, z any element of Fp*,
-// and g a generator of Fp*, then:
-// If z has a square root in Fp, then g*z does not have a square root in Fp*.
-// If z does not have a square root in Fp, then g*z has a square root in Fp*.
-// Note: there is exactly (p-1)//2 square roots in Fp*.
-fn derive_ec_point_from_X(
-    mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Span<u384>, curve_index: usize,
-) -> G1Point {
-    let mut attempt: felt252 = 0;
-    while let Option::Some(root) = g_rhs_sqrt.pop_front() {
-        let x_u384: u384 = x.into();
-        let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-            x_u384, *root, curve_index,
-        );
-        assert!(
-            res.should_be_rhs_or_g_rhs == res.g_rhs, "grhs!=(sqrt(g*rhs))^2 in attempt {attempt}",
-        );
-
-        let (new_x, _, _) = hades_permutation(x, attempt.into(), 2);
-        x = new_x;
-        attempt += 1;
-    }
-
-    let x_u384: u384 = x.into();
-    let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-        x_u384, y_last_attempt, curve_index,
-    );
-    assert!(res.should_be_rhs_or_g_rhs == res.rhs, "invalid y coordinate");
-    return G1Point { x: x_u384, y: y_last_attempt };
-}
-
-// A function field element of the form :
-// F(x,y) = a(x) + y b(x)
-// Where a, b are rational functions of x.
-// The rational functions are represented as polynomials in x with coefficients in F_p, starting
-// from the constant term.
-// No information about the degrees of the polynomials is stored here as they are derived
-// implicitely from the MSM size.
-#[derive(Drop, Debug, Copy, PartialEq)]
-pub struct FunctionFelt<T> {
-    pub a_num: Span<T>,
-    pub a_den: Span<T>,
-    pub b_num: Span<T>,
-    pub b_den: Span<T>,
-}
-
-
-impl FunctionFeltSerdeu384 of Serde<FunctionFelt<u384>> {
-    fn serialize(self: @FunctionFelt<u384>, ref output: Array<felt252>) {
-        serialize_u384_array(*self.a_num.snapshot, ref output);
-        serialize_u384_array(*self.a_den.snapshot, ref output);
-        serialize_u384_array(*self.b_num.snapshot, ref output);
-        serialize_u384_array(*self.b_den.snapshot, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt<u384>> {
-        return Option::Some(
-            FunctionFelt {
-                a_num: deserialize_u384_array(ref serialized).span(),
-                a_den: deserialize_u384_array(ref serialized).span(),
-                b_num: deserialize_u384_array(ref serialized).span(),
-                b_den: deserialize_u384_array(ref serialized).span(),
-            },
-        );
-    }
-}
-
-impl FunctionFeltSerdeu288 of Serde<FunctionFelt<u288>> {
-    fn serialize(self: @FunctionFelt<u288>, ref output: Array<felt252>) {
-        serialize_u288_array(*self.a_num.snapshot, ref output);
-        serialize_u288_array(*self.a_den.snapshot, ref output);
-        serialize_u288_array(*self.b_num.snapshot, ref output);
-        serialize_u288_array(*self.b_den.snapshot, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt<u288>> {
-        return Option::Some(
-            FunctionFelt {
-                a_num: deserialize_u288_array(ref serialized).span(),
-                a_den: deserialize_u288_array(ref serialized).span(),
-                b_num: deserialize_u288_array(ref serialized).span(),
-                b_den: deserialize_u288_array(ref serialized).span(),
-            },
-        );
-    }
-}
-
-
-#[derive(Drop, Debug, Copy, PartialEq)]
-pub struct FunctionFeltEvaluations {
-    pub a_num: u384,
-    pub a_den: u384,
-    pub b_num: u384,
-    pub b_den: u384,
-}
-
-#[derive(Drop, Debug, Copy, PartialEq)]
-pub struct SlopeInterceptOutput {
-    pub m_A0: u384,
-    pub b_A0: u384,
-    pub x_A2: u384,
-    pub y_A2: u384,
-    pub coeff0: u384,
-    pub coeff2: u384,
-}
-use garaga::utils::hashing::HashFeltTranscriptTrait;
-
-#[generate_trait]
-impl FunctionFeltImpl<T, +HashFeltTranscriptTrait<T>> of FunctionFeltTrait<T> {
-    fn validate_degrees(self: @FunctionFelt<T>, msm_size: usize) {
-        assert!((*self.a_num).len() == msm_size + 1, "a_num wrong degree for given msm size");
-        assert!((*self.a_den).len() == msm_size + 2, "a_den wrong degree for given msm size");
-        assert!((*self.b_num).len() == msm_size + 2, "b_num wrong degree for given msm size");
-        assert!((*self.b_den).len() == msm_size + 5, "b_den wrong degree for given msm size");
-    }
-    fn validate_degrees_batched(self: @FunctionFelt<T>, msm_size: usize) {
-        assert!((*self.a_num).len() == msm_size + 3, "a_num wrong degree for given msm size");
-        assert!((*self.a_den).len() == msm_size + 4, "a_den wrong degree for given msm size");
-        assert!((*self.b_num).len() == msm_size + 4, "b_num wrong degree for given msm size");
-        assert!((*self.b_den).len() == msm_size + 7, "b_den wrong degree for given msm size");
-    }
-    fn update_hash_state(
-        self: @FunctionFelt<T>, s0: felt252, s1: felt252, s2: felt252,
-    ) -> (felt252, felt252, felt252) {
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.a_num, s0, s1, s2,
-        );
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.a_den, s0, s1, s2,
-        );
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.b_num, s0, s1, s2,
-        );
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.b_den, s0, s1, s2,
-        );
-        return (s0, s1, s2);
-    }
-}
-
-#[derive(Drop, Debug, PartialEq, Serde, Copy)]
-pub struct MSMHint<T> {
-    pub Q_low: G1Point,
-    pub Q_high: G1Point,
-    pub Q_high_shifted: G1Point,
-    pub RLCSumDlogDiv: FunctionFelt<T>,
-}
-
-#[derive(Drop, Debug, PartialEq, Serde)]
-pub struct MSMHintSmallScalar<T> {
-    pub Q: G1Point,
-    pub SumDlogDiv: FunctionFelt<T>,
-}
-
-
-#[derive(Drop, Debug, PartialEq, Copy)]
-pub struct DerivePointFromXHint {
-    pub y_last_attempt: u384,
-    pub g_rhs_sqrt: Span<u384>,
-}
-
-impl DerivePointFromXHintSerde of Serde<DerivePointFromXHint> {
-    fn serialize(self: @DerivePointFromXHint, ref output: Array<felt252>) {
-        serialize_u384(self.y_last_attempt, ref output);
-        serialize_u384_array(*self.g_rhs_sqrt.snapshot, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<DerivePointFromXHint> {
-        return Option::Some(
-            DerivePointFromXHint {
-                y_last_attempt: deserialize_u384(ref serialized),
-                g_rhs_sqrt: deserialize_u384_array(ref serialized).span(),
-            },
-        );
-    }
-}
-
-pub fn scalar_mul_g1_fixed_small_scalar<
-    T, +HashFeltTranscriptTrait<T>, +Drop<T>, +IntoCircuitInputValue<T>, +Copy<T>,
->(
-    point: G1Point,
-    scalar_epns: (felt252, felt252, felt252, felt252),
-    scalar: u128,
-    hint: MSMHintSmallScalar<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    curve_index: usize,
-) -> G1Point {
-    // Check result points are either on curve or the point at infinity
-    if !hint.Q.is_infinity() {
-        hint.Q.assert_on_curve(curve_index);
-    }
-
-    // Validate the degrees of the functions field elements given the msm size
-    hint.SumDlogDiv.validate_degrees(1);
-
-    // Hash everything to obtain a x coordinate.
-
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1_U128', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + 1.into(), s2,
-    ); // Include curve_index and msm size
-    // Check input points are on curve and hash them at the same time.
-
-    point.assert_on_curve(curve_index);
-
-    let (s0, s1, s2) = point.update_hash_state(s0, s1, s2);
-    // Hash result point
-    let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
-    // Hash scalar.
-    let (s0, s1, s2) = core::poseidon::hades_permutation(s0 + scalar.into(), s1, s2);
-
-    let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
-
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
-
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-    // Verify Q = scalar * P
-
-    let (lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
-        A0: random_point,
-        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-        coeff0: mb.coeff0,
-        coeff2: mb.coeff2,
-        SumDlogDiv: hint.SumDlogDiv,
-        curve_index: curve_index,
-    );
-    let rhs = compute_rhs_ecip(
-        points: array![point].span(),
-        m_A0: mb.m_A0,
-        b_A0: mb.b_A0,
-        x_A0: random_point.x,
-        epns: array![scalar_epns],
-        Q_result: hint.Q,
-        curve_index: curve_index,
-    );
-
-    u384_assert_eq(lhs, rhs);
-    return hint.Q;
-}
-
-// Verifies the mutli scalar multiplication of a set of points on a given curve is equal to
-// hint.Q_low + 2**128 * hint.Q_high.
-// Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
-// the hint.
-fn msm_g1<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    hint: MSMHint<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    points: Span<G1Point>,
-    scalars: Span<u256>,
-    curve_index: usize,
-) -> G1Point {
-    let n = scalars.len();
-    assert!(n == points.len(), "scalars and points length mismatch");
-    if n == 0 {
-        panic_with_felt252('Msm size must be >= 1');
-    }
-
-    // Check result points are either on curve, or the point at infinity
-    if !hint.Q_low.is_infinity() {
-        hint.Q_low.assert_on_curve(curve_index);
-    }
-
-    if !hint.Q_high.is_infinity() {
-        hint.Q_high.assert_on_curve(curve_index);
-    }
-
-    if !hint.Q_high_shifted.is_infinity() {
-        hint.Q_high_shifted.assert_on_curve(curve_index);
-    }
-
-    // Validate the degrees of the functions field elements given the msm size
-    hint.RLCSumDlogDiv.validate_degrees_batched(n);
-
-    // Hash everything to obtain a x coordinate.
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2,
-    ); // Include curve_index and msm size
-
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-
-    // Check input points are on curve and hash them at the same time.
-    for point in points {
-        if !point.is_infinity() {
-            point.assert_on_curve(curve_index);
-        }
-        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-    // Hash result points
-    let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high_shifted.update_hash_state(s0, s1, s2);
-    // Hash scalars and verify they are below the curve order
-    let curve_order = get_n(curve_index);
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-    for scalar in scalars {
-        assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
-        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
-        );
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-
-    let base_rlc_coeff = s1;
-
-    let (s0, _, _) = hint.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
-
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
-
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-
-    // Get positive and negative multiplicities of low and high part of scalars
-    let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-        scalars, scalars_digits_decompositions,
-    );
-
-    // Hardcoded epns for 2**128
-    let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1),
-    ];
-
-    let rhs_low = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index,
-    );
-    let rhs_high = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index,
-    );
-    let rhs_high_shifted = compute_rhs_ecip(
-        array![hint.Q_high].span(),
-        mb.m_A0,
-        mb.b_A0,
-        random_point.x,
-        epns_shifted,
-        hint.Q_high_shifted,
-        curve_index,
-    );
-
-    let modulus_curve = get_modulus(curve_index);
-
-    let zk_ecip_batched_rhs = batch_3_mod_p(
-        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), modulus_curve,
-    );
-
-    let batched_lhs = compute_lhs_ecip(
-        hint.RLCSumDlogDiv,
-        random_point,
-        G1Point { x: mb.x_A2, y: mb.y_A2 },
-        mb.coeff0,
-        mb.coeff2,
-        n,
-        curve_index,
-    );
-
-    u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
-
-    // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
-    return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
-}
-
-// Verifies the mutli scalar multiplication of a set of points on a given curve is equal to
-// hint.Q
-// Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
-// the hint.
-fn msm_g1_u128<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    scalars_digits_decompositions: Option<Span<Span<felt252>>>,
-    hint: MSMHintSmallScalar<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    points: Span<G1Point>,
-    scalars: Span<u128>,
-    curve_index: usize,
-) -> G1Point {
-    let n = scalars.len();
-    assert!(n == points.len(), "scalars and points length mismatch");
-    if (n != 1 && n != 2) {
-        panic_with_felt252('Msm size must be [1,2]');
-    }
-
-    // Check result points are either on curve, or the point at infinity
-    if !hint.Q.is_infinity() {
-        hint.Q.assert_on_curve(curve_index);
-    }
-
-    // Validate the degrees of the functions field elements given the msm size
-    hint.SumDlogDiv.validate_degrees(n);
-
-    // Hash everything to obtain a x coordinate.
-
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1_U128', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2,
-    ); // Include curve_index and msm size
-
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-
-    // Check input points are on curve and hash them at the same time.
-    for point in points {
-        if !point.is_infinity() {
-            point.assert_on_curve(curve_index);
-        }
-        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-    // Hash result points
-    let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
-    // Hash scalars. No need to check if scalar is below curve order since it is always at most 128
-    // bits.
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-    for scalar in scalars {
-        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + (*scalar).into(), s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-
-    let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
-
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
-
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-
-    // Get positive and negative multiplicities of low and high part of scalars
-    let epns = neg_3::u128_array_to_epns(scalars, scalars_digits_decompositions);
-
-    let case = n - 1;
-
-    let A0 = random_point;
-    let A2 = G1Point { x: mb.x_A2, y: mb.y_A2 };
-
-    let (lhs) = match case {
-        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
-            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index,
-        )),
-        _ => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
-            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index,
-        ),
-    };
-
-    let rhs = compute_rhs_ecip(points, mb.m_A0, mb.b_A0, random_point.x, epns, hint.Q, curve_index);
-
-    u384_assert_eq(lhs, rhs);
-
-    return hint.Q;
-}
-
-// Verifies equation 3 in https://eprint.iacr.org/2022/596.pdf, using directly the weighted sum by
-// (-3)**i of the logarithmic derivatives of the divisors functions.
-fn zk_ecip_check<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    points: Span<G1Point>,
-    epns: Array<(felt252, felt252, felt252, felt252)>,
-    Q_result: G1Point,
-    n: usize,
-    mb: SlopeInterceptOutput,
-    sum_dlog_div: FunctionFelt<T>,
-    random_point: G1Point,
-    curve_index: usize,
-) {
-    let lhs = compute_lhs_ecip(
-        sum_dlog_div: sum_dlog_div,
-        A0: random_point,
-        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-        coeff0: mb.coeff0,
-        coeff2: mb.coeff2,
-        msm_size: n,
-        curve_index: curve_index,
-    );
-    let rhs = compute_rhs_ecip(
-        points: points,
-        m_A0: mb.m_A0,
-        b_A0: mb.b_A0,
-        x_A0: random_point.x,
-        epns: epns,
-        Q_result: Q_result,
-        curve_index: curve_index,
-    );
-    u384_assert_eq(lhs, rhs);
-}
-
-#[inline]
-fn compute_lhs_ecip<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    sum_dlog_div: FunctionFelt<T>,
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    msm_size: usize,
-    curve_index: usize,
-) -> u384 {
-    let case = msm_size - 1;
-    let (res) = match case {
-        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        )),
-        1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        _ => {
-            let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
-                A0.x,
-                A2.x,
-                FunctionFelt {
-                    a_num: sum_dlog_div.a_num.slice(0, 11 + 3),
-                    a_den: sum_dlog_div.a_den.slice(0, 11 + 4),
-                    b_num: sum_dlog_div.b_num.slice(0, 11 + 4),
-                    b_den: sum_dlog_div.b_den.slice(0, 11 + 7),
-                },
-                curve_index,
-            );
-            let mut f_A0 = _f_A0;
-            let mut f_A2 = _f_A2;
-            let mut xA0_power = _xA0_pow;
-            let mut xA2_power = _xA2_pow;
-            let mut i = 11;
-            while i != msm_size {
-                let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
-                    ec::run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
-                    f_A0,
-                    f_A2,
-                    A0.x,
-                    A2.x,
-                    xA0_power,
-                    xA2_power,
-                    *sum_dlog_div.a_num.at(i + 3),
-                    *sum_dlog_div.a_den.at(i + 4),
-                    *sum_dlog_div.b_num.at(i + 4),
-                    *sum_dlog_div.b_den.at(i + 7),
-                    curve_index,
-                );
-                f_A0 = _f_A0;
-                f_A2 = _f_A2;
-                xA0_power = _xA0_power;
-                xA2_power = _xA2_power;
-                i += 1;
-            }
-
-            ec::run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
-                f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index,
-            )
-        },
-    };
-    return res;
-}
-
-fn compute_rhs_ecip(
-    mut points: Span<G1Point>,
-    m_A0: u384,
-    b_A0: u384,
-    x_A0: u384,
-    mut epns: Array<(felt252, felt252, felt252, felt252)>,
-    Q_result: G1Point,
-    curve_index: usize,
-) -> u384 {
-    let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-    while let Option::Some(point) = points.pop_front() {
-        let (ep, en, sp, sn) = epns.pop_front().unwrap();
-        if ep - en != 0 {
-            if !point.is_infinity() {
-                let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-                    basis_sum,
-                    m_A0,
-                    b_A0,
-                    x_A0,
-                    *point,
-                    ep.into(),
-                    en.into(),
-                    neg_3::sign_to_u384(sp, curve_index),
-                    neg_3::sign_to_u384(sn, curve_index),
-                    curve_index,
-                );
-                basis_sum = _basis_sum;
-            }
-        }
-    }
-
-    if Q_result.is_infinity() {
-        return basis_sum;
-    } else {
-        let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
-            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index,
-        );
-        return rhs;
-    }
-}
-
-// A version of compute_rhs_ecip that does not check if the points are infinity and expect them to
-// be on curve.
-// Do not use unless all points are known to be on curve.
-fn _compute_rhs_ecip_no_infinity(
-    mut points: Span<G1Point>,
-    m_A0: u384,
-    b_A0: u384,
-    x_A0: u384,
-    mut epns: Array<(felt252, felt252, felt252, felt252)>,
-    Q_result: G1Point,
-    curve_index: usize,
-) -> u384 {
-    let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-    while let Option::Some(point) = points.pop_front() {
-        let (ep, en, sp, sn) = epns.pop_front().unwrap();
-        if ep - en != 0 {
-            let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-                basis_sum,
-                m_A0,
-                b_A0,
-                x_A0,
-                *point,
-                ep.into(),
-                en.into(),
-                neg_3::sign_to_u384(sp, curve_index),
-                neg_3::sign_to_u384(sn, curve_index),
-                curve_index,
-            );
-            basis_sum = _basis_sum;
-        }
-    }
-
-    if Q_result.is_infinity() {
-        return basis_sum;
-    } else {
-        let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
-            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index,
-        );
-        return rhs;
-    }
-}
-
-// A version of msm_g1 that works with 2 points only to reduce bytecode size.
-fn msm_g1_2_points<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    hint: MSMHint<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    points: Span<G1Point>,
-    scalars: Span<u256>,
-    curve_index: usize,
-) -> G1Point {
-    let n = scalars.len();
-    assert!(n == points.len(), "scalars and points length mismatch");
-    if n != 2 {
-        panic_with_felt252('Msm size must be 2');
-    }
-
-    // Check result points are either on curve, or the point at infinity
-    if !hint.Q_low.is_infinity() {
-        hint.Q_low.assert_on_curve(curve_index);
-    }
-
-    if !hint.Q_high.is_infinity() {
-        hint.Q_high.assert_on_curve(curve_index);
-    }
-
-    if !hint.Q_high_shifted.is_infinity() {
-        hint.Q_high_shifted.assert_on_curve(curve_index);
-    }
-
-    // Validate the degrees of the functions field elements given the msm size
-    hint.RLCSumDlogDiv.validate_degrees_batched(n);
-
-    // Hash everything to obtain a x coordinate.
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2,
-    ); // Include curve_index and msm size
-
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-
-    // Check input points are on curve and hash them at the same time.
-    for point in points {
-        if !point.is_infinity() {
-            point.assert_on_curve(curve_index);
-        }
-        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-    // Hash result points
-    let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high_shifted.update_hash_state(s0, s1, s2);
-    // Hash scalars and verify they are below the curve order
-    let curve_order = get_n(curve_index);
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-    for scalar in scalars {
-        assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
-        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
-        );
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-
-    let base_rlc_coeff = s1;
-
-    let (s0, _, _) = hint.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
-
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
-
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-
-    // Get positive and negative multiplicities of low and high part of scalars
-    let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-        scalars, scalars_digits_decompositions,
-    );
-
-    // Hardcoded epns for 2**128
-    let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1),
-    ];
-
-    let rhs_low = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index,
-    );
-    let rhs_high = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index,
-    );
-    let rhs_high_shifted = compute_rhs_ecip(
-        array![hint.Q_high].span(),
-        mb.m_A0,
-        mb.b_A0,
-        random_point.x,
-        epns_shifted,
-        hint.Q_high_shifted,
-        curve_index,
-    );
-
-    let modulus_curve = get_modulus(curve_index);
-
-    let zk_ecip_batched_rhs = batch_3_mod_p(
-        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), modulus_curve,
-    );
-
-    let (batched_lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
-        random_point,
-        G1Point { x: mb.x_A2, y: mb.y_A2 },
-        mb.coeff0,
-        mb.coeff2,
-        hint.RLCSumDlogDiv,
-        curve_index,
-    );
-
-    u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
-
-    // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
-    return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
-}
-
-
-#[derive(Drop)]
-struct ScalarMulFakeGLVHint {
+#[derive(Drop, Serde)]
+struct GlvFakeGlvHint {
     Q: G1Point,
     u1: felt252, // Encoded as 2^128 * sign + abs(u1)_u64
     u2: felt252, // Encoded as 2^128 * sign + abs(u2)_u64
@@ -1044,30 +154,135 @@ struct ScalarMulFakeGLVHint {
     v2: felt252 // Encoded as 2^128 * sign + abs(v2)_u64
 }
 
-pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
+#[derive(Drop, Serde)]
+struct FakeGlvHint {
+    Q: G1Point,
+    s1: felt252, // (s1)_u128 (always positive)
+    s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
+}
+
+fn msm_g1(
+    points: Span<G1Point>, scalars: Span<u256>, curve_index: usize, mut hint: Span<felt252>,
+) -> G1Point {
+    match curve_index {
+        0 | 1 | 2 => { return msm_glv_fake_glv(points, scalars, curve_index, ref hint); },
+        _ => { return msm_fake_glv(points, scalars, curve_index, ref hint); },
+    }
+}
+
+
+pub fn msm_fake_glv(
+    mut points: Span<G1Point>, mut scalars: Span<u256>, curve_index: usize, ref hint: Span<felt252>,
+) -> G1Point {
+    let n = scalars.len();
+    assert(n == points.len(), 'n_pts!=n_scalars');
+    if n == 0 {
+        panic_with_felt252('Msm size must be >= 1');
+    }
+    assert(hint.len() == n * 10, 'wrong fakeglv hint size');
+    let pt_0 = *points.pop_front().unwrap();
+    pt_0.assert_on_curve(curve_index);
+    let scalar_0 = *scalars.pop_front().unwrap();
+    let hint_0: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
+    let modulus = get_modulus(curve_index);
+
+    let mut acc = _scalar_mul_fake_glv(pt_0, scalar_0, modulus, hint_0, curve_index);
+
+    while hint.len() != 0 {
+        let pt = *points.pop_front().unwrap();
+        let scalar = *scalars.pop_front().unwrap();
+        let fake_glv_hint: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
+        pt.assert_on_curve(curve_index);
+        fake_glv_hint.Q.assert_on_curve(curve_index);
+        let temp = _scalar_mul_fake_glv(pt, scalar, modulus, fake_glv_hint, curve_index);
+        acc = _ec_safe_add(acc, temp, modulus, curve_index);
+    }
+    return acc;
+}
+
+
+fn msm_glv_fake_glv(
+    mut points: Span<G1Point>, mut scalars: Span<u256>, curve_index: usize, ref hint: Span<felt252>,
+) -> G1Point {
+    let n = scalars.len();
+    assert!(n == points.len(), "scalars and points length mismatch");
+    if n == 0 {
+        panic_with_felt252('Msm size must be >= 1');
+    }
+    assert(hint.len() == n * 12, 'wrong glv&fakeglv hint size');
+    let eigen = get_eigenvalue(curve_index);
+    let third_root_of_unity = get_third_root_of_unity(curve_index);
+    let modulus = get_modulus(curve_index);
+    let order_modulus = get_curve_order_modulus(curve_index);
+    let min_one = get_min_one_order(curve_index);
+    let (bits_73, nG) = get_nbits_and_nG_glv_fake_glv(curve_index);
+
+    let pt_0 = *points.pop_front().unwrap();
+    let scalar_0 = *scalars.pop_front().unwrap();
+    let hint_0: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
+
+    let mut acc = _scalar_mul_glv_and_fake_glv(
+        pt_0,
+        scalar_0,
+        order_modulus,
+        modulus,
+        hint_0,
+        eigen,
+        third_root_of_unity,
+        min_one,
+        bits_73,
+        nG,
+        curve_index,
+    );
+
+    while hint.len() != 0 {
+        let pt = *points.pop_front().unwrap();
+        let scalar = *scalars.pop_front().unwrap();
+        let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
+        let temp = _scalar_mul_glv_and_fake_glv(
+            pt,
+            scalar,
+            order_modulus,
+            modulus,
+            glv_fake_glv_hint,
+            eigen,
+            third_root_of_unity,
+            min_one,
+            bits_73,
+            nG,
+            curve_index,
+        );
+        acc = _ec_safe_add(acc, temp, modulus, curve_index);
+    }
+
+    return acc;
+}
 
 fn _scalar_mul_glv_and_fake_glv(
     point: G1Point,
     scalar: u256,
     order_modulus: CircuitModulus,
     modulus: CircuitModulus,
-    hint: ScalarMulFakeGLVHint,
+    hint: GlvFakeGlvHint,
     _lambda: u384,
     third_root_of_unity: u384,
     minus_one: u384,
-    one_u384: u384,
-    n_bits: usize,
+    bits_73: bool,
     n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
     if scalar == 0 || point.is_infinity() {
         return G1PointZero::zero();
     }
+    point.assert_on_curve(curve_index);
     if scalar == 1 {
         return point;
     }
-
+    if !hint.Q.is_infinity(){
+        hint.Q.assert_on_curve(curve_index);
+    }
     let scalar_u384: u384 = scalar.into();
+    let one_u384: u384 = u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
 
     // Retrieve the u1, u2, v1, v2 values from the hint
     // They are encoded as 2^128 * sign + abs(value)_u64
@@ -1161,9 +376,39 @@ fn _scalar_mul_glv_and_fake_glv(
     let P0 = G1Point { x: point.x, y: P0y };
     let Q0 = G1Point { x: hint.Q.x, y: Q0y };
 
-    let (B1, B2, B3, B4, B5, B6, B7, B8, B9y, B10y, B11y, B12y, B13y, B14y, B15y, B16y, Phi_P0x, Phi_Q0x, mut Acc) =
+    let (
+        B1,
+        B2,
+        B3,
+        B4,
+        B5,
+        B6,
+        B7,
+        B8,
+        B9y,
+        B10y,
+        B11y,
+        B12y,
+        B13y,
+        B14y,
+        B15y,
+        B16y,
+        Phi_P0x,
+        Phi_Q0x,
+        mut Acc,
+    ) =
         ec::run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
-        point.x, P0y, P1y, hint.Q.x, Q0y, Phi_P0y, Phi_P1y, Phi_Q0y,  get_G(curve_index), third_root_of_unity, modulus,
+        point.x,
+        P0y,
+        P1y,
+        hint.Q.x,
+        Q0y,
+        Phi_P0y,
+        Phi_P1y,
+        Phi_Q0y,
+        get_G(curve_index),
+        third_root_of_unity,
+        modulus,
     );
     let Bs: Span<G1Point> = array![
         G1Point { x: B1.x, y: B16y },
@@ -1195,7 +440,7 @@ fn _scalar_mul_glv_and_fake_glv(
     let mut _v2: u128 = upcast(_v2_abs);
 
     let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
-        _u1, _u2, _v1, _v2,
+        _u1, _u2, _v1, _v2, bits_73,
     );
 
     // Process 8 bits per iteration
@@ -1231,7 +476,7 @@ fn _scalar_mul_glv_and_fake_glv(
         (Acc,)
     };
     let (Acc) = if u2lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, G1Point{x: Phi_P0x, y: Phi_P0y}, modulus)
+        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: Phi_P0x, y: Phi_P0y }, modulus)
     } else {
         (Acc,)
     };
@@ -1243,13 +488,20 @@ fn _scalar_mul_glv_and_fake_glv(
     };
 
     let (Acc) = if v2lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, G1Point{x: Phi_Q0x, y: Phi_Q0y}, modulus)
+        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: Phi_Q0x, y: Phi_Q0y }, modulus)
     } else {
         (Acc,)
     };
 
     assert(Acc == n_bits_G, 'Wrong result');
 
+    return hint.Q;
+}
+
+pub fn _scalar_mul_fake_glv(
+    point: G1Point, scalar: u256, modulus: CircuitModulus, hint: FakeGlvHint, curve_index: usize,
+) -> G1Point {
+    let modulus = get_modulus(curve_index);
     return hint.Q;
 }
 
@@ -1556,67 +808,68 @@ mod tests {
         get_curve_order_modulus, get_eigenvalue, get_min_one_order, get_modulus,
         get_nbits_and_nG_glv_fake_glv, get_third_root_of_unity,
     };
-    use super::{
-        G1Point, ScalarMulFakeGLVHint, _scalar_mul_glv_and_fake_glv, derive_ec_point_from_X,
-    };
+    // use super::{
+//     G1Point, FakeGLVHint, _scalar_mul_glv_and_fake_glv, derive_ec_point_from_X,
+// };
 
-    #[test]
-    fn test_scalar_mul_glv_and_fake_glv() {
-        let curve_id = 2;
-        let eigen = get_eigenvalue(curve_id);
-        let third_root_of_unity = get_third_root_of_unity(curve_id);
-        let modulus = get_modulus(curve_id);
-        let order_modulus = get_curve_order_modulus(curve_id);
-        let min_one = get_min_one_order(curve_id);
-        let (nbits, nG) = get_nbits_and_nG_glv_fake_glv(curve_id);
-        let scalar = 111793196543967404139194827996419963236210979610743141064269745943111491389390;
-        let hint = ScalarMulFakeGLVHint {
-            Q: G1Point {
-                x: u384 {
-                    limb0: 0x393dead57bc85a6e9bb44a70,
-                    limb1: 0x64d4b065b3ede27cf9fb9e5c,
-                    limb2: 0xda670c8c69a8ce0a,
-                    limb3: 0x0,
-                },
-                y: u384 {
-                    limb0: 0x789872895ad7121175bd78f8,
-                    limb1: 0xc0deb0b56fb251e8fb5d0a8d,
-                    limb2: 0x3f10d670dc3297c2,
-                    limb3: 0x0,
-                },
-            },
-            u1: 340282366920938463464343795955316113711,
-            u2: 340282366920938463474852729012356961284,
-            v1: 6737143207983294551,
-            v2: 7075379181548270484,
-        };
-        let result = _scalar_mul_glv_and_fake_glv(
-            G1Point {
-                x: u384 {
-                    limb0: 0x2dce28d959f2815b16f81798,
-                    limb1: 0x55a06295ce870b07029bfcdb,
-                    limb2: 0x79be667ef9dcbbac,
-                    limb3: 0x0,
-                },
-                y: u384 {
-                    limb0: 0xa68554199c47d08ffb10d4b8,
-                    limb1: 0x5da4fbfc0e1108a8fd17b448,
-                    limb2: 0x483ada7726a3c465,
-                    limb3: 0x0,
-                },
-            },
-            scalar,
-            order_modulus,
-            modulus,
-            hint,
-            eigen,
-            third_root_of_unity,
-            min_one,
-            u384 { limb0: 1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            nbits,
-            nG,
-            curve_id,
-        );
-        // assert!(result == nG);
-    }
+    // #[test]
+// fn test_scalar_mul_glv_and_fake_glv() {
+//     let curve_id = 2;
+//     let eigen = get_eigenvalue(curve_id);
+//     let third_root_of_unity = get_third_root_of_unity(curve_id);
+//     let modulus = get_modulus(curve_id);
+//     let order_modulus = get_curve_order_modulus(curve_id);
+//     let min_one = get_min_one_order(curve_id);
+//     let (bits_73, nG) = get_nbits_and_nG_glv_fake_glv(curve_id);
+//     let scalar =
+//     111793196543967404139194827996419963236210979610743141064269745943111491389390;
+//     let hint = ScalarMulFakeGLVHint {
+//         Q: G1Point {
+//             x: u384 {
+//                 limb0: 0x393dead57bc85a6e9bb44a70,
+//                 limb1: 0x64d4b065b3ede27cf9fb9e5c,
+//                 limb2: 0xda670c8c69a8ce0a,
+//                 limb3: 0x0,
+//             },
+//             y: u384 {
+//                 limb0: 0x789872895ad7121175bd78f8,
+//                 limb1: 0xc0deb0b56fb251e8fb5d0a8d,
+//                 limb2: 0x3f10d670dc3297c2,
+//                 limb3: 0x0,
+//             },
+//         },
+//         u1: 340282366920938463464343795955316113711,
+//         u2: 340282366920938463474852729012356961284,
+//         v1: 6737143207983294551,
+//         v2: 7075379181548270484,
+//     };
+//     let result = _scalar_mul_glv_and_fake_glv(
+//         G1Point {
+//             x: u384 {
+//                 limb0: 0x2dce28d959f2815b16f81798,
+//                 limb1: 0x55a06295ce870b07029bfcdb,
+//                 limb2: 0x79be667ef9dcbbac,
+//                 limb3: 0x0,
+//             },
+//             y: u384 {
+//                 limb0: 0xa68554199c47d08ffb10d4b8,
+//                 limb1: 0x5da4fbfc0e1108a8fd17b448,
+//                 limb2: 0x483ada7726a3c465,
+//                 limb3: 0x0,
+//             },
+//         },
+//         scalar,
+//         order_modulus,
+//         modulus,
+//         hint,
+//         eigen,
+//         third_root_of_unity,
+//         min_one,
+//         u384 { limb0: 1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+//         bits_73,
+//         nG,
+//         curve_id,
+//     );
+//     // assert!(result == nG);
+// }
 }

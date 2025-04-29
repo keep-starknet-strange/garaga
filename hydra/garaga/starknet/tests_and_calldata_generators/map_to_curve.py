@@ -30,17 +30,15 @@ class HashToCurveHint:
     f0_hint: MapToCurveHint
     f1_hint: MapToCurveHint
     scalar_mul_hint: structs.Struct
-    derive_point_from_x_hint: structs.Struct
 
     def to_cairo(self) -> str:
-        return f"HashToCurveHint {{ f0_hint: {self.f0_hint.to_cairo()}, f1_hint: {self.f1_hint.to_cairo()}, scalar_mul_hint: {self.scalar_mul_hint.serialize(raw=True)}, derive_point_from_x_hint: {self.derive_point_from_x_hint.serialize(raw=True)}  }}"
+        return f"HashToCurveHint {{ f0_hint: {self.f0_hint.to_cairo()}, f1_hint: {self.f1_hint.to_cairo()}, scalar_mul_hint: array!{self.scalar_mul_hint.serialize_to_calldata()}.span() }}"
 
     def to_calldata(self) -> list[int]:
         cd = []
         cd.extend(self.f0_hint.to_calldata())
         cd.extend(self.f1_hint.to_calldata())
         cd.extend(self.scalar_mul_hint.serialize_to_calldata())
-        cd.extend(self.derive_point_from_x_hint.serialize_to_calldata())
         return cd
 
 
@@ -110,15 +108,14 @@ def build_hash_to_curve_hint(message: bytes) -> HashToCurveHint:
     # print(f"cofactor: {cofactor}, hex :{hex(cofactor)}")
 
     msm_builder = MSMCalldataBuilder(
-        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
+        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor]
     )
-    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
+    msm_hint = msm_builder.build_msm_hint()
 
     return HashToCurveHint(
         f0_hint=f0_hint,
         f1_hint=f1_hint,
         scalar_mul_hint=msm_hint,
-        derive_point_from_x_hint=derive_point_from_x_hint,
     )
 
 

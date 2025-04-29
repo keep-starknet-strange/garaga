@@ -92,7 +92,7 @@ fn build_selectors(
 
 #[inline(always)]
 pub fn build_selectors_inlined(
-    _u1: u128, _u2: u128, _v1: u128, _v2: u128,
+    _u1: u128, _u2: u128, _v1: u128, _v2: u128, bits_73: bool,
 ) -> (Span<usize>, u128, u128, u128, u128) {
     // Generated code for n_bits = 73
     let mut selectors: Array<usize> = array![];
@@ -1463,24 +1463,26 @@ pub fn build_selectors_inlined(
     );
     selectors.append(upcast(selector_70));
 
-    // --- Iteration 71 ---
-    let (qu1_71, u1b_71) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
-    let (qu2_71, u2b_71) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
-    let (qv1_71, v1b_71) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
-    let (qv2_71, v2b_71) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
-    u1 = upcast(qu1_71);
-    u2 = upcast(qu2_71);
-    v1 = upcast(qv1_71);
-    v2 = upcast(qv2_71);
+    if bits_73 {
+        // --- Iteration 71 --- (secp256k1)
+        let (qu1_71, u1b_71) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+        let (qu2_71, u2b_71) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+        let (qv1_71, v1b_71) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+        let (qv2_71, v2b_71) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+        u1 = upcast(qu1_71);
+        u2 = upcast(qu2_71);
+        v1 = upcast(qv1_71);
+        v2 = upcast(qv2_71);
 
-    let selector_71: u15_bi = bounded_int::add(
-        bounded_int::add(
-            bounded_int::add(u1b_71, bounded_int::mul(u2b_71, TWO_UI)),
-            bounded_int::mul(v1b_71, FOUR_UI),
-        ),
-        bounded_int::mul(v2b_71, EIGHT_UI),
-    );
-    selectors.append(upcast(selector_71));
+        let selector_71: u15_bi = bounded_int::add(
+            bounded_int::add(
+                bounded_int::add(u1b_71, bounded_int::mul(u2b_71, TWO_UI)),
+                bounded_int::mul(v1b_71, FOUR_UI),
+            ),
+            bounded_int::mul(v2b_71, EIGHT_UI),
+        );
+        selectors.append(upcast(selector_71));
+    }
 
     return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
 }

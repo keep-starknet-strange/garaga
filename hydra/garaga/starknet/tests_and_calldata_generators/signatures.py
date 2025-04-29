@@ -284,10 +284,8 @@ class ECDSASignature:
             ],
             [u1, u2],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
             False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
         )[1:]
         cd.extend(msm_calldata)
         if as_str:
@@ -430,10 +428,8 @@ class EdDSA25519Signature:
             ],
             [self.s, h],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
             False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
         )[1:]
 
         cd.extend(msm_calldata)

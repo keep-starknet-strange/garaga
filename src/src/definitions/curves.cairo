@@ -62,6 +62,12 @@ pub fn get_p(curve_index: usize) -> u384 {
     }
 }
 
+pub fn has_endomorphism_available(curve_index: usize) -> bool {
+    match curve_index {
+        0 | 1 | 2 => true,
+        _ => false,
+    }
+}
 // Returns the Weierstrass 'a' parameter for a given curve index
 pub fn get_a(curve_index: usize) -> u384 {
     match curve_index {
@@ -237,10 +243,14 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
 //         nbits = curve.n.bit_length() // 4 + 9
 //         print(f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits -
 //         1)).to_cairo_1()}")
-pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (usize, G1Point) {
+// returns :
+// bool: true if nbits = (curve.n.bit_length() // 4 + 9) == 73, false if nbits =
+// (curve.n.bit_length() // 4 + 9) == 72 G1Point: 2^(nbits-1)*G (generator of the curve)
+// Panics if curve does not have efficient endomorphism
+pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (bool, G1Point) {
     match curve_index {
         0 => (
-            72,
+            false,
             G1Point {
                 x: u384 {
                     limb0: 0x2326b48f300fc56f6982026e,
@@ -257,7 +267,7 @@ pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (usize, G1Point) {
             },
         ),
         1 => (
-            72,
+            false,
             G1Point {
                 x: u384 {
                     limb0: 0x673917f8969d906fa8042a5b,
@@ -274,7 +284,7 @@ pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (usize, G1Point) {
             },
         ),
         2 => (
-            73,
+            true,
             G1Point {
                 x: u384 {
                     limb0: 0xf668832ffd959af60c82a0a,

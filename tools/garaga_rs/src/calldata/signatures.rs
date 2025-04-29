@@ -97,8 +97,6 @@ pub fn schnorr_calldata_builder(
         ],
         &[s, e_neg],
         curve_id as usize,
-        Some(false),
-        false,
         false,
         false,
     )?;
@@ -184,8 +182,6 @@ pub fn ecdsa_calldata_builder(
         ],
         &[u1, u2],
         curve_id as usize,
-        Some(false),
-        false,
         false,
         false,
     )?;
@@ -326,15 +322,7 @@ pub fn eddsa_calldata_builder(
     ];
     let scalars = &[s, h];
 
-    let msm_cd = msm_calldata_builder(
-        values,
-        scalars,
-        CurveID::X25519 as usize,
-        Some(false),
-        false,
-        false,
-        false,
-    )?;
+    let msm_cd = msm_calldata_builder(values, scalars, CurveID::X25519 as usize, false, false)?;
 
     cd.extend(msm_cd.into_iter().skip(1));
 

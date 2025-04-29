@@ -122,6 +122,12 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
+    def serialize_to_calldata(self) -> list[int]:
+        cd = [len(self)]
+        for elmt in self.elmts:
+            cd.extend(elmt.serialize_to_calldata())
+        return cd
+
 
 class Struct(Cairo1SerializableStruct):
     elmts: list[Cairo1SerializableStruct]

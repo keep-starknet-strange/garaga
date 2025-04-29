@@ -651,11 +651,8 @@ pub fn get_honk_calldata(
         &points,
         &scalars,
         CurveID::BN254 as usize,
-        None,
         false,
         false,
-        false,
-        Some((external_s0, external_s1)),
         true,
     );
 

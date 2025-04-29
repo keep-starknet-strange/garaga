@@ -4,7 +4,6 @@ use core::circuit::{
 };
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::G1Point;
-use garaga::ec_ops::FunctionFelt;
 
 #[inline(always)]
 pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_12_PUB_17_circuit(
