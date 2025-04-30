@@ -2,7 +2,6 @@ from typing import Union
 
 from garaga import garaga_rs
 from garaga.definitions import G1G2Pair, ProofSystem
-from garaga.poseidon_transcript import hades_permutation
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
@@ -200,13 +199,11 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         points.append(G1Point.get_nG(CurveID.BN254, 1))
         points.append(proof.kzg_quotient)
 
-    external_s0, external_s1, _ = hades_permutation(vk.vk_hash, tp.last_state[0], 2)
+    # external_s0, external_s1, _ = hades_permutation(vk.vk_hash, tp.last_state[0], 2)
     msm_builder = MSMCalldataBuilder(
         CurveID.BN254,
         points=points,
         scalars=scalars_msm,
-        risc0_mode=False,
-        external_points_scalars_hash=(external_s0, external_s1),
     )
 
     P_0 = G1Point.msm(points=points, scalars=scalars_msm).add(proof.shplonk_q)
@@ -223,7 +220,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         msm_builder.serialize_to_calldata(
             include_points_and_scalars=False,
             serialize_as_pure_felt252_array=False,
-            include_digits_decomposition=None,
         )
     )
     cd.extend(mpc_builder.serialize_to_calldata())

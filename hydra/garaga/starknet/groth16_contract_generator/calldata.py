@@ -43,11 +43,9 @@ def groth16_calldata_from_vk_and_proof(
             curve_id=vk.curve_id,
             points=[vk.ic[3], vk.ic[4]],
             scalars=[proof.public_inputs[2], proof.public_inputs[3]],
-            risc0_mode=True,
         )
         calldata.extend(
             msm.serialize_to_calldata(
-                include_digits_decomposition=True,
                 include_points_and_scalars=False,
                 serialize_as_pure_felt252_array=True,
             )
@@ -61,7 +59,6 @@ def groth16_calldata_from_vk_and_proof(
 
         calldata.extend(
             msm.serialize_to_calldata(
-                include_digits_decomposition=True,
                 include_points_and_scalars=False,
                 serialize_as_pure_felt252_array=True,
             )

@@ -645,7 +645,7 @@ pub fn get_honk_calldata(
 
     let mut state = [vk.vk_hash, transcript_state, two];
     PoseidonCairoStark252::hades_permutation(&mut state);
-    let [external_s0, external_s1, _] = state;
+    // let [external_s0, external_s1, _] = state;
 
     let msm_data = msm_calldata::calldata_builder(
         &points,
