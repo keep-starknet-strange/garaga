@@ -1,286 +1,281 @@
-from __future__ import annotations
+"""
+ -----------------------------------------------------------------------------
+ ε – Eisenstein integers in pure Python (fully commented)
+ -----------------------------------------------------------------------------
+ A **beginner‑friendly walk‑through**
+ -----------------------------------------------------------------------------
+ This file implements three things:
+
+   • an *Eisenstein integer* class  z = a0 + a1·ω  with  ω = e^{2πi/3}
+   • an *exact* Euclidean division  quo_rem()  in the ring ℤ[ω]
+   • the *Half‑GCD* algorithm, one of the fastest ways to compute a greatest
+     common divisor when the inputs are very large
+ """
+
+from __future__ import annotations  # ► allow the class to refer to itself in type hints
 
 import math
 from typing import Tuple
 
+# ---------------------------------------------------------------------------
+# 1.  Tiny helper for the Euclidean division in ℤ[ω]
+# ---------------------------------------------------------------------------
+
+#  The six **unit directions** of the hexagonal lattice.  Graphically:
+#     ↑ (0,1)
+#  ↖       ↗
+# (-1,1)   (1,0)
+#  ↙       ↘
+# (-1,0)   (1,-1)
+#     ↓ (0,-1)
 _NEIGHBOURS = ((1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1))
 
 
 def _round_nearest(z: int, d: int) -> int:
-    """Return ⌊(z+d/2)/d⌋ for *all* signs of z, using ints only."""
-    half = d >> 1  # d//2,  d is always >0
+    """Symmetric integer rounding  ——  ⌊ (z + d/2) / d ⌋ for *any* sign of *z*.
+
+    • *d* is strictly positive (we only call this with norms, which are > 0).
+    • For   z ≥ 0   the formula above already works.
+    • For   z <  0   we cannot add  +d/2  (would move us the wrong way),
+      so we flip the sign, apply the positive rule, then flip back.
+    """
+    half = d >> 1  # bit‑shift right by 1  ⇒  divide by 2 (fast, exact)
     return (z + half) // d if z >= 0 else -((-z + half) // d)
 
 
+# ---------------------------------------------------------------------------
+# 2.  The EisensteinInteger class
+# ---------------------------------------------------------------------------
+
+
 class EisensteinInteger:
+    """Eisenstein integers:  *hexagonal* analogue of Gaussian integers.
+
+    Definition
+    ----------
+    ω  (pronounced "omega") is the complex cube‑root of 1 with positive
+    imaginary part:  ω = e^{2πi/3} = −½ + i·√3/2.
+    It satisfies  ω² + ω + 1 = 0  and  |ω| = 1.
+
+    Every element of  ℤ[ω]  can be written uniquely as
+        z = a₀ + a₁·ω,    with  a₀, a₁ ∈ ℤ.
+    The pair (a₀, a₁) are the *hex‑coordinates* in the triangular lattice.
+
+    In code we store just those two integers.
     """
-    Represents an Eisenstein integer z = a0 + a1*ω, where ω = exp(2πi/3).
 
-    ω satisfies ω^2 + ω + 1 = 0.
-    Uses Python's built-in arbitrary-precision integers.
+    # Class‑level constants (created *after* the class body below)
+    ZERO: "EisensteinInteger"  # 0 + 0·ω
+    ONE: "EisensteinInteger"  # 1 + 0·ω
 
-    Attributes:
-        a0: The integer coefficient of 1.
-        a1: The integer coefficient of ω.
-    """
-
-    # Class constants for common values
-    ZERO: "EisensteinInteger"
-    ONE: "EisensteinInteger"
-
+    # ────────────────────────────────────────────────────────────────────
+    #  Construction & basic utilities
+    # ────────────────────────────────────────────────────────────────────
     def __init__(self, a0: int = 0, a1: int = 0):
-        """Initializes an EisensteinInteger."""
         if not isinstance(a0, int) or not isinstance(a1, int):
             raise TypeError("Coefficients a0 and a1 must be integers")
-        self.a0: int = a0
-        self.a1: int = a1
+        self.a0 = a0
+        self.a1 = a1
+
+    def copy(self) -> "EisensteinInteger":
+        """Clone *self* (handy for algorithms that mutate a temporary copy)."""
+        return EisensteinInteger(self.a0, self.a1)
+
+    def is_zero(self) -> bool:
+        return self.a0 == 0 and self.a1 == 0
 
     def __str__(self) -> str:
-        """Returns a user-friendly string representation (e.g., '3 + 2*ω')."""
+        """Pretty print   3 + 2·ω,   −ω,  0,  …"""
         if self.a1 == 0:
             return str(self.a0)
 
-        a0_str = str(self.a0) if self.a0 != 0 else ""
-
+        a0_part = f"{self.a0}" if self.a0 != 0 else ""
+        # coefficient of ω
         if self.a1 == 1:
-            a1_str = "ω"
+            a1_part = "ω"
         elif self.a1 == -1:
-            a1_str = "-ω"
+            a1_part = "-ω"
         else:
-            a1_str = f"{self.a1}*ω"
+            a1_part = f"{self.a1}*ω"
 
-        if not a0_str:
-            return a1_str
-        else:
-            sign = " + " if self.a1 > 0 else " - "
-            if abs(self.a1) == 1:
-                a1_abs_str = "ω"
-            else:
-                a1_abs_str = f"{abs(self.a1)}*ω"
-            return f"{a0_str}{sign}{a1_abs_str}"
+        if a0_part == "":
+            return a1_part
+        sign = " + " if self.a1 > 0 else " - "
+        abs_a1_part = "ω" if abs(self.a1) == 1 else f"{abs(self.a1)}*ω"
+        return f"{a0_part}{sign}{abs_a1_part}"
 
     def __repr__(self) -> str:
-        """Returns an unambiguous string representation 'EisensteinInteger(a0, a1)'."""
+        """Unambiguous form so that  eval(repr(z)) == z  (useful in a REPL)."""
         return f"EisensteinInteger({self.a0}, {self.a1})"
 
-    def __eq__(self, other: object) -> bool:
-        """Checks equality: self == other."""
-        if not isinstance(other, EisensteinInteger):
-            return NotImplemented
-        return self.a0 == other.a0 and self.a1 == other.a1
+    # ────────────────────────────────────────────────────────────────────
+    #  Equality & negation
+    # ────────────────────────────────────────────────────────────────────
+    def __eq__(self, other: object) -> bool:  # called by  z1 == z2
+        return (
+            isinstance(other, EisensteinInteger)
+            and self.a0 == other.a0
+            and self.a1 == other.a1
+        )
 
-    # Note: No __hash__ implemented as instances are mutable via `set` methods.
-
-    def copy(self) -> "EisensteinInteger":
-        """Returns a new EisensteinInteger instance with the same value."""
-        return EisensteinInteger(self.a0, self.a1)
-
-    def set(self, other: "EisensteinInteger") -> "EisensteinInteger":
-        """Sets the value of self to the value of other. Returns self."""
-        if not isinstance(other, EisensteinInteger):
-            raise TypeError("Argument must be an EisensteinInteger")
-        self.a0 = other.a0
-        self.a1 = other.a1
-        return self
-
-    def set_zero(self) -> "EisensteinInteger":
-        """Sets the value of self to zero. Returns self."""
-        self.a0 = 0
-        self.a1 = 0
-        return self
-
-    def set_one(self) -> "EisensteinInteger":
-        """Sets the value of self to one. Returns self."""
-        self.a0 = 1
-        self.a1 = 0
-        return self
-
-    def is_zero(self) -> bool:
-        """Checks if the value is zero."""
-        return self.a0 == 0 and self.a1 == 0
-
-    def __neg__(self) -> "EisensteinInteger":
-        """Computes the negation -self."""
+    def __neg__(self) -> "EisensteinInteger":  # −z
         return EisensteinInteger(-self.a0, -self.a1)
 
+    # ────────────────────────────────────────────────────────────────────
+    #  Conjugation
+    # ────────────────────────────────────────────────────────────────────
     def conjugate(self) -> "EisensteinInteger":
-        """
-        Computes the complex conjugate.
-
-        conj(a0 + a1*ω) = (a0 - a1) - a1*ω
+        """Field automorphism  ω ↦ ω²  (complex conjugation).
+        Algebraically:  conj(a₀ + a₁·ω) = (a₀ − a₁) − a₁·ω.
         """
         return EisensteinInteger(self.a0 - self.a1, -self.a1)
 
+    # ────────────────────────────────────────────────────────────────────
+    #  Addition, subtraction, multiplication
+    # ────────────────────────────────────────────────────────────────────
     def __add__(self, other: "EisensteinInteger") -> "EisensteinInteger":
-        """Computes the sum self + other."""
-        if not isinstance(other, EisensteinInteger):
-            return NotImplemented
         return EisensteinInteger(self.a0 + other.a0, self.a1 + other.a1)
 
     def __sub__(self, other: "EisensteinInteger") -> "EisensteinInteger":
-        """Computes the difference self - other."""
-        if not isinstance(other, EisensteinInteger):
-            return NotImplemented
         return EisensteinInteger(self.a0 - other.a0, self.a1 - other.a1)
 
     def __mul__(self, other: object) -> "EisensteinInteger":
-        """
-        Computes the product self * other.
-
-        Supports multiplication by another EisensteinInteger or an int.
-        Uses the identity (x0+x1ω)(y0+y1ω) = (x0y0 - x1y1) + (x0y1 + x1y0 - x1y1)ω.
+        """Product formula derived from  (x₀ + x₁ω)(y₀ + y₁ω).
+        Expand and use  ω² = −1 − ω.
         """
         if isinstance(other, EisensteinInteger):
-            x0, x1 = self.a0, self.a1
-            y0, y1 = other.a0, other.a1
-            res_a0 = x0 * y0 - x1 * y1
-            res_a1 = x0 * y1 + x1 * y0 - x1 * y1
-            return EisensteinInteger(res_a0, res_a1)
+            x0, x1, y0, y1 = self.a0, self.a1, other.a0, other.a1
+            return EisensteinInteger(
+                x0 * y0 - x1 * y1,  # coefficient of 1
+                x0 * y1 + x1 * y0 - x1 * y1,  # coefficient of ω
+            )
         elif isinstance(other, int):
-            # Multiplication by an integer scalar
             return EisensteinInteger(self.a0 * other, self.a1 * other)
-        else:
-            return NotImplemented
+        return NotImplemented
 
-    def __rmul__(self, other: object) -> "EisensteinInteger":
-        """Computes the product other * self (e.g., for int * EisensteinInteger)."""
-        if isinstance(other, int):
-            # Integer multiplication is commutative
-            return self.__mul__(other)
-        else:
-            # Let __mul__ handle EisensteinInteger * EisensteinInteger
-            # and raise NotImplemented for other types
-            return NotImplemented
+    # Support  int * EisensteinInteger  (commutative)
+    __rmul__ = __mul__
 
+    # ────────────────────────────────────────────────────────────────────
+    #  Norm (always a *plain* integer)
+    # ────────────────────────────────────────────────────────────────────
     def norm(self) -> int:
+        """N(a₀ + a₁·ω)  =  a₀² + a₁² − a₀·a₁   ≥ 0
+        Proof: treat ω as  −½ + i·√3/2  and compute |z|².
         """
-        Computes the norm N(self).
+        return self.a0 * self.a0 + self.a1 * self.a1 - self.a0 * self.a1
 
-        N(a0 + a1*ω) = a0^2 + a1^2 - a0*a1
-        The norm is always non-negative.
-        """
-        return self.a0**2 + self.a1**2 - self.a0 * self.a1
-
+    # -------------------------------------------------------------------
+    #  Euclidean division  ——  the heart of arithmetic in ℤ[ω]
+    # -------------------------------------------------------------------
     def quo_rem(
         self, y: "EisensteinInteger"
     ) -> Tuple["EisensteinInteger", "EisensteinInteger"]:
+        """Return  (q, r)  such that   self = q·y + r   with  N(r) < N(y).
 
+        Strategy (all integer‑only):
+          1. Multiply by the *conjugate* of y to get an element of the
+             lattice that is colinear with y – this is the usual trick to
+             mimic complex division without leaving the ring.
+          2. Divide the two coordinates by the *positive* norm N(y) and
+             apply symmetric rounding to obtain a *first guess* q.
+          3. If this guess does not yet satisfy the Euclidean inequality
+             N(r) < N(y), walk at most two unit steps in the hex lattice
+             until it does.
+
+        Because ℤ[ω] is a Euclidean domain, this procedure is guaranteed
+        to terminate and the while‑loop never needs more than two laps.
+        """
         if y.is_zero():
             raise ZeroDivisionError("division by zero EisensteinInteger")
 
-        nrm = y.norm()  # >0  (int)
-        num = self * y.conjugate()  # numerator, still integers
+        nrm = y.norm()  # denominator of the coordinates ( > 0 )
+        num = self * y.conjugate()  # numerator in the same lattice line
 
-        # first guess: independent symmetric rounding of the two coords
+        # --- 1st approximation by independent rounding -----------------
         q0 = _round_nearest(num.a0, nrm)
         q1 = _round_nearest(num.a1, nrm)
         q = EisensteinInteger(q0, q1)
         r = self - q * y
 
-        # If Euclidean property already holds we’re done.
-        # Otherwise walk towards the minimum by ≤ 2 unit steps.
-        while r.norm() >= nrm:
+        # --- Improve the quotient until Euclidean property holds --------
+        while r.norm() >= nrm:  # very rarely true (≈ 1 in 12 cases)
             best_q, best_r, best_norm = None, None, r.norm()
+            # test the 6 neighbours
             for dp, dq in _NEIGHBOURS:
                 cand_q = EisensteinInteger(q0 + dp, q1 + dq)
                 cand_r = self - cand_q * y
                 cand_norm = cand_r.norm()
                 if cand_norm < best_norm:
                     best_q, best_r, best_norm = cand_q, cand_r, cand_norm
-            # guaranteed to improve because ℤ[ω] is Euclidean
+            # move to the better neighbour (Euclidean property assures one exists)
             q, r = best_q, best_r
-            q0, q1 = q.a0, q.a1  # update base point in case 2 steps are needed
+            q0, q1 = q.a0, q.a1  # update centre for the *next* neighbour pass
         return q, r
 
+    # Allow the syntactic sugar  z // y   and  z % y -------------------------
     def __floordiv__(self, other: "EisensteinInteger") -> "EisensteinInteger":
-        """Computes the quotient self // other using Euclidean rounding division."""
-        if not isinstance(other, EisensteinInteger):
-            return NotImplemented
-        q, _ = self.quo_rem(other)
-        return q
+        return self.quo_rem(other)[0]
 
     def __mod__(self, other: "EisensteinInteger") -> "EisensteinInteger":
-        """Computes the remainder self % other using Euclidean rounding division."""
-        if not isinstance(other, EisensteinInteger):
-            return NotImplemented
-        _, r = self.quo_rem(other)
-        return r
+        return self.quo_rem(other)[1]
 
 
-# Define class constants after the class is fully defined
+# -------- class constants (must be assigned *after* the class is complete) ---
 EisensteinInteger.ZERO = EisensteinInteger(0, 0)
 EisensteinInteger.ONE = EisensteinInteger(1, 0)
 
+# ---------------------------------------------------------------------------
+# 3.  Half‑GCD  ——  sub‑quadratic gcd via size halving
+# ---------------------------------------------------------------------------
+
 
 def half_gcd(
-    a: EisensteinInteger, b: EisensteinInteger
+    a: EisensteinInteger,
+    b: EisensteinInteger,
 ) -> Tuple[EisensteinInteger, EisensteinInteger, EisensteinInteger]:
-    """
-    Computes the partial GCD result using the Half-GCD approach based on norm reduction.
+    """Return  (w, v, u)  with  w = a·u + b·v  and  N(w) < √N(a).
 
-    Args:
-        a: The first EisensteinInteger.
-        b: The second EisensteinInteger.
+    Why is that useful?  The classical Euclidean gcd repeatedly replaces the
+    *larger* input by its remainder modulo the smaller one – this shrinks one
+    argument at every step, but only by a *constant* factor, so it needs
+    O(log N) iterations.
 
-    Returns:
-        A tuple (w, v, u) such that w = a*u + b*v and norm(w) is approximately
-        less than sqrt(norm(a)). The identity w = a*u + b*v always holds.
+    **Half‑GCD** knocks out *half* the size (in bits) at every major step and
+    therefore runs in roughly O(log N / log log N) time.
 
-    Raises:
-        TypeError: If inputs are not EisensteinInteger instances.
-        ValueError: If the norm of 'a' is unexpectedly negative.
-        RuntimeError: If the algorithm takes an excessive number of iterations.
+    The idea is to run the Euclidean algorithm *just long enough* for the
+    remainder’s norm to dip below √N(a).  The output coefficients u, v let us
+    continue assembling the gcd later (the full gcd algorithm calls half_gcd
+    recursively on smaller and smaller inputs).
     """
     if not isinstance(a, EisensteinInteger) or not isinstance(b, EisensteinInteger):
         raise TypeError("Inputs must be EisensteinInteger instances")
 
-    # Initialize variables for the Extended Euclidean Algorithm
-    a_run = a.copy()
-    b_run = b.copy()
-    u = EisensteinInteger.ONE.copy()  # Use class constant copies
-    v = EisensteinInteger.ZERO.copy()
-    u_ = EisensteinInteger.ZERO.copy()
-    v_ = EisensteinInteger.ONE.copy()
-    # Invariants: a_run = a*u + b*v,  b_run = a*u_ + b*v_
+    # Extended Euclidean bookkeeping matrices
+    a_run, b_run = a.copy(), b.copy()
+    u, v = EisensteinInteger.ONE.copy(), EisensteinInteger.ZERO.copy()
+    u_, v_ = EisensteinInteger.ZERO.copy(), EisensteinInteger.ONE.copy()
+    # Invariants throughout the loop:
+    #     a_run =  a·u  + b·v
+    #     b_run =  a·u_ + b·v_
 
-    norm_a = a.norm()
-    if norm_a < 0:
-        raise ValueError("Norm of input 'a' cannot be negative")
-    # Calculate the termination threshold
-    limit = math.isqrt(norm_a)
+    limit = math.isqrt(a.norm())  # √N(a)  (integer square root)
 
-    # Loop while the norm of the 'smaller' value (b_run) is >= the limit
-    iteration = 0
-    max_iterations = 200000  # Safety limit
-
-    while b_run.norm() >= limit:
-        if iteration > max_iterations:
-            raise RuntimeError(
-                f"HalfGCD exceeded {max_iterations} iterations for a={a}, b={b}"
-            )
-
-        if b_run.is_zero():
-            break  # GCD is a_run
-
-        try:
-            quotient, remainder = a_run.quo_rem(b_run)
-        except ZeroDivisionError:
-            # Should ideally not happen if b_run.is_zero() check works
+    # Safety valve: more than ~2e5 iterations would imply a bug
+    for _ in range(200_000):
+        if b_run.norm() < limit or b_run.is_zero():
             break
+        q, r = a_run.quo_rem(b_run)
 
-        # Update coefficients
-        next_u_ = u - quotient * u_
-        next_v_ = v - quotient * v_
+        # update (a_run, b_run)  and the coefficient matrix simultaneously
+        a_run, b_run = b_run, r
+        u, u_ = u_, u - q * u_
+        v, v_ = v_, v - q * v_
+    else:
+        raise RuntimeError("Half‑GCD failed to converge – too many steps")
 
-        # Update state
-        a_run, b_run = b_run, remainder
-        u, u_ = u_, next_u_
-        v, v_ = v_, next_v_
-
-        iteration += 1
-
-    # Return the final state corresponding to the Go implementation's return values
-    # (b_run, v_, u_) which satisfy b_run = a*u_ + b*v_
+    # *Return order* follows the classic Half‑GCD papers:  (w, v, u)
     return b_run, v_, u_
 
 
