@@ -14,7 +14,7 @@ use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
 use core::result::ResultTrait;
 use garaga::basic_field_ops::{
-    add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
+    add_mod_p, batch_3_mod_p, is_opposite_mod_p, is_zero_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
 };
 use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
@@ -181,7 +181,6 @@ pub fn msm_fake_glv(
     }
     assert(hint.len() == n * 10, 'wrong fakeglv hint size');
     let pt_0 = *points.pop_front().unwrap();
-    pt_0.assert_on_curve(curve_index);
     let scalar_0 = *scalars.pop_front().unwrap();
     let hint_0: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
     let modulus = get_modulus(curve_index);
@@ -192,12 +191,26 @@ pub fn msm_fake_glv(
         let pt = *points.pop_front().unwrap();
         let scalar = *scalars.pop_front().unwrap();
         let fake_glv_hint: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
-        pt.assert_on_curve(curve_index);
-        fake_glv_hint.Q.assert_on_curve(curve_index);
         let temp = _scalar_mul_fake_glv(pt, scalar, modulus, fake_glv_hint, curve_index);
         acc = _ec_safe_add(acc, temp, modulus, curve_index);
     }
     return acc;
+}
+
+pub fn _scalar_mul_fake_glv(
+    point: G1Point, scalar: u256, modulus: CircuitModulus, hint: FakeGlvHint, curve_index: usize,
+) -> G1Point {
+    let scalar_u384: u384 = scalar.into();
+
+    if is_zero_mod_p(scalar_u384, modulus) || point.is_infinity() {
+        return G1PointZero::zero();
+    }
+    point.assert_on_curve(curve_index);
+    if scalar == 1 {
+        return point;
+    }
+    hint.Q.assert_on_curve(curve_index);
+    return hint.Q;
 }
 
 
@@ -271,17 +284,17 @@ fn _scalar_mul_glv_and_fake_glv(
     n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
-    if scalar == 0 || point.is_infinity() {
+    let scalar_u384: u384 = scalar.into();
+
+    if is_zero_mod_p(scalar_u384, modulus) || point.is_infinity() {
         return G1PointZero::zero();
     }
     point.assert_on_curve(curve_index);
     if scalar == 1 {
         return point;
     }
-    if !hint.Q.is_infinity() {
-        hint.Q.assert_on_curve(curve_index);
-    }
-    let scalar_u384: u384 = scalar.into();
+
+    hint.Q.assert_on_curve(curve_index);
 
     if scalar_u384 == minus_one {
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
@@ -500,13 +513,6 @@ fn _scalar_mul_glv_and_fake_glv(
 
     assert(Acc == n_bits_G, 'Wrong Glv&FakeGLV result');
 
-    return hint.Q;
-}
-
-pub fn _scalar_mul_fake_glv(
-    point: G1Point, scalar: u256, modulus: CircuitModulus, hint: FakeGlvHint, curve_index: usize,
-) -> G1Point {
-    let modulus = get_modulus(curve_index);
     return hint.Q;
 }
 
@@ -805,76 +811,4 @@ pub fn double_and_add_8(
 
     return G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) };
 }
-#[cfg(test)]
-mod tests {
-    use core::circuit::u384;
-    use core::traits::TryInto;
-    use garaga::definitions::{
-        get_curve_order_modulus, get_eigenvalue, get_min_one_order, get_modulus,
-        get_nbits_and_nG_glv_fake_glv, get_third_root_of_unity,
-    };
-    // use super::{
-//     G1Point, FakeGLVHint, _scalar_mul_glv_and_fake_glv, derive_ec_point_from_X,
-// };
 
-    // #[test]
-// fn test_scalar_mul_glv_and_fake_glv() {
-//     let curve_id = 2;
-//     let eigen = get_eigenvalue(curve_id);
-//     let third_root_of_unity = get_third_root_of_unity(curve_id);
-//     let modulus = get_modulus(curve_id);
-//     let order_modulus = get_curve_order_modulus(curve_id);
-//     let min_one = get_min_one_order(curve_id);
-//     let (bits_73, nG) = get_nbits_and_nG_glv_fake_glv(curve_id);
-//     let scalar =
-//     111793196543967404139194827996419963236210979610743141064269745943111491389390;
-//     let hint = ScalarMulFakeGLVHint {
-//         Q: G1Point {
-//             x: u384 {
-//                 limb0: 0x393dead57bc85a6e9bb44a70,
-//                 limb1: 0x64d4b065b3ede27cf9fb9e5c,
-//                 limb2: 0xda670c8c69a8ce0a,
-//                 limb3: 0x0,
-//             },
-//             y: u384 {
-//                 limb0: 0x789872895ad7121175bd78f8,
-//                 limb1: 0xc0deb0b56fb251e8fb5d0a8d,
-//                 limb2: 0x3f10d670dc3297c2,
-//                 limb3: 0x0,
-//             },
-//         },
-//         u1: 340282366920938463464343795955316113711,
-//         u2: 340282366920938463474852729012356961284,
-//         v1: 6737143207983294551,
-//         v2: 7075379181548270484,
-//     };
-//     let result = _scalar_mul_glv_and_fake_glv(
-//         G1Point {
-//             x: u384 {
-//                 limb0: 0x2dce28d959f2815b16f81798,
-//                 limb1: 0x55a06295ce870b07029bfcdb,
-//                 limb2: 0x79be667ef9dcbbac,
-//                 limb3: 0x0,
-//             },
-//             y: u384 {
-//                 limb0: 0xa68554199c47d08ffb10d4b8,
-//                 limb1: 0x5da4fbfc0e1108a8fd17b448,
-//                 limb2: 0x483ada7726a3c465,
-//                 limb3: 0x0,
-//             },
-//         },
-//         scalar,
-//         order_modulus,
-//         modulus,
-//         hint,
-//         eigen,
-//         third_root_of_unity,
-//         min_one,
-//         u384 { limb0: 1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-//         bits_73,
-//         nG,
-//         curve_id,
-//     );
-//     // assert!(result == nG);
-// }
-}
