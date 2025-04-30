@@ -1,116 +1,19 @@
 use num_bigint::BigInt;
-use num_integer::Integer;
 use num_traits::{One, Signed, Zero};
 
-/*
-Computes quotient and remainder using truncated division (towards zero).
+/// Axial coordinates of the 6 unit directions in the hexagonal lattice.
+const NEIGHBOURS: [(i32, i32); 6] = [(1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1)];
 
-This mimics the behavior of Go's `big.Int.QuoRem` method.
-q = x / y (truncated towards zero)
-r = x - y * q
-
-Args:
-    x: Dividend.
-    y: Divisor.
-
-Returns:
-    A tuple (q, r) representing the quotient and remainder.
-
-Raises:
-    ZeroDivisionError: If y is 0.
-*/
-pub fn quo_rem_truncated(x: &BigInt, y: &BigInt) -> Result<[BigInt; 2], String> {
-    if *y == 0.into() {
-        return Err("division by zero".into());
+/// Symmetric integer rounding  ⌊(z + d/2) / d⌋  valid for *any* sign of `z`.
+fn round_nearest(z: &BigInt, d: &BigInt) -> BigInt {
+    debug_assert!(*d > BigInt::zero());
+    let half = d >> 1; // d / 2
+    if *z >= BigInt::zero() {
+        (z + &half) / d
+    } else {
+        let quotient: BigInt = ((-z) + &half) / d;
+        -quotient
     }
-
-    // Standard division produces a float. int() truncates floats towards zero.
-    let q = x / y;
-    // The remainder is defined as r = x - y*q based on the truncated quotient.
-    let r = x - y * &q;
-
-    // --- Verification (optional but useful) ---
-    // Check remainder properties for truncated division:
-    // 1. abs(r) < abs(y)
-    // 2. x = y * q + r
-    // 3. sign(r) == sign(x) or r == 0
-    assert!(
-        r.abs() < y.abs(),
-        "Truncated: Remainder magnitude |{}| >= divisor magnitude |{}|",
-        r,
-        y
-    );
-    assert!(
-        *x == y * &q + &r,
-        "Truncated: Definition x = y*q + r failed: {} != {}*{} + {}",
-        x,
-        y,
-        q,
-        r
-    );
-    assert!(
-        r == 0.into() || r.sign() == x.sign(),
-        "Truncated: Remainder sign mismatch: sign({}) != sign({})",
-        r,
-        x
-    );
-    // --- End Verification ---
-
-    Ok([q, r])
-}
-
-/*
-Computes the quotient using Euclidean division (floor division).
-
-This mimics the behavior of Go's `big.Int.Div` method.
-For Euclidean division:
-q = floor(x / y)
-r = x - y * q, such that 0 <= r < |y|
-
-Python's // operator directly performs Euclidean (floor) division.
-
-Args:
-    x: Dividend.
-    y: Divisor.
-
-Returns:
-    The Euclidean quotient q.
-
-Raises:
-    ZeroDivisionError: If y is 0.
-*/
-fn div_euclidean(x: &BigInt, y: &BigInt) -> Result<BigInt, String> {
-    if *y == 0.into() {
-        return Err("division by zero".into());
-    }
-
-    // Python's // operator performs floor division, which corresponds
-    // to the Euclidean division quotient.
-    let q = x.div_floor(y);
-
-    // --- Verification (optional but useful) ---
-    // Calculate the corresponding Euclidean remainder
-    let r = x.mod_floor(y); // Or r = x - y * q
-                            // Check remainder properties for Euclidean division:
-                            // 1. 0 <= r < |y|
-                            // 2. x = y * q + r
-    assert!(
-        r >= 0.into() && r < y.abs(),
-        "Euclidean: Remainder {} not in [0, |{}|)",
-        r,
-        y
-    );
-    assert!(
-        *x == y * &q + &r,
-        "Euclidean: Definition x = y*q + r failed: {} != {}*{} + {}",
-        x,
-        y,
-        q,
-        r
-    );
-    // --- End Verification ---
-
-    Ok(q)
 }
 
 /*
@@ -142,14 +45,14 @@ impl EisensteinInteger {
     }
     /*Sets the value of self to zero. Returns self.*/
     pub fn set_zero(&mut self) -> &Self {
-        self.a0 = 0.into();
-        self.a1 = 0.into();
+        self.a0 = BigInt::zero();
+        self.a1 = BigInt::zero();
         self
     }
     /*Sets the value of self to one. Returns self.*/
     pub fn set_one(&mut self) -> &Self {
-        self.a0 = 1.into();
-        self.a1 = 0.into();
+        self.a0 = BigInt::one();
+        self.a1 = BigInt::zero();
         self
     }
     /*
@@ -184,23 +87,45 @@ impl EisensteinInteger {
         ZeroDivisionError: If y is zero.
         TypeError: If y is not an EisensteinInteger.
     */
+    /* ---------- Euclidean division in ℤ[ω] ---------- */
     pub fn quo_rem(&self, y: &Self) -> Result<[Self; 2], String> {
-        let norm_y = y.norm();
-        if norm_y == 0.into() {
+        if y.is_zero() {
             return Err("division by zero EisensteinInteger".into());
         }
+        let nrm = y.norm(); // positive
+        let num = self * &y.conjugate(); // still integer-only
 
-        // Calculate numerator = self * y.conjugate() = num0 + num1*ω
-        let num = self.clone() * y.conjugate();
+        // first guess by independent symmetric rounding
+        let mut q0 = round_nearest(&num.a0, &nrm);
+        let mut q1 = round_nearest(&num.a1, &nrm);
+        let mut q = Self::new(q0.clone(), q1.clone());
+        // Calculate product first, then subtract its reference
+        let qy = &q * y;
+        let mut r = self - &qy;
 
-        // Calculate quotient q by rounding components of num/norm_y to nearest int
-        let q_a0 = div_euclidean(&num.a0, &norm_y)?;
-        let q_a1 = div_euclidean(&num.a1, &norm_y)?;
-        let q = Self::new(q_a0, q_a1);
+        // walk the neighbourhood until  N(r) < N(y)  (≤ 2 iterations)
+        while r.norm() >= nrm {
+            let mut best_q = None;
+            let mut best_r = None;
+            let mut best_n2 = r.norm(); // current (worst) remainder
 
-        // Calculate remainder r = self - y * q
-        let r = self.clone() - q.clone() * y.clone(); // Corrected order from previous edit
-
+            for (dp, dq) in NEIGHBOURS.iter() {
+                let cand_q = Self::new(&q0 + dp, &q1 + dq);
+                // Calculate product first, then subtract its reference
+                let cand_qy = &cand_q * y;
+                let cand_r = self - &cand_qy;
+                let cand_n2 = cand_r.norm();
+                if cand_n2 < best_n2 {
+                    best_q = Some(cand_q);
+                    best_r = Some(cand_r);
+                    best_n2 = cand_n2;
+                }
+            }
+            q = best_q.expect("Euclidean property violated");
+            r = best_r.unwrap();
+            q0 = q.a0.clone();
+            q1 = q.a1.clone(); // centre for 2nd lap
+        }
         Ok([q, r])
     }
 }
@@ -208,16 +133,16 @@ impl EisensteinInteger {
 impl std::fmt::Display for EisensteinInteger {
     /*Returns a user-friendly string representation (e.g., '3 + 2*ω').*/
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        if self.a1 == 0.into() {
+        if self.a1.is_zero() {
             write!(f, "{}", self.a0)
         } else {
-            let a0_str = if self.a0 != 0.into() {
+            let a0_str = if !self.a0.is_zero() {
                 format!("{}", self.a0)
             } else {
                 "".into()
             };
 
-            let a1_str = if self.a1 == 1.into() {
+            let a1_str = if self.a1 == BigInt::one() {
                 "ω".into()
             } else {
                 if self.a1 == (-1).into() {
@@ -227,11 +152,15 @@ impl std::fmt::Display for EisensteinInteger {
                 }
             };
 
-            if a0_str.len() == 0 {
+            if a0_str.is_empty() {
                 write!(f, "{}", a1_str)
             } else {
-                let sign = if self.a1 > 0.into() { " + " } else { " - " };
-                let a1_abs_str = if self.a1.abs() == 1.into() {
+                let sign = if self.a1 > BigInt::zero() {
+                    " + "
+                } else {
+                    " - "
+                };
+                let a1_abs_str = if self.a1.abs() == BigInt::one() {
                     "ω".into()
                 } else {
                     format!("{}*ω", self.a1.abs())
@@ -398,7 +327,7 @@ impl<'a> std::ops::Rem<&'a EisensteinInteger> for &'a EisensteinInteger {
 
 impl Zero for EisensteinInteger {
     fn zero() -> Self {
-        Self::new(0.into(), 0.into())
+        Self::new(BigInt::zero(), BigInt::zero())
     }
 
     /*Checks if the value is zero.*/
@@ -409,7 +338,7 @@ impl Zero for EisensteinInteger {
 
 impl One for EisensteinInteger {
     fn one() -> Self {
-        Self::new(1.into(), 0.into())
+        Self::new(BigInt::one(), BigInt::zero())
     }
 }
 
@@ -443,7 +372,7 @@ pub fn half_gcd(
     // Invariants: a_run = a*u + b*v,  b_run = a*u_ + b*v_
 
     let norm_a = a.norm();
-    if norm_a < 0.into() {
+    if norm_a < BigInt::zero() {
         return Err("Norm of input 'a' cannot be negative".into());
     }
     // Calculate the termination threshold
