@@ -3,93 +3,13 @@ from __future__ import annotations
 import math
 from typing import Tuple
 
-
-def quo_rem_truncated(x: int, y: int) -> Tuple[int, int]:
-    """
-    Computes quotient and remainder using truncated division (towards zero).
-
-    This mimics the behavior of Go's `big.Int.QuoRem` method.
-    q = x / y (truncated towards zero)
-    r = x - y * q
-
-    Args:
-        x: Dividend.
-        y: Divisor.
-
-    Returns:
-        A tuple (q, r) representing the quotient and remainder.
-
-    Raises:
-        ZeroDivisionError: If y is 0.
-    """
-    if y == 0:
-        raise ZeroDivisionError("division by zero")
-
-    # Standard division produces a float. int() truncates floats towards zero.
-    q = int(x / y)
-    # The remainder is defined as r = x - y*q based on the truncated quotient.
-    r = x - y * q
-
-    # --- Verification (optional but useful) ---
-    # Check remainder properties for truncated division:
-    # 1. abs(r) < abs(y)
-    # 2. x = y * q + r
-    # 3. sign(r) == sign(x) or r == 0
-    assert abs(r) < abs(
-        y
-    ), f"Truncated: Remainder magnitude |{r}| >= divisor magnitude |{y}|"
-    assert (
-        x == y * q + r
-    ), f"Truncated: Definition x = y*q + r failed: {x} != {y}*{q} + {r}"
-    assert r == 0 or math.copysign(1, r) == math.copysign(
-        1, x
-    ), f"Truncated: Remainder sign mismatch: sign({r}) != sign({x})"
-    # --- End Verification ---
-
-    return q, r
+_NEIGHBOURS = ((1, 0), (0, 1), (-1, 1), (-1, 0), (0, -1), (1, -1))
 
 
-def div_euclidean(x: int, y: int) -> int:
-    """
-    Computes the quotient using Euclidean division (floor division).
-
-    This mimics the behavior of Go's `big.Int.Div` method.
-    For Euclidean division:
-    q = floor(x / y)
-    r = x - y * q, such that 0 <= r < |y|
-
-    Python's // operator directly performs Euclidean (floor) division.
-
-    Args:
-        x: Dividend.
-        y: Divisor.
-
-    Returns:
-        The Euclidean quotient q.
-
-    Raises:
-        ZeroDivisionError: If y is 0.
-    """
-    if y == 0:
-        raise ZeroDivisionError("division by zero")
-
-    # Python's // operator performs floor division, which corresponds
-    # to the Euclidean division quotient.
-    q = x // y
-
-    # --- Verification (optional but useful) ---
-    # Calculate the corresponding Euclidean remainder
-    r = x % y  # Or r = x - y * q
-    # Check remainder properties for Euclidean division:
-    # 1. 0 <= r < |y|
-    # 2. x = y * q + r
-    assert 0 <= r < abs(y), f"Euclidean: Remainder {r} not in [0, |{y}|)"
-    assert (
-        x == y * q + r
-    ), f"Euclidean: Definition x = y*q + r failed: {x} != {y}*{q} + {r}"
-    # --- End Verification ---
-
-    return q
+def _round_nearest(z: int, d: int) -> int:
+    """Return ⌊(z+d/2)/d⌋ for *all* signs of z, using ints only."""
+    half = d >> 1  # d//2,  d is always >0
+    return (z + half) // d if z >= 0 else -((-z + half) // d)
 
 
 class EisensteinInteger:
@@ -244,39 +164,32 @@ class EisensteinInteger:
     def quo_rem(
         self, y: "EisensteinInteger"
     ) -> Tuple["EisensteinInteger", "EisensteinInteger"]:
-        """
-        Performs Euclidean division self / y using rounding to the NEAREST Eisenstein integer.
 
-        This method guarantees norm(remainder) < norm(divisor).
-
-        Args:
-            y: The divisor (must be non-zero).
-
-        Returns:
-            A tuple (quotient, remainder).
-
-        Raises:
-            ZeroDivisionError: If y is zero.
-            TypeError: If y is not an EisensteinInteger.
-        """
-        if not isinstance(y, EisensteinInteger):
-            raise TypeError("Divisor must be an EisensteinInteger")
-
-        norm_y = y.norm()
-        if norm_y == 0:
+        if y.is_zero():
             raise ZeroDivisionError("division by zero EisensteinInteger")
 
-        # Calculate numerator = self * y.conjugate() = num0 + num1*ω
-        num = self * y.conjugate()
+        nrm = y.norm()  # >0  (int)
+        num = self * y.conjugate()  # numerator, still integers
 
-        # Calculate quotient q by rounding components of num/norm_y to nearest int
-        q_a0 = div_euclidean(num.a0, norm_y)
-        q_a1 = div_euclidean(num.a1, norm_y)
-        q = EisensteinInteger(q_a0, q_a1)
+        # first guess: independent symmetric rounding of the two coords
+        q0 = _round_nearest(num.a0, nrm)
+        q1 = _round_nearest(num.a1, nrm)
+        q = EisensteinInteger(q0, q1)
+        r = self - q * y
 
-        # Calculate remainder r = self - y * q
-        r = self - q * y  # Corrected order from previous edit
-
+        # If Euclidean property already holds we’re done.
+        # Otherwise walk towards the minimum by ≤ 2 unit steps.
+        while r.norm() >= nrm:
+            best_q, best_r, best_norm = None, None, r.norm()
+            for dp, dq in _NEIGHBOURS:
+                cand_q = EisensteinInteger(q0 + dp, q1 + dq)
+                cand_r = self - cand_q * y
+                cand_norm = cand_r.norm()
+                if cand_norm < best_norm:
+                    best_q, best_r, best_norm = cand_q, cand_r, cand_norm
+            # guaranteed to improve because ℤ[ω] is Euclidean
+            q, r = best_q, best_r
+            q0, q1 = q.a0, q.a1  # update base point in case 2 steps are needed
         return q, r
 
     def __floordiv__(self, other: "EisensteinInteger") -> "EisensteinInteger":
@@ -338,7 +251,7 @@ def half_gcd(
 
     # Loop while the norm of the 'smaller' value (b_run) is >= the limit
     iteration = 0
-    max_iterations = 20000  # Safety limit
+    max_iterations = 200000  # Safety limit
 
     while b_run.norm() >= limit:
         if iteration > max_iterations:
