@@ -6,7 +6,7 @@ use core::circuit::{
 use core::num::traits::Zero;
 use core::sha256::compute_sha256_u32_array;
 use garaga::basic_field_ops::{is_even_u384, u32_8_to_u384, u512_mod_p};
-use garaga::circuits::ec::run_ADD_EC_POINT_circuit;
+use garaga::circuits::ec::{run_ADD_EC_POINT_circuit, run_CLEAR_COFACTOR_BLS12_381_circuit};
 use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{
@@ -129,7 +129,6 @@ impl MapToCurveHintSerde of Serde<MapToCurveHint> {
 struct HashToCurveHint {
     f0_hint: MapToCurveHint,
     f1_hint: MapToCurveHint,
-    scalar_mul_hint: Span<felt252>,
 }
 
 
@@ -149,12 +148,7 @@ fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHin
     let (sum) = run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(sum);
 
     // clear cofactor :
-    let res = msm_g1(
-        array![sum].span(),
-        array![u256 { low: BLS_COFACTOR, high: 0 }].span(),
-        1,
-        hash_to_curve_hint.scalar_mul_hint,
-    );
+    let (res) = run_CLEAR_COFACTOR_BLS12_381_circuit(sum, modulus);
     return res;
 }
 
@@ -967,22 +961,6 @@ mod tests {
                 },
                 y_flag: false,
             },
-            scalar_mul_hint: array![
-                1,
-                45532232561726949585200733467,
-                63880749438326825307923114781,
-                24503171786543479751748159117,
-                3947350475742397264074486136,
-                33118278456242879678441950494,
-                15583174495937448575431952187,
-                74503368143166723743387073824,
-                4545968862318898773943529120,
-                15132376222941642751,
-                0,
-                340282366920938463493639359877651496959,
-                340282366920938463493639359877651496958,
-            ]
-                .span(),
         };
 
         let expected = G1Point {

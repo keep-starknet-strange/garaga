@@ -46,6 +46,7 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
     AddECPointCircuit,
     AddECPointsG2Circuit,
+    ClearCofactorBLS12_381Circuit,
     DoubleECPointCircuit,
     DoubleECPointG2AEq0Circuit,
     DummyCircuit,
@@ -70,6 +71,7 @@ class CircuitID(Enum):
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
     IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
     IS_ON_CURVE_G2 = int.from_bytes(b"is_on_curve_g2", "big")
+    CLEAR_COFACTOR_BLS12_381 = int.from_bytes(b"clear_cofactor_bls12_381", "big")
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
     PREPARE_GLV_FAKE_GLV_PTS = int.from_bytes(b"prepare_glv_fake_glv_pts", "big")
@@ -136,6 +138,12 @@ ALL_CAIRO_CIRCUITS = {
         "class": IsOnCurveG2Circuit,
         "params": None,
         "filename": "ec",
+    },
+    CircuitID.CLEAR_COFACTOR_BLS12_381: {
+        "class": ClearCofactorBLS12_381Circuit,
+        "params": None,
+        "filename": "ec",
+        "curve_ids": [CurveID.BLS12_381],
     },
     CircuitID.ADD_EC_POINT: {
         "class": AddECPointCircuit,

@@ -498,7 +498,7 @@ fn _scalar_mul_glv_and_fake_glv(
         (Acc,)
     };
 
-    assert(Acc == n_bits_G, 'Wrong result');
+    assert(Acc == n_bits_G, 'Wrong Glv&FakeGLV result');
 
     return hint.Q;
 }
