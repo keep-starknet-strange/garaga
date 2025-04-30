@@ -169,22 +169,16 @@ class MSMCalldataBuilder:
                 serialize_as_pure_felt252_array,
             )
 
-        inputs = self._get_input_structs()
+        msm_hint, points, scalars = self._get_input_structs()
 
         call_data: list[int] = []
-        for e in inputs:
-            # print(e.name)
-            if e.name == "points" and not include_points_and_scalars:
-                continue
-            elif e.name == "scalars" and not include_points_and_scalars:
-                continue
-            else:
-                data = e.serialize_to_calldata()
-
-            call_data.extend(data)
 
         if include_points_and_scalars:
+            call_data.extend(points.serialize_to_calldata())
+            call_data.extend(scalars.serialize_to_calldata())
             call_data.append(self.curve_id.value)
+
+        call_data.extend(msm_hint.serialize_to_calldata()[1:])
 
         if serialize_as_pure_felt252_array:
             return [len(call_data)] + call_data
