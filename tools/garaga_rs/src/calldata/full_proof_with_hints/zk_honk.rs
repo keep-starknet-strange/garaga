@@ -419,6 +419,21 @@ pub fn get_zk_honk_calldata(
         .map_err(|e| format!("Field error: {:?}", e))?,
     );
 
+    let mut scalars_msm = scalars; // Rename for clarity and make mutable
+
+    // Swap last two scalars
+    let len = scalars_msm.len();
+    if len >= 2 {
+        scalars_msm.swap(len - 1, len - 2);
+    }
+
+    // Place first scalar just after the vk_lagrange_last point (index 27)
+    if !scalars_msm.is_empty() {
+        let first_scalar = scalars_msm.remove(0);
+        // Assume the vector length is sufficient for insertion at index 27
+        scalars_msm.insert(27, first_scalar);
+    }
+
     let proof_data = {
         let mut call_data = vec![];
         let call_data_ref = &mut call_data;
@@ -502,7 +517,6 @@ pub fn get_zk_honk_calldata(
     };
 
     let mut points = vec![
-        gemini_masking_poly,  // 1
         qm,                   // 2
         qc,                   // 3
         ql,                   // 4
@@ -530,6 +544,7 @@ pub fn get_zk_honk_calldata(
         t4,                   // 26
         lagrange_first,       // 27
         lagrange_last,        // 28
+        gemini_masking_poly,  // 1
         w1,                   // 29
         w2,                   // 30
         w3,                   // 31
@@ -542,25 +557,24 @@ pub fn get_zk_honk_calldata(
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
     points.extend(libra_commitments);
-    points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
+    points.push(G1Point::generator());
 
     let two = FieldElement::<Stark252PrimeField>::one().double();
 
     let mut state = [vk.vk_hash, transcript_state, two];
     PoseidonCairoStark252::hades_permutation(&mut state);
-    let [external_s0, external_s1, _] = state;
 
     let msm_data = msm_calldata::calldata_builder(
         &points,
-        &scalars,
+        &scalars_msm,
         CurveID::BN254 as usize,
         false,
-        false,
+        true,
         true,
     );
 
-    let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
+    let p_0 = G1Point::msm(&points, &scalars_msm).add(&shplonk_q);
     let p_1 = kzg_quotient.neg();
     let g2_point_kzg_1 = G2Point::generator();
     let g2_point_kzg_2 = G2Point::new(

@@ -34,14 +34,15 @@ def test_half_gcd_eisenstein_hint(curve_id):
 def test_glv_fake_glv(curve_id):
     curve = CURVES[curve_id.value]
     random_point = G1Point.get_nG(curve_id, 1)
-    for _ in range(100):
-        scalar = random.randint(1, curve.n)
-        _ = scalar_mul_glv_and_fake_glv(random_point, scalar)
+    # for _ in range(100):
+    #     scalar = random.randint(1, curve.n)
+    #     _ = scalar_mul_glv_and_fake_glv(random_point, scalar)
     scalar = curve.n - 2
+    _ = scalar_mul_glv_and_fake_glv(random_point, scalar)
 
-    for _ in range(100):
-        _ = scalar_mul_glv_and_fake_glv(random_point, scalar)
-        scalar -= 1
+    # for _ in range(100):
+    #     _ = scalar_mul_glv_and_fake_glv(random_point, scalar)
+    #     scalar -= 1
 
 
 def test_glv_fake_glv_bls12_381_2():

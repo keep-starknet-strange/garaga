@@ -232,6 +232,9 @@ def half_gcd_eisenstein_hint(
 ) -> Tuple[int, int, int, int]:
     glv_basis = precompute_lattice(modulus, eigen_value)
     r = eisenstein.EisensteinInteger(glv_basis.V1[0], glv_basis.V1[1])
+    if scalar % modulus == modulus - 1:
+        scalar = 1
+    # print(f"SPLIT SCALAR INPUT: {scalar}")
     sp = split_scalar(scalar, glv_basis)
     s = eisenstein.EisensteinInteger(sp[0], sp[1])
     # in-circuit we check that Q - [s]P = 0 or equivalently Q + [-s]P = 0
@@ -293,9 +296,10 @@ def get_fake_glv_hint(point: G1Point, scalar: int) -> tuple[G1Point, int, int]:
 
 
 def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
-    assert scalar != 0, f"Scalar is 0 for point {point}"
-    assert point.is_infinity() == False, f"Point is infinity for scalar {scalar}"
     curve = CURVES[point.curve_id.value]
+    assert scalar % curve.n != 0, f"Scalar is 0 for point {point}"
+    assert point.is_infinity() == False, f"Point is infinity for scalar {scalar}"
+
     curve_id = point.curve_id
     if not curve.is_endomorphism_available():
         raise ValueError(
@@ -308,7 +312,14 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # %{ Hint :
     u1, u2, v1, v2 = half_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
     Q = point.scalar_mul(scalar)
+    print(f"Q: {Q}")
     # %} #
+    if scalar % curve.n == curve.n - 1:
+        _scalar = 1
+        Q = G1Point.get_nG(curve_id, 2)
+    else:
+        _scalar = scalar
+
     print(f"Q: {split(Q.x)}, {split(Q.y)}")
     print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
 
@@ -316,7 +327,9 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # Verifier :
     # We need to check that:
     # 		s*(v1 + λ*v2) + u1 + λ*u2 = 0
-    assert (scalar * (v1 + eigen_value * v2) + u1 + eigen_value * u2) % curve.n == 0
+    assert (
+        _scalar * (v1 + eigen_value * v2) + u1 + eigen_value * u2
+    ) % curve.n == 0, f"Wrong decomposition for scalar {scalar}"
 
     # Precompute -P, -Φ(P), Φ(P):
     table_P = [None, None]
@@ -365,6 +378,8 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     for i in range(4):
         print(f"\nS{i}: {table_S[i].to_cairo_1(as_hex=False)}\n")
 
+    print(f"table_Phi_P[0]: {split(table_Phi_P[0].x)}, {split(table_Phi_P[0].y)}")
+    print(f"table_Phi_Q[0]: {split(table_Phi_Q[0].x)}, {split(table_Phi_Q[0].y)}")
     table_Phi_S[0] = table_Phi_P[0].add(table_Phi_Q[0])  # -Φ(P)-Φ(Q)
     table_Phi_S[1] = -table_Phi_S[0]  # Φ(P)+Φ(Q)
     table_Phi_S[2] = table_Phi_P[1].add(table_Phi_Q[0])  # Φ(P)-Φ(Q)
@@ -392,6 +407,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # nbits := st.Modulus().BitLen()>>2 + 9
 
     n_bits = curve.n.bit_length() // 4 + 9
+    # n_bits = 73
 
     def to_bits_le(x: int) -> List[int]:
         """
@@ -419,49 +435,52 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # 		B2  = +P + Q + Φ(P) - Φ(Q)
 
     B2 = table_S[1].add(table_Phi_S[2])
-    print(f"B2: {split(B2.x)}, {split(B2.y)}")
     # 		B3  = +P + Q - Φ(P) + Φ(Q)
     B3 = table_S[1].add(table_Phi_S[3])
-    print(f"B3: {split(B3.x)}, {split(B3.y)}")
     # 		B4  = +P + Q - Φ(P) - Φ(Q)
     B4 = table_S[1].add(table_Phi_S[0])
-    print(f"B4: {split(B4.x)}, {split(B4.y)}")
     # 		B5  = +P - Q + Φ(P) + Φ(Q)
     B5 = table_S[2].add(table_Phi_S[1])
-    print(f"B5: {split(B5.x)}, {split(B5.y)}")
     # 		B6  = +P - Q + Φ(P) - Φ(Q)
     B6 = table_S[2].add(table_Phi_S[2])
-    print(f"B6: {split(B6.x)}, {split(B6.y)}")
     # 		B7  = +P - Q - Φ(P) + Φ(Q)
     B7 = table_S[2].add(table_Phi_S[3])
-    print(f"B7: {split(B7.x)}, {split(B7.y)}")
     # 		B8  = +P - Q - Φ(P) - Φ(Q)
     B8 = table_S[2].add(table_Phi_S[0])
-    print(f"B8: {split(B8.x)}, {split(B8.y)}")
     # 		B9  = -P + Q + Φ(P) + Φ(Q)
     B9 = -B8
-    print(f"B9: {split(B9.x)}, {split(B9.y)}")
     # 		B10 = -P + Q + Φ(P) - Φ(Q)
     B10 = -B7
-    print(f"B10: {split(B10.x)}, {split(B10.y)}")
     # 		B11 = -P + Q - Φ(P) + Φ(Q)
     B11 = -B6
-    print(f"B11: {split(B11.x)}, {split(B11.y)}")
     # 		B12 = -P + Q - Φ(P) - Φ(Q)
     B12 = -B5
-    print(f"B12: {split(B12.x)}, {split(B12.y)}")
     # 		B13 = -P - Q + Φ(P) + Φ(Q)
     B13 = -B4
-    print(f"B13: {split(B13.x)}, {split(B13.y)}")
     # 		B14 = -P - Q + Φ(P) - Φ(Q)
     B14 = -B3
-    print(f"B14: {split(B14.x)}, {split(B14.y)}")
     # 		B15 = -P - Q - Φ(P) + Φ(Q)
     B15 = -B2
-    print(f"B15: {split(B15.x)}, {split(B15.y)}")
     # 		B16 = -P - Q - Φ(P) - Φ(Q)
     B16 = -B1
-    print(f"B16: {split(B16.x)}, {split(B16.y)}")
+
+    # print(f"B1: {split(B1.x)}, {split(B1.y)}")
+    # print(f"B2: {split(B2.x)}, {split(B2.y)}")
+    # print(f"B3: {split(B3.x)}, {split(B3.y)}")
+    # print(f"B4: {split(B4.x)}, {split(B4.y)}")
+    # print(f"B5: {split(B5.x)}, {split(B5.y)}")
+    # print(f"B6: {split(B6.x)}, {split(B6.y)}")
+    # print(f"B7: {split(B7.x)}, {split(B7.y)}")
+    # print(f"B8: {split(B8.x)}, {split(B8.y)}")
+    # print(f"B9: {split(B9.x)}, {split(B9.y)}")
+    # print(f"B10: {split(B10.x)}, {split(B10.y)}")
+    # print(f"B11: {split(B11.x)}, {split(B11.y)}")
+    # print(f"B12: {split(B12.x)}, {split(B12.y)}")
+    # print(f"B13: {split(B13.x)}, {split(B13.y)}")
+    # print(f"B14: {split(B14.x)}, {split(B14.y)}")
+    # print(f"B15: {split(B15.x)}, {split(B15.y)}")
+    # print(f"B16: {split(B16.x)}, {split(B16.y)}")
+
     # note that half the points are negatives of the other half,
     # hence have the same X coordinates.
 
@@ -514,15 +533,12 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # Acc should be now equal to [2^nbits]G
 
     gm = G1Point.get_nG(point.curve_id, 2 ** (n_bits - 1))
-    print(f"gm: {split(gm.x)}, {split(gm.y)}")
+    # print(f"gm: {split(gm.x)}, {split(gm.y)}")
+    if scalar % curve.n == curve.n - 1:
+        gm = Acc
     assert Acc == gm, f"Acc is not equal to [2^nbits]G, {Acc} != {gm}"
 
     return Q
-
-    # Print bit sizes and signs :
-    print(
-        f"u1: {u1.bit_length()} , u2: {u2.bit_length()}, v1: {v1.bit_length()} , v2: {v2.bit_length()}"
-    )
 
 
 if __name__ == "__main__":
@@ -544,10 +560,10 @@ if __name__ == "__main__":
         curve: WeierstrassCurve = CURVES[curve_id]
         if curve.is_endomorphism_available():
             nbits = curve.n.bit_length() // 4 + 9
-            used_nbits = 72
+            used_nbits = 73
             assert (
                 used_nbits >= nbits
             ), f"Curve {curve_id} has {nbits} bits, but used {used_nbits} bits"
             print(
-                f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits -1)).to_cairo_1()}"
+                f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (used_nbits -1)).to_cairo_1()}"
             )

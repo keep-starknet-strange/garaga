@@ -114,49 +114,58 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         )
 
     scalars_msm = extract_msm_scalars(scalars, vk.log_circuit_size, zk)
+    # Swap last two scalars :
+    scalars_msm = scalars_msm[:-2] + scalars_msm[-2:][::-1]
+
+    if zk:
+        # Place first scalar just after the vk_lagrange_last point (index 27)
+        first_scalar = scalars_msm.pop(0)
+        scalars_msm.insert(27, first_scalar)
+
     if zk:
         points = [
-            proof.gemini_masking_poly,  # 1
-            vk.qm,  # 2
-            vk.qc,  # 3
-            vk.ql,  # 4
-            vk.qr,  # 5
-            vk.qo,  # 6
-            vk.q4,  # 7
-            vk.qLookup,  # 8
-            vk.qArith,  # 9
-            vk.qDeltaRange,  # 10
-            vk.qElliptic,  # 11
-            vk.qAux,  # 12
-            vk.qPoseidon2External,  # 13
-            vk.qPoseidon2Internal,  # 14
-            vk.s1,  # 15
-            vk.s2,  # 16
-            vk.s3,  # 17
-            vk.s4,  # 18
-            vk.id1,  # 19
-            vk.id2,  # 20
-            vk.id3,  # 21
-            vk.id4,  # 22
-            vk.t1,  # 23
-            vk.t2,  # 24
-            vk.t3,  # 25
-            vk.t4,  # 26
-            vk.lagrange_first,  # 27
-            vk.lagrange_last,  # 28
-            proof.w1,  # 29
-            proof.w2,  # 30
-            proof.w3,  # 31
-            proof.w4,  # 32
-            proof.z_perm,  # 33
-            proof.lookup_inverses,  # 34
-            proof.lookup_read_counts,  # 35
-            proof.lookup_read_tags,  # 36
+            vk.qm,  # 0
+            vk.qc,  # 1
+            vk.ql,  # 2
+            vk.qr,  # 3
+            vk.qo,  # 4
+            vk.q4,  # 5
+            vk.qLookup,  # 6
+            vk.qArith,  # 7
+            vk.qDeltaRange,  # 8
+            vk.qElliptic,  # 9
+            vk.qAux,  # 10
+            vk.qPoseidon2External,  # 11
+            vk.qPoseidon2Internal,  # 12
+            vk.s1,  # 13
+            vk.s2,  # 14
+            vk.s3,  # 15
+            vk.s4,  # 16
+            vk.id1,  # 17
+            vk.id2,  # 18
+            vk.id3,  # 19
+            vk.id4,  # 20
+            vk.t1,  # 21
+            vk.t2,  # 22
+            vk.t3,  # 23
+            vk.t4,  # 24
+            vk.lagrange_first,  # 25
+            vk.lagrange_last,  # 26
+            proof.gemini_masking_poly,  # 27
+            proof.w1,  # 28
+            proof.w2,  # 29
+            proof.w3,  # 30
+            proof.w4,  # 31
+            proof.z_perm,  # 32
+            proof.lookup_inverses,  # 33
+            proof.lookup_read_counts,  # 34
+            proof.lookup_read_tags,  # 35
         ]
         points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
         points.extend(proof.libra_commitments)
-        points.append(G1Point.get_nG(CurveID.BN254, 1))
         points.append(proof.kzg_quotient)
+        points.append(G1Point.get_nG(CurveID.BN254, 1))
+
     else:
         points = [
             vk.qm,  # 1
@@ -196,10 +205,9 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
             proof.lookup_read_tags,  # 35
         ]
         points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
-        points.append(G1Point.get_nG(CurveID.BN254, 1))
         points.append(proof.kzg_quotient)
+        points.append(G1Point.get_nG(CurveID.BN254, 1))
 
-    # external_s0, external_s1, _ = hades_permutation(vk.vk_hash, tp.last_state[0], 2)
     msm_builder = MSMCalldataBuilder(
         CurveID.BN254,
         points=points,
@@ -219,7 +227,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     cd.extend(
         msm_builder.serialize_to_calldata(
             include_points_and_scalars=False,
-            serialize_as_pure_felt252_array=False,
+            serialize_as_pure_felt252_array=True,
         )
     )
     cd.extend(mpc_builder.serialize_to_calldata())

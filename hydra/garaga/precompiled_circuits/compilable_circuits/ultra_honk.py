@@ -371,7 +371,9 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         auto_run: bool = True,
         compilation_mode: int = 1,
     ) -> None:
-        assert vk.public_inputs_size >= PAIRING_POINT_OBJECT_LENGTH
+        assert (
+            vk.public_inputs_size >= PAIRING_POINT_OBJECT_LENGTH
+        ), f"vk.public_inputs_size: {vk.public_inputs_size}, PAIRING_POINT_OBJECT_LENGTH: {PAIRING_POINT_OBJECT_LENGTH}"
         name = (
             f"zk_honk_sumcheck_size_{vk.log_circuit_size}_pub_{vk.public_inputs_size}"
         )
