@@ -36,7 +36,6 @@ class HashToCurveHint:
         cd = []
         cd.extend(self.f0_hint.to_calldata())
         cd.extend(self.f1_hint.to_calldata())
-        cd.extend(self.scalar_mul_hint.serialize_to_calldata())
         return cd
 
 
