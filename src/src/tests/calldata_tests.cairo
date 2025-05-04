@@ -4,6 +4,8 @@ use crate::utils::calldata::{
     deserialize_full_proof_with_hints_bls12_381, u384,
 };
 
+
+// Old test, mainly for
 #[test]
 fn test_deserialize_full_proof_with_hints_bls12_381() {
     let mut serialized = array![
@@ -6120,6 +6122,7 @@ fn test_deserialize_full_proof_with_hints_bls12_381() {
             },
         },
         msm_hint: array![
+            287,
             0,
             1,
             81,
@@ -6407,7 +6410,8 @@ fn test_deserialize_full_proof_with_hints_bls12_381() {
             7403366872219226476224974668,
             2688881775954772561566215976,
             0,
-        ],
+        ]
+            .span(),
     };
 
     assert!(fph.groth16_proof == expected.groth16_proof);
