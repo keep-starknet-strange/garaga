@@ -226,7 +226,7 @@ pub struct HonkProof {
 impl HonkProof {
     pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
         if proof_bytes.len() != 32 * PROOF_SIZE {
-            return Err(format!("Invalid input length: {}", proof_bytes.len()));
+            return Err(format!("Invalid proof bytes length: {}", proof_bytes.len()));
         }
 
         let mut values = vec![];
@@ -237,7 +237,7 @@ impl HonkProof {
 
         if public_inputs_bytes.len() % 32 != 0 {
             return Err(format!(
-                "Invalid input length: {}",
+                "Invalid public input bytes length: {}",
                 public_inputs_bytes.len()
             ));
         }
@@ -254,22 +254,10 @@ impl HonkProof {
     }
     pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
         if values.len() != PROOF_SIZE {
-            return Err(format!("Invalid input length: {}", values.len()));
+            return Err(format!("Invalid proof length: {}", values.len()));
         }
 
         let mut offset = 0;
-
-        let count = PAIRING_POINT_OBJECT_LENGTH
-            + 8 * 4
-            + BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
-            + NUMBER_OF_ENTITIES
-            + (CONST_PROOF_SIZE_LOG_N - 1) * 4
-            + CONST_PROOF_SIZE_LOG_N
-            + 2 * 4;
-        if values.len() != count {
-            return Err(format!("Invalid input length: {}", values.len()));
-        }
-
         let mut pairing_point_object = vec![];
         for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
             pairing_point_object.push(values[i].clone());
@@ -341,7 +329,7 @@ impl HonkProof {
         let [shplonk_q, kzg_quotient] = points.try_into().unwrap();
         offset += 4 * 2;
 
-        assert_eq!(offset, count);
+        assert_eq!(offset, PROOF_SIZE);
 
         let proof = Self {
             public_inputs,
