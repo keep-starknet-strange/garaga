@@ -230,23 +230,25 @@ fn msm_glv_fake_glv(
     let min_one = get_min_one_order(curve_index);
     let (bits_73, nG) = get_nbits_and_nG_glv_fake_glv(curve_index);
 
-    let pt_0 = *points.pop_front().unwrap();
-    let scalar_0 = *scalars.pop_front().unwrap();
-    let hint_0: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
+    // let pt_0 = *points.pop_front().unwrap();
+    // let scalar_0 = *scalars.pop_front().unwrap();
+    // let hint_0: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
 
-    let mut acc = _scalar_mul_glv_and_fake_glv(
-        pt_0,
-        scalar_0,
-        order_modulus,
-        modulus,
-        hint_0,
-        eigen,
-        third_root_of_unity,
-        min_one,
-        bits_73,
-        nG,
-        curve_index,
-    );
+    // let mut acc = _scalar_mul_glv_and_fake_glv(
+    //     pt_0,
+    //     scalar_0,
+    //     order_modulus,
+    //     modulus,
+    //     hint_0,
+    //     eigen,
+    //     third_root_of_unity,
+    //     min_one,
+    //     bits_73,
+    //     nG,
+    //     curve_index,
+    // );
+
+    let mut acc = G1PointZero::zero();
 
     while hint.len() != 0 {
         let pt = *points.pop_front().unwrap();
@@ -271,6 +273,7 @@ fn msm_glv_fake_glv(
     return acc;
 }
 
+#[inline(always)]
 fn _scalar_mul_glv_and_fake_glv(
     point: G1Point,
     scalar: u256,
