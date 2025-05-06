@@ -9,6 +9,7 @@ use core::internal::bounded_int;
 use core::internal::bounded_int::{
     AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
 };
+use core::num::traits::{One, Zero};
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
@@ -157,7 +158,7 @@ struct GlvFakeGlvHint {
 #[derive(Drop, Serde)]
 struct FakeGlvHint {
     Q: G1Point,
-    s1: felt252, // (s1)_u128 (always positive)
+    s1: u128, // (s1)_u128 (always positive)
     s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
 }
 
@@ -176,40 +177,129 @@ pub fn msm_fake_glv(
 ) -> G1Point {
     let n = scalars.len();
     assert(n == points.len(), 'n_pts!=n_scalars');
+    println!("n: {:?}", n);
     if n == 0 {
         panic_with_felt252('Msm size must be >= 1');
     }
     assert(hint.len() == n * 10, 'wrong fakeglv hint size');
-    let pt_0 = *points.pop_front().unwrap();
-    let scalar_0 = *scalars.pop_front().unwrap();
-    let hint_0: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
-    let modulus = get_modulus(curve_index);
 
-    let mut acc = _scalar_mul_fake_glv(pt_0, scalar_0, modulus, hint_0, curve_index);
+    let order_modulus = get_curve_order_modulus(curve_index);
+    let curve_order: u256 = get_n(curve_index);
+    let modulus = get_modulus(curve_index);
+    let A_weirstrass = get_a(curve_index);
+    let order_minus_one = get_min_one_order(curve_index);
+    let base_min_one = get_min_one(curve_index);
+    let mut acc = G1PointZero::zero();
 
     while hint.len() != 0 {
         let pt = *points.pop_front().unwrap();
         let scalar = *scalars.pop_front().unwrap();
+        assert(scalar < curve_order, 'unreduced scalar');
+        let scalar_u384: u384 = scalar.into();
         let fake_glv_hint: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
-        let temp = _scalar_mul_fake_glv(pt, scalar, modulus, fake_glv_hint, curve_index);
+        let temp = _scalar_mul_fake_glv(
+            pt,
+            scalar_u384,
+            order_modulus,
+            modulus,
+            A_weirstrass,
+            order_minus_one,
+            base_min_one,
+            fake_glv_hint,
+            curve_index,
+        );
         acc = _ec_safe_add(acc, temp, modulus, curve_index);
     }
     return acc;
 }
 
 pub fn _scalar_mul_fake_glv(
-    point: G1Point, scalar: u256, modulus: CircuitModulus, hint: FakeGlvHint, curve_index: usize,
+    point: G1Point,
+    scalar: u384,
+    order_modulus: CircuitModulus,
+    modulus: CircuitModulus,
+    A_weirstrass: u384,
+    order_minus_one: u384,
+    base_min_one: u384,
+    hint: FakeGlvHint,
+    curve_index: usize,
 ) -> G1Point {
-    let scalar_u384: u384 = scalar.into();
-
-    if is_zero_mod_p(scalar_u384, modulus) || point.is_infinity() {
+    if scalar.is_zero() || point.is_infinity() {
         return G1PointZero::zero();
     }
     point.assert_on_curve(curve_index);
-    if scalar == 1 {
+
+    if scalar.is_one() {
         return point;
     }
+    if scalar == order_minus_one {
+        return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
+    }
+
     hint.Q.assert_on_curve(curve_index);
+
+    let (_s2_sign_order, _s2_sign_base, _s2_abs): (u384, u384, u128) =
+        match u128s_from_felt252(hint.s2) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (
+                u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+                u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+                low,
+            )
+        },
+        U128sFromFelt252Result::Wide((_, low)) => { (order_minus_one, base_min_one, low) },
+    };
+
+    // Verify decomposition  s1 + scalar*s2 = 0 mod n && s2!=0.
+    let s1 = CircuitElement::<CircuitInput<0>> {};
+    let S = CircuitElement::<CircuitInput<1>> {};
+    let s2 = CircuitElement::<CircuitInput<2>> {};
+    let s2_sign = CircuitElement::<CircuitInput<3>> {};
+
+    let check = circuit_add(s1, circuit_mul(S, circuit_mul(s2_sign, s2)));
+
+    let s1_u384: u384 = hint.s1.into();
+    let s2_u384: u384 = _s2_abs.into();
+    let outputs = (check,)
+        .new_inputs()
+        .next_2(s1_u384)
+        .next_2(scalar)
+        .next_2(s2_u384)
+        .next_2(_s2_sign_order)
+        .done_2()
+        .eval(order_modulus)
+        .unwrap();
+
+    assert(_s2_abs != 0, 'FakeGLV: s2=0');
+    assert(outputs.get_output(check).is_zero(), 'Wrong FakeGLV decomposition');
+
+    let (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2) =
+        ec::run_PREPARE_FAKE_GLV_PTS_circuit(
+        point, hint.Q, _s2_sign_base, A_weirstrass, modulus,
+    );
+
+    let Ts: Span<G1Point> = array![
+        T1,
+        T2,
+        T3,
+        T4,
+        G1Point { x: T2.x, y: T5y },
+        G1Point { x: T1.x, y: T6y },
+        G1Point { x: T4.x, y: T7y },
+        G1Point { x: T3.x, y: T8y },
+        T9,
+        T10,
+        T11,
+        T12,
+        G1Point { x: T10.x, y: T13y },
+        G1Point { x: T9.x, y: T14y },
+        G1Point { x: T12.x, y: T15y },
+        G1Point { x: T11.x, y: T16y },
+    ]
+        .span();
+
+    // First iteration
+
     return hint.Q;
 }
 
@@ -227,36 +317,21 @@ fn msm_glv_fake_glv(
     let third_root_of_unity = get_third_root_of_unity(curve_index);
     let modulus = get_modulus(curve_index);
     let order_modulus = get_curve_order_modulus(curve_index);
+    let curve_order: u256 = get_n(curve_index);
     let min_one = get_min_one_order(curve_index);
     let (bits_73, nG) = get_nbits_and_nG_glv_fake_glv(curve_index);
-
-    // let pt_0 = *points.pop_front().unwrap();
-    // let scalar_0 = *scalars.pop_front().unwrap();
-    // let hint_0: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
-
-    // let mut acc = _scalar_mul_glv_and_fake_glv(
-    //     pt_0,
-    //     scalar_0,
-    //     order_modulus,
-    //     modulus,
-    //     hint_0,
-    //     eigen,
-    //     third_root_of_unity,
-    //     min_one,
-    //     bits_73,
-    //     nG,
-    //     curve_index,
-    // );
 
     let mut acc = G1PointZero::zero();
 
     while hint.len() != 0 {
         let pt = *points.pop_front().unwrap();
         let scalar = *scalars.pop_front().unwrap();
+        assert(scalar < curve_order, 'unreduced scalar');
+        let scalar_u384: u384 = scalar.into();
         let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
         let temp = _scalar_mul_glv_and_fake_glv(
             pt,
-            scalar,
+            scalar_u384,
             order_modulus,
             modulus,
             glv_fake_glv_hint,
@@ -276,7 +351,7 @@ fn msm_glv_fake_glv(
 #[inline(always)]
 fn _scalar_mul_glv_and_fake_glv(
     point: G1Point,
-    scalar: u256,
+    scalar: u384,
     order_modulus: CircuitModulus,
     modulus: CircuitModulus,
     hint: GlvFakeGlvHint,
@@ -287,19 +362,17 @@ fn _scalar_mul_glv_and_fake_glv(
     n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
-    let scalar_u384: u384 = scalar.into();
-
-    if is_zero_mod_p(scalar_u384, modulus) || point.is_infinity() {
+    if scalar.is_zero() || point.is_infinity() {
         return G1PointZero::zero();
     }
     point.assert_on_curve(curve_index);
-    if scalar == 1 {
+    if scalar.is_one() {
         return point;
     }
 
     hint.Q.assert_on_curve(curve_index);
 
-    if scalar_u384 == minus_one {
+    if scalar == minus_one {
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
     }
 
@@ -375,7 +448,7 @@ fn _scalar_mul_glv_and_fake_glv(
 
     let outputs = (res,)
         .new_inputs()
-        .next_2(scalar_u384)
+        .next_2(scalar)
         .next_2(_lambda)
         .next_2([_u1_abs, 0, 0, 0])
         .next_2(_u1_sign)
@@ -461,7 +534,7 @@ fn _scalar_mul_glv_and_fake_glv(
     let mut _v2: u128 = upcast(_v2_abs);
 
     let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
-        _u1, _u2, _v1, _v2, bits_73,
+        _u1, _u2, _v1, _v2,
     );
 
     // Process 8 bits per iteration
