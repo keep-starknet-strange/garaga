@@ -53,6 +53,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     IsOnCurveG1Circuit,
     IsOnCurveG1G2Circuit,
     IsOnCurveG2Circuit,
+    PrepareFakeGLVPtsCircuit,
     PrepareGLVFakeGLVPtsCircuit,
 )
 from garaga.starknet.cli.utils import create_directory
@@ -75,6 +76,7 @@ class CircuitID(Enum):
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
     PREPARE_GLV_FAKE_GLV_PTS = int.from_bytes(b"prepare_glv_fake_glv_pts", "big")
+    PREPARE_FAKE_GLV_PTS = int.from_bytes(b"prepare_fake_glv_pts", "big")
     MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
     MP_CHECK_BIT00_LOOP = int.from_bytes(b"mp_check_bit00_loop", "big")
     MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
@@ -157,6 +159,11 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.PREPARE_GLV_FAKE_GLV_PTS: {
         "class": PrepareGLVFakeGLVPtsCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.PREPARE_FAKE_GLV_PTS: {
+        "class": PrepareFakeGLVPtsCircuit,
         "params": None,
         "filename": "ec",
     },

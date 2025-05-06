@@ -940,6 +940,82 @@ class PrepareGLVFakeGLVPtsCircuit(BaseModuloCircuit):
         return circuit
 
 
+class PrepareFakeGLVPtsCircuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="prepare_fake_glv_pts",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # Py
+        input.append(self.field.random())  # Qx
+        input.append(self.field.random())  # Qy
+        input.append(self.field.random())  # s2_sign
+        input.append(self.field.random())  # A_weirstrass
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = FakeGLVCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        P = circuit.write_struct(
+            G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
+        )
+        Q = circuit.write_struct(
+            G1PointCircuit("Q", [input[2], input[3]]), WriteOps.INPUT
+        )
+        s2_sign = circuit.write_struct(u384("s2_sign", [input[4]]), WriteOps.INPUT)
+        A_weirstrass = circuit.write_struct(
+            u384("A_weirstrass", [input[5]]), WriteOps.INPUT
+        )
+
+        (
+            T1,
+            T2,
+            T3,
+            T4,
+            T5y,
+            T6y,
+            T7y,
+            T8y,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13y,
+            T14y,
+            T15y,
+            T16y,
+            R2,
+        ) = circuit.prepare_points_fake_glv(P, Q, s2_sign, A_weirstrass)
+        # circuit.exact_output_refs_needed = [B2[0], B3[0], B4[0], B5[0], B6[0], B7[0], B8[0], B10y, B11y, B12y, B13y, B14y, B15y, B16y, Acc[0], Acc[1]]
+        circuit.extend_struct_output(G1PointCircuit("T1", [T1[0], T1[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T2", [T2[0], T2[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T3", [T3[0], T3[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T4", [T4[0], T4[1]]))
+        circuit.extend_struct_output(u384("T5y", [T5y]))
+        circuit.extend_struct_output(u384("T6y", [T6y]))
+        circuit.extend_struct_output(u384("T7y", [T7y]))
+        circuit.extend_struct_output(u384("T8y", [T8y]))
+        circuit.extend_struct_output(G1PointCircuit("T9", [T9[0], T9[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T10", [T10[0], T10[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T11", [T11[0], T11[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T12", [T12[0], T12[1]]))
+        circuit.extend_struct_output(u384("T13y", [T13y]))
+        circuit.extend_struct_output(u384("T14y", [T14y]))
+        circuit.extend_struct_output(u384("T15y", [T15y]))
+        circuit.extend_struct_output(u384("T16y", [T16y]))
+        circuit.extend_struct_output(G1PointCircuit("R2", [R2[0], R2[1]]))
+        return circuit
+
+
 class ClearCofactorBLS12_381Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(

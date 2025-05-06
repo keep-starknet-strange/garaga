@@ -683,6 +683,36 @@ class BasicEC(ModuloCircuit):
         ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
         return (nx, ny)
 
+    def triple_point(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        A: ModuloCircuitElement,
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Triple a point in G1."""
+        xP, yP = P
+        # compute λ1 = (3p.x²+a)/2p.y,
+        xx = self.square(xP)
+        three_xx = self.sum([xx, xx, xx])
+        m_num = self.add(three_xx, A)
+        λ1 = self.div(m_num, self.double(yP))
+
+        # xr = λ1²-2p.x
+        x2 = self.sub(self.square(λ1), self.add(xP, xP))
+
+        # omit y2 computation, and
+        # compute λ2 = 2p.y/(x2 − p.x) − λ1.
+        x1x2 = self.sub(xP, x2)
+        λ2 = self.div(self.double(yP), x1x2)
+        λ2 = self.sub(λ2, λ1)
+
+        # xr = λ²-p.x-x2
+        xr = self.sub(self.square(λ2), self.add(xP, x2))
+
+        # yr = λ(p.x-xr) - p.y
+        yr = self.sub(self.mul(λ2, self.sub(xP, xr)), yP)
+
+        return (xr, yr)
+
     def double_n_times(
         self, P: tuple[ModuloCircuitElement, ModuloCircuitElement], n: int
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
@@ -863,4 +893,66 @@ class FakeGLVCircuits(BasicEC):
             Phi_P0x,
             Phi_Q0x,
             Acc,
+        )
+
+    def prepare_points_fake_glv(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        Q: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        s2_sign: ModuloCircuitElement,
+        A_weirstrass: ModuloCircuitElement,
+    ):
+        P = (P[0], P[1])
+        Q = (Q[0], Q[1])
+
+        table_P = [None, None, None]
+        table_P[0] = (P[0], self.neg(P[0]))
+        table_P[1] = P
+        table_P[2] = self.triple_point(P, A_weirstrass)
+
+        table_R = [None, None, None]
+        R_signed = [Q[0], self.mul(s2_sign, Q[1])]
+        table_R[0] = self.negate_point(R_signed)
+        table_R[1] = R_signed
+        table_R[2] = self.triple_point(R_signed, A_weirstrass)
+
+        T1 = self.add_points(table_P[2], table_R[2])
+        T2 = Acc = self.add_points(table_P[1], table_R[1])
+        T3 = self.add_points(table_P[2], table_R[1])
+        T4 = self.add_points(table_P[1], table_R[2])
+        T5y = self.neg(T2[1])
+        T6y = self.neg(T1[1])
+        T7y = self.neg(T4[1])
+        T8y = self.neg(T3[1])
+
+        T9 = self.add_points(table_P[2], table_R[0])
+        _neg_table_R_verify_2 = self.negate_point(table_R[2])
+        T10 = self.add_points(table_P[1], _neg_table_R_verify_2)
+        T11 = self.add_points(table_P[2], _neg_table_R_verify_2)
+        T12 = self.add_points(table_R[0], table_P[1])
+
+        T13y = self.neg(T10[1])
+        T14y = self.neg(T9[1])
+        T15y = self.neg(T12[1])
+        T16y = self.neg(T11[1])
+
+        # P0y = table_P[0][1]
+        return (
+            T1,
+            T2,
+            T3,
+            T4,
+            T5y,
+            T6y,
+            T7y,
+            T8y,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13y,
+            T14y,
+            T15y,
+            T16y,
+            table_R[2],
         )
