@@ -3,14 +3,22 @@ import random
 import pytest
 
 from garaga.definitions import CURVES, CurveID, G1Point
-from garaga.hints.fake_glv import half_gcd_eisenstein_hint, scalar_mul_glv_and_fake_glv
-
-
-@pytest.mark.parametrize(
-    "curve_id", [CurveID.BN254, CurveID.SECP256K1, CurveID.BLS12_381]
+from garaga.hints.fake_glv import (
+    half_gcd_eisenstein_hint,
+    scalar_mul_fake_glv,
+    scalar_mul_glv_and_fake_glv,
 )
-def test_half_gcd_eisenstein_hint(curve_id):
 
+GLV_FAKE_GLV_CURVES = [
+    CurveID(k) for k, v in CURVES.items() if v.is_endomorphism_available()
+]
+FAKE_GLV_CURVES = [
+    CurveID(k) for k, v in CURVES.items() if not v.is_endomorphism_available()
+]
+
+
+@pytest.mark.parametrize("curve_id", GLV_FAKE_GLV_CURVES)
+def test_half_gcd_eisenstein_hint(curve_id):
     curve = CURVES[curve_id.value]
     eigen_value = curve.eigen_value
     order = curve.n
@@ -28,9 +36,7 @@ def test_half_gcd_eisenstein_hint(curve_id):
         assert abs(v2).bit_length() <= max_bit_length
 
 
-@pytest.mark.parametrize(
-    "curve_id", [CurveID.SECP256K1, CurveID.BLS12_381, CurveID.BN254]
-)
+@pytest.mark.parametrize("curve_id", GLV_FAKE_GLV_CURVES)
 def test_glv_fake_glv(curve_id):
     curve = CURVES[curve_id.value]
     random_point = G1Point.get_nG(curve_id, 1)
@@ -83,3 +89,53 @@ def test_glv_fake_glv_bls12_381_3():
     print(f"n_failed: {n_failed}, n_passed: {n_passed}")
 
     # _ = scalar_mul_glv_and_fake_glv(point, scalar)
+
+
+@pytest.mark.parametrize("curve_id", FAKE_GLV_CURVES)
+def test_scalar_mul_fake_glv(curve_id):
+    curve = CURVES[curve_id.value]
+    G = G1Point.get_nG(curve_id, 1)
+    infinity_point = G1Point.infinity(curve_id)
+    n = curve.n
+
+    test_cases = [
+        # Point, Scalar, Description
+        (G, 0, "Generator * 0"),
+        (G, 1, "Generator * 1"),
+        (G, 2, "Generator * 2"),
+        (G, n - 1, "Generator * (n-1)"),
+        (G, n, "Generator * n"),
+        (infinity_point, 5, "Infinity * 5"),
+        (infinity_point, 0, "Infinity * 0"),
+    ]
+
+    # Add a random point case
+    random_point = G1Point.gen_random_point(curve_id)
+    test_cases.extend(
+        [
+            (random_point, 0, "Random * 0"),
+            (random_point, 1, "Random * 1"),
+            (random_point, n, "Random * n"),
+        ]
+    )
+
+    print(f"\nTesting Curve: {curve_id.name}")
+    for point, scalar, desc in test_cases:
+        print(f"  Case: {desc} (P={point}, s={scalar})")
+        expected = point.scalar_mul(scalar)
+        actual = scalar_mul_fake_glv(point, scalar)
+        assert actual == expected, f"Mismatch for {desc}"
+
+    # Test more random points and scalars
+    num_random_tests = 10
+    print(f"  Running {num_random_tests} random tests...")
+    for i in range(num_random_tests):
+        point = G1Point.gen_random_point(curve_id)
+        scalar = random.randint(1, n)
+        # print(f"    Random Test {i+1}: P={point}, s={scalar}") # Optional: verbose logging
+        expected = point.scalar_mul(scalar)
+        actual = scalar_mul_fake_glv(point, scalar)
+        assert (
+            actual == expected
+        ), f"Mismatch for random test {i+1} (P={point}, s={scalar})"
+    print(f"  {num_random_tests} random tests passed.")

@@ -501,11 +501,12 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         else:
             selector_x = 15 - selector_y
         # print(f"selector_x_{i}: {selector_x}")
-        Bi = G1Point(Bs[selector_x].x, Bs[selector_y].y, curve_id)
+        Bi = G1Point(Bs[selector_x].x, Bs[selector_y].y, point.curve_id)
 
         # // Acc = [2]Acc + Bi
 
-        Acc = Acc.add(Acc).add(Bi)
+        Acc = Acc.add(Acc)
+        Acc = Acc.add(Bi)
 
     print("Acc final: ", Acc.to_cairo_1(as_hex=False))
     # i = 0
@@ -539,6 +540,231 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     assert Acc == gm, f"Acc is not equal to [2^nbits]G, {Acc} != {gm}"
 
     return Q
+
+
+def _to_bits_le(value: int, length: int) -> List[int]:
+    if value < 0:
+        raise ValueError("Input value for _to_bits_le must be non-negative.")
+    if length < 0:  # zfill requires non-negative width
+        length = 0
+    return [int(b) for b in bin(value)[2:].zfill(length)][::-1]
+
+
+def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
+    curve = CURVES[point.curve_id.value]
+    assert (
+        not curve.is_endomorphism_available()
+    ), f"Curve {point.curve_id} has an endomorphism; this function is for curves without it."
+
+    # Handle scalar multiple of curve order n: result is infinity.
+    if scalar % curve.n == 0:
+        return G1Point.infinity(point.curve_id)
+    if point.is_infinity():
+        return G1Point.infinity(point.curve_id)
+
+    # === Step 2: Handle Edge Cases & Initial Q_hinted ===
+    # Q_hinted is the actual result [scalar]P. We compute it first.
+    # Verification steps below will ensure this computation was correct.
+    # Handles point=infinity correctly via G1Point.scalar_mul.
+    Q_hinted = point.scalar_mul(scalar)
+
+    # Use scalar for decomposition. scalar=0 is handled above.
+    scalar_for_decomposition = scalar
+
+    # === Step 3: Scalar Decomposition ===
+    # Decompose scalar into s1, s2 such that s1 + scalar*s2 = 0 mod n
+    glv_basis = precompute_lattice(curve.n, scalar_for_decomposition)
+    s1 = glv_basis.V1[0]
+    s2 = glv_basis.V1[1]  # Note: s2 can be negative
+    assert (
+        s1 + scalar_for_decomposition * s2
+    ) % curve.n == 0, f"Decomposition failed: {(s1 + scalar_for_decomposition * s2)=} % {curve.n=} != 0"
+    assert (
+        s2 != 0
+    ), "s2 from decomposition should not be zero (required for verification logic)."
+
+    # === Step 5: Prepare for Verification Loop ===
+    nbits = (
+        curve.n.bit_length() + 1
+    ) // 2  # Target bit length for decomposition components
+    s1_bits = _to_bits_le(abs(s1), nbits)
+    s2_bits = _to_bits_le(abs(s2), nbits)
+    s2_is_negative = s2 < 0
+
+    # === Step 6: Precomputation Tables for Verification ===
+    P_verify = point  # Use the original input point for verification
+
+    # Helper for tripling a point P -> P.add(P.add(P))
+    def _triple(p: G1Point) -> G1Point:
+        if p.is_infinity():
+            return p
+        p_doubled = p.add(p)
+        return p_doubled.add(p)
+
+    # Table for P_verify: [-P, P, 3P]
+    table_P_verify = [-P_verify, P_verify, _triple(P_verify)]
+
+    # Base point for R verification table is Q_hinted, potentially negated if s2 is negative.
+    R_verify_base = Q_hinted
+    R_signed_verify = -R_verify_base if s2_is_negative else R_verify_base
+
+    # Table for R_signed_verify: [-R_signed, R_signed, 3R_signed]
+    table_R_verify = [-R_signed_verify, R_signed_verify, _triple(R_signed_verify)]
+
+    # === Step 7: Accumulator Initialization ===
+    # Initialize accumulator for the verification loop.
+    # Acc = P_verify + R_signed_verify
+    Acc = table_P_verify[1].add(table_R_verify[1])
+
+    # === Step 8: Precompute T_i Points for Merged Window ===
+    # These points are combinations of table_P_verify and table_R_verify elements
+    # used in the optimized main loop (4*Acc + T computation).
+    T1 = table_P_verify[2].add(table_R_verify[2])
+    T2 = Acc  # T2 is the initial Accumulator value P + R_signed
+    T3 = table_P_verify[2].add(table_R_verify[1])
+    T4 = table_P_verify[1].add(table_R_verify[2])
+    T5 = -T2
+    T6 = -T1
+    T7 = -T4
+    T8 = -T3
+    T9 = table_P_verify[2].add(table_R_verify[0])
+    _neg_table_R_verify_2 = -table_R_verify[2]
+    T10 = table_P_verify[1].add(_neg_table_R_verify_2)
+    T11 = table_P_verify[2].add(_neg_table_R_verify_2)
+    T12 = table_R_verify[0].add(table_P_verify[1])
+    T13 = -T10
+    T14 = -T9
+    T15 = -T12
+    T16 = -T11
+
+    # Candidate coordinates for MUXing based on selectors derived from s1/s2 bits.
+    # The algorithm structure ensures selector_x maps correctly to this 8-element list.
+    T_X_mux_candidates = [T6.x, T10.x, T14.x, T2.x, T7.x, T11.x, T15.x, T3.x]
+    # selector_y maps directly to this 16-element list.
+    T_Y_mux_candidates = [
+        T6.y,
+        T10.y,
+        T14.y,
+        T2.y,
+        T7.y,
+        T11.y,
+        T15.y,
+        T3.y,
+        T8.y,
+        T12.y,
+        T16.y,
+        T4.y,
+        T5.y,
+        T9.y,
+        T13.y,
+        T1.y,
+    ]
+
+    # === Step 9: Main Verification Loop ===
+
+    # Handle first iteration separately if nbits is even.
+    _loop_start_idx = -1
+    if nbits % 2 == 0:
+        if nbits >= 2:
+            # Inline the logic of _lookup2_point based on top two bits
+            b0 = s1_bits[nbits - 1]
+            b1 = s2_bits[nbits - 1]
+            if not b0 and not b1:
+                _T_current = T5
+            elif b0 and not b1:
+                _T_current = T12
+            elif not b0 and b1:
+                _T_current = T15
+            else:  # b0 and b1:
+                _T_current = T2
+
+            # Acc = 2*Acc + _T_current
+            Acc = Acc.add(Acc)  # Double Acc
+            Acc = Acc.add(_T_current)
+            _loop_start_idx = nbits - 2  # Start main loop from next lower index pair
+        else:
+            _loop_start_idx = nbits - 2  # Should be negative if nbits=0
+    else:  # nbits is odd
+        _loop_start_idx = nbits - 1  # Start main loop from top index pair
+
+    # Main loop: process bits in pairs using merged additions (4*Acc + T)
+    # Iterates from _loop_start_idx down to index 3.
+    if _loop_start_idx >= 3:
+        for i in range(_loop_start_idx, 2, -2):  # Process indices i and i-1
+            # selector_y (0-15) encodes the 4 bits: (s1[i], s2[i], s1[i-1], s2[i-1])
+            selector_y = (
+                s1_bits[i]
+                + (s2_bits[i] << 1)
+                + (s1_bits[i - 1] << 2)
+                + (s2_bits[i - 1] << 3)
+            )
+            # selector_x (0-7) depends on selector_y and a specific bit (s2[i-1])
+            # This selection logic is specific to the algorithm's precomputation structure.
+            s2_bit_i_minus_1 = s2_bits[i - 1]
+            selector_x = selector_y if s2_bit_i_minus_1 == 0 else (15 - selector_y)
+
+            if not (0 <= selector_x < len(T_X_mux_candidates)):  # Sanity check
+                raise ValueError(
+                    f"Internal error: selector_x {selector_x} out of bounds"
+                )
+
+            Tx = T_X_mux_candidates[selector_x]
+            Ty = T_Y_mux_candidates[selector_y]
+            # Select the appropriate T point based on the 4 bits using the selectors
+            _T_current = G1Point(Tx, Ty, point.curve_id)
+
+            # Acc = 4*Acc + _T_current
+            Acc = Acc.add(Acc)  # Double Acc
+            Acc = Acc.add(Acc)  # Double Acc again
+            Acc = Acc.add(_T_current)
+
+    # === Step 10: Last Merged Iteration ===
+    # Handles bits 2 and 1, with a final adjustment.
+    if nbits >= 3:
+        selector_y = (
+            s1_bits[2] + (s2_bits[2] << 1) + (s1_bits[1] << 2) + (s2_bits[1] << 3)
+        )
+        s2_bit_1 = s2_bits[1]
+        selector_x = selector_y if s2_bit_1 == 0 else (15 - selector_y)
+
+        if not (0 <= selector_x < len(T_X_mux_candidates)):  # Sanity check
+            raise ValueError(
+                f"Internal error: selector_x {selector_x} (last iter) out of bounds"
+            )
+
+        Tx = T_X_mux_candidates[selector_x]
+        Ty = T_Y_mux_candidates[selector_y]
+        _T_current = G1Point(Tx, Ty, point.curve_id)
+
+        # Add the final adjustment term from table_R
+        _T_current = _T_current.add(table_R_verify[2])
+
+        # Acc = 4*Acc + _T_current_adjusted
+        Acc = Acc.add(Acc)  # Double Acc
+        Acc = Acc.add(Acc)  # Double Acc again
+        Acc = Acc.add(_T_current)
+
+    # === Step 11: Final Additions Based on Bit 0 ===
+    # Adjust Acc based on the least significant bits s1[0] and s2[0].
+    if nbits >= 1:
+        if s1_bits[0] == 0:
+            Acc = table_P_verify[0].add(Acc)  # Add -P_verify
+        if s2_bits[0] == 0:
+            Acc = table_R_verify[0].add(Acc)  # Add -R_signed_verify
+
+    # === Step 12: Final Assertion ===
+    # The final accumulator value should equal table_R_verify[2] (which is [3]R_signed_verify).
+    # Apply Go code's edge case handling for robustness: if scalar=0 or point=inf,
+    # the expected result is table_R_verify[2] (which should be infinity).
+    AccToAssert = Acc
+
+    assert (
+        AccToAssert == table_R_verify[2]
+    ), f"Verification failed: {AccToAssert} != {table_R_verify[2]}. Scalar: {scalar}, Point Inf: {point.is_infinity()}"
+
+    # === Step 13: Return Value ===
+    # Return the originally computed Q_hinted = [scalar]P
+    return Q_hinted
 
 
 if __name__ == "__main__":
