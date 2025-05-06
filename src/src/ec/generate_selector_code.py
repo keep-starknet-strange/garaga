@@ -61,52 +61,41 @@ impl AddHelperU7ByU8Impl of AddHelper<u7_bi, u8_bi> {
     type Result = u15_bi;
 }
 
+"""  # Removed extra newline for cleaner concatenation
+
+
+# Define the new helper function as a string first
+CAIRO_HELPER_FUNCTION = """\
 #[inline(always)]
-fn build_selectors(
-    _u1: u128, _u2: u128, _v1: u128, _v2: u128, n_bits: usize,
-) -> (Span<usize>, u128, u128, u128, u128) {
-    let mut selectors: Array<usize> = array![];
-
-    let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
-    let mut u2: BoundedInt<0, { POW128 - 1 }> = upcast(_u2);
-    let mut v1: BoundedInt<0, { POW128 - 1 }> = upcast(_v1);
-    let mut v2: BoundedInt<0, { POW128 - 1 }> = upcast(_v2);
-
-    let (qu1, u1lsb) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
-    let (qu2, u2lsb) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
-    let (qv1, v1lsb) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
-    let (qv2, v2lsb) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+fn _extract_and_calculate_selector_bit_inlined(
+    mut u1: BoundedInt<0, { POW128 - 1 }>,
+    mut u2: BoundedInt<0, { POW128 - 1 }>,
+    mut v1: BoundedInt<0, { POW128 - 1 }>,
+    mut v2: BoundedInt<0, { POW128 - 1 }>,
+) -> (BoundedInt<0, { POW128 - 1 }>, BoundedInt<0, { POW128 - 1 }>, BoundedInt<0, { POW128 - 1 }>, BoundedInt<0, { POW128 - 1 }>, u15_bi) {
+    let (qu1, u1b) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+    let (qu2, u2b) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+    let (qv1, v1b) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+    let (qv2, v2b) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
     u1 = upcast(qu1);
     u2 = upcast(qu2);
     v1 = upcast(qv1);
     v2 = upcast(qv2);
-
-    for _ in 0..n_bits - 1 {
-        let (qu1, u1b) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
-        let (qu2, u2b) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
-        let (qv1, v1b) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
-        let (qv2, v2b) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
-        u1 = upcast(qu1);
-        u2 = upcast(qu2);
-        v1 = upcast(qv1);
-        v2 = upcast(qv2);
-        let selector_y: felt252 = u1b.into() + 2 * u2b.into() + 4 * v1b.into() + 8 * v2b.into();
-        let selector_y: usize = selector_y.try_into().unwrap();
-        selectors.append(selector_y);
-    }
-    return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
+    let selector: u15_bi = bounded_int::add(bounded_int::add(bounded_int::add(u1b, bounded_int::mul(u2b, TWO_UI)),bounded_int::mul(v1b, FOUR_UI)),bounded_int::mul(v2b, EIGHT_UI));
+    return (u1, u2, v1, v2, selector);
 }
 
-"""  # Removed extra newline for cleaner concatenation
+"""
 
 
 def generate_build_selectors_inlined(n_bits: int) -> str:
     """
     Generates a complete Cairo module string containing the
-    build_selectors_inlined function with its main loop inlined.
+    build_selectors_inlined function, which calls an inlined helper
+    for its main loop.
 
     Args:
-        n_bits: The number of bits, determining the loop unrolling count.
+        n_bits: The number of bits, determining the loop count.
 
     Returns:
         A string containing the complete generated Cairo module code.
@@ -117,15 +106,12 @@ def generate_build_selectors_inlined(n_bits: int) -> str:
     if n_bits <= 0:
         raise ValueError("n_bits must be positive")
 
-    # Function code generation logic remains the same
     code = [
         "#[inline(always)]",
-        # Adjusted function signature to remove n_bits as it's now baked in
         "pub fn build_selectors_inlined(_u1: u128, _u2: u128, _v1: u128, _v2: u128) -> (Span<usize>, u128, u128, u128, u128) {",
         "    // Generated code for n_bits = {}".format(n_bits),
         "    let mut selectors: Array<usize> = array![];",
         "",
-        "    // Use BoundedInt for calculations",
         "    let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);",
         "    let mut u2: BoundedInt<0, { POW128 - 1 }> = upcast(_u2);",
         "    let mut v1: BoundedInt<0, { POW128 - 1 }> = upcast(_v1);",
@@ -147,41 +133,22 @@ def generate_build_selectors_inlined(n_bits: int) -> str:
     for i in range(n_bits - 1):
         code.extend(
             [
-                f"    // --- Iteration {i} ---",
-                f"    let (qu1_{i}, u1b_{i}) = bounded_int::div_rem(u1, TWO_NZ_TYPED);",
-                f"    let (qu2_{i}, u2b_{i}) = bounded_int::div_rem(u2, TWO_NZ_TYPED);",
-                f"    let (qv1_{i}, v1b_{i}) = bounded_int::div_rem(v1, TWO_NZ_TYPED);",
-                f"    let (qv2_{i}, v2b_{i}) = bounded_int::div_rem(v2, TWO_NZ_TYPED);",
-                f"    u1 = upcast(qu1_{i});",
-                f"    u2 = upcast(qu2_{i});",
-                f"    v1 = upcast(qv1_{i});",
-                f"    v2 = upcast(qv2_{i});",
-                "",
-                f"    let selector_{i}: u15_bi = bounded_int::add(bounded_int::add(bounded_int::add(u1b_{i}, bounded_int::mul(u2b_{i}, TWO_UI)),bounded_int::mul(v1b_{i}, FOUR_UI)),bounded_int::mul(v2b_{i}, EIGHT_UI));",
+                f"    let (u1, u2, v1, v2, selector_{i}) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);",
                 f"    selectors.append(upcast(selector_{i}));",
-                "",
             ]
         )
 
     code.append(
         "    return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));"
     )
-    code.append("}")  # Close function definition
+    code.append("}")
 
-    # Indent the function body properly (lines after the signature)
-    # Need to handle the case where n_bits=1 (no loop iterations) - indexing starts correctly
-    function_body_str = "\n".join(
-        code[1:]
-    )  # Get all lines except the #[inline(always)]
+    function_body_str = "\n".join(code[1:])
     indented_body = textwrap.indent(function_body_str, "    ")
+    generated_function_code = code[0] + "\n" + indented_body
 
-    # Combine function attribute, signature with indented body
-    generated_function_code = (
-        code[0] + "\n" + indented_body
-    )  # Add back #[inline(always)]
-
-    # Combine header and generated function
-    return CAIRO_HEADER + "\n" + generated_function_code
+    # Combine header, helper function, and main generated function
+    return CAIRO_HEADER + "\n" + CAIRO_HELPER_FUNCTION + "\n" + generated_function_code
 
 
 def generate_double_and_add_n(n_points: int) -> str:
@@ -316,7 +283,7 @@ if __name__ == "__main__":
 
     # --- Selector Generation ---
     try:
-        n_bits_arg = 71  # Default or example value
+        n_bits_arg = 73  # Default or example value
         if len(sys.argv) > 1:
             try:
                 n_bits_arg = int(sys.argv[1])
