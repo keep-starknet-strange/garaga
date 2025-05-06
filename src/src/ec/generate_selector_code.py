@@ -14,7 +14,9 @@ const TWO_UI: UnitInt<TWO> = 2;
 const FOUR_UI: UnitInt<FOUR> = 4;
 const EIGHT_UI: UnitInt<EIGHT> = 8;
 const TWO_NZ_TYPED: NonZero<UnitInt<TWO>> = 2;
+const FOUR_NZ_TYPED: NonZero<UnitInt<FOUR>> = 4;
 const POW128_DIV_2: felt252 = 0x7fffffffffffffffffffffffffffffff; // ((2^128-1) // 2)
+const POW128_DIV_4: felt252 = 0x3fffffffffffffffffffffffffffffff; // ((2^128-1) // 4)
 const POW128: felt252 = 0x100000000000000000000000000000000;
 
 const FOUR: felt252 = 4;
@@ -22,6 +24,7 @@ const EIGHT: felt252 = 8;
 
 
 pub type u15_bi = BoundedInt<0, { 15 }>;
+pub type u12_bi = BoundedInt<0, { 12 }>;
 pub type u1_bi = BoundedInt<0, { 1 }>;
 pub type u2_bi = BoundedInt<0, { 2 }>;
 pub type u3_bi = BoundedInt<0, { 3 }>;
@@ -36,6 +39,10 @@ impl DivRemU128By2 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<TWO>> 
     type RemT = u1_bi;
 }
 
+impl DivRemU128By4 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<FOUR>> {
+    type DivT = BoundedInt<0, { POW128_DIV_4 }>;
+    type RemT = u3_bi;
+}
 
 impl MulHelperBitBy2Impl of MulHelper<u1_bi, UnitInt<TWO>> {
     type Result = u2_bi;
@@ -43,6 +50,10 @@ impl MulHelperBitBy2Impl of MulHelper<u1_bi, UnitInt<TWO>> {
 
 impl MulHelperBitBy4Impl of MulHelper<u1_bi, UnitInt<FOUR>> {
     type Result = u4_bi;
+}
+
+impl MulHelperBit3By4Impl of MulHelper<u3_bi, UnitInt<FOUR>> {
+    type Result = u12_bi;
 }
 
 impl MulHelperBitBy8Impl of MulHelper<u1_bi, UnitInt<EIGHT>> {
@@ -58,6 +69,10 @@ impl AddHelperU3ByU4Impl of AddHelper<u3_bi, u4_bi> {
 }
 
 impl AddHelperU7ByU8Impl of AddHelper<u7_bi, u8_bi> {
+    type Result = u15_bi;
+}
+
+impl AddHelperU3ByU12Impl of AddHelper<u3_bi, u12_bi> {
     type Result = u15_bi;
 }
 
@@ -83,6 +98,26 @@ fn _extract_and_calculate_selector_bit_inlined(
     v2 = upcast(qv2);
     let selector: u15_bi = bounded_int::add(bounded_int::add(bounded_int::add(u1b, bounded_int::mul(u2b, TWO_UI)),bounded_int::mul(v1b, FOUR_UI)),bounded_int::mul(v2b, EIGHT_UI));
     return (u1, u2, v1, v2, selector);
+}
+
+#[inline(always)]
+fn _extract_and_calculate_selector_bit_inlined_fake_glv(
+    mut s1: BoundedInt<0, { POW128 - 1 }>,
+    mut s2: BoundedInt<0, { POW128 - 1 }>,
+) -> (
+    BoundedInt<0, { POW128 - 1 }>,
+    BoundedInt<0, { POW128 - 1 }>,
+    u15_bi,
+) {
+    let (qs1, s1b) = bounded_int::div_rem(s1, FOUR_NZ_TYPED);
+    let (qs2, s2b) = bounded_int::div_rem(s2, FOUR_NZ_TYPED);
+    s1 = upcast(qs1);
+    s2 = upcast(qs2);
+    let selector: u15_bi = bounded_int::add(
+        s1b,
+        bounded_int::mul(s2b, FOUR_UI),
+    );
+    return (s1, s2, selector);
 }
 
 """
@@ -149,6 +184,83 @@ def generate_build_selectors_inlined(n_bits: int) -> str:
 
     # Combine header, helper function, and main generated function
     return CAIRO_HEADER + "\n" + CAIRO_HELPER_FUNCTION + "\n" + generated_function_code
+
+
+def generate_build_selectors_inlined_fake_glv(n_bits: int = 128) -> str:
+    """
+    Generates a complete Cairo module string containing the
+    build_selectors_inlined function, which calls an inlined helper
+    for its main loop.
+
+    Args:
+        n_bits: The number of bits, determining the loop count.
+
+    Returns:
+        A string containing the complete generated Cairo module code.
+
+    Raises:
+        ValueError: If n_bits is not positive.
+    """
+    if n_bits <= 0:
+        raise ValueError("n_bits must be positive")
+
+    code = [
+        "#[inline(always)]",
+        "pub fn build_selectors_inlined_fake_glv(_s1: u128, _s2: u128) -> (Span<usize>, u128, u128) {",
+        "    // Generated code for n_bits = {}".format(n_bits),
+        "    let mut selectors: Array<usize> = array![];",
+        "",
+        "    let mut s1: BoundedInt<0, { POW128 - 1 }> = upcast(_s1);",
+        "    let mut s2: BoundedInt<0, { POW128 - 1 }> = upcast(_s2);",
+        "",
+        "    // Initial division and remainder to get LSBs",
+        "    let (qs1, s1lsb) = bounded_int::div_rem(s1, TWO_NZ_TYPED);",
+        "    let (qs2, s2lsb) = bounded_int::div_rem(s2, TWO_NZ_TYPED);",
+        "    s1 = upcast(qs1);",
+        "    s2 = upcast(qs2);",
+        "",
+        f"    // Inlined loop (63 2-bit iterations for 128 bits)",
+    ]
+
+    for i in range(63):
+        code.extend(
+            [
+                f"    let (s1, s2, selector_{i}) = _extract_and_calculate_selector_bit_inlined_fake_glv(s1, s2);",
+                f"    selectors.append(upcast(selector_{i}));",
+            ]
+        )
+
+    code.extend(
+        [
+            "// At this point s1, and s2 are the MSB (last bit).",
+            "   if s1 != 0 {",
+            "    if s2 != 0 {",
+            "        // 11 T2 index : 5",
+            "        selectors.append(5);",
+            "    } else {",
+            "        // 10 T12 index : 9",
+            "        selectors.append(9);",
+            "    }",
+            "   } else {",
+            "    if s2 != 0 {",
+            "        // 01 T15 index : 6",
+            "        selectors.append(6);",
+            "    } else {",
+            "        // 00 T5 index : 10",
+            "        selectors.append(10);",
+            "    }",
+            "   }",
+            "    return (selectors.span(), upcast(s1lsb), upcast(s2lsb));",
+        ]
+    )
+    code.append("}")
+
+    function_body_str = "\n".join(code[1:])
+    indented_body = textwrap.indent(function_body_str, "    ")
+    generated_function_code = code[0] + "\n" + indented_body
+
+    # Combine header, helper function, and main generated function
+    return generated_function_code
 
 
 def generate_double_and_add_n(n_points: int) -> str:
@@ -299,13 +411,19 @@ if __name__ == "__main__":
 
         # Generate the complete Cairo code for selectors
         generated_cairo_code_selectors = generate_build_selectors_inlined(n_bits_arg)
-
+        generated_cairo_code_selectors_fake_glv = (
+            generate_build_selectors_inlined_fake_glv()
+        )
         # Define the output file path
         output_file_path_selectors = "src/src/ec/selectors.cairo"
 
         # Write the generated code to the file
         with open(output_file_path_selectors, "w") as f:
-            f.write(generated_cairo_code_selectors)
+            f.write(
+                generated_cairo_code_selectors
+                + "\n\n"
+                + generated_cairo_code_selectors_fake_glv
+            )
 
         print(
             f"Successfully generated Cairo code to {output_file_path_selectors} for n_bits = {n_bits_arg}"
