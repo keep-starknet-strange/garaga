@@ -584,9 +584,12 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     ), "s2 from decomposition should not be zero (required for verification logic)."
 
     # === Step 5: Prepare for Verification Loop ===
-    nbits = (
-        curve.n.bit_length() + 1
-    ) // 2  # Target bit length for decomposition components
+    # Target bit length for decomposition components
+    nbits = 128
+    assert (
+        nbits >= (curve.n.bit_length() + 1) // 2
+    ), f"nbits must be at least {(curve.n.bit_length() + 1) // 2}"
+
     s1_bits = _to_bits_le(abs(s1), nbits)
     s2_bits = _to_bits_le(abs(s2), nbits)
     s2_is_negative = s2 < 0
@@ -637,86 +640,65 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     T15 = -T12
     T16 = -T11
 
-    # Candidate coordinates for MUXing based on selectors derived from s1/s2 bits.
-    # The algorithm structure ensures selector_x maps correctly to this 8-element list.
-    T_X_mux_candidates = [T6.x, T10.x, T14.x, T2.x, T7.x, T11.x, T15.x, T3.x]
     # selector_y maps directly to this 16-element list.
-    T_Y_mux_candidates = [
-        T6.y,
-        T10.y,
-        T14.y,
-        T2.y,
-        T7.y,
-        T11.y,
-        T15.y,
-        T3.y,
-        T8.y,
-        T12.y,
-        T16.y,
-        T4.y,
-        T5.y,
-        T9.y,
-        T13.y,
-        T1.y,
+    T_mux_candidates = [
+        T6,
+        T10,
+        T14,
+        T2,
+        T7,
+        T11,
+        T15,
+        T3,
+        T8,
+        T12,
+        T16,
+        T4,
+        T5,
+        T9,
+        T13,
+        T1,
     ]
 
     # === Step 9: Main Verification Loop ===
 
     # Handle first iteration separately if nbits is even.
-    _loop_start_idx = -1
-    if nbits % 2 == 0:
-        if nbits >= 2:
-            # Inline the logic of _lookup2_point based on top two bits
-            b0 = s1_bits[nbits - 1]
-            b1 = s2_bits[nbits - 1]
-            if not b0 and not b1:
-                _T_current = T5
-            elif b0 and not b1:
-                _T_current = T12
-            elif not b0 and b1:
-                _T_current = T15
-            else:  # b0 and b1:
-                _T_current = T2
+    assert nbits % 2 == 0 and nbits >= 2
 
-            # Acc = 2*Acc + _T_current
-            Acc = Acc.add(Acc)  # Double Acc
-            Acc = Acc.add(_T_current)
-            _loop_start_idx = nbits - 2  # Start main loop from next lower index pair
-        else:
-            _loop_start_idx = nbits - 2  # Should be negative if nbits=0
-    else:  # nbits is odd
-        _loop_start_idx = nbits - 1  # Start main loop from top index pair
+    # Inline the logic of _lookup2_point based on top two bits
+    b0 = s1_bits[nbits - 1]
+    b1 = s2_bits[nbits - 1]
+    if not b0 and not b1:
+        _T_current = T5
+    elif b0 and not b1:
+        _T_current = T12
+    elif not b0 and b1:
+        _T_current = T15
+    else:  # b0 and b1:
+        _T_current = T2
+
+    # Acc = 2*Acc + _T_current
+    Acc = Acc.add(Acc)  # Double Acc
+    Acc = Acc.add(_T_current)
+    _loop_start_idx = nbits - 2  # Start main loop from next lower index pair
 
     # Main loop: process bits in pairs using merged additions (4*Acc + T)
-    # Iterates from _loop_start_idx down to index 3.
-    if _loop_start_idx >= 3:
-        for i in range(_loop_start_idx, 2, -2):  # Process indices i and i-1
-            # selector_y (0-15) encodes the 4 bits: (s1[i], s2[i], s1[i-1], s2[i-1])
-            selector_y = (
-                s1_bits[i]
-                + (s2_bits[i] << 1)
-                + (s1_bits[i - 1] << 2)
-                + (s2_bits[i - 1] << 3)
-            )
-            # selector_x (0-7) depends on selector_y and a specific bit (s2[i-1])
-            # This selection logic is specific to the algorithm's precomputation structure.
-            s2_bit_i_minus_1 = s2_bits[i - 1]
-            selector_x = selector_y if s2_bit_i_minus_1 == 0 else (15 - selector_y)
+    for i in range(_loop_start_idx, 2, -2):  # Process indices i and i-1
+        # selector_y (0-15) encodes the 4 bits: (s1[i], s2[i], s1[i-1], s2[i-1])
+        selector_y = (
+            s1_bits[i]
+            + (s2_bits[i] << 1)
+            + (s1_bits[i - 1] << 2)
+            + (s2_bits[i - 1] << 3)
+        )
 
-            if not (0 <= selector_x < len(T_X_mux_candidates)):  # Sanity check
-                raise ValueError(
-                    f"Internal error: selector_x {selector_x} out of bounds"
-                )
+        # Select the appropriate T point based on the 4 bits using the selectors
+        _T_current = T_mux_candidates[selector_y]
 
-            Tx = T_X_mux_candidates[selector_x]
-            Ty = T_Y_mux_candidates[selector_y]
-            # Select the appropriate T point based on the 4 bits using the selectors
-            _T_current = G1Point(Tx, Ty, point.curve_id)
-
-            # Acc = 4*Acc + _T_current
-            Acc = Acc.add(Acc)  # Double Acc
-            Acc = Acc.add(Acc)  # Double Acc again
-            Acc = Acc.add(_T_current)
+        # Acc = 4*Acc + _T_current
+        Acc = Acc.add(Acc)  # Double Acc
+        Acc = Acc.add(Acc)  # Double Acc again
+        Acc = Acc.add(_T_current)
 
     # === Step 10: Last Merged Iteration ===
     # Handles bits 2 and 1, with a final adjustment.
@@ -724,17 +706,8 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
         selector_y = (
             s1_bits[2] + (s2_bits[2] << 1) + (s1_bits[1] << 2) + (s2_bits[1] << 3)
         )
-        s2_bit_1 = s2_bits[1]
-        selector_x = selector_y if s2_bit_1 == 0 else (15 - selector_y)
 
-        if not (0 <= selector_x < len(T_X_mux_candidates)):  # Sanity check
-            raise ValueError(
-                f"Internal error: selector_x {selector_x} (last iter) out of bounds"
-            )
-
-        Tx = T_X_mux_candidates[selector_x]
-        Ty = T_Y_mux_candidates[selector_y]
-        _T_current = G1Point(Tx, Ty, point.curve_id)
+        _T_current = T_mux_candidates[selector_y]
 
         # Add the final adjustment term from table_R
         _T_current = _T_current.add(table_R_verify[2])
@@ -754,8 +727,6 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
     # === Step 12: Final Assertion ===
     # The final accumulator value should equal table_R_verify[2] (which is [3]R_signed_verify).
-    # Apply Go code's edge case handling for robustness: if scalar=0 or point=inf,
-    # the expected result is table_R_verify[2] (which should be infinity).
     AccToAssert = Acc
 
     assert (

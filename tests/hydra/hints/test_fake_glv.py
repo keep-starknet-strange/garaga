@@ -139,3 +139,27 @@ def test_scalar_mul_fake_glv(curve_id):
             actual == expected
         ), f"Mismatch for random test {i+1} (P={point}, s={scalar})"
     print(f"  {num_random_tests} random tests passed.")
+
+    # Test random scalars for each bit length up to n.bit_length()
+    print(f"  Running tests for scalar bit lengths 1 to {n.bit_length()}...")
+    for k in range(1, n.bit_length() + 1, 4):
+        # Generate a scalar with exactly k bits
+        if k == 1:
+            scalar = 1  # Only possible 1-bit scalar > 0
+        else:
+            lower_bound = 1 << (k - 1)
+            upper_bound = (1 << k) - 1
+            scalar = random.randint(lower_bound, upper_bound)
+
+        # Ensure scalar is less than n (important for high bit lengths)
+        scalar = scalar % n
+        if scalar == 0:  # Avoid scalar 0 if it happens by modulo
+            scalar = 1  # Or continue; let's test with 1 in this rare case
+
+        point_to_test = G  # Use generator for consistency
+        # print(f"    Bit Length {k}: s={scalar}") # Optional: verbose logging
+
+        expected = point_to_test.scalar_mul(scalar)
+        actual = scalar_mul_fake_glv(point_to_test, scalar)
+        assert actual == expected, f"Mismatch for scalar bit length {k} (s={scalar})"
+    print(f"  Scalar bit length tests passed.")
