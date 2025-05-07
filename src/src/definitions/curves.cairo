@@ -247,59 +247,50 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
 // bool: true if nbits = (curve.n.bit_length() // 4 + 9) == 73, false if nbits =
 // (curve.n.bit_length() // 4 + 9) == 72 G1Point: 2^(nbits-1)*G (generator of the curve)
 // Panics if curve does not have efficient endomorphism
-pub fn get_nbits_and_nG_glv_fake_glv(curve_index: usize) -> (bool, G1Point) {
+pub fn get_nG_glv_fake_glv(curve_index: usize) -> G1Point {
     match curve_index {
-        0 => (
-            true,
-            G1Point {
-                x: u384 {
-                    limb0: 0x804f4c2700adf08a0214e529,
-                    limb1: 0xa68b293da254e1b0049b5825,
-                    limb2: 0x2715e750e68b52fa,
-                    limb3: 0x0,
-                },
-                y: u384 {
-                    limb0: 0x15c090b1de77447950003fc9,
-                    limb1: 0xfb5afe510e7c4e23f41e4bad,
-                    limb2: 0x3921d1862445f32,
-                    limb3: 0x0,
-                },
+        0 => G1Point {
+            x: u384 {
+                limb0: 0x804f4c2700adf08a0214e529,
+                limb1: 0xa68b293da254e1b0049b5825,
+                limb2: 0x2715e750e68b52fa,
+                limb3: 0x0,
             },
-        ),
-        1 => (
-            true,
-            G1Point {
-                x: u384 {
-                    limb0: 0xcf4357bd59d6560f96d34480,
-                    limb1: 0x1c2b3f4bb7a8579e7473612d,
-                    limb2: 0x44f04a3ee426074a0864fc6e,
-                    limb3: 0x60aa1307100d28a9c44cc51,
-                },
-                y: u384 {
-                    limb0: 0x365913fecd5eb4667fe5e1ea,
-                    limb1: 0xa456de882c324863cdfcf5b5,
-                    limb2: 0xbaaa2be88ae9a807b36465b8,
-                    limb3: 0x31152c621ab7ca0e5a2ab1c,
-                },
+            y: u384 {
+                limb0: 0x15c090b1de77447950003fc9,
+                limb1: 0xfb5afe510e7c4e23f41e4bad,
+                limb2: 0x3921d1862445f32,
+                limb3: 0x0,
             },
-        ),
-        2 => (
-            true,
-            G1Point {
-                x: u384 {
-                    limb0: 0xf668832ffd959af60c82a0a,
-                    limb1: 0x6b06c9f1919413b10f9226c6,
-                    limb2: 0x948bf809b1988a4,
-                    limb3: 0x0,
-                },
-                y: u384 {
-                    limb0: 0xc97cd2bed4cb7f88d8c8e589,
-                    limb1: 0xdc6b74c5d1c3418c6d4dff08,
-                    limb2: 0x53a562856dcb6646,
-                    limb3: 0x0,
-                },
+        },
+        1 => G1Point {
+            x: u384 {
+                limb0: 0xcf4357bd59d6560f96d34480,
+                limb1: 0x1c2b3f4bb7a8579e7473612d,
+                limb2: 0x44f04a3ee426074a0864fc6e,
+                limb3: 0x60aa1307100d28a9c44cc51,
             },
-        ),
+            y: u384 {
+                limb0: 0x365913fecd5eb4667fe5e1ea,
+                limb1: 0xa456de882c324863cdfcf5b5,
+                limb2: 0xbaaa2be88ae9a807b36465b8,
+                limb3: 0x31152c621ab7ca0e5a2ab1c,
+            },
+        },
+        2 => G1Point {
+            x: u384 {
+                limb0: 0xf668832ffd959af60c82a0a,
+                limb1: 0x6b06c9f1919413b10f9226c6,
+                limb2: 0x948bf809b1988a4,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xc97cd2bed4cb7f88d8c8e589,
+                limb1: 0xdc6b74c5d1c3418c6d4dff08,
+                limb2: 0x53a562856dcb6646,
+                limb3: 0x0,
+            },
+        },
         _ => core::panic_with_felt252('Invalid curve index'),
     }
 }

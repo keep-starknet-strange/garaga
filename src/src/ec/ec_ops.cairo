@@ -23,7 +23,7 @@ use garaga::definitions::{
     BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
     THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
     deserialize_u384_array, get_G, get_a, get_b, get_b2, get_curve_order_modulus, get_eigenvalue,
-    get_g, get_min_one, get_min_one_order, get_modulus, get_n, get_nbits_and_nG_glv_fake_glv,
+    get_g, get_min_one, get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv,
     get_third_root_of_unity, serialize_u288_array, serialize_u384, serialize_u384_array, u288,
     u384Serde,
 };
@@ -397,7 +397,7 @@ fn msm_glv_fake_glv(
     let order_modulus = get_curve_order_modulus(curve_index);
     let curve_order: u256 = get_n(curve_index);
     let min_one = get_min_one_order(curve_index);
-    let (bits_73, nG) = get_nbits_and_nG_glv_fake_glv(curve_index);
+    let nG = get_nG_glv_fake_glv(curve_index);
 
     let mut acc = G1PointZero::zero();
 
@@ -416,7 +416,6 @@ fn msm_glv_fake_glv(
             eigen,
             third_root_of_unity,
             min_one,
-            bits_73,
             nG,
             curve_index,
         );
@@ -436,7 +435,6 @@ fn _scalar_mul_glv_and_fake_glv(
     _lambda: u384,
     third_root_of_unity: u384,
     minus_one: u384,
-    bits_73: bool,
     n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
