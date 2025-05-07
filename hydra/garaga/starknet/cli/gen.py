@@ -133,7 +133,7 @@ def gen(
                                 f"[bold yellow]bbup --version {BB_VERSION}[/bold yellow]\n"
                                 f"[bold yellow]noirup --version {NARGO_VERSION}[/bold yellow]\n"
                                 f"Check [blue]https://noir-lang.org/docs/getting_started/quick_start[/blue] for more information.\n"
-                                f"Then, ensure the verifying key is generated with the correct versions of bb and nargo.",
+                                f"Then, ensure the verifying key was generated with the correct versions of bb and nargo.",
                                 border_style="yellow",
                                 title="[bold yellow]Fixing the issue[/bold yellow]",
                             )
