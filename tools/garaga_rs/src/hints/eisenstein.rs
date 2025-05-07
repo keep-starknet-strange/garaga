@@ -144,12 +144,10 @@ impl std::fmt::Display for EisensteinInteger {
 
             let a1_str = if self.a1 == BigInt::one() {
                 "ω".into()
+            } else if self.a1 == (-1).into() {
+                "-ω".into()
             } else {
-                if self.a1 == (-1).into() {
-                    "-ω".into()
-                } else {
-                    format!("{}*ω", self.a1)
-                }
+                format!("{}*ω", self.a1)
             };
 
             if a0_str.is_empty() {
@@ -417,7 +415,7 @@ pub fn half_gcd(
 }
 
 mod tests {
-    use super::*;
+
 
     #[test]
     fn test_01() -> Result<(), String> {
