@@ -150,10 +150,10 @@ pub fn _ec_safe_add(
 #[derive(Drop, Serde)]
 struct GlvFakeGlvHint {
     Q: G1Point,
-    u1: felt252, // Encoded as 2^128 * sign + abs(u1)_u64
-    u2: felt252, // Encoded as 2^128 * sign + abs(u2)_u64
-    v1: felt252, // Encoded as 2^128 * sign + abs(v1)_u64
-    v2: felt252 // Encoded as 2^128 * sign + abs(v2)_u64
+    u1: felt252, // Encoded as 2^128 * sign + abs(u1)
+    u2: felt252, // Encoded as 2^128 * sign + abs(u2)
+    v1: felt252, // Encoded as 2^128 * sign + abs(v1)
+    v2: felt252 // Encoded as 2^128 * sign + abs(v2)
 }
 
 #[derive(Drop, Serde)]
@@ -307,7 +307,6 @@ pub fn _scalar_mul_fake_glv(
     let last_selector = *selectors.pop_front().unwrap();
     let last_selector_pt = *Ts[last_selector];
     let (last_selector_pt_corrected) = ec::run_ADD_EC_POINT_circuit(last_selector_pt, R2, modulus);
-    // println!("last_selector_pt_corrected : {:?}", last_selector_pt_corrected);
     Ts.append(last_selector_pt_corrected);
 
     let Ts = Ts.span();
@@ -315,22 +314,14 @@ pub fn _scalar_mul_fake_glv(
     // now the first selector should be 16 and will select the corrected point in the last
     // iteration.
 
-    // assert(*selectors[0] == 16, 'wrong first selector');
-
     // First iteration (bit 128)
     let selector_y = *selectors.pop_back().unwrap();
-    // println!("First selector : {:?}", selector_y);
     let Bi = *Ts[selector_y];
 
-    // println!("Point : {:?}", point);
-    // println!("Scalar : {:?}", scalar);
-    // println!("T2 (Acc) : {:?}", T2);
-    // println!("Bi (_T_current) : {:?}", Bi);
     let (Acc) = ec::run_DOUBLE_EC_POINT_circuit(T2, A_weirstrass, modulus);
     let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, Bi, modulus);
-    // println!("Acc before loop : {:?}", Acc);
-    // assert(selectors.len() == 63, 'wrong number of selectors');
 
+    // assert(selectors.len() == 63, 'wrong number of selectors');
     // 7 iterations* 9 * 2 bits = 63 * 2 = 126 bits.
     while let Some(selector_y) = selectors.multi_pop_back::<9>() {
         let [
