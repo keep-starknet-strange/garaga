@@ -32,6 +32,12 @@ from garaga.starknet.groth16_contract_generator.generator import (
     get_scarb_toml_file,
 )
 
+# nargo --version # 1.0.0-beta.3
+# bb --version # 0.85.0
+
+BB_VERSION = "0.85.0"
+NARGO_VERSION = "1.0.0-beta.3"
+
 
 def gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,
@@ -715,7 +721,7 @@ mod honk_verifier_constants;
 mod honk_verifier_circuits;
 """
         )
-    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
+    subprocess.run(["scarb", "fmt", f"."], check=True, cwd=output_folder_path)
 
 
 if __name__ == "__main__":

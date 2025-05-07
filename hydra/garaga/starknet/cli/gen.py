@@ -3,16 +3,39 @@ from typing import Annotated
 
 import typer
 from rich import print
+from rich.console import Console
+from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.tree import Tree
 
 from garaga.definitions import ProofSystem
-from garaga.starknet.cli.utils import complete_proof_system, get_default_vk_path
+from garaga.starknet.cli.utils import (
+    complete_proof_system,
+    get_default_vk_path,
+    get_package_version,
+)
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     gen_groth16_verifier,
 )
-from garaga.starknet.honk_contract_generator.generator_honk import gen_honk_verifier
+from garaga.starknet.honk_contract_generator.generator_honk import (
+    BB_VERSION,
+    NARGO_VERSION,
+    gen_honk_verifier,
+)
+
+
+def check_version(cmd: str, version: str) -> tuple[bool, str]:
+    import subprocess
+
+    result = subprocess.run(
+        [cmd, "--version"], capture_output=True, text=True, check=True
+    )
+    result_version = result.stdout.strip()
+    return (
+        result.returncode == 0 and version in result_version,
+        result_version,
+    )
 
 
 def gen(
@@ -48,6 +71,7 @@ def gen(
         SpinnerColumn(),
         TextColumn("[progress.description]{task.description}"),
         transient=False,
+        console=Console(color_system="truecolor"),
     ) as progress:
         progress.add_task(
             f"[bold cyan]Generating Smart Contract project for [bold yellow]{system}[/bold yellow] using [bold yellow]{Path(vk).name}[/bold yellow]...[/bold cyan]",
@@ -70,13 +94,52 @@ def gen(
                 | ProofSystem.UltraKeccakZKHonk
                 | ProofSystem.UltraStarknetZKHonk
             ):
-                gen_honk_verifier(
-                    vk=vk,
-                    output_folder_path=cwd,
-                    output_folder_name=project_name,
-                    system=system,
-                    cli_mode=True,
-                )
+                try:
+                    gen_honk_verifier(
+                        vk=vk,
+                        output_folder_path=cwd,
+                        output_folder_name=project_name,
+                        system=system,
+                        cli_mode=True,
+                    )
+                except Exception as e:
+                    import traceback
+
+                    print(
+                        f"\n[bold red]Error:[/bold red] An error occurred while generating the verifier: \n{traceback.format_exc()}"
+                    )
+                    bb_version_ok, bb_version = check_version("bb", BB_VERSION)
+                    nargo_version_ok, nargo_version = check_version(
+                        "nargo", NARGO_VERSION
+                    )
+                    if not bb_version_ok or not nargo_version_ok:
+                        console = Console()
+                        console.print(
+                            Panel(
+                                f"[bold]Detected versions of bb and nargo are not compatible with the required versions by garaga {get_package_version()}.[/bold]\n"
+                                f"This is the most likely cause of the error.",
+                                title="[bold red]Warning[/bold red]",
+                                border_style="red",
+                            )
+                        )
+                        console.print(
+                            f"Detected bb version: [bold red]{bb_version}[/bold red]\n"
+                            f"Detected nargo version: [bold red]{nargo_version}[/bold red]"
+                        )
+                        console.print(
+                            Panel(
+                                "[bold]Please ensure you have the expected versions of bb and nargo installed for garaga to work.[/bold]\n"
+                                "You can install the required versions using the following commands:\n"
+                                f"[bold yellow]bbup --version {BB_VERSION}[/bold yellow]\n"
+                                f"[bold yellow]noirup --version {NARGO_VERSION}[/bold yellow]\n"
+                                f"Check [blue]https://noir-lang.org/docs/getting_started/quick_start[/blue] for more information.\n"
+                                f"Then, ensure the verifying key is generated with the correct versions of bb and nargo.",
+                                border_style="yellow",
+                                title="[bold yellow]Fixing the issue[/bold yellow]",
+                            )
+                        )
+                    raise typer.Exit(code=1)
+
             case _:
                 raise ValueError(f"Unsupported proof system: {system}")
 
