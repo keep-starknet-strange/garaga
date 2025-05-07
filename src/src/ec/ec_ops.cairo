@@ -177,7 +177,6 @@ pub fn msm_fake_glv(
 ) -> G1Point {
     let n = scalars.len();
     assert(n == points.len(), 'n_pts!=n_scalars');
-    println!("n: {:?}", n);
     if n == 0 {
         panic_with_felt252('Msm size must be >= 1');
     }
@@ -250,7 +249,7 @@ pub fn _scalar_mul_fake_glv(
         U128sFromFelt252Result::Wide((_, low)) => { (order_minus_one, base_min_one, low) },
     };
 
-    // Verify decomposition  s1 + scalar*s2 = 0 mod n && s2!=0.
+    // Verify decomposition : s1 + scalar*s2 = 0 mod n && s2!=0.
     let s1 = CircuitElement::<CircuitInput<0>> {};
     let S = CircuitElement::<CircuitInput<1>> {};
     let s2 = CircuitElement::<CircuitInput<2>> {};
@@ -273,32 +272,111 @@ pub fn _scalar_mul_fake_glv(
     assert(_s2_abs != 0, 'FakeGLV: s2=0');
     assert(outputs.get_output(check).is_zero(), 'Wrong FakeGLV decomposition');
 
-    let (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2) =
+    let (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y) =
         ec::run_PREPARE_FAKE_GLV_PTS_circuit(
         point, hint.Q, _s2_sign_base, A_weirstrass, modulus,
     );
 
-    let Ts: Span<G1Point> = array![
-        T1,
-        T2,
-        T3,
-        T4,
-        G1Point { x: T2.x, y: T5y },
+    // ['T6', 'T7', 'T10', 'T11', 'T8', 'T5', 'T12', 'T9', 'T14', 'T15', 'T2', 'T3', 'T16', 'T13',
+    // 'T4', 'T1']
+    let mut Ts: Array<G1Point> = array![
         G1Point { x: T1.x, y: T6y },
         G1Point { x: T4.x, y: T7y },
-        G1Point { x: T3.x, y: T8y },
-        T9,
         T10,
         T11,
+        G1Point { x: T3.x, y: T8y },
+        G1Point { x: T2.x, y: T5y },
         T12,
-        G1Point { x: T10.x, y: T13y },
+        T9,
         G1Point { x: T9.x, y: T14y },
         G1Point { x: T12.x, y: T15y },
+        T2,
+        T3,
         G1Point { x: T11.x, y: T16y },
-    ]
-        .span();
+        G1Point { x: T10.x, y: T13y },
+        T4,
+        T1,
+    ];
 
-    // First iteration
+    let (mut selectors, s1lsb, s2lsb) = selectors::build_selectors_inlined_fake_glv(
+        hint.s1, _s2_abs,
+    );
+
+    // Add corrected point for the last bits 2-1 at position 16 in Ts array.
+    let last_selector = *selectors.pop_front().unwrap();
+    let last_selector_pt = *Ts[last_selector];
+    let (last_selector_pt_corrected) = ec::run_ADD_EC_POINT_circuit(last_selector_pt, R2, modulus);
+    // println!("last_selector_pt_corrected : {:?}", last_selector_pt_corrected);
+    Ts.append(last_selector_pt_corrected);
+
+    let Ts = Ts.span();
+
+    // now the first selector should be 16 and will select the corrected point in the last
+    // iteration.
+
+    // assert(*selectors[0] == 16, 'wrong first selector');
+
+    // First iteration (bit 128)
+    let selector_y = *selectors.pop_back().unwrap();
+    // println!("First selector : {:?}", selector_y);
+    let Bi = *Ts[selector_y];
+
+    // println!("Point : {:?}", point);
+    // println!("Scalar : {:?}", scalar);
+    // println!("T2 (Acc) : {:?}", T2);
+    // println!("Bi (_T_current) : {:?}", Bi);
+    let (Acc) = ec::run_DOUBLE_EC_POINT_circuit(T2, A_weirstrass, modulus);
+    let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, Bi, modulus);
+    // println!("Acc before loop : {:?}", Acc);
+    // assert(selectors.len() == 63, 'wrong number of selectors');
+
+    // 7 iterations* 9 * 2 bits = 63 * 2 = 126 bits.
+    while let Some(selector_y) = selectors.multi_pop_back::<9>() {
+        let [
+            selector_y8,
+            selector_y7,
+            selector_y6,
+            selector_y5,
+            selector_y4,
+            selector_y3,
+            selector_y2,
+            selector_y1,
+            selector_y0,
+        ] =
+            selector_y
+            .unbox();
+
+        let Bi = *Ts[selector_y0];
+        let Bi1 = *Ts[selector_y1];
+        let Bi2 = *Ts[selector_y2];
+        let Bi3 = *Ts[selector_y3];
+        let Bi4 = *Ts[selector_y4];
+        let Bi5 = *Ts[selector_y5];
+        let Bi6 = *Ts[selector_y6];
+        let Bi7 = *Ts[selector_y7];
+        let Bi8 = *Ts[selector_y8];
+
+        let (_Acc) = ec::run_QUADRUPLE_AND_ADD_9_circuit(
+            Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, Bi8, A_weirstrass, modulus,
+        );
+        Acc = _Acc;
+    }
+
+    let (Acc) = if s1lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(
+            Acc, G1Point { x: point.x, y: neg_mod_p(point.y, modulus) }, modulus,
+        )
+    } else {
+        (Acc,)
+    };
+    let (Acc) = if s2lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: hint.Q.x, y: R0y }, modulus)
+    } else {
+        (Acc,)
+    };
+
+    // Assert.
+    assert(Acc == R2, 'wrong result');
 
     return hint.Q;
 }
