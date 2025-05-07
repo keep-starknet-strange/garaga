@@ -368,14 +368,15 @@ where
     Ok((q, s1_biguint, s2_encoded))
 }
 
+#[allow(unused_imports)]
 mod tests {
-
-
-
+    use super::*;
+    use num_traits::Num;
+    use rand::Rng;
+    use std::str::FromStr;
 
     #[test]
     fn test_bn254() -> Result<(), String> {
-        use rand::Rng;
         let mut rng = rand::rng();
         for _ in 0..100 {
             let scalar = rng.random::<u128>().into();

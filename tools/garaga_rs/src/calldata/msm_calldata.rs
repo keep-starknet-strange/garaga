@@ -5,14 +5,11 @@ use crate::definitions::{
 };
 use crate::hints::fake_glv::{get_fake_glv_hint, get_glv_fake_glv_hint};
 use crate::io::{
-    element_to_biguint, field_element_to_u288_limbs,
-    field_element_to_u384_limbs, field_elements_from_big_uints,
-    parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
+    element_to_biguint, field_element_to_u288_limbs, field_element_to_u384_limbs,
+    field_elements_from_big_uints, parse_g1_points_from_flattened_field_elements_list,
+    scalar_to_limbs,
 };
-use lambdaworks_math::{
-    field::traits::IsPrimeField,
-    traits::ByteConversion,
-};
+use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 
 use num_bigint::BigUint;
 
@@ -94,15 +91,12 @@ where
         return Err("Scalar value must be less than the curve order".to_string());
     }
 
-    let use_288 = curve_id != 1;
-
     Ok(calldata_builder::<F>(
         &points,
         scalars,
         curve_id,
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
-        use_288,
     ))
 }
 
@@ -113,7 +107,6 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     curve_id: usize,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-    use_288: bool,
 ) -> Vec<BigUint>
 where
     FieldElement<F>: ByteConversion,
@@ -219,6 +212,7 @@ where
     call_data
 }
 
+#[allow(dead_code)]
 fn sqrt<F>(value: &FieldElement<F>) -> FieldElement<F>
 where
     F: IsPrimeField,
@@ -233,8 +227,4 @@ where
 }
 
 #[cfg(test)]
-mod tests {
-    use num_traits::Num;
-
-    use super::*;
-}
+mod tests {}

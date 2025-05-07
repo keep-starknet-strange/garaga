@@ -414,8 +414,9 @@ pub fn half_gcd(
     Ok([b_run, v_, u_])
 }
 
+#[allow(unused_imports)]
 mod tests {
-
+    use super::*;
 
     #[test]
     fn test_01() -> Result<(), String> {

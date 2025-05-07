@@ -642,14 +642,8 @@ pub fn get_honk_calldata(
     PoseidonCairoStark252::hades_permutation(&mut state);
     // let [external_s0, external_s1, _] = state;
 
-    let msm_data = msm_calldata::calldata_builder(
-        &points,
-        &scalars_msm,
-        CurveID::BN254 as usize,
-        false,
-        true,
-        false,
-    );
+    let msm_data =
+        msm_calldata::calldata_builder(&points, &scalars_msm, CurveID::BN254 as usize, false, true);
 
     let p_0 = G1Point::msm(&points, &scalars_msm).add(&shplonk_q);
     let p_1 = kzg_quotient.neg();
