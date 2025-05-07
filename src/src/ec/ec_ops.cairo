@@ -146,6 +146,7 @@ pub fn _ec_safe_add(
         return res;
     }
 }
+
 #[derive(Drop, Serde)]
 struct GlvFakeGlvHint {
     Q: G1Point,
@@ -407,26 +408,34 @@ fn msm_glv_fake_glv(
         assert(scalar < curve_order, 'unreduced scalar');
         let scalar_u384: u384 = scalar.into();
         let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
-        let temp = _scalar_mul_glv_and_fake_glv(
-            pt,
-            scalar_u384,
-            order_modulus,
-            modulus,
-            glv_fake_glv_hint,
-            eigen,
-            third_root_of_unity,
-            min_one,
-            nG,
-            curve_index,
-        );
-        acc = _ec_safe_add(acc, temp, modulus, curve_index);
+        match pt.is_infinity() {
+            true => { acc = acc; },
+            false => {
+                pt.assert_on_curve(curve_index);
+                let temp = _scalar_mul_glv_and_fake_glv(
+                    pt,
+                    scalar_u384,
+                    order_modulus,
+                    modulus,
+                    glv_fake_glv_hint,
+                    eigen,
+                    third_root_of_unity,
+                    min_one,
+                    nG,
+                    curve_index,
+                );
+                acc = _ec_safe_add(acc, temp, modulus, curve_index);
+            },
+        }
     }
 
     return acc;
 }
 
+
 #[inline(always)]
-fn _scalar_mul_glv_and_fake_glv(
+// /!\ Assumes point is on curve (not infinity) and scalar is reduced mod n. /!\
+pub fn _scalar_mul_glv_and_fake_glv(
     point: G1Point,
     scalar: u384,
     order_modulus: CircuitModulus,
@@ -438,10 +447,9 @@ fn _scalar_mul_glv_and_fake_glv(
     n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
-    if scalar.is_zero() || point.is_infinity() {
+    if scalar.is_zero() {
         return G1PointZero::zero();
     }
-    point.assert_on_curve(curve_index);
     if scalar.is_one() {
         return point;
     }

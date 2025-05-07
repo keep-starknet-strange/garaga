@@ -9,7 +9,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x6CAF5FAB4950C87A40E8562A0165D7E580AF3BFB27794C1D58C4F267D40EDC
+ECIP_OPS_CLASS_HASH = 0x6E358038D4471D9586FD4027C15954EA754AF2AC7DC559737D91BEA2BBB6CC2
 CAIRO_VERSION = "2.11.4"
 
 

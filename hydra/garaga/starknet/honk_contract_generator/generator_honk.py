@@ -94,8 +94,34 @@ def get_msm_kzg_template(
             assert({is_on_curve_function_name}(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
             let mut msm_hint = full_proof.msm_hint;
-            let P_1 = msm_glv_fake_glv(points, scalars, 0, ref msm_hint);
-            let P_1 = ec_safe_add(P_1, shplonk_q_pt, 0);
+            assert(msm_hint.len() == {msm_len} * 12, 'wrong glv&fakeglv hint size');
+            let eigen = get_eigenvalue(0);
+            let third_root_of_unity = get_third_root_of_unity(0);
+            let min_one = get_min_one_order(0);
+            let nG = get_nG_glv_fake_glv(0);
+
+            let mut P_1 = shplonk_q_pt;
+
+            while msm_hint.len() != 0 {{
+                let pt = *points.pop_front().unwrap();
+                let scalar = *scalars.pop_front().unwrap();
+                // Note : Scalars are below curve order by construction (circuit outputs mod n and transcript output (u128))
+                let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref msm_hint).unwrap();
+                let temp = _scalar_mul_glv_and_fake_glv(
+                    pt,
+                    scalar,
+                    mod_grumpkin,
+                    mod_bn,
+                    glv_fake_glv_hint,
+                    eigen,
+                    third_root_of_unity,
+                    min_one,
+                    nG,
+                    0,
+                );
+                P_1 = _ec_safe_add(P_1, temp, mod_bn, 0);
+            }}
+
             let P_2:G1Point = full_proof.proof.kzg_quotient.into();
 
             // Perform the KZG pairing check.
@@ -271,17 +297,15 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add, msm_glv_fake_glv}};
-    use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
+    use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
     use garaga::circuits::ec;
-    use garaga::utils::neg_3;
     use super::{{vk, VK_HASH, precomputed_lines, {imports_str}}};
     use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}into_u256_unchecked}};
+    use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -413,7 +437,7 @@ def _get_msm_points_array_code(zk: bool, log_n: int) -> tuple[str, (int, int)]:
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point {next_proof_point_counter}
             _points.append(BN254_G1_GENERATOR);
 
-            let points = _points.span();"""
+            let mut points = _points.span();"""
 
     proof_point_counter = next_proof_point_counter
 
@@ -443,9 +467,7 @@ def _gen_honk_verifier_files(
     ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = [
-        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    ]
+    scalars_tuple_into = [f"scalar_{idx}" for idx in scalar_indexes]
 
     scalars_tuple_into.append("transcript.shplonk_z.into()")
     # Swap position of last two elements of scalars_tuple_into :
@@ -504,7 +526,7 @@ def _gen_honk_verifier_files(
 
             {points_code}
 
-            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
+            let mut scalars: Span<u384> = array![{scalars_tuple_into}].span();
 
             {get_msm_kzg_template(msm_len, n_vk_points, n_proof_points, is_on_curve_function_name)}
 
@@ -548,9 +570,7 @@ def _gen_zk_honk_verifier_files(
     )
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = [
-        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    ]
+    scalars_tuple_into = [f"scalar_{idx}" for idx in scalar_indexes]
 
     scalars_tuple_into.append("transcript.shplonk_z.into()")
     # Swap position of last two elements of scalars_tuple_into (KZG quotient & BN254 G1 generator) :
@@ -643,7 +663,7 @@ def _gen_zk_honk_verifier_files(
         );
 
             {points_code}
-            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
+            let mut scalars: Span<u384> = array![{scalars_tuple_into}].span();
 
             {get_msm_kzg_template(msm_len, n_vk_points, n_proof_points, is_on_curve_function_name)}
             if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && kzg_check {{
