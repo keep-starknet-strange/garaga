@@ -88,4 +88,4 @@ docker compose up --build
 
 cd ../integration-test-suite
 
-cp ../garaga_ts/garaga-0.17.0.tgz garaga.tgz
+cp ../garaga_ts/garaga-0.18.0.tgz garaga.tgz
