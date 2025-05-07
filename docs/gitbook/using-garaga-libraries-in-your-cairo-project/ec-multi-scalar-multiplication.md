@@ -89,7 +89,7 @@ The options are :
 
 * `include_digits_decomposition`. This needs 162 additional felt252 per additional scalar, but it saves a lot of cairo steps. If set to `False`, the Cairo function will compute them directly in Cairo. If set to `True`, the Cairo program will verify the correctness of the decomposition (which is cheaper) and use it.
 * `include_points_and_scalars` : If set to `False`, the input points, scalars, and `curve_index` will not be part of the calldata.
-* `serialize_as_pure_felt252_array` : If set to `True`, preprend the total length of the calldata at the beginning. \
+* `serialize_as_pure_felt252_array` : If set to `True`, prepend the total length of the calldata at the beginning. \
 
 
 The last two options are only useful when you want to use points and scalars from another source than the calldata. \
