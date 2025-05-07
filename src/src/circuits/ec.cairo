@@ -12,7 +12,7 @@ use garaga::definitions::{
     get_g, get_min_one, get_modulus, u288,
 };
 
-impl CircuitDefinition26<
+impl CircuitDefinition27<
     E0,
     E1,
     E2,
@@ -39,6 +39,7 @@ impl CircuitDefinition26<
     E23,
     E24,
     E25,
+    E26,
 > of core::circuit::CircuitDefinition<
     (
         CE<E0>,
@@ -67,6 +68,7 @@ impl CircuitDefinition26<
         CE<E23>,
         CE<E24>,
         CE<E25>,
+        CE<E26>,
     ),
 > {
     type CircuitType =
@@ -98,10 +100,11 @@ impl CircuitDefinition26<
                 E23,
                 E24,
                 E25,
+                E26,
             ),
         >;
 }
-impl MyDrp_26<
+impl MyDrp_27<
     E0,
     E1,
     E2,
@@ -128,6 +131,7 @@ impl MyDrp_26<
     E23,
     E24,
     E25,
+    E26,
 > of Drop<
     (
         CE<E0>,
@@ -156,6 +160,7 @@ impl MyDrp_26<
         CE<E23>,
         CE<E24>,
         CE<E25>,
+        CE<E26>,
     ),
 >;
 
@@ -1461,6 +1466,7 @@ pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
     u384,
     u384,
     G1Point,
+    u384,
 ) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -1632,6 +1638,7 @@ pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
         t133,
         t41,
         t44,
+        t23,
     )
         .new_inputs();
     // Prefill constants:
@@ -1662,7 +1669,8 @@ pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
     let T15y: u384 = outputs.get_output(t132);
     let T16y: u384 = outputs.get_output(t133);
     let R2: G1Point = G1Point { x: outputs.get_output(t41), y: outputs.get_output(t44) };
-    return (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2);
+    let R0y: u384 = outputs.get_output(t23);
+    return (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y);
 }
 #[inline(always)]
 pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
@@ -1939,4 +1947,333 @@ pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
         Phi_Q0x,
         Acc,
     );
+}
+#[inline(always)]
+pub fn run_QUADRUPLE_AND_ADD_9_circuit(
+    P: G1Point,
+    Q_1: G1Point,
+    Q_2: G1Point,
+    Q_3: G1Point,
+    Q_4: G1Point,
+    Q_5: G1Point,
+    Q_6: G1Point,
+    Q_7: G1Point,
+    Q_8: G1Point,
+    Q_9: G1Point,
+    A_weirstrass: u384,
+    modulus: CircuitModulus,
+) -> (G1Point,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x3
+
+    // INPUT stack
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8, in9) = (CE::<CI<7>> {}, CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11, in12) = (CE::<CI<10>> {}, CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14, in15) = (CE::<CI<13>> {}, CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17, in18) = (CE::<CI<16>> {}, CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20, in21) = (CE::<CI<19>> {}, CE::<CI<20>> {}, CE::<CI<21>> {});
+    let t0 = circuit_mul(in1, in1);
+    let t1 = circuit_mul(in0, t0);
+    let t2 = circuit_add(t1, in21);
+    let t3 = circuit_add(in2, in2);
+    let t4 = circuit_inverse(t3);
+    let t5 = circuit_mul(t2, t4);
+    let t6 = circuit_mul(t5, t5);
+    let t7 = circuit_sub(t6, in1);
+    let t8 = circuit_sub(t7, in1);
+    let t9 = circuit_sub(in1, t8);
+    let t10 = circuit_mul(t5, t9);
+    let t11 = circuit_sub(t10, in2);
+    let t12 = circuit_sub(in4, t11);
+    let t13 = circuit_sub(in3, t8);
+    let t14 = circuit_inverse(t13);
+    let t15 = circuit_mul(t12, t14);
+    let t16 = circuit_mul(t15, t15);
+    let t17 = circuit_add(t8, in3);
+    let t18 = circuit_sub(t16, t17);
+    let t19 = circuit_add(t11, t11);
+    let t20 = circuit_sub(t18, t8);
+    let t21 = circuit_inverse(t20);
+    let t22 = circuit_mul(t19, t21);
+    let t23 = circuit_add(t15, t22);
+    let t24 = circuit_mul(t23, t23);
+    let t25 = circuit_add(t8, t18);
+    let t26 = circuit_sub(t24, t25);
+    let t27 = circuit_sub(t26, t8);
+    let t28 = circuit_mul(t23, t27);
+    let t29 = circuit_sub(t28, t11);
+    let t30 = circuit_mul(t26, t26);
+    let t31 = circuit_mul(in0, t30);
+    let t32 = circuit_add(t31, in21);
+    let t33 = circuit_add(t29, t29);
+    let t34 = circuit_inverse(t33);
+    let t35 = circuit_mul(t32, t34);
+    let t36 = circuit_mul(t35, t35);
+    let t37 = circuit_sub(t36, t26);
+    let t38 = circuit_sub(t37, t26);
+    let t39 = circuit_sub(t26, t38);
+    let t40 = circuit_mul(t35, t39);
+    let t41 = circuit_sub(t40, t29);
+    let t42 = circuit_sub(in6, t41);
+    let t43 = circuit_sub(in5, t38);
+    let t44 = circuit_inverse(t43);
+    let t45 = circuit_mul(t42, t44);
+    let t46 = circuit_mul(t45, t45);
+    let t47 = circuit_add(t38, in5);
+    let t48 = circuit_sub(t46, t47);
+    let t49 = circuit_add(t41, t41);
+    let t50 = circuit_sub(t48, t38);
+    let t51 = circuit_inverse(t50);
+    let t52 = circuit_mul(t49, t51);
+    let t53 = circuit_add(t45, t52);
+    let t54 = circuit_mul(t53, t53);
+    let t55 = circuit_add(t38, t48);
+    let t56 = circuit_sub(t54, t55);
+    let t57 = circuit_sub(t56, t38);
+    let t58 = circuit_mul(t53, t57);
+    let t59 = circuit_sub(t58, t41);
+    let t60 = circuit_mul(t56, t56);
+    let t61 = circuit_mul(in0, t60);
+    let t62 = circuit_add(t61, in21);
+    let t63 = circuit_add(t59, t59);
+    let t64 = circuit_inverse(t63);
+    let t65 = circuit_mul(t62, t64);
+    let t66 = circuit_mul(t65, t65);
+    let t67 = circuit_sub(t66, t56);
+    let t68 = circuit_sub(t67, t56);
+    let t69 = circuit_sub(t56, t68);
+    let t70 = circuit_mul(t65, t69);
+    let t71 = circuit_sub(t70, t59);
+    let t72 = circuit_sub(in8, t71);
+    let t73 = circuit_sub(in7, t68);
+    let t74 = circuit_inverse(t73);
+    let t75 = circuit_mul(t72, t74);
+    let t76 = circuit_mul(t75, t75);
+    let t77 = circuit_add(t68, in7);
+    let t78 = circuit_sub(t76, t77);
+    let t79 = circuit_add(t71, t71);
+    let t80 = circuit_sub(t78, t68);
+    let t81 = circuit_inverse(t80);
+    let t82 = circuit_mul(t79, t81);
+    let t83 = circuit_add(t75, t82);
+    let t84 = circuit_mul(t83, t83);
+    let t85 = circuit_add(t68, t78);
+    let t86 = circuit_sub(t84, t85);
+    let t87 = circuit_sub(t86, t68);
+    let t88 = circuit_mul(t83, t87);
+    let t89 = circuit_sub(t88, t71);
+    let t90 = circuit_mul(t86, t86);
+    let t91 = circuit_mul(in0, t90);
+    let t92 = circuit_add(t91, in21);
+    let t93 = circuit_add(t89, t89);
+    let t94 = circuit_inverse(t93);
+    let t95 = circuit_mul(t92, t94);
+    let t96 = circuit_mul(t95, t95);
+    let t97 = circuit_sub(t96, t86);
+    let t98 = circuit_sub(t97, t86);
+    let t99 = circuit_sub(t86, t98);
+    let t100 = circuit_mul(t95, t99);
+    let t101 = circuit_sub(t100, t89);
+    let t102 = circuit_sub(in10, t101);
+    let t103 = circuit_sub(in9, t98);
+    let t104 = circuit_inverse(t103);
+    let t105 = circuit_mul(t102, t104);
+    let t106 = circuit_mul(t105, t105);
+    let t107 = circuit_add(t98, in9);
+    let t108 = circuit_sub(t106, t107);
+    let t109 = circuit_add(t101, t101);
+    let t110 = circuit_sub(t108, t98);
+    let t111 = circuit_inverse(t110);
+    let t112 = circuit_mul(t109, t111);
+    let t113 = circuit_add(t105, t112);
+    let t114 = circuit_mul(t113, t113);
+    let t115 = circuit_add(t98, t108);
+    let t116 = circuit_sub(t114, t115);
+    let t117 = circuit_sub(t116, t98);
+    let t118 = circuit_mul(t113, t117);
+    let t119 = circuit_sub(t118, t101);
+    let t120 = circuit_mul(t116, t116);
+    let t121 = circuit_mul(in0, t120);
+    let t122 = circuit_add(t121, in21);
+    let t123 = circuit_add(t119, t119);
+    let t124 = circuit_inverse(t123);
+    let t125 = circuit_mul(t122, t124);
+    let t126 = circuit_mul(t125, t125);
+    let t127 = circuit_sub(t126, t116);
+    let t128 = circuit_sub(t127, t116);
+    let t129 = circuit_sub(t116, t128);
+    let t130 = circuit_mul(t125, t129);
+    let t131 = circuit_sub(t130, t119);
+    let t132 = circuit_sub(in12, t131);
+    let t133 = circuit_sub(in11, t128);
+    let t134 = circuit_inverse(t133);
+    let t135 = circuit_mul(t132, t134);
+    let t136 = circuit_mul(t135, t135);
+    let t137 = circuit_add(t128, in11);
+    let t138 = circuit_sub(t136, t137);
+    let t139 = circuit_add(t131, t131);
+    let t140 = circuit_sub(t138, t128);
+    let t141 = circuit_inverse(t140);
+    let t142 = circuit_mul(t139, t141);
+    let t143 = circuit_add(t135, t142);
+    let t144 = circuit_mul(t143, t143);
+    let t145 = circuit_add(t128, t138);
+    let t146 = circuit_sub(t144, t145);
+    let t147 = circuit_sub(t146, t128);
+    let t148 = circuit_mul(t143, t147);
+    let t149 = circuit_sub(t148, t131);
+    let t150 = circuit_mul(t146, t146);
+    let t151 = circuit_mul(in0, t150);
+    let t152 = circuit_add(t151, in21);
+    let t153 = circuit_add(t149, t149);
+    let t154 = circuit_inverse(t153);
+    let t155 = circuit_mul(t152, t154);
+    let t156 = circuit_mul(t155, t155);
+    let t157 = circuit_sub(t156, t146);
+    let t158 = circuit_sub(t157, t146);
+    let t159 = circuit_sub(t146, t158);
+    let t160 = circuit_mul(t155, t159);
+    let t161 = circuit_sub(t160, t149);
+    let t162 = circuit_sub(in14, t161);
+    let t163 = circuit_sub(in13, t158);
+    let t164 = circuit_inverse(t163);
+    let t165 = circuit_mul(t162, t164);
+    let t166 = circuit_mul(t165, t165);
+    let t167 = circuit_add(t158, in13);
+    let t168 = circuit_sub(t166, t167);
+    let t169 = circuit_add(t161, t161);
+    let t170 = circuit_sub(t168, t158);
+    let t171 = circuit_inverse(t170);
+    let t172 = circuit_mul(t169, t171);
+    let t173 = circuit_add(t165, t172);
+    let t174 = circuit_mul(t173, t173);
+    let t175 = circuit_add(t158, t168);
+    let t176 = circuit_sub(t174, t175);
+    let t177 = circuit_sub(t176, t158);
+    let t178 = circuit_mul(t173, t177);
+    let t179 = circuit_sub(t178, t161);
+    let t180 = circuit_mul(t176, t176);
+    let t181 = circuit_mul(in0, t180);
+    let t182 = circuit_add(t181, in21);
+    let t183 = circuit_add(t179, t179);
+    let t184 = circuit_inverse(t183);
+    let t185 = circuit_mul(t182, t184);
+    let t186 = circuit_mul(t185, t185);
+    let t187 = circuit_sub(t186, t176);
+    let t188 = circuit_sub(t187, t176);
+    let t189 = circuit_sub(t176, t188);
+    let t190 = circuit_mul(t185, t189);
+    let t191 = circuit_sub(t190, t179);
+    let t192 = circuit_sub(in16, t191);
+    let t193 = circuit_sub(in15, t188);
+    let t194 = circuit_inverse(t193);
+    let t195 = circuit_mul(t192, t194);
+    let t196 = circuit_mul(t195, t195);
+    let t197 = circuit_add(t188, in15);
+    let t198 = circuit_sub(t196, t197);
+    let t199 = circuit_add(t191, t191);
+    let t200 = circuit_sub(t198, t188);
+    let t201 = circuit_inverse(t200);
+    let t202 = circuit_mul(t199, t201);
+    let t203 = circuit_add(t195, t202);
+    let t204 = circuit_mul(t203, t203);
+    let t205 = circuit_add(t188, t198);
+    let t206 = circuit_sub(t204, t205);
+    let t207 = circuit_sub(t206, t188);
+    let t208 = circuit_mul(t203, t207);
+    let t209 = circuit_sub(t208, t191);
+    let t210 = circuit_mul(t206, t206);
+    let t211 = circuit_mul(in0, t210);
+    let t212 = circuit_add(t211, in21);
+    let t213 = circuit_add(t209, t209);
+    let t214 = circuit_inverse(t213);
+    let t215 = circuit_mul(t212, t214);
+    let t216 = circuit_mul(t215, t215);
+    let t217 = circuit_sub(t216, t206);
+    let t218 = circuit_sub(t217, t206);
+    let t219 = circuit_sub(t206, t218);
+    let t220 = circuit_mul(t215, t219);
+    let t221 = circuit_sub(t220, t209);
+    let t222 = circuit_sub(in18, t221);
+    let t223 = circuit_sub(in17, t218);
+    let t224 = circuit_inverse(t223);
+    let t225 = circuit_mul(t222, t224);
+    let t226 = circuit_mul(t225, t225);
+    let t227 = circuit_add(t218, in17);
+    let t228 = circuit_sub(t226, t227);
+    let t229 = circuit_add(t221, t221);
+    let t230 = circuit_sub(t228, t218);
+    let t231 = circuit_inverse(t230);
+    let t232 = circuit_mul(t229, t231);
+    let t233 = circuit_add(t225, t232);
+    let t234 = circuit_mul(t233, t233);
+    let t235 = circuit_add(t218, t228);
+    let t236 = circuit_sub(t234, t235);
+    let t237 = circuit_sub(t236, t218);
+    let t238 = circuit_mul(t233, t237);
+    let t239 = circuit_sub(t238, t221);
+    let t240 = circuit_mul(t236, t236);
+    let t241 = circuit_mul(in0, t240);
+    let t242 = circuit_add(t241, in21);
+    let t243 = circuit_add(t239, t239);
+    let t244 = circuit_inverse(t243);
+    let t245 = circuit_mul(t242, t244);
+    let t246 = circuit_mul(t245, t245);
+    let t247 = circuit_sub(t246, t236);
+    let t248 = circuit_sub(t247, t236);
+    let t249 = circuit_sub(t236, t248);
+    let t250 = circuit_mul(t245, t249);
+    let t251 = circuit_sub(t250, t239);
+    let t252 = circuit_sub(in20, t251);
+    let t253 = circuit_sub(in19, t248);
+    let t254 = circuit_inverse(t253);
+    let t255 = circuit_mul(t252, t254);
+    let t256 = circuit_mul(t255, t255);
+    let t257 = circuit_add(t248, in19);
+    let t258 = circuit_sub(t256, t257);
+    let t259 = circuit_add(t251, t251);
+    let t260 = circuit_sub(t258, t248);
+    let t261 = circuit_inverse(t260);
+    let t262 = circuit_mul(t259, t261);
+    let t263 = circuit_add(t255, t262);
+    let t264 = circuit_mul(t263, t263);
+    let t265 = circuit_add(t248, t258);
+    let t266 = circuit_sub(t264, t265);
+    let t267 = circuit_sub(t266, t248);
+    let t268 = circuit_mul(t263, t267);
+    let t269 = circuit_sub(t268, t251);
+
+    let modulus = modulus;
+
+    let mut circuit_inputs = (t266, t269).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(P.x); // in1
+    circuit_inputs = circuit_inputs.next_2(P.y); // in2
+    circuit_inputs = circuit_inputs.next_2(Q_1.x); // in3
+    circuit_inputs = circuit_inputs.next_2(Q_1.y); // in4
+    circuit_inputs = circuit_inputs.next_2(Q_2.x); // in5
+    circuit_inputs = circuit_inputs.next_2(Q_2.y); // in6
+    circuit_inputs = circuit_inputs.next_2(Q_3.x); // in7
+    circuit_inputs = circuit_inputs.next_2(Q_3.y); // in8
+    circuit_inputs = circuit_inputs.next_2(Q_4.x); // in9
+    circuit_inputs = circuit_inputs.next_2(Q_4.y); // in10
+    circuit_inputs = circuit_inputs.next_2(Q_5.x); // in11
+    circuit_inputs = circuit_inputs.next_2(Q_5.y); // in12
+    circuit_inputs = circuit_inputs.next_2(Q_6.x); // in13
+    circuit_inputs = circuit_inputs.next_2(Q_6.y); // in14
+    circuit_inputs = circuit_inputs.next_2(Q_7.x); // in15
+    circuit_inputs = circuit_inputs.next_2(Q_7.y); // in16
+    circuit_inputs = circuit_inputs.next_2(Q_8.x); // in17
+    circuit_inputs = circuit_inputs.next_2(Q_8.y); // in18
+    circuit_inputs = circuit_inputs.next_2(Q_9.x); // in19
+    circuit_inputs = circuit_inputs.next_2(Q_9.y); // in20
+    circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in21
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let R: G1Point = G1Point { x: outputs.get_output(t266), y: outputs.get_output(t269) };
+    return (R,);
 }

@@ -994,6 +994,7 @@ class PrepareFakeGLVPtsCircuit(BaseModuloCircuit):
             T15y,
             T16y,
             R2,
+            R0y,
         ) = circuit.prepare_points_fake_glv(P, Q, s2_sign, A_weirstrass)
         # circuit.exact_output_refs_needed = [B2[0], B3[0], B4[0], B5[0], B6[0], B7[0], B8[0], B10y, B11y, B12y, B13y, B14y, B15y, B16y, Acc[0], Acc[1]]
         circuit.extend_struct_output(G1PointCircuit("T1", [T1[0], T1[1]]))
@@ -1013,6 +1014,53 @@ class PrepareFakeGLVPtsCircuit(BaseModuloCircuit):
         circuit.extend_struct_output(u384("T15y", [T15y]))
         circuit.extend_struct_output(u384("T16y", [T16y]))
         circuit.extend_struct_output(G1PointCircuit("R2", [R2[0], R2[1]]))
+        circuit.extend_struct_output(u384("R0y", [R0y]))
+        return circuit
+
+
+class QuadrupleAndAdd9Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="quadruple_and_add_9",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # Py
+        for _ in range(9):
+            input.append(self.field.random())  # Qx
+            input.append(self.field.random())  # Qy
+        input.append(self.field.random())  # A_weirstrass
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        P = circuit.write_struct(
+            G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
+        )
+        Qs = []
+        for i in range(2, len(input) - 1, 2):
+            Qs.append(
+                circuit.write_struct(
+                    G1PointCircuit(f"Q_{i//2}", [input[i], input[i + 1]]),
+                    WriteOps.INPUT,
+                )
+            )
+
+        A_weirstrass = circuit.write_struct(
+            u384("A_weirstrass", [input[len(input) - 1]]), WriteOps.INPUT
+        )
+
+        Rx, Ry = circuit.n_quadruple_and_add(P, Qs, A_weirstrass)
+        circuit.extend_struct_output(G1PointCircuit("R", [Rx, Ry]))
         return circuit
 
 

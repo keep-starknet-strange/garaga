@@ -722,6 +722,51 @@ class BasicEC(ModuloCircuit):
             Q = self.double_point_a_eq_0(Q)
         return Q
 
+    def n_quadruple_and_add(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        adds: list[tuple[ModuloCircuitElement, ModuloCircuitElement]],
+        A_weirstrass: ModuloCircuitElement,
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Quadruple a point n times and add it to the point."""
+        Q = P
+        for add in adds:
+            Q = self.double_point(Q, A_weirstrass)
+            Q = self.double_and_add(Q, add)
+        return Q
+
+    def double_and_add(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        add: tuple[ModuloCircuitElement, ModuloCircuitElement],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point and add it to the point."""
+        Px, Py = P
+        Qx, Qy = add
+        # compute λ1 = (q.y-p.y)/(q.x-p.x)
+        yqyp = self.sub(Qy, Py)
+        xqxp = self.sub(Qx, Px)
+        λ1 = self.div(yqyp, xqxp)
+
+        # compute x2 = λ1²-p.x-q.x
+        x2 = self.sub(self.square(λ1), self.add(Px, Qx))
+
+        # omit y2 computation
+
+        # compute -λ2 = λ1+2*p.y/(x2-p.x)
+        ypyp = self.double(Py)
+        x2xp = self.sub(x2, Px)
+        λ2 = self.div(ypyp, x2xp)
+        λ2 = self.add(λ1, λ2)
+
+        # compute x3 = (-λ2)²-p.x-x2
+        x3 = self.sub(self.square(λ2), self.add(Px, x2))
+
+        # compute y3 = -λ2*(x3 - p.x)-p.y
+        y3 = self.sub(self.mul(λ2, self.sub(x3, Px)), Py)
+
+        return (x3, y3)
+
 
 class BasicECG2(Fp2Circuits):
     def __init__(self, name: str, curve_id: int, compilation_mode: int = 0):
@@ -955,4 +1000,5 @@ class FakeGLVCircuits(BasicEC):
             T15y,
             T16y,
             table_R[2],
+            table_R[0][1],  # R0y
         )
