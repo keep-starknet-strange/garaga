@@ -349,7 +349,7 @@ where
     let s2 = &glv_basis.v1[1];
 
     // Assertions from Python code converted to Rust checks
-    if ((s1 + &scalar_bigint * s2).mod_floor(&curve_n_bigint) != BigInt::from(0)) {
+    if (s1 + &scalar_bigint * s2).mod_floor(&curve_n_bigint) != BigInt::from(0) {
         return Err("Assertion failed: (s1 + scalar * s2) % curve.n != 0".to_string());
     }
     // Check s1 > 0 and s2 != 0
