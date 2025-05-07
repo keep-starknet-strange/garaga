@@ -641,48 +641,96 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     T16 = -T11
 
     # selector_y maps directly to this 16-element list.
-    T_mux_candidates = [
-        T6,
-        T10,
-        T14,
-        T2,
-        T7,
-        T11,
-        T15,
-        T3,
-        T8,
-        T12,
-        T16,
-        T4,
-        T5,
-        T9,
-        T13,
-        T1,
+    T_mux_candidates_original = [
+        "T6",
+        "T10",
+        "T14",
+        "T2",
+        "T7",
+        "T11",
+        "T15",
+        "T3",
+        "T8",
+        "T12",
+        "T16",
+        "T4",
+        "T5",
+        "T9",
+        "T13",
+        "T1",
     ]
+
+    T_mux_candidates_new = [
+        "T6",
+        "T7",
+        "T10",
+        "T11",
+        "T8",
+        "T5",
+        "T12",
+        "T9",
+        "T14",
+        "T15",
+        "T2",
+        "T3",
+        "T16",
+        "T13",
+        "T4",
+        "T1",
+    ]
+
+    # ['T6', 'T7', 'T10', 'T11', 'T8', 'T5', 'T12', 'T9', 'T14', 'T15', 'T2', 'T3', 'T16', 'T13', 'T4', 'T1']
+    T_mux_candidates = [
+        T6,  # 0
+        T7,  # 1
+        T10,  # 2
+        T11,  # 3
+        T8,  # 4
+        T5,  # 5
+        T12,  # 6
+        T9,  # 7
+        T14,  # 8
+        T15,  # 9
+        T2,  # 10
+        T3,  # 11
+        T16,  # 12
+        T13,  # 13
+        T4,  # 14
+        T1,  # 15
+    ]
+
+    for i, pt in enumerate(T_mux_candidates):
+        print(f"{i} {T_mux_candidates_new[i]}: {pt.to_cairo_1(as_hex=False)}")
 
     # === Step 9: Main Verification Loop ===
 
     # Handle first iteration separately if nbits is even.
     assert nbits % 2 == 0 and nbits >= 2
 
-    # Inline the logic of _lookup2_point based on top two bits
+    # Inline the logic of _lookup2_point based on top two bits (MSB)
     b0 = s1_bits[nbits - 1]
     b1 = s2_bits[nbits - 1]
-    if not b0 and not b1:
+    print(f"b0: {b0}, b1: {b1}")
+    if not b0 and not b1:  # 00
         _T_current = T5
-    elif b0 and not b1:
+    elif b0 and not b1:  # 10
         _T_current = T12
-    elif not b0 and b1:
+    elif not b0 and b1:  # 01
         _T_current = T15
-    else:  # b0 and b1:
+    else:  # b0 and b1: # 11
         _T_current = T2
 
+    # assert _T_current == T12, f"_T_current: {_T_current.to_cairo_1(as_hex=False)} != T2: {T2.to_cairo_1(as_hex=False)}"
     # Acc = 2*Acc + _T_current
+    print(f"Acc before first iteration: {Acc.to_cairo_1(as_hex=False)}")
+    print(f"_T_current: {_T_current.to_cairo_1(as_hex=False)}")
     Acc = Acc.add(Acc)  # Double Acc
     Acc = Acc.add(_T_current)
+    print(f"Acc before loop: {Acc.to_cairo_1(as_hex=False)}")
     _loop_start_idx = nbits - 2  # Start main loop from next lower index pair
 
     # Main loop: process bits in pairs using merged additions (4*Acc + T)
+    iteration = 1
     for i in range(_loop_start_idx, 2, -2):  # Process indices i and i-1
         # selector_y (0-15) encodes the 4 bits: (s1[i], s2[i], s1[i-1], s2[i-1])
         selector_y = (
@@ -692,6 +740,20 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
             + (s2_bits[i - 1] << 3)
         )
 
+        selector_old = T_mux_candidates_original[selector_y]
+
+        selector_y = (
+            s1_bits[i - 1] + 2 * s1_bits[i] + 4 * (s2_bits[i - 1] + 2 * s2_bits[i])
+        )
+
+        print(f"selector_{iteration-1}: {selector_y}")
+
+        selector_new = T_mux_candidates_new[selector_y]
+
+        assert (
+            selector_old == selector_new
+        ), f"selector_old: {selector_old} != selector_new: {selector_new}"
+
         # Select the appropriate T point based on the 4 bits using the selectors
         _T_current = T_mux_candidates[selector_y]
 
@@ -699,6 +761,10 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
         Acc = Acc.add(Acc)  # Double Acc
         Acc = Acc.add(Acc)  # Double Acc again
         Acc = Acc.add(_T_current)
+        print(f"i: {i}")
+        if iteration % 9 == 0:
+            print(f"Acc after iteration {iteration//9}: {Acc.to_cairo_1(as_hex=False)}")
+        iteration += 1
 
     # === Step 10: Last Merged Iteration ===
     # Handles bits 2 and 1, with a final adjustment.
@@ -706,17 +772,19 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
         selector_y = (
             s1_bits[2] + (s2_bits[2] << 1) + (s1_bits[1] << 2) + (s2_bits[1] << 3)
         )
+        selector_y = s1_bits[1] + 2 * s1_bits[2] + 4 * (s2_bits[1] + 2 * s2_bits[2])
 
         _T_current = T_mux_candidates[selector_y]
 
         # Add the final adjustment term from table_R
         _T_current = _T_current.add(table_R_verify[2])
-
+        print(f"last_selector_pt_corrected: {_T_current.to_cairo_1(as_hex=False)}")
         # Acc = 4*Acc + _T_current_adjusted
         Acc = Acc.add(Acc)  # Double Acc
         Acc = Acc.add(Acc)  # Double Acc again
         Acc = Acc.add(_T_current)
 
+    print(f"Acc after loop: {Acc.to_cairo_1(as_hex=False)}")
     # === Step 11: Final Additions Based on Bit 0 ===
     # Adjust Acc based on the least significant bits s1[0] and s2[0].
     if nbits >= 1:
@@ -729,6 +797,8 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # The final accumulator value should equal table_R_verify[2] (which is [3]R_signed_verify).
     AccToAssert = Acc
 
+    print(f"AccToAssert: {AccToAssert.to_cairo_1(as_hex=False)}")
+    print(f"R[2]: {table_R_verify[2].to_cairo_1(as_hex=False)}")
     assert (
         AccToAssert == table_R_verify[2]
     ), f"Verification failed: {AccToAssert} != {table_R_verify[2]}. Scalar: {scalar}, Point Inf: {point.is_infinity()}"
@@ -739,28 +809,96 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
 
 if __name__ == "__main__":
-    import random
+    pass
 
-    random.seed(0)
-    s = 111793196543967404139194827996419963236210979610743141064269745943111491389390
-    print(f"scalar: {s}")
+    pt = G1Point(
+        x=41688611208562472964299242833
+        + 2**96 * 17729154263670546193656586433
+        + 2 ** (96 * 2) * 573097972700812243,
+        y=17058526127824350916476358273
+        + 2**96 * 14653894641525928814918228506
+        + 2 ** (96 * 2) * 711563577730354681,
+        curve_id=CurveID.GRUMPKIN,
+    )
+    scalar = (
+        77864287393115290533831713130
+        + 2**96 * 47687594959966383440346360609
+        + 2 ** (96 * 2) * 677739838819293451
+    )
 
-    g = G1Point.get_nG(CurveID.SECP256K1, 1)
-    res = scalar_mul_glv_and_fake_glv(g, s)
+    _res = scalar_mul_fake_glv(pt, scalar)
+    # random.seed(0)
+    # s = 111793196543967404139194827996419963236210979610743141064269745943111491389390
+    # print(f"scalar: {s}")
 
-    # print(g.to_cairo_1())
-    # print(res.to_cairo_1())
+    # g = G1Point.get_nG(CurveID.SECP256K1, 1)
+    # res = scalar_mul_glv_and_fake_glv(g, s)
 
-    from garaga.definitions import *
+    # # print(g.to_cairo_1())
+    # # print(res.to_cairo_1())
 
-    for curve_id in CURVES:
-        curve: WeierstrassCurve = CURVES[curve_id]
-        if curve.is_endomorphism_available():
-            nbits = curve.n.bit_length() // 4 + 9
-            used_nbits = 73
-            assert (
-                used_nbits >= nbits
-            ), f"Curve {curve_id} has {nbits} bits, but used {used_nbits} bits"
-            print(
-                f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (used_nbits -1)).to_cairo_1()}"
-            )
+    # from garaga.definitions import *
+
+    # for curve_id in CURVES:
+    #     curve: WeierstrassCurve = CURVES[curve_id]
+    #     if curve.is_endomorphism_available():
+    #         nbits = curve.n.bit_length() // 4 + 9
+    #         used_nbits = 73
+    #         assert (
+    #             used_nbits >= nbits
+    #         ), f"Curve {curve_id} has {nbits} bits, but used {used_nbits} bits"
+    #         print(
+    #             f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (used_nbits -1)).to_cairo_1()}"
+    #         )
+
+    # T_mux_candidates = [
+    #     "T6",
+    #     "T10",
+    #     "T14",
+    #     "T2",
+    #     "T7",
+    #     "T11",
+    #     "T15",
+    #     "T3",
+    #     "T8",
+    #     "T12",
+    #     "T16",
+    #     "T4",
+    #     "T5",
+    #     "T9",
+    #     "T13",
+    #     "T1",
+    # ]
+    # set_original = []
+    # set_new = []
+    # map_original = {
+    #     (u, u_min_1, v, v_min_1): ""
+    #     for u in [0, 1]
+    #     for u_min_1 in [0, 1]
+    #     for v in [0, 1]
+    #     for v_min_1 in [0, 1]
+    # }
+    # new_T_mux_candidates = [None] * 16
+    # for bit_u in [0, 1]:
+    #     for bit_u_min_1 in [0, 1]:
+    #         for bit_v in [0, 1]:
+    #             for bit_v_min_1 in [0, 1]:
+    #                 selector_y = bit_u + 2 * bit_v + 4 * bit_u_min_1 + 8 * bit_v_min_1
+    #                 set_original.append(selector_y)
+    #                 wanted = T_mux_candidates[selector_y]
+    #                 map_original[(bit_u, bit_u_min_1, bit_v, bit_v_min_1)] = wanted
+
+    #                 needed_bit = bit_u_min_1 + 2*bit_u + 4 * (bit_v_min_1 + 2 * bit_v)
+    #                 new_T_mux_candidates[needed_bit] = wanted
+    #                 set_new.append(needed_bit)
+    #                 print(
+    #                     f"{bit_u}, {bit_u_min_1}, {bit_v}, {bit_v_min_1} -> {selector_y} || {needed_bit} -> {wanted}"
+    #                 )
+    # print(f"set_original: {sorted(set_original)}")
+    # print(f"set_new: {sorted(set_new)}")
+    # assert sorted(set_original) == sorted(
+    #     set_new
+    # ), "set_original and set_new are not equal"
+
+    # print(T_mux_candidates)
+    # print(new_T_mux_candidates)

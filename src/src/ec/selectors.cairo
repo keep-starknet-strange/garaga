@@ -33,7 +33,7 @@ impl DivRemU128By2 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<TWO>> 
 
 impl DivRemU128By4 of DivRemHelper<BoundedInt<0, { POW128 - 1 }>, UnitInt<FOUR>> {
     type DivT = BoundedInt<0, { POW128_DIV_4 }>;
-    type RemT = u1_bi;
+    type RemT = u3_bi;
 }
 
 impl MulHelperBitBy2Impl of MulHelper<u1_bi, UnitInt<TWO>> {
@@ -299,6 +299,8 @@ pub fn build_selectors_inlined_fake_glv(_s1: u128, _s2: u128) -> (Span<usize>, u
     // Inlined loop (63 2-bit iterations for 128 bits)
     let (s1, s2, selector_0) = _extract_and_calculate_selector_bit_inlined_fake_glv(s1, s2);
     selectors.append(upcast(selector_0));
+    // Correction for the last bits 2-1.
+    selectors.append(16);
     let (s1, s2, selector_1) = _extract_and_calculate_selector_bit_inlined_fake_glv(s1, s2);
     selectors.append(upcast(selector_1));
     let (s1, s2, selector_2) = _extract_and_calculate_selector_bit_inlined_fake_glv(s1, s2);
@@ -426,19 +428,19 @@ pub fn build_selectors_inlined_fake_glv(_s1: u128, _s2: u128) -> (Span<usize>, u
     // At this point s1, and s2 are the MSB (last bit).
     if s1 != 0 {
         if s2 != 0 {
-            // 11 T2 index : 5
-            selectors.append(5);
+            // 11 T2 index : 10
+            selectors.append(10);
         } else {
-            // 10 T12 index : 9
-            selectors.append(9);
+            // 10 T12 index : 6
+            selectors.append(6);
         }
     } else {
         if s2 != 0 {
-            // 01 T15 index : 6
-            selectors.append(6);
+            // 01 T15 index : 9
+            selectors.append(9);
         } else {
-            // 00 T5 index : 10
-            selectors.append(10);
+            // 00 T5 index : 5
+            selectors.append(5);
         }
     }
     return (selectors.span(), upcast(s1lsb), upcast(s2lsb));

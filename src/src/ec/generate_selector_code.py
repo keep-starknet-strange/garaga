@@ -229,25 +229,31 @@ def generate_build_selectors_inlined_fake_glv(n_bits: int = 128) -> str:
                 f"    selectors.append(upcast(selector_{i}));",
             ]
         )
-
+        if i == 0:
+            code.extend(
+                [
+                    "    // Correction for the last bits 2-1.",
+                    "    selectors.append(16);",
+                ]
+            )
     code.extend(
         [
             "// At this point s1, and s2 are the MSB (last bit).",
             "   if s1 != 0 {",
             "    if s2 != 0 {",
-            "        // 11 T2 index : 5",
-            "        selectors.append(5);",
+            "        // 11 T2 index : 10",
+            "        selectors.append(10);",
             "    } else {",
-            "        // 10 T12 index : 9",
-            "        selectors.append(9);",
+            "        // 10 T12 index : 6",
+            "        selectors.append(6);",
             "    }",
             "   } else {",
             "    if s2 != 0 {",
-            "        // 01 T15 index : 6",
-            "        selectors.append(6);",
+            "        // 01 T15 index : 9",
+            "        selectors.append(9);",
             "    } else {",
-            "        // 00 T5 index : 10",
-            "        selectors.append(10);",
+            "        // 00 T5 index : 5",
+            "        selectors.append(5);",
             "    }",
             "   }",
             "    return (selectors.span(), upcast(s1lsb), upcast(s2lsb));",
