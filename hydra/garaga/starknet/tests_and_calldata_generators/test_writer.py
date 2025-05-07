@@ -55,13 +55,19 @@ def generate_msm_test(curve_id, n_points, seed):
 
 def generate_msm_test_edge_cases(curve_id, n_points, seed):
     random.seed(seed)
-    builder = MSMCalldataBuilder(
-        curve_id=curve_id,
-        points=[G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
-        + [G1Point.infinity(curve_id)],
-        scalars=[0]
-        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)],
+    points = (
+        [G1Point.gen_random_point(curve_id) for _ in range(n_points - 1)]
+        + [G1Point.infinity(curve_id)]
+        + [G1Point.get_nG(curve_id, 1)]
     )
+    scalars = (
+        [0]
+        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)]
+        + [CURVES[curve_id.value].n - 1]
+    )
+
+    builder = MSMCalldataBuilder(curve_id=curve_id, points=points, scalars=scalars)
+
     return builder.to_cairo_1_test(
         test_name=f"test_msm_{curve_id.name}_{n_points}P_edge_case"
     )
@@ -130,12 +136,11 @@ fn test_tower_final_exp_{curve_id.name}() {{
 def generate_schnorr_test(curve_id, seed):
     random.seed(seed)
     schnorr_sig: SchnorrSignature = SchnorrSignature.sample(curve_id)
-    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_schnorr_{curve_id.name}() {{
     let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
-    let sch_with_hints = Serde::<SchnorrSignatureWithHint<{T}>>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
+    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_schnorr_signature(sch_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -146,12 +151,11 @@ fn test_schnorr_{curve_id.name}() {{
 def generate_ecdsa_test(curve_id, seed):
     random.seed(seed)
     ecdsa_sig: ECDSASignature = ECDSASignature.sample(curve_id)
-    T = "u384" if curve_id == CurveID.BLS12_381 else "u288"
     code = f"""
 #[test]
 fn test_ecdsa_{curve_id.name}() {{
     let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
-    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint<{T}>>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
+    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
     let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, {curve_id.value});
     assert!(is_valid);
 }}
@@ -242,7 +246,7 @@ def get_pairing_config():
 def get_msm_config():
     """Configuration for MSM tests"""
     header = """
-        use garaga::ec_ops::{G1Point, FunctionFelt, u384, u288, msm_g1, MSMHint, DerivePointFromXHint};
+        use garaga::ec_ops::{G1Point, u384, u288, msm_g1};
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 

@@ -514,6 +514,13 @@ pub fn get_honk_calldata(
         .map_err(|e| format!("Field error: {:?}", e))?,
     );
 
+    let mut scalars_msm = scalars;
+    // Swap last two scalars
+    let len = scalars_msm.len();
+    if len >= 2 {
+        scalars_msm.swap(len - 1, len - 2);
+    }
+
     let proof_data = {
         let mut call_data = vec![];
         let call_data_ref = &mut call_data;
@@ -626,28 +633,25 @@ pub fn get_honk_calldata(
     ];
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
-    points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
+    points.push(G1Point::generator());
 
     let two = FieldElement::<Stark252PrimeField>::one().double();
 
     let mut state = [vk.vk_hash, transcript_state, two];
     PoseidonCairoStark252::hades_permutation(&mut state);
-    let [external_s0, external_s1, _] = state;
+    // let [external_s0, external_s1, _] = state;
 
     let msm_data = msm_calldata::calldata_builder(
         &points,
-        &scalars,
+        &scalars_msm,
         CurveID::BN254 as usize,
-        None,
         false,
-        false,
-        false,
-        Some((external_s0, external_s1)),
         true,
+        false,
     );
 
-    let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
+    let p_0 = G1Point::msm(&points, &scalars_msm).add(&shplonk_q);
     let p_1 = kzg_quotient.neg();
     let g2_point_kzg_1 = G2Point::generator();
     let g2_point_kzg_2 = G2Point::new(
@@ -1122,8 +1126,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            112, 251, 38, 124, 218, 76, 193, 224, 3, 93, 19, 10, 6, 229, 182, 146, 221, 69, 56,
-            120, 118, 250, 138, 155, 23, 12, 9, 131, 20, 125, 149, 19,
+            159, 65, 225, 217, 164, 113, 232, 1, 208, 29, 158, 211, 38, 54, 111, 135, 245, 61, 41,
+            15, 60, 55, 121, 187, 37, 101, 146, 247, 232, 13, 234, 175,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1140,8 +1144,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            199, 44, 248, 82, 0, 83, 20, 73, 184, 209, 210, 39, 18, 173, 2, 190, 98, 206, 206, 139,
-            96, 160, 126, 121, 158, 7, 6, 0, 224, 20, 152, 30,
+            52, 126, 225, 149, 123, 155, 19, 21, 144, 159, 44, 67, 236, 55, 212, 82, 231, 73, 76,
+            163, 25, 33, 153, 59, 126, 8, 39, 254, 185, 95, 51, 3,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

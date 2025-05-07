@@ -44,6 +44,7 @@ pub struct Curve {
     pub b: u384, // Weierstrass b parameter in eqn: y^2 = x^3 + ax + b
     pub g: u384, // Generator of Fp. (Used to verify square roots)
     pub min_one: u384, // (-1) % p
+    pub min_one_order: u384, // (-1) % n
     pub G: G1Point // Generator of the curve
 }
 
@@ -61,6 +62,12 @@ pub fn get_p(curve_index: usize) -> u384 {
     }
 }
 
+pub fn has_endomorphism_available(curve_index: usize) -> bool {
+    match curve_index {
+        0 | 1 | 2 => true,
+        _ => false,
+    }
+}
 // Returns the Weierstrass 'a' parameter for a given curve index
 pub fn get_a(curve_index: usize) -> u384 {
     match curve_index {
@@ -157,6 +164,20 @@ pub fn get_min_one(curve_index: usize) -> u384 {
     }
 }
 
+// Returns (-1) % n for a given curve index
+pub fn get_min_one_order(curve_index: usize) -> u384 {
+    match curve_index {
+        0 => BN254.min_one_order,
+        1 => BLS12_381.min_one_order,
+        2 => SECP256K1.min_one_order,
+        3 => SECP256R1.min_one_order,
+        4 => ED25519.min_one_order,
+        5 => GRUMPKIN.min_one_order,
+        _ => core::panic_with_felt252('Invalid curve index'),
+    }
+}
+
+
 pub fn get_modulus(curve_index: usize) -> CircuitModulus {
     match curve_index {
         0 => get_BN254_modulus(),
@@ -192,6 +213,110 @@ pub fn get_G(curve_index: usize) -> G1Point {
         4 => ED25519.G,
         5 => GRUMPKIN.G,
         _ => G1PointZero::zero(),
+    }
+}
+
+pub fn get_eigenvalue(curve_index: usize) -> u384 {
+    match curve_index {
+        0 => u384 {
+            limb0: 0x8d8daaa78b17ea66b99c90dd,
+            limb1: 0xb3c4d79d41a917585bfc4108,
+            limb2: 0x0,
+            limb3: 0x0,
+        },
+        1 => u384 { limb0: 0x1a40200000000ffffffff, limb1: 0xac45a401, limb2: 0x0, limb3: 0x0 },
+        2 => u384 {
+            limb0: 0x20816678df02967c1b23bd72,
+            limb1: 0xa5261c028812645a122e22ea,
+            limb2: 0x5363ad4cc05c30e0,
+            limb3: 0x0,
+        },
+        _ => core::panic_with_felt252('Invalid curve index'),
+    }
+}
+
+// from garaga.defintions import *
+// def print_nbits_and_nG_glv_fake_glv():
+// for curve_id in CURVES:
+//     curve: WeierstrassCurve = CURVES[curve_id]
+//     if curve.is_endomorphism_available():
+//         nbits = curve.n.bit_length() // 4 + 9
+//         print(f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits -
+//         1)).to_cairo_1()}")
+// returns :
+// bool: true if nbits = (curve.n.bit_length() // 4 + 9) == 73, false if nbits =
+// (curve.n.bit_length() // 4 + 9) == 72 G1Point: 2^(nbits-1)*G (generator of the curve)
+// Panics if curve does not have efficient endomorphism
+pub fn get_nG_glv_fake_glv(curve_index: usize) -> G1Point {
+    match curve_index {
+        0 => G1Point {
+            x: u384 {
+                limb0: 0x804f4c2700adf08a0214e529,
+                limb1: 0xa68b293da254e1b0049b5825,
+                limb2: 0x2715e750e68b52fa,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x15c090b1de77447950003fc9,
+                limb1: 0xfb5afe510e7c4e23f41e4bad,
+                limb2: 0x3921d1862445f32,
+                limb3: 0x0,
+            },
+        },
+        1 => G1Point {
+            x: u384 {
+                limb0: 0xcf4357bd59d6560f96d34480,
+                limb1: 0x1c2b3f4bb7a8579e7473612d,
+                limb2: 0x44f04a3ee426074a0864fc6e,
+                limb3: 0x60aa1307100d28a9c44cc51,
+            },
+            y: u384 {
+                limb0: 0x365913fecd5eb4667fe5e1ea,
+                limb1: 0xa456de882c324863cdfcf5b5,
+                limb2: 0xbaaa2be88ae9a807b36465b8,
+                limb3: 0x31152c621ab7ca0e5a2ab1c,
+            },
+        },
+        2 => G1Point {
+            x: u384 {
+                limb0: 0xf668832ffd959af60c82a0a,
+                limb1: 0x6b06c9f1919413b10f9226c6,
+                limb2: 0x948bf809b1988a4,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xc97cd2bed4cb7f88d8c8e589,
+                limb1: 0xdc6b74c5d1c3418c6d4dff08,
+                limb2: 0x53a562856dcb6646,
+                limb3: 0x0,
+            },
+        },
+        _ => core::panic_with_felt252('Invalid curve index'),
+    }
+}
+
+
+pub fn get_third_root_of_unity(curve_index: usize) -> u384 {
+    match curve_index {
+        0 => u384 {
+            limb0: 0xacdb5c4f5763473177fffffe,
+            limb1: 0x59e26bcea0d48bacd4f263f1,
+            limb2: 0x0,
+            limb3: 0x0,
+        },
+        1 => u384 {
+            limb0: 0x4f49fffd8bfd00000000aaac,
+            limb1: 0x897d29650fb85f9b409427eb,
+            limb2: 0x63d4de85aa0d857d89759ad4,
+            limb3: 0x1a0111ea397fe699ec024086,
+        },
+        2 => u384 {
+            limb0: 0x12f58995c1396c28719501ee,
+            limb1: 0x6e64479eac3434e99cf04975,
+            limb2: 0x7ae96a2b657c0710,
+            limb3: 0x0,
+        },
+        _ => core::panic_with_felt252('Invalid curve index'),
     }
 }
 
@@ -337,6 +462,12 @@ pub const BN254: Curve = Curve {
         limb2: 0x30644e72e131a029,
         limb3: 0x0,
     },
+    min_one_order: u384 {
+        limb0: 0x79b9709143e1f593f0000000,
+        limb1: 0xb85045b68181585d2833e848,
+        limb2: 0x30644e72e131a029,
+        limb3: 0x0,
+    },
     G: G1Point {
         x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
         y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -359,6 +490,12 @@ pub const BLS12_381: Curve = Curve {
         limb1: 0x6730d2a0f6b0f6241eabfffe,
         limb2: 0x434bacd764774b84f38512bf,
         limb3: 0x1a0111ea397fe69a4b1ba7b6,
+    },
+    min_one_order: u384 {
+        limb0: 0xfffe5bfeffffffff00000000,
+        limb1: 0x3339d80809a1d80553bda402,
+        limb2: 0x73eda753299d7d48,
+        limb3: 0x0,
     },
     G: G1Point {
         x: u384 {
@@ -390,6 +527,12 @@ pub const SECP256K1: Curve = Curve {
     min_one: u384 {
         limb0: 0xfffffffffffffffefffffc2e,
         limb1: 0xffffffffffffffffffffffff,
+        limb2: 0xffffffffffffffff,
+        limb3: 0x0,
+    },
+    min_one_order: u384 {
+        limb0: 0xaf48a03bbfd25e8cd0364140,
+        limb1: 0xfffffffffffffffebaaedce6,
         limb2: 0xffffffffffffffff,
         limb3: 0x0,
     },
@@ -426,6 +569,12 @@ pub const SECP256R1: Curve = Curve {
     g: u384 { limb0: 0x6, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     min_one: u384 {
         limb0: 0xfffffffffffffffffffffffe, limb1: 0x0, limb2: 0xffffffff00000001, limb3: 0x0,
+    },
+    min_one_order: u384 {
+        limb0: 0xa7179e84f3b9cac2fc632550,
+        limb1: 0xffffffffffffffffbce6faad,
+        limb2: 0xffffffff00000000,
+        limb3: 0x0,
     },
     G: G1Point {
         x: u384 {
@@ -470,6 +619,9 @@ pub const ED25519: Curve = Curve {
         limb2: 0x7fffffffffffffff,
         limb3: 0x0,
     },
+    min_one_order: u384 {
+        limb0: 0xa2f79cd65812631a5cf5d3ec, limb1: 0x14def9de, limb2: 0x1000000000000000, limb3: 0x0,
+    },
     G: G1Point {
         x: u384 {
             limb0: 0xd617c9aca55c89b025aef35,
@@ -505,6 +657,12 @@ pub const GRUMPKIN: Curve = Curve {
     min_one: u384 {
         limb0: 0x79b9709143e1f593f0000000,
         limb1: 0xb85045b68181585d2833e848,
+        limb2: 0x30644e72e131a029,
+        limb3: 0x0,
+    },
+    min_one_order: u384 {
+        limb0: 0x6871ca8d3c208c16d87cfd46,
+        limb1: 0xb85045b68181585d97816a91,
         limb2: 0x30644e72e131a029,
         limb3: 0x0,
     },

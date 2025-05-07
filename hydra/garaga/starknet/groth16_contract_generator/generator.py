@@ -9,7 +9,7 @@ from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
-ECIP_OPS_CLASS_HASH = 0x70E5526B95CF78A249EA0F80E2B569E193DFFB31CF8CB1D6827994F4937925F
+ECIP_OPS_CLASS_HASH = 0x6E358038D4471D9586FD4027C15954EA754AF2AC7DC559737D91BEA2BBB6CC2
 CAIRO_VERSION = "2.11.4"
 
 
@@ -58,7 +58,6 @@ def gen_groth16_verifier(
     {vk.serialize_to_cairo()}
     pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
     """
-    msm_suffix = "_u288" if curve_id != CurveID.BLS12_381 else "_u384"
     contract_code = f"""
 use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 
@@ -112,18 +111,22 @@ mod Groth16Verifier{curve_id.name} {{
                 1 => *ic.at(0),
                 _ => {{
                     // Start serialization with the hint array directly to avoid copying it.
-                    let mut msm_calldata: Array<felt252> = msm_hint;
+                    let mut msm_calldata: Array<felt252> = array![];
                     // Add the points from VK and public inputs to the proof.
                     Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
                     Serde::serialize(@groth16_proof.public_inputs, ref msm_calldata);
                     // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
                     msm_calldata.append({curve_id.value});
+                    // Add the hint array.
+                    for x in msm_hint {{
+                        msm_calldata.append(*x);
+                    }}
 
                     // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
                     // to obtain vk_x.
                     let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
                         ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                        selector!("msm_g1{msm_suffix}"),
+                        selector!("msm_g1"),
                         msm_calldata.span()
                     )
                         .unwrap_syscall();

@@ -1,11 +1,9 @@
 from dataclasses import dataclass
 
-import garaga.modulo_circuit_structs as structs
 from garaga.algebra import PyFelt
 from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
 from garaga.hints.io import bigint_split, int_to_u384
 from garaga.signature import apply_isogeny, hash_to_field
-from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
 
 @dataclass(slots=True)
@@ -29,18 +27,15 @@ class MapToCurveHint:
 class HashToCurveHint:
     f0_hint: MapToCurveHint
     f1_hint: MapToCurveHint
-    scalar_mul_hint: structs.Struct
-    derive_point_from_x_hint: structs.Struct
 
     def to_cairo(self) -> str:
-        return f"HashToCurveHint {{ f0_hint: {self.f0_hint.to_cairo()}, f1_hint: {self.f1_hint.to_cairo()}, scalar_mul_hint: {self.scalar_mul_hint.serialize(raw=True)}, derive_point_from_x_hint: {self.derive_point_from_x_hint.serialize(raw=True)}  }}"
+        return f"""HashToCurveHint {{ f0_hint: {self.f0_hint.to_cairo()},
+        f1_hint: {self.f1_hint.to_cairo()} }}"""
 
     def to_calldata(self) -> list[int]:
         cd = []
         cd.extend(self.f0_hint.to_calldata())
         cd.extend(self.f1_hint.to_calldata())
-        cd.extend(self.scalar_mul_hint.serialize_to_calldata())
-        cd.extend(self.derive_point_from_x_hint.serialize_to_calldata())
         return cd
 
 
@@ -106,19 +101,12 @@ def build_hash_to_curve_hint(message: bytes) -> HashToCurveHint:
     # )
     x = CURVES[CurveID.BLS12_381.value].x
     n = CURVES[CurveID.BLS12_381.value].n
-    cofactor = (1 - (x % n)) % n
+    cofactor = (1 - (x % n)) % n  # 15132376222941642753
     # print(f"cofactor: {cofactor}, hex :{hex(cofactor)}")
-
-    msm_builder = MSMCalldataBuilder(
-        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
-    )
-    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
 
     return HashToCurveHint(
         f0_hint=f0_hint,
         f1_hint=f1_hint,
-        scalar_mul_hint=msm_hint,
-        derive_point_from_x_hint=derive_point_from_x_hint,
     )
 
 

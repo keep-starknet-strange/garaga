@@ -11,66 +11,315 @@ use garaga::definitions::{
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
     get_g, get_min_one, get_modulus, u288,
 };
-use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
-#[inline(always)]
-pub fn run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-    acc: u384,
-    m: u384,
-    b: u384,
-    xA: u384,
-    p: G1Point,
-    ep: u384,
-    en: u384,
-    sp: u384,
-    sn: u384,
-    curve_index: usize,
-) -> (u384,) {
-    // CONSTANT stack
-    let in0 = CE::<CI<0>> {}; // 0x0
 
-    // INPUT stack
-    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
-    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
-    let (in7, in8, in9) = (CE::<CI<7>> {}, CE::<CI<8>> {}, CE::<CI<9>> {});
-    let in10 = CE::<CI<10>> {};
-    let t0 = circuit_sub(in4, in5);
-    let t1 = circuit_mul(in2, in5);
-    let t2 = circuit_add(t1, in3);
-    let t3 = circuit_sub(in6, t2);
-    let t4 = circuit_sub(in0, in6);
-    let t5 = circuit_sub(t4, t2);
-    let t6 = circuit_mul(in9, in7);
-    let t7 = circuit_inverse(t3);
-    let t8 = circuit_mul(t0, t7);
-    let t9 = circuit_mul(t6, t8);
-    let t10 = circuit_mul(in10, in8);
-    let t11 = circuit_inverse(t5);
-    let t12 = circuit_mul(t0, t11);
-    let t13 = circuit_mul(t10, t12);
-    let t14 = circuit_add(t9, t13);
-    let t15 = circuit_add(in1, t14);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t15,).new_inputs();
-    // Prefill constants:
-    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(acc); // in1
-    circuit_inputs = circuit_inputs.next_2(m); // in2
-    circuit_inputs = circuit_inputs.next_2(b); // in3
-    circuit_inputs = circuit_inputs.next_2(xA); // in4
-    circuit_inputs = circuit_inputs.next_2(p.x); // in5
-    circuit_inputs = circuit_inputs.next_2(p.y); // in6
-    circuit_inputs = circuit_inputs.next_2(ep); // in7
-    circuit_inputs = circuit_inputs.next_2(en); // in8
-    circuit_inputs = circuit_inputs.next_2(sp); // in9
-    circuit_inputs = circuit_inputs.next_2(sn); // in10
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res_acc: u384 = outputs.get_output(t15);
-    return (res_acc,);
+impl CircuitDefinition27<
+    E0,
+    E1,
+    E2,
+    E3,
+    E4,
+    E5,
+    E6,
+    E7,
+    E8,
+    E9,
+    E10,
+    E11,
+    E12,
+    E13,
+    E14,
+    E15,
+    E16,
+    E17,
+    E18,
+    E19,
+    E20,
+    E21,
+    E22,
+    E23,
+    E24,
+    E25,
+    E26,
+> of core::circuit::CircuitDefinition<
+    (
+        CE<E0>,
+        CE<E1>,
+        CE<E2>,
+        CE<E3>,
+        CE<E4>,
+        CE<E5>,
+        CE<E6>,
+        CE<E7>,
+        CE<E8>,
+        CE<E9>,
+        CE<E10>,
+        CE<E11>,
+        CE<E12>,
+        CE<E13>,
+        CE<E14>,
+        CE<E15>,
+        CE<E16>,
+        CE<E17>,
+        CE<E18>,
+        CE<E19>,
+        CE<E20>,
+        CE<E21>,
+        CE<E22>,
+        CE<E23>,
+        CE<E24>,
+        CE<E25>,
+        CE<E26>,
+    ),
+> {
+    type CircuitType =
+        core::circuit::Circuit<
+            (
+                E0,
+                E1,
+                E2,
+                E3,
+                E4,
+                E5,
+                E6,
+                E7,
+                E8,
+                E9,
+                E10,
+                E11,
+                E12,
+                E13,
+                E14,
+                E15,
+                E16,
+                E17,
+                E18,
+                E19,
+                E20,
+                E21,
+                E22,
+                E23,
+                E24,
+                E25,
+                E26,
+            ),
+        >;
 }
+impl MyDrp_27<
+    E0,
+    E1,
+    E2,
+    E3,
+    E4,
+    E5,
+    E6,
+    E7,
+    E8,
+    E9,
+    E10,
+    E11,
+    E12,
+    E13,
+    E14,
+    E15,
+    E16,
+    E17,
+    E18,
+    E19,
+    E20,
+    E21,
+    E22,
+    E23,
+    E24,
+    E25,
+    E26,
+> of Drop<
+    (
+        CE<E0>,
+        CE<E1>,
+        CE<E2>,
+        CE<E3>,
+        CE<E4>,
+        CE<E5>,
+        CE<E6>,
+        CE<E7>,
+        CE<E8>,
+        CE<E9>,
+        CE<E10>,
+        CE<E11>,
+        CE<E12>,
+        CE<E13>,
+        CE<E14>,
+        CE<E15>,
+        CE<E16>,
+        CE<E17>,
+        CE<E18>,
+        CE<E19>,
+        CE<E20>,
+        CE<E21>,
+        CE<E22>,
+        CE<E23>,
+        CE<E24>,
+        CE<E25>,
+        CE<E26>,
+    ),
+>;
+
+impl CircuitDefinition28<
+    E0,
+    E1,
+    E2,
+    E3,
+    E4,
+    E5,
+    E6,
+    E7,
+    E8,
+    E9,
+    E10,
+    E11,
+    E12,
+    E13,
+    E14,
+    E15,
+    E16,
+    E17,
+    E18,
+    E19,
+    E20,
+    E21,
+    E22,
+    E23,
+    E24,
+    E25,
+    E26,
+    E27,
+> of core::circuit::CircuitDefinition<
+    (
+        CE<E0>,
+        CE<E1>,
+        CE<E2>,
+        CE<E3>,
+        CE<E4>,
+        CE<E5>,
+        CE<E6>,
+        CE<E7>,
+        CE<E8>,
+        CE<E9>,
+        CE<E10>,
+        CE<E11>,
+        CE<E12>,
+        CE<E13>,
+        CE<E14>,
+        CE<E15>,
+        CE<E16>,
+        CE<E17>,
+        CE<E18>,
+        CE<E19>,
+        CE<E20>,
+        CE<E21>,
+        CE<E22>,
+        CE<E23>,
+        CE<E24>,
+        CE<E25>,
+        CE<E26>,
+        CE<E27>,
+    ),
+> {
+    type CircuitType =
+        core::circuit::Circuit<
+            (
+                E0,
+                E1,
+                E2,
+                E3,
+                E4,
+                E5,
+                E6,
+                E7,
+                E8,
+                E9,
+                E10,
+                E11,
+                E12,
+                E13,
+                E14,
+                E15,
+                E16,
+                E17,
+                E18,
+                E19,
+                E20,
+                E21,
+                E22,
+                E23,
+                E24,
+                E25,
+                E26,
+                E27,
+            ),
+        >;
+}
+impl MyDrp_28<
+    E0,
+    E1,
+    E2,
+    E3,
+    E4,
+    E5,
+    E6,
+    E7,
+    E8,
+    E9,
+    E10,
+    E11,
+    E12,
+    E13,
+    E14,
+    E15,
+    E16,
+    E17,
+    E18,
+    E19,
+    E20,
+    E21,
+    E22,
+    E23,
+    E24,
+    E25,
+    E26,
+    E27,
+> of Drop<
+    (
+        CE<E0>,
+        CE<E1>,
+        CE<E2>,
+        CE<E3>,
+        CE<E4>,
+        CE<E5>,
+        CE<E6>,
+        CE<E7>,
+        CE<E8>,
+        CE<E9>,
+        CE<E10>,
+        CE<E11>,
+        CE<E12>,
+        CE<E13>,
+        CE<E14>,
+        CE<E15>,
+        CE<E16>,
+        CE<E17>,
+        CE<E18>,
+        CE<E19>,
+        CE<E20>,
+        CE<E21>,
+        CE<E22>,
+        CE<E23>,
+        CE<E24>,
+        CE<E25>,
+        CE<E26>,
+        CE<E27>,
+    ),
+>;
 #[inline(always)]
 pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (G2Point,) {
     // CONSTANT stack
@@ -142,7 +391,7 @@ pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) 
     return (result,);
 }
 #[inline(always)]
-pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (G1Point,) {
+pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, modulus: CircuitModulus) -> (G1Point,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -157,7 +406,7 @@ pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (
     let t8 = circuit_mul(t3, t7);
     let t9 = circuit_sub(t8, in1);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t6, t9).new_inputs();
     // Prefill constants:
@@ -171,6 +420,780 @@ pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, curve_index: usize) -> (
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let r: G1Point = G1Point { x: outputs.get_output(t6), y: outputs.get_output(t9) };
     return (r,);
+}
+#[inline(always)]
+pub fn run_CLEAR_COFACTOR_BLS12_381_circuit(P: G1Point, modulus: CircuitModulus) -> (G1Point,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x3
+
+    // INPUT stack
+    let (in1, in2) = (CE::<CI<1>> {}, CE::<CI<2>> {});
+    let t0 = circuit_mul(in1, in1);
+    let t1 = circuit_mul(in0, t0);
+    let t2 = circuit_add(in2, in2);
+    let t3 = circuit_inverse(t2);
+    let t4 = circuit_mul(t1, t3);
+    let t5 = circuit_mul(t4, t4);
+    let t6 = circuit_sub(t5, in1);
+    let t7 = circuit_sub(t6, in1);
+    let t8 = circuit_sub(in1, t7);
+    let t9 = circuit_mul(t4, t8);
+    let t10 = circuit_sub(t9, in2);
+    let t11 = circuit_sub(t10, in2);
+    let t12 = circuit_sub(t7, in1);
+    let t13 = circuit_inverse(t12);
+    let t14 = circuit_mul(t11, t13);
+    let t15 = circuit_mul(t14, t14);
+    let t16 = circuit_sub(t15, t7);
+    let t17 = circuit_sub(t16, in1);
+    let t18 = circuit_sub(t7, t17);
+    let t19 = circuit_mul(t14, t18);
+    let t20 = circuit_sub(t19, t10);
+    let t21 = circuit_mul(t17, t17);
+    let t22 = circuit_mul(in0, t21);
+    let t23 = circuit_add(t20, t20);
+    let t24 = circuit_inverse(t23);
+    let t25 = circuit_mul(t22, t24);
+    let t26 = circuit_mul(t25, t25);
+    let t27 = circuit_sub(t26, t17);
+    let t28 = circuit_sub(t27, t17);
+    let t29 = circuit_sub(t17, t28);
+    let t30 = circuit_mul(t25, t29);
+    let t31 = circuit_sub(t30, t20);
+    let t32 = circuit_mul(t28, t28);
+    let t33 = circuit_mul(in0, t32);
+    let t34 = circuit_add(t31, t31);
+    let t35 = circuit_inverse(t34);
+    let t36 = circuit_mul(t33, t35);
+    let t37 = circuit_mul(t36, t36);
+    let t38 = circuit_sub(t37, t28);
+    let t39 = circuit_sub(t38, t28);
+    let t40 = circuit_sub(t28, t39);
+    let t41 = circuit_mul(t36, t40);
+    let t42 = circuit_sub(t41, t31);
+    let t43 = circuit_sub(t42, in2);
+    let t44 = circuit_sub(t39, in1);
+    let t45 = circuit_inverse(t44);
+    let t46 = circuit_mul(t43, t45);
+    let t47 = circuit_mul(t46, t46);
+    let t48 = circuit_sub(t47, t39);
+    let t49 = circuit_sub(t48, in1);
+    let t50 = circuit_sub(t39, t49);
+    let t51 = circuit_mul(t46, t50);
+    let t52 = circuit_sub(t51, t42);
+    let t53 = circuit_mul(t49, t49);
+    let t54 = circuit_mul(in0, t53);
+    let t55 = circuit_add(t52, t52);
+    let t56 = circuit_inverse(t55);
+    let t57 = circuit_mul(t54, t56);
+    let t58 = circuit_mul(t57, t57);
+    let t59 = circuit_sub(t58, t49);
+    let t60 = circuit_sub(t59, t49);
+    let t61 = circuit_sub(t49, t60);
+    let t62 = circuit_mul(t57, t61);
+    let t63 = circuit_sub(t62, t52);
+    let t64 = circuit_mul(t60, t60);
+    let t65 = circuit_mul(in0, t64);
+    let t66 = circuit_add(t63, t63);
+    let t67 = circuit_inverse(t66);
+    let t68 = circuit_mul(t65, t67);
+    let t69 = circuit_mul(t68, t68);
+    let t70 = circuit_sub(t69, t60);
+    let t71 = circuit_sub(t70, t60);
+    let t72 = circuit_sub(t60, t71);
+    let t73 = circuit_mul(t68, t72);
+    let t74 = circuit_sub(t73, t63);
+    let t75 = circuit_mul(t71, t71);
+    let t76 = circuit_mul(in0, t75);
+    let t77 = circuit_add(t74, t74);
+    let t78 = circuit_inverse(t77);
+    let t79 = circuit_mul(t76, t78);
+    let t80 = circuit_mul(t79, t79);
+    let t81 = circuit_sub(t80, t71);
+    let t82 = circuit_sub(t81, t71);
+    let t83 = circuit_sub(t71, t82);
+    let t84 = circuit_mul(t79, t83);
+    let t85 = circuit_sub(t84, t74);
+    let t86 = circuit_sub(t85, in2);
+    let t87 = circuit_sub(t82, in1);
+    let t88 = circuit_inverse(t87);
+    let t89 = circuit_mul(t86, t88);
+    let t90 = circuit_mul(t89, t89);
+    let t91 = circuit_sub(t90, t82);
+    let t92 = circuit_sub(t91, in1);
+    let t93 = circuit_sub(t82, t92);
+    let t94 = circuit_mul(t89, t93);
+    let t95 = circuit_sub(t94, t85);
+    let t96 = circuit_mul(t92, t92);
+    let t97 = circuit_mul(in0, t96);
+    let t98 = circuit_add(t95, t95);
+    let t99 = circuit_inverse(t98);
+    let t100 = circuit_mul(t97, t99);
+    let t101 = circuit_mul(t100, t100);
+    let t102 = circuit_sub(t101, t92);
+    let t103 = circuit_sub(t102, t92);
+    let t104 = circuit_sub(t92, t103);
+    let t105 = circuit_mul(t100, t104);
+    let t106 = circuit_sub(t105, t95);
+    let t107 = circuit_mul(t103, t103);
+    let t108 = circuit_mul(in0, t107);
+    let t109 = circuit_add(t106, t106);
+    let t110 = circuit_inverse(t109);
+    let t111 = circuit_mul(t108, t110);
+    let t112 = circuit_mul(t111, t111);
+    let t113 = circuit_sub(t112, t103);
+    let t114 = circuit_sub(t113, t103);
+    let t115 = circuit_sub(t103, t114);
+    let t116 = circuit_mul(t111, t115);
+    let t117 = circuit_sub(t116, t106);
+    let t118 = circuit_mul(t114, t114);
+    let t119 = circuit_mul(in0, t118);
+    let t120 = circuit_add(t117, t117);
+    let t121 = circuit_inverse(t120);
+    let t122 = circuit_mul(t119, t121);
+    let t123 = circuit_mul(t122, t122);
+    let t124 = circuit_sub(t123, t114);
+    let t125 = circuit_sub(t124, t114);
+    let t126 = circuit_sub(t114, t125);
+    let t127 = circuit_mul(t122, t126);
+    let t128 = circuit_sub(t127, t117);
+    let t129 = circuit_mul(t125, t125);
+    let t130 = circuit_mul(in0, t129);
+    let t131 = circuit_add(t128, t128);
+    let t132 = circuit_inverse(t131);
+    let t133 = circuit_mul(t130, t132);
+    let t134 = circuit_mul(t133, t133);
+    let t135 = circuit_sub(t134, t125);
+    let t136 = circuit_sub(t135, t125);
+    let t137 = circuit_sub(t125, t136);
+    let t138 = circuit_mul(t133, t137);
+    let t139 = circuit_sub(t138, t128);
+    let t140 = circuit_mul(t136, t136);
+    let t141 = circuit_mul(in0, t140);
+    let t142 = circuit_add(t139, t139);
+    let t143 = circuit_inverse(t142);
+    let t144 = circuit_mul(t141, t143);
+    let t145 = circuit_mul(t144, t144);
+    let t146 = circuit_sub(t145, t136);
+    let t147 = circuit_sub(t146, t136);
+    let t148 = circuit_sub(t136, t147);
+    let t149 = circuit_mul(t144, t148);
+    let t150 = circuit_sub(t149, t139);
+    let t151 = circuit_mul(t147, t147);
+    let t152 = circuit_mul(in0, t151);
+    let t153 = circuit_add(t150, t150);
+    let t154 = circuit_inverse(t153);
+    let t155 = circuit_mul(t152, t154);
+    let t156 = circuit_mul(t155, t155);
+    let t157 = circuit_sub(t156, t147);
+    let t158 = circuit_sub(t157, t147);
+    let t159 = circuit_sub(t147, t158);
+    let t160 = circuit_mul(t155, t159);
+    let t161 = circuit_sub(t160, t150);
+    let t162 = circuit_mul(t158, t158);
+    let t163 = circuit_mul(in0, t162);
+    let t164 = circuit_add(t161, t161);
+    let t165 = circuit_inverse(t164);
+    let t166 = circuit_mul(t163, t165);
+    let t167 = circuit_mul(t166, t166);
+    let t168 = circuit_sub(t167, t158);
+    let t169 = circuit_sub(t168, t158);
+    let t170 = circuit_sub(t158, t169);
+    let t171 = circuit_mul(t166, t170);
+    let t172 = circuit_sub(t171, t161);
+    let t173 = circuit_mul(t169, t169);
+    let t174 = circuit_mul(in0, t173);
+    let t175 = circuit_add(t172, t172);
+    let t176 = circuit_inverse(t175);
+    let t177 = circuit_mul(t174, t176);
+    let t178 = circuit_mul(t177, t177);
+    let t179 = circuit_sub(t178, t169);
+    let t180 = circuit_sub(t179, t169);
+    let t181 = circuit_sub(t169, t180);
+    let t182 = circuit_mul(t177, t181);
+    let t183 = circuit_sub(t182, t172);
+    let t184 = circuit_mul(t180, t180);
+    let t185 = circuit_mul(in0, t184);
+    let t186 = circuit_add(t183, t183);
+    let t187 = circuit_inverse(t186);
+    let t188 = circuit_mul(t185, t187);
+    let t189 = circuit_mul(t188, t188);
+    let t190 = circuit_sub(t189, t180);
+    let t191 = circuit_sub(t190, t180);
+    let t192 = circuit_sub(t180, t191);
+    let t193 = circuit_mul(t188, t192);
+    let t194 = circuit_sub(t193, t183);
+    let t195 = circuit_sub(t194, in2);
+    let t196 = circuit_sub(t191, in1);
+    let t197 = circuit_inverse(t196);
+    let t198 = circuit_mul(t195, t197);
+    let t199 = circuit_mul(t198, t198);
+    let t200 = circuit_sub(t199, t191);
+    let t201 = circuit_sub(t200, in1);
+    let t202 = circuit_sub(t191, t201);
+    let t203 = circuit_mul(t198, t202);
+    let t204 = circuit_sub(t203, t194);
+    let t205 = circuit_mul(t201, t201);
+    let t206 = circuit_mul(in0, t205);
+    let t207 = circuit_add(t204, t204);
+    let t208 = circuit_inverse(t207);
+    let t209 = circuit_mul(t206, t208);
+    let t210 = circuit_mul(t209, t209);
+    let t211 = circuit_sub(t210, t201);
+    let t212 = circuit_sub(t211, t201);
+    let t213 = circuit_sub(t201, t212);
+    let t214 = circuit_mul(t209, t213);
+    let t215 = circuit_sub(t214, t204);
+    let t216 = circuit_mul(t212, t212);
+    let t217 = circuit_mul(in0, t216);
+    let t218 = circuit_add(t215, t215);
+    let t219 = circuit_inverse(t218);
+    let t220 = circuit_mul(t217, t219);
+    let t221 = circuit_mul(t220, t220);
+    let t222 = circuit_sub(t221, t212);
+    let t223 = circuit_sub(t222, t212);
+    let t224 = circuit_sub(t212, t223);
+    let t225 = circuit_mul(t220, t224);
+    let t226 = circuit_sub(t225, t215);
+    let t227 = circuit_mul(t223, t223);
+    let t228 = circuit_mul(in0, t227);
+    let t229 = circuit_add(t226, t226);
+    let t230 = circuit_inverse(t229);
+    let t231 = circuit_mul(t228, t230);
+    let t232 = circuit_mul(t231, t231);
+    let t233 = circuit_sub(t232, t223);
+    let t234 = circuit_sub(t233, t223);
+    let t235 = circuit_sub(t223, t234);
+    let t236 = circuit_mul(t231, t235);
+    let t237 = circuit_sub(t236, t226);
+    let t238 = circuit_mul(t234, t234);
+    let t239 = circuit_mul(in0, t238);
+    let t240 = circuit_add(t237, t237);
+    let t241 = circuit_inverse(t240);
+    let t242 = circuit_mul(t239, t241);
+    let t243 = circuit_mul(t242, t242);
+    let t244 = circuit_sub(t243, t234);
+    let t245 = circuit_sub(t244, t234);
+    let t246 = circuit_sub(t234, t245);
+    let t247 = circuit_mul(t242, t246);
+    let t248 = circuit_sub(t247, t237);
+    let t249 = circuit_mul(t245, t245);
+    let t250 = circuit_mul(in0, t249);
+    let t251 = circuit_add(t248, t248);
+    let t252 = circuit_inverse(t251);
+    let t253 = circuit_mul(t250, t252);
+    let t254 = circuit_mul(t253, t253);
+    let t255 = circuit_sub(t254, t245);
+    let t256 = circuit_sub(t255, t245);
+    let t257 = circuit_sub(t245, t256);
+    let t258 = circuit_mul(t253, t257);
+    let t259 = circuit_sub(t258, t248);
+    let t260 = circuit_mul(t256, t256);
+    let t261 = circuit_mul(in0, t260);
+    let t262 = circuit_add(t259, t259);
+    let t263 = circuit_inverse(t262);
+    let t264 = circuit_mul(t261, t263);
+    let t265 = circuit_mul(t264, t264);
+    let t266 = circuit_sub(t265, t256);
+    let t267 = circuit_sub(t266, t256);
+    let t268 = circuit_sub(t256, t267);
+    let t269 = circuit_mul(t264, t268);
+    let t270 = circuit_sub(t269, t259);
+    let t271 = circuit_mul(t267, t267);
+    let t272 = circuit_mul(in0, t271);
+    let t273 = circuit_add(t270, t270);
+    let t274 = circuit_inverse(t273);
+    let t275 = circuit_mul(t272, t274);
+    let t276 = circuit_mul(t275, t275);
+    let t277 = circuit_sub(t276, t267);
+    let t278 = circuit_sub(t277, t267);
+    let t279 = circuit_sub(t267, t278);
+    let t280 = circuit_mul(t275, t279);
+    let t281 = circuit_sub(t280, t270);
+    let t282 = circuit_mul(t278, t278);
+    let t283 = circuit_mul(in0, t282);
+    let t284 = circuit_add(t281, t281);
+    let t285 = circuit_inverse(t284);
+    let t286 = circuit_mul(t283, t285);
+    let t287 = circuit_mul(t286, t286);
+    let t288 = circuit_sub(t287, t278);
+    let t289 = circuit_sub(t288, t278);
+    let t290 = circuit_sub(t278, t289);
+    let t291 = circuit_mul(t286, t290);
+    let t292 = circuit_sub(t291, t281);
+    let t293 = circuit_mul(t289, t289);
+    let t294 = circuit_mul(in0, t293);
+    let t295 = circuit_add(t292, t292);
+    let t296 = circuit_inverse(t295);
+    let t297 = circuit_mul(t294, t296);
+    let t298 = circuit_mul(t297, t297);
+    let t299 = circuit_sub(t298, t289);
+    let t300 = circuit_sub(t299, t289);
+    let t301 = circuit_sub(t289, t300);
+    let t302 = circuit_mul(t297, t301);
+    let t303 = circuit_sub(t302, t292);
+    let t304 = circuit_mul(t300, t300);
+    let t305 = circuit_mul(in0, t304);
+    let t306 = circuit_add(t303, t303);
+    let t307 = circuit_inverse(t306);
+    let t308 = circuit_mul(t305, t307);
+    let t309 = circuit_mul(t308, t308);
+    let t310 = circuit_sub(t309, t300);
+    let t311 = circuit_sub(t310, t300);
+    let t312 = circuit_sub(t300, t311);
+    let t313 = circuit_mul(t308, t312);
+    let t314 = circuit_sub(t313, t303);
+    let t315 = circuit_mul(t311, t311);
+    let t316 = circuit_mul(in0, t315);
+    let t317 = circuit_add(t314, t314);
+    let t318 = circuit_inverse(t317);
+    let t319 = circuit_mul(t316, t318);
+    let t320 = circuit_mul(t319, t319);
+    let t321 = circuit_sub(t320, t311);
+    let t322 = circuit_sub(t321, t311);
+    let t323 = circuit_sub(t311, t322);
+    let t324 = circuit_mul(t319, t323);
+    let t325 = circuit_sub(t324, t314);
+    let t326 = circuit_mul(t322, t322);
+    let t327 = circuit_mul(in0, t326);
+    let t328 = circuit_add(t325, t325);
+    let t329 = circuit_inverse(t328);
+    let t330 = circuit_mul(t327, t329);
+    let t331 = circuit_mul(t330, t330);
+    let t332 = circuit_sub(t331, t322);
+    let t333 = circuit_sub(t332, t322);
+    let t334 = circuit_sub(t322, t333);
+    let t335 = circuit_mul(t330, t334);
+    let t336 = circuit_sub(t335, t325);
+    let t337 = circuit_mul(t333, t333);
+    let t338 = circuit_mul(in0, t337);
+    let t339 = circuit_add(t336, t336);
+    let t340 = circuit_inverse(t339);
+    let t341 = circuit_mul(t338, t340);
+    let t342 = circuit_mul(t341, t341);
+    let t343 = circuit_sub(t342, t333);
+    let t344 = circuit_sub(t343, t333);
+    let t345 = circuit_sub(t333, t344);
+    let t346 = circuit_mul(t341, t345);
+    let t347 = circuit_sub(t346, t336);
+    let t348 = circuit_mul(t344, t344);
+    let t349 = circuit_mul(in0, t348);
+    let t350 = circuit_add(t347, t347);
+    let t351 = circuit_inverse(t350);
+    let t352 = circuit_mul(t349, t351);
+    let t353 = circuit_mul(t352, t352);
+    let t354 = circuit_sub(t353, t344);
+    let t355 = circuit_sub(t354, t344);
+    let t356 = circuit_sub(t344, t355);
+    let t357 = circuit_mul(t352, t356);
+    let t358 = circuit_sub(t357, t347);
+    let t359 = circuit_mul(t355, t355);
+    let t360 = circuit_mul(in0, t359);
+    let t361 = circuit_add(t358, t358);
+    let t362 = circuit_inverse(t361);
+    let t363 = circuit_mul(t360, t362);
+    let t364 = circuit_mul(t363, t363);
+    let t365 = circuit_sub(t364, t355);
+    let t366 = circuit_sub(t365, t355);
+    let t367 = circuit_sub(t355, t366);
+    let t368 = circuit_mul(t363, t367);
+    let t369 = circuit_sub(t368, t358);
+    let t370 = circuit_mul(t366, t366);
+    let t371 = circuit_mul(in0, t370);
+    let t372 = circuit_add(t369, t369);
+    let t373 = circuit_inverse(t372);
+    let t374 = circuit_mul(t371, t373);
+    let t375 = circuit_mul(t374, t374);
+    let t376 = circuit_sub(t375, t366);
+    let t377 = circuit_sub(t376, t366);
+    let t378 = circuit_sub(t366, t377);
+    let t379 = circuit_mul(t374, t378);
+    let t380 = circuit_sub(t379, t369);
+    let t381 = circuit_mul(t377, t377);
+    let t382 = circuit_mul(in0, t381);
+    let t383 = circuit_add(t380, t380);
+    let t384 = circuit_inverse(t383);
+    let t385 = circuit_mul(t382, t384);
+    let t386 = circuit_mul(t385, t385);
+    let t387 = circuit_sub(t386, t377);
+    let t388 = circuit_sub(t387, t377);
+    let t389 = circuit_sub(t377, t388);
+    let t390 = circuit_mul(t385, t389);
+    let t391 = circuit_sub(t390, t380);
+    let t392 = circuit_mul(t388, t388);
+    let t393 = circuit_mul(in0, t392);
+    let t394 = circuit_add(t391, t391);
+    let t395 = circuit_inverse(t394);
+    let t396 = circuit_mul(t393, t395);
+    let t397 = circuit_mul(t396, t396);
+    let t398 = circuit_sub(t397, t388);
+    let t399 = circuit_sub(t398, t388);
+    let t400 = circuit_sub(t388, t399);
+    let t401 = circuit_mul(t396, t400);
+    let t402 = circuit_sub(t401, t391);
+    let t403 = circuit_mul(t399, t399);
+    let t404 = circuit_mul(in0, t403);
+    let t405 = circuit_add(t402, t402);
+    let t406 = circuit_inverse(t405);
+    let t407 = circuit_mul(t404, t406);
+    let t408 = circuit_mul(t407, t407);
+    let t409 = circuit_sub(t408, t399);
+    let t410 = circuit_sub(t409, t399);
+    let t411 = circuit_sub(t399, t410);
+    let t412 = circuit_mul(t407, t411);
+    let t413 = circuit_sub(t412, t402);
+    let t414 = circuit_mul(t410, t410);
+    let t415 = circuit_mul(in0, t414);
+    let t416 = circuit_add(t413, t413);
+    let t417 = circuit_inverse(t416);
+    let t418 = circuit_mul(t415, t417);
+    let t419 = circuit_mul(t418, t418);
+    let t420 = circuit_sub(t419, t410);
+    let t421 = circuit_sub(t420, t410);
+    let t422 = circuit_sub(t410, t421);
+    let t423 = circuit_mul(t418, t422);
+    let t424 = circuit_sub(t423, t413);
+    let t425 = circuit_mul(t421, t421);
+    let t426 = circuit_mul(in0, t425);
+    let t427 = circuit_add(t424, t424);
+    let t428 = circuit_inverse(t427);
+    let t429 = circuit_mul(t426, t428);
+    let t430 = circuit_mul(t429, t429);
+    let t431 = circuit_sub(t430, t421);
+    let t432 = circuit_sub(t431, t421);
+    let t433 = circuit_sub(t421, t432);
+    let t434 = circuit_mul(t429, t433);
+    let t435 = circuit_sub(t434, t424);
+    let t436 = circuit_mul(t432, t432);
+    let t437 = circuit_mul(in0, t436);
+    let t438 = circuit_add(t435, t435);
+    let t439 = circuit_inverse(t438);
+    let t440 = circuit_mul(t437, t439);
+    let t441 = circuit_mul(t440, t440);
+    let t442 = circuit_sub(t441, t432);
+    let t443 = circuit_sub(t442, t432);
+    let t444 = circuit_sub(t432, t443);
+    let t445 = circuit_mul(t440, t444);
+    let t446 = circuit_sub(t445, t435);
+    let t447 = circuit_mul(t443, t443);
+    let t448 = circuit_mul(in0, t447);
+    let t449 = circuit_add(t446, t446);
+    let t450 = circuit_inverse(t449);
+    let t451 = circuit_mul(t448, t450);
+    let t452 = circuit_mul(t451, t451);
+    let t453 = circuit_sub(t452, t443);
+    let t454 = circuit_sub(t453, t443);
+    let t455 = circuit_sub(t443, t454);
+    let t456 = circuit_mul(t451, t455);
+    let t457 = circuit_sub(t456, t446);
+    let t458 = circuit_mul(t454, t454);
+    let t459 = circuit_mul(in0, t458);
+    let t460 = circuit_add(t457, t457);
+    let t461 = circuit_inverse(t460);
+    let t462 = circuit_mul(t459, t461);
+    let t463 = circuit_mul(t462, t462);
+    let t464 = circuit_sub(t463, t454);
+    let t465 = circuit_sub(t464, t454);
+    let t466 = circuit_sub(t454, t465);
+    let t467 = circuit_mul(t462, t466);
+    let t468 = circuit_sub(t467, t457);
+    let t469 = circuit_mul(t465, t465);
+    let t470 = circuit_mul(in0, t469);
+    let t471 = circuit_add(t468, t468);
+    let t472 = circuit_inverse(t471);
+    let t473 = circuit_mul(t470, t472);
+    let t474 = circuit_mul(t473, t473);
+    let t475 = circuit_sub(t474, t465);
+    let t476 = circuit_sub(t475, t465);
+    let t477 = circuit_sub(t465, t476);
+    let t478 = circuit_mul(t473, t477);
+    let t479 = circuit_sub(t478, t468);
+    let t480 = circuit_mul(t476, t476);
+    let t481 = circuit_mul(in0, t480);
+    let t482 = circuit_add(t479, t479);
+    let t483 = circuit_inverse(t482);
+    let t484 = circuit_mul(t481, t483);
+    let t485 = circuit_mul(t484, t484);
+    let t486 = circuit_sub(t485, t476);
+    let t487 = circuit_sub(t486, t476);
+    let t488 = circuit_sub(t476, t487);
+    let t489 = circuit_mul(t484, t488);
+    let t490 = circuit_sub(t489, t479);
+    let t491 = circuit_mul(t487, t487);
+    let t492 = circuit_mul(in0, t491);
+    let t493 = circuit_add(t490, t490);
+    let t494 = circuit_inverse(t493);
+    let t495 = circuit_mul(t492, t494);
+    let t496 = circuit_mul(t495, t495);
+    let t497 = circuit_sub(t496, t487);
+    let t498 = circuit_sub(t497, t487);
+    let t499 = circuit_sub(t487, t498);
+    let t500 = circuit_mul(t495, t499);
+    let t501 = circuit_sub(t500, t490);
+    let t502 = circuit_mul(t498, t498);
+    let t503 = circuit_mul(in0, t502);
+    let t504 = circuit_add(t501, t501);
+    let t505 = circuit_inverse(t504);
+    let t506 = circuit_mul(t503, t505);
+    let t507 = circuit_mul(t506, t506);
+    let t508 = circuit_sub(t507, t498);
+    let t509 = circuit_sub(t508, t498);
+    let t510 = circuit_sub(t498, t509);
+    let t511 = circuit_mul(t506, t510);
+    let t512 = circuit_sub(t511, t501);
+    let t513 = circuit_mul(t509, t509);
+    let t514 = circuit_mul(in0, t513);
+    let t515 = circuit_add(t512, t512);
+    let t516 = circuit_inverse(t515);
+    let t517 = circuit_mul(t514, t516);
+    let t518 = circuit_mul(t517, t517);
+    let t519 = circuit_sub(t518, t509);
+    let t520 = circuit_sub(t519, t509);
+    let t521 = circuit_sub(t509, t520);
+    let t522 = circuit_mul(t517, t521);
+    let t523 = circuit_sub(t522, t512);
+    let t524 = circuit_mul(t520, t520);
+    let t525 = circuit_mul(in0, t524);
+    let t526 = circuit_add(t523, t523);
+    let t527 = circuit_inverse(t526);
+    let t528 = circuit_mul(t525, t527);
+    let t529 = circuit_mul(t528, t528);
+    let t530 = circuit_sub(t529, t520);
+    let t531 = circuit_sub(t530, t520);
+    let t532 = circuit_sub(t520, t531);
+    let t533 = circuit_mul(t528, t532);
+    let t534 = circuit_sub(t533, t523);
+    let t535 = circuit_mul(t531, t531);
+    let t536 = circuit_mul(in0, t535);
+    let t537 = circuit_add(t534, t534);
+    let t538 = circuit_inverse(t537);
+    let t539 = circuit_mul(t536, t538);
+    let t540 = circuit_mul(t539, t539);
+    let t541 = circuit_sub(t540, t531);
+    let t542 = circuit_sub(t541, t531);
+    let t543 = circuit_sub(t531, t542);
+    let t544 = circuit_mul(t539, t543);
+    let t545 = circuit_sub(t544, t534);
+    let t546 = circuit_mul(t542, t542);
+    let t547 = circuit_mul(in0, t546);
+    let t548 = circuit_add(t545, t545);
+    let t549 = circuit_inverse(t548);
+    let t550 = circuit_mul(t547, t549);
+    let t551 = circuit_mul(t550, t550);
+    let t552 = circuit_sub(t551, t542);
+    let t553 = circuit_sub(t552, t542);
+    let t554 = circuit_sub(t542, t553);
+    let t555 = circuit_mul(t550, t554);
+    let t556 = circuit_sub(t555, t545);
+    let t557 = circuit_sub(t556, in2);
+    let t558 = circuit_sub(t553, in1);
+    let t559 = circuit_inverse(t558);
+    let t560 = circuit_mul(t557, t559);
+    let t561 = circuit_mul(t560, t560);
+    let t562 = circuit_sub(t561, t553);
+    let t563 = circuit_sub(t562, in1);
+    let t564 = circuit_sub(t553, t563);
+    let t565 = circuit_mul(t560, t564);
+    let t566 = circuit_sub(t565, t556);
+    let t567 = circuit_mul(t563, t563);
+    let t568 = circuit_mul(in0, t567);
+    let t569 = circuit_add(t566, t566);
+    let t570 = circuit_inverse(t569);
+    let t571 = circuit_mul(t568, t570);
+    let t572 = circuit_mul(t571, t571);
+    let t573 = circuit_sub(t572, t563);
+    let t574 = circuit_sub(t573, t563);
+    let t575 = circuit_sub(t563, t574);
+    let t576 = circuit_mul(t571, t575);
+    let t577 = circuit_sub(t576, t566);
+    let t578 = circuit_mul(t574, t574);
+    let t579 = circuit_mul(in0, t578);
+    let t580 = circuit_add(t577, t577);
+    let t581 = circuit_inverse(t580);
+    let t582 = circuit_mul(t579, t581);
+    let t583 = circuit_mul(t582, t582);
+    let t584 = circuit_sub(t583, t574);
+    let t585 = circuit_sub(t584, t574);
+    let t586 = circuit_sub(t574, t585);
+    let t587 = circuit_mul(t582, t586);
+    let t588 = circuit_sub(t587, t577);
+    let t589 = circuit_mul(t585, t585);
+    let t590 = circuit_mul(in0, t589);
+    let t591 = circuit_add(t588, t588);
+    let t592 = circuit_inverse(t591);
+    let t593 = circuit_mul(t590, t592);
+    let t594 = circuit_mul(t593, t593);
+    let t595 = circuit_sub(t594, t585);
+    let t596 = circuit_sub(t595, t585);
+    let t597 = circuit_sub(t585, t596);
+    let t598 = circuit_mul(t593, t597);
+    let t599 = circuit_sub(t598, t588);
+    let t600 = circuit_mul(t596, t596);
+    let t601 = circuit_mul(in0, t600);
+    let t602 = circuit_add(t599, t599);
+    let t603 = circuit_inverse(t602);
+    let t604 = circuit_mul(t601, t603);
+    let t605 = circuit_mul(t604, t604);
+    let t606 = circuit_sub(t605, t596);
+    let t607 = circuit_sub(t606, t596);
+    let t608 = circuit_sub(t596, t607);
+    let t609 = circuit_mul(t604, t608);
+    let t610 = circuit_sub(t609, t599);
+    let t611 = circuit_mul(t607, t607);
+    let t612 = circuit_mul(in0, t611);
+    let t613 = circuit_add(t610, t610);
+    let t614 = circuit_inverse(t613);
+    let t615 = circuit_mul(t612, t614);
+    let t616 = circuit_mul(t615, t615);
+    let t617 = circuit_sub(t616, t607);
+    let t618 = circuit_sub(t617, t607);
+    let t619 = circuit_sub(t607, t618);
+    let t620 = circuit_mul(t615, t619);
+    let t621 = circuit_sub(t620, t610);
+    let t622 = circuit_mul(t618, t618);
+    let t623 = circuit_mul(in0, t622);
+    let t624 = circuit_add(t621, t621);
+    let t625 = circuit_inverse(t624);
+    let t626 = circuit_mul(t623, t625);
+    let t627 = circuit_mul(t626, t626);
+    let t628 = circuit_sub(t627, t618);
+    let t629 = circuit_sub(t628, t618);
+    let t630 = circuit_sub(t618, t629);
+    let t631 = circuit_mul(t626, t630);
+    let t632 = circuit_sub(t631, t621);
+    let t633 = circuit_mul(t629, t629);
+    let t634 = circuit_mul(in0, t633);
+    let t635 = circuit_add(t632, t632);
+    let t636 = circuit_inverse(t635);
+    let t637 = circuit_mul(t634, t636);
+    let t638 = circuit_mul(t637, t637);
+    let t639 = circuit_sub(t638, t629);
+    let t640 = circuit_sub(t639, t629);
+    let t641 = circuit_sub(t629, t640);
+    let t642 = circuit_mul(t637, t641);
+    let t643 = circuit_sub(t642, t632);
+    let t644 = circuit_mul(t640, t640);
+    let t645 = circuit_mul(in0, t644);
+    let t646 = circuit_add(t643, t643);
+    let t647 = circuit_inverse(t646);
+    let t648 = circuit_mul(t645, t647);
+    let t649 = circuit_mul(t648, t648);
+    let t650 = circuit_sub(t649, t640);
+    let t651 = circuit_sub(t650, t640);
+    let t652 = circuit_sub(t640, t651);
+    let t653 = circuit_mul(t648, t652);
+    let t654 = circuit_sub(t653, t643);
+    let t655 = circuit_mul(t651, t651);
+    let t656 = circuit_mul(in0, t655);
+    let t657 = circuit_add(t654, t654);
+    let t658 = circuit_inverse(t657);
+    let t659 = circuit_mul(t656, t658);
+    let t660 = circuit_mul(t659, t659);
+    let t661 = circuit_sub(t660, t651);
+    let t662 = circuit_sub(t661, t651);
+    let t663 = circuit_sub(t651, t662);
+    let t664 = circuit_mul(t659, t663);
+    let t665 = circuit_sub(t664, t654);
+    let t666 = circuit_mul(t662, t662);
+    let t667 = circuit_mul(in0, t666);
+    let t668 = circuit_add(t665, t665);
+    let t669 = circuit_inverse(t668);
+    let t670 = circuit_mul(t667, t669);
+    let t671 = circuit_mul(t670, t670);
+    let t672 = circuit_sub(t671, t662);
+    let t673 = circuit_sub(t672, t662);
+    let t674 = circuit_sub(t662, t673);
+    let t675 = circuit_mul(t670, t674);
+    let t676 = circuit_sub(t675, t665);
+    let t677 = circuit_mul(t673, t673);
+    let t678 = circuit_mul(in0, t677);
+    let t679 = circuit_add(t676, t676);
+    let t680 = circuit_inverse(t679);
+    let t681 = circuit_mul(t678, t680);
+    let t682 = circuit_mul(t681, t681);
+    let t683 = circuit_sub(t682, t673);
+    let t684 = circuit_sub(t683, t673);
+    let t685 = circuit_sub(t673, t684);
+    let t686 = circuit_mul(t681, t685);
+    let t687 = circuit_sub(t686, t676);
+    let t688 = circuit_mul(t684, t684);
+    let t689 = circuit_mul(in0, t688);
+    let t690 = circuit_add(t687, t687);
+    let t691 = circuit_inverse(t690);
+    let t692 = circuit_mul(t689, t691);
+    let t693 = circuit_mul(t692, t692);
+    let t694 = circuit_sub(t693, t684);
+    let t695 = circuit_sub(t694, t684);
+    let t696 = circuit_sub(t684, t695);
+    let t697 = circuit_mul(t692, t696);
+    let t698 = circuit_sub(t697, t687);
+    let t699 = circuit_mul(t695, t695);
+    let t700 = circuit_mul(in0, t699);
+    let t701 = circuit_add(t698, t698);
+    let t702 = circuit_inverse(t701);
+    let t703 = circuit_mul(t700, t702);
+    let t704 = circuit_mul(t703, t703);
+    let t705 = circuit_sub(t704, t695);
+    let t706 = circuit_sub(t705, t695);
+    let t707 = circuit_sub(t695, t706);
+    let t708 = circuit_mul(t703, t707);
+    let t709 = circuit_sub(t708, t698);
+    let t710 = circuit_mul(t706, t706);
+    let t711 = circuit_mul(in0, t710);
+    let t712 = circuit_add(t709, t709);
+    let t713 = circuit_inverse(t712);
+    let t714 = circuit_mul(t711, t713);
+    let t715 = circuit_mul(t714, t714);
+    let t716 = circuit_sub(t715, t706);
+    let t717 = circuit_sub(t716, t706);
+    let t718 = circuit_sub(t706, t717);
+    let t719 = circuit_mul(t714, t718);
+    let t720 = circuit_sub(t719, t709);
+    let t721 = circuit_mul(t717, t717);
+    let t722 = circuit_mul(in0, t721);
+    let t723 = circuit_add(t720, t720);
+    let t724 = circuit_inverse(t723);
+    let t725 = circuit_mul(t722, t724);
+    let t726 = circuit_mul(t725, t725);
+    let t727 = circuit_sub(t726, t717);
+    let t728 = circuit_sub(t727, t717);
+    let t729 = circuit_sub(t717, t728);
+    let t730 = circuit_mul(t725, t729);
+    let t731 = circuit_sub(t730, t720);
+    let t732 = circuit_mul(t728, t728);
+    let t733 = circuit_mul(in0, t732);
+    let t734 = circuit_add(t731, t731);
+    let t735 = circuit_inverse(t734);
+    let t736 = circuit_mul(t733, t735);
+    let t737 = circuit_mul(t736, t736);
+    let t738 = circuit_sub(t737, t728);
+    let t739 = circuit_sub(t738, t728);
+    let t740 = circuit_sub(t728, t739);
+    let t741 = circuit_mul(t736, t740);
+    let t742 = circuit_sub(t741, t731);
+    let t743 = circuit_sub(in2, t742);
+    let t744 = circuit_sub(in1, t739);
+    let t745 = circuit_inverse(t744);
+    let t746 = circuit_mul(t743, t745);
+    let t747 = circuit_mul(t746, t746);
+    let t748 = circuit_sub(t747, in1);
+    let t749 = circuit_sub(t748, t739);
+    let t750 = circuit_sub(in1, t749);
+    let t751 = circuit_mul(t746, t750);
+    let t752 = circuit_sub(t751, in2);
+
+    let modulus = modulus;
+
+    let mut circuit_inputs = (t749, t752).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(P.x); // in1
+    circuit_inputs = circuit_inputs.next_2(P.y); // in2
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let res: G1Point = G1Point { x: outputs.get_output(t749), y: outputs.get_output(t752) };
+    return (res,);
 }
 #[inline(always)]
 pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2Point,) {
@@ -246,7 +1269,7 @@ pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> 
 }
 #[inline(always)]
 pub fn run_DOUBLE_EC_POINT_circuit(
-    p: G1Point, A_weirstrass: u384, curve_index: usize,
+    p: G1Point, A_weirstrass: u384, modulus: CircuitModulus,
 ) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -266,7 +1289,7 @@ pub fn run_DOUBLE_EC_POINT_circuit(
     let t10 = circuit_mul(t5, t9);
     let t11 = circuit_sub(t10, in2);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t8, t11).new_inputs();
     // Prefill constants:
@@ -279,60 +1302,6 @@ pub fn run_DOUBLE_EC_POINT_circuit(
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let r: G1Point = G1Point { x: outputs.get_output(t8), y: outputs.get_output(t11) };
     return (r,);
-}
-#[inline(always)]
-pub fn run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
-    f_a0_accs: FunctionFeltEvaluations,
-    f_a1_accs: FunctionFeltEvaluations,
-    yA0: u384,
-    yA2: u384,
-    coeff_A0: u384,
-    coeff_A2: u384,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let t0 = circuit_inverse(in1);
-    let t1 = circuit_mul(in0, t0);
-    let t2 = circuit_inverse(in3);
-    let t3 = circuit_mul(in2, t2);
-    let t4 = circuit_mul(in8, t3);
-    let t5 = circuit_add(t1, t4); // a(x0) + y0 b(x0)
-    let t6 = circuit_inverse(in5);
-    let t7 = circuit_mul(in4, t6);
-    let t8 = circuit_inverse(in7);
-    let t9 = circuit_mul(in6, t8);
-    let t10 = circuit_mul(in9, t9);
-    let t11 = circuit_add(t7, t10); // a(x2) + y2 b(x2)
-    let t12 = circuit_mul(in10, t5);
-    let t13 = circuit_mul(in11, t11);
-    let t14 = circuit_sub(t12, t13);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t14,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_num); // in0
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_den); // in1
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_num); // in2
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_den); // in3
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_num); // in4
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_den); // in5
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_num); // in6
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_den); // in7
-    circuit_inputs = circuit_inputs.next_2(yA0); // in8
-    circuit_inputs = circuit_inputs.next_2(yA2); // in9
-    circuit_inputs = circuit_inputs.next_2(coeff_A0); // in10
-    circuit_inputs = circuit_inputs.next_2(coeff_A2); // in11
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t14);
-    return (res,);
 }
 #[inline(always)]
 pub fn run_IS_ON_CURVE_G1_G2_circuit(
@@ -477,2952 +1446,834 @@ pub fn run_IS_ON_CURVE_G2_circuit(
     return (zero_check_0, zero_check_1);
 }
 #[inline(always)]
-pub fn run_RHS_FINALIZE_ACC_circuit(
-    acc: u384, m: u384, b: u384, xA: u384, Q_result: G1Point, curve_index: usize,
-) -> (u384,) {
+pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
+    P: G1Point, Q: G1Point, s2_sign: u384, A_weirstrass: u384, modulus: CircuitModulus,
+) -> (
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    u384,
+    u384,
+    u384,
+    u384,
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    u384,
+    u384,
+    u384,
+    u384,
+    G1Point,
+    u384,
+) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
     // INPUT stack
     let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
     let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
-    let t0 = circuit_sub(in4, in5);
-    let t1 = circuit_mul(in2, in5);
-    let t2 = circuit_add(t1, in3);
-    let t3 = circuit_sub(in0, in6);
-    let t4 = circuit_sub(t3, t2);
-    let t5 = circuit_inverse(t4);
-    let t6 = circuit_mul(t0, t5);
-    let t7 = circuit_add(in1, t6);
+    let t0 = circuit_sub(in0, in1);
+    let t1 = circuit_mul(in1, in1);
+    let t2 = circuit_add(t1, t1);
+    let t3 = circuit_add(t2, t1);
+    let t4 = circuit_add(t3, in6);
+    let t5 = circuit_add(in2, in2);
+    let t6 = circuit_inverse(t5);
+    let t7 = circuit_mul(t4, t6);
+    let t8 = circuit_mul(t7, t7);
+    let t9 = circuit_add(in1, in1);
+    let t10 = circuit_sub(t8, t9);
+    let t11 = circuit_sub(in1, t10);
+    let t12 = circuit_add(in2, in2);
+    let t13 = circuit_inverse(t11);
+    let t14 = circuit_mul(t12, t13);
+    let t15 = circuit_sub(t14, t7);
+    let t16 = circuit_mul(t15, t15);
+    let t17 = circuit_add(in1, t10);
+    let t18 = circuit_sub(t16, t17);
+    let t19 = circuit_sub(in1, t18);
+    let t20 = circuit_mul(t15, t19);
+    let t21 = circuit_sub(t20, in2);
+    let t22 = circuit_mul(in5, in4);
+    let t23 = circuit_sub(in0, t22);
+    let t24 = circuit_mul(in3, in3);
+    let t25 = circuit_add(t24, t24);
+    let t26 = circuit_add(t25, t24);
+    let t27 = circuit_add(t26, in6);
+    let t28 = circuit_add(t22, t22);
+    let t29 = circuit_inverse(t28);
+    let t30 = circuit_mul(t27, t29);
+    let t31 = circuit_mul(t30, t30);
+    let t32 = circuit_add(in3, in3);
+    let t33 = circuit_sub(t31, t32);
+    let t34 = circuit_sub(in3, t33);
+    let t35 = circuit_add(t22, t22);
+    let t36 = circuit_inverse(t34);
+    let t37 = circuit_mul(t35, t36);
+    let t38 = circuit_sub(t37, t30);
+    let t39 = circuit_mul(t38, t38);
+    let t40 = circuit_add(in3, t33);
+    let t41 = circuit_sub(t39, t40);
+    let t42 = circuit_sub(in3, t41);
+    let t43 = circuit_mul(t38, t42);
+    let t44 = circuit_sub(t43, t22);
+    let t45 = circuit_sub(t21, t44);
+    let t46 = circuit_sub(t18, t41);
+    let t47 = circuit_inverse(t46);
+    let t48 = circuit_mul(t45, t47);
+    let t49 = circuit_mul(t48, t48);
+    let t50 = circuit_sub(t49, t18);
+    let t51 = circuit_sub(t50, t41);
+    let t52 = circuit_sub(t18, t51);
+    let t53 = circuit_mul(t48, t52);
+    let t54 = circuit_sub(t53, t21);
+    let t55 = circuit_sub(in2, t22);
+    let t56 = circuit_sub(in1, in3);
+    let t57 = circuit_inverse(t56);
+    let t58 = circuit_mul(t55, t57);
+    let t59 = circuit_mul(t58, t58);
+    let t60 = circuit_sub(t59, in1);
+    let t61 = circuit_sub(t60, in3);
+    let t62 = circuit_sub(in1, t61);
+    let t63 = circuit_mul(t58, t62);
+    let t64 = circuit_sub(t63, in2);
+    let t65 = circuit_sub(t21, t22);
+    let t66 = circuit_sub(t18, in3);
+    let t67 = circuit_inverse(t66);
+    let t68 = circuit_mul(t65, t67);
+    let t69 = circuit_mul(t68, t68);
+    let t70 = circuit_sub(t69, t18);
+    let t71 = circuit_sub(t70, in3);
+    let t72 = circuit_sub(t18, t71);
+    let t73 = circuit_mul(t68, t72);
+    let t74 = circuit_sub(t73, t21);
+    let t75 = circuit_sub(in2, t44);
+    let t76 = circuit_sub(in1, t41);
+    let t77 = circuit_inverse(t76);
+    let t78 = circuit_mul(t75, t77);
+    let t79 = circuit_mul(t78, t78);
+    let t80 = circuit_sub(t79, in1);
+    let t81 = circuit_sub(t80, t41);
+    let t82 = circuit_sub(in1, t81);
+    let t83 = circuit_mul(t78, t82);
+    let t84 = circuit_sub(t83, in2);
+    let t85 = circuit_sub(in0, t64);
+    let t86 = circuit_sub(in0, t54);
+    let t87 = circuit_sub(in0, t84);
+    let t88 = circuit_sub(in0, t74);
+    let t89 = circuit_sub(t21, t23);
+    let t90 = circuit_sub(t18, in3);
+    let t91 = circuit_inverse(t90);
+    let t92 = circuit_mul(t89, t91);
+    let t93 = circuit_mul(t92, t92);
+    let t94 = circuit_sub(t93, t18);
+    let t95 = circuit_sub(t94, in3);
+    let t96 = circuit_sub(t18, t95);
+    let t97 = circuit_mul(t92, t96);
+    let t98 = circuit_sub(t97, t21);
+    let t99 = circuit_sub(in0, t44);
+    let t100 = circuit_sub(in2, t99);
+    let t101 = circuit_sub(in1, t41);
+    let t102 = circuit_inverse(t101);
+    let t103 = circuit_mul(t100, t102);
+    let t104 = circuit_mul(t103, t103);
+    let t105 = circuit_sub(t104, in1);
+    let t106 = circuit_sub(t105, t41);
+    let t107 = circuit_sub(in1, t106);
+    let t108 = circuit_mul(t103, t107);
+    let t109 = circuit_sub(t108, in2);
+    let t110 = circuit_sub(t21, t99);
+    let t111 = circuit_sub(t18, t41);
+    let t112 = circuit_inverse(t111);
+    let t113 = circuit_mul(t110, t112);
+    let t114 = circuit_mul(t113, t113);
+    let t115 = circuit_sub(t114, t18);
+    let t116 = circuit_sub(t115, t41);
+    let t117 = circuit_sub(t18, t116);
+    let t118 = circuit_mul(t113, t117);
+    let t119 = circuit_sub(t118, t21);
+    let t120 = circuit_sub(t23, in2);
+    let t121 = circuit_sub(in3, in1);
+    let t122 = circuit_inverse(t121);
+    let t123 = circuit_mul(t120, t122);
+    let t124 = circuit_mul(t123, t123);
+    let t125 = circuit_sub(t124, in3);
+    let t126 = circuit_sub(t125, in1);
+    let t127 = circuit_sub(in3, t126);
+    let t128 = circuit_mul(t123, t127);
+    let t129 = circuit_sub(t128, t23);
+    let t130 = circuit_sub(in0, t109);
+    let t131 = circuit_sub(in0, t98);
+    let t132 = circuit_sub(in0, t129);
+    let t133 = circuit_sub(in0, t119);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = modulus;
 
-    let mut circuit_inputs = (t7,).new_inputs();
+    let mut circuit_inputs = (
+        t51,
+        t54,
+        t61,
+        t64,
+        t71,
+        t74,
+        t81,
+        t84,
+        t85,
+        t86,
+        t87,
+        t88,
+        t95,
+        t98,
+        t106,
+        t109,
+        t116,
+        t119,
+        t126,
+        t129,
+        t130,
+        t131,
+        t132,
+        t133,
+        t41,
+        t44,
+        t23,
+    )
+        .new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(acc); // in1
-    circuit_inputs = circuit_inputs.next_2(m); // in2
-    circuit_inputs = circuit_inputs.next_2(b); // in3
-    circuit_inputs = circuit_inputs.next_2(xA); // in4
-    circuit_inputs = circuit_inputs.next_2(Q_result.x); // in5
-    circuit_inputs = circuit_inputs.next_2(Q_result.y); // in6
+    circuit_inputs = circuit_inputs.next_2(P.x); // in1
+    circuit_inputs = circuit_inputs.next_2(P.y); // in2
+    circuit_inputs = circuit_inputs.next_2(Q.x); // in3
+    circuit_inputs = circuit_inputs.next_2(Q.y); // in4
+    circuit_inputs = circuit_inputs.next_2(s2_sign); // in5
+    circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in6
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let rhs: u384 = outputs.get_output(t7);
-    return (rhs,);
+    let T1: G1Point = G1Point { x: outputs.get_output(t51), y: outputs.get_output(t54) };
+    let T2: G1Point = G1Point { x: outputs.get_output(t61), y: outputs.get_output(t64) };
+    let T3: G1Point = G1Point { x: outputs.get_output(t71), y: outputs.get_output(t74) };
+    let T4: G1Point = G1Point { x: outputs.get_output(t81), y: outputs.get_output(t84) };
+    let T5y: u384 = outputs.get_output(t85);
+    let T6y: u384 = outputs.get_output(t86);
+    let T7y: u384 = outputs.get_output(t87);
+    let T8y: u384 = outputs.get_output(t88);
+    let T9: G1Point = G1Point { x: outputs.get_output(t95), y: outputs.get_output(t98) };
+    let T10: G1Point = G1Point { x: outputs.get_output(t106), y: outputs.get_output(t109) };
+    let T11: G1Point = G1Point { x: outputs.get_output(t116), y: outputs.get_output(t119) };
+    let T12: G1Point = G1Point { x: outputs.get_output(t126), y: outputs.get_output(t129) };
+    let T13y: u384 = outputs.get_output(t130);
+    let T14y: u384 = outputs.get_output(t131);
+    let T15y: u384 = outputs.get_output(t132);
+    let T16y: u384 = outputs.get_output(t133);
+    let R2: G1Point = G1Point { x: outputs.get_output(t41), y: outputs.get_output(t44) };
+    let R0y: u384 = outputs.get_output(t23);
+    return (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y);
 }
 #[inline(always)]
-pub fn run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-    p: G1Point, a: u384, curve_index: usize,
-) -> (SlopeInterceptOutput,) {
+pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
+    Px: u384,
+    P0y: u384,
+    P1y: u384,
+    Qx: u384,
+    Q0y: u384,
+    Phi_P0y: u384,
+    Phi_P1y: u384,
+    Phi_Q0y: u384,
+    Gen: G1Point,
+    third_root: u384,
+    modulus: CircuitModulus,
+) -> (
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    G1Point,
+    u384,
+    u384,
+    u384,
+    u384,
+    u384,
+    u384,
+    u384,
+    u384,
+    u384,
+    u384,
+    G1Point,
+) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+
+    // INPUT stack
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8, in9) = (CE::<CI<7>> {}, CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11) = (CE::<CI<10>> {}, CE::<CI<11>> {});
+    let t0 = circuit_sub(in2, in5);
+    let t1 = circuit_sub(in1, in4);
+    let t2 = circuit_inverse(t1);
+    let t3 = circuit_mul(t0, t2);
+    let t4 = circuit_mul(t3, t3);
+    let t5 = circuit_sub(t4, in1);
+    let t6 = circuit_sub(t5, in4);
+    let t7 = circuit_sub(in1, t6);
+    let t8 = circuit_mul(t3, t7);
+    let t9 = circuit_sub(t8, in2);
+    let t10 = circuit_sub(in0, t9);
+    let t11 = circuit_sub(in3, in5);
+    let t12 = circuit_sub(in1, in4);
+    let t13 = circuit_inverse(t12);
+    let t14 = circuit_mul(t11, t13);
+    let t15 = circuit_mul(t14, t14);
+    let t16 = circuit_sub(t15, in1);
+    let t17 = circuit_sub(t16, in4);
+    let t18 = circuit_sub(in1, t17);
+    let t19 = circuit_mul(t14, t18);
+    let t20 = circuit_sub(t19, in3);
+    let t21 = circuit_mul(in1, in11);
+    let t22 = circuit_mul(in4, in11);
+    let t23 = circuit_sub(in6, in8);
+    let t24 = circuit_sub(t21, t22);
+    let t25 = circuit_inverse(t24);
+    let t26 = circuit_mul(t23, t25);
+    let t27 = circuit_mul(t26, t26);
+    let t28 = circuit_sub(t27, t21);
+    let t29 = circuit_sub(t28, t22);
+    let t30 = circuit_sub(t21, t29);
+    let t31 = circuit_mul(t26, t30);
+    let t32 = circuit_sub(t31, in6);
+    let t33 = circuit_sub(in0, t32);
+    let t34 = circuit_sub(in7, in8);
+    let t35 = circuit_sub(t21, t22);
+    let t36 = circuit_inverse(t35);
+    let t37 = circuit_mul(t34, t36);
+    let t38 = circuit_mul(t37, t37);
+    let t39 = circuit_sub(t38, t21);
+    let t40 = circuit_sub(t39, t22);
+    let t41 = circuit_sub(t21, t40);
+    let t42 = circuit_mul(t37, t41);
+    let t43 = circuit_sub(t42, in7);
+    let t44 = circuit_sub(in0, t43);
+    let t45 = circuit_sub(t10, t33);
+    let t46 = circuit_sub(t6, t29);
+    let t47 = circuit_inverse(t46);
+    let t48 = circuit_mul(t45, t47);
+    let t49 = circuit_mul(t48, t48);
+    let t50 = circuit_sub(t49, t6);
+    let t51 = circuit_sub(t50, t29);
+    let t52 = circuit_sub(t6, t51);
+    let t53 = circuit_mul(t48, t52);
+    let t54 = circuit_sub(t53, t10);
+    let t55 = circuit_sub(t10, t43);
+    let t56 = circuit_sub(t6, t40);
+    let t57 = circuit_inverse(t56);
+    let t58 = circuit_mul(t55, t57);
+    let t59 = circuit_mul(t58, t58);
+    let t60 = circuit_sub(t59, t6);
+    let t61 = circuit_sub(t60, t40);
+    let t62 = circuit_sub(t6, t61);
+    let t63 = circuit_mul(t58, t62);
+    let t64 = circuit_sub(t63, t10);
+    let t65 = circuit_sub(t10, t44);
+    let t66 = circuit_sub(t6, t40);
+    let t67 = circuit_inverse(t66);
+    let t68 = circuit_mul(t65, t67);
+    let t69 = circuit_mul(t68, t68);
+    let t70 = circuit_sub(t69, t6);
+    let t71 = circuit_sub(t70, t40);
+    let t72 = circuit_sub(t6, t71);
+    let t73 = circuit_mul(t68, t72);
+    let t74 = circuit_sub(t73, t10);
+    let t75 = circuit_sub(t10, t32);
+    let t76 = circuit_sub(t6, t29);
+    let t77 = circuit_inverse(t76);
+    let t78 = circuit_mul(t75, t77);
+    let t79 = circuit_mul(t78, t78);
+    let t80 = circuit_sub(t79, t6);
+    let t81 = circuit_sub(t80, t29);
+    let t82 = circuit_sub(t6, t81);
+    let t83 = circuit_mul(t78, t82);
+    let t84 = circuit_sub(t83, t10);
+    let t85 = circuit_sub(t20, t33);
+    let t86 = circuit_sub(t17, t29);
+    let t87 = circuit_inverse(t86);
+    let t88 = circuit_mul(t85, t87);
+    let t89 = circuit_mul(t88, t88);
+    let t90 = circuit_sub(t89, t17);
+    let t91 = circuit_sub(t90, t29);
+    let t92 = circuit_sub(t17, t91);
+    let t93 = circuit_mul(t88, t92);
+    let t94 = circuit_sub(t93, t20);
+    let t95 = circuit_sub(t20, t43);
+    let t96 = circuit_sub(t17, t40);
+    let t97 = circuit_inverse(t96);
+    let t98 = circuit_mul(t95, t97);
+    let t99 = circuit_mul(t98, t98);
+    let t100 = circuit_sub(t99, t17);
+    let t101 = circuit_sub(t100, t40);
+    let t102 = circuit_sub(t17, t101);
+    let t103 = circuit_mul(t98, t102);
+    let t104 = circuit_sub(t103, t20);
+    let t105 = circuit_sub(t20, t44);
+    let t106 = circuit_sub(t17, t40);
+    let t107 = circuit_inverse(t106);
+    let t108 = circuit_mul(t105, t107);
+    let t109 = circuit_mul(t108, t108);
+    let t110 = circuit_sub(t109, t17);
+    let t111 = circuit_sub(t110, t40);
+    let t112 = circuit_sub(t17, t111);
+    let t113 = circuit_mul(t108, t112);
+    let t114 = circuit_sub(t113, t20);
+    let t115 = circuit_sub(t20, t32);
+    let t116 = circuit_sub(t17, t29);
+    let t117 = circuit_inverse(t116);
+    let t118 = circuit_mul(t115, t117);
+    let t119 = circuit_mul(t118, t118);
+    let t120 = circuit_sub(t119, t17);
+    let t121 = circuit_sub(t120, t29);
+    let t122 = circuit_sub(t17, t121);
+    let t123 = circuit_mul(t118, t122);
+    let t124 = circuit_sub(t123, t20);
+    let t125 = circuit_sub(in0, t124);
+    let t126 = circuit_sub(in0, t114);
+    let t127 = circuit_sub(in0, t104);
+    let t128 = circuit_sub(in0, t94);
+    let t129 = circuit_sub(in0, t84);
+    let t130 = circuit_sub(in0, t74);
+    let t131 = circuit_sub(in0, t64);
+    let t132 = circuit_sub(in0, t54);
+    let t133 = circuit_sub(t54, in10);
+    let t134 = circuit_sub(t51, in9);
+    let t135 = circuit_inverse(t134);
+    let t136 = circuit_mul(t133, t135);
+    let t137 = circuit_mul(t136, t136);
+    let t138 = circuit_sub(t137, t51);
+    let t139 = circuit_sub(t138, in9);
+    let t140 = circuit_sub(t51, t139);
+    let t141 = circuit_mul(t136, t140);
+    let t142 = circuit_sub(t141, t54);
+
+    let modulus = modulus;
+
+    let mut circuit_inputs = (
+        t51,
+        t54,
+        t61,
+        t64,
+        t71,
+        t74,
+        t81,
+        t84,
+        t91,
+        t94,
+        t101,
+        t104,
+        t111,
+        t114,
+        t121,
+        t124,
+        t125,
+        t126,
+        t127,
+        t128,
+        t129,
+        t130,
+        t131,
+        t132,
+        t21,
+        t22,
+        t139,
+        t142,
+    )
+        .new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(Px); // in1
+    circuit_inputs = circuit_inputs.next_2(P0y); // in2
+    circuit_inputs = circuit_inputs.next_2(P1y); // in3
+    circuit_inputs = circuit_inputs.next_2(Qx); // in4
+    circuit_inputs = circuit_inputs.next_2(Q0y); // in5
+    circuit_inputs = circuit_inputs.next_2(Phi_P0y); // in6
+    circuit_inputs = circuit_inputs.next_2(Phi_P1y); // in7
+    circuit_inputs = circuit_inputs.next_2(Phi_Q0y); // in8
+    circuit_inputs = circuit_inputs.next_2(Gen.x); // in9
+    circuit_inputs = circuit_inputs.next_2(Gen.y); // in10
+    circuit_inputs = circuit_inputs.next_2(third_root); // in11
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let B1: G1Point = G1Point { x: outputs.get_output(t51), y: outputs.get_output(t54) };
+    let B2: G1Point = G1Point { x: outputs.get_output(t61), y: outputs.get_output(t64) };
+    let B3: G1Point = G1Point { x: outputs.get_output(t71), y: outputs.get_output(t74) };
+    let B4: G1Point = G1Point { x: outputs.get_output(t81), y: outputs.get_output(t84) };
+    let B5: G1Point = G1Point { x: outputs.get_output(t91), y: outputs.get_output(t94) };
+    let B6: G1Point = G1Point { x: outputs.get_output(t101), y: outputs.get_output(t104) };
+    let B7: G1Point = G1Point { x: outputs.get_output(t111), y: outputs.get_output(t114) };
+    let B8: G1Point = G1Point { x: outputs.get_output(t121), y: outputs.get_output(t124) };
+    let B9y: u384 = outputs.get_output(t125);
+    let B10y: u384 = outputs.get_output(t126);
+    let B11y: u384 = outputs.get_output(t127);
+    let B12y: u384 = outputs.get_output(t128);
+    let B13y: u384 = outputs.get_output(t129);
+    let B14y: u384 = outputs.get_output(t130);
+    let B15y: u384 = outputs.get_output(t131);
+    let B16y: u384 = outputs.get_output(t132);
+    let Phi_P0x: u384 = outputs.get_output(t21);
+    let Phi_Q0x: u384 = outputs.get_output(t22);
+    let Acc: G1Point = G1Point { x: outputs.get_output(t139), y: outputs.get_output(t142) };
+    return (
+        B1,
+        B2,
+        B3,
+        B4,
+        B5,
+        B6,
+        B7,
+        B8,
+        B9y,
+        B10y,
+        B11y,
+        B12y,
+        B13y,
+        B14y,
+        B15y,
+        B16y,
+        Phi_P0x,
+        Phi_Q0x,
+        Acc,
+    );
+}
+#[inline(always)]
+pub fn run_QUADRUPLE_AND_ADD_9_circuit(
+    P: G1Point,
+    Q_1: G1Point,
+    Q_2: G1Point,
+    Q_3: G1Point,
+    Q_4: G1Point,
+    Q_5: G1Point,
+    Q_6: G1Point,
+    Q_7: G1Point,
+    Q_8: G1Point,
+    Q_9: G1Point,
+    A_weirstrass: u384,
+    modulus: CircuitModulus,
+) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
-    let in1 = CE::<CI<1>> {}; // 0x0
 
     // INPUT stack
-    let (in2, in3, in4) = (CE::<CI<2>> {}, CE::<CI<3>> {}, CE::<CI<4>> {});
-    let t0 = circuit_mul(in2, in2);
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8, in9) = (CE::<CI<7>> {}, CE::<CI<8>> {}, CE::<CI<9>> {});
+    let (in10, in11, in12) = (CE::<CI<10>> {}, CE::<CI<11>> {}, CE::<CI<12>> {});
+    let (in13, in14, in15) = (CE::<CI<13>> {}, CE::<CI<14>> {}, CE::<CI<15>> {});
+    let (in16, in17, in18) = (CE::<CI<16>> {}, CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20, in21) = (CE::<CI<19>> {}, CE::<CI<20>> {}, CE::<CI<21>> {});
+    let t0 = circuit_mul(in1, in1);
     let t1 = circuit_mul(in0, t0);
-    let t2 = circuit_add(t1, in4);
-    let t3 = circuit_add(in3, in3);
+    let t2 = circuit_add(t1, in21);
+    let t3 = circuit_add(in2, in2);
     let t4 = circuit_inverse(t3);
     let t5 = circuit_mul(t2, t4);
-    let t6 = circuit_mul(in2, t5);
-    let t7 = circuit_sub(in3, t6);
-    let t8 = circuit_mul(t5, t5);
-    let t9 = circuit_add(in2, in2);
-    let t10 = circuit_sub(t8, t9);
-    let t11 = circuit_sub(in2, t10);
-    let t12 = circuit_mul(t5, t11);
-    let t13 = circuit_sub(t12, in3);
-    let t14 = circuit_sub(in1, t13);
-    let t15 = circuit_sub(t14, in3);
-    let t16 = circuit_sub(t10, in2);
-    let t17 = circuit_inverse(t16);
-    let t18 = circuit_mul(t15, t17);
-    let t19 = circuit_mul(t18, t14);
-    let t20 = circuit_add(t14, t14);
-    let t21 = circuit_sub(in2, t10);
-    let t22 = circuit_mul(t20, t21);
-    let t23 = circuit_mul(t10, t10);
-    let t24 = circuit_mul(in0, t23);
-    let t25 = circuit_add(t19, t19);
-    let t26 = circuit_sub(in4, t25);
-    let t27 = circuit_add(t24, t26);
-    let t28 = circuit_inverse(t27);
-    let t29 = circuit_mul(t22, t28);
-    let t30 = circuit_add(t18, t18);
-    let t31 = circuit_add(t29, t30);
+    let t6 = circuit_mul(t5, t5);
+    let t7 = circuit_sub(t6, in1);
+    let t8 = circuit_sub(t7, in1);
+    let t9 = circuit_sub(in1, t8);
+    let t10 = circuit_mul(t5, t9);
+    let t11 = circuit_sub(t10, in2);
+    let t12 = circuit_sub(in4, t11);
+    let t13 = circuit_sub(in3, t8);
+    let t14 = circuit_inverse(t13);
+    let t15 = circuit_mul(t12, t14);
+    let t16 = circuit_mul(t15, t15);
+    let t17 = circuit_add(t8, in3);
+    let t18 = circuit_sub(t16, t17);
+    let t19 = circuit_add(t11, t11);
+    let t20 = circuit_sub(t18, t8);
+    let t21 = circuit_inverse(t20);
+    let t22 = circuit_mul(t19, t21);
+    let t23 = circuit_add(t15, t22);
+    let t24 = circuit_mul(t23, t23);
+    let t25 = circuit_add(t8, t18);
+    let t26 = circuit_sub(t24, t25);
+    let t27 = circuit_sub(t26, t8);
+    let t28 = circuit_mul(t23, t27);
+    let t29 = circuit_sub(t28, t11);
+    let t30 = circuit_mul(t26, t26);
+    let t31 = circuit_mul(in0, t30);
+    let t32 = circuit_add(t31, in21);
+    let t33 = circuit_add(t29, t29);
+    let t34 = circuit_inverse(t33);
+    let t35 = circuit_mul(t32, t34);
+    let t36 = circuit_mul(t35, t35);
+    let t37 = circuit_sub(t36, t26);
+    let t38 = circuit_sub(t37, t26);
+    let t39 = circuit_sub(t26, t38);
+    let t40 = circuit_mul(t35, t39);
+    let t41 = circuit_sub(t40, t29);
+    let t42 = circuit_sub(in6, t41);
+    let t43 = circuit_sub(in5, t38);
+    let t44 = circuit_inverse(t43);
+    let t45 = circuit_mul(t42, t44);
+    let t46 = circuit_mul(t45, t45);
+    let t47 = circuit_add(t38, in5);
+    let t48 = circuit_sub(t46, t47);
+    let t49 = circuit_add(t41, t41);
+    let t50 = circuit_sub(t48, t38);
+    let t51 = circuit_inverse(t50);
+    let t52 = circuit_mul(t49, t51);
+    let t53 = circuit_add(t45, t52);
+    let t54 = circuit_mul(t53, t53);
+    let t55 = circuit_add(t38, t48);
+    let t56 = circuit_sub(t54, t55);
+    let t57 = circuit_sub(t56, t38);
+    let t58 = circuit_mul(t53, t57);
+    let t59 = circuit_sub(t58, t41);
+    let t60 = circuit_mul(t56, t56);
+    let t61 = circuit_mul(in0, t60);
+    let t62 = circuit_add(t61, in21);
+    let t63 = circuit_add(t59, t59);
+    let t64 = circuit_inverse(t63);
+    let t65 = circuit_mul(t62, t64);
+    let t66 = circuit_mul(t65, t65);
+    let t67 = circuit_sub(t66, t56);
+    let t68 = circuit_sub(t67, t56);
+    let t69 = circuit_sub(t56, t68);
+    let t70 = circuit_mul(t65, t69);
+    let t71 = circuit_sub(t70, t59);
+    let t72 = circuit_sub(in8, t71);
+    let t73 = circuit_sub(in7, t68);
+    let t74 = circuit_inverse(t73);
+    let t75 = circuit_mul(t72, t74);
+    let t76 = circuit_mul(t75, t75);
+    let t77 = circuit_add(t68, in7);
+    let t78 = circuit_sub(t76, t77);
+    let t79 = circuit_add(t71, t71);
+    let t80 = circuit_sub(t78, t68);
+    let t81 = circuit_inverse(t80);
+    let t82 = circuit_mul(t79, t81);
+    let t83 = circuit_add(t75, t82);
+    let t84 = circuit_mul(t83, t83);
+    let t85 = circuit_add(t68, t78);
+    let t86 = circuit_sub(t84, t85);
+    let t87 = circuit_sub(t86, t68);
+    let t88 = circuit_mul(t83, t87);
+    let t89 = circuit_sub(t88, t71);
+    let t90 = circuit_mul(t86, t86);
+    let t91 = circuit_mul(in0, t90);
+    let t92 = circuit_add(t91, in21);
+    let t93 = circuit_add(t89, t89);
+    let t94 = circuit_inverse(t93);
+    let t95 = circuit_mul(t92, t94);
+    let t96 = circuit_mul(t95, t95);
+    let t97 = circuit_sub(t96, t86);
+    let t98 = circuit_sub(t97, t86);
+    let t99 = circuit_sub(t86, t98);
+    let t100 = circuit_mul(t95, t99);
+    let t101 = circuit_sub(t100, t89);
+    let t102 = circuit_sub(in10, t101);
+    let t103 = circuit_sub(in9, t98);
+    let t104 = circuit_inverse(t103);
+    let t105 = circuit_mul(t102, t104);
+    let t106 = circuit_mul(t105, t105);
+    let t107 = circuit_add(t98, in9);
+    let t108 = circuit_sub(t106, t107);
+    let t109 = circuit_add(t101, t101);
+    let t110 = circuit_sub(t108, t98);
+    let t111 = circuit_inverse(t110);
+    let t112 = circuit_mul(t109, t111);
+    let t113 = circuit_add(t105, t112);
+    let t114 = circuit_mul(t113, t113);
+    let t115 = circuit_add(t98, t108);
+    let t116 = circuit_sub(t114, t115);
+    let t117 = circuit_sub(t116, t98);
+    let t118 = circuit_mul(t113, t117);
+    let t119 = circuit_sub(t118, t101);
+    let t120 = circuit_mul(t116, t116);
+    let t121 = circuit_mul(in0, t120);
+    let t122 = circuit_add(t121, in21);
+    let t123 = circuit_add(t119, t119);
+    let t124 = circuit_inverse(t123);
+    let t125 = circuit_mul(t122, t124);
+    let t126 = circuit_mul(t125, t125);
+    let t127 = circuit_sub(t126, t116);
+    let t128 = circuit_sub(t127, t116);
+    let t129 = circuit_sub(t116, t128);
+    let t130 = circuit_mul(t125, t129);
+    let t131 = circuit_sub(t130, t119);
+    let t132 = circuit_sub(in12, t131);
+    let t133 = circuit_sub(in11, t128);
+    let t134 = circuit_inverse(t133);
+    let t135 = circuit_mul(t132, t134);
+    let t136 = circuit_mul(t135, t135);
+    let t137 = circuit_add(t128, in11);
+    let t138 = circuit_sub(t136, t137);
+    let t139 = circuit_add(t131, t131);
+    let t140 = circuit_sub(t138, t128);
+    let t141 = circuit_inverse(t140);
+    let t142 = circuit_mul(t139, t141);
+    let t143 = circuit_add(t135, t142);
+    let t144 = circuit_mul(t143, t143);
+    let t145 = circuit_add(t128, t138);
+    let t146 = circuit_sub(t144, t145);
+    let t147 = circuit_sub(t146, t128);
+    let t148 = circuit_mul(t143, t147);
+    let t149 = circuit_sub(t148, t131);
+    let t150 = circuit_mul(t146, t146);
+    let t151 = circuit_mul(in0, t150);
+    let t152 = circuit_add(t151, in21);
+    let t153 = circuit_add(t149, t149);
+    let t154 = circuit_inverse(t153);
+    let t155 = circuit_mul(t152, t154);
+    let t156 = circuit_mul(t155, t155);
+    let t157 = circuit_sub(t156, t146);
+    let t158 = circuit_sub(t157, t146);
+    let t159 = circuit_sub(t146, t158);
+    let t160 = circuit_mul(t155, t159);
+    let t161 = circuit_sub(t160, t149);
+    let t162 = circuit_sub(in14, t161);
+    let t163 = circuit_sub(in13, t158);
+    let t164 = circuit_inverse(t163);
+    let t165 = circuit_mul(t162, t164);
+    let t166 = circuit_mul(t165, t165);
+    let t167 = circuit_add(t158, in13);
+    let t168 = circuit_sub(t166, t167);
+    let t169 = circuit_add(t161, t161);
+    let t170 = circuit_sub(t168, t158);
+    let t171 = circuit_inverse(t170);
+    let t172 = circuit_mul(t169, t171);
+    let t173 = circuit_add(t165, t172);
+    let t174 = circuit_mul(t173, t173);
+    let t175 = circuit_add(t158, t168);
+    let t176 = circuit_sub(t174, t175);
+    let t177 = circuit_sub(t176, t158);
+    let t178 = circuit_mul(t173, t177);
+    let t179 = circuit_sub(t178, t161);
+    let t180 = circuit_mul(t176, t176);
+    let t181 = circuit_mul(in0, t180);
+    let t182 = circuit_add(t181, in21);
+    let t183 = circuit_add(t179, t179);
+    let t184 = circuit_inverse(t183);
+    let t185 = circuit_mul(t182, t184);
+    let t186 = circuit_mul(t185, t185);
+    let t187 = circuit_sub(t186, t176);
+    let t188 = circuit_sub(t187, t176);
+    let t189 = circuit_sub(t176, t188);
+    let t190 = circuit_mul(t185, t189);
+    let t191 = circuit_sub(t190, t179);
+    let t192 = circuit_sub(in16, t191);
+    let t193 = circuit_sub(in15, t188);
+    let t194 = circuit_inverse(t193);
+    let t195 = circuit_mul(t192, t194);
+    let t196 = circuit_mul(t195, t195);
+    let t197 = circuit_add(t188, in15);
+    let t198 = circuit_sub(t196, t197);
+    let t199 = circuit_add(t191, t191);
+    let t200 = circuit_sub(t198, t188);
+    let t201 = circuit_inverse(t200);
+    let t202 = circuit_mul(t199, t201);
+    let t203 = circuit_add(t195, t202);
+    let t204 = circuit_mul(t203, t203);
+    let t205 = circuit_add(t188, t198);
+    let t206 = circuit_sub(t204, t205);
+    let t207 = circuit_sub(t206, t188);
+    let t208 = circuit_mul(t203, t207);
+    let t209 = circuit_sub(t208, t191);
+    let t210 = circuit_mul(t206, t206);
+    let t211 = circuit_mul(in0, t210);
+    let t212 = circuit_add(t211, in21);
+    let t213 = circuit_add(t209, t209);
+    let t214 = circuit_inverse(t213);
+    let t215 = circuit_mul(t212, t214);
+    let t216 = circuit_mul(t215, t215);
+    let t217 = circuit_sub(t216, t206);
+    let t218 = circuit_sub(t217, t206);
+    let t219 = circuit_sub(t206, t218);
+    let t220 = circuit_mul(t215, t219);
+    let t221 = circuit_sub(t220, t209);
+    let t222 = circuit_sub(in18, t221);
+    let t223 = circuit_sub(in17, t218);
+    let t224 = circuit_inverse(t223);
+    let t225 = circuit_mul(t222, t224);
+    let t226 = circuit_mul(t225, t225);
+    let t227 = circuit_add(t218, in17);
+    let t228 = circuit_sub(t226, t227);
+    let t229 = circuit_add(t221, t221);
+    let t230 = circuit_sub(t228, t218);
+    let t231 = circuit_inverse(t230);
+    let t232 = circuit_mul(t229, t231);
+    let t233 = circuit_add(t225, t232);
+    let t234 = circuit_mul(t233, t233);
+    let t235 = circuit_add(t218, t228);
+    let t236 = circuit_sub(t234, t235);
+    let t237 = circuit_sub(t236, t218);
+    let t238 = circuit_mul(t233, t237);
+    let t239 = circuit_sub(t238, t221);
+    let t240 = circuit_mul(t236, t236);
+    let t241 = circuit_mul(in0, t240);
+    let t242 = circuit_add(t241, in21);
+    let t243 = circuit_add(t239, t239);
+    let t244 = circuit_inverse(t243);
+    let t245 = circuit_mul(t242, t244);
+    let t246 = circuit_mul(t245, t245);
+    let t247 = circuit_sub(t246, t236);
+    let t248 = circuit_sub(t247, t236);
+    let t249 = circuit_sub(t236, t248);
+    let t250 = circuit_mul(t245, t249);
+    let t251 = circuit_sub(t250, t239);
+    let t252 = circuit_sub(in20, t251);
+    let t253 = circuit_sub(in19, t248);
+    let t254 = circuit_inverse(t253);
+    let t255 = circuit_mul(t252, t254);
+    let t256 = circuit_mul(t255, t255);
+    let t257 = circuit_add(t248, in19);
+    let t258 = circuit_sub(t256, t257);
+    let t259 = circuit_add(t251, t251);
+    let t260 = circuit_sub(t258, t248);
+    let t261 = circuit_inverse(t260);
+    let t262 = circuit_mul(t259, t261);
+    let t263 = circuit_add(t255, t262);
+    let t264 = circuit_mul(t263, t263);
+    let t265 = circuit_add(t248, t258);
+    let t266 = circuit_sub(t264, t265);
+    let t267 = circuit_sub(t266, t248);
+    let t268 = circuit_mul(t263, t267);
+    let t269 = circuit_sub(t268, t251);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = modulus;
 
-    let mut circuit_inputs = (t5, t7, t10, t14, t31, t29).new_inputs();
+    let mut circuit_inputs = (t266, t269).new_inputs();
     // Prefill constants:
     circuit_inputs = circuit_inputs.next_2([0x3, 0x0, 0x0, 0x0]); // in0
-    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in1
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(p.x); // in2
-    circuit_inputs = circuit_inputs.next_2(p.y); // in3
-    circuit_inputs = circuit_inputs.next_2(a); // in4
+    circuit_inputs = circuit_inputs.next_2(P.x); // in1
+    circuit_inputs = circuit_inputs.next_2(P.y); // in2
+    circuit_inputs = circuit_inputs.next_2(Q_1.x); // in3
+    circuit_inputs = circuit_inputs.next_2(Q_1.y); // in4
+    circuit_inputs = circuit_inputs.next_2(Q_2.x); // in5
+    circuit_inputs = circuit_inputs.next_2(Q_2.y); // in6
+    circuit_inputs = circuit_inputs.next_2(Q_3.x); // in7
+    circuit_inputs = circuit_inputs.next_2(Q_3.y); // in8
+    circuit_inputs = circuit_inputs.next_2(Q_4.x); // in9
+    circuit_inputs = circuit_inputs.next_2(Q_4.y); // in10
+    circuit_inputs = circuit_inputs.next_2(Q_5.x); // in11
+    circuit_inputs = circuit_inputs.next_2(Q_5.y); // in12
+    circuit_inputs = circuit_inputs.next_2(Q_6.x); // in13
+    circuit_inputs = circuit_inputs.next_2(Q_6.y); // in14
+    circuit_inputs = circuit_inputs.next_2(Q_7.x); // in15
+    circuit_inputs = circuit_inputs.next_2(Q_7.y); // in16
+    circuit_inputs = circuit_inputs.next_2(Q_8.x); // in17
+    circuit_inputs = circuit_inputs.next_2(Q_8.y); // in18
+    circuit_inputs = circuit_inputs.next_2(Q_9.x); // in19
+    circuit_inputs = circuit_inputs.next_2(Q_9.y); // in20
+    circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in21
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let mb: SlopeInterceptOutput = SlopeInterceptOutput {
-        m_A0: outputs.get_output(t5),
-        b_A0: outputs.get_output(t7),
-        x_A2: outputs.get_output(t10),
-        y_A2: outputs.get_output(t14),
-        coeff0: outputs.get_output(t31),
-        coeff2: outputs.get_output(t29),
-    };
-    return (mb,);
-}
-#[inline]
-pub fn run_ACC_FUNCTION_CHALLENGE_DUPL_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    f_a0_accs: FunctionFeltEvaluations,
-    f_a1_accs: FunctionFeltEvaluations,
-    xA0: u384,
-    xA2: u384,
-    xA0_power: u384,
-    xA2_power: u384,
-    next_a_num_coeff: T,
-    next_a_den_coeff: T,
-    next_b_num_coeff: T,
-    next_b_den_coeff: T,
-    curve_index: usize,
-) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let in15 = CE::<CI<15>> {};
-    let t0 = circuit_mul(in12, in10);
-    let t1 = circuit_add(in0, t0);
-    let t2 = circuit_mul(in10, in8);
-    let t3 = circuit_mul(in13, t2);
-    let t4 = circuit_add(in1, t3);
-    let t5 = circuit_mul(in14, t2);
-    let t6 = circuit_add(in2, t5);
-    let t7 = circuit_mul(t2, in8);
-    let t8 = circuit_mul(t7, in8);
-    let t9 = circuit_mul(t8, in8);
-    let t10 = circuit_mul(in15, t9);
-    let t11 = circuit_add(in3, t10);
-    let t12 = circuit_mul(in12, in11);
-    let t13 = circuit_add(in4, t12);
-    let t14 = circuit_mul(in11, in9);
-    let t15 = circuit_mul(in13, t14);
-    let t16 = circuit_add(in5, t15);
-    let t17 = circuit_mul(in14, t14);
-    let t18 = circuit_add(in6, t17);
-    let t19 = circuit_mul(t14, in9);
-    let t20 = circuit_mul(t19, in9);
-    let t21 = circuit_mul(t20, in9);
-    let t22 = circuit_mul(in15, t21);
-    let t23 = circuit_add(in7, t22);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t1, t4, t6, t11, t13, t16, t18, t23, t2, t14).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_num); // in0
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.a_den); // in1
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_num); // in2
-    circuit_inputs = circuit_inputs.next_2(f_a0_accs.b_den); // in3
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_num); // in4
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.a_den); // in5
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_num); // in6
-    circuit_inputs = circuit_inputs.next_2(f_a1_accs.b_den); // in7
-    circuit_inputs = circuit_inputs.next_2(xA0); // in8
-    circuit_inputs = circuit_inputs.next_2(xA2); // in9
-    circuit_inputs = circuit_inputs.next_2(xA0_power); // in10
-    circuit_inputs = circuit_inputs.next_2(xA2_power); // in11
-    circuit_inputs = circuit_inputs.next_2(next_a_num_coeff); // in12
-    circuit_inputs = circuit_inputs.next_2(next_a_den_coeff); // in13
-    circuit_inputs = circuit_inputs.next_2(next_b_num_coeff); // in14
-    circuit_inputs = circuit_inputs.next_2(next_b_den_coeff); // in15
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let next_f_a0_accs: FunctionFeltEvaluations = FunctionFeltEvaluations {
-        a_num: outputs.get_output(t1),
-        a_den: outputs.get_output(t4),
-        b_num: outputs.get_output(t6),
-        b_den: outputs.get_output(t11),
-    };
-    let next_f_a1_accs: FunctionFeltEvaluations = FunctionFeltEvaluations {
-        a_num: outputs.get_output(t13),
-        a_den: outputs.get_output(t16),
-        b_num: outputs.get_output(t18),
-        b_den: outputs.get_output(t23),
-    };
-    let next_xA0_power: u384 = outputs.get_output(t2);
-    let next_xA2_power: u384 = outputs.get_output(t14);
-    return (next_f_a0_accs, next_f_a1_accs, next_xA0_power, next_xA2_power);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
-    let (in54, in55, in56) = (CE::<CI<54>> {}, CE::<CI<55>> {}, CE::<CI<56>> {});
-    let (in57, in58, in59) = (CE::<CI<57>> {}, CE::<CI<58>> {}, CE::<CI<59>> {});
-    let (in60, in61, in62) = (CE::<CI<60>> {}, CE::<CI<61>> {}, CE::<CI<62>> {});
-    let in63 = CE::<CI<63>> {};
-    let t0 = circuit_mul(in18, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in17, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_11
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in16, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_10
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in15, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_9
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in14, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in13, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in12, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t13 = circuit_add(in11, t12); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t15 = circuit_add(in10, t14); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t17 = circuit_add(in9, t16); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t19 = circuit_add(in8, t18); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t21 = circuit_add(in7, t20); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t23 = circuit_add(in6, t22); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t24 = circuit_mul(in32, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in31, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_12
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t27 = circuit_add(in30, t26); // Eval sumdlogdiv_a_den Horner step: add coefficient_11
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t29 = circuit_add(in29, t28); // Eval sumdlogdiv_a_den Horner step: add coefficient_10
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t31 = circuit_add(in28, t30); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t33 = circuit_add(in27, t32); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t35 = circuit_add(in26, t34); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t37 = circuit_add(in25, t36); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t39 = circuit_add(in24, t38); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t41 = circuit_add(in23, t40); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t43 = circuit_add(in22, t42); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t45 = circuit_add(in21, t44); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t47 = circuit_add(in20, t46); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t48 = circuit_mul(t47, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t49 = circuit_add(in19, t48); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t50 = circuit_inverse(t49);
-    let t51 = circuit_mul(t23, t50);
-    let t52 = circuit_mul(in46, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t53 = circuit_add(in45, t52); // Eval sumdlogdiv_b_num Horner step: add coefficient_12
-    let t54 = circuit_mul(t53, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t55 = circuit_add(in44, t54); // Eval sumdlogdiv_b_num Horner step: add coefficient_11
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t57 = circuit_add(in43, t56); // Eval sumdlogdiv_b_num Horner step: add coefficient_10
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t59 = circuit_add(in42, t58); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t60 = circuit_mul(t59, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t61 = circuit_add(in41, t60); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t62 = circuit_mul(t61, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t63 = circuit_add(in40, t62); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t64 = circuit_mul(t63, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t65 = circuit_add(in39, t64); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t66 = circuit_mul(t65, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t67 = circuit_add(in38, t66); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t68 = circuit_mul(t67, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t69 = circuit_add(in37, t68); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t70 = circuit_mul(t69, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t71 = circuit_add(in36, t70); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t72 = circuit_mul(t71, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t73 = circuit_add(in35, t72); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t74 = circuit_mul(t73, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t75 = circuit_add(in34, t74); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t76 = circuit_mul(t75, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t77 = circuit_add(in33, t76); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t78 = circuit_mul(in63, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t79 = circuit_add(in62, t78); // Eval sumdlogdiv_b_den Horner step: add coefficient_15
-    let t80 = circuit_mul(t79, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t81 = circuit_add(in61, t80); // Eval sumdlogdiv_b_den Horner step: add coefficient_14
-    let t82 = circuit_mul(t81, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t83 = circuit_add(in60, t82); // Eval sumdlogdiv_b_den Horner step: add coefficient_13
-    let t84 = circuit_mul(t83, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t85 = circuit_add(in59, t84); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t86 = circuit_mul(t85, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t87 = circuit_add(in58, t86); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t88 = circuit_mul(t87, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t89 = circuit_add(in57, t88); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t90 = circuit_mul(t89, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t91 = circuit_add(in56, t90); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t92 = circuit_mul(t91, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t93 = circuit_add(in55, t92); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t94 = circuit_mul(t93, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t95 = circuit_add(in54, t94); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t96 = circuit_mul(t95, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t97 = circuit_add(in53, t96); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t98 = circuit_mul(t97, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t99 = circuit_add(in52, t98); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t100 = circuit_mul(t99, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t101 = circuit_add(in51, t100); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t102 = circuit_mul(t101, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t103 = circuit_add(in50, t102); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t104 = circuit_mul(t103, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t105 = circuit_add(in49, t104); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t106 = circuit_mul(t105, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t107 = circuit_add(in48, t106); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t108 = circuit_mul(t107, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t109 = circuit_add(in47, t108); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t110 = circuit_inverse(t109);
-    let t111 = circuit_mul(t77, t110);
-    let t112 = circuit_mul(in1, t111);
-    let t113 = circuit_add(t51, t112);
-    let t114 = circuit_mul(in4, t113);
-    let t115 = circuit_mul(in18, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t116 = circuit_add(in17, t115); // Eval sumdlogdiv_a_num Horner step: add coefficient_11
-    let t117 = circuit_mul(t116, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t118 = circuit_add(in16, t117); // Eval sumdlogdiv_a_num Horner step: add coefficient_10
-    let t119 = circuit_mul(t118, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t120 = circuit_add(in15, t119); // Eval sumdlogdiv_a_num Horner step: add coefficient_9
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t122 = circuit_add(in14, t121); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t123 = circuit_mul(t122, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t124 = circuit_add(in13, t123); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t126 = circuit_add(in12, t125); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t128 = circuit_add(in11, t127); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t129 = circuit_mul(t128, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t130 = circuit_add(in10, t129); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t131 = circuit_mul(t130, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t132 = circuit_add(in9, t131); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t133 = circuit_mul(t132, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t134 = circuit_add(in8, t133); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t135 = circuit_mul(t134, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t136 = circuit_add(in7, t135); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t137 = circuit_mul(t136, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t138 = circuit_add(in6, t137); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t139 = circuit_mul(in32, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t140 = circuit_add(in31, t139); // Eval sumdlogdiv_a_den Horner step: add coefficient_12
-    let t141 = circuit_mul(t140, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t142 = circuit_add(in30, t141); // Eval sumdlogdiv_a_den Horner step: add coefficient_11
-    let t143 = circuit_mul(t142, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t144 = circuit_add(in29, t143); // Eval sumdlogdiv_a_den Horner step: add coefficient_10
-    let t145 = circuit_mul(t144, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t146 = circuit_add(in28, t145); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t147 = circuit_mul(t146, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t148 = circuit_add(in27, t147); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t149 = circuit_mul(t148, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t150 = circuit_add(in26, t149); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t151 = circuit_mul(t150, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t152 = circuit_add(in25, t151); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t153 = circuit_mul(t152, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t154 = circuit_add(in24, t153); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t155 = circuit_mul(t154, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t156 = circuit_add(in23, t155); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t157 = circuit_mul(t156, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t158 = circuit_add(in22, t157); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t159 = circuit_mul(t158, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t160 = circuit_add(in21, t159); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t161 = circuit_mul(t160, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t162 = circuit_add(in20, t161); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t163 = circuit_mul(t162, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t164 = circuit_add(in19, t163); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t165 = circuit_inverse(t164);
-    let t166 = circuit_mul(t138, t165);
-    let t167 = circuit_mul(in46, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t168 = circuit_add(in45, t167); // Eval sumdlogdiv_b_num Horner step: add coefficient_12
-    let t169 = circuit_mul(t168, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t170 = circuit_add(in44, t169); // Eval sumdlogdiv_b_num Horner step: add coefficient_11
-    let t171 = circuit_mul(t170, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t172 = circuit_add(in43, t171); // Eval sumdlogdiv_b_num Horner step: add coefficient_10
-    let t173 = circuit_mul(t172, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t174 = circuit_add(in42, t173); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t175 = circuit_mul(t174, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t176 = circuit_add(in41, t175); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t177 = circuit_mul(t176, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t178 = circuit_add(in40, t177); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t179 = circuit_mul(t178, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t180 = circuit_add(in39, t179); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t181 = circuit_mul(t180, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t182 = circuit_add(in38, t181); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t183 = circuit_mul(t182, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t184 = circuit_add(in37, t183); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t185 = circuit_mul(t184, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t186 = circuit_add(in36, t185); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t187 = circuit_mul(t186, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t188 = circuit_add(in35, t187); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t189 = circuit_mul(t188, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t190 = circuit_add(in34, t189); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t191 = circuit_mul(t190, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t192 = circuit_add(in33, t191); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t193 = circuit_mul(in63, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t194 = circuit_add(in62, t193); // Eval sumdlogdiv_b_den Horner step: add coefficient_15
-    let t195 = circuit_mul(t194, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t196 = circuit_add(in61, t195); // Eval sumdlogdiv_b_den Horner step: add coefficient_14
-    let t197 = circuit_mul(t196, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t198 = circuit_add(in60, t197); // Eval sumdlogdiv_b_den Horner step: add coefficient_13
-    let t199 = circuit_mul(t198, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t200 = circuit_add(in59, t199); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t201 = circuit_mul(t200, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t202 = circuit_add(in58, t201); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t203 = circuit_mul(t202, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t204 = circuit_add(in57, t203); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t205 = circuit_mul(t204, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t206 = circuit_add(in56, t205); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t207 = circuit_mul(t206, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t208 = circuit_add(in55, t207); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t209 = circuit_mul(t208, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t210 = circuit_add(in54, t209); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t211 = circuit_mul(t210, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t212 = circuit_add(in53, t211); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t213 = circuit_mul(t212, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t214 = circuit_add(in52, t213); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t215 = circuit_mul(t214, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t216 = circuit_add(in51, t215); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t217 = circuit_mul(t216, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t218 = circuit_add(in50, t217); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t219 = circuit_mul(t218, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t220 = circuit_add(in49, t219); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t221 = circuit_mul(t220, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t222 = circuit_add(in48, t221); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t223 = circuit_mul(t222, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t224 = circuit_add(in47, t223); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t225 = circuit_inverse(t224);
-    let t226 = circuit_mul(t192, t225);
-    let t227 = circuit_mul(in3, t226);
-    let t228 = circuit_add(t166, t227);
-    let t229 = circuit_mul(in5, t228);
-    let t230 = circuit_sub(t114, t229);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t230,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in63
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t230);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let in27 = CE::<CI<27>> {};
-    let t0 = circuit_mul(in9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in8, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in7, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in6, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t6 = circuit_mul(in14, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t7 = circuit_add(in13, t6); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t9 = circuit_add(in12, t8); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t11 = circuit_add(in11, t10); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t13 = circuit_add(in10, t12); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t14 = circuit_inverse(t13);
-    let t15 = circuit_mul(t5, t14);
-    let t16 = circuit_mul(in19, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t17 = circuit_add(in18, t16); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t19 = circuit_add(in17, t18); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t21 = circuit_add(in16, t20); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t23 = circuit_add(in15, t22); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t24 = circuit_mul(in27, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t25 = circuit_add(in26, t24); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t27 = circuit_add(in25, t26); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t29 = circuit_add(in24, t28); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t31 = circuit_add(in23, t30); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t33 = circuit_add(in22, t32); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t35 = circuit_add(in21, t34); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t37 = circuit_add(in20, t36); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t38 = circuit_inverse(t37);
-    let t39 = circuit_mul(t23, t38);
-    let t40 = circuit_mul(in1, t39);
-    let t41 = circuit_add(t15, t40);
-    let t42 = circuit_mul(in4, t41);
-    let t43 = circuit_mul(in9, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t44 = circuit_add(in8, t43); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t45 = circuit_mul(t44, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t46 = circuit_add(in7, t45); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t47 = circuit_mul(t46, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t48 = circuit_add(in6, t47); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t49 = circuit_mul(in14, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t50 = circuit_add(in13, t49); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t51 = circuit_mul(t50, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t52 = circuit_add(in12, t51); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t53 = circuit_mul(t52, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t54 = circuit_add(in11, t53); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t55 = circuit_mul(t54, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t56 = circuit_add(in10, t55); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t57 = circuit_inverse(t56);
-    let t58 = circuit_mul(t48, t57);
-    let t59 = circuit_mul(in19, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t60 = circuit_add(in18, t59); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t61 = circuit_mul(t60, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t62 = circuit_add(in17, t61); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t63 = circuit_mul(t62, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t64 = circuit_add(in16, t63); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t65 = circuit_mul(t64, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t66 = circuit_add(in15, t65); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t67 = circuit_mul(in27, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t68 = circuit_add(in26, t67); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t69 = circuit_mul(t68, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t70 = circuit_add(in25, t69); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t71 = circuit_mul(t70, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t72 = circuit_add(in24, t71); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t73 = circuit_mul(t72, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t74 = circuit_add(in23, t73); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t75 = circuit_mul(t74, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t76 = circuit_add(in22, t75); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t77 = circuit_mul(t76, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t78 = circuit_add(in21, t77); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t79 = circuit_mul(t78, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t80 = circuit_add(in20, t79); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t81 = circuit_inverse(t80);
-    let t82 = circuit_mul(t66, t81);
-    let t83 = circuit_mul(in3, t82);
-    let t84 = circuit_add(t58, t83);
-    let t85 = circuit_mul(in5, t84);
-    let t86 = circuit_sub(t42, t85);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t86,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in27
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t86);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_1P_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDiv: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19) = (CE::<CI<18>> {}, CE::<CI<19>> {});
-    let t0 = circuit_mul(in7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in6, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t2 = circuit_mul(in10, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t3 = circuit_add(in9, t2); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t5 = circuit_add(in8, t4); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t6 = circuit_inverse(t5);
-    let t7 = circuit_mul(t1, t6);
-    let t8 = circuit_mul(in13, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t9 = circuit_add(in12, t8); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t11 = circuit_add(in11, t10); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t12 = circuit_mul(in19, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t13 = circuit_add(in18, t12); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t15 = circuit_add(in17, t14); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t17 = circuit_add(in16, t16); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t19 = circuit_add(in15, t18); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t21 = circuit_add(in14, t20); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t22 = circuit_inverse(t21);
-    let t23 = circuit_mul(t11, t22);
-    let t24 = circuit_mul(in1, t23);
-    let t25 = circuit_add(t7, t24);
-    let t26 = circuit_mul(in4, t25);
-    let t27 = circuit_mul(in7, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t28 = circuit_add(in6, t27); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t29 = circuit_mul(in10, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t30 = circuit_add(in9, t29); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t31 = circuit_mul(t30, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t32 = circuit_add(in8, t31); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t33 = circuit_inverse(t32);
-    let t34 = circuit_mul(t28, t33);
-    let t35 = circuit_mul(in13, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t36 = circuit_add(in12, t35); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t37 = circuit_mul(t36, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t38 = circuit_add(in11, t37); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t39 = circuit_mul(in19, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t40 = circuit_add(in18, t39); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t41 = circuit_mul(t40, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t42 = circuit_add(in17, t41); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t43 = circuit_mul(t42, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t44 = circuit_add(in16, t43); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t45 = circuit_mul(t44, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t46 = circuit_add(in15, t45); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t47 = circuit_mul(t46, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t48 = circuit_add(in14, t47); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t49 = circuit_inverse(t48);
-    let t50 = circuit_mul(t38, t49);
-    let t51 = circuit_mul(in3, t50);
-    let t52 = circuit_add(t34, t51);
-    let t53 = circuit_mul(in5, t52);
-    let t54 = circuit_sub(t26, t53);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t54,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDiv.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in19
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t54);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31) = (CE::<CI<30>> {}, CE::<CI<31>> {});
-    let t0 = circuit_mul(in10, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in9, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in8, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in7, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in6, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t8 = circuit_mul(in16, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t9 = circuit_add(in15, t8); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t11 = circuit_add(in14, t10); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t13 = circuit_add(in13, t12); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t15 = circuit_add(in12, t14); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t17 = circuit_add(in11, t16); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t18 = circuit_inverse(t17);
-    let t19 = circuit_mul(t7, t18);
-    let t20 = circuit_mul(in22, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t21 = circuit_add(in21, t20); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t23 = circuit_add(in20, t22); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t25 = circuit_add(in19, t24); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t27 = circuit_add(in18, t26); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t29 = circuit_add(in17, t28); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t30 = circuit_mul(in31, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t31 = circuit_add(in30, t30); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t33 = circuit_add(in29, t32); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t35 = circuit_add(in28, t34); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t37 = circuit_add(in27, t36); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t39 = circuit_add(in26, t38); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t41 = circuit_add(in25, t40); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t43 = circuit_add(in24, t42); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t45 = circuit_add(in23, t44); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t46 = circuit_inverse(t45);
-    let t47 = circuit_mul(t29, t46);
-    let t48 = circuit_mul(in1, t47);
-    let t49 = circuit_add(t19, t48);
-    let t50 = circuit_mul(in4, t49);
-    let t51 = circuit_mul(in10, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t52 = circuit_add(in9, t51); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t53 = circuit_mul(t52, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t54 = circuit_add(in8, t53); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t55 = circuit_mul(t54, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t56 = circuit_add(in7, t55); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t57 = circuit_mul(t56, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t58 = circuit_add(in6, t57); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t59 = circuit_mul(in16, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t60 = circuit_add(in15, t59); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t61 = circuit_mul(t60, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t62 = circuit_add(in14, t61); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t63 = circuit_mul(t62, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t64 = circuit_add(in13, t63); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t65 = circuit_mul(t64, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t66 = circuit_add(in12, t65); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t67 = circuit_mul(t66, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t68 = circuit_add(in11, t67); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t69 = circuit_inverse(t68);
-    let t70 = circuit_mul(t58, t69);
-    let t71 = circuit_mul(in22, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t72 = circuit_add(in21, t71); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t73 = circuit_mul(t72, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t74 = circuit_add(in20, t73); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t75 = circuit_mul(t74, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t76 = circuit_add(in19, t75); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t77 = circuit_mul(t76, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t78 = circuit_add(in18, t77); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t79 = circuit_mul(t78, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t80 = circuit_add(in17, t79); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t81 = circuit_mul(in31, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t82 = circuit_add(in30, t81); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t83 = circuit_mul(t82, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t84 = circuit_add(in29, t83); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t85 = circuit_mul(t84, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t86 = circuit_add(in28, t85); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t87 = circuit_mul(t86, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t88 = circuit_add(in27, t87); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t89 = circuit_mul(t88, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t90 = circuit_add(in26, t89); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t91 = circuit_mul(t90, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t92 = circuit_add(in25, t91); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t93 = circuit_mul(t92, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t94 = circuit_add(in24, t93); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t95 = circuit_mul(t94, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t96 = circuit_add(in23, t95); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t97 = circuit_inverse(t96);
-    let t98 = circuit_mul(t80, t97);
-    let t99 = circuit_mul(in3, t98);
-    let t100 = circuit_add(t70, t99);
-    let t101 = circuit_mul(in5, t100);
-    let t102 = circuit_sub(t50, t101);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t102,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in31
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t102);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_2P_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDiv: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let t0 = circuit_mul(in8, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in7, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in6, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t4 = circuit_mul(in12, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t5 = circuit_add(in11, t4); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t7 = circuit_add(in10, t6); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t9 = circuit_add(in9, t8); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t10 = circuit_inverse(t9);
-    let t11 = circuit_mul(t3, t10);
-    let t12 = circuit_mul(in16, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t13 = circuit_add(in15, t12); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t15 = circuit_add(in14, t14); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t17 = circuit_add(in13, t16); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t18 = circuit_mul(in23, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t19 = circuit_add(in22, t18); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t21 = circuit_add(in21, t20); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t23 = circuit_add(in20, t22); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t25 = circuit_add(in19, t24); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t27 = circuit_add(in18, t26); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t29 = circuit_add(in17, t28); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t30 = circuit_inverse(t29);
-    let t31 = circuit_mul(t17, t30);
-    let t32 = circuit_mul(in1, t31);
-    let t33 = circuit_add(t11, t32);
-    let t34 = circuit_mul(in4, t33);
-    let t35 = circuit_mul(in8, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t36 = circuit_add(in7, t35); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t37 = circuit_mul(t36, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t38 = circuit_add(in6, t37); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t39 = circuit_mul(in12, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t40 = circuit_add(in11, t39); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t41 = circuit_mul(t40, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t42 = circuit_add(in10, t41); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t43 = circuit_mul(t42, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t44 = circuit_add(in9, t43); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t45 = circuit_inverse(t44);
-    let t46 = circuit_mul(t38, t45);
-    let t47 = circuit_mul(in16, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t48 = circuit_add(in15, t47); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t49 = circuit_mul(t48, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t50 = circuit_add(in14, t49); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t51 = circuit_mul(t50, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t52 = circuit_add(in13, t51); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t53 = circuit_mul(in23, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t54 = circuit_add(in22, t53); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t55 = circuit_mul(t54, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t56 = circuit_add(in21, t55); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t57 = circuit_mul(t56, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t58 = circuit_add(in20, t57); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t59 = circuit_mul(t58, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t60 = circuit_add(in19, t59); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t61 = circuit_mul(t60, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t62 = circuit_add(in18, t61); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t63 = circuit_mul(t62, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t64 = circuit_add(in17, t63); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t65 = circuit_inverse(t64);
-    let t66 = circuit_mul(t52, t65);
-    let t67 = circuit_mul(in3, t66);
-    let t68 = circuit_add(t46, t67);
-    let t69 = circuit_mul(in5, t68);
-    let t70 = circuit_sub(t34, t69);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t70,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDiv.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in23
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t70);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let t0 = circuit_mul(in11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in10, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in9, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in8, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in7, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in6, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t10 = circuit_mul(in18, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t11 = circuit_add(in17, t10); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t13 = circuit_add(in16, t12); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t15 = circuit_add(in15, t14); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t17 = circuit_add(in14, t16); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t19 = circuit_add(in13, t18); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t21 = circuit_add(in12, t20); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t22 = circuit_inverse(t21);
-    let t23 = circuit_mul(t9, t22);
-    let t24 = circuit_mul(in25, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t25 = circuit_add(in24, t24); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t27 = circuit_add(in23, t26); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t29 = circuit_add(in22, t28); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t31 = circuit_add(in21, t30); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t33 = circuit_add(in20, t32); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t35 = circuit_add(in19, t34); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t36 = circuit_mul(in35, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t37 = circuit_add(in34, t36); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t39 = circuit_add(in33, t38); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t41 = circuit_add(in32, t40); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t43 = circuit_add(in31, t42); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t45 = circuit_add(in30, t44); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t47 = circuit_add(in29, t46); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t48 = circuit_mul(t47, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t49 = circuit_add(in28, t48); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t51 = circuit_add(in27, t50); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t53 = circuit_add(in26, t52); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t54 = circuit_inverse(t53);
-    let t55 = circuit_mul(t35, t54);
-    let t56 = circuit_mul(in1, t55);
-    let t57 = circuit_add(t23, t56);
-    let t58 = circuit_mul(in4, t57);
-    let t59 = circuit_mul(in11, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t60 = circuit_add(in10, t59); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t61 = circuit_mul(t60, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t62 = circuit_add(in9, t61); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t63 = circuit_mul(t62, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t64 = circuit_add(in8, t63); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t65 = circuit_mul(t64, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t66 = circuit_add(in7, t65); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t67 = circuit_mul(t66, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t68 = circuit_add(in6, t67); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t69 = circuit_mul(in18, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t70 = circuit_add(in17, t69); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t71 = circuit_mul(t70, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t72 = circuit_add(in16, t71); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t73 = circuit_mul(t72, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t74 = circuit_add(in15, t73); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t75 = circuit_mul(t74, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t76 = circuit_add(in14, t75); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t77 = circuit_mul(t76, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t78 = circuit_add(in13, t77); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t79 = circuit_mul(t78, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t80 = circuit_add(in12, t79); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t81 = circuit_inverse(t80);
-    let t82 = circuit_mul(t68, t81);
-    let t83 = circuit_mul(in25, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t84 = circuit_add(in24, t83); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t85 = circuit_mul(t84, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t86 = circuit_add(in23, t85); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t87 = circuit_mul(t86, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t88 = circuit_add(in22, t87); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t89 = circuit_mul(t88, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t90 = circuit_add(in21, t89); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t91 = circuit_mul(t90, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t92 = circuit_add(in20, t91); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t93 = circuit_mul(t92, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t94 = circuit_add(in19, t93); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t95 = circuit_mul(in35, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t96 = circuit_add(in34, t95); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t97 = circuit_mul(t96, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t98 = circuit_add(in33, t97); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t99 = circuit_mul(t98, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t100 = circuit_add(in32, t99); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t101 = circuit_mul(t100, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t102 = circuit_add(in31, t101); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t103 = circuit_mul(t102, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t104 = circuit_add(in30, t103); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t105 = circuit_mul(t104, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t106 = circuit_add(in29, t105); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t107 = circuit_mul(t106, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t108 = circuit_add(in28, t107); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t109 = circuit_mul(t108, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t110 = circuit_add(in27, t109); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t112 = circuit_add(in26, t111); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t113 = circuit_inverse(t112);
-    let t114 = circuit_mul(t94, t113);
-    let t115 = circuit_mul(in3, t114);
-    let t116 = circuit_add(t82, t115);
-    let t117 = circuit_mul(in5, t116);
-    let t118 = circuit_sub(t58, t117);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t118,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in35
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t118);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let in39 = CE::<CI<39>> {};
-    let t0 = circuit_mul(in12, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in11, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in10, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in9, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in8, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in7, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in6, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t12 = circuit_mul(in20, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t13 = circuit_add(in19, t12); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t15 = circuit_add(in18, t14); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t17 = circuit_add(in17, t16); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t19 = circuit_add(in16, t18); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t21 = circuit_add(in15, t20); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t23 = circuit_add(in14, t22); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in13, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t26 = circuit_inverse(t25);
-    let t27 = circuit_mul(t11, t26);
-    let t28 = circuit_mul(in28, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t29 = circuit_add(in27, t28); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t31 = circuit_add(in26, t30); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t33 = circuit_add(in25, t32); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t35 = circuit_add(in24, t34); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t37 = circuit_add(in23, t36); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t39 = circuit_add(in22, t38); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t41 = circuit_add(in21, t40); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t42 = circuit_mul(in39, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t43 = circuit_add(in38, t42); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t45 = circuit_add(in37, t44); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t47 = circuit_add(in36, t46); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t48 = circuit_mul(t47, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t49 = circuit_add(in35, t48); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t51 = circuit_add(in34, t50); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t53 = circuit_add(in33, t52); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t54 = circuit_mul(t53, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t55 = circuit_add(in32, t54); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t57 = circuit_add(in31, t56); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t59 = circuit_add(in30, t58); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t60 = circuit_mul(t59, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t61 = circuit_add(in29, t60); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t62 = circuit_inverse(t61);
-    let t63 = circuit_mul(t41, t62);
-    let t64 = circuit_mul(in1, t63);
-    let t65 = circuit_add(t27, t64);
-    let t66 = circuit_mul(in4, t65);
-    let t67 = circuit_mul(in12, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t68 = circuit_add(in11, t67); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t69 = circuit_mul(t68, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t70 = circuit_add(in10, t69); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t71 = circuit_mul(t70, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t72 = circuit_add(in9, t71); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t73 = circuit_mul(t72, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t74 = circuit_add(in8, t73); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t75 = circuit_mul(t74, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t76 = circuit_add(in7, t75); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t77 = circuit_mul(t76, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t78 = circuit_add(in6, t77); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t79 = circuit_mul(in20, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t80 = circuit_add(in19, t79); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t81 = circuit_mul(t80, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t82 = circuit_add(in18, t81); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t83 = circuit_mul(t82, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t84 = circuit_add(in17, t83); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t85 = circuit_mul(t84, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t86 = circuit_add(in16, t85); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t87 = circuit_mul(t86, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t88 = circuit_add(in15, t87); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t89 = circuit_mul(t88, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t90 = circuit_add(in14, t89); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t91 = circuit_mul(t90, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t92 = circuit_add(in13, t91); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t93 = circuit_inverse(t92);
-    let t94 = circuit_mul(t78, t93);
-    let t95 = circuit_mul(in28, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t96 = circuit_add(in27, t95); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t97 = circuit_mul(t96, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t98 = circuit_add(in26, t97); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t99 = circuit_mul(t98, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t100 = circuit_add(in25, t99); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t101 = circuit_mul(t100, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t102 = circuit_add(in24, t101); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t103 = circuit_mul(t102, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t104 = circuit_add(in23, t103); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t105 = circuit_mul(t104, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t106 = circuit_add(in22, t105); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t107 = circuit_mul(t106, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t108 = circuit_add(in21, t107); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t109 = circuit_mul(in39, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t110 = circuit_add(in38, t109); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t112 = circuit_add(in37, t111); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t113 = circuit_mul(t112, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t114 = circuit_add(in36, t113); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t115 = circuit_mul(t114, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t116 = circuit_add(in35, t115); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t117 = circuit_mul(t116, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t118 = circuit_add(in34, t117); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t119 = circuit_mul(t118, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t120 = circuit_add(in33, t119); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t122 = circuit_add(in32, t121); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t123 = circuit_mul(t122, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t124 = circuit_add(in31, t123); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t126 = circuit_add(in30, t125); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t128 = circuit_add(in29, t127); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t129 = circuit_inverse(t128);
-    let t130 = circuit_mul(t108, t129);
-    let t131 = circuit_mul(in3, t130);
-    let t132 = circuit_add(t94, t131);
-    let t133 = circuit_mul(in5, t132);
-    let t134 = circuit_sub(t66, t133);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t134,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in39
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t134);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43) = (CE::<CI<42>> {}, CE::<CI<43>> {});
-    let t0 = circuit_mul(in13, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in12, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in11, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in10, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in9, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in8, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in7, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t13 = circuit_add(in6, t12); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t14 = circuit_mul(in22, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t15 = circuit_add(in21, t14); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t17 = circuit_add(in20, t16); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t19 = circuit_add(in19, t18); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t21 = circuit_add(in18, t20); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t23 = circuit_add(in17, t22); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in16, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t27 = circuit_add(in15, t26); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t29 = circuit_add(in14, t28); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t30 = circuit_inverse(t29);
-    let t31 = circuit_mul(t13, t30);
-    let t32 = circuit_mul(in31, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t33 = circuit_add(in30, t32); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t35 = circuit_add(in29, t34); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t37 = circuit_add(in28, t36); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t39 = circuit_add(in27, t38); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t41 = circuit_add(in26, t40); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t43 = circuit_add(in25, t42); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t45 = circuit_add(in24, t44); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t47 = circuit_add(in23, t46); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t48 = circuit_mul(in43, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t49 = circuit_add(in42, t48); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t51 = circuit_add(in41, t50); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t53 = circuit_add(in40, t52); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t54 = circuit_mul(t53, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t55 = circuit_add(in39, t54); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t57 = circuit_add(in38, t56); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t59 = circuit_add(in37, t58); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t60 = circuit_mul(t59, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t61 = circuit_add(in36, t60); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t62 = circuit_mul(t61, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t63 = circuit_add(in35, t62); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t64 = circuit_mul(t63, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t65 = circuit_add(in34, t64); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t66 = circuit_mul(t65, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t67 = circuit_add(in33, t66); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t68 = circuit_mul(t67, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t69 = circuit_add(in32, t68); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t70 = circuit_inverse(t69);
-    let t71 = circuit_mul(t47, t70);
-    let t72 = circuit_mul(in1, t71);
-    let t73 = circuit_add(t31, t72);
-    let t74 = circuit_mul(in4, t73);
-    let t75 = circuit_mul(in13, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t76 = circuit_add(in12, t75); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t77 = circuit_mul(t76, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t78 = circuit_add(in11, t77); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t79 = circuit_mul(t78, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t80 = circuit_add(in10, t79); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t81 = circuit_mul(t80, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t82 = circuit_add(in9, t81); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t83 = circuit_mul(t82, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t84 = circuit_add(in8, t83); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t85 = circuit_mul(t84, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t86 = circuit_add(in7, t85); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t87 = circuit_mul(t86, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t88 = circuit_add(in6, t87); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t89 = circuit_mul(in22, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t90 = circuit_add(in21, t89); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t91 = circuit_mul(t90, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t92 = circuit_add(in20, t91); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t93 = circuit_mul(t92, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t94 = circuit_add(in19, t93); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t95 = circuit_mul(t94, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t96 = circuit_add(in18, t95); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t97 = circuit_mul(t96, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t98 = circuit_add(in17, t97); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t99 = circuit_mul(t98, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t100 = circuit_add(in16, t99); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t101 = circuit_mul(t100, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t102 = circuit_add(in15, t101); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t103 = circuit_mul(t102, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t104 = circuit_add(in14, t103); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t105 = circuit_inverse(t104);
-    let t106 = circuit_mul(t88, t105);
-    let t107 = circuit_mul(in31, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t108 = circuit_add(in30, t107); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t109 = circuit_mul(t108, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t110 = circuit_add(in29, t109); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t112 = circuit_add(in28, t111); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t113 = circuit_mul(t112, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t114 = circuit_add(in27, t113); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t115 = circuit_mul(t114, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t116 = circuit_add(in26, t115); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t117 = circuit_mul(t116, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t118 = circuit_add(in25, t117); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t119 = circuit_mul(t118, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t120 = circuit_add(in24, t119); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t122 = circuit_add(in23, t121); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t123 = circuit_mul(in43, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t124 = circuit_add(in42, t123); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t126 = circuit_add(in41, t125); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t128 = circuit_add(in40, t127); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t129 = circuit_mul(t128, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t130 = circuit_add(in39, t129); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t131 = circuit_mul(t130, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t132 = circuit_add(in38, t131); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t133 = circuit_mul(t132, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t134 = circuit_add(in37, t133); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t135 = circuit_mul(t134, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t136 = circuit_add(in36, t135); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t137 = circuit_mul(t136, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t138 = circuit_add(in35, t137); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t139 = circuit_mul(t138, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t140 = circuit_add(in34, t139); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t141 = circuit_mul(t140, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t142 = circuit_add(in33, t141); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t143 = circuit_mul(t142, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t144 = circuit_add(in32, t143); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t145 = circuit_inverse(t144);
-    let t146 = circuit_mul(t122, t145);
-    let t147 = circuit_mul(in3, t146);
-    let t148 = circuit_add(t106, t147);
-    let t149 = circuit_mul(in5, t148);
-    let t150 = circuit_sub(t74, t149);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t150,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in43
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t150);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let t0 = circuit_mul(in14, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in13, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in12, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in11, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in10, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in9, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in8, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t13 = circuit_add(in7, t12); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t15 = circuit_add(in6, t14); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t16 = circuit_mul(in24, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t17 = circuit_add(in23, t16); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t19 = circuit_add(in22, t18); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t21 = circuit_add(in21, t20); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t23 = circuit_add(in20, t22); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in19, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t27 = circuit_add(in18, t26); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t29 = circuit_add(in17, t28); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t31 = circuit_add(in16, t30); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t33 = circuit_add(in15, t32); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t34 = circuit_inverse(t33);
-    let t35 = circuit_mul(t15, t34);
-    let t36 = circuit_mul(in34, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t37 = circuit_add(in33, t36); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t39 = circuit_add(in32, t38); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t41 = circuit_add(in31, t40); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t43 = circuit_add(in30, t42); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t45 = circuit_add(in29, t44); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t47 = circuit_add(in28, t46); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t48 = circuit_mul(t47, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t49 = circuit_add(in27, t48); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t51 = circuit_add(in26, t50); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t53 = circuit_add(in25, t52); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t54 = circuit_mul(in47, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t55 = circuit_add(in46, t54); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t57 = circuit_add(in45, t56); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t59 = circuit_add(in44, t58); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t60 = circuit_mul(t59, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t61 = circuit_add(in43, t60); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t62 = circuit_mul(t61, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t63 = circuit_add(in42, t62); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t64 = circuit_mul(t63, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t65 = circuit_add(in41, t64); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t66 = circuit_mul(t65, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t67 = circuit_add(in40, t66); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t68 = circuit_mul(t67, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t69 = circuit_add(in39, t68); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t70 = circuit_mul(t69, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t71 = circuit_add(in38, t70); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t72 = circuit_mul(t71, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t73 = circuit_add(in37, t72); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t74 = circuit_mul(t73, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t75 = circuit_add(in36, t74); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t76 = circuit_mul(t75, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t77 = circuit_add(in35, t76); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t78 = circuit_inverse(t77);
-    let t79 = circuit_mul(t53, t78);
-    let t80 = circuit_mul(in1, t79);
-    let t81 = circuit_add(t35, t80);
-    let t82 = circuit_mul(in4, t81);
-    let t83 = circuit_mul(in14, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t84 = circuit_add(in13, t83); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t85 = circuit_mul(t84, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t86 = circuit_add(in12, t85); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t87 = circuit_mul(t86, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t88 = circuit_add(in11, t87); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t89 = circuit_mul(t88, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t90 = circuit_add(in10, t89); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t91 = circuit_mul(t90, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t92 = circuit_add(in9, t91); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t93 = circuit_mul(t92, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t94 = circuit_add(in8, t93); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t95 = circuit_mul(t94, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t96 = circuit_add(in7, t95); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t97 = circuit_mul(t96, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t98 = circuit_add(in6, t97); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t99 = circuit_mul(in24, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t100 = circuit_add(in23, t99); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t101 = circuit_mul(t100, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t102 = circuit_add(in22, t101); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t103 = circuit_mul(t102, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t104 = circuit_add(in21, t103); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t105 = circuit_mul(t104, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t106 = circuit_add(in20, t105); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t107 = circuit_mul(t106, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t108 = circuit_add(in19, t107); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t109 = circuit_mul(t108, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t110 = circuit_add(in18, t109); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t112 = circuit_add(in17, t111); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t113 = circuit_mul(t112, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t114 = circuit_add(in16, t113); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t115 = circuit_mul(t114, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t116 = circuit_add(in15, t115); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t117 = circuit_inverse(t116);
-    let t118 = circuit_mul(t98, t117);
-    let t119 = circuit_mul(in34, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t120 = circuit_add(in33, t119); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t122 = circuit_add(in32, t121); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t123 = circuit_mul(t122, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t124 = circuit_add(in31, t123); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t126 = circuit_add(in30, t125); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t128 = circuit_add(in29, t127); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t129 = circuit_mul(t128, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t130 = circuit_add(in28, t129); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t131 = circuit_mul(t130, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t132 = circuit_add(in27, t131); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t133 = circuit_mul(t132, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t134 = circuit_add(in26, t133); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t135 = circuit_mul(t134, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t136 = circuit_add(in25, t135); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t137 = circuit_mul(in47, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t138 = circuit_add(in46, t137); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t139 = circuit_mul(t138, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t140 = circuit_add(in45, t139); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t141 = circuit_mul(t140, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t142 = circuit_add(in44, t141); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t143 = circuit_mul(t142, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t144 = circuit_add(in43, t143); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t145 = circuit_mul(t144, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t146 = circuit_add(in42, t145); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t147 = circuit_mul(t146, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t148 = circuit_add(in41, t147); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t149 = circuit_mul(t148, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t150 = circuit_add(in40, t149); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t151 = circuit_mul(t150, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t152 = circuit_add(in39, t151); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t153 = circuit_mul(t152, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t154 = circuit_add(in38, t153); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t155 = circuit_mul(t154, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t156 = circuit_add(in37, t155); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t157 = circuit_mul(t156, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t158 = circuit_add(in36, t157); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t159 = circuit_mul(t158, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t160 = circuit_add(in35, t159); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t161 = circuit_inverse(t160);
-    let t162 = circuit_mul(t136, t161);
-    let t163 = circuit_mul(in3, t162);
-    let t164 = circuit_add(t118, t163);
-    let t165 = circuit_mul(in5, t164);
-    let t166 = circuit_sub(t82, t165);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t166,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in47
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t166);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let in51 = CE::<CI<51>> {};
-    let t0 = circuit_mul(in15, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in14, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in13, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in12, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in11, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in10, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in9, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t13 = circuit_add(in8, t12); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t15 = circuit_add(in7, t14); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t17 = circuit_add(in6, t16); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t18 = circuit_mul(in26, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t19 = circuit_add(in25, t18); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t21 = circuit_add(in24, t20); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t23 = circuit_add(in23, t22); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in22, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t27 = circuit_add(in21, t26); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t29 = circuit_add(in20, t28); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t31 = circuit_add(in19, t30); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t33 = circuit_add(in18, t32); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t35 = circuit_add(in17, t34); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t37 = circuit_add(in16, t36); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t38 = circuit_inverse(t37);
-    let t39 = circuit_mul(t17, t38);
-    let t40 = circuit_mul(in37, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t41 = circuit_add(in36, t40); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t43 = circuit_add(in35, t42); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t45 = circuit_add(in34, t44); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t47 = circuit_add(in33, t46); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t48 = circuit_mul(t47, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t49 = circuit_add(in32, t48); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t51 = circuit_add(in31, t50); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t53 = circuit_add(in30, t52); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t54 = circuit_mul(t53, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t55 = circuit_add(in29, t54); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t57 = circuit_add(in28, t56); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t59 = circuit_add(in27, t58); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t60 = circuit_mul(in51, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t61 = circuit_add(in50, t60); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t62 = circuit_mul(t61, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t63 = circuit_add(in49, t62); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t64 = circuit_mul(t63, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t65 = circuit_add(in48, t64); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t66 = circuit_mul(t65, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t67 = circuit_add(in47, t66); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t68 = circuit_mul(t67, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t69 = circuit_add(in46, t68); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t70 = circuit_mul(t69, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t71 = circuit_add(in45, t70); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t72 = circuit_mul(t71, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t73 = circuit_add(in44, t72); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t74 = circuit_mul(t73, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t75 = circuit_add(in43, t74); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t76 = circuit_mul(t75, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t77 = circuit_add(in42, t76); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t78 = circuit_mul(t77, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t79 = circuit_add(in41, t78); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t80 = circuit_mul(t79, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t81 = circuit_add(in40, t80); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t82 = circuit_mul(t81, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t83 = circuit_add(in39, t82); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t84 = circuit_mul(t83, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t85 = circuit_add(in38, t84); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t86 = circuit_inverse(t85);
-    let t87 = circuit_mul(t59, t86);
-    let t88 = circuit_mul(in1, t87);
-    let t89 = circuit_add(t39, t88);
-    let t90 = circuit_mul(in4, t89);
-    let t91 = circuit_mul(in15, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t92 = circuit_add(in14, t91); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t93 = circuit_mul(t92, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t94 = circuit_add(in13, t93); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t95 = circuit_mul(t94, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t96 = circuit_add(in12, t95); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t97 = circuit_mul(t96, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t98 = circuit_add(in11, t97); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t99 = circuit_mul(t98, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t100 = circuit_add(in10, t99); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t101 = circuit_mul(t100, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t102 = circuit_add(in9, t101); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t103 = circuit_mul(t102, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t104 = circuit_add(in8, t103); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t105 = circuit_mul(t104, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t106 = circuit_add(in7, t105); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t107 = circuit_mul(t106, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t108 = circuit_add(in6, t107); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t109 = circuit_mul(in26, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t110 = circuit_add(in25, t109); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t112 = circuit_add(in24, t111); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t113 = circuit_mul(t112, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t114 = circuit_add(in23, t113); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t115 = circuit_mul(t114, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t116 = circuit_add(in22, t115); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t117 = circuit_mul(t116, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t118 = circuit_add(in21, t117); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t119 = circuit_mul(t118, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t120 = circuit_add(in20, t119); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t122 = circuit_add(in19, t121); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t123 = circuit_mul(t122, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t124 = circuit_add(in18, t123); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t126 = circuit_add(in17, t125); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t128 = circuit_add(in16, t127); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t129 = circuit_inverse(t128);
-    let t130 = circuit_mul(t108, t129);
-    let t131 = circuit_mul(in37, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t132 = circuit_add(in36, t131); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t133 = circuit_mul(t132, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t134 = circuit_add(in35, t133); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t135 = circuit_mul(t134, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t136 = circuit_add(in34, t135); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t137 = circuit_mul(t136, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t138 = circuit_add(in33, t137); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t139 = circuit_mul(t138, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t140 = circuit_add(in32, t139); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t141 = circuit_mul(t140, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t142 = circuit_add(in31, t141); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t143 = circuit_mul(t142, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t144 = circuit_add(in30, t143); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t145 = circuit_mul(t144, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t146 = circuit_add(in29, t145); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t147 = circuit_mul(t146, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t148 = circuit_add(in28, t147); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t149 = circuit_mul(t148, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t150 = circuit_add(in27, t149); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t151 = circuit_mul(in51, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t152 = circuit_add(in50, t151); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t153 = circuit_mul(t152, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t154 = circuit_add(in49, t153); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t155 = circuit_mul(t154, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t156 = circuit_add(in48, t155); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t157 = circuit_mul(t156, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t158 = circuit_add(in47, t157); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t159 = circuit_mul(t158, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t160 = circuit_add(in46, t159); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t161 = circuit_mul(t160, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t162 = circuit_add(in45, t161); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t163 = circuit_mul(t162, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t164 = circuit_add(in44, t163); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t165 = circuit_mul(t164, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t166 = circuit_add(in43, t165); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t167 = circuit_mul(t166, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t168 = circuit_add(in42, t167); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t169 = circuit_mul(t168, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t170 = circuit_add(in41, t169); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t171 = circuit_mul(t170, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t172 = circuit_add(in40, t171); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t173 = circuit_mul(t172, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t174 = circuit_add(in39, t173); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t175 = circuit_mul(t174, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t176 = circuit_add(in38, t175); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t177 = circuit_inverse(t176);
-    let t178 = circuit_mul(t150, t177);
-    let t179 = circuit_mul(in3, t178);
-    let t180 = circuit_add(t130, t179);
-    let t181 = circuit_mul(in5, t180);
-    let t182 = circuit_sub(t90, t181);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t182,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in51
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t182);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
-    let (in54, in55) = (CE::<CI<54>> {}, CE::<CI<55>> {});
-    let t0 = circuit_mul(in16, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in15, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_9
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in14, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in13, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in12, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in11, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in10, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t13 = circuit_add(in9, t12); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t15 = circuit_add(in8, t14); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t17 = circuit_add(in7, t16); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t19 = circuit_add(in6, t18); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t20 = circuit_mul(in28, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t21 = circuit_add(in27, t20); // Eval sumdlogdiv_a_den Horner step: add coefficient_10
-    let t22 = circuit_mul(t21, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t23 = circuit_add(in26, t22); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in25, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t27 = circuit_add(in24, t26); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t29 = circuit_add(in23, t28); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t31 = circuit_add(in22, t30); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t33 = circuit_add(in21, t32); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t35 = circuit_add(in20, t34); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t37 = circuit_add(in19, t36); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t39 = circuit_add(in18, t38); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t41 = circuit_add(in17, t40); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t42 = circuit_inverse(t41);
-    let t43 = circuit_mul(t19, t42);
-    let t44 = circuit_mul(in40, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t45 = circuit_add(in39, t44); // Eval sumdlogdiv_b_num Horner step: add coefficient_10
-    let t46 = circuit_mul(t45, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t47 = circuit_add(in38, t46); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t48 = circuit_mul(t47, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t49 = circuit_add(in37, t48); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t51 = circuit_add(in36, t50); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t53 = circuit_add(in35, t52); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t54 = circuit_mul(t53, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t55 = circuit_add(in34, t54); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t57 = circuit_add(in33, t56); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t59 = circuit_add(in32, t58); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t60 = circuit_mul(t59, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t61 = circuit_add(in31, t60); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t62 = circuit_mul(t61, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t63 = circuit_add(in30, t62); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t64 = circuit_mul(t63, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t65 = circuit_add(in29, t64); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t66 = circuit_mul(in55, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t67 = circuit_add(in54, t66); // Eval sumdlogdiv_b_den Horner step: add coefficient_13
-    let t68 = circuit_mul(t67, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t69 = circuit_add(in53, t68); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t70 = circuit_mul(t69, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t71 = circuit_add(in52, t70); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t72 = circuit_mul(t71, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t73 = circuit_add(in51, t72); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t74 = circuit_mul(t73, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t75 = circuit_add(in50, t74); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t76 = circuit_mul(t75, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t77 = circuit_add(in49, t76); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t78 = circuit_mul(t77, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t79 = circuit_add(in48, t78); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t80 = circuit_mul(t79, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t81 = circuit_add(in47, t80); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t82 = circuit_mul(t81, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t83 = circuit_add(in46, t82); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t84 = circuit_mul(t83, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t85 = circuit_add(in45, t84); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t86 = circuit_mul(t85, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t87 = circuit_add(in44, t86); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t88 = circuit_mul(t87, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t89 = circuit_add(in43, t88); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t90 = circuit_mul(t89, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t91 = circuit_add(in42, t90); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t92 = circuit_mul(t91, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t93 = circuit_add(in41, t92); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t94 = circuit_inverse(t93);
-    let t95 = circuit_mul(t65, t94);
-    let t96 = circuit_mul(in1, t95);
-    let t97 = circuit_add(t43, t96);
-    let t98 = circuit_mul(in4, t97);
-    let t99 = circuit_mul(in16, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t100 = circuit_add(in15, t99); // Eval sumdlogdiv_a_num Horner step: add coefficient_9
-    let t101 = circuit_mul(t100, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t102 = circuit_add(in14, t101); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t103 = circuit_mul(t102, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t104 = circuit_add(in13, t103); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t105 = circuit_mul(t104, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t106 = circuit_add(in12, t105); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t107 = circuit_mul(t106, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t108 = circuit_add(in11, t107); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t109 = circuit_mul(t108, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t110 = circuit_add(in10, t109); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t112 = circuit_add(in9, t111); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t113 = circuit_mul(t112, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t114 = circuit_add(in8, t113); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t115 = circuit_mul(t114, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t116 = circuit_add(in7, t115); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t117 = circuit_mul(t116, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t118 = circuit_add(in6, t117); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t119 = circuit_mul(in28, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t120 = circuit_add(in27, t119); // Eval sumdlogdiv_a_den Horner step: add coefficient_10
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t122 = circuit_add(in26, t121); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t123 = circuit_mul(t122, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t124 = circuit_add(in25, t123); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t126 = circuit_add(in24, t125); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t128 = circuit_add(in23, t127); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t129 = circuit_mul(t128, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t130 = circuit_add(in22, t129); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t131 = circuit_mul(t130, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t132 = circuit_add(in21, t131); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t133 = circuit_mul(t132, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t134 = circuit_add(in20, t133); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t135 = circuit_mul(t134, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t136 = circuit_add(in19, t135); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t137 = circuit_mul(t136, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t138 = circuit_add(in18, t137); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t139 = circuit_mul(t138, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t140 = circuit_add(in17, t139); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t141 = circuit_inverse(t140);
-    let t142 = circuit_mul(t118, t141);
-    let t143 = circuit_mul(in40, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t144 = circuit_add(in39, t143); // Eval sumdlogdiv_b_num Horner step: add coefficient_10
-    let t145 = circuit_mul(t144, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t146 = circuit_add(in38, t145); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t147 = circuit_mul(t146, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t148 = circuit_add(in37, t147); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t149 = circuit_mul(t148, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t150 = circuit_add(in36, t149); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t151 = circuit_mul(t150, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t152 = circuit_add(in35, t151); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t153 = circuit_mul(t152, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t154 = circuit_add(in34, t153); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t155 = circuit_mul(t154, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t156 = circuit_add(in33, t155); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t157 = circuit_mul(t156, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t158 = circuit_add(in32, t157); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t159 = circuit_mul(t158, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t160 = circuit_add(in31, t159); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t161 = circuit_mul(t160, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t162 = circuit_add(in30, t161); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t163 = circuit_mul(t162, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t164 = circuit_add(in29, t163); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t165 = circuit_mul(in55, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t166 = circuit_add(in54, t165); // Eval sumdlogdiv_b_den Horner step: add coefficient_13
-    let t167 = circuit_mul(t166, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t168 = circuit_add(in53, t167); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t169 = circuit_mul(t168, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t170 = circuit_add(in52, t169); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t171 = circuit_mul(t170, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t172 = circuit_add(in51, t171); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t173 = circuit_mul(t172, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t174 = circuit_add(in50, t173); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t175 = circuit_mul(t174, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t176 = circuit_add(in49, t175); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t177 = circuit_mul(t176, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t178 = circuit_add(in48, t177); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t179 = circuit_mul(t178, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t180 = circuit_add(in47, t179); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t181 = circuit_mul(t180, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t182 = circuit_add(in46, t181); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t183 = circuit_mul(t182, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t184 = circuit_add(in45, t183); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t185 = circuit_mul(t184, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t186 = circuit_add(in44, t185); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t187 = circuit_mul(t186, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t188 = circuit_add(in43, t187); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t189 = circuit_mul(t188, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t190 = circuit_add(in42, t189); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t191 = circuit_mul(t190, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t192 = circuit_add(in41, t191); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t193 = circuit_inverse(t192);
-    let t194 = circuit_mul(t164, t193);
-    let t195 = circuit_mul(in3, t194);
-    let t196 = circuit_add(t142, t195);
-    let t197 = circuit_mul(in5, t196);
-    let t198 = circuit_sub(t98, t197);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t198,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in55
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t198);
-    return (res,);
-}
-#[inline]
-pub fn run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    SumDlogDivBatched: FunctionFelt<T>,
-    curve_index: usize,
-) -> (u384,) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
-    let (in54, in55, in56) = (CE::<CI<54>> {}, CE::<CI<55>> {}, CE::<CI<56>> {});
-    let (in57, in58, in59) = (CE::<CI<57>> {}, CE::<CI<58>> {}, CE::<CI<59>> {});
-    let t0 = circuit_mul(in17, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t1 = circuit_add(in16, t0); // Eval sumdlogdiv_a_num Horner step: add coefficient_10
-    let t2 = circuit_mul(t1, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t3 = circuit_add(in15, t2); // Eval sumdlogdiv_a_num Horner step: add coefficient_9
-    let t4 = circuit_mul(t3, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t5 = circuit_add(in14, t4); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t6 = circuit_mul(t5, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t7 = circuit_add(in13, t6); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t8 = circuit_mul(t7, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t9 = circuit_add(in12, t8); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t10 = circuit_mul(t9, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t11 = circuit_add(in11, t10); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t12 = circuit_mul(t11, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t13 = circuit_add(in10, t12); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t14 = circuit_mul(t13, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t15 = circuit_add(in9, t14); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t16 = circuit_mul(t15, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t17 = circuit_add(in8, t16); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t18 = circuit_mul(t17, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t19 = circuit_add(in7, t18); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t20 = circuit_mul(t19, in0); // Eval sumdlogdiv_a_num Horner step: multiply by xA0
-    let t21 = circuit_add(in6, t20); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t22 = circuit_mul(in30, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t23 = circuit_add(in29, t22); // Eval sumdlogdiv_a_den Horner step: add coefficient_11
-    let t24 = circuit_mul(t23, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t25 = circuit_add(in28, t24); // Eval sumdlogdiv_a_den Horner step: add coefficient_10
-    let t26 = circuit_mul(t25, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t27 = circuit_add(in27, t26); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t28 = circuit_mul(t27, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t29 = circuit_add(in26, t28); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t30 = circuit_mul(t29, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t31 = circuit_add(in25, t30); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t32 = circuit_mul(t31, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t33 = circuit_add(in24, t32); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t34 = circuit_mul(t33, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t35 = circuit_add(in23, t34); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t36 = circuit_mul(t35, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t37 = circuit_add(in22, t36); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t38 = circuit_mul(t37, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t39 = circuit_add(in21, t38); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t40 = circuit_mul(t39, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t41 = circuit_add(in20, t40); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t42 = circuit_mul(t41, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t43 = circuit_add(in19, t42); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t44 = circuit_mul(t43, in0); // Eval sumdlogdiv_a_den Horner step: multiply by xA0
-    let t45 = circuit_add(in18, t44); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t46 = circuit_inverse(t45);
-    let t47 = circuit_mul(t21, t46);
-    let t48 = circuit_mul(in43, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t49 = circuit_add(in42, t48); // Eval sumdlogdiv_b_num Horner step: add coefficient_11
-    let t50 = circuit_mul(t49, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t51 = circuit_add(in41, t50); // Eval sumdlogdiv_b_num Horner step: add coefficient_10
-    let t52 = circuit_mul(t51, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t53 = circuit_add(in40, t52); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t54 = circuit_mul(t53, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t55 = circuit_add(in39, t54); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t56 = circuit_mul(t55, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t57 = circuit_add(in38, t56); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t58 = circuit_mul(t57, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t59 = circuit_add(in37, t58); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t60 = circuit_mul(t59, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t61 = circuit_add(in36, t60); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t62 = circuit_mul(t61, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t63 = circuit_add(in35, t62); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t64 = circuit_mul(t63, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t65 = circuit_add(in34, t64); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t66 = circuit_mul(t65, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t67 = circuit_add(in33, t66); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t68 = circuit_mul(t67, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t69 = circuit_add(in32, t68); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t70 = circuit_mul(t69, in0); // Eval sumdlogdiv_b_num Horner step: multiply by xA0
-    let t71 = circuit_add(in31, t70); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t72 = circuit_mul(in59, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t73 = circuit_add(in58, t72); // Eval sumdlogdiv_b_den Horner step: add coefficient_14
-    let t74 = circuit_mul(t73, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t75 = circuit_add(in57, t74); // Eval sumdlogdiv_b_den Horner step: add coefficient_13
-    let t76 = circuit_mul(t75, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t77 = circuit_add(in56, t76); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t78 = circuit_mul(t77, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t79 = circuit_add(in55, t78); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t80 = circuit_mul(t79, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t81 = circuit_add(in54, t80); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t82 = circuit_mul(t81, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t83 = circuit_add(in53, t82); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t84 = circuit_mul(t83, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t85 = circuit_add(in52, t84); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t86 = circuit_mul(t85, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t87 = circuit_add(in51, t86); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t88 = circuit_mul(t87, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t89 = circuit_add(in50, t88); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t90 = circuit_mul(t89, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t91 = circuit_add(in49, t90); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t92 = circuit_mul(t91, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t93 = circuit_add(in48, t92); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t94 = circuit_mul(t93, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t95 = circuit_add(in47, t94); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t96 = circuit_mul(t95, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t97 = circuit_add(in46, t96); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t98 = circuit_mul(t97, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t99 = circuit_add(in45, t98); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t100 = circuit_mul(t99, in0); // Eval sumdlogdiv_b_den Horner step: multiply by xA0
-    let t101 = circuit_add(in44, t100); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t102 = circuit_inverse(t101);
-    let t103 = circuit_mul(t71, t102);
-    let t104 = circuit_mul(in1, t103);
-    let t105 = circuit_add(t47, t104);
-    let t106 = circuit_mul(in4, t105);
-    let t107 = circuit_mul(in17, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t108 = circuit_add(in16, t107); // Eval sumdlogdiv_a_num Horner step: add coefficient_10
-    let t109 = circuit_mul(t108, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t110 = circuit_add(in15, t109); // Eval sumdlogdiv_a_num Horner step: add coefficient_9
-    let t111 = circuit_mul(t110, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t112 = circuit_add(in14, t111); // Eval sumdlogdiv_a_num Horner step: add coefficient_8
-    let t113 = circuit_mul(t112, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t114 = circuit_add(in13, t113); // Eval sumdlogdiv_a_num Horner step: add coefficient_7
-    let t115 = circuit_mul(t114, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t116 = circuit_add(in12, t115); // Eval sumdlogdiv_a_num Horner step: add coefficient_6
-    let t117 = circuit_mul(t116, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t118 = circuit_add(in11, t117); // Eval sumdlogdiv_a_num Horner step: add coefficient_5
-    let t119 = circuit_mul(t118, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t120 = circuit_add(in10, t119); // Eval sumdlogdiv_a_num Horner step: add coefficient_4
-    let t121 = circuit_mul(t120, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t122 = circuit_add(in9, t121); // Eval sumdlogdiv_a_num Horner step: add coefficient_3
-    let t123 = circuit_mul(t122, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t124 = circuit_add(in8, t123); // Eval sumdlogdiv_a_num Horner step: add coefficient_2
-    let t125 = circuit_mul(t124, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t126 = circuit_add(in7, t125); // Eval sumdlogdiv_a_num Horner step: add coefficient_1
-    let t127 = circuit_mul(t126, in2); // Eval sumdlogdiv_a_num Horner step: multiply by xA2
-    let t128 = circuit_add(in6, t127); // Eval sumdlogdiv_a_num Horner step: add coefficient_0
-    let t129 = circuit_mul(in30, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t130 = circuit_add(in29, t129); // Eval sumdlogdiv_a_den Horner step: add coefficient_11
-    let t131 = circuit_mul(t130, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t132 = circuit_add(in28, t131); // Eval sumdlogdiv_a_den Horner step: add coefficient_10
-    let t133 = circuit_mul(t132, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t134 = circuit_add(in27, t133); // Eval sumdlogdiv_a_den Horner step: add coefficient_9
-    let t135 = circuit_mul(t134, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t136 = circuit_add(in26, t135); // Eval sumdlogdiv_a_den Horner step: add coefficient_8
-    let t137 = circuit_mul(t136, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t138 = circuit_add(in25, t137); // Eval sumdlogdiv_a_den Horner step: add coefficient_7
-    let t139 = circuit_mul(t138, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t140 = circuit_add(in24, t139); // Eval sumdlogdiv_a_den Horner step: add coefficient_6
-    let t141 = circuit_mul(t140, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t142 = circuit_add(in23, t141); // Eval sumdlogdiv_a_den Horner step: add coefficient_5
-    let t143 = circuit_mul(t142, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t144 = circuit_add(in22, t143); // Eval sumdlogdiv_a_den Horner step: add coefficient_4
-    let t145 = circuit_mul(t144, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t146 = circuit_add(in21, t145); // Eval sumdlogdiv_a_den Horner step: add coefficient_3
-    let t147 = circuit_mul(t146, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t148 = circuit_add(in20, t147); // Eval sumdlogdiv_a_den Horner step: add coefficient_2
-    let t149 = circuit_mul(t148, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t150 = circuit_add(in19, t149); // Eval sumdlogdiv_a_den Horner step: add coefficient_1
-    let t151 = circuit_mul(t150, in2); // Eval sumdlogdiv_a_den Horner step: multiply by xA2
-    let t152 = circuit_add(in18, t151); // Eval sumdlogdiv_a_den Horner step: add coefficient_0
-    let t153 = circuit_inverse(t152);
-    let t154 = circuit_mul(t128, t153);
-    let t155 = circuit_mul(in43, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t156 = circuit_add(in42, t155); // Eval sumdlogdiv_b_num Horner step: add coefficient_11
-    let t157 = circuit_mul(t156, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t158 = circuit_add(in41, t157); // Eval sumdlogdiv_b_num Horner step: add coefficient_10
-    let t159 = circuit_mul(t158, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t160 = circuit_add(in40, t159); // Eval sumdlogdiv_b_num Horner step: add coefficient_9
-    let t161 = circuit_mul(t160, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t162 = circuit_add(in39, t161); // Eval sumdlogdiv_b_num Horner step: add coefficient_8
-    let t163 = circuit_mul(t162, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t164 = circuit_add(in38, t163); // Eval sumdlogdiv_b_num Horner step: add coefficient_7
-    let t165 = circuit_mul(t164, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t166 = circuit_add(in37, t165); // Eval sumdlogdiv_b_num Horner step: add coefficient_6
-    let t167 = circuit_mul(t166, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t168 = circuit_add(in36, t167); // Eval sumdlogdiv_b_num Horner step: add coefficient_5
-    let t169 = circuit_mul(t168, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t170 = circuit_add(in35, t169); // Eval sumdlogdiv_b_num Horner step: add coefficient_4
-    let t171 = circuit_mul(t170, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t172 = circuit_add(in34, t171); // Eval sumdlogdiv_b_num Horner step: add coefficient_3
-    let t173 = circuit_mul(t172, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t174 = circuit_add(in33, t173); // Eval sumdlogdiv_b_num Horner step: add coefficient_2
-    let t175 = circuit_mul(t174, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t176 = circuit_add(in32, t175); // Eval sumdlogdiv_b_num Horner step: add coefficient_1
-    let t177 = circuit_mul(t176, in2); // Eval sumdlogdiv_b_num Horner step: multiply by xA2
-    let t178 = circuit_add(in31, t177); // Eval sumdlogdiv_b_num Horner step: add coefficient_0
-    let t179 = circuit_mul(in59, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t180 = circuit_add(in58, t179); // Eval sumdlogdiv_b_den Horner step: add coefficient_14
-    let t181 = circuit_mul(t180, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t182 = circuit_add(in57, t181); // Eval sumdlogdiv_b_den Horner step: add coefficient_13
-    let t183 = circuit_mul(t182, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t184 = circuit_add(in56, t183); // Eval sumdlogdiv_b_den Horner step: add coefficient_12
-    let t185 = circuit_mul(t184, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t186 = circuit_add(in55, t185); // Eval sumdlogdiv_b_den Horner step: add coefficient_11
-    let t187 = circuit_mul(t186, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t188 = circuit_add(in54, t187); // Eval sumdlogdiv_b_den Horner step: add coefficient_10
-    let t189 = circuit_mul(t188, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t190 = circuit_add(in53, t189); // Eval sumdlogdiv_b_den Horner step: add coefficient_9
-    let t191 = circuit_mul(t190, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t192 = circuit_add(in52, t191); // Eval sumdlogdiv_b_den Horner step: add coefficient_8
-    let t193 = circuit_mul(t192, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t194 = circuit_add(in51, t193); // Eval sumdlogdiv_b_den Horner step: add coefficient_7
-    let t195 = circuit_mul(t194, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t196 = circuit_add(in50, t195); // Eval sumdlogdiv_b_den Horner step: add coefficient_6
-    let t197 = circuit_mul(t196, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t198 = circuit_add(in49, t197); // Eval sumdlogdiv_b_den Horner step: add coefficient_5
-    let t199 = circuit_mul(t198, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t200 = circuit_add(in48, t199); // Eval sumdlogdiv_b_den Horner step: add coefficient_4
-    let t201 = circuit_mul(t200, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t202 = circuit_add(in47, t201); // Eval sumdlogdiv_b_den Horner step: add coefficient_3
-    let t203 = circuit_mul(t202, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t204 = circuit_add(in46, t203); // Eval sumdlogdiv_b_den Horner step: add coefficient_2
-    let t205 = circuit_mul(t204, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t206 = circuit_add(in45, t205); // Eval sumdlogdiv_b_den Horner step: add coefficient_1
-    let t207 = circuit_mul(t206, in2); // Eval sumdlogdiv_b_den Horner step: multiply by xA2
-    let t208 = circuit_add(in44, t207); // Eval sumdlogdiv_b_den Horner step: add coefficient_0
-    let t209 = circuit_inverse(t208);
-    let t210 = circuit_mul(t178, t209);
-    let t211 = circuit_mul(in3, t210);
-    let t212 = circuit_add(t154, t211);
-    let t213 = circuit_mul(in5, t212);
-    let t214 = circuit_sub(t106, t213);
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t214,).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(A0.x); // in0
-    circuit_inputs = circuit_inputs.next_2(A0.y); // in1
-    circuit_inputs = circuit_inputs.next_2(A2.x); // in2
-    circuit_inputs = circuit_inputs.next_2(A2.y); // in3
-    circuit_inputs = circuit_inputs.next_2(coeff0); // in4
-    circuit_inputs = circuit_inputs.next_2(coeff2); // in5
-
-    for val in SumDlogDivBatched.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDivBatched.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in6 - in59
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let res: u384 = outputs.get_output(t214);
-    return (res,);
-}
-#[inline]
-pub fn run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    xA0: u384, xA2: u384, SumDlogDiv: FunctionFelt<T>, curve_index: usize,
-) -> (FunctionFeltEvaluations, FunctionFeltEvaluations, u384, u384) {
-    // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
-    let (in6, in7, in8) = (CE::<CI<6>> {}, CE::<CI<7>> {}, CE::<CI<8>> {});
-    let (in9, in10, in11) = (CE::<CI<9>> {}, CE::<CI<10>> {}, CE::<CI<11>> {});
-    let (in12, in13, in14) = (CE::<CI<12>> {}, CE::<CI<13>> {}, CE::<CI<14>> {});
-    let (in15, in16, in17) = (CE::<CI<15>> {}, CE::<CI<16>> {}, CE::<CI<17>> {});
-    let (in18, in19, in20) = (CE::<CI<18>> {}, CE::<CI<19>> {}, CE::<CI<20>> {});
-    let (in21, in22, in23) = (CE::<CI<21>> {}, CE::<CI<22>> {}, CE::<CI<23>> {});
-    let (in24, in25, in26) = (CE::<CI<24>> {}, CE::<CI<25>> {}, CE::<CI<26>> {});
-    let (in27, in28, in29) = (CE::<CI<27>> {}, CE::<CI<28>> {}, CE::<CI<29>> {});
-    let (in30, in31, in32) = (CE::<CI<30>> {}, CE::<CI<31>> {}, CE::<CI<32>> {});
-    let (in33, in34, in35) = (CE::<CI<33>> {}, CE::<CI<34>> {}, CE::<CI<35>> {});
-    let (in36, in37, in38) = (CE::<CI<36>> {}, CE::<CI<37>> {}, CE::<CI<38>> {});
-    let (in39, in40, in41) = (CE::<CI<39>> {}, CE::<CI<40>> {}, CE::<CI<41>> {});
-    let (in42, in43, in44) = (CE::<CI<42>> {}, CE::<CI<43>> {}, CE::<CI<44>> {});
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
-    let (in54, in55, in56) = (CE::<CI<54>> {}, CE::<CI<55>> {}, CE::<CI<56>> {});
-    let (in57, in58, in59) = (CE::<CI<57>> {}, CE::<CI<58>> {}, CE::<CI<59>> {});
-    let (in60, in61, in62) = (CE::<CI<60>> {}, CE::<CI<61>> {}, CE::<CI<62>> {});
-    let in63 = CE::<CI<63>> {};
-    let t0 = circuit_mul(in0, in0); // xA0^2
-    let t1 = circuit_mul(in1, in1); // xA2^2
-    let t2 = circuit_mul(t0, in0); // xA0^3
-    let t3 = circuit_mul(t1, in1); // xA2^3
-    let t4 = circuit_mul(t2, in0); // xA0^4
-    let t5 = circuit_mul(t3, in1); // xA2^4
-    let t6 = circuit_mul(t4, in0); // xA0^5
-    let t7 = circuit_mul(t5, in1); // xA2^5
-    let t8 = circuit_mul(t6, in0); // xA0^6
-    let t9 = circuit_mul(t7, in1); // xA2^6
-    let t10 = circuit_mul(t8, in0); // xA0^7
-    let t11 = circuit_mul(t9, in1); // xA2^7
-    let t12 = circuit_mul(t10, in0); // xA0^8
-    let t13 = circuit_mul(t11, in1); // xA2^8
-    let t14 = circuit_mul(t12, in0); // xA0^9
-    let t15 = circuit_mul(t13, in1); // xA2^9
-    let t16 = circuit_mul(t14, in0); // xA0^10
-    let t17 = circuit_mul(t15, in1); // xA2^10
-    let t18 = circuit_mul(t16, in0); // xA0^11
-    let t19 = circuit_mul(t17, in1); // xA2^11
-    let t20 = circuit_mul(t18, in0); // xA0^12
-    let t21 = circuit_mul(t19, in1); // xA2^12
-    let t22 = circuit_mul(t20, in0); // xA0^13
-    let t23 = circuit_mul(t21, in1); // xA2^13
-    let t24 = circuit_mul(t22, in0); // xA0^14
-    let t25 = circuit_mul(t23, in1); // xA2^14
-    let t26 = circuit_mul(t24, in0); // xA0^15
-    let t27 = circuit_mul(t25, in1); // xA2^15
-    let t28 = circuit_mul(t26, in0); // xA0^16
-    let t29 = circuit_mul(t27, in1); // xA2^16
-    let t30 = circuit_mul(t28, in0); // xA0^17
-    let t31 = circuit_mul(t29, in1); // xA2^17
-    let t32 = circuit_mul(in3, in0); // Eval sumdlogdiv_a_num step coeff_1 * xA0^1
-    let t33 = circuit_add(in2, t32); // Eval sumdlogdiv_a_num step + (coeff_1 * xA0^1)
-    let t34 = circuit_mul(in4, t0); // Eval sumdlogdiv_a_num step coeff_2 * xA0^2
-    let t35 = circuit_add(t33, t34); // Eval sumdlogdiv_a_num step + (coeff_2 * xA0^2)
-    let t36 = circuit_mul(in5, t2); // Eval sumdlogdiv_a_num step coeff_3 * xA0^3
-    let t37 = circuit_add(t35, t36); // Eval sumdlogdiv_a_num step + (coeff_3 * xA0^3)
-    let t38 = circuit_mul(in6, t4); // Eval sumdlogdiv_a_num step coeff_4 * xA0^4
-    let t39 = circuit_add(t37, t38); // Eval sumdlogdiv_a_num step + (coeff_4 * xA0^4)
-    let t40 = circuit_mul(in7, t6); // Eval sumdlogdiv_a_num step coeff_5 * xA0^5
-    let t41 = circuit_add(t39, t40); // Eval sumdlogdiv_a_num step + (coeff_5 * xA0^5)
-    let t42 = circuit_mul(in8, t8); // Eval sumdlogdiv_a_num step coeff_6 * xA0^6
-    let t43 = circuit_add(t41, t42); // Eval sumdlogdiv_a_num step + (coeff_6 * xA0^6)
-    let t44 = circuit_mul(in9, t10); // Eval sumdlogdiv_a_num step coeff_7 * xA0^7
-    let t45 = circuit_add(t43, t44); // Eval sumdlogdiv_a_num step + (coeff_7 * xA0^7)
-    let t46 = circuit_mul(in10, t12); // Eval sumdlogdiv_a_num step coeff_8 * xA0^8
-    let t47 = circuit_add(t45, t46); // Eval sumdlogdiv_a_num step + (coeff_8 * xA0^8)
-    let t48 = circuit_mul(in11, t14); // Eval sumdlogdiv_a_num step coeff_9 * xA0^9
-    let t49 = circuit_add(t47, t48); // Eval sumdlogdiv_a_num step + (coeff_9 * xA0^9)
-    let t50 = circuit_mul(in12, t16); // Eval sumdlogdiv_a_num step coeff_10 * xA0^10
-    let t51 = circuit_add(t49, t50); // Eval sumdlogdiv_a_num step + (coeff_10 * xA0^10)
-    let t52 = circuit_mul(in13, t18); // Eval sumdlogdiv_a_num step coeff_11 * xA0^11
-    let t53 = circuit_add(t51, t52); // Eval sumdlogdiv_a_num step + (coeff_11 * xA0^11)
-    let t54 = circuit_mul(in14, t20); // Eval sumdlogdiv_a_num step coeff_12 * xA0^12
-    let t55 = circuit_add(t53, t54); // Eval sumdlogdiv_a_num step + (coeff_12 * xA0^12)
-    let t56 = circuit_mul(in15, t22); // Eval sumdlogdiv_a_num step coeff_13 * xA0^13
-    let t57 = circuit_add(t55, t56); // Eval sumdlogdiv_a_num step + (coeff_13 * xA0^13)
-    let t58 = circuit_mul(in17, in0); // Eval sumdlogdiv_a_den step coeff_1 * xA0^1
-    let t59 = circuit_add(in16, t58); // Eval sumdlogdiv_a_den step + (coeff_1 * xA0^1)
-    let t60 = circuit_mul(in18, t0); // Eval sumdlogdiv_a_den step coeff_2 * xA0^2
-    let t61 = circuit_add(t59, t60); // Eval sumdlogdiv_a_den step + (coeff_2 * xA0^2)
-    let t62 = circuit_mul(in19, t2); // Eval sumdlogdiv_a_den step coeff_3 * xA0^3
-    let t63 = circuit_add(t61, t62); // Eval sumdlogdiv_a_den step + (coeff_3 * xA0^3)
-    let t64 = circuit_mul(in20, t4); // Eval sumdlogdiv_a_den step coeff_4 * xA0^4
-    let t65 = circuit_add(t63, t64); // Eval sumdlogdiv_a_den step + (coeff_4 * xA0^4)
-    let t66 = circuit_mul(in21, t6); // Eval sumdlogdiv_a_den step coeff_5 * xA0^5
-    let t67 = circuit_add(t65, t66); // Eval sumdlogdiv_a_den step + (coeff_5 * xA0^5)
-    let t68 = circuit_mul(in22, t8); // Eval sumdlogdiv_a_den step coeff_6 * xA0^6
-    let t69 = circuit_add(t67, t68); // Eval sumdlogdiv_a_den step + (coeff_6 * xA0^6)
-    let t70 = circuit_mul(in23, t10); // Eval sumdlogdiv_a_den step coeff_7 * xA0^7
-    let t71 = circuit_add(t69, t70); // Eval sumdlogdiv_a_den step + (coeff_7 * xA0^7)
-    let t72 = circuit_mul(in24, t12); // Eval sumdlogdiv_a_den step coeff_8 * xA0^8
-    let t73 = circuit_add(t71, t72); // Eval sumdlogdiv_a_den step + (coeff_8 * xA0^8)
-    let t74 = circuit_mul(in25, t14); // Eval sumdlogdiv_a_den step coeff_9 * xA0^9
-    let t75 = circuit_add(t73, t74); // Eval sumdlogdiv_a_den step + (coeff_9 * xA0^9)
-    let t76 = circuit_mul(in26, t16); // Eval sumdlogdiv_a_den step coeff_10 * xA0^10
-    let t77 = circuit_add(t75, t76); // Eval sumdlogdiv_a_den step + (coeff_10 * xA0^10)
-    let t78 = circuit_mul(in27, t18); // Eval sumdlogdiv_a_den step coeff_11 * xA0^11
-    let t79 = circuit_add(t77, t78); // Eval sumdlogdiv_a_den step + (coeff_11 * xA0^11)
-    let t80 = circuit_mul(in28, t20); // Eval sumdlogdiv_a_den step coeff_12 * xA0^12
-    let t81 = circuit_add(t79, t80); // Eval sumdlogdiv_a_den step + (coeff_12 * xA0^12)
-    let t82 = circuit_mul(in29, t22); // Eval sumdlogdiv_a_den step coeff_13 * xA0^13
-    let t83 = circuit_add(t81, t82); // Eval sumdlogdiv_a_den step + (coeff_13 * xA0^13)
-    let t84 = circuit_mul(in30, t24); // Eval sumdlogdiv_a_den step coeff_14 * xA0^14
-    let t85 = circuit_add(t83, t84); // Eval sumdlogdiv_a_den step + (coeff_14 * xA0^14)
-    let t86 = circuit_mul(in32, in0); // Eval sumdlogdiv_b_num step coeff_1 * xA0^1
-    let t87 = circuit_add(in31, t86); // Eval sumdlogdiv_b_num step + (coeff_1 * xA0^1)
-    let t88 = circuit_mul(in33, t0); // Eval sumdlogdiv_b_num step coeff_2 * xA0^2
-    let t89 = circuit_add(t87, t88); // Eval sumdlogdiv_b_num step + (coeff_2 * xA0^2)
-    let t90 = circuit_mul(in34, t2); // Eval sumdlogdiv_b_num step coeff_3 * xA0^3
-    let t91 = circuit_add(t89, t90); // Eval sumdlogdiv_b_num step + (coeff_3 * xA0^3)
-    let t92 = circuit_mul(in35, t4); // Eval sumdlogdiv_b_num step coeff_4 * xA0^4
-    let t93 = circuit_add(t91, t92); // Eval sumdlogdiv_b_num step + (coeff_4 * xA0^4)
-    let t94 = circuit_mul(in36, t6); // Eval sumdlogdiv_b_num step coeff_5 * xA0^5
-    let t95 = circuit_add(t93, t94); // Eval sumdlogdiv_b_num step + (coeff_5 * xA0^5)
-    let t96 = circuit_mul(in37, t8); // Eval sumdlogdiv_b_num step coeff_6 * xA0^6
-    let t97 = circuit_add(t95, t96); // Eval sumdlogdiv_b_num step + (coeff_6 * xA0^6)
-    let t98 = circuit_mul(in38, t10); // Eval sumdlogdiv_b_num step coeff_7 * xA0^7
-    let t99 = circuit_add(t97, t98); // Eval sumdlogdiv_b_num step + (coeff_7 * xA0^7)
-    let t100 = circuit_mul(in39, t12); // Eval sumdlogdiv_b_num step coeff_8 * xA0^8
-    let t101 = circuit_add(t99, t100); // Eval sumdlogdiv_b_num step + (coeff_8 * xA0^8)
-    let t102 = circuit_mul(in40, t14); // Eval sumdlogdiv_b_num step coeff_9 * xA0^9
-    let t103 = circuit_add(t101, t102); // Eval sumdlogdiv_b_num step + (coeff_9 * xA0^9)
-    let t104 = circuit_mul(in41, t16); // Eval sumdlogdiv_b_num step coeff_10 * xA0^10
-    let t105 = circuit_add(t103, t104); // Eval sumdlogdiv_b_num step + (coeff_10 * xA0^10)
-    let t106 = circuit_mul(in42, t18); // Eval sumdlogdiv_b_num step coeff_11 * xA0^11
-    let t107 = circuit_add(t105, t106); // Eval sumdlogdiv_b_num step + (coeff_11 * xA0^11)
-    let t108 = circuit_mul(in43, t20); // Eval sumdlogdiv_b_num step coeff_12 * xA0^12
-    let t109 = circuit_add(t107, t108); // Eval sumdlogdiv_b_num step + (coeff_12 * xA0^12)
-    let t110 = circuit_mul(in44, t22); // Eval sumdlogdiv_b_num step coeff_13 * xA0^13
-    let t111 = circuit_add(t109, t110); // Eval sumdlogdiv_b_num step + (coeff_13 * xA0^13)
-    let t112 = circuit_mul(in45, t24); // Eval sumdlogdiv_b_num step coeff_14 * xA0^14
-    let t113 = circuit_add(t111, t112); // Eval sumdlogdiv_b_num step + (coeff_14 * xA0^14)
-    let t114 = circuit_mul(in47, in0); // Eval sumdlogdiv_b_den step coeff_1 * xA0^1
-    let t115 = circuit_add(in46, t114); // Eval sumdlogdiv_b_den step + (coeff_1 * xA0^1)
-    let t116 = circuit_mul(in48, t0); // Eval sumdlogdiv_b_den step coeff_2 * xA0^2
-    let t117 = circuit_add(t115, t116); // Eval sumdlogdiv_b_den step + (coeff_2 * xA0^2)
-    let t118 = circuit_mul(in49, t2); // Eval sumdlogdiv_b_den step coeff_3 * xA0^3
-    let t119 = circuit_add(t117, t118); // Eval sumdlogdiv_b_den step + (coeff_3 * xA0^3)
-    let t120 = circuit_mul(in50, t4); // Eval sumdlogdiv_b_den step coeff_4 * xA0^4
-    let t121 = circuit_add(t119, t120); // Eval sumdlogdiv_b_den step + (coeff_4 * xA0^4)
-    let t122 = circuit_mul(in51, t6); // Eval sumdlogdiv_b_den step coeff_5 * xA0^5
-    let t123 = circuit_add(t121, t122); // Eval sumdlogdiv_b_den step + (coeff_5 * xA0^5)
-    let t124 = circuit_mul(in52, t8); // Eval sumdlogdiv_b_den step coeff_6 * xA0^6
-    let t125 = circuit_add(t123, t124); // Eval sumdlogdiv_b_den step + (coeff_6 * xA0^6)
-    let t126 = circuit_mul(in53, t10); // Eval sumdlogdiv_b_den step coeff_7 * xA0^7
-    let t127 = circuit_add(t125, t126); // Eval sumdlogdiv_b_den step + (coeff_7 * xA0^7)
-    let t128 = circuit_mul(in54, t12); // Eval sumdlogdiv_b_den step coeff_8 * xA0^8
-    let t129 = circuit_add(t127, t128); // Eval sumdlogdiv_b_den step + (coeff_8 * xA0^8)
-    let t130 = circuit_mul(in55, t14); // Eval sumdlogdiv_b_den step coeff_9 * xA0^9
-    let t131 = circuit_add(t129, t130); // Eval sumdlogdiv_b_den step + (coeff_9 * xA0^9)
-    let t132 = circuit_mul(in56, t16); // Eval sumdlogdiv_b_den step coeff_10 * xA0^10
-    let t133 = circuit_add(t131, t132); // Eval sumdlogdiv_b_den step + (coeff_10 * xA0^10)
-    let t134 = circuit_mul(in57, t18); // Eval sumdlogdiv_b_den step coeff_11 * xA0^11
-    let t135 = circuit_add(t133, t134); // Eval sumdlogdiv_b_den step + (coeff_11 * xA0^11)
-    let t136 = circuit_mul(in58, t20); // Eval sumdlogdiv_b_den step coeff_12 * xA0^12
-    let t137 = circuit_add(t135, t136); // Eval sumdlogdiv_b_den step + (coeff_12 * xA0^12)
-    let t138 = circuit_mul(in59, t22); // Eval sumdlogdiv_b_den step coeff_13 * xA0^13
-    let t139 = circuit_add(t137, t138); // Eval sumdlogdiv_b_den step + (coeff_13 * xA0^13)
-    let t140 = circuit_mul(in60, t24); // Eval sumdlogdiv_b_den step coeff_14 * xA0^14
-    let t141 = circuit_add(t139, t140); // Eval sumdlogdiv_b_den step + (coeff_14 * xA0^14)
-    let t142 = circuit_mul(in61, t26); // Eval sumdlogdiv_b_den step coeff_15 * xA0^15
-    let t143 = circuit_add(t141, t142); // Eval sumdlogdiv_b_den step + (coeff_15 * xA0^15)
-    let t144 = circuit_mul(in62, t28); // Eval sumdlogdiv_b_den step coeff_16 * xA0^16
-    let t145 = circuit_add(t143, t144); // Eval sumdlogdiv_b_den step + (coeff_16 * xA0^16)
-    let t146 = circuit_mul(in63, t30); // Eval sumdlogdiv_b_den step coeff_17 * xA0^17
-    let t147 = circuit_add(t145, t146); // Eval sumdlogdiv_b_den step + (coeff_17 * xA0^17)
-    let t148 = circuit_mul(in3, in1); // Eval sumdlogdiv_a_num step coeff_1 * xA2^1
-    let t149 = circuit_add(in2, t148); // Eval sumdlogdiv_a_num step + (coeff_1 * xA2^1)
-    let t150 = circuit_mul(in4, t1); // Eval sumdlogdiv_a_num step coeff_2 * xA2^2
-    let t151 = circuit_add(t149, t150); // Eval sumdlogdiv_a_num step + (coeff_2 * xA2^2)
-    let t152 = circuit_mul(in5, t3); // Eval sumdlogdiv_a_num step coeff_3 * xA2^3
-    let t153 = circuit_add(t151, t152); // Eval sumdlogdiv_a_num step + (coeff_3 * xA2^3)
-    let t154 = circuit_mul(in6, t5); // Eval sumdlogdiv_a_num step coeff_4 * xA2^4
-    let t155 = circuit_add(t153, t154); // Eval sumdlogdiv_a_num step + (coeff_4 * xA2^4)
-    let t156 = circuit_mul(in7, t7); // Eval sumdlogdiv_a_num step coeff_5 * xA2^5
-    let t157 = circuit_add(t155, t156); // Eval sumdlogdiv_a_num step + (coeff_5 * xA2^5)
-    let t158 = circuit_mul(in8, t9); // Eval sumdlogdiv_a_num step coeff_6 * xA2^6
-    let t159 = circuit_add(t157, t158); // Eval sumdlogdiv_a_num step + (coeff_6 * xA2^6)
-    let t160 = circuit_mul(in9, t11); // Eval sumdlogdiv_a_num step coeff_7 * xA2^7
-    let t161 = circuit_add(t159, t160); // Eval sumdlogdiv_a_num step + (coeff_7 * xA2^7)
-    let t162 = circuit_mul(in10, t13); // Eval sumdlogdiv_a_num step coeff_8 * xA2^8
-    let t163 = circuit_add(t161, t162); // Eval sumdlogdiv_a_num step + (coeff_8 * xA2^8)
-    let t164 = circuit_mul(in11, t15); // Eval sumdlogdiv_a_num step coeff_9 * xA2^9
-    let t165 = circuit_add(t163, t164); // Eval sumdlogdiv_a_num step + (coeff_9 * xA2^9)
-    let t166 = circuit_mul(in12, t17); // Eval sumdlogdiv_a_num step coeff_10 * xA2^10
-    let t167 = circuit_add(t165, t166); // Eval sumdlogdiv_a_num step + (coeff_10 * xA2^10)
-    let t168 = circuit_mul(in13, t19); // Eval sumdlogdiv_a_num step coeff_11 * xA2^11
-    let t169 = circuit_add(t167, t168); // Eval sumdlogdiv_a_num step + (coeff_11 * xA2^11)
-    let t170 = circuit_mul(in14, t21); // Eval sumdlogdiv_a_num step coeff_12 * xA2^12
-    let t171 = circuit_add(t169, t170); // Eval sumdlogdiv_a_num step + (coeff_12 * xA2^12)
-    let t172 = circuit_mul(in15, t23); // Eval sumdlogdiv_a_num step coeff_13 * xA2^13
-    let t173 = circuit_add(t171, t172); // Eval sumdlogdiv_a_num step + (coeff_13 * xA2^13)
-    let t174 = circuit_mul(in17, in1); // Eval sumdlogdiv_a_den step coeff_1 * xA2^1
-    let t175 = circuit_add(in16, t174); // Eval sumdlogdiv_a_den step + (coeff_1 * xA2^1)
-    let t176 = circuit_mul(in18, t1); // Eval sumdlogdiv_a_den step coeff_2 * xA2^2
-    let t177 = circuit_add(t175, t176); // Eval sumdlogdiv_a_den step + (coeff_2 * xA2^2)
-    let t178 = circuit_mul(in19, t3); // Eval sumdlogdiv_a_den step coeff_3 * xA2^3
-    let t179 = circuit_add(t177, t178); // Eval sumdlogdiv_a_den step + (coeff_3 * xA2^3)
-    let t180 = circuit_mul(in20, t5); // Eval sumdlogdiv_a_den step coeff_4 * xA2^4
-    let t181 = circuit_add(t179, t180); // Eval sumdlogdiv_a_den step + (coeff_4 * xA2^4)
-    let t182 = circuit_mul(in21, t7); // Eval sumdlogdiv_a_den step coeff_5 * xA2^5
-    let t183 = circuit_add(t181, t182); // Eval sumdlogdiv_a_den step + (coeff_5 * xA2^5)
-    let t184 = circuit_mul(in22, t9); // Eval sumdlogdiv_a_den step coeff_6 * xA2^6
-    let t185 = circuit_add(t183, t184); // Eval sumdlogdiv_a_den step + (coeff_6 * xA2^6)
-    let t186 = circuit_mul(in23, t11); // Eval sumdlogdiv_a_den step coeff_7 * xA2^7
-    let t187 = circuit_add(t185, t186); // Eval sumdlogdiv_a_den step + (coeff_7 * xA2^7)
-    let t188 = circuit_mul(in24, t13); // Eval sumdlogdiv_a_den step coeff_8 * xA2^8
-    let t189 = circuit_add(t187, t188); // Eval sumdlogdiv_a_den step + (coeff_8 * xA2^8)
-    let t190 = circuit_mul(in25, t15); // Eval sumdlogdiv_a_den step coeff_9 * xA2^9
-    let t191 = circuit_add(t189, t190); // Eval sumdlogdiv_a_den step + (coeff_9 * xA2^9)
-    let t192 = circuit_mul(in26, t17); // Eval sumdlogdiv_a_den step coeff_10 * xA2^10
-    let t193 = circuit_add(t191, t192); // Eval sumdlogdiv_a_den step + (coeff_10 * xA2^10)
-    let t194 = circuit_mul(in27, t19); // Eval sumdlogdiv_a_den step coeff_11 * xA2^11
-    let t195 = circuit_add(t193, t194); // Eval sumdlogdiv_a_den step + (coeff_11 * xA2^11)
-    let t196 = circuit_mul(in28, t21); // Eval sumdlogdiv_a_den step coeff_12 * xA2^12
-    let t197 = circuit_add(t195, t196); // Eval sumdlogdiv_a_den step + (coeff_12 * xA2^12)
-    let t198 = circuit_mul(in29, t23); // Eval sumdlogdiv_a_den step coeff_13 * xA2^13
-    let t199 = circuit_add(t197, t198); // Eval sumdlogdiv_a_den step + (coeff_13 * xA2^13)
-    let t200 = circuit_mul(in30, t25); // Eval sumdlogdiv_a_den step coeff_14 * xA2^14
-    let t201 = circuit_add(t199, t200); // Eval sumdlogdiv_a_den step + (coeff_14 * xA2^14)
-    let t202 = circuit_mul(in32, in1); // Eval sumdlogdiv_b_num step coeff_1 * xA2^1
-    let t203 = circuit_add(in31, t202); // Eval sumdlogdiv_b_num step + (coeff_1 * xA2^1)
-    let t204 = circuit_mul(in33, t1); // Eval sumdlogdiv_b_num step coeff_2 * xA2^2
-    let t205 = circuit_add(t203, t204); // Eval sumdlogdiv_b_num step + (coeff_2 * xA2^2)
-    let t206 = circuit_mul(in34, t3); // Eval sumdlogdiv_b_num step coeff_3 * xA2^3
-    let t207 = circuit_add(t205, t206); // Eval sumdlogdiv_b_num step + (coeff_3 * xA2^3)
-    let t208 = circuit_mul(in35, t5); // Eval sumdlogdiv_b_num step coeff_4 * xA2^4
-    let t209 = circuit_add(t207, t208); // Eval sumdlogdiv_b_num step + (coeff_4 * xA2^4)
-    let t210 = circuit_mul(in36, t7); // Eval sumdlogdiv_b_num step coeff_5 * xA2^5
-    let t211 = circuit_add(t209, t210); // Eval sumdlogdiv_b_num step + (coeff_5 * xA2^5)
-    let t212 = circuit_mul(in37, t9); // Eval sumdlogdiv_b_num step coeff_6 * xA2^6
-    let t213 = circuit_add(t211, t212); // Eval sumdlogdiv_b_num step + (coeff_6 * xA2^6)
-    let t214 = circuit_mul(in38, t11); // Eval sumdlogdiv_b_num step coeff_7 * xA2^7
-    let t215 = circuit_add(t213, t214); // Eval sumdlogdiv_b_num step + (coeff_7 * xA2^7)
-    let t216 = circuit_mul(in39, t13); // Eval sumdlogdiv_b_num step coeff_8 * xA2^8
-    let t217 = circuit_add(t215, t216); // Eval sumdlogdiv_b_num step + (coeff_8 * xA2^8)
-    let t218 = circuit_mul(in40, t15); // Eval sumdlogdiv_b_num step coeff_9 * xA2^9
-    let t219 = circuit_add(t217, t218); // Eval sumdlogdiv_b_num step + (coeff_9 * xA2^9)
-    let t220 = circuit_mul(in41, t17); // Eval sumdlogdiv_b_num step coeff_10 * xA2^10
-    let t221 = circuit_add(t219, t220); // Eval sumdlogdiv_b_num step + (coeff_10 * xA2^10)
-    let t222 = circuit_mul(in42, t19); // Eval sumdlogdiv_b_num step coeff_11 * xA2^11
-    let t223 = circuit_add(t221, t222); // Eval sumdlogdiv_b_num step + (coeff_11 * xA2^11)
-    let t224 = circuit_mul(in43, t21); // Eval sumdlogdiv_b_num step coeff_12 * xA2^12
-    let t225 = circuit_add(t223, t224); // Eval sumdlogdiv_b_num step + (coeff_12 * xA2^12)
-    let t226 = circuit_mul(in44, t23); // Eval sumdlogdiv_b_num step coeff_13 * xA2^13
-    let t227 = circuit_add(t225, t226); // Eval sumdlogdiv_b_num step + (coeff_13 * xA2^13)
-    let t228 = circuit_mul(in45, t25); // Eval sumdlogdiv_b_num step coeff_14 * xA2^14
-    let t229 = circuit_add(t227, t228); // Eval sumdlogdiv_b_num step + (coeff_14 * xA2^14)
-    let t230 = circuit_mul(in47, in1); // Eval sumdlogdiv_b_den step coeff_1 * xA2^1
-    let t231 = circuit_add(in46, t230); // Eval sumdlogdiv_b_den step + (coeff_1 * xA2^1)
-    let t232 = circuit_mul(in48, t1); // Eval sumdlogdiv_b_den step coeff_2 * xA2^2
-    let t233 = circuit_add(t231, t232); // Eval sumdlogdiv_b_den step + (coeff_2 * xA2^2)
-    let t234 = circuit_mul(in49, t3); // Eval sumdlogdiv_b_den step coeff_3 * xA2^3
-    let t235 = circuit_add(t233, t234); // Eval sumdlogdiv_b_den step + (coeff_3 * xA2^3)
-    let t236 = circuit_mul(in50, t5); // Eval sumdlogdiv_b_den step coeff_4 * xA2^4
-    let t237 = circuit_add(t235, t236); // Eval sumdlogdiv_b_den step + (coeff_4 * xA2^4)
-    let t238 = circuit_mul(in51, t7); // Eval sumdlogdiv_b_den step coeff_5 * xA2^5
-    let t239 = circuit_add(t237, t238); // Eval sumdlogdiv_b_den step + (coeff_5 * xA2^5)
-    let t240 = circuit_mul(in52, t9); // Eval sumdlogdiv_b_den step coeff_6 * xA2^6
-    let t241 = circuit_add(t239, t240); // Eval sumdlogdiv_b_den step + (coeff_6 * xA2^6)
-    let t242 = circuit_mul(in53, t11); // Eval sumdlogdiv_b_den step coeff_7 * xA2^7
-    let t243 = circuit_add(t241, t242); // Eval sumdlogdiv_b_den step + (coeff_7 * xA2^7)
-    let t244 = circuit_mul(in54, t13); // Eval sumdlogdiv_b_den step coeff_8 * xA2^8
-    let t245 = circuit_add(t243, t244); // Eval sumdlogdiv_b_den step + (coeff_8 * xA2^8)
-    let t246 = circuit_mul(in55, t15); // Eval sumdlogdiv_b_den step coeff_9 * xA2^9
-    let t247 = circuit_add(t245, t246); // Eval sumdlogdiv_b_den step + (coeff_9 * xA2^9)
-    let t248 = circuit_mul(in56, t17); // Eval sumdlogdiv_b_den step coeff_10 * xA2^10
-    let t249 = circuit_add(t247, t248); // Eval sumdlogdiv_b_den step + (coeff_10 * xA2^10)
-    let t250 = circuit_mul(in57, t19); // Eval sumdlogdiv_b_den step coeff_11 * xA2^11
-    let t251 = circuit_add(t249, t250); // Eval sumdlogdiv_b_den step + (coeff_11 * xA2^11)
-    let t252 = circuit_mul(in58, t21); // Eval sumdlogdiv_b_den step coeff_12 * xA2^12
-    let t253 = circuit_add(t251, t252); // Eval sumdlogdiv_b_den step + (coeff_12 * xA2^12)
-    let t254 = circuit_mul(in59, t23); // Eval sumdlogdiv_b_den step coeff_13 * xA2^13
-    let t255 = circuit_add(t253, t254); // Eval sumdlogdiv_b_den step + (coeff_13 * xA2^13)
-    let t256 = circuit_mul(in60, t25); // Eval sumdlogdiv_b_den step coeff_14 * xA2^14
-    let t257 = circuit_add(t255, t256); // Eval sumdlogdiv_b_den step + (coeff_14 * xA2^14)
-    let t258 = circuit_mul(in61, t27); // Eval sumdlogdiv_b_den step coeff_15 * xA2^15
-    let t259 = circuit_add(t257, t258); // Eval sumdlogdiv_b_den step + (coeff_15 * xA2^15)
-    let t260 = circuit_mul(in62, t29); // Eval sumdlogdiv_b_den step coeff_16 * xA2^16
-    let t261 = circuit_add(t259, t260); // Eval sumdlogdiv_b_den step + (coeff_16 * xA2^16)
-    let t262 = circuit_mul(in63, t31); // Eval sumdlogdiv_b_den step coeff_17 * xA2^17
-    let t263 = circuit_add(t261, t262); // Eval sumdlogdiv_b_den step + (coeff_17 * xA2^17)
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t57, t85, t113, t147, t173, t201, t229, t263, t24, t25).new_inputs();
-    // Prefill constants:
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(xA0); // in0
-    circuit_inputs = circuit_inputs.next_2(xA2); // in1
-
-    for val in SumDlogDiv.a_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.a_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.b_num {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-
-    for val in SumDlogDiv.b_den {
-        circuit_inputs = circuit_inputs.next_2(*val);
-    }
-    // in2 - in63
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let A0_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
-        a_num: outputs.get_output(t57),
-        a_den: outputs.get_output(t85),
-        b_num: outputs.get_output(t113),
-        b_den: outputs.get_output(t147),
-    };
-    let A2_evals: FunctionFeltEvaluations = FunctionFeltEvaluations {
-        a_num: outputs.get_output(t173),
-        a_den: outputs.get_output(t201),
-        b_num: outputs.get_output(t229),
-        b_den: outputs.get_output(t263),
-    };
-    let xA0_power: u384 = outputs.get_output(t24);
-    let xA2_power: u384 = outputs.get_output(t25);
-    return (A0_evals, A2_evals, xA0_power, xA2_power);
+    let R: G1Point = G1Point { x: outputs.get_output(t266), y: outputs.get_output(t269) };
+    return (R,);
 }

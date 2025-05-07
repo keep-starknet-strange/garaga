@@ -11,7 +11,6 @@ use garaga::definitions::{
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_a, get_b, get_g, get_min_one,
     get_modulus, u288,
 };
-use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
 #[inline(always)]
 pub fn run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(pt: G1Point) -> (G1Point,) {
     // CONSTANT stack

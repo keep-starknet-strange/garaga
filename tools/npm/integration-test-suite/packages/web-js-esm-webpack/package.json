@@ -5,7 +5,8 @@
     "start": "webpack-dev-server --port 8080",
     "start-bg": "npm start & sleep 5",
     "stop-bg": "pkill webpack",
-    "test": "npm run start-bg && node scrape.cjs > .output.txt; npm run stop-bg; diff .output.txt output.txt"
+    "test": "npm run start-bg && node scrape.cjs > .output.txt; npm run stop-bg; diff .output.txt output.txt",
+    "test-generate": "npm run start-bg && node scrape.cjs > output.txt; npm run stop-bg"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^12.0.2",

@@ -402,6 +402,21 @@ pub fn get_zk_honk_calldata(
         .map_err(|e| format!("Field error: {:?}", e))?,
     );
 
+    let mut scalars_msm = scalars; // Rename for clarity and make mutable
+
+    // Swap last two scalars
+    let len = scalars_msm.len();
+    if len >= 2 {
+        scalars_msm.swap(len - 1, len - 2);
+    }
+
+    // Place first scalar just after the vk_lagrange_last point (index 27)
+    if !scalars_msm.is_empty() {
+        let first_scalar = scalars_msm.remove(0);
+        // Assume the vector length is sufficient for insertion at index 27
+        scalars_msm.insert(27, first_scalar);
+    }
+
     let proof_data = {
         let mut call_data = vec![];
         let call_data_ref = &mut call_data;
@@ -485,7 +500,6 @@ pub fn get_zk_honk_calldata(
     };
 
     let mut points = vec![
-        gemini_masking_poly,  // 1
         qm,                   // 2
         qc,                   // 3
         ql,                   // 4
@@ -513,6 +527,7 @@ pub fn get_zk_honk_calldata(
         t4,                   // 26
         lagrange_first,       // 27
         lagrange_last,        // 28
+        gemini_masking_poly,  // 1
         w1,                   // 29
         w2,                   // 30
         w3,                   // 31
@@ -525,28 +540,24 @@ pub fn get_zk_honk_calldata(
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
     points.extend(libra_commitments);
-    points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
+    points.push(G1Point::generator());
 
     let two = FieldElement::<Stark252PrimeField>::one().double();
 
     let mut state = [vk.vk_hash, transcript_state, two];
     PoseidonCairoStark252::hades_permutation(&mut state);
-    let [external_s0, external_s1, _] = state;
 
     let msm_data = msm_calldata::calldata_builder(
         &points,
-        &scalars,
+        &scalars_msm,
         CurveID::BN254 as usize,
-        None,
         false,
-        false,
-        false,
-        Some((external_s0, external_s1)),
+        true,
         true,
     );
 
-    let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
+    let p_0 = G1Point::msm(&points, &scalars_msm).add(&shplonk_q);
     let p_1 = kzg_quotient.neg();
     let g2_point_kzg_1 = G2Point::generator();
     let g2_point_kzg_2 = G2Point::new(
@@ -1012,8 +1023,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            104, 164, 11, 18, 175, 206, 95, 69, 150, 19, 209, 251, 49, 129, 92, 74, 156, 200, 181,
-            238, 163, 26, 171, 126, 219, 109, 252, 110, 121, 157, 144, 227,
+            144, 220, 84, 190, 7, 97, 51, 38, 35, 184, 77, 154, 54, 182, 233, 7, 69, 255, 49, 253,
+            169, 88, 218, 80, 76, 117, 173, 78, 60, 172, 90, 234,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())
@@ -1030,8 +1041,8 @@ mod tests {
             .collect::<Vec<_>>();
         let digest = Keccak256::digest(&bytes).to_vec();
         let expected_digest = [
-            75, 123, 88, 128, 73, 195, 42, 81, 187, 58, 160, 127, 106, 196, 173, 115, 6, 33, 22,
-            185, 107, 142, 88, 76, 4, 192, 20, 41, 52, 87, 18, 249,
+            23, 79, 61, 87, 28, 222, 63, 216, 159, 121, 160, 220, 153, 80, 136, 117, 176, 238, 112,
+            112, 27, 143, 73, 145, 15, 252, 197, 134, 222, 17, 34, 63,
         ];
         assert_eq!(digest, expected_digest);
         Ok(())

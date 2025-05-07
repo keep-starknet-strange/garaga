@@ -39,11 +39,9 @@ export type MsmCalldataBuilderOptons = Partial<{
 
 export function msmCalldataBuilder(points: G1Point[], scalars: bigint[], curveId: CurveId, options: MsmCalldataBuilderOptons = {}): bigint[] {
   const values = flatten(points);
-  const includeDigitsDecomposition = options.includeDigitsDecomposition ?? true;
   const includePointsAndScalars = options.includePointsAndScalars ?? true;
   const serializeAsPureFelt252Array = options.serializeAsPureFelt252Array ?? false;
-  const risc0Mode = options.risc0Mode ?? false;
-  return msm_calldata_builder(values, scalars, curveId, includeDigitsDecomposition, includePointsAndScalars, serializeAsPureFelt252Array, risc0Mode);
+  return msm_calldata_builder(values, scalars, curveId, includePointsAndScalars, serializeAsPureFelt252Array);
 }
 
 export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2: number, publicPair?: G1G2Pair): bigint[] {
