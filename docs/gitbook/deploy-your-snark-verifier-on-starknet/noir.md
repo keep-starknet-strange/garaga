@@ -246,10 +246,8 @@ Now, you can follow the previous tutorial using the starknet flavours of [#suppo
 ## Complete dApp Tutorial
 
 {% hint style="info" %}
-Note : bb.js version 0.86.0 has some issues, to try your app you should follow the repo scaffold-garaga that uses for now an older version of barretenberg (0.18.0 & 0.85.0 instead of 0.18.0 and 0.86.0). \
-Those versions are not ready for production. \
-Local (non-browser) proving is working as expected. \
-We're working with Aztec team to fix thoses.&#x20;
+Note : bb.js version 0.86.0 has some issues independent of Garaga, to try your app you should follow the repo scaffold-garaga that uses for now an older version of barretenberg (0.18.0 & 0.85.0 instead of 0.18.0 and 0.86.0). \
+We're working with Aztec team to fix thoses, so that you can benefit from ZK and Starknet Flavours in browser asap!
 {% endhint %}
 
 Follow the  [Scaffold‑Garaga repository](https://github.com/m-kus/scaffold-garaga). This starter kit combines **Noir**, **Garaga**, and **Starknet** with in‑browser proving to help you ship a privacy‑preserving dApp fast.
