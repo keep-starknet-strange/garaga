@@ -951,7 +951,7 @@ class FakeGLVCircuits(BasicEC):
         Q = (Q[0], Q[1])
 
         table_P = [None, None, None]
-        table_P[0] = (P[0], self.neg(P[0]))
+        # table_P[0] = (P[0], self.neg(P[0])) # Unused
         table_P[1] = P
         table_P[2] = self.triple_point(P, A_weirstrass)
 
