@@ -4,11 +4,18 @@ icon: octopus
 
 # Noir
 
-## Requirements
+## Requirements (read carefully to avoid 99% of issues!)
 
-* Noir 1.0.0-beta.2 (install with `noirup --version 1.0.0-beta.2`)
-* Barretenberg 0.82.2 (install with `bbup --version 0.82.2`)
-* Garaga CLI [python-package.md](../installation/python-package.md "mention")  version 0.16.0 (install with `pip install garaga==0.16.0`)
+* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`
+* Noir 1.0.0-beta.3 (install with `noirup --version 1.0.0-beta.3`)
+
+For local proving :&#x20;
+
+* Barretenberg 0.86.0-starknet.1 (install with `bbup --version 0.86.0-starknet.1`)
+
+For in-browser proving with bb.js
+
+* Barretenberg/bb.js 0.85.0 (install with `bbup --version 0.85.0`)
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
@@ -16,9 +23,9 @@ To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https:/
 
 #### Supported barretenberg flavours
 
-<table><thead><tr><th width="134">BB --scheme</th><th width="193">BB --oracle_hash</th><th data-type="checkbox">--zk flag</th><th>Support</th><th>System name in garaga</th></tr></thead><tbody><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>false</td><td>Yes ✅</td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>true</td><td>Yes ✅</td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>false</td><td>Not planned </td><td> - </td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>true</td><td>Not planned</td><td> -</td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>false</td><td>Yes - only using our bb fork for now<br>Awaiting PR to be merged.</td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>true</td><td>Yes - only using our bb fork for now. <br>Awaiting PR to be merged. </td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>
 
 
+<table><thead><tr><th width="134">BB --scheme</th><th width="160.800048828125">BB --oracle_hash</th><th width="90.1666259765625" data-type="checkbox">--zk flag</th><th width="124.3665771484375">Local support</th><th>Browser (bb.js) support</th><th>System name in garaga</th></tr></thead><tbody><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>false</td><td>Full ✅</td><td>Full ✅</td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>true</td><td>Full ✅</td><td>Missing ❌</td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>false</td><td>Not planned</td><td>-</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>true</td><td>Not planned</td><td>-</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>false</td><td>Yes ✅ using the specific bb version</td><td>Missing ❌</td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>true</td><td>Yes ✅ using the specific bb version</td><td>Missing ❌</td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>
 
 First, create a new Noir project and compile it with `nargo build`.
 
@@ -36,7 +43,7 @@ Now, generate the corresponding verifying key `vk`using barretenberg :
 bb write_vk --scheme ultra_honk --oracle_hash keccak -b target/hello.json -o target
 ```
 
-Finally, generate a smart contract from the verifying key using the garaga CLI.&#x20;
+Finally, generate a smart contract from the verifying key using the garaga CLI.
 
 ```bash
 garaga gen --system ultra_keccak_zk_honk --vk target/vk
@@ -81,14 +88,14 @@ x = "1"
 y = "2"
 ```
 
-Now, generate a proof with barretenberg, after running the program (notice that the `--zk`flag  that occurs only in the proving part, not in the verifying key generation) :
+Now, generate a proof with barretenberg, after running the program (notice that the `--zk`flag that occurs only in the proving part, not in the verifying key generation) :
 
 ```bash
 nargo execute witness
 bb prove -s ultra_honk --oracle_hash keccak --zk -b target/hello.json -w target/witness.gz -o target/
 ```
 
-## Generating the calldata (`full_proof_with_hints` array)&#x20;
+## Generating the calldata (`full_proof_with_hints` array)
 
 {% tabs %}
 {% tab title="CLI" %}
@@ -143,7 +150,7 @@ let zk_calldata = get_zk_honk_calldata(&zk_proof, &vk, HonkFlavor::KECCAK)?;
 {% endtab %}
 
 {% tab title="Typescript" %}
-Using the `garaga`   [npm-package.md](../installation/npm-package.md "mention")
+Using the `garaga` [npm-package.md](../installation/npm-package.md "mention")
 
 ```typescript
 import { getHonkCallData, getZKHonkCallData } from '@garaga/honk';
@@ -221,56 +228,34 @@ calldata: list[int] = get_ultra_flavor_honk_calldata_from_vk_and_proof(
 {% endtab %}
 {% endtabs %}
 
-
-
 ## The UltraStarknet Flavour
 
-The Ultra Starknet flavour replaces the Keccak hash function by [Starknet's Poseidon hash](https://docs.starknet.io/architecture-and-concepts/cryptography/#poseidon_hash), which is better suited in the context of Starknet and Cairo contracts.
+The Ultra Starknet flavour replaces the Keccak hash function by [Starknet's Poseidon hash](https://docs.starknet.io/architecture-and-concepts/cryptography/#poseidon_hash), which is better suited in the context of Starknet and Cairo contracts.\
+Using it will both optimize on-chain verification costs and verifier contract bytecode sizes.&#x20;
 
-In order to provide the Ultra Starknet flavour we forked and customized the Barretenberg (`bb`) implementation. Here the steps to build the customized `bb`:
-
-1. Install [build dependencies](https://github.com/AztecProtocol/aztec-packages/tree/master/barretenberg#development) (assuming here a Debian-compatible system)
-
-```bash
-sudo apt install -y cmake clang clang-16 clang-format libstdc++-12-dev ninja-build
-```
-
-2. Clone our fork of the Aztec Packages repository and checkout the specific branch
-
-```bash
-git clone https://github.com/raugfer/aztec-packages.git
-cd aztec-packages
-git checkout starknet-barretenberg-v0.82.2
-```
-
-3. Perform the build
-
-```bash
-cd barretenberg/cpp
-cmake --preset clang16
-cmake --build --preset clang16 --target bb
-```
-
-4. Manually install the custom `bb` command, conveniently, under the Nargo config folder
-
-```bash
-install build/bin/bb ~/.nargo/bin/
-mkdir ~/.nargo/lib/
-install build/src/barretenberg/crypto/poseidon/sources/lib_pos* ~/.nargo/lib/
-export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$HOME/.nargo/lib/"
-```
-
-Now, you can follow the previous tutorial using the starknet flavours of [#supported-barretenberg-flavours](noir.md#supported-barretenberg-flavours "mention") :&#x20;
+You can follow the previous tutorial using the starknet flavours of [#supported-barretenberg-flavours](noir.md#supported-barretenberg-flavours "mention") :
 
 * `--oracle_hash starknet` in bb commands
-* `--system  ultra_starknet_honk` or `--system ultra_starknet_zk_honk` in garaga CLI
-* etc. in the other python, rust, npm tooling.&#x20;
+* `--system ultra_starknet_honk` or `--system ultra_starknet_zk_honk` in garaga CLI
+* etc. in the other python, rust, npm tooling.
 
-&#x20;
+
+
+## Complete dApp Tutorial
+
+{% hint style="info" %}
+Note : bb.js version 0.86.0 has some issues independent of Garaga, to try your app you should follow the repo scaffold-garaga that uses for now an older version of barretenberg (0.18.0 & 0.85.0 instead of 0.18.0 and 0.86.0). \
+We're working with Aztec team to fix thoses, so that you can benefit from ZK and Starknet Flavours in browser asap!
+{% endhint %}
+
+Follow the  [Scaffold‑Garaga repository](https://github.com/m-kus/scaffold-garaga). This starter kit combines **Noir**, **Garaga**, and **Starknet** with in‑browser proving to help you ship a privacy‑preserving dApp fast.
+
+#### What you’ll learn
+
+1. **Generate & deploy an UltraHonk proof verifier** to a local Starknet devnet.
+2. **Add on‑chain state** to your privacy‑preserving app.
+3. **Connect a wallet and deploy to a public testnet**.
 
 ***
 
 Need [support.md](../support.md "mention") ?
-
-
-
