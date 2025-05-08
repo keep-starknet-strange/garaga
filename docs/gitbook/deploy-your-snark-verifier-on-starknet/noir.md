@@ -235,7 +235,7 @@ calldata: list[int] = get_ultra_flavor_honk_calldata_from_vk_and_proof(
 The Ultra Starknet flavour replaces the Keccak hash function by [Starknet's Poseidon hash](https://docs.starknet.io/architecture-and-concepts/cryptography/#poseidon_hash), which is better suited in the context of Starknet and Cairo contracts.\
 Using it will both optimize on-chain verification costs and verifier contract bytecode sizes.&#x20;
 
-Now, you can follow the previous tutorial using the starknet flavours of [#supported-barretenberg-flavours](noir.md#supported-barretenberg-flavours "mention") :
+You can follow the previous tutorial using the starknet flavours of [#supported-barretenberg-flavours](noir.md#supported-barretenberg-flavours "mention") :
 
 * `--oracle_hash starknet` in bb commands
 * `--system ultra_starknet_honk` or `--system ultra_starknet_zk_honk` in garaga CLI
