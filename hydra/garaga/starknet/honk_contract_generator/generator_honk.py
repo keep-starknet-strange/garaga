@@ -32,10 +32,11 @@ from garaga.starknet.groth16_contract_generator.generator import (
     get_scarb_toml_file,
 )
 
-# nargo --version # 1.0.0-beta.3
-# bb --version # 0.85.0
+# nargo --version
+# bb --version
 
-BB_VERSION = "0.85.0"
+BB_VERSION = "0.86.0"
+BBUP_VERSION = "0.86.0-starknet.1"
 NARGO_VERSION = "1.0.0-beta.3"
 
 

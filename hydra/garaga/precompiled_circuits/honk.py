@@ -436,7 +436,9 @@ class HonkVk:
         cursor = 32
 
         rest = vk_bytes[cursor:]
-        assert len(rest) % 32 == 0
+        assert (
+            len(rest) % 32 == 0
+        ), f"invalid vk_bytes length: {len(vk_bytes)}. Make sure you are using the correct version of bb or that the vk is not corrupted."
 
         # print(f"circuit_size: {circuit_size}")
         # print(f"log_circuit_size: {log_circuit_size}")
