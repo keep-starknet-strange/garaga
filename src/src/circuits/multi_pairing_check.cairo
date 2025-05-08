@@ -11,7 +11,6 @@ use garaga::definitions::{
     G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
     get_g, get_min_one, get_modulus, u288,
 };
-use garaga::ec_ops::{FunctionFelt, FunctionFeltEvaluations, SlopeInterceptOutput};
 #[inline(always)]
 pub fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,

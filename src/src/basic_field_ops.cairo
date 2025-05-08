@@ -43,6 +43,14 @@ pub fn is_opposite_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> bool {
     return outputs.get_output(sum).is_zero();
 }
 
+// Returns true if a == 0 mod p (p must be odd prime)
+pub fn is_zero_mod_p(a: u384, modulus: CircuitModulus) -> bool {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let sum = circuit_add(in1, in1);
+    let outputs = (sum,).new_inputs().next_2(a).done_2().eval(modulus).unwrap();
+    return outputs.get_output(sum).is_zero();
+}
+
 pub fn is_even_u384(a: u384) -> bool {
     let limb0_u128: u128 = upcast(a.limb0);
     limb0_u128 % 2 == 0

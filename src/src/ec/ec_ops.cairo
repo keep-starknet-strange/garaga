@@ -4,21 +4,29 @@ use core::circuit::{
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
+pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
+use core::internal::bounded_int;
+use core::internal::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
+};
+use core::num::traits::{One, Zero};
 use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
 use core::result::ResultTrait;
 use garaga::basic_field_ops::{
-    add_mod_p, batch_3_mod_p, is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
+    add_mod_p, batch_3_mod_p, is_opposite_mod_p, is_zero_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
 };
 use garaga::circuits::ec;
-use garaga::core::circuit::{IntoCircuitInputValue, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
-    BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
-    THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
-    deserialize_u384_array, get_a, get_b, get_b2, get_g, get_min_one, get_modulus, get_n,
-    serialize_u288_array, serialize_u384, serialize_u384_array, u288, u384Serde,
+    BLS_X_SEED_SQ, G1Point, G1PointZero, G2Point, THIRD_ROOT_OF_UNITY_BLS12_381_G1,
+    deserialize_u288_array, deserialize_u384, deserialize_u384_array, get_G, get_a, get_b, get_b2,
+    get_curve_order_modulus, get_eigenvalue, get_g, get_min_one, get_min_one_order, get_modulus,
+    get_n, get_nG_glv_fake_glv, get_third_root_of_unity, serialize_u288_array, serialize_u384,
+    serialize_u384_array, u288, u384Serde,
 };
+use garaga::ec::selectors;
 use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
 
 #[generate_trait]
@@ -39,36 +47,36 @@ impl G1PointImpl of G1PointTrait {
         let modulus = get_modulus(curve_index);
         G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
     }
-    fn assert_in_subgroup<
-        T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
-    >(
+    fn assert_in_subgroup(
         self: @G1Point,
         curve_index: usize,
-        msm_hint: Option<MSMHintSmallScalar<T>>,
-        derive_point_from_x_hint: Option<DerivePointFromXHint>,
-    ) {
-        match curve_index {
-            0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
-            1 => {
-                // https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
-                let modulus = get_modulus(curve_index);
-                let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
-                    G1Point {
-                        x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, modulus),
-                        y: *self.y,
-                    },
-                    BLS_X_SEED_SQ_EPNS,
-                    BLS_X_SEED_SQ,
-                    msm_hint.unwrap(),
-                    derive_point_from_x_hint.unwrap(),
-                    curve_index,
-                );
-                if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
-                    panic_with_felt252('g1 pt not in subgroup');
-                }
-            }, // BLS12-381
-            _ => { panic_with_felt252('invalid curve index') },
-        }
+        hint: Span<felt252> // msm_hint: Option<MSMHintSmallScalar<T>>,
+        // derive_point_from_x_hint: Option<DerivePointFromXHint>,
+    ) { // TODO
+    // match curve_index {
+    //     0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
+    //     1 => {
+    //         //
+    //         https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
+    //         let modulus = get_modulus(curve_index);
+    //         let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
+    //             G1Point {
+    //                 x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, modulus),
+    //                 y: *self.y,
+    //             },
+    //             BLS_X_SEED_SQ_EPNS,
+    //             BLS_X_SEED_SQ,
+    //             msm_hint.unwrap(),
+    //             derive_point_from_x_hint.unwrap(),
+    //             curve_index,
+    //         );
+    //         if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
+    //             panic_with_felt252('g1 pt not in subgroup');
+    //         }
+    //     }, // BLS12-381
+    //     _ => { panic_with_felt252('invalid curve index') },
+    // }
+
     }
     fn is_infinity(self: @G1Point) -> bool {
         return self.is_zero();
@@ -105,1273 +113,794 @@ pub fn ec_safe_add(p: G1Point, q: G1Point, curve_index: usize) -> G1Point {
         if opposite_y {
             return G1PointZero::zero();
         } else {
-            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), curve_index);
+            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), modulus);
             return res;
         }
     } else {
-        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, curve_index);
+        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, modulus);
         return res;
     }
 }
 
-#[derive(Drop)]
-pub struct DerivePointFromXOutput {
-    pub rhs: u384,
-    pub g_rhs: u384,
-    pub should_be_rhs_or_g_rhs: u384,
-}
-
-#[inline(always)]
-fn get_DERIVE_POINT_FROM_X_circuit(
-    x: u384, sqrt_rhs_or_g_rhs: u384, curve_index: usize,
-) -> DerivePointFromXOutput {
-    // INPUT stack
-    let in0 = CircuitElement::<CircuitInput<0>> {}; // x - "random" x coordinate
-    let in1 = CircuitElement::<CircuitInput<1>> {}; // a - a in Weierstrass equation
-    let in2 = CircuitElement::<CircuitInput<2>> {}; // b - b in Weierstrass equation
-    let in3 = CircuitElement::<CircuitInput<3>> {}; // g - Fp* Generator
-
-    // WITNESS stack
-    let in4 = CircuitElement::<CircuitInput<4>> {}; // sqrt(rhs) or sqrt(g*rhs)
-    let t0 = circuit_mul(in0, in0); // x^2
-    let t1 = circuit_mul(in0, t0); // x^3
-    let t2 = circuit_mul(in1, in0); // a*x
-    let t3 = circuit_add(t2, in2); // a*x + b
-    let t4 = circuit_add(t1, t3); // x^3 + (a*x + b) = rhs
-    let t5 = circuit_mul(in3, t4); // g * (x^3 + (a*x + b)) = g*rhs
-    let t6 = circuit_mul(in4, in4); // should be rhs if sqrt(rhs) or g*rhs if sqrt(g*rhs) exists
-
-    let modulus = get_modulus(curve_index);
-
-    let mut circuit_inputs = (t4, t5, t6).new_inputs();
-
-    circuit_inputs = circuit_inputs.next(x);
-    circuit_inputs = circuit_inputs.next(get_a(curve_index));
-    circuit_inputs = circuit_inputs.next(get_b(curve_index));
-    circuit_inputs = circuit_inputs.next(get_g(curve_index));
-    circuit_inputs = circuit_inputs.next(sqrt_rhs_or_g_rhs);
-
-    let outputs = circuit_inputs.done().eval(modulus).unwrap();
-
-    let rhs = outputs.get_output(t4); // rhs
-    let g_rhs = outputs.get_output(t5); // g*rhs
-    let should_be_rhs_or_grhs = outputs
-        .get_output(t6); // should be rhs if sqrt(rhs) or g*rhs if sqrt(g*rhs) exists
-
-    return DerivePointFromXOutput {
-        rhs: rhs, g_rhs: g_rhs, should_be_rhs_or_g_rhs: should_be_rhs_or_grhs,
-    };
-}
-
-// Derives a random elliptic curve (EC) point on a given curve from a (random) x coordinate.
-//
-// This function attempts to find a valid y-coordinate from a given x-coordinate on an elliptic
-// curve defined by the equation y^2 = x^3 + ax + b.
-// Parameters:
-// - x: felt252 - The x-coordinate for which we want to derive the corresponding y-coordinate.
-// - y_last_attempt: u384 - The valid y-coordinate of the last attempt.
-// - g_rhs_sqrt: Array<u384> - An array of square roots of g*rhs, where g is a generator
-// in Fp.
-// - curve_index: usize - The index of the elliptic curve parameters to use.
-//
-// Returns:
-// - G1Point - A point on the elliptic curve with the given x-coordinate and a valid y-coordinate.
-//
-// The inner principle of this function is that, if Fp is a prime field, z any element of Fp*,
-// and g a generator of Fp*, then:
-// If z has a square root in Fp, then g*z does not have a square root in Fp*.
-// If z does not have a square root in Fp, then g*z has a square root in Fp*.
-// Note: there is exactly (p-1)//2 square roots in Fp*.
-fn derive_ec_point_from_X(
-    mut x: felt252, y_last_attempt: u384, mut g_rhs_sqrt: Span<u384>, curve_index: usize,
+pub fn _ec_safe_add(
+    p: G1Point, q: G1Point, modulus: CircuitModulus, curve_index: usize,
 ) -> G1Point {
-    let mut attempt: felt252 = 0;
-    while let Option::Some(root) = g_rhs_sqrt.pop_front() {
-        let x_u384: u384 = x.into();
-        let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-            x_u384, *root, curve_index,
+    if p.is_infinity() {
+        return q;
+    }
+    if q.is_infinity() {
+        return p;
+    }
+    let same_x = sub_mod_p(p.x, q.x, modulus).is_zero();
+
+    if same_x {
+        let opposite_y = is_opposite_mod_p(p.y, q.y, modulus);
+        if opposite_y {
+            return G1PointZero::zero();
+        } else {
+            let (res) = ec::run_DOUBLE_EC_POINT_circuit(p, get_a(curve_index), modulus);
+            return res;
+        }
+    } else {
+        let (res) = ec::run_ADD_EC_POINT_circuit(p, q, modulus);
+        return res;
+    }
+}
+
+#[derive(Drop, Serde)]
+struct GlvFakeGlvHint {
+    Q: G1Point,
+    u1: felt252, // Encoded as 2^128 * sign + abs(u1)
+    u2: felt252, // Encoded as 2^128 * sign + abs(u2)
+    v1: felt252, // Encoded as 2^128 * sign + abs(v1)
+    v2: felt252 // Encoded as 2^128 * sign + abs(v2)
+}
+
+#[derive(Drop, Serde)]
+struct FakeGlvHint {
+    Q: G1Point,
+    s1: u128, // (s1)_u128 (always positive)
+    s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
+}
+
+fn msm_g1(
+    points: Span<G1Point>, scalars: Span<u256>, curve_index: usize, mut hint: Span<felt252>,
+) -> G1Point {
+    match curve_index {
+        0 | 1 | 2 => { return msm_glv_fake_glv(points, scalars, curve_index, ref hint); },
+        _ => { return msm_fake_glv(points, scalars, curve_index, ref hint); },
+    }
+}
+
+
+pub fn msm_fake_glv(
+    mut points: Span<G1Point>, mut scalars: Span<u256>, curve_index: usize, ref hint: Span<felt252>,
+) -> G1Point {
+    let n = scalars.len();
+    assert(n == points.len(), 'n_pts!=n_scalars');
+    if n == 0 {
+        panic_with_felt252('Msm size must be >= 1');
+    }
+    assert(hint.len() == n * 10, 'wrong fakeglv hint size');
+
+    let order_modulus = get_curve_order_modulus(curve_index);
+    let curve_order: u256 = get_n(curve_index);
+    let modulus = get_modulus(curve_index);
+    let A_weirstrass = get_a(curve_index);
+    let order_minus_one = get_min_one_order(curve_index);
+    let base_min_one = get_min_one(curve_index);
+    let mut acc = G1PointZero::zero();
+
+    while hint.len() != 0 {
+        let pt = *points.pop_front().unwrap();
+        let scalar = *scalars.pop_front().unwrap();
+        assert(scalar < curve_order, 'unreduced scalar');
+        let scalar_u384: u384 = scalar.into();
+        let fake_glv_hint: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
+        let temp = _scalar_mul_fake_glv(
+            pt,
+            scalar_u384,
+            order_modulus,
+            modulus,
+            A_weirstrass,
+            order_minus_one,
+            base_min_one,
+            fake_glv_hint,
+            curve_index,
         );
-        assert!(
-            res.should_be_rhs_or_g_rhs == res.g_rhs, "grhs!=(sqrt(g*rhs))^2 in attempt {attempt}",
-        );
-
-        let (new_x, _, _) = hades_permutation(x, attempt.into(), 2);
-        x = new_x;
-        attempt += 1;
+        acc = _ec_safe_add(acc, temp, modulus, curve_index);
     }
-
-    let x_u384: u384 = x.into();
-    let res: DerivePointFromXOutput = get_DERIVE_POINT_FROM_X_circuit(
-        x_u384, y_last_attempt, curve_index,
-    );
-    assert!(res.should_be_rhs_or_g_rhs == res.rhs, "invalid y coordinate");
-    return G1Point { x: x_u384, y: y_last_attempt };
+    return acc;
 }
 
-// A function field element of the form :
-// F(x,y) = a(x) + y b(x)
-// Where a, b are rational functions of x.
-// The rational functions are represented as polynomials in x with coefficients in F_p, starting
-// from the constant term.
-// No information about the degrees of the polynomials is stored here as they are derived
-// implicitely from the MSM size.
-#[derive(Drop, Debug, Copy, PartialEq)]
-pub struct FunctionFelt<T> {
-    pub a_num: Span<T>,
-    pub a_den: Span<T>,
-    pub b_num: Span<T>,
-    pub b_den: Span<T>,
-}
-
-
-impl FunctionFeltSerdeu384 of Serde<FunctionFelt<u384>> {
-    fn serialize(self: @FunctionFelt<u384>, ref output: Array<felt252>) {
-        serialize_u384_array(*self.a_num.snapshot, ref output);
-        serialize_u384_array(*self.a_den.snapshot, ref output);
-        serialize_u384_array(*self.b_num.snapshot, ref output);
-        serialize_u384_array(*self.b_den.snapshot, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt<u384>> {
-        return Option::Some(
-            FunctionFelt {
-                a_num: deserialize_u384_array(ref serialized).span(),
-                a_den: deserialize_u384_array(ref serialized).span(),
-                b_num: deserialize_u384_array(ref serialized).span(),
-                b_den: deserialize_u384_array(ref serialized).span(),
-            },
-        );
-    }
-}
-
-impl FunctionFeltSerdeu288 of Serde<FunctionFelt<u288>> {
-    fn serialize(self: @FunctionFelt<u288>, ref output: Array<felt252>) {
-        serialize_u288_array(*self.a_num.snapshot, ref output);
-        serialize_u288_array(*self.a_den.snapshot, ref output);
-        serialize_u288_array(*self.b_num.snapshot, ref output);
-        serialize_u288_array(*self.b_den.snapshot, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<FunctionFelt<u288>> {
-        return Option::Some(
-            FunctionFelt {
-                a_num: deserialize_u288_array(ref serialized).span(),
-                a_den: deserialize_u288_array(ref serialized).span(),
-                b_num: deserialize_u288_array(ref serialized).span(),
-                b_den: deserialize_u288_array(ref serialized).span(),
-            },
-        );
-    }
-}
-
-
-#[derive(Drop, Debug, Copy, PartialEq)]
-pub struct FunctionFeltEvaluations {
-    pub a_num: u384,
-    pub a_den: u384,
-    pub b_num: u384,
-    pub b_den: u384,
-}
-
-#[derive(Drop, Debug, Copy, PartialEq)]
-pub struct SlopeInterceptOutput {
-    pub m_A0: u384,
-    pub b_A0: u384,
-    pub x_A2: u384,
-    pub y_A2: u384,
-    pub coeff0: u384,
-    pub coeff2: u384,
-}
-use garaga::utils::hashing::HashFeltTranscriptTrait;
-
-#[generate_trait]
-impl FunctionFeltImpl<T, +HashFeltTranscriptTrait<T>> of FunctionFeltTrait<T> {
-    fn validate_degrees(self: @FunctionFelt<T>, msm_size: usize) {
-        assert!((*self.a_num).len() == msm_size + 1, "a_num wrong degree for given msm size");
-        assert!((*self.a_den).len() == msm_size + 2, "a_den wrong degree for given msm size");
-        assert!((*self.b_num).len() == msm_size + 2, "b_num wrong degree for given msm size");
-        assert!((*self.b_den).len() == msm_size + 5, "b_den wrong degree for given msm size");
-    }
-    fn validate_degrees_batched(self: @FunctionFelt<T>, msm_size: usize) {
-        assert!((*self.a_num).len() == msm_size + 3, "a_num wrong degree for given msm size");
-        assert!((*self.a_den).len() == msm_size + 4, "a_den wrong degree for given msm size");
-        assert!((*self.b_num).len() == msm_size + 4, "b_num wrong degree for given msm size");
-        assert!((*self.b_den).len() == msm_size + 7, "b_den wrong degree for given msm size");
-    }
-    fn update_hash_state(
-        self: @FunctionFelt<T>, s0: felt252, s1: felt252, s2: felt252,
-    ) -> (felt252, felt252, felt252) {
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.a_num, s0, s1, s2,
-        );
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.a_den, s0, s1, s2,
-        );
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.b_num, s0, s1, s2,
-        );
-        let (s0, s1, s2) = HashFeltTranscriptTrait::hash_field_element_transcript(
-            *self.b_den, s0, s1, s2,
-        );
-        return (s0, s1, s2);
-    }
-}
-
-#[derive(Drop, Debug, PartialEq, Serde, Copy)]
-pub struct MSMHint<T> {
-    pub Q_low: G1Point,
-    pub Q_high: G1Point,
-    pub Q_high_shifted: G1Point,
-    pub RLCSumDlogDiv: FunctionFelt<T>,
-}
-
-#[derive(Drop, Debug, PartialEq, Serde)]
-pub struct MSMHintSmallScalar<T> {
-    pub Q: G1Point,
-    pub SumDlogDiv: FunctionFelt<T>,
-}
-
-
-#[derive(Drop, Debug, PartialEq, Copy)]
-pub struct DerivePointFromXHint {
-    pub y_last_attempt: u384,
-    pub g_rhs_sqrt: Span<u384>,
-}
-
-impl DerivePointFromXHintSerde of Serde<DerivePointFromXHint> {
-    fn serialize(self: @DerivePointFromXHint, ref output: Array<felt252>) {
-        serialize_u384(self.y_last_attempt, ref output);
-        serialize_u384_array(*self.g_rhs_sqrt.snapshot, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<DerivePointFromXHint> {
-        return Option::Some(
-            DerivePointFromXHint {
-                y_last_attempt: deserialize_u384(ref serialized),
-                g_rhs_sqrt: deserialize_u384_array(ref serialized).span(),
-            },
-        );
-    }
-}
-
-pub fn scalar_mul_g1_fixed_small_scalar<
-    T, +HashFeltTranscriptTrait<T>, +Drop<T>, +IntoCircuitInputValue<T>, +Copy<T>,
->(
+pub fn _scalar_mul_fake_glv(
     point: G1Point,
-    scalar_epns: (felt252, felt252, felt252, felt252),
-    scalar: u128,
-    hint: MSMHintSmallScalar<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
+    scalar: u384,
+    order_modulus: CircuitModulus,
+    modulus: CircuitModulus,
+    A_weirstrass: u384,
+    order_minus_one: u384,
+    base_min_one: u384,
+    hint: FakeGlvHint,
     curve_index: usize,
 ) -> G1Point {
-    // Check result points are either on curve or the point at infinity
-    if !hint.Q.is_infinity() {
-        hint.Q.assert_on_curve(curve_index);
+    if scalar.is_zero() || point.is_infinity() {
+        return G1PointZero::zero();
     }
-
-    // Validate the degrees of the functions field elements given the msm size
-    hint.SumDlogDiv.validate_degrees(1);
-
-    // Hash everything to obtain a x coordinate.
-
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1_U128', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + 1.into(), s2,
-    ); // Include curve_index and msm size
-    // Check input points are on curve and hash them at the same time.
-
     point.assert_on_curve(curve_index);
 
-    let (s0, s1, s2) = point.update_hash_state(s0, s1, s2);
-    // Hash result point
-    let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
-    // Hash scalar.
-    let (s0, s1, s2) = core::poseidon::hades_permutation(s0 + scalar.into(), s1, s2);
+    if scalar.is_one() {
+        return point;
+    }
+    if scalar == order_minus_one {
+        return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
+    }
 
-    let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
+    hint.Q.assert_on_curve(curve_index);
 
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
+    let (_s2_sign_order, _s2_sign_base, _s2_abs): (u384, u384, u128) =
+        match u128s_from_felt252(hint.s2) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (
+                u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+                u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 },
+                low,
+            )
+        },
+        U128sFromFelt252Result::Wide((_, low)) => { (order_minus_one, base_min_one, low) },
+    };
+
+    // Verify decomposition : s1 + scalar*s2 = 0 mod n && s2!=0.
+    let s1 = CircuitElement::<CircuitInput<0>> {};
+    let S = CircuitElement::<CircuitInput<1>> {};
+    let s2 = CircuitElement::<CircuitInput<2>> {};
+    let s2_sign = CircuitElement::<CircuitInput<3>> {};
+
+    let check = circuit_add(s1, circuit_mul(S, circuit_mul(s2_sign, s2)));
+
+    let s1_u384: u384 = hint.s1.into();
+    let s2_u384: u384 = _s2_abs.into();
+    let outputs = (check,)
+        .new_inputs()
+        .next_2(s1_u384)
+        .next_2(scalar)
+        .next_2(s2_u384)
+        .next_2(_s2_sign_order)
+        .done_2()
+        .eval(order_modulus)
+        .unwrap();
+
+    assert(_s2_abs != 0, 'FakeGLV: s2=0');
+    assert(outputs.get_output(check).is_zero(), 'Wrong FakeGLV decomposition');
+
+    let (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y) =
+        ec::run_PREPARE_FAKE_GLV_PTS_circuit(
+        point, hint.Q, _s2_sign_base, A_weirstrass, modulus,
     );
 
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-    // Verify Q = scalar * P
+    // ['T6', 'T7', 'T10', 'T11', 'T8', 'T5', 'T12', 'T9', 'T14', 'T15', 'T2', 'T3', 'T16', 'T13',
+    // 'T4', 'T1']
+    let mut Ts: Array<G1Point> = array![
+        G1Point { x: T1.x, y: T6y },
+        G1Point { x: T4.x, y: T7y },
+        T10,
+        T11,
+        G1Point { x: T3.x, y: T8y },
+        G1Point { x: T2.x, y: T5y },
+        T12,
+        T9,
+        G1Point { x: T9.x, y: T14y },
+        G1Point { x: T12.x, y: T15y },
+        T2,
+        T3,
+        G1Point { x: T11.x, y: T16y },
+        G1Point { x: T10.x, y: T13y },
+        T4,
+        T1,
+    ];
 
-    let (lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
-        A0: random_point,
-        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-        coeff0: mb.coeff0,
-        coeff2: mb.coeff2,
-        SumDlogDiv: hint.SumDlogDiv,
-        curve_index: curve_index,
-    );
-    let rhs = compute_rhs_ecip(
-        points: array![point].span(),
-        m_A0: mb.m_A0,
-        b_A0: mb.b_A0,
-        x_A0: random_point.x,
-        epns: array![scalar_epns],
-        Q_result: hint.Q,
-        curve_index: curve_index,
+    let (mut selectors, s1lsb, s2lsb) = selectors::build_selectors_inlined_fake_glv(
+        hint.s1, _s2_abs,
     );
 
-    u384_assert_eq(lhs, rhs);
+    // Add corrected point for the last bits 2-1 at position 16 in Ts array.
+    let last_selector = *selectors.pop_front().unwrap();
+    let last_selector_pt = *Ts[last_selector];
+    let (last_selector_pt_corrected) = ec::run_ADD_EC_POINT_circuit(last_selector_pt, R2, modulus);
+    Ts.append(last_selector_pt_corrected);
+
+    let Ts = Ts.span();
+
+    // now the first selector should be 16 and will select the corrected point in the last
+    // iteration.
+
+    // First iteration (bit 128)
+    let selector_y = *selectors.pop_back().unwrap();
+    let Bi = *Ts[selector_y];
+
+    let (Acc) = ec::run_DOUBLE_EC_POINT_circuit(T2, A_weirstrass, modulus);
+    let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, Bi, modulus);
+
+    // assert(selectors.len() == 63, 'wrong number of selectors');
+    // 7 iterations* 9 * 2 bits = 63 * 2 = 126 bits.
+    while let Some(selector_y) = selectors.multi_pop_back::<9>() {
+        let [
+            selector_y8,
+            selector_y7,
+            selector_y6,
+            selector_y5,
+            selector_y4,
+            selector_y3,
+            selector_y2,
+            selector_y1,
+            selector_y0,
+        ] =
+            selector_y
+            .unbox();
+
+        let Bi = *Ts[selector_y0];
+        let Bi1 = *Ts[selector_y1];
+        let Bi2 = *Ts[selector_y2];
+        let Bi3 = *Ts[selector_y3];
+        let Bi4 = *Ts[selector_y4];
+        let Bi5 = *Ts[selector_y5];
+        let Bi6 = *Ts[selector_y6];
+        let Bi7 = *Ts[selector_y7];
+        let Bi8 = *Ts[selector_y8];
+
+        let (_Acc) = ec::run_QUADRUPLE_AND_ADD_9_circuit(
+            Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, Bi8, A_weirstrass, modulus,
+        );
+        Acc = _Acc;
+    }
+
+    let (Acc) = if s1lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(
+            Acc, G1Point { x: point.x, y: neg_mod_p(point.y, modulus) }, modulus,
+        )
+    } else {
+        (Acc,)
+    };
+    let (Acc) = if s2lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: hint.Q.x, y: R0y }, modulus)
+    } else {
+        (Acc,)
+    };
+
+    // Assert.
+    assert(Acc == R2, 'wrong FakeGLV result');
+
     return hint.Q;
 }
 
-// Verifies the mutli scalar multiplication of a set of points on a given curve is equal to
-// hint.Q_low + 2**128 * hint.Q_high.
-// Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
-// the hint.
-fn msm_g1<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    hint: MSMHint<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    points: Span<G1Point>,
-    scalars: Span<u256>,
-    curve_index: usize,
+
+fn msm_glv_fake_glv(
+    mut points: Span<G1Point>, mut scalars: Span<u256>, curve_index: usize, ref hint: Span<felt252>,
 ) -> G1Point {
     let n = scalars.len();
     assert!(n == points.len(), "scalars and points length mismatch");
     if n == 0 {
         panic_with_felt252('Msm size must be >= 1');
     }
+    assert(hint.len() == n * 12, 'wrong glv&fakeglv hint size');
+    let eigen = get_eigenvalue(curve_index);
+    let third_root_of_unity = get_third_root_of_unity(curve_index);
+    let modulus = get_modulus(curve_index);
+    let order_modulus = get_curve_order_modulus(curve_index);
+    let curve_order: u256 = get_n(curve_index);
+    let min_one = get_min_one_order(curve_index);
+    let nG = get_nG_glv_fake_glv(curve_index);
 
-    // Check result points are either on curve, or the point at infinity
-    if !hint.Q_low.is_infinity() {
-        hint.Q_low.assert_on_curve(curve_index);
-    }
+    let mut acc = G1PointZero::zero();
 
-    if !hint.Q_high.is_infinity() {
-        hint.Q_high.assert_on_curve(curve_index);
-    }
-
-    if !hint.Q_high_shifted.is_infinity() {
-        hint.Q_high_shifted.assert_on_curve(curve_index);
-    }
-
-    // Validate the degrees of the functions field elements given the msm size
-    hint.RLCSumDlogDiv.validate_degrees_batched(n);
-
-    // Hash everything to obtain a x coordinate.
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2,
-    ); // Include curve_index and msm size
-
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-
-    // Check input points are on curve and hash them at the same time.
-    for point in points {
-        if !point.is_infinity() {
-            point.assert_on_curve(curve_index);
+    while hint.len() != 0 {
+        let pt = *points.pop_front().unwrap();
+        let scalar = *scalars.pop_front().unwrap();
+        assert(scalar < curve_order, 'unreduced scalar');
+        let scalar_u384: u384 = scalar.into();
+        let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
+        match pt.is_infinity() {
+            true => { acc = acc; },
+            false => {
+                pt.assert_on_curve(curve_index);
+                let temp = _scalar_mul_glv_and_fake_glv(
+                    pt,
+                    scalar_u384,
+                    order_modulus,
+                    modulus,
+                    glv_fake_glv_hint,
+                    eigen,
+                    third_root_of_unity,
+                    min_one,
+                    nG,
+                    curve_index,
+                );
+                acc = _ec_safe_add(acc, temp, modulus, curve_index);
+            },
         }
-        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-    // Hash result points
-    let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high_shifted.update_hash_state(s0, s1, s2);
-    // Hash scalars and verify they are below the curve order
-    let curve_order = get_n(curve_index);
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-    for scalar in scalars {
-        assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
-        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
-        );
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
     }
 
-    let base_rlc_coeff = s1;
-
-    let (s0, _, _) = hint.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
-
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
-
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-
-    // Get positive and negative multiplicities of low and high part of scalars
-    let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-        scalars, scalars_digits_decompositions,
-    );
-
-    // Hardcoded epns for 2**128
-    let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1),
-    ];
-
-    let rhs_low = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index,
-    );
-    let rhs_high = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index,
-    );
-    let rhs_high_shifted = compute_rhs_ecip(
-        array![hint.Q_high].span(),
-        mb.m_A0,
-        mb.b_A0,
-        random_point.x,
-        epns_shifted,
-        hint.Q_high_shifted,
-        curve_index,
-    );
-
-    let modulus_curve = get_modulus(curve_index);
-
-    let zk_ecip_batched_rhs = batch_3_mod_p(
-        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), modulus_curve,
-    );
-
-    let batched_lhs = compute_lhs_ecip(
-        hint.RLCSumDlogDiv,
-        random_point,
-        G1Point { x: mb.x_A2, y: mb.y_A2 },
-        mb.coeff0,
-        mb.coeff2,
-        n,
-        curve_index,
-    );
-
-    u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
-
-    // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
-    return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
+    return acc;
 }
 
-// Verifies the mutli scalar multiplication of a set of points on a given curve is equal to
-// hint.Q
-// Uses https://eprint.iacr.org/2022/596.pdf eq 3 and samples a random EC point from the inputs and
-// the hint.
-fn msm_g1_u128<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    scalars_digits_decompositions: Option<Span<Span<felt252>>>,
-    hint: MSMHintSmallScalar<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    points: Span<G1Point>,
-    scalars: Span<u128>,
+
+#[inline(always)]
+// /!\ Assumes point is on curve (not infinity) and scalar is reduced mod n. /!\
+pub fn _scalar_mul_glv_and_fake_glv(
+    point: G1Point,
+    scalar: u384,
+    order_modulus: CircuitModulus,
+    modulus: CircuitModulus,
+    hint: GlvFakeGlvHint,
+    _lambda: u384,
+    third_root_of_unity: u384,
+    minus_one: u384,
+    n_bits_G: G1Point,
     curve_index: usize,
 ) -> G1Point {
-    let n = scalars.len();
-    assert!(n == points.len(), "scalars and points length mismatch");
-    if (n != 1 && n != 2) {
-        panic_with_felt252('Msm size must be [1,2]');
+    if scalar.is_zero() {
+        return G1PointZero::zero();
+    }
+    if scalar.is_one() {
+        return point;
     }
 
-    // Check result points are either on curve, or the point at infinity
-    if !hint.Q.is_infinity() {
-        hint.Q.assert_on_curve(curve_index);
+    hint.Q.assert_on_curve(curve_index);
+
+    if scalar == minus_one {
+        return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
     }
 
-    // Validate the degrees of the functions field elements given the msm size
-    hint.SumDlogDiv.validate_degrees(n);
+    let one_u384: u384 = u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
 
-    // Hash everything to obtain a x coordinate.
+    // Retrieve the u1, u2, v1, v2 values from the hint
+    // They are encoded as 2^128 * sign + abs(value)
+    // If high_128 limbs are != 0, we consider the value is negative, otherwise it is positive.
+    // We also precompute the negated value of the y coordinate of the points based on the sign in
+    // the same match condition for efficiency.
 
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1_U128', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2,
-    ); // Include curve_index and msm size
-
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-
-    // Check input points are on curve and hash them at the same time.
-    for point in points {
-        if !point.is_infinity() {
-            point.assert_on_curve(curve_index);
-        }
-        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-    // Hash result points
-    let (s0, s1, s2) = hint.Q.update_hash_state(s0, s1, s2);
-    // Hash scalars. No need to check if scalar is below curve order since it is always at most 128
-    // bits.
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-    for scalar in scalars {
-        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(s0 + (*scalar).into(), s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-
-    let (s0, _, _) = hint.SumDlogDiv.update_hash_state(s0, s1, s2);
-
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
-
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
-
-    // Get positive and negative multiplicities of low and high part of scalars
-    let epns = neg_3::u128_array_to_epns(scalars, scalars_digits_decompositions);
-
-    let case = n - 1;
-
-    let A0 = random_point;
-    let A2 = G1Point { x: mb.x_A2, y: mb.y_A2 };
-
-    let (lhs) = match case {
-        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_circuit(
-            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index,
-        )),
-        _ => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_circuit(
-            A0, A2, mb.coeff0, mb.coeff2, hint.SumDlogDiv, curve_index,
-        ),
+    let (_u1_sign, _u1_abs, P0y, P1y): (u384, u96, u384, u384) = match u128s_from_felt252(hint.u1) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
+        },
+        U128sFromFelt252Result::Wide((
+            _, low,
+        )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+    };
+    let (_u2_sign, _u2_abs, Phi_P0y, Phi_P1y): (u384, u96, u384, u384) =
+        match u128s_from_felt252(hint.u2) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
+        },
+        U128sFromFelt252Result::Wide((
+            _, low,
+        )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+    };
+    let (_v1_sign, _v1_abs, Q0y): (u384, u96, u384) = match u128s_from_felt252(hint.v1) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
+        },
+        U128sFromFelt252Result::Wide((_, low)) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
+    };
+    let (_v2_sign, _v2_abs, Phi_Q0y): (u384, u96, u384) = match u128s_from_felt252(hint.v2) {
+        U128sFromFelt252Result::Narrow(low) => {
+            (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
+        },
+        U128sFromFelt252Result::Wide((_, low)) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
     };
 
-    let rhs = compute_rhs_ecip(points, mb.m_A0, mb.b_A0, random_point.x, epns, hint.Q, curve_index);
+    // At this point ~ 631 steps.
 
-    u384_assert_eq(lhs, rhs);
+    // Check that the GLV/FakeGLV decomposition is valid:
+    // # s*(v1 + λ*v2) + u1 + λ*u2 = 0
+    let s = CircuitElement::<CircuitInput<0>> {};
+    let lambda = CircuitElement::<CircuitInput<1>> {};
+    let u1_abs = CircuitElement::<CircuitInput<2>> {};
+    let u1_sign = CircuitElement::<CircuitInput<3>> {};
+    let u2_abs = CircuitElement::<CircuitInput<4>> {};
+    let u2_sign = CircuitElement::<CircuitInput<5>> {};
+    let v1_abs = CircuitElement::<CircuitInput<6>> {};
+    let v1_sign = CircuitElement::<CircuitInput<7>> {};
+    let v2_abs = CircuitElement::<CircuitInput<8>> {};
+    let v2_sign = CircuitElement::<CircuitInput<9>> {};
+
+    let u1 = circuit_mul(u1_abs, u1_sign);
+    let u2 = circuit_mul(u2_abs, u2_sign);
+    let v1 = circuit_mul(v1_abs, v1_sign);
+    let v2 = circuit_mul(v2_abs, v2_sign);
+
+    // u1 + λ*u2
+    let lambda_u2 = circuit_mul(lambda, u2);
+    let u1_lambda_u2 = circuit_add(u1, lambda_u2);
+
+    // s*(v1 + λ*v2)
+    let lambda_v2 = circuit_mul(lambda, v2);
+    let v1_lambda_v2 = circuit_add(v1, lambda_v2);
+    let s_v1_lambda_v2 = circuit_mul(s, v1_lambda_v2);
+
+    // s*(v1 + λ*v2) + u1 + λ*u2
+    let res = circuit_add(s_v1_lambda_v2, u1_lambda_u2);
+
+    let outputs = (res,)
+        .new_inputs()
+        .next_2(scalar)
+        .next_2(_lambda)
+        .next_2([_u1_abs, 0, 0, 0])
+        .next_2(_u1_sign)
+        .next_2([_u2_abs, 0, 0, 0])
+        .next_2(_u2_sign)
+        .next_2([_v1_abs, 0, 0, 0])
+        .next_2(_v1_sign)
+        .next_2([_v2_abs, 0, 0, 0])
+        .next_2(_v2_sign)
+        .done_2()
+        .eval(order_modulus)
+        .unwrap();
+
+    assert(outputs.get_output(res).is_zero(), 'Wrong GLV/FakeGLV decomposition');
+
+    // At this point, ~ 836 steps
+
+    // Note : P != Q (scalar != 1)
+    let P0 = G1Point { x: point.x, y: P0y };
+    let Q0 = G1Point { x: hint.Q.x, y: Q0y };
+
+    let (
+        B1,
+        B2,
+        B3,
+        B4,
+        B5,
+        B6,
+        B7,
+        B8,
+        B9y,
+        B10y,
+        B11y,
+        B12y,
+        B13y,
+        B14y,
+        B15y,
+        B16y,
+        Phi_P0x,
+        Phi_Q0x,
+        mut Acc,
+    ) =
+        ec::run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
+        point.x,
+        P0y,
+        P1y,
+        hint.Q.x,
+        Q0y,
+        Phi_P0y,
+        Phi_P1y,
+        Phi_Q0y,
+        get_G(curve_index),
+        third_root_of_unity,
+        modulus,
+    );
+    let Bs: Span<G1Point> = array![
+        G1Point { x: B1.x, y: B16y },
+        B8,
+        G1Point { x: B3.x, y: B14y },
+        B6,
+        G1Point { x: B5.x, y: B12y },
+        B4,
+        G1Point { x: B7.x, y: B10y },
+        B2,
+        G1Point { x: B2.x, y: B15y },
+        B7,
+        G1Point { x: B4.x, y: B13y },
+        B5,
+        G1Point { x: B6.x, y: B11y },
+        B3,
+        G1Point { x: B8.x, y: B9y },
+        B1,
+    ]
+        .span();
+
+    // At this point, ~ 1643 steps.
+
+    // println!("Bs: {:?}", Bs);
+    // println!("Acc: {:?}", Acc);
+    let mut _u1: u128 = upcast(_u1_abs);
+    let mut _u2: u128 = upcast(_u2_abs);
+    let mut _v1: u128 = upcast(_v1_abs);
+    let mut _v2: u128 = upcast(_v2_abs);
+
+    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
+        _u1, _u2, _v1, _v2,
+    );
+
+    // Process 8 bits per iteration
+    while let Some(selector_y) = selectors.multi_pop_back::<8>() {
+        let [
+            selector_y7,
+            selector_y6,
+            selector_y5,
+            selector_y4,
+            selector_y3,
+            selector_y2,
+            selector_y1,
+            selector_y0,
+        ] =
+            (*selector_y)
+            .unbox();
+        let Bi = *Bs[selector_y0];
+        let Bi1 = *Bs[selector_y1];
+        let Bi2 = *Bs[selector_y2];
+        let Bi3 = *Bs[selector_y3];
+        let Bi4 = *Bs[selector_y4];
+        let Bi5 = *Bs[selector_y5];
+        let Bi6 = *Bs[selector_y6];
+        let Bi7 = *Bs[selector_y7];
+
+        Acc = double_and_add_8(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
+    }
+
+    // println!("Acc final: {:?}", Acc);
+    let (Acc) = if u1lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, P0, modulus)
+    } else {
+        (Acc,)
+    };
+    let (Acc) = if u2lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: Phi_P0x, y: Phi_P0y }, modulus)
+    } else {
+        (Acc,)
+    };
+
+    let (Acc) = if v1lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, Q0, modulus)
+    } else {
+        (Acc,)
+    };
+
+    let (Acc) = if v2lsb == 0 {
+        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: Phi_Q0x, y: Phi_Q0y }, modulus)
+    } else {
+        (Acc,)
+    };
+
+    assert(Acc == n_bits_G, 'Wrong Glv&FakeGLV result');
 
     return hint.Q;
 }
 
-// Verifies equation 3 in https://eprint.iacr.org/2022/596.pdf, using directly the weighted sum by
-// (-3)**i of the logarithmic derivatives of the divisors functions.
-fn zk_ecip_check<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    points: Span<G1Point>,
-    epns: Array<(felt252, felt252, felt252, felt252)>,
-    Q_result: G1Point,
-    n: usize,
-    mb: SlopeInterceptOutput,
-    sum_dlog_div: FunctionFelt<T>,
-    random_point: G1Point,
-    curve_index: usize,
-) {
-    let lhs = compute_lhs_ecip(
-        sum_dlog_div: sum_dlog_div,
-        A0: random_point,
-        A2: G1Point { x: mb.x_A2, y: mb.y_A2 },
-        coeff0: mb.coeff0,
-        coeff2: mb.coeff2,
-        msm_size: n,
-        curve_index: curve_index,
-    );
-    let rhs = compute_rhs_ecip(
-        points: points,
-        m_A0: mb.m_A0,
-        b_A0: mb.b_A0,
-        x_A0: random_point.x,
-        epns: epns,
-        Q_result: Q_result,
-        curve_index: curve_index,
-    );
-    u384_assert_eq(lhs, rhs);
-}
 
-#[inline]
-fn compute_lhs_ecip<T, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    sum_dlog_div: FunctionFelt<T>,
-    A0: G1Point,
-    A2: G1Point,
-    coeff0: u384,
-    coeff2: u384,
-    msm_size: usize,
-    curve_index: usize,
-) -> u384 {
-    let case = msm_size - 1;
-    let (res) = match case {
-        0 => (ec::run_EVAL_FN_CHALLENGE_DUPL_1P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        )),
-        1 => ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        2 => ec::run_EVAL_FN_CHALLENGE_DUPL_3P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        3 => ec::run_EVAL_FN_CHALLENGE_DUPL_4P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        4 => ec::run_EVAL_FN_CHALLENGE_DUPL_5P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        5 => ec::run_EVAL_FN_CHALLENGE_DUPL_6P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        6 => ec::run_EVAL_FN_CHALLENGE_DUPL_7P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        7 => ec::run_EVAL_FN_CHALLENGE_DUPL_8P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        8 => ec::run_EVAL_FN_CHALLENGE_DUPL_9P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        9 => ec::run_EVAL_FN_CHALLENGE_DUPL_10P_RLC_circuit(
-            A0, A2, coeff0, coeff2, sum_dlog_div, curve_index,
-        ),
-        _ => {
-            let (_f_A0, _f_A2, _xA0_pow, _xA2_pow) = ec::run_INIT_FN_CHALLENGE_DUPL_11P_RLC_circuit(
-                A0.x,
-                A2.x,
-                FunctionFelt {
-                    a_num: sum_dlog_div.a_num.slice(0, 11 + 3),
-                    a_den: sum_dlog_div.a_den.slice(0, 11 + 4),
-                    b_num: sum_dlog_div.b_num.slice(0, 11 + 4),
-                    b_den: sum_dlog_div.b_den.slice(0, 11 + 7),
-                },
-                curve_index,
-            );
-            let mut f_A0 = _f_A0;
-            let mut f_A2 = _f_A2;
-            let mut xA0_power = _xA0_pow;
-            let mut xA2_power = _xA2_pow;
-            let mut i = 11;
-            while i != msm_size {
-                let (_f_A0, _f_A2, _xA0_power, _xA2_power) =
-                    ec::run_ACC_FUNCTION_CHALLENGE_DUPL_circuit(
-                    f_A0,
-                    f_A2,
-                    A0.x,
-                    A2.x,
-                    xA0_power,
-                    xA2_power,
-                    *sum_dlog_div.a_num.at(i + 3),
-                    *sum_dlog_div.a_den.at(i + 4),
-                    *sum_dlog_div.b_num.at(i + 4),
-                    *sum_dlog_div.b_den.at(i + 7),
-                    curve_index,
-                );
-                f_A0 = _f_A0;
-                f_A2 = _f_A2;
-                xA0_power = _xA0_power;
-                xA2_power = _xA2_power;
-                i += 1;
-            }
-
-            ec::run_FINALIZE_FN_CHALLENGE_DUPL_circuit(
-                f_A0, f_A2, A0.y, A2.y, coeff0, coeff2, curve_index,
-            )
-        },
-    };
-    return res;
-}
-
-fn compute_rhs_ecip(
-    mut points: Span<G1Point>,
-    m_A0: u384,
-    b_A0: u384,
-    x_A0: u384,
-    mut epns: Array<(felt252, felt252, felt252, felt252)>,
-    Q_result: G1Point,
-    curve_index: usize,
-) -> u384 {
-    let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-    while let Option::Some(point) = points.pop_front() {
-        let (ep, en, sp, sn) = epns.pop_front().unwrap();
-        if ep - en != 0 {
-            if !point.is_infinity() {
-                let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-                    basis_sum,
-                    m_A0,
-                    b_A0,
-                    x_A0,
-                    *point,
-                    ep.into(),
-                    en.into(),
-                    neg_3::sign_to_u384(sp, curve_index),
-                    neg_3::sign_to_u384(sn, curve_index),
-                    curve_index,
-                );
-                basis_sum = _basis_sum;
-            }
-        }
-    }
-
-    if Q_result.is_infinity() {
-        return basis_sum;
-    } else {
-        let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
-            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index,
-        );
-        return rhs;
-    }
-}
-
-// A version of compute_rhs_ecip that does not check if the points are infinity and expect them to
-// be on curve.
-// Do not use unless all points are known to be on curve.
-fn _compute_rhs_ecip_no_infinity(
-    mut points: Span<G1Point>,
-    m_A0: u384,
-    b_A0: u384,
-    x_A0: u384,
-    mut epns: Array<(felt252, felt252, felt252, felt252)>,
-    Q_result: G1Point,
-    curve_index: usize,
-) -> u384 {
-    let mut basis_sum: u384 = u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 };
-    while let Option::Some(point) = points.pop_front() {
-        let (ep, en, sp, sn) = epns.pop_front().unwrap();
-        if ep - en != 0 {
-            let (_basis_sum) = ec::run_ACC_EVAL_POINT_CHALLENGE_SIGNED_circuit(
-                basis_sum,
-                m_A0,
-                b_A0,
-                x_A0,
-                *point,
-                ep.into(),
-                en.into(),
-                neg_3::sign_to_u384(sp, curve_index),
-                neg_3::sign_to_u384(sn, curve_index),
-                curve_index,
-            );
-            basis_sum = _basis_sum;
-        }
-    }
-
-    if Q_result.is_infinity() {
-        return basis_sum;
-    } else {
-        let (rhs) = ec::run_RHS_FINALIZE_ACC_circuit(
-            basis_sum, m_A0, b_A0, x_A0, Q_result, curve_index,
-        );
-        return rhs;
-    }
-}
-
-// A version of msm_g1 that works with 2 points only to reduce bytecode size.
-fn msm_g1_2_points<T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>>(
-    scalars_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    hint: MSMHint<T>,
-    derive_point_from_x_hint: DerivePointFromXHint,
-    points: Span<G1Point>,
-    scalars: Span<u256>,
-    curve_index: usize,
+// Computes 2*(2*(2*(2*(2*(2*(2*(2*P + Q0) + Q1) + Q2) + Q3) + Q4) + Q5) + Q6) + Q7
+#[inline(always)]
+pub fn double_and_add_8(
+    p: G1Point,
+    q0: G1Point,
+    q1: G1Point,
+    q2: G1Point,
+    q3: G1Point,
+    q4: G1Point,
+    q5: G1Point,
+    q6: G1Point,
+    q7: G1Point,
+    modulus: CircuitModulus,
 ) -> G1Point {
-    let n = scalars.len();
-    assert!(n == points.len(), "scalars and points length mismatch");
-    if n != 2 {
-        panic_with_felt252('Msm size must be 2');
-    }
+    let px = CircuitElement::<CircuitInput<0>> {};
+    let py = CircuitElement::<CircuitInput<1>> {};
+    let q0x = CircuitElement::<CircuitInput<2>> {};
+    let q0y = CircuitElement::<CircuitInput<3>> {};
+    let q1x = CircuitElement::<CircuitInput<4>> {};
+    let q1y = CircuitElement::<CircuitInput<5>> {};
+    let q2x = CircuitElement::<CircuitInput<6>> {};
+    let q2y = CircuitElement::<CircuitInput<7>> {};
+    let q3x = CircuitElement::<CircuitInput<8>> {};
+    let q3y = CircuitElement::<CircuitInput<9>> {};
+    let q4x = CircuitElement::<CircuitInput<10>> {};
+    let q4y = CircuitElement::<CircuitInput<11>> {};
+    let q5x = CircuitElement::<CircuitInput<12>> {};
+    let q5y = CircuitElement::<CircuitInput<13>> {};
+    let q6x = CircuitElement::<CircuitInput<14>> {};
+    let q6y = CircuitElement::<CircuitInput<15>> {};
+    let q7x = CircuitElement::<CircuitInput<16>> {};
+    let q7y = CircuitElement::<CircuitInput<17>> {};
 
-    // Check result points are either on curve, or the point at infinity
-    if !hint.Q_low.is_infinity() {
-        hint.Q_low.assert_on_curve(curve_index);
-    }
+    // --- Step 1: (2 * CurrentP) + Q0 ---
+    let num_lambda1_0 = circuit_sub(q0y, py);
+    let den_lambda1_0 = circuit_sub(q0x, px);
+    let lambda1_0 = circuit_mul(num_lambda1_0, circuit_inverse(den_lambda1_0));
 
-    if !hint.Q_high.is_infinity() {
-        hint.Q_high.assert_on_curve(curve_index);
-    }
+    let lambda1_sq_0 = circuit_mul(lambda1_0, lambda1_0);
+    let x2_0 = circuit_sub(lambda1_sq_0, px);
+    let x2_0 = circuit_sub(x2_0, q0x);
 
-    if !hint.Q_high_shifted.is_infinity() {
-        hint.Q_high_shifted.assert_on_curve(curve_index);
-    }
+    let den_lambda2_0 = circuit_sub(x2_0, px);
+    let num_lambda2_0 = circuit_add(py, py);
+    let term2_lambda2_0 = circuit_mul(num_lambda2_0, circuit_inverse(den_lambda2_0));
+    let lambda2_0 = circuit_add(lambda1_0, term2_lambda2_0);
 
-    // Validate the degrees of the functions field elements given the msm size
-    hint.RLCSumDlogDiv.validate_degrees_batched(n);
+    let lambda2_sq_0 = circuit_mul(lambda2_0, lambda2_0);
+    let tx_temp_0 = circuit_sub(lambda2_sq_0, px);
+    let T1x = circuit_sub(tx_temp_0, x2_0);
 
-    // Hash everything to obtain a x coordinate.
-    let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-        'MSM_G1', 0, 1,
-    ); // Init Sponge state
-    let (s0, s1, s2) = hades_permutation(
-        s0 + curve_index.into(), s1 + n.into(), s2,
-    ); // Include curve_index and msm size
+    let tx_sub_px_0 = circuit_sub(T1x, px);
+    let term1_ty_0 = circuit_mul(lambda2_0, tx_sub_px_0);
+    let T1y = circuit_sub(term1_ty_0, py);
 
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
+    // --- Step 2: (2 * CurrentP) + Q1 ---
+    let num_lambda1_1 = circuit_sub(q1y, T1y);
+    let den_lambda1_1 = circuit_sub(q1x, T1x);
+    let lambda1_1 = circuit_mul(num_lambda1_1, circuit_inverse(den_lambda1_1));
 
-    // Check input points are on curve and hash them at the same time.
-    for point in points {
-        if !point.is_infinity() {
-            point.assert_on_curve(curve_index);
-        }
-        let (_s0, _s1, _s2) = point.update_hash_state(s0, s1, s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
-    // Hash result points
-    let (s0, s1, s2) = hint.Q_low.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high.update_hash_state(s0, s1, s2);
-    let (s0, s1, s2) = hint.Q_high_shifted.update_hash_state(s0, s1, s2);
-    // Hash scalars and verify they are below the curve order
-    let curve_order = get_n(curve_index);
-    let mut s0 = s0;
-    let mut s1 = s1;
-    let mut s2 = s2;
-    for scalar in scalars {
-        assert!(*scalar <= curve_order, "One of the scalar is larger than the curve order");
-        let (_s0, _s1, _s2) = core::poseidon::hades_permutation(
-            s0 + (*scalar.low).into(), s1 + (*scalar.high).into(), s2,
-        );
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
-    }
+    let lambda1_sq_1 = circuit_mul(lambda1_1, lambda1_1);
+    let x2_1 = circuit_sub(lambda1_sq_1, T1x);
+    let x2_1 = circuit_sub(x2_1, q1x);
 
-    let base_rlc_coeff = s1;
+    let den_lambda2_1 = circuit_sub(x2_1, T1x);
+    let num_lambda2_1 = circuit_add(T1y, T1y);
+    let term2_lambda2_1 = circuit_mul(num_lambda2_1, circuit_inverse(den_lambda2_1));
+    let lambda2_1 = circuit_add(lambda1_1, term2_lambda2_1);
 
-    let (s0, _, _) = hint.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
+    let lambda2_sq_1 = circuit_mul(lambda2_1, lambda2_1);
+    let tx_temp_1 = circuit_sub(lambda2_sq_1, T1x);
+    let T2x = circuit_sub(tx_temp_1, x2_1);
 
-    let random_point: G1Point = derive_ec_point_from_X(
-        s0,
-        derive_point_from_x_hint.y_last_attempt,
-        derive_point_from_x_hint.g_rhs_sqrt,
-        curve_index,
-    );
+    let tx_sub_px_1 = circuit_sub(T2x, T1x);
+    let term1_ty_1 = circuit_mul(lambda2_1, tx_sub_px_1);
+    let T2y = circuit_sub(term1_ty_1, T1y);
 
-    // Get slope, intercept and other constant from random point
-    let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-        random_point, get_a(curve_index), curve_index,
-    );
+    // --- Step 3: (2 * CurrentP) + Q2 ---
+    let num_lambda1_2 = circuit_sub(q2y, T2y);
+    let den_lambda1_2 = circuit_sub(q2x, T2x);
+    let lambda1_2 = circuit_mul(num_lambda1_2, circuit_inverse(den_lambda1_2));
 
-    // Get positive and negative multiplicities of low and high part of scalars
-    let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-        scalars, scalars_digits_decompositions,
-    );
+    let lambda1_sq_2 = circuit_mul(lambda1_2, lambda1_2);
+    let x2_2 = circuit_sub(lambda1_sq_2, T2x);
+    let x2_2 = circuit_sub(x2_2, q2x);
 
-    // Hardcoded epns for 2**128
-    let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-        (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1),
-    ];
+    let den_lambda2_2 = circuit_sub(x2_2, T2x);
+    let num_lambda2_2 = circuit_add(T2y, T2y);
+    let term2_lambda2_2 = circuit_mul(num_lambda2_2, circuit_inverse(den_lambda2_2));
+    let lambda2_2 = circuit_add(lambda1_2, term2_lambda2_2);
 
-    let rhs_low = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_low, hint.Q_low, curve_index,
-    );
-    let rhs_high = compute_rhs_ecip(
-        points, mb.m_A0, mb.b_A0, random_point.x, epns_high, hint.Q_high, curve_index,
-    );
-    let rhs_high_shifted = compute_rhs_ecip(
-        array![hint.Q_high].span(),
-        mb.m_A0,
-        mb.b_A0,
-        random_point.x,
-        epns_shifted,
-        hint.Q_high_shifted,
-        curve_index,
-    );
+    let lambda2_sq_2 = circuit_mul(lambda2_2, lambda2_2);
+    let tx_temp_2 = circuit_sub(lambda2_sq_2, T2x);
+    let T3x = circuit_sub(tx_temp_2, x2_2);
 
-    let modulus_curve = get_modulus(curve_index);
+    let tx_sub_px_2 = circuit_sub(T3x, T2x);
+    let term1_ty_2 = circuit_mul(lambda2_2, tx_sub_px_2);
+    let T3y = circuit_sub(term1_ty_2, T2y);
 
-    let zk_ecip_batched_rhs = batch_3_mod_p(
-        rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), modulus_curve,
-    );
+    // --- Step 4: (2 * CurrentP) + Q3 ---
+    let num_lambda1_3 = circuit_sub(q3y, T3y);
+    let den_lambda1_3 = circuit_sub(q3x, T3x);
+    let lambda1_3 = circuit_mul(num_lambda1_3, circuit_inverse(den_lambda1_3));
 
-    let (batched_lhs) = ec::run_EVAL_FN_CHALLENGE_DUPL_2P_RLC_circuit(
-        random_point,
-        G1Point { x: mb.x_A2, y: mb.y_A2 },
-        mb.coeff0,
-        mb.coeff2,
-        hint.RLCSumDlogDiv,
-        curve_index,
-    );
+    let lambda1_sq_3 = circuit_mul(lambda1_3, lambda1_3);
+    let x2_3 = circuit_sub(lambda1_sq_3, T3x);
+    let x2_3 = circuit_sub(x2_3, q3x);
 
-    u384_assert_eq(batched_lhs, zk_ecip_batched_rhs);
+    let den_lambda2_3 = circuit_sub(x2_3, T3x);
+    let num_lambda2_3 = circuit_add(T3y, T3y);
+    let term2_lambda2_3 = circuit_mul(num_lambda2_3, circuit_inverse(den_lambda2_3));
+    let lambda2_3 = circuit_add(lambda1_3, term2_lambda2_3);
 
-    // Return Q_low + Q_high_shifted = Q_low + 2^128 * Q_high = Σ(ki * Pi)
-    return ec_safe_add(hint.Q_low, hint.Q_high_shifted, curve_index);
+    let lambda2_sq_3 = circuit_mul(lambda2_3, lambda2_3);
+    let tx_temp_3 = circuit_sub(lambda2_sq_3, T3x);
+    let T4x = circuit_sub(tx_temp_3, x2_3);
+
+    let tx_sub_px_3 = circuit_sub(T4x, T3x);
+    let term1_ty_3 = circuit_mul(lambda2_3, tx_sub_px_3);
+    let T4y = circuit_sub(term1_ty_3, T3y);
+
+    // --- Step 5: (2 * CurrentP) + Q4 ---
+    let num_lambda1_4 = circuit_sub(q4y, T4y);
+    let den_lambda1_4 = circuit_sub(q4x, T4x);
+    let lambda1_4 = circuit_mul(num_lambda1_4, circuit_inverse(den_lambda1_4));
+
+    let lambda1_sq_4 = circuit_mul(lambda1_4, lambda1_4);
+    let x2_4 = circuit_sub(lambda1_sq_4, T4x);
+    let x2_4 = circuit_sub(x2_4, q4x);
+
+    let den_lambda2_4 = circuit_sub(x2_4, T4x);
+    let num_lambda2_4 = circuit_add(T4y, T4y);
+    let term2_lambda2_4 = circuit_mul(num_lambda2_4, circuit_inverse(den_lambda2_4));
+    let lambda2_4 = circuit_add(lambda1_4, term2_lambda2_4);
+
+    let lambda2_sq_4 = circuit_mul(lambda2_4, lambda2_4);
+    let tx_temp_4 = circuit_sub(lambda2_sq_4, T4x);
+    let T5x = circuit_sub(tx_temp_4, x2_4);
+
+    let tx_sub_px_4 = circuit_sub(T5x, T4x);
+    let term1_ty_4 = circuit_mul(lambda2_4, tx_sub_px_4);
+    let T5y = circuit_sub(term1_ty_4, T4y);
+
+    // --- Step 6: (2 * CurrentP) + Q5 ---
+    let num_lambda1_5 = circuit_sub(q5y, T5y);
+    let den_lambda1_5 = circuit_sub(q5x, T5x);
+    let lambda1_5 = circuit_mul(num_lambda1_5, circuit_inverse(den_lambda1_5));
+
+    let lambda1_sq_5 = circuit_mul(lambda1_5, lambda1_5);
+    let x2_5 = circuit_sub(lambda1_sq_5, T5x);
+    let x2_5 = circuit_sub(x2_5, q5x);
+
+    let den_lambda2_5 = circuit_sub(x2_5, T5x);
+    let num_lambda2_5 = circuit_add(T5y, T5y);
+    let term2_lambda2_5 = circuit_mul(num_lambda2_5, circuit_inverse(den_lambda2_5));
+    let lambda2_5 = circuit_add(lambda1_5, term2_lambda2_5);
+
+    let lambda2_sq_5 = circuit_mul(lambda2_5, lambda2_5);
+    let tx_temp_5 = circuit_sub(lambda2_sq_5, T5x);
+    let T6x = circuit_sub(tx_temp_5, x2_5);
+
+    let tx_sub_px_5 = circuit_sub(T6x, T5x);
+    let term1_ty_5 = circuit_mul(lambda2_5, tx_sub_px_5);
+    let T6y = circuit_sub(term1_ty_5, T5y);
+
+    // --- Step 7: (2 * CurrentP) + Q6 ---
+    let num_lambda1_6 = circuit_sub(q6y, T6y);
+    let den_lambda1_6 = circuit_sub(q6x, T6x);
+    let lambda1_6 = circuit_mul(num_lambda1_6, circuit_inverse(den_lambda1_6));
+
+    let lambda1_sq_6 = circuit_mul(lambda1_6, lambda1_6);
+    let x2_6 = circuit_sub(lambda1_sq_6, T6x);
+    let x2_6 = circuit_sub(x2_6, q6x);
+
+    let den_lambda2_6 = circuit_sub(x2_6, T6x);
+    let num_lambda2_6 = circuit_add(T6y, T6y);
+    let term2_lambda2_6 = circuit_mul(num_lambda2_6, circuit_inverse(den_lambda2_6));
+    let lambda2_6 = circuit_add(lambda1_6, term2_lambda2_6);
+
+    let lambda2_sq_6 = circuit_mul(lambda2_6, lambda2_6);
+    let tx_temp_6 = circuit_sub(lambda2_sq_6, T6x);
+    let T7x = circuit_sub(tx_temp_6, x2_6);
+
+    let tx_sub_px_6 = circuit_sub(T7x, T6x);
+    let term1_ty_6 = circuit_mul(lambda2_6, tx_sub_px_6);
+    let T7y = circuit_sub(term1_ty_6, T6y);
+
+    // --- Step 8: (2 * CurrentP) + Q7 ---
+    let num_lambda1_7 = circuit_sub(q7y, T7y);
+    let den_lambda1_7 = circuit_sub(q7x, T7x);
+    let lambda1_7 = circuit_mul(num_lambda1_7, circuit_inverse(den_lambda1_7));
+
+    let lambda1_sq_7 = circuit_mul(lambda1_7, lambda1_7);
+    let x2_7 = circuit_sub(lambda1_sq_7, T7x);
+    let x2_7 = circuit_sub(x2_7, q7x);
+
+    let den_lambda2_7 = circuit_sub(x2_7, T7x);
+    let num_lambda2_7 = circuit_add(T7y, T7y);
+    let term2_lambda2_7 = circuit_mul(num_lambda2_7, circuit_inverse(den_lambda2_7));
+    let lambda2_7 = circuit_add(lambda1_7, term2_lambda2_7);
+
+    let lambda2_sq_7 = circuit_mul(lambda2_7, lambda2_7);
+    let tx_temp_7 = circuit_sub(lambda2_sq_7, T7x);
+    let T8x = circuit_sub(tx_temp_7, x2_7);
+
+    let tx_sub_px_7 = circuit_sub(T8x, T7x);
+    let term1_ty_7 = circuit_mul(lambda2_7, tx_sub_px_7);
+    let T8y = circuit_sub(term1_ty_7, T7y);
+
+    let outputs = (T8x, T8y)
+        .new_inputs()
+        .next_2(p.x)
+        .next_2(p.y)
+        .next_2(q0.x)
+        .next_2(q0.y)
+        .next_2(q1.x)
+        .next_2(q1.y)
+        .next_2(q2.x)
+        .next_2(q2.y)
+        .next_2(q3.x)
+        .next_2(q3.y)
+        .next_2(q4.x)
+        .next_2(q4.y)
+        .next_2(q5.x)
+        .next_2(q5.y)
+        .next_2(q6.x)
+        .next_2(q6.y)
+        .next_2(q7.x)
+        .next_2(q7.y)
+        .done_2()
+        .eval(modulus)
+        .expect('double_and_add_8 failed');
+
+    return G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) };
 }
 
-#[cfg(test)]
-mod tests {
-    use core::circuit::u384;
-    use core::traits::TryInto;
-    use super::{G1Point, derive_ec_point_from_X};
-
-    #[test]
-    fn derive_ec_point_from_X_BN254_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0x598cfc33bd761e9f469d5cf1,
-            limb1: 0x70aa740aee8c937ce5a652ed,
-            limb2: 0x15150916fc849dd8,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x70af0825548810253be61ac2,
-                limb1: 0xf5002d67b9fa4c1219c100a4,
-                limb2: 0x299198e451040cb,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xca77736f57333ec7243f64dc,
-                    limb1: 0xed10c0cb48d824856b668918,
-                    limb2: 0x2763f5473b1953e,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_BLS12_381_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0xda347f7c60a049c6d7bafb5b,
-            limb1: 0xec21b937ef78861d979f0f50,
-            limb2: 0x2ad1c01bba7ac189c78a1e86,
-            limb3: 0x1026dca24cfcadfb336698e,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0xdbca26cdf0c7aa11a90c641f,
-                limb1: 0x2e5c0209028615f11d0dc47e,
-                limb2: 0xb1add5551aa6b9c56333f02f,
-                limb3: 0x19972c66940a5bb4365da67,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xca77736f57333ec7243f64dc,
-                    limb1: 0xed10c0cb48d824856b668918,
-                    limb2: 0x2763f5473b1953e,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256K1_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0x6fd1f24224585b2f83a36f19,
-            limb1: 0x6edcd937a50597e42acc02c4,
-            limb2: 0x634a08e35a355a32,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x5e1402d5a1794a2ba5113078,
-                limb1: 0xcebc2596ba2db2a201abd409,
-                limb2: 0x54a070a2d860e57f,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xd619858e2ea7e31cb17c33cb,
-                limb1: 0x4816924dd606b04c135bcfa3,
-                limb2: 0x13dc60324901f16f,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0x6ae587737bb1f9839802fd91,
-                limb1: 0x4fc0f718bb7b3ca34f2cccb3,
-                limb2: 0x4071c850696772a1,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xd81a6ef8f7ee11a079f304e8,
-                limb1: 0xf765e8b9e097ca1bf0f3ea0e,
-                limb2: 0x459195cbdf16786a,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x8ab6a1b6714eb0afec427f11,
-                    limb1: 0x774701c0acf48486afeb35d5,
-                    limb2: 0x1a3e9f740bb8959,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256R1_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0x40cbfb35489307de40764c95,
-            limb1: 0x67ad6ff08b304dc35ef9a319,
-            limb2: 0x5ff5aff356baa1da,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x145e66309035da0e73a4ed6,
-                limb1: 0x696ff6786cf7a86549a1b150,
-                limb2: 0x69e04ef11ab29ee8,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xca77736f57333ec7243f64dc,
-                    limb1: 0xed10c0cb48d824856b668918,
-                    limb2: 0x2763f5473b1953e,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_ED25519_0() {
-        let x: felt252 =
-            1007924606664371314454745651482312426967359991013948795084104590968267883012;
-        let y: u384 = u384 {
-            limb0: 0xc329e0f3a716909d81ee695d,
-            limb1: 0xac52065a46c058e2dd3da949,
-            limb2: 0x81add1124b65c41,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x9558867f5ba91faf7a024204,
-                    limb1: 0x37ebdcd9e87a1613e443df78,
-                    limb2: 0x23a771181332876,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_BN254_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x185ddfe68eca3df51ff4c645,
-            limb1: 0x17b6ccbb6f4843c170dc2009,
-            limb2: 0x171370980ed3ba91,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0xb6dca81bd6f041ae382202ae,
-                limb1: 0xfebe33fdfdc01232d27737ce,
-                limb2: 0x1031c8f96f566cea,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xcc497c90b1d5d736c46a619a,
-                limb1: 0xf08b3fe8157a259bf06d1c18,
-                limb2: 0x1329fd3ffe2dbe8e,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0xa46d4f66ca22531865b67bf5,
-                limb1: 0xd5964d6b0c925503d596d887,
-                limb2: 0xa95d8f1df105f18,
-                limb3: 0x0,
-            },
-            u384 {
-                limb0: 0x3b52382c9597a1fad8935560,
-                limb1: 0x3fa8d8a8174fc08c702332ce,
-                limb2: 0x23191b53d4b072b,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 0);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x4ed478dca9953c97aedb70f7,
-                    limb1: 0xd98adb6e70e8f1580604709,
-                    limb2: 0x4bea6d08411cc00,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_BLS12_381_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x35d8a6fefdafaaaf5b29e897,
-            limb1: 0x6f7727ee8543e37553eeb26f,
-            limb2: 0x2f70791057cdbd90daf42308,
-            limb3: 0x75b09d110be5483f36e068,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x5cf036935c9f06c3e0a0aa7c,
-                limb1: 0x79a5eb4e385146a0aa3c1de,
-                limb2: 0x6e20141582b8406d26dda065,
-                limb3: 0x3c3d605784954989e301c3c,
-            },
-            u384 {
-                limb0: 0x77a98db8c9be953431659e97,
-                limb1: 0x214a25baa29b08ffc8bec3db,
-                limb2: 0xfe6a7b8656df401896f71787,
-                limb3: 0xa9152bcd397888aa9388bd8,
-            },
-            u384 {
-                limb0: 0x4551a54de8fb23786fd1f2a0,
-                limb1: 0x2b19133889843628ea5fd520,
-                limb2: 0xb893ee8526ef349b780c0c24,
-                limb3: 0x50a551b0bd152405d128fc7,
-            },
-            u384 {
-                limb0: 0xf4ecd002f01cd7ee33519fd5,
-                limb1: 0xed3c61685851221c96d7592b,
-                limb2: 0x9f42fc7c025009a0247daafb,
-                limb3: 0x45d3eb549e2ff2d259ef50a,
-            },
-            u384 {
-                limb0: 0xc71aa51c55a340c4b62ce4bb,
-                limb1: 0xc29f377906d89036689603a4,
-                limb2: 0x4dc8b1c21520b64e2101850,
-                limb3: 0x6de8fe79d9b161443b37f30,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 1);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0x836d4610c564d82c11088e19,
-                    limb1: 0x4801f5832d47c11bd2378845,
-                    limb2: 0x75e11f8d50c3760,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256K1_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0xc6d067f5c5c6a580350c2471,
-            limb1: 0x2ff4d91827cad9a2b11c1cff,
-            limb2: 0x18917af46df8fc3f,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0x22d9db5344ce97b7eb160092,
-                limb1: 0x2747c16db787c85dcc773a44,
-                limb2: 0x18a010b6b674e456,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 2);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xbb4647393e0b7dd03ae7107f,
-                    limb1: 0xcdc5afca778a37383350bcf8,
-                    limb2: 0x3a81368ffad9e03,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_SECP256R1_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x6e67fe45dcddd89cb69ce7ee,
-            limb1: 0x36156ccb6884f75af70900f1,
-            limb2: 0x30b6330c77234ef8,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![
-            u384 {
-                limb0: 0xea8397d53edccf2ceda23ff0,
-                limb1: 0xa5a0c4098c25294b18a0f0f9,
-                limb2: 0x11722147901e6d89,
-                limb3: 0x0,
-            },
-        ];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 3);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xbb4647393e0b7dd03ae7107f,
-                    limb1: 0xcdc5afca778a37383350bcf8,
-                    limb2: 0x3a81368ffad9e03,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-
-
-    #[test]
-    fn derive_ec_point_from_X_ED25519_1() {
-        let x: felt252 =
-            1063560484360105189252690783610884672686565418691657713591359159370969850218;
-        let y: u384 = u384 {
-            limb0: 0x33e9327c0c98794856bde22a,
-            limb1: 0xdf89110f1e821a3112ce76bb,
-            limb2: 0xacf925c82c4365f,
-            limb3: 0x0,
-        };
-        let grhs_roots: Array<u384> = array![];
-        let result = derive_ec_point_from_X(x, y, grhs_roots.span(), 4);
-        assert!(
-            result
-                .x == u384 {
-                    limb0: 0xfb97d43588561712e8e5216a,
-                    limb1: 0x9a164106cf6a659eb4862b21,
-                    limb2: 0x259f432e6f4590b,
-                    limb3: 0x0,
-                },
-        );
-        assert!(result.y == y);
-    }
-}

@@ -21,10 +21,8 @@ pub fn msm_calldata_builder(
     values: Vec<JsValue>,
     scalars: Vec<JsValue>,
     curve_id: usize,
-    include_digits_decomposition: bool,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-    risc0_mode: bool,
 ) -> Result<Vec<JsValue>, JsValue> {
     let values: Vec<BigUint> = values
         .into_iter()
@@ -40,10 +38,8 @@ pub fn msm_calldata_builder(
         &values,
         &scalars,
         curve_id,
-        Some(include_digits_decomposition),
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
-        risc0_mode,
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 

@@ -34,7 +34,7 @@ use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point,
     MillerLoopResultScalingFactor, bls_bits, bn_bits, get_modulus, u288,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1PointTrait, MSMHint, msm_g1};
+use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
 use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
@@ -90,19 +90,12 @@ fn verify_groth16_bn254(
     verification_key: Groth16VerifyingKey<u288>,
     mut lines: Span<G2Line<u288>>,
     ic: Span<G1Point>,
-    public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    public_inputs_msm_hint: MSMHint<u384>,
-    public_inputs_msm_derive_point_from_x_hint: DerivePointFromXHint,
+    public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBN254,
     small_Q: E12DMulQuotient<u288>,
 ) -> bool {
     let vk_x: G1Point = msm_g1(
-        public_inputs_digits_decompositions,
-        public_inputs_msm_hint,
-        public_inputs_msm_derive_point_from_x_hint,
-        ic.slice(1, ic.len() - 1),
-        proof.public_inputs,
-        0,
+        ic.slice(1, ic.len() - 1), proof.public_inputs, 0, public_inputs_msm_hint,
     );
 
     proof.a.assert_on_curve(0);
@@ -140,19 +133,12 @@ fn verify_groth16_bls12_381(
     verification_key: Groth16VerifyingKey<u384>,
     mut lines: Span<G2Line<u384>>,
     ic: Span<G1Point>,
-    public_inputs_digits_decompositions: Option<Span<(Span<felt252>, Span<felt252>)>>,
-    public_inputs_msm_hint: MSMHint<u384>,
-    public_inputs_msm_derive_point_from_x_hint: DerivePointFromXHint,
+    public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBLS12_381,
     small_Q: E12DMulQuotient<u384>,
 ) -> bool {
     let vk_x: G1Point = msm_g1(
-        public_inputs_digits_decompositions,
-        public_inputs_msm_hint,
-        public_inputs_msm_derive_point_from_x_hint,
-        ic.slice(1, ic.len() - 1),
-        proof.public_inputs,
-        1,
+        ic.slice(1, ic.len() - 1), proof.public_inputs, 1, public_inputs_msm_hint,
     );
 
     proof.a.assert_on_curve(1);

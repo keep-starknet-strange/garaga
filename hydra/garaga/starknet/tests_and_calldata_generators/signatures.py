@@ -105,7 +105,7 @@ class SchnorrSignature:
         cd.extend(bigint_split(self.py, N_LIMBS, BASE))
         return cd
 
-    def serialize_with_hints(self, use_rust=True, as_str=False) -> list[int] | str:
+    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
             cd = garaga_rs.schnorr_calldata_builder(
@@ -126,11 +126,9 @@ class SchnorrSignature:
             ],
             [self.s, e_neg],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
-            False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
-        )[1:]
+            True,  # serialize_as_pure_felt252_array
+        )
         cd.extend(msm_calldata)
         if as_str:
             return "[{}]".format(", ".join(map(hex, cd)))
@@ -259,7 +257,7 @@ class ECDSASignature:
         cd.extend(split_128(self.z))
         return cd
 
-    def serialize_with_hints(self, use_rust=True, as_str=False) -> list[int] | str:
+    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
             cd = garaga_rs.ecdsa_calldata_builder(
@@ -284,11 +282,9 @@ class ECDSASignature:
             ],
             [u1, u2],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
-            False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
-        )[1:]
+            True,  # serialize_as_pure_felt252_array
+        )
         cd.extend(msm_calldata)
         if as_str:
             return "[{}]".format(", ".join(map(hex, cd)))
@@ -430,11 +426,9 @@ class EdDSA25519Signature:
             ],
             [self.s, h],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
-            False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
-        )[1:]
+            True,  # serialize_as_pure_felt252_array
+        )
 
         cd.extend(msm_calldata)
         (Rx_twisted, _) = self.curve.to_twistededwards(R.x, R.y)

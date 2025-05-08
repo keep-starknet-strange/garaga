@@ -10,7 +10,7 @@ pub struct FullProofWithHintsBN254 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBN254,
     pub small_Q: E12DMulQuotient<u288>,
-    pub msm_hint: Array<felt252>,
+    pub msm_hint: Span<felt252>,
 }
 
 #[derive(Drop, Debug)]
@@ -18,7 +18,7 @@ pub struct FullProofWithHintsBLS12_381 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBLS12_381,
     pub small_Q: E12DMulQuotient<u384>,
-    pub msm_hint: Array<felt252>,
+    pub msm_hint: Span<felt252>,
 }
 
 #[derive(Drop)]
@@ -28,7 +28,7 @@ pub struct FullProofWithHintsRisc0 {
     pub journal: Span<u8>,
     pub mpcheck_hint: MPCheckHintBN254,
     pub small_Q: E12DMulQuotient<u288>,
-    pub msm_hint: Array<felt252>,
+    pub msm_hint: Span<felt252>,
 }
 
 const U288_N_LIMBS: usize = 3;
@@ -422,12 +422,7 @@ fn deserialize_full_proof_with_hints_risc0(
         w10: downcast_u288(w10l0, w10l1, w10l2),
     };
 
-    // let msm_hint = *serialized.snapshot;
-    let mut msm_hint = array![];
-    serialized.pop_front().unwrap(); // skip len.
-    for x in serialized {
-        msm_hint.append(*x);
-    }
+    let msm_hint = serialized;
     return FullProofWithHintsRisc0 {
         groth16_proof: groth16_proof,
         image_id: image_id.span(),
@@ -803,13 +798,7 @@ fn deserialize_full_proof_with_hints_bn254(
         w9: downcast_u288(w9l0, w9l1, w9l2),
         w10: downcast_u288(w10l0, w10l1, w10l2),
     };
-
-    // let msm_hint = *serialized.snapshot;
-    let mut msm_hint = array![];
-    serialized.pop_front().unwrap(); // skip len.
-    for x in serialized {
-        msm_hint.append(*x);
-    }
+    let msm_hint = serialized;
     return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }
 
@@ -1168,11 +1157,7 @@ fn deserialize_full_proof_with_hints_bls12_381(
         w10: downcast_u384(w10l0, w10l1, w10l2, w10l3),
     };
 
-    // let msm_hint = *serialized.snapshot;
-    let mut msm_hint = array![];
-    serialized.pop_front().unwrap(); // skip len.
-    for x in serialized {
-        msm_hint.append(*x);
-    }
+    let msm_hint = serialized;
+
     return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }

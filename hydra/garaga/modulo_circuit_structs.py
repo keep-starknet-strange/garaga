@@ -122,6 +122,12 @@ class StructArray(Cairo1SerializableStruct, Generic[T]):
         else:
             return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
 
+    def serialize_to_calldata(self) -> list[int]:
+        cd = [len(self)]
+        for elmt in self.elmts:
+            cd.extend(elmt.serialize_to_calldata())
+        return cd
+
 
 class Struct(Cairo1SerializableStruct):
     elmts: list[Cairo1SerializableStruct]
@@ -213,7 +219,9 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
             else:
                 return f"let {self.name} = {raw_struct};\n"
 
-    def _serialize_to_calldata(self, option: CairoOption = None) -> list[int]:
+    def _serialize_to_calldata(
+        self, option: CairoOption = None, as_pure_felt252_array: bool = False
+    ) -> list[int]:
         cd = []
         if option:
             if option == CairoOption.SOME:
@@ -229,6 +237,9 @@ class StructSpan(Cairo1SerializableStruct, Generic[T]):
         cd.append(len(self.elmts))
         for elmt in self.elmts:
             cd.extend(elmt._serialize_to_calldata())
+
+        if as_pure_felt252_array:
+            cd[0] = len(cd) - 1
         return cd
 
 

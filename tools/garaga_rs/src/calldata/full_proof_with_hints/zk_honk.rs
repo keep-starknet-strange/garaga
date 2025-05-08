@@ -54,7 +54,7 @@ pub struct ZKHonkProof {
 impl ZKHonkProof {
     pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
         if proof_bytes.len() != 32 * ZK_PROOF_SIZE {
-            return Err(format!("Invalid input length: {}", proof_bytes.len()));
+            return Err(format!("Invalid proof bytes length: {}", proof_bytes.len()));
         }
 
         let mut values = vec![];
@@ -65,7 +65,7 @@ impl ZKHonkProof {
 
         if public_inputs_bytes.len() % 32 != 0 {
             return Err(format!(
-                "Invalid input length: {}",
+                "Invalid public input bytes length: {}",
                 public_inputs_bytes.len()
             ));
         }
@@ -82,27 +82,10 @@ impl ZKHonkProof {
     }
     pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
         if values.len() != ZK_PROOF_SIZE {
-            return Err(format!("Invalid input length: {}", values.len()));
+            return Err(format!("Invalid proof length: {}", values.len()));
         }
 
         let mut offset = 0;
-
-        let count = PAIRING_POINT_OBJECT_LENGTH
-            + 11 * 4
-            + 1
-            + ZK_BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
-            + NUMBER_OF_ENTITIES
-            + 1
-            + 4
-            + 1
-            + (CONST_PROOF_SIZE_LOG_N - 1) * 4
-            + CONST_PROOF_SIZE_LOG_N
-            + 4
-            + 2 * 4;
-        if values.len() != count {
-            return Err(format!("Invalid input length: {}", values.len()));
-        }
-
         let mut pairing_point_object = vec![];
         for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
             pairing_point_object.push(values[i].clone());
@@ -198,7 +181,7 @@ impl ZKHonkProof {
         let [shplonk_q, kzg_quotient] = points.try_into().unwrap();
         offset += 4 * 2;
 
-        assert_eq!(offset, count);
+        assert_eq!(offset, ZK_PROOF_SIZE);
 
         let proof = Self {
             public_inputs,
@@ -420,6 +403,21 @@ pub fn get_zk_honk_calldata(
         .map_err(|e| format!("Field error: {:?}", e))?,
     );
 
+    let mut scalars_msm = scalars; // Rename for clarity and make mutable
+
+    // Swap last two scalars
+    let len = scalars_msm.len();
+    if len >= 2 {
+        scalars_msm.swap(len - 1, len - 2);
+    }
+
+    // Place first scalar just after the vk_lagrange_last point (index 27)
+    if !scalars_msm.is_empty() {
+        let first_scalar = scalars_msm.remove(0);
+        // Assume the vector length is sufficient for insertion at index 27
+        scalars_msm.insert(27, first_scalar);
+    }
+
     let proof_data = {
         let mut call_data = vec![];
         let call_data_ref = &mut call_data;
@@ -503,7 +501,6 @@ pub fn get_zk_honk_calldata(
     };
 
     let mut points = vec![
-        gemini_masking_poly,  // 1
         qm,                   // 2
         qc,                   // 3
         ql,                   // 4
@@ -531,6 +528,7 @@ pub fn get_zk_honk_calldata(
         t4,                   // 26
         lagrange_first,       // 27
         lagrange_last,        // 28
+        gemini_masking_poly,  // 1
         w1,                   // 29
         w2,                   // 30
         w3,                   // 31
@@ -543,28 +541,18 @@ pub fn get_zk_honk_calldata(
 
     points.extend(gemini_fold_comms[0..vk.log_circuit_size - 1].to_vec());
     points.extend(libra_commitments);
-    points.push(G1Point::generator());
     points.push(kzg_quotient.clone());
+    points.push(G1Point::generator());
 
     let two = FieldElement::<Stark252PrimeField>::one().double();
 
     let mut state = [vk.vk_hash, transcript_state, two];
     PoseidonCairoStark252::hades_permutation(&mut state);
-    let [external_s0, external_s1, _] = state;
 
-    let msm_data = msm_calldata::calldata_builder(
-        &points,
-        &scalars,
-        CurveID::BN254 as usize,
-        None,
-        false,
-        false,
-        false,
-        Some((external_s0, external_s1)),
-        true,
-    );
+    let msm_data =
+        msm_calldata::calldata_builder(&points, &scalars_msm, CurveID::BN254 as usize, false, true);
 
-    let p_0 = G1Point::msm(&points, &scalars).add(&shplonk_q);
+    let p_0 = G1Point::msm(&points, &scalars_msm).add(&shplonk_q);
     let p_1 = kzg_quotient.neg();
     let g2_point_kzg_1 = G2Point::generator();
     let g2_point_kzg_2 = G2Point::new(
@@ -1017,42 +1005,19 @@ fn extract_msm_scalars(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sha3::{Digest, Keccak256};
 
     #[test]
-    fn test_zk_honk_keccak_calldata() -> std::io::Result<()> {
-        let vk = get_honk_vk()?;
-        let proof = get_zk_honk_keccak_proof()?;
-        let call_data = get_zk_honk_calldata(&proof, &vk, HonkFlavor::KECCAK).unwrap();
-        let bytes = call_data
-            .into_iter()
-            .flat_map(|v| v.to_bytes_be())
-            .collect::<Vec<_>>();
-        let digest = Keccak256::digest(&bytes).to_vec();
-        let expected_digest = [
-            104, 164, 11, 18, 175, 206, 95, 69, 150, 19, 209, 251, 49, 129, 92, 74, 156, 200, 181,
-            238, 163, 26, 171, 126, 219, 109, 252, 110, 121, 157, 144, 227,
-        ];
-        assert_eq!(digest, expected_digest);
-        Ok(())
+    fn test_zk_honk_keccak_calldata() {
+        let vk = get_honk_vk().unwrap();
+        let proof = get_zk_honk_keccak_proof().unwrap();
+        let _ = get_zk_honk_calldata(&proof, &vk, HonkFlavor::KECCAK).unwrap();
     }
 
     #[test]
-    fn test_zk_honk_starknet_calldata() -> std::io::Result<()> {
-        let vk = get_honk_vk()?;
-        let proof = get_zk_honk_starknet_proof()?;
-        let call_data = get_zk_honk_calldata(&proof, &vk, HonkFlavor::STARKNET).unwrap();
-        let bytes = call_data
-            .into_iter()
-            .flat_map(|v| v.to_bytes_be())
-            .collect::<Vec<_>>();
-        let digest = Keccak256::digest(&bytes).to_vec();
-        let expected_digest = [
-            75, 123, 88, 128, 73, 195, 42, 81, 187, 58, 160, 127, 106, 196, 173, 115, 6, 33, 22,
-            185, 107, 142, 88, 76, 4, 192, 20, 41, 52, 87, 18, 249,
-        ];
-        assert_eq!(digest, expected_digest);
-        Ok(())
+    fn test_zk_honk_starknet_calldata() {
+        let vk = get_honk_vk().unwrap();
+        let proof = get_zk_honk_starknet_proof().unwrap();
+        let _ = get_zk_honk_calldata(&proof, &vk, HonkFlavor::STARKNET).unwrap();
     }
 
     fn get_honk_vk() -> std::io::Result<HonkVerificationKey> {

@@ -88,4 +88,4 @@ docker compose up --build
 
 cd ../integration-test-suite
 
-# rm -rf node_modules package-lock.json && npm cache clean --force && npm install garaga.tgz
+cp ../garaga_ts/garaga-0.18.0.tgz garaga.tgz

@@ -97,13 +97,11 @@ pub fn schnorr_calldata_builder(
         ],
         &[s, e_neg],
         curve_id as usize,
-        Some(false),
         false,
-        false,
-        false,
+        true,
     )?;
 
-    cd.extend(msm_cd.into_iter().skip(1));
+    cd.extend(msm_cd);
     Ok(cd)
 }
 
@@ -184,13 +182,11 @@ pub fn ecdsa_calldata_builder(
         ],
         &[u1, u2],
         curve_id as usize,
-        Some(false),
         false,
-        false,
-        false,
+        true,
     )?;
 
-    cd.extend(msm_cd.into_iter().skip(1));
+    cd.extend(msm_cd);
     Ok(cd)
 }
 
@@ -326,17 +322,9 @@ pub fn eddsa_calldata_builder(
     ];
     let scalars = &[s, h];
 
-    let msm_cd = msm_calldata_builder(
-        values,
-        scalars,
-        CurveID::X25519 as usize,
-        Some(false),
-        false,
-        false,
-        false,
-    )?;
+    let msm_cd = msm_calldata_builder(values, scalars, CurveID::X25519 as usize, false, true)?;
 
-    cd.extend(msm_cd.into_iter().skip(1));
+    cd.extend(msm_cd);
 
     cd.extend(biguint_split::<2, 128>(&element_to_biguint(&r_point_x_twisted)).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&element_to_biguint(&p_point_x_twisted)).map(BigUint::from));

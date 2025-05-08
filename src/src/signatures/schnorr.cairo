@@ -4,8 +4,7 @@ use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1_2_points, u384};
-use garaga::utils::hashing::HashFeltTranscriptTrait;
+use garaga::ec_ops::{G1Point, G1PointTrait, msm_g1, u384};
 use garaga::utils::u384_eq_zero;
 
 /// A Schnorr signature with associated public key and challenge.
@@ -51,10 +50,9 @@ impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
 /// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving the full point from
 /// x-coordinate (part of MSM algo).
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct SchnorrSignatureWithHint<T> {
+struct SchnorrSignatureWithHint {
     signature: SchnorrSignature,
-    msm_hint: MSMHint<T>,
-    msm_derive_hint: DerivePointFromXHint,
+    msm_hint: Span<felt252>,
 }
 
 /// Verifies a Schnorr signature with associated hints for a hash challenge.
@@ -85,12 +83,8 @@ struct SchnorrSignatureWithHint<T> {
 /// This implements the verification equation: sG - eP = R
 /// Which proves the signer knew the private key x where P = xG
 /// Returns false if the signature is invalid.
-pub fn is_valid_schnorr_signature<
-    T, +HashFeltTranscriptTrait<T>, +IntoCircuitInputValue<T>, +Drop<T>, +Copy<T>,
->(
-    signature: SchnorrSignatureWithHint<T>, curve_id: usize,
-) -> bool {
-    let SchnorrSignatureWithHint { signature, msm_hint, msm_derive_hint } = signature;
+pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id: usize) -> bool {
+    let SchnorrSignatureWithHint { signature, msm_hint } = signature;
     let SchnorrSignature { rx, s, e, px, py } = signature;
     // println!("rx: {rx}");
     // println!("s: {s}");
@@ -120,7 +114,7 @@ pub fn is_valid_schnorr_signature<
     let points = array![get_G(curve_id), pk_point].span();
     let scalars = array![s, e_neg].span();
 
-    let res = msm_g1_2_points(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
+    let res = msm_g1(points, scalars, curve_id, msm_hint);
 
     let ry_l0_f252: felt252 = res.y.limb0.into();
     let ry_l0_u128: u128 = ry_l0_f252.try_into().unwrap();

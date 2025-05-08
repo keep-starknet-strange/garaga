@@ -212,20 +212,18 @@ function getArrayJsValueFromWasm0(ptr, len) {
  * @param {any[]} values
  * @param {any[]} scalars
  * @param {number} curve_id
- * @param {boolean} include_digits_decomposition
  * @param {boolean} include_points_and_scalars
  * @param {boolean} serialize_as_pure_felt252_array
- * @param {boolean} risc0_mode
  * @returns {any[]}
  */
-export function msm_calldata_builder(values, scalars, curve_id, include_digits_decomposition, include_points_and_scalars, serialize_as_pure_felt252_array, risc0_mode) {
+export function msm_calldata_builder(values, scalars, curve_id, include_points_and_scalars, serialize_as_pure_felt252_array) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passArrayJsValueToWasm0(values, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passArrayJsValueToWasm0(scalars, wasm.__wbindgen_malloc);
         const len1 = WASM_VECTOR_LEN;
-        wasm.msm_calldata_builder(retptr, ptr0, len0, ptr1, len1, curve_id, include_digits_decomposition, include_points_and_scalars, serialize_as_pure_felt252_array, risc0_mode);
+        wasm.msm_calldata_builder(retptr, ptr0, len0, ptr1, len1, curve_id, include_points_and_scalars, serialize_as_pure_felt252_array);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);

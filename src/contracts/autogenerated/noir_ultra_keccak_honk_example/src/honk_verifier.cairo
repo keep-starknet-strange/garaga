@@ -1,6 +1,5 @@
 use super::honk_verifier_circuits::{
-    is_on_curve_bn254, run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
-    run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+    is_on_curve_bn254, run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit,
 };
 use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
@@ -16,20 +15,14 @@ pub trait IUltraKeccakHonkVerifier<TContractState> {
 mod UltraKeccakHonkVerifier {
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
-    use garaga::basic_field_ops::{batch_3_mod_p, sub_mod_p};
     use garaga::circuits::ec;
-    use garaga::core::circuit::{
-        U32IntoU384, U64IntoU384, into_u256_unchecked, u288IntoCircuitInputValue,
-    };
+    use garaga::core::circuit::{U32IntoU384, U64IntoU384, u288IntoCircuitInputValue};
     use garaga::definitions::{
-        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, u288,
+        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus,
+        get_eigenvalue, get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u288, u384,
     };
-    use garaga::ec_ops::{
-        DerivePointFromXHint, FunctionFeltTrait, G1PointTrait, MSMHint, SlopeInterceptOutput,
-        _compute_rhs_ecip_no_infinity, derive_ec_point_from_X, ec_safe_add,
-    };
+    use garaga::ec_ops::{G1PointTrait, GlvFakeGlvHint, _ec_safe_add, _scalar_mul_glv_and_fake_glv};
     use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
-    use garaga::utils::neg_3;
     use garaga::utils::noir::honk_transcript::{
         BATCHED_RELATION_PARTIAL_LENGTH, HonkTranscriptTrait, KeccakHasherState,
         Point256IntoCircuitPoint,
@@ -37,7 +30,6 @@ mod UltraKeccakHonkVerifier {
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
     use super::{
         VK_HASH, is_on_curve_bn254, precomputed_lines,
-        run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit,
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
         run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit, vk,
     };
@@ -48,8 +40,7 @@ mod UltraKeccakHonkVerifier {
     #[derive(Drop, Serde)]
     struct FullProof {
         proof: HonkProof,
-        msm_hint_batched: MSMHint<u288>,
-        derive_point_from_x_hint: DerivePointFromXHint,
+        msm_hint: Span<felt252>,
         kzg_hint: MPCheckHintBN254,
     }
 
@@ -199,77 +190,61 @@ mod UltraKeccakHonkVerifier {
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 20
             _points.append(BN254_G1_GENERATOR);
 
-            let points = _points.span();
+            let mut points = _points.span();
 
-            let scalars: Span<u256> = array![
-                into_u256_unchecked(scalar_1),
-                into_u256_unchecked(scalar_2),
-                into_u256_unchecked(scalar_3),
-                into_u256_unchecked(scalar_4),
-                into_u256_unchecked(scalar_5),
-                into_u256_unchecked(scalar_6),
-                into_u256_unchecked(scalar_7),
-                into_u256_unchecked(scalar_8),
-                into_u256_unchecked(scalar_9),
-                into_u256_unchecked(scalar_10),
-                into_u256_unchecked(scalar_11),
-                into_u256_unchecked(scalar_12),
-                into_u256_unchecked(scalar_13),
-                into_u256_unchecked(scalar_14),
-                into_u256_unchecked(scalar_15),
-                into_u256_unchecked(scalar_16),
-                into_u256_unchecked(scalar_17),
-                into_u256_unchecked(scalar_18),
-                into_u256_unchecked(scalar_19),
-                into_u256_unchecked(scalar_20),
-                into_u256_unchecked(scalar_21),
-                into_u256_unchecked(scalar_22),
-                into_u256_unchecked(scalar_23),
-                into_u256_unchecked(scalar_24),
-                into_u256_unchecked(scalar_25),
-                into_u256_unchecked(scalar_26),
-                into_u256_unchecked(scalar_27),
-                into_u256_unchecked(scalar_28),
-                into_u256_unchecked(scalar_29),
-                into_u256_unchecked(scalar_30),
-                into_u256_unchecked(scalar_31),
-                into_u256_unchecked(scalar_32),
-                into_u256_unchecked(scalar_33),
-                into_u256_unchecked(scalar_34),
-                into_u256_unchecked(scalar_35),
-                into_u256_unchecked(scalar_41),
-                into_u256_unchecked(scalar_42),
-                into_u256_unchecked(scalar_43),
-                into_u256_unchecked(scalar_44),
-                into_u256_unchecked(scalar_45),
-                into_u256_unchecked(scalar_46),
-                into_u256_unchecked(scalar_47),
-                into_u256_unchecked(scalar_48),
-                into_u256_unchecked(scalar_49),
-                into_u256_unchecked(scalar_50),
-                into_u256_unchecked(scalar_51),
+            let mut scalars: Span<u384> = array![
+                scalar_1,
+                scalar_2,
+                scalar_3,
+                scalar_4,
+                scalar_5,
+                scalar_6,
+                scalar_7,
+                scalar_8,
+                scalar_9,
+                scalar_10,
+                scalar_11,
+                scalar_12,
+                scalar_13,
+                scalar_14,
+                scalar_15,
+                scalar_16,
+                scalar_17,
+                scalar_18,
+                scalar_19,
+                scalar_20,
+                scalar_21,
+                scalar_22,
+                scalar_23,
+                scalar_24,
+                scalar_25,
+                scalar_26,
+                scalar_27,
+                scalar_28,
+                scalar_29,
+                scalar_30,
+                scalar_31,
+                scalar_32,
+                scalar_33,
+                scalar_34,
+                scalar_35,
+                scalar_41,
+                scalar_42,
+                scalar_43,
+                scalar_44,
+                scalar_45,
+                scalar_46,
+                scalar_47,
+                scalar_48,
+                scalar_49,
+                scalar_50,
+                scalar_51,
                 transcript.shplonk_z.into(),
-                into_u256_unchecked(scalar_68),
+                scalar_68,
             ]
                 .span();
 
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched(48);
-            // HASHING: GET ECIP BASE RLC COEFF.
-            let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-                'MSM_G1', 0, 1,
-            ); // Init Sponge state
-            let (s0, s1, s2) = hades_permutation(
-                s0 + 0.into(), s1 + 48.into(), s2,
-            ); // Include curve_index and msm size
-
-            // Hash precomputed VK hash with last transcript state
-            let (_s0, _s1, _s2) = hades_permutation(VK_HASH, transcript_state, 2);
-
-            // Update sponge state :
-            let (s0, s1, s2) = hades_permutation(s0 + _s0, s1 + _s1, s2);
-
-            // Check input points are on curve. No need to hash them : they are already in the
-            // transcript + we precompute the VK hash.
+            // Check input points are on curve.
             // Skip the first 27 points as they are from VK and keep the last 20 proof points
             for point in points.slice(27, 20) {
                 assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
@@ -279,125 +254,36 @@ mod UltraKeccakHonkVerifier {
             let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
             assert(is_on_curve_bn254(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
-            if !full_proof.msm_hint_batched.Q_low.is_infinity() {
-                assert(
-                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_low, mod_bn),
-                    'Q_low not on curve',
+            let mut msm_hint = full_proof.msm_hint;
+            assert(msm_hint.len() == 48 * 12, 'wrong glv&fakeglv hint size');
+            let eigen = get_eigenvalue(0);
+            let third_root_of_unity = get_third_root_of_unity(0);
+            let min_one = get_min_one_order(0);
+            let nG = get_nG_glv_fake_glv(0);
+
+            let mut P_1 = shplonk_q_pt;
+
+            while msm_hint.len() != 0 {
+                let pt = *points.pop_front().unwrap();
+                let scalar = *scalars.pop_front().unwrap();
+                // Note : Scalars are below curve order by construction (circuit outputs mod n and
+                // transcript output (u128))
+                let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref msm_hint).unwrap();
+                let temp = _scalar_mul_glv_and_fake_glv(
+                    pt,
+                    scalar,
+                    mod_grumpkin,
+                    mod_bn,
+                    glv_fake_glv_hint,
+                    eigen,
+                    third_root_of_unity,
+                    min_one,
+                    nG,
+                    0,
                 );
-            }
-            if !full_proof.msm_hint_batched.Q_high.is_infinity() {
-                assert(
-                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_high, mod_bn),
-                    'Q_high not on curve',
-                );
-            }
-            if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {
-                assert(
-                    is_on_curve_bn254(full_proof.msm_hint_batched.Q_high_shifted, mod_bn),
-                    'Q_high_shifted not on curve',
-                );
+                P_1 = _ec_safe_add(P_1, temp, mod_bn, 0);
             }
 
-            // Hash result points
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_low.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof
-                .msm_hint_batched
-                .Q_high_shifted
-                .update_hash_state(s0, s1, s2);
-
-            // No need to hash scalars as they are derived from proof + transcript.
-
-            let base_rlc_coeff = s1;
-
-            let (s0, _, _) = full_proof
-                .msm_hint_batched
-                .RLCSumDlogDiv
-                .update_hash_state(s0, s1, s2);
-
-            let random_point: G1Point = derive_ec_point_from_X(
-                s0,
-                full_proof.derive_point_from_x_hint.y_last_attempt,
-                full_proof.derive_point_from_x_hint.g_rhs_sqrt,
-                0,
-            );
-
-            // Get slope, intercept and other constant from random point
-            let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, Zero::zero(), 0,
-            );
-
-            // Get positive and negative multiplicities of low and high part of scalars
-            let mut epns_low: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
-            let mut epns_high: Array<(felt252, felt252, felt252, felt252)> = ArrayTrait::new();
-            for scalar in scalars {
-                epns_low.append(neg_3::scalar_to_epns(*scalar.low));
-                epns_high.append(neg_3::scalar_to_epns(*scalar.high));
-            }
-
-            // Hardcoded epns for 2**128
-            let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-                (
-                    5279154705627724249993186093248666011,
-                    345561521626566187713367793525016877467,
-                    -1,
-                    -1,
-                ),
-            ];
-
-            let (lhs_fA0) = run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit(
-                A: random_point,
-                coeff: mb.coeff0,
-                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
-                modulus: mod_bn,
-            );
-            let (lhs_fA2) = run_BN254_EVAL_FN_CHALLENGE_SING_48P_RLC_circuit(
-                A: G1Point { x: mb.x_A2, y: mb.y_A2 },
-                coeff: mb.coeff2,
-                SumDlogDivBatched: full_proof.msm_hint_batched.RLCSumDlogDiv,
-                modulus: mod_bn,
-            );
-
-            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
-
-            let rhs_low = _compute_rhs_ecip_no_infinity(
-                points,
-                mb.m_A0,
-                mb.b_A0,
-                random_point.x,
-                epns_low,
-                full_proof.msm_hint_batched.Q_low,
-                0,
-            );
-            let rhs_high = _compute_rhs_ecip_no_infinity(
-                points,
-                mb.m_A0,
-                mb.b_A0,
-                random_point.x,
-                epns_high,
-                full_proof.msm_hint_batched.Q_high,
-                0,
-            );
-            let rhs_high_shifted = _compute_rhs_ecip_no_infinity(
-                array![full_proof.msm_hint_batched.Q_high].span(),
-                mb.m_A0,
-                mb.b_A0,
-                random_point.x,
-                epns_shifted,
-                full_proof.msm_hint_batched.Q_high_shifted,
-                0,
-            );
-
-            let zk_ecip_batched_rhs = batch_3_mod_p(
-                rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn,
-            );
-
-            let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
-
-            let P_1 = ec_safe_add(
-                full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0,
-            );
-            let P_1 = ec_safe_add(P_1, shplonk_q_pt, 0);
             let P_2: G1Point = full_proof.proof.kzg_quotient.into();
 
             // Perform the KZG pairing check.
@@ -408,7 +294,7 @@ mod UltraKeccakHonkVerifier {
                 full_proof.kzg_hint,
             );
 
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && kzg_check {
                 return Option::Some(full_proof.proof.public_inputs);
             } else {
                 return Option::None;
