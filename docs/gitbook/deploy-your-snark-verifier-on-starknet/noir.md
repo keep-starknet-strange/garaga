@@ -6,9 +6,18 @@ icon: octopus
 
 ## Requirements
 
+* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`
 * Noir 1.0.0-beta.3 (install with `noirup --version 1.0.0-beta.3`)
-* Barretenberg 0.86.0 (install with `bbup --version 0.86.0-starknet.1`)
-* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`)
+
+For local proving :&#x20;
+
+* Barretenberg 0.86.0-starknet.1 (install with `bbup --version 0.86.0-starknet.1`)
+
+For in-browser proving with bb.js
+
+* Barretenberg/bb.js 0.85.0 (install with `bbup --version 0.85.0`)
+
+
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
@@ -16,7 +25,9 @@ To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https:/
 
 #### Supported barretenberg flavours
 
-<table><thead><tr><th width="134">BB --scheme</th><th width="193">BB --oracle_hash</th><th data-type="checkbox">--zk flag</th><th>Support</th><th>System name in garaga</th></tr></thead><tbody><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>false</td><td>Yes ✅</td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>true</td><td>Yes ✅</td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>false</td><td>Not planned</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>true</td><td>Not planned</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>false</td><td>Yes ✅ using the specific bb version</td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>true</td><td>Yes ✅ using the specific bb version</td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>
+
+
+<table><thead><tr><th width="134">BB --scheme</th><th width="160.800048828125">BB --oracle_hash</th><th width="90.1666259765625" data-type="checkbox">--zk flag</th><th width="124.3665771484375">Local support</th><th>Browser (bb.js) support</th><th>System name in garaga</th></tr></thead><tbody><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>false</td><td>Full ✅</td><td>Full ✅</td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>true</td><td>Full ✅</td><td>Missing ❌</td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>false</td><td>Not planned</td><td>-</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>true</td><td>Not planned</td><td>-</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>false</td><td>Yes ✅ using the specific bb version</td><td>Missing ❌</td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>true</td><td>Yes ✅ using the specific bb version</td><td>Missing ❌</td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>
 
 First, create a new Noir project and compile it with `nargo build`.
 
@@ -232,6 +243,13 @@ Now, you can follow the previous tutorial using the starknet flavours of [#suppo
 
 
 ## Complete dApp Tutorial
+
+{% hint style="info" %}
+Note : bb.js version 0.86.0 has some issues, to try your app you should follow the repo scaffold-garaga that uses for now an older version of barretenberg (0.18.0 & 0.85.0 instead of 0.18.0 and 0.86.0). \
+Those versions are not ready for production. \
+Local (non-browser) proving is working as expected. \
+We're working with Aztec team to fix thoses.&#x20;
+{% endhint %}
 
 Follow the  [Scaffold‑Garaga repository](https://github.com/m-kus/scaffold-garaga). This starter kit combines **Noir**, **Garaga**, and **Starknet** with in‑browser proving to help you ship a privacy‑preserving dApp fast.
 
