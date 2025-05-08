@@ -94,7 +94,7 @@ hex = "0.4"
 Optionally, if you intend to explicitly generate and handle the call-data, also add the following dependency to `host/Cargo.toml`. Make sure to use a Garaga version tag that is consistent with your setup.
 
 <pre class="language-toml"><code class="lang-toml">[dependencies]
-<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.15.3" }
+<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.18.0" }
 </strong>...
 </code></pre>
 
@@ -119,7 +119,7 @@ use garaga_rs::calldata::full_proof_with_hints::groth16::risc0_utils::get_risc0_
 
 Next we need to modify the Host main function.
 
-If you are starting a fresh RiscZero project, you will need to setup the environment for the computation. This is basically the set of inputs that will be used by the Guest program to perform the computation.&#x20;
+If you are starting a fresh RiscZero project, you will need to setup the environment for the computation. This is basically the set of inputs that will be used by the Guest program to perform the computation.
 
 Below is an example for the `fibonacci_prover`. In this example, we want to compute the number at position `n` of the Fibonacci sequence. However we do not want to reveal `n`, but instead show that `n` lies in a given interval defined by a lower bound `l` and an upper bound `u`.
 
@@ -182,7 +182,7 @@ println!("[{}]", calldata.iter().skip(1).map(|v| format!("\"{}\"", v)).collect::
 
 Now we need to set up the Guest program that performs the computation required by our use case.
 
-If you started a fresh RiscZero project, then you will need to write the Guest program that performs the computation. It is done by modifying the main function of the Guest source file at `methods/guest/src/main.rs`&#x20;
+If you started a fresh RiscZero project, then you will need to write the Guest program that performs the computation. It is done by modifying the main function of the Guest source file at `methods/guest/src/main.rs`
 
 In our example, here is what the Guest code looks like for the `fibonacci_guest`
 
@@ -287,7 +287,7 @@ fn verify_and_submit_fibonacci_number(ref self: ContractState, full_proof_with_h
 }
 ```
 
-Along with the `verify_and_submit_fibonacci_number` contract method,  we need to define the RiscZero Verifier class hash, which can be obtained [here](./)
+Along with the `verify_and_submit_fibonacci_number` contract method, we need to define the RiscZero Verifier class hash, which can be obtained [here](./)
 
 ```rust
 use core::starknet::ClassHash;
