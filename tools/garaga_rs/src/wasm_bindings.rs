@@ -21,10 +21,8 @@ pub fn msm_calldata_builder(
     values: Vec<JsValue>,
     scalars: Vec<JsValue>,
     curve_id: usize,
-    include_digits_decomposition: bool,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-    risc0_mode: bool,
 ) -> Result<Vec<JsValue>, JsValue> {
     let values: Vec<BigUint> = values
         .into_iter()
@@ -40,10 +38,8 @@ pub fn msm_calldata_builder(
         &values,
         &scalars,
         curve_id,
-        Some(include_digits_decomposition),
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
-        risc0_mode,
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
@@ -393,12 +389,14 @@ pub fn get_groth16_calldata(
 }
 
 #[wasm_bindgen]
-pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
-    let bytes = uint8_array
+pub fn parse_honk_proof(proof_js: JsValue, public_inputs_js: JsValue) -> Result<JsValue, JsValue> {
+    let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let public_inputs_bytes = public_inputs_js
         .dyn_into::<Uint8Array>()
         .map(|arr| arr.to_vec())?;
 
-    let proof = HonkProof::from_bytes(&bytes).map_err(|s| JsValue::from_str(&s))?;
+    let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
+        .map_err(|s| JsValue::from_str(&s))?;
 
     let curve_id = CurveID::BN254 as usize;
 
@@ -407,6 +405,11 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
         &proof_obj,
         "publicInputs",
         &jsvalue_from_biguint_array(&proof.public_inputs)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "pairingPointObject",
+        &jsvalue_from_biguint_array(&proof.pairing_point_object)?,
     )?;
     set_property(
         &proof_obj,
@@ -490,13 +493,18 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn get_honk_calldata(
     proof_js: JsValue,
+    public_inputs_js: JsValue,
     vk_js: JsValue,
     flavor_js: JsValue,
 ) -> Result<Vec<JsValue>, JsValue> {
     let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let public_inputs_bytes = public_inputs_js
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
     let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
 
-    let proof = HonkProof::from_bytes(&proof_bytes).map_err(|s| JsValue::from_str(&s))?;
+    let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
+        .map_err(|s| JsValue::from_str(&s))?;
     let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
 
     //Parse flavor_js into usize
@@ -521,13 +529,18 @@ pub fn get_honk_calldata(
 #[wasm_bindgen]
 pub fn get_zk_honk_calldata(
     proof_js: JsValue,
+    public_inputs_js: JsValue,
     vk_js: JsValue,
     flavor_js: JsValue,
 ) -> Result<Vec<JsValue>, JsValue> {
     let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let public_inputs_bytes = public_inputs_js
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
     let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
 
-    let proof = ZKHonkProof::from_bytes(&proof_bytes).map_err(|s| JsValue::from_str(&s))?;
+    let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
+        .map_err(|s| JsValue::from_str(&s))?;
     let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
 
     //Parse flavor_js into usize

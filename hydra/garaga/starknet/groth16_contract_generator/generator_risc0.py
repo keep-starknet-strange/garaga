@@ -111,21 +111,27 @@ mod Risc0Groth16Verifier{curve_id.name} {{
             let claim_digest = compute_receipt_claim(image_id, journal_digest);
 
             // Start serialization with the hint array directly to avoid copying it.
-            let mut msm_calldata: Array<felt252> = msm_hint;
+            let mut msm_calldata: Array<felt252> = array![];
             // Add the points from VK relative to the non-constant public inputs.
             Serde::serialize(@ic.slice(3, N_FREE_PUBLIC_INPUTS), ref msm_calldata);
-            // Add the claim digest as scalars for the msm.
+            // Add the claim digest as u256 scalars for the msm.
             msm_calldata.append(2);
             msm_calldata.append(claim_digest.low.into());
+            msm_calldata.append(0);
             msm_calldata.append(claim_digest.high.into());
+            msm_calldata.append(0);
             // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
             msm_calldata.append({curve_id.value});
+            // Add the hint array.
+            for x in msm_hint {{
+                msm_calldata.append(*x);
+            }}
 
             // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
             // to obtain claim0 * IC[3] + claim1 * IC[4].
             let mut _msm_result_serialized = starknet::syscalls::library_call_syscall(
                 ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                selector!("msm_g1_u128"),
+                selector!("msm_g1"),
                 msm_calldata.span()
             )
                 .unwrap_syscall();

@@ -18,7 +18,7 @@ mod Groth16VerifierBLS12_381 {
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x30490df346e1c3b4ff5a8d9d3e296962e3bcb8b3a959211995c9a6620a1e3e2;
+        0x465991ec820cf53dbb2b27474b6663fb6f0c8bf3dac7db3991960214fad97f5;
 
     #[storage]
     struct Storage {}
@@ -50,12 +50,16 @@ mod Groth16VerifierBLS12_381 {
                 1 => *ic.at(0),
                 _ => {
                     // Start serialization with the hint array directly to avoid copying it.
-                    let mut msm_calldata: Array<felt252> = msm_hint;
+                    let mut msm_calldata: Array<felt252> = array![];
                     // Add the points from VK and public inputs to the proof.
                     Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
                     Serde::serialize(@groth16_proof.public_inputs, ref msm_calldata);
                     // Complete with the curve indentifier (1 for BLS12_381):
                     msm_calldata.append(1);
+                    // Add the hint array.
+                    for x in msm_hint {
+                        msm_calldata.append(*x);
+                    }
 
                     // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
                     // to obtain vk_x.

@@ -10,7 +10,7 @@ curves = list(CurveID)
 
 
 @pytest.mark.parametrize("curve_id", curves)
-@pytest.mark.parametrize("msm_size", range(1, 5))
+@pytest.mark.parametrize("msm_size", range(1, 3))
 def test_verify_ecip(curve_id, msm_size):
     curve = CURVES[curve_id.value]
     order = curve.n

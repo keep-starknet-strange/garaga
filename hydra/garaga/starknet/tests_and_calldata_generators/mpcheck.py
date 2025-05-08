@@ -319,9 +319,9 @@ class MPCheckCalldataBuilder:
         return inputs
 
     def to_cairo_1_test(self):
-        print(
-            f"Generating MPCheck test for {self.curve_id.name} with {len(self.pairs)} pairs and {self.n_fixed_g2} fixed G2 points, using extra Miller loop result: {self.include_miller_loop_result}"
-        )
+        # print(
+        #     f"Generating MPCheck test for {self.curve_id.name} with {len(self.pairs)} pairs and {self.n_fixed_g2} fixed G2 points, using extra Miller loop result: {self.include_miller_loop_result}"
+        # )
         with_extra = (
             "_with_extra_miller_loop_result" if self.include_miller_loop_result else ""
         )

@@ -209,10 +209,8 @@ pub fn get_groth16_calldata(
                 .collect::<Vec<BigUint>>(),
             &proof.public_inputs,
             curve_id as usize,
-            Some(true),
             false,
             true,
-            false,
         )?,
         true => msm_calldata_builder(
             &[
@@ -226,9 +224,7 @@ pub fn get_groth16_calldata(
                 proof.public_inputs[3].clone(),
             ],
             curve_id as usize,
-            Some(true),
             false,
-            true,
             true,
         )?,
     };

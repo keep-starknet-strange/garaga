@@ -11,11 +11,12 @@ use core::serde::Serde;
 
 
 pub use curves::{
-    BLS12_381, BLSProcessedPair, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, BN254,
-    BN254_G1_GENERATOR, BNProcessedPair, Curve, ED25519, GRUMPKIN, SECP256K1, SECP256R1,
+    BLS12_381, BLSProcessedPair, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BN254, BN254_G1_GENERATOR,
+    BNProcessedPair, Curve, ED25519, GRUMPKIN, SECP256K1, SECP256R1,
     THIRD_ROOT_OF_UNITY_BLS12_381_G1, bls_bits, bn_bits, get_BLS12_381_modulus, get_BN254_modulus,
     get_ED25519_modulus, get_G, get_GRUMPKIN_modulus, get_SECP256K1_modulus, get_SECP256R1_modulus,
-    get_a, get_b, get_b2, get_curve_order_modulus, get_g, get_min_one, get_modulus, get_n, get_p,
+    get_a, get_b, get_b2, get_curve_order_modulus, get_eigenvalue, get_g, get_min_one,
+    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_p, get_third_root_of_unity,
 };
 pub use structs::fields::{
     E12D, E12DMulQuotient, E12T, MillerLoopResultScalingFactor, u288, u288Serde,
@@ -87,4 +88,42 @@ fn deserialize_u384_array_helper(
     }
     curr_output.append(deserialize_u384(ref serialized));
     deserialize_u384_array_helper(ref serialized, curr_output, remaining - 1)
+}
+
+
+fn serialize_u288_array(self: @Array<u288>, ref output: Array<felt252>) {
+    self.len().serialize(ref output);
+    serialize_u288_array_helper(self.span(), ref output);
+}
+
+fn serialize_u288_array_helper(mut input: Span<u288>, ref output: Array<felt252>) {
+    if let Option::Some(value) = input.pop_front() {
+        u288Serde::serialize(value, ref output);
+        serialize_u288_array_helper(input, ref output);
+    }
+}
+
+fn deserialize_u288_array(ref serialized: Span<felt252>) -> Array<u288> {
+    let length = *serialized.pop_front().unwrap();
+    let mut arr = array![];
+    deserialize_u288_array_helper(ref serialized, arr, length)
+}
+
+
+fn deserialize_u288(ref serialized: Span<felt252>) -> u288 {
+    let [l0, l1, l2] = (*serialized.multi_pop_front::<3>().unwrap()).unbox();
+    let limb0 = downcast(l0).unwrap();
+    let limb1 = downcast(l1).unwrap();
+    let limb2 = downcast(l2).unwrap();
+    return u288 { limb0: limb0, limb1: limb1, limb2: limb2 };
+}
+
+fn deserialize_u288_array_helper(
+    ref serialized: Span<felt252>, mut curr_output: Array<u288>, remaining: felt252,
+) -> Array<u288> {
+    if remaining == 0 {
+        return curr_output;
+    }
+    curr_output.append(deserialize_u288(ref serialized));
+    deserialize_u288_array_helper(ref serialized, curr_output, remaining - 1)
 }

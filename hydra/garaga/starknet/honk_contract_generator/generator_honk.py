@@ -1,3 +1,4 @@
+import argparse
 import os
 import subprocess
 from pathlib import Path
@@ -6,9 +7,6 @@ from garaga.definitions import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.compilable_circuits.base import (
     get_circuit_definition_impl_template,
-)
-from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
-    EvalFunctionChallengeSingleCircuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.ultra_honk import (
     PrepareScalarsCircuit,
@@ -23,6 +21,8 @@ from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,
+    MAX_LOG_N,
+    PAIRING_POINT_OBJECT_LENGTH,
     HonkVk,
 )
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
@@ -31,6 +31,13 @@ from garaga.starknet.groth16_contract_generator.generator import (
     CAIRO_VERSION,
     get_scarb_toml_file,
 )
+
+# nargo --version
+# bb --version
+
+BB_VERSION = "0.86.0"
+BBUP_VERSION = "0.86.0-starknet.1"
+NARGO_VERSION = "1.0.0-beta.3"
 
 
 def gen_honk_verifier(
@@ -77,114 +84,51 @@ def gen_honk_verifier_files(
 
 
 def get_msm_kzg_template(
-    msm_size: int, lhs_ecip_function_name: str, n_vk_points: int, n_proof_points: int
+    msm_size: int,
+    n_vk_points: int,
+    n_proof_points: int,
+    is_on_curve_function_name: str,
 ):
     TEMPLATE = """\n
-            full_proof.msm_hint_batched.RLCSumDlogDiv.validate_degrees_batched({msm_len});
-            // HASHING: GET ECIP BASE RLC COEFF.
-            let (s0, s1, s2): (felt252, felt252, felt252) = hades_permutation(
-                'MSM_G1', 0, 1
-            ); // Init Sponge state
-            let (s0, s1, s2) = hades_permutation(
-                s0 + 0.into(), s1 + {msm_len}.into(), s2
-            ); // Include curve_index and msm size
-
-            // Hash precomputed VK hash with last transcript state
-            let (_s0, _s1, _s2) = hades_permutation(
-                VK_HASH, transcript_state, 2
-            );
-
-            // Update sponge state :
-            let (s0, s1, s2) = hades_permutation(
-                s0 + _s0, s1 + _s1, s2
-            );
-
-            // Check input points are on curve. No need to hash them : they are already in the transcript + we precompute the VK hash.
+            // Check input points are on curve.
             // Skip the first {n_vk_points} points as they are from VK and keep the last {n_proof_points} proof points
             for point in points.slice({n_vk_points}, {n_proof_points}) {{
-                if !point.is_infinity() {{
-                    point.assert_on_curve(0);
-                }}
+                assert({is_on_curve_function_name}(*point, mod_bn), 'proof point not on curve');
             }};
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt:G1Point = full_proof.proof.shplonk_q.into();
+            assert({is_on_curve_function_name}(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
-            if !shplonk_q_pt.is_infinity() {{
-                shplonk_q_pt.assert_on_curve(0);
+            let mut msm_hint = full_proof.msm_hint;
+            assert(msm_hint.len() == {msm_len} * 12, 'wrong glv&fakeglv hint size');
+            let eigen = get_eigenvalue(0);
+            let third_root_of_unity = get_third_root_of_unity(0);
+            let min_one = get_min_one_order(0);
+            let nG = get_nG_glv_fake_glv(0);
+
+            let mut P_1 = shplonk_q_pt;
+
+            while msm_hint.len() != 0 {{
+                let pt = *points.pop_front().unwrap();
+                let scalar = *scalars.pop_front().unwrap();
+                // Note : Scalars are below curve order by construction (circuit outputs mod n and transcript output (u128))
+                let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref msm_hint).unwrap();
+                let temp = _scalar_mul_glv_and_fake_glv(
+                    pt,
+                    scalar,
+                    mod_grumpkin,
+                    mod_bn,
+                    glv_fake_glv_hint,
+                    eigen,
+                    third_root_of_unity,
+                    min_one,
+                    nG,
+                    0,
+                );
+                P_1 = _ec_safe_add(P_1, temp, mod_bn, 0);
             }}
 
-            if !full_proof.msm_hint_batched.Q_low.is_infinity() {{
-                full_proof.msm_hint_batched.Q_low.assert_on_curve(0);
-            }}
-            if !full_proof.msm_hint_batched.Q_high.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high.assert_on_curve(0);
-            }}
-            if !full_proof.msm_hint_batched.Q_high_shifted.is_infinity() {{
-                full_proof.msm_hint_batched.Q_high_shifted.assert_on_curve(0);
-            }}
-
-            // Hash result points
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_low.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high.update_hash_state(s0, s1, s2);
-            let (s0, s1, s2) = full_proof.msm_hint_batched.Q_high_shifted.update_hash_state(s0, s1, s2);
-
-            // No need to hash scalars as they are derived from proof + transcript.
-
-            let base_rlc_coeff = s1;
-
-            let (s0, _, _) = full_proof.msm_hint_batched.RLCSumDlogDiv.update_hash_state(s0, s1, s2);
-
-            let random_point: G1Point = derive_ec_point_from_X(
-                s0,
-                full_proof.derive_point_from_x_hint.y_last_attempt,
-                full_proof.derive_point_from_x_hint.g_rhs_sqrt,
-                0
-            );
-
-            // Get slope, intercept and other constant from random point
-            let (mb): (SlopeInterceptOutput,) = ec::run_SLOPE_INTERCEPT_SAME_POINT_circuit(
-                random_point, get_a(0), 0
-            );
-
-            // Get positive and negative multiplicities of low and high part of scalars
-            let (epns_low, epns_high) = neg_3::u256_array_to_low_high_epns(
-                scalars, Option::None
-            );
-
-            // Hardcoded epns for 2**128
-            let epns_shifted: Array<(felt252, felt252, felt252, felt252)> = array![
-                (5279154705627724249993186093248666011, 345561521626566187713367793525016877467, -1, -1)
-            ];
-
-            let (lhs_fA0) = {lhs_ecip_function_name}(A:random_point, coeff:mb.coeff0, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let (lhs_fA2) = {lhs_ecip_function_name}(A:G1Point{{x:mb.x_A2, y:mb.y_A2}}, coeff:mb.coeff2, SumDlogDivBatched:full_proof.msm_hint_batched.RLCSumDlogDiv);
-            let mod_bn = get_modulus(0);
-
-            let zk_ecip_batched_lhs = sub_mod_p(lhs_fA0, lhs_fA2, mod_bn);
-
-            let rhs_low = compute_rhs_ecip(
-                points, mb.m_A0, mb.b_A0, random_point.x, epns_low, full_proof.msm_hint_batched.Q_low, 0
-            );
-            let rhs_high = compute_rhs_ecip(
-                points, mb.m_A0, mb.b_A0, random_point.x, epns_high, full_proof.msm_hint_batched.Q_high, 0
-            );
-            let rhs_high_shifted = compute_rhs_ecip(
-                array![full_proof.msm_hint_batched.Q_high].span(),
-                mb.m_A0,
-                mb.b_A0,
-                random_point.x,
-                epns_shifted,
-                full_proof.msm_hint_batched.Q_high_shifted,
-                0
-            );
-
-            let zk_ecip_batched_rhs = batch_3_mod_p(rhs_low, rhs_high, rhs_high_shifted, base_rlc_coeff.into(), mod_bn);
-
-            let ecip_check = zk_ecip_batched_lhs == zk_ecip_batched_rhs;
-
-            let P_1 = ec_safe_add(full_proof.msm_hint_batched.Q_low, full_proof.msm_hint_batched.Q_high_shifted, 0);
-            let P_1 = ec_safe_add(P_1, shplonk_q_pt, 0);
             let P_2:G1Point = full_proof.proof.kzg_quotient.into();
 
             // Perform the KZG pairing check.
@@ -196,10 +140,10 @@ def get_msm_kzg_template(
             );
 
         """.format(
-        lhs_ecip_function_name=lhs_ecip_function_name,
         msm_len=msm_size,
         n_vk_points=n_vk_points,
         n_proof_points=n_proof_points,
+        is_on_curve_function_name=is_on_curve_function_name,
     )
     return TEMPLATE
 
@@ -227,13 +171,12 @@ def _get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs,
+    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
 };
-use garaga::core::circuit::AddInputResultTrait2;
-use garaga::ec_ops::FunctionFelt;
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{G1Point, get_GRUMPKIN_modulus, get_BN254_modulus};\n
+use garaga::definitions::{G1Point};\n
 """
     return header
 
@@ -255,7 +198,6 @@ def _gen_circuits_code(
         - Prepare scalars function name
         - List of consistency function names (empty for non-ZK)
         - Scalar indexes
-        - LHS ECIP function name
         - MSM length
     """
     code = _get_circuit_code_header()
@@ -265,7 +207,7 @@ def _gen_circuits_code(
     sumcheck_circuit = ZKSumCheckCircuit(vk) if is_zk else SumCheckCircuit(vk)
     sumcheck_function_name = f"{curve_id.name}_{sumcheck_circuit.name.upper()}"
     sumcheck_code, sumcheck_function_name = sumcheck_circuit.circuit.compile_circuit(
-        function_name=sumcheck_function_name, pub=True
+        function_name=sumcheck_function_name, pub=True, generic_modulus=True
     )
 
     # Generate prepare scalars circuit
@@ -279,7 +221,7 @@ def _gen_circuits_code(
     )
     prepare_scalars_code, prepare_scalars_function_name = (
         prepare_scalars_circuit.circuit.compile_circuit(
-            function_name=prepare_scalars_function_name, pub=True
+            function_name=prepare_scalars_function_name, pub=True, generic_modulus=True
         )
     )
 
@@ -294,29 +236,41 @@ def _gen_circuits_code(
             circuit = circuit_class(vk)
             function_name = f"{curve_id.name}_{circuit.name.upper()}"
             circuit_code, function_name = circuit.circuit.compile_circuit(
-                function_name=function_name, pub=True
+                function_name=function_name, pub=True, generic_modulus=True
             )
             consistency_circuits.append((circuit_code, function_name))
-
-    # Generate LHS ECIP circuit
-    lhs_ecip_circuit = EvalFunctionChallengeSingleCircuit(
-        CurveID.BN254.value,
-        n_points=msm_len,
-        batched=True,
-        generic_circuit=False,
-        compilation_mode=1,
-    )
-    lhs_ecip_function_name = f"{CurveID.BN254.name}_{lhs_ecip_circuit.name.upper()}"
-    lhs_ecip_code, lhs_ecip_function_name = lhs_ecip_circuit.circuit.compile_circuit(
-        function_name=lhs_ecip_function_name, pub=True, inline=False
-    )
 
     # Combine all circuit code
     code += sumcheck_code + prepare_scalars_code
     if is_zk:
         code += "".join(circuit_code for circuit_code, _ in consistency_circuits)
-    code += lhs_ecip_code
     code += get_circuit_definition_impl_template(len(scalar_indexes))
+
+    is_on_curve_code = """
+#[inline(never)]
+pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
+    // INPUT stack
+    // y^2 = x^3 + 3
+    let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
+    let y2 = circuit_mul(in1, in1);
+    let x2 = circuit_mul(in0, in0);
+    let x3 = circuit_mul(in0, x2);
+    let y2_minus_x3 = circuit_sub(y2, x3);
+
+    let mut circuit_inputs = (y2_minus_x3,).new_inputs();
+    // Prefill constants:
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x); // in0
+    circuit_inputs = circuit_inputs.next_2(p.y); // in1
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let zero_check: u384 = outputs.get_output(y2_minus_x3);
+    return zero_check == u384{limb0: 3, limb1: 0, limb2: 0, limb3: 0};
+}
+    """
+    code += is_on_curve_code
+    is_on_curve_function_name = f"is_on_curve_bn254"
 
     return (
         code,
@@ -324,8 +278,8 @@ def _gen_circuits_code(
         prepare_scalars_function_name,
         [func_name for _, func_name in consistency_circuits] if is_zk else [],
         scalar_indexes,
-        lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     )
 
 
@@ -350,17 +304,15 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_a, get_modulus}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add,FunctionFeltTrait, DerivePointFromXHint, MSMHint, compute_rhs_ecip, derive_ec_point_from_X, SlopeInterceptOutput}};
-    use garaga::basic_field_ops::{{batch_3_mod_p, sub_mod_p}};
+    use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
     use garaga::circuits::ec;
-    use garaga::utils::neg_3;
     use super::{{vk, VK_HASH, precomputed_lines, {imports_str}}};
     use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
-    use garaga::core::circuit::{{U32IntoU384, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}into_u256_unchecked}};
+    use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}}};
     use core::num::traits::Zero;
     use core::poseidon::hades_permutation;
 
@@ -370,8 +322,7 @@ mod {contract_name} {{
     #[derive(Drop, Serde)]
     struct FullProof {{
         proof: {proof_struct_name},
-        msm_hint_batched: MSMHint,
-        derive_point_from_x_hint: DerivePointFromXHint,
+        msm_hint: Span<felt252>,
         kzg_hint:MPCheckHintBN254,
     }}
 
@@ -387,6 +338,9 @@ mod {contract_name} {{
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
+            let mod_bn = get_BN254_modulus();
+            let mod_grumpkin = get_GRUMPKIN_modulus();
+
 """
     return header
 
@@ -490,7 +444,7 @@ def _get_msm_points_array_code(zk: bool, log_n: int) -> tuple[str, (int, int)]:
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point {next_proof_point_counter}
             _points.append(BN254_G1_GENERATOR);
 
-            let points = _points.span();"""
+            let mut points = _points.span();"""
 
     proof_point_counter = next_proof_point_counter
 
@@ -515,14 +469,12 @@ def _gen_honk_verifier_files(
         prepare_scalars_function_name,
         consistency_function_names,
         scalar_indexes,
-        lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     ) = _gen_circuits_code(vk, False)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = [
-        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    ]
+    scalars_tuple_into = [f"scalar_{idx}" for idx in scalar_indexes]
 
     scalars_tuple_into.append("transcript.shplonk_z.into()")
     # Swap position of last two elements of scalars_tuple_into :
@@ -536,7 +488,7 @@ def _gen_honk_verifier_files(
         function_names=[
             sumcheck_function_name,
             prepare_scalars_function_name,
-            lhs_ecip_function_name,
+            is_on_curve_function_name,
         ],
     )
 
@@ -549,6 +501,7 @@ def _gen_honk_verifier_files(
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
+                p_pairing_point_object: full_proof.proof.pairing_point_object,
                 p_public_inputs_offset: vk.public_inputs_offset.into(),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -561,6 +514,7 @@ def _gen_honk_verifier_files(
                 tp_gamma: transcript.gamma,
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
+                modulus: mod_grumpkin,
             );
 
         let (
@@ -574,15 +528,16 @@ def _gen_honk_verifier_files(
             tp_shplonk_z: transcript.shplonk_z.into(),
             tp_shplonk_nu: transcript.shplonk_nu.into(),
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+            modulus: mod_grumpkin,
         );
 
             {points_code}
 
-            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
+            let mut scalars: Span<u384> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
+            {get_msm_kzg_template(msm_len, n_vk_points, n_proof_points, is_on_curve_function_name)}
 
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && ecip_check && kzg_check {{
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{
                 return Option::None;
@@ -613,8 +568,8 @@ def _gen_zk_honk_verifier_files(
         prepare_scalars_function_name,
         consistency_function_names,
         scalar_indexes,
-        lhs_ecip_function_name,
         msm_len,
+        is_on_curve_function_name,
     ) = _gen_circuits_code(vk, True)
 
     points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
@@ -622,9 +577,7 @@ def _gen_zk_honk_verifier_files(
     )
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
-    scalars_tuple_into = [
-        f"into_u256_unchecked(scalar_{idx})" for idx in scalar_indexes
-    ]
+    scalars_tuple_into = [f"scalar_{idx}" for idx in scalar_indexes]
 
     scalars_tuple_into.append("transcript.shplonk_z.into()")
     # Swap position of last two elements of scalars_tuple_into (KZG quotient & BN254 G1 generator) :
@@ -648,7 +601,7 @@ def _gen_zk_honk_verifier_files(
             consistency_function_names[0],
             consistency_function_names[1],
             consistency_function_names[2],
-            lhs_ecip_function_name,
+            is_on_curve_function_name,
         ],
     )
 
@@ -657,6 +610,7 @@ def _gen_zk_honk_verifier_files(
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
+                p_pairing_point_object: full_proof.proof.pairing_point_object,
                 p_public_inputs_offset: vk.public_inputs_offset.into(),
                 libra_sum: u256_to_u384(full_proof.proof.libra_sum),
                 sumcheck_univariates_flat: full_proof.proof.sumcheck_univariates.slice(0, log_n * ZK_BATCHED_RELATION_PARTIAL_LENGTH),
@@ -672,17 +626,20 @@ def _gen_zk_honk_verifier_files(
                 tp_base_rlc: base_rlc.into(),
                 tp_alphas: transcript.alphas.span(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
+                modulus: mod_grumpkin,
             );
 
             const CONST_PROOF_SIZE_LOG_N: usize = {CONST_PROOF_SIZE_LOG_N};
             let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) = {consistency_function_names[0]}(
                 tp_gemini_r: transcript.gemini_r.into(),
+                modulus: mod_grumpkin,
             );
             for i in 0..CONST_PROOF_SIZE_LOG_N {{
                 let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) = {consistency_function_names[1]}(
                     challenge_poly_eval: challenge_poly_eval,
                     root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
                     tp_sumcheck_u_challenge: (*transcript.sum_check_u_challenges.at(i)).into(),
+                    modulus: mod_grumpkin,
                 );
                 challenge_poly_eval = new_challenge_poly_eval;
                 root_power_times_tp_gemini_r = new_root_power_times_tp_gemini_r;
@@ -693,6 +650,7 @@ def _gen_zk_honk_verifier_files(
                 tp_gemini_r: transcript.gemini_r.into(),
                 challenge_poly_eval: challenge_poly_eval,
                 root_power_times_tp_gemini_r: root_power_times_tp_gemini_r,
+                modulus: mod_grumpkin,
             );
 
         let (
@@ -708,13 +666,14 @@ def _gen_zk_honk_verifier_files(
             tp_shplonk_z: transcript.shplonk_z.into(),
             tp_shplonk_nu: transcript.shplonk_nu.into(),
             tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
+            modulus: mod_grumpkin,
         );
 
             {points_code}
-            let scalars: Span<u256> = array![{scalars_tuple_into}].span();
+            let mut scalars: Span<u384> = array![{scalars_tuple_into}].span();
 
-            {get_msm_kzg_template(msm_len, lhs_ecip_function_name, n_vk_points, n_proof_points)}
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && ecip_check && kzg_check {{
+            {get_msm_kzg_template(msm_len, n_vk_points, n_proof_points, is_on_curve_function_name)}
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && kzg_check {{
                 return Option::Some(full_proof.proof.public_inputs);
             }} else {{
                 return Option::None;
@@ -763,40 +722,78 @@ mod honk_verifier_constants;
 mod honk_verifier_circuits;
 """
         )
-    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
+    subprocess.run(["scarb", "fmt", f"."], check=True, cwd=output_folder_path)
 
 
 if __name__ == "__main__":
+    import concurrent.futures
 
-    for system in [
-        ProofSystem.UltraKeccakHonk,
-        ProofSystem.UltraStarknetHonk,
-        ProofSystem.UltraKeccakZKHonk,
-        ProofSystem.UltraStarknetZKHonk,
-    ]:
-        match system:
-            case ProofSystem.UltraKeccakHonk:
-                flavor = "keccak"
-            case ProofSystem.UltraStarknetHonk:
-                flavor = "starknet"
-            case ProofSystem.UltraKeccakZKHonk:
-                flavor = "keccak_zk"
-            case ProofSystem.UltraStarknetZKHonk:
-                flavor = "starknet_zk"
-            case _:
-                raise ValueError(f"Proof system {system} not compatible")
+    parser = argparse.ArgumentParser(description="Generate HONK verifier contracts")
+    parser.add_argument(
+        "--max-log-n",
+        action="store_true",
+        help="Generate contracts with maximum log N size",
+    )
+    args = parser.parse_args()
 
-        VK_PATH = (
-            "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
+    VK_PATH = (
+        "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
+    )
+    CONTRACTS_FOLDER = "src/contracts/autogenerated/"  # Do not change this
+
+    if not args.max_log_n:
+        systems = [
+            ProofSystem.UltraKeccakHonk,
+            ProofSystem.UltraStarknetHonk,
+            ProofSystem.UltraKeccakZKHonk,
+            ProofSystem.UltraStarknetZKHonk,
+        ]
+
+        with concurrent.futures.ProcessPoolExecutor() as executor:
+            futures = []
+            for system in systems:
+                match system:
+                    case ProofSystem.UltraKeccakHonk:
+                        flavor = "keccak"
+                    case ProofSystem.UltraStarknetHonk:
+                        flavor = "starknet"
+                    case ProofSystem.UltraKeccakZKHonk:
+                        flavor = "keccak_zk"
+                    case ProofSystem.UltraStarknetZKHonk:
+                        flavor = "starknet_zk"
+                    case _:
+                        raise ValueError(f"Proof system {system} not compatible")
+
+                FOLDER_NAME = f"noir_ultra_{flavor}_honk_example"  # '_curve_id' is appended in the end.
+
+                # Submit the task to the executor
+                futures.append(
+                    executor.submit(
+                        gen_honk_verifier,
+                        VK_PATH,
+                        CONTRACTS_FOLDER,
+                        FOLDER_NAME,
+                        system,
+                    )
+                )
+
+            # Wait for all futures to complete
+            for future in concurrent.futures.as_completed(futures):
+                try:
+                    future.result()  # This will raise an exception if the function raised
+                except Exception as e:
+                    print(f"An error occurred: {e}")
+
+    if args.max_log_n:
+        # NOTE : each additional public input increase bytecode by ~ 21 felts.
+        #       each additional circuit size increase bytecode by ~ 372 felts.
+        vk = HonkVk.from_bytes(open(VK_PATH, "rb").read())
+        vk.log_circuit_size = MAX_LOG_N
+        vk.public_inputs_size = 4 + PAIRING_POINT_OBJECT_LENGTH
+
+        gen_honk_verifier(
+            vk,
+            CONTRACTS_FOLDER,
+            "ultra_keccak_zk_honk_max_log_n",
+            system=ProofSystem.UltraKeccakZKHonk,
         )
-        VK_LARGE_PATH = (
-            "hydra/garaga/starknet/honk_contract_generator/examples/vk_large.bin"
-        )
-        CONTRACTS_FOLDER = "src/contracts/autogenerated/"  # Do not change this
-
-        FOLDER_NAME = (
-            f"noir_ultra_{flavor}_honk_example"  # '_curve_id' is appended in the end.
-        )
-
-        gen_honk_verifier(VK_PATH, CONTRACTS_FOLDER, FOLDER_NAME, system=system)
-        # gen_honk_verifier(VK_LARGE_PATH, CONTRACTS_FOLDER, FOLDER_NAME + "_large", system=system)

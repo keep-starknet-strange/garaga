@@ -39,11 +39,9 @@ export type MsmCalldataBuilderOptons = Partial<{
 
 export function msmCalldataBuilder(points: G1Point[], scalars: bigint[], curveId: CurveId, options: MsmCalldataBuilderOptons = {}): bigint[] {
   const values = flatten(points);
-  const includeDigitsDecomposition = options.includeDigitsDecomposition ?? true;
   const includePointsAndScalars = options.includePointsAndScalars ?? true;
   const serializeAsPureFelt252Array = options.serializeAsPureFelt252Array ?? false;
-  const risc0Mode = options.risc0Mode ?? false;
-  return msm_calldata_builder(values, scalars, curveId, includeDigitsDecomposition, includePointsAndScalars, serializeAsPureFelt252Array, risc0Mode);
+  return msm_calldata_builder(values, scalars, curveId, includePointsAndScalars, serializeAsPureFelt252Array);
 }
 
 export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2: number, publicPair?: G1G2Pair): bigint[] {
@@ -88,12 +86,12 @@ export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16Ver
   return get_groth16_calldata(proof, verifyingKey, curveId);
 }
 
-export function getHonkCallData(proof: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
-  return get_honk_calldata(proof, verifyingKey, flavor);
+export function getHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
+  return get_honk_calldata(proof, publicInputs, verifyingKey, flavor);
 }
 
-export function getZKHonkCallData(proof: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
-  return get_zk_honk_calldata(proof, verifyingKey, flavor);
+export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
+  return get_zk_honk_calldata(proof, publicInputs, verifyingKey, flavor);
 }
 
 

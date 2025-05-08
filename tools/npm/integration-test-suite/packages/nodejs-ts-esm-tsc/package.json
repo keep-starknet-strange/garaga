@@ -3,7 +3,8 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
-    "test": "node dist/index.js > .output.txt && diff .output.txt output.txt"
+    "test": "node dist/index.js > .output.txt && diff .output.txt output.txt",
+    "test-generate": "node dist/index.js > output.txt"
   },
   "dependencies": {
     "garaga": "file:../../garaga.tgz"

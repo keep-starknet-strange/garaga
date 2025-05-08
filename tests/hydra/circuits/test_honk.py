@@ -33,7 +33,12 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
     zk = system in [ProofSystem.UltraKeccakZKHonk, ProofSystem.UltraStarknetZKHonk]
 
     vk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
-    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
+    proof = honk_proof_from_bytes(
+        open(proof_path, "rb").read(),
+        open(f"{PATH}/public_inputs_ultra_keccak.bin", "rb").read(),
+        vk,
+        system,
+    )
 
     if zk:
         tp = ZKHonkTranscript.from_proof(vk, proof, system)
@@ -48,6 +53,7 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
 
     public_input_delta = circuit.compute_public_input_delta(
         public_inputs=proof_circuit.public_inputs,
+        pairing_point_object=proof_circuit.pairing_point_object,
         beta=tp.beta,
         gamma=tp.gamma,
         domain_size=vk.circuit_size,
@@ -268,7 +274,12 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
 )
 def test_check_evals_consistency(proof_path: str, system: ProofSystem):
     vk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
-    proof = honk_proof_from_bytes(open(proof_path, "rb").read(), vk, system)
+    proof = honk_proof_from_bytes(
+        open(proof_path, "rb").read(),
+        open(f"{PATH}/public_inputs_ultra_keccak.bin", "rb").read(),
+        vk,
+        system,
+    )
 
     tp = ZKHonkTranscript.from_proof(vk, proof, system)
     circuit = ZKHonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
