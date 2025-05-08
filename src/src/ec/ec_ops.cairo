@@ -52,7 +52,7 @@ impl G1PointImpl of G1PointTrait {
         curve_index: usize,
         hint: Span<felt252> // msm_hint: Option<MSMHintSmallScalar<T>>,
         // derive_point_from_x_hint: Option<DerivePointFromXHint>,
-    ) {// TODO
+    ) { // TODO
     // match curve_index {
     //     0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
     //     1 => {
