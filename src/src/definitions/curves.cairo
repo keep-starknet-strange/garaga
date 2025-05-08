@@ -1,10 +1,8 @@
 pub use core::circuit::{CircuitModulus, u384, u96};
 use garaga::definitions::{G1Point, G1PointZero, G2Point};
-// scalar_to_base_neg3_le(0xD201000000010000**2)
+
 pub const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
-pub const BLS_X_SEED_SQ_EPNS: (felt252, felt252, felt252, felt252) = (
-    49064175553473225114813626085204666029, 278052985706122803179667203045598799533, -1, -1,
-);
+
 
 pub const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 = u384 {
     limb0: 0x4f49fffd8bfd00000000aaac,
@@ -244,8 +242,7 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
 //         print(f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits -
 //         1)).to_cairo_1()}")
 // returns :
-// bool: true if nbits = (curve.n.bit_length() // 4 + 9) == 73, false if nbits =
-// (curve.n.bit_length() // 4 + 9) == 72 G1Point: 2^(nbits-1)*G (generator of the curve)
+// G1Point: 2^(73-1)*G (generator of the curve)
 // Panics if curve does not have efficient endomorphism
 pub fn get_nG_glv_fake_glv(curve_index: usize) -> G1Point {
     match curve_index {
