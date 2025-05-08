@@ -4,12 +4,11 @@ from dataclasses import dataclass, fields
 from enum import Enum, auto
 from typing import Union
 
-import sha3
-
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
 from garaga.algebra import ModuloCircuitElement
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point, ProofSystem
+from garaga.hints.keccak256 import keccak_256
 from garaga.modulo_circuit import ModuloCircuit
 from garaga.poseidon_transcript import hades_permutation
 
@@ -417,7 +416,7 @@ class HonkVk:
 
     @classmethod
     def from_bytes(cls, vk_bytes: bytes) -> "HonkVk":
-        vk_hash = sha3.keccak_256(vk_bytes).digest()
+        vk_hash = keccak_256(vk_bytes).digest()
         vk_hash_int_low, vk_hash_int_high = io.split_128(int.from_bytes(vk_hash, "big"))
         (vk_hash_int, _, _) = hades_permutation(vk_hash_int_low, vk_hash_int_high, 2)
 
@@ -437,7 +436,9 @@ class HonkVk:
         cursor = 32
 
         rest = vk_bytes[cursor:]
-        assert len(rest) % 32 == 0
+        assert (
+            len(rest) % 32 == 0
+        ), f"invalid vk_bytes length: {len(vk_bytes)}. Make sure you are using the correct version of bb or that the vk is not corrupted."
 
         # print(f"circuit_size: {circuit_size}")
         # print(f"log_circuit_size: {log_circuit_size}")
@@ -546,7 +547,7 @@ class Transcript(ABC):
 
 class Sha3Transcript(Transcript):
     def reset(self):
-        self.hasher = sha3.keccak_256()
+        self.hasher = keccak_256()
 
     def digest(self) -> bytes:
         res = self.hasher.digest()

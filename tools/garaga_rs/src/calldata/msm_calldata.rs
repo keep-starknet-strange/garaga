@@ -1,20 +1,17 @@
 use crate::algebra::g1point::G1Point;
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, FieldElement, GrumpkinPrimeField,
-    SECP256K1PrimeField, SECP256R1PrimeField, Stark252PrimeField, X25519PrimeField,
+    SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
 };
 use crate::hints::fake_glv::{get_fake_glv_hint, get_glv_fake_glv_hint};
 use crate::io::{
-    element_to_biguint, felt252_to_element, field_element_to_u288_limbs,
-    field_element_to_u384_limbs, field_elements_from_big_uints,
-    parse_g1_points_from_flattened_field_elements_list, scalar_to_limbs,
+    element_to_biguint, field_element_to_u288_limbs, field_element_to_u384_limbs,
+    field_elements_from_big_uints, parse_g1_points_from_flattened_field_elements_list,
+    scalar_to_limbs,
 };
-use lambdaworks_math::{
-    field::traits::{IsPrimeField, LegendreSymbol},
-    traits::ByteConversion,
-};
+use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 
-use num_bigint::{BigInt, BigUint};
+use num_bigint::BigUint;
 
 use crate::definitions::CurveID;
 
@@ -94,15 +91,12 @@ where
         return Err("Scalar value must be less than the curve order".to_string());
     }
 
-    let use_288 = curve_id != 1;
-
     Ok(calldata_builder::<F>(
         &points,
         scalars,
         curve_id,
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
-        use_288,
     ))
 }
 
@@ -113,7 +107,6 @@ pub fn calldata_builder<F: IsPrimeField + CurveParamsProvider<F>>(
     curve_id: usize,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-    use_288: bool,
 ) -> Vec<BigUint>
 where
     FieldElement<F>: ByteConversion,
@@ -185,7 +178,7 @@ where
     // Hint
     for (pt, scalar) in points.iter().zip(scalars.iter()) {
         match curve_id {
-            0 | 1 | 2 => {
+            0..=2 => {
                 let (Q, u1, u2, v1, v2) = get_glv_fake_glv_hint(pt, scalar).unwrap();
                 push_element(call_data_ref, &Q.x, false);
                 push_element(call_data_ref, &Q.y, false);
@@ -219,6 +212,7 @@ where
     call_data
 }
 
+#[allow(dead_code)]
 fn sqrt<F>(value: &FieldElement<F>) -> FieldElement<F>
 where
     F: IsPrimeField,
@@ -233,8 +227,4 @@ where
 }
 
 #[cfg(test)]
-mod tests {
-    use num_traits::Num;
-
-    use super::*;
-}
+mod tests {}

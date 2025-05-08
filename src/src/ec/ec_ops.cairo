@@ -20,12 +20,11 @@ use garaga::basic_field_ops::{
 use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
 use garaga::definitions::{
-    BLS_X_SEED_SQ, BLS_X_SEED_SQ_EPNS, G1Point, G1PointZero, G2Point,
-    THIRD_ROOT_OF_UNITY_BLS12_381_G1, deserialize_u288_array, deserialize_u384,
-    deserialize_u384_array, get_G, get_a, get_b, get_b2, get_curve_order_modulus, get_eigenvalue,
-    get_g, get_min_one, get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv,
-    get_third_root_of_unity, serialize_u288_array, serialize_u384, serialize_u384_array, u288,
-    u384Serde,
+    BLS_X_SEED_SQ, G1Point, G1PointZero, G2Point, THIRD_ROOT_OF_UNITY_BLS12_381_G1,
+    deserialize_u288_array, deserialize_u384, deserialize_u384_array, get_G, get_a, get_b, get_b2,
+    get_curve_order_modulus, get_eigenvalue, get_g, get_min_one, get_min_one_order, get_modulus,
+    get_n, get_nG_glv_fake_glv, get_third_root_of_unity, serialize_u288_array, serialize_u384,
+    serialize_u384_array, u288, u384Serde,
 };
 use garaga::ec::selectors;
 use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
@@ -53,7 +52,8 @@ impl G1PointImpl of G1PointTrait {
         curve_index: usize,
         hint: Span<felt252> // msm_hint: Option<MSMHintSmallScalar<T>>,
         // derive_point_from_x_hint: Option<DerivePointFromXHint>,
-    ) { // match curve_index {
+    ) { // TODO
+    // match curve_index {
     //     0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
     //     1 => {
     //         //
@@ -150,10 +150,10 @@ pub fn _ec_safe_add(
 #[derive(Drop, Serde)]
 struct GlvFakeGlvHint {
     Q: G1Point,
-    u1: felt252, // Encoded as 2^128 * sign + abs(u1)_u64
-    u2: felt252, // Encoded as 2^128 * sign + abs(u2)_u64
-    v1: felt252, // Encoded as 2^128 * sign + abs(v1)_u64
-    v2: felt252 // Encoded as 2^128 * sign + abs(v2)_u64
+    u1: felt252, // Encoded as 2^128 * sign + abs(u1)
+    u2: felt252, // Encoded as 2^128 * sign + abs(u2)
+    v1: felt252, // Encoded as 2^128 * sign + abs(v1)
+    v2: felt252 // Encoded as 2^128 * sign + abs(v2)
 }
 
 #[derive(Drop, Serde)]
@@ -307,7 +307,6 @@ pub fn _scalar_mul_fake_glv(
     let last_selector = *selectors.pop_front().unwrap();
     let last_selector_pt = *Ts[last_selector];
     let (last_selector_pt_corrected) = ec::run_ADD_EC_POINT_circuit(last_selector_pt, R2, modulus);
-    // println!("last_selector_pt_corrected : {:?}", last_selector_pt_corrected);
     Ts.append(last_selector_pt_corrected);
 
     let Ts = Ts.span();
@@ -315,22 +314,14 @@ pub fn _scalar_mul_fake_glv(
     // now the first selector should be 16 and will select the corrected point in the last
     // iteration.
 
-    // assert(*selectors[0] == 16, 'wrong first selector');
-
     // First iteration (bit 128)
     let selector_y = *selectors.pop_back().unwrap();
-    // println!("First selector : {:?}", selector_y);
     let Bi = *Ts[selector_y];
 
-    // println!("Point : {:?}", point);
-    // println!("Scalar : {:?}", scalar);
-    // println!("T2 (Acc) : {:?}", T2);
-    // println!("Bi (_T_current) : {:?}", Bi);
     let (Acc) = ec::run_DOUBLE_EC_POINT_circuit(T2, A_weirstrass, modulus);
     let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, Bi, modulus);
-    // println!("Acc before loop : {:?}", Acc);
-    // assert(selectors.len() == 63, 'wrong number of selectors');
 
+    // assert(selectors.len() == 63, 'wrong number of selectors');
     // 7 iterations* 9 * 2 bits = 63 * 2 = 126 bits.
     while let Some(selector_y) = selectors.multi_pop_back::<9>() {
         let [
@@ -377,7 +368,7 @@ pub fn _scalar_mul_fake_glv(
     };
 
     // Assert.
-    assert(Acc == R2, 'wrong result');
+    assert(Acc == R2, 'wrong FakeGLV result');
 
     return hint.Q;
 }
@@ -463,7 +454,7 @@ pub fn _scalar_mul_glv_and_fake_glv(
     let one_u384: u384 = u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
 
     // Retrieve the u1, u2, v1, v2 values from the hint
-    // They are encoded as 2^128 * sign + abs(value)_u64
+    // They are encoded as 2^128 * sign + abs(value)
     // If high_128 limbs are != 0, we consider the value is negative, otherwise it is positive.
     // We also precompute the negated value of the y coordinate of the points based on the sign in
     // the same match condition for efficiency.
@@ -677,66 +668,7 @@ pub fn _scalar_mul_glv_and_fake_glv(
 }
 
 
-// doubleAndAdd computes 2p+q as (p+q)+p. It follows [ELM03] (Section 3.1)
-// Saves the computation of the y coordinate of p+q as it is used only in the computation of λ2,
-// which can be computed as
-//
-//λ2 = -λ1-2*p.y/(x2-p.x)
-//
-// instead.
-//
-// ⚠️  p must be different than q and -q, and both nonzero.
-//
-// [ELM03]: https://arxiv.org/pdf/math/0208038.pdf
-// func (c *Curve[B, S]) doubleAndAdd(p, q *AffinePoint[B]) *AffinePoint[B] {
-#[inline(always)]
-pub fn double_and_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point {
-    let px = CircuitElement::<CircuitInput<0>> {};
-    let py = CircuitElement::<CircuitInput<1>> {};
-    let qx = CircuitElement::<CircuitInput<2>> {};
-    let qy = CircuitElement::<CircuitInput<3>> {};
-
-    // Compute λ1 = (q.y-p.y)/(q.x-p.x)
-    let num_lambda1 = circuit_sub(qy, py);
-    let den_lambda1 = circuit_sub(qx, px);
-    let lambda1 = circuit_mul(num_lambda1, circuit_inverse(den_lambda1));
-
-    // Compute x2 = λ1²-p.x-q.x
-    let x2 = circuit_mul(lambda1, lambda1);
-    let x2 = circuit_sub(x2, px);
-    let x2 = circuit_sub(x2, qx);
-
-    // omit y2 computation
-    // compute -λ2 = λ1+2*p.y/(x2-p.x)
-    let den = circuit_sub(x2, px);
-    let num = circuit_add(py, py);
-
-    let lambda2 = circuit_add(lambda1, circuit_mul(num, circuit_inverse(den)));
-
-    // compute x3 = (-λ2)²-p.x-x2
-    let x3 = circuit_mul(lambda2, lambda2);
-    let x3 = circuit_sub(x3, px);
-    let x3 = circuit_sub(x3, x2);
-
-    // compute y3 = -λ2*(x3 - p.x)-p.y
-    let y3 = circuit_mul(lambda2, circuit_sub(x3, px));
-    let y3 = circuit_sub(y3, py);
-
-    let outputs = (x3, y3)
-        .new_inputs()
-        .next_2(p.x)
-        .next_2(p.y)
-        .next_2(q.x)
-        .next_2(q.y)
-        .done_2()
-        .eval(modulus)
-        .expect('double and add failed');
-    let x3 = outputs.get_output(x3);
-    let y3 = outputs.get_output(y3);
-    return G1Point { x: x3, y: y3 };
-}
-
-// Computes 2*2*2*2*2*2*2*(2*(2*(2*(2*(2*P + Q0) + Q1) + Q2) + Q3) + Q4) + Q5) + Q6) + Q7
+// Computes 2*(2*(2*(2*(2*(2*(2*(2*P + Q0) + Q1) + Q2) + Q3) + Q4) + Q5) + Q6) + Q7
 #[inline(always)]
 pub fn double_and_add_8(
     p: G1Point,

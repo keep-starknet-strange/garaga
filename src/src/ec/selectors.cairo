@@ -277,7 +277,7 @@ pub fn build_selectors_inlined(
     selectors.append(upcast(selector_69));
     let (u1, u2, v1, v2, selector_70) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
     selectors.append(upcast(selector_70));
-    let (u1, u2, v1, v2, selector_71) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
+    let (_, _, _, _, selector_71) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
     selectors.append(upcast(selector_71));
     return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
 }

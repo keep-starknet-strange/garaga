@@ -1,11 +1,10 @@
 use crate::algebra::g1point::G1Point;
-use crate::definitions::{CurveID, CurveParamsProvider, FieldElement};
+use crate::definitions::CurveParamsProvider;
 use crate::hints::eisenstein;
 use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::{BigInt, BigUint, Sign, ToBigInt};
 use num_integer::Integer;
 use num_traits::Signed;
-use std::str::FromStr;
 
 /*
 Represents a 2D lattice basis (V1, V2) derived from GLV decomposition.
@@ -350,7 +349,7 @@ where
     let s2 = &glv_basis.v1[1];
 
     // Assertions from Python code converted to Rust checks
-    if !((s1 + &scalar_bigint * s2).mod_floor(&curve_n_bigint) == BigInt::from(0)) {
+    if (s1 + &scalar_bigint * s2).mod_floor(&curve_n_bigint) != BigInt::from(0) {
         return Err("Assertion failed: (s1 + scalar * s2) % curve.n != 0".to_string());
     }
     // Check s1 > 0 and s2 != 0
@@ -369,14 +368,15 @@ where
     Ok((q, s1_biguint, s2_encoded))
 }
 
+#[allow(unused_imports)]
 mod tests {
     use super::*;
-    use num_bigint::BigInt;
     use num_traits::Num;
+    use rand::Rng;
+    use std::str::FromStr;
 
     #[test]
     fn test_bn254() -> Result<(), String> {
-        use rand::Rng;
         let mut rng = rand::rng();
         for _ in 0..100 {
             let scalar = rng.random::<u128>().into();

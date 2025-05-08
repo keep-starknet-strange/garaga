@@ -165,13 +165,20 @@ def generate_build_selectors_inlined(n_bits: int) -> str:
         f"    // Inlined loop ({n_bits - 1} iterations)",
     ]
 
-    for i in range(n_bits - 1):
+    for i in range(n_bits - 2):
         code.extend(
             [
                 f"    let (u1, u2, v1, v2, selector_{i}) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);",
                 f"    selectors.append(upcast(selector_{i}));",
             ]
         )
+
+    code.extend(
+        [
+            f"    let (_, _, _, _, selector_{n_bits - 2}) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);",
+            f"    selectors.append(upcast(selector_{n_bits - 2}));",
+        ]
+    )
 
     code.append(
         "    return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));"
