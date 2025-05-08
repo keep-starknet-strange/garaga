@@ -4,7 +4,7 @@ icon: octopus
 
 # Noir
 
-## Requirements
+## Requirements (read carefully to avoid 99% of issues!)
 
 * Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`
 * Noir 1.0.0-beta.3 (install with `noirup --version 1.0.0-beta.3`)
@@ -16,8 +16,6 @@ For local proving :&#x20;
 For in-browser proving with bb.js
 
 * Barretenberg/bb.js 0.85.0 (install with `bbup --version 0.85.0`)
-
-
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
