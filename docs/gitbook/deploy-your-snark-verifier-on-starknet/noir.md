@@ -8,7 +8,7 @@ icon: octopus
 
 * Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`
 * Noir 1.0.0-beta.3 (install with `noirup --version 1.0.0-beta.3`)&#x20;
-* Barretenberg 0.86.0-starknet.1 (install with `bbup --version 0.86.0-starknet.1`)
+* Barretenberg 0.86.0-starknet.1 (install with `bbup --version 0.86.0-starknet.1`or `npm i @aztec/bb.js@0.86.0-starknet.1` )
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
