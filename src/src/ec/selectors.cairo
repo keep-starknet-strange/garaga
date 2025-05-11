@@ -445,3 +445,23 @@ pub fn build_selectors_inlined_fake_glv(_s1: u128, _s2: u128) -> (Span<usize>, u
     }
     return (selectors.span(), upcast(s1lsb), upcast(s2lsb));
 }
+
+
+#[cfg(test)]
+mod test {
+    use super::build_selectors_inlined;
+
+    #[test]
+    fn test_build_selectors_inlined() {
+        let s1 = 0x123456789abcdef0123456789123;
+        let s2 = 0xfedcba9876543210fedcba987654;
+        let s3 = 0x123456789abcdef0123456789123;
+        let s4 = 0xfedcba9876543210fedcba987654;
+        let (selectors, s1lsb, s2lsb, s3lsb, s4lsb) = build_selectors_inlined(s1, s2, s3, s4);
+        println!("selectors: {:?}", selectors.len());
+        println!("s1lsb: {:?}", s1lsb);
+        println!("s2lsb: {:?}", s2lsb);
+        println!("s3lsb: {:?}", s3lsb);
+        println!("s4lsb: {:?}", s4lsb);
+    }
+}
