@@ -47,6 +47,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     AddECPointCircuit,
     AddECPointsG2Circuit,
     ClearCofactorBLS12_381Circuit,
+    DoubleAndAdd72Circuit,
     DoubleECPointCircuit,
     DoubleECPointG2AEq0Circuit,
     DummyCircuit,
@@ -79,6 +80,7 @@ class CircuitID(Enum):
     PREPARE_GLV_FAKE_GLV_PTS = int.from_bytes(b"prepare_glv_fake_glv_pts", "big")
     PREPARE_FAKE_GLV_PTS = int.from_bytes(b"prepare_fake_glv_pts", "big")
     QUADRUPLE_AND_ADD_9 = int.from_bytes(b"quadruple_and_add_9", "big")
+    DOUBLE_AND_ADD_72 = int.from_bytes(b"double_and_add_72", "big")
     MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
     MP_CHECK_BIT00_LOOP = int.from_bytes(b"mp_check_bit00_loop", "big")
     MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
@@ -166,6 +168,11 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.PREPARE_FAKE_GLV_PTS: {
         "class": PrepareFakeGLVPtsCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.DOUBLE_AND_ADD_72: {
+        "class": DoubleAndAdd72Circuit,
         "params": None,
         "filename": "ec",
     },

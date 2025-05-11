@@ -432,6 +432,22 @@ fn msm_glv_fake_glv(
     return acc;
 }
 
+// let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
+// let mut u2: BoundedInt<0, { POW128 - 1 }> = upcast(_u2);
+// let mut v1: BoundedInt<0, { POW128 - 1 }> = upcast(_v1);
+// let mut v2: BoundedInt<0, { POW128 - 1 }> = upcast(_v2);
+
+// // Initial division and remainder to get LSBs
+// let (qu1, u1lsb) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+// let (qu2, u2lsb) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+// let (qv1, v1lsb) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+// let (qv2, v2lsb) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+// u1 = upcast(qu1);
+// u2 = upcast(qu2);
+// v1 = upcast(qv1);
+// v2 = upcast(qv2);
+
+use selectors::{DivRemU128By2, POW128, TWO_NZ_TYPED};
 
 #[inline(always)]
 // /!\ Assumes point is on curve (not infinity) and scalar is reduced mod n. /!\
@@ -552,7 +568,7 @@ pub fn _scalar_mul_glv_and_fake_glv(
 
     // Note : P != Q (scalar != 1)
     let P0 = G1Point { x: point.x, y: P0y };
-    let Q0 = G1Point { x: hint.Q.x, y: Q0y };
+    // let Q0 = G1Point { x: hint.Q.x, y: Q0y };
 
     let (
         B1,
@@ -617,35 +633,416 @@ pub fn _scalar_mul_glv_and_fake_glv(
     let mut _v1: u128 = upcast(_v1_abs);
     let mut _v2: u128 = upcast(_v2_abs);
 
-    let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
-        _u1, _u2, _v1, _v2,
-    );
+    // let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
+    //     _u1, _u2, _v1, _v2,
+    // );
 
     // Process 8 bits per iteration
-    while let Some(selector_y) = selectors.multi_pop_back::<8>() {
-        let [
-            selector_y7,
-            selector_y6,
-            selector_y5,
-            selector_y4,
-            selector_y3,
-            selector_y2,
-            selector_y1,
-            selector_y0,
-        ] =
-            (*selector_y)
-            .unbox();
-        let Bi = *Bs[selector_y0];
-        let Bi1 = *Bs[selector_y1];
-        let Bi2 = *Bs[selector_y2];
-        let Bi3 = *Bs[selector_y3];
-        let Bi4 = *Bs[selector_y4];
-        let Bi5 = *Bs[selector_y5];
-        let Bi6 = *Bs[selector_y6];
-        let Bi7 = *Bs[selector_y7];
+    // while let Some(selector_y) = selectors.multi_pop_back::<8>() {
+    //     let [
+    //         selector_y7,
+    //         selector_y6,
+    //         selector_y5,
+    //         selector_y4,
+    //         selector_y3,
+    //         selector_y2,
+    //         selector_y1,
+    //         selector_y0,
+    //     ] =
+    //         (*selector_y)
+    //         .unbox();
+    //     let Bi = *Bs[selector_y0];
+    //     let Bi1 = *Bs[selector_y1];
+    //     let Bi2 = *Bs[selector_y2];
+    //     let Bi3 = *Bs[selector_y3];
+    //     let Bi4 = *Bs[selector_y4];
+    //     let Bi5 = *Bs[selector_y5];
+    //     let Bi6 = *Bs[selector_y6];
+    //     let Bi7 = *Bs[selector_y7];
 
-        Acc = double_and_add_8(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
-    }
+    //     Acc = double_and_add_8(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
+    // }
+
+    let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
+    let mut u2: BoundedInt<0, { POW128 - 1 }> = upcast(_u2);
+    let mut v1: BoundedInt<0, { POW128 - 1 }> = upcast(_v1);
+    let mut v2: BoundedInt<0, { POW128 - 1 }> = upcast(_v2);
+
+    // Initial division and remainder to get LSBs
+    let (qu1, u1lsb) = bounded_int::div_rem(u1, TWO_NZ_TYPED);
+    let (qu2, u2lsb) = bounded_int::div_rem(u2, TWO_NZ_TYPED);
+    let (qv1, v1lsb) = bounded_int::div_rem(v1, TWO_NZ_TYPED);
+    let (qv2, v2lsb) = bounded_int::div_rem(v2, TWO_NZ_TYPED);
+    u1 = upcast(qu1);
+    u2 = upcast(qu2);
+    v1 = upcast(qv1);
+    v2 = upcast(qv2);
+
+    let (u1, u2, v1, v2, selector_0) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q71 = *Bs[upcast(selector_0)];
+    let (u1, u2, v1, v2, selector_1) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q70 = *Bs[upcast(selector_1)];
+    let (u1, u2, v1, v2, selector_2) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q69 = *Bs[upcast(selector_2)];
+    let (u1, u2, v1, v2, selector_3) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q68 = *Bs[upcast(selector_3)];
+    let (u1, u2, v1, v2, selector_4) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q67 = *Bs[upcast(selector_4)];
+    let (u1, u2, v1, v2, selector_5) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q66 = *Bs[upcast(selector_5)];
+    let (u1, u2, v1, v2, selector_6) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q65 = *Bs[upcast(selector_6)];
+    let (u1, u2, v1, v2, selector_7) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q64 = *Bs[upcast(selector_7)];
+    let (u1, u2, v1, v2, selector_8) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q63 = *Bs[upcast(selector_8)];
+    let (u1, u2, v1, v2, selector_9) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q62 = *Bs[upcast(selector_9)];
+    let (u1, u2, v1, v2, selector_10) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q61 = *Bs[upcast(selector_10)];
+    let (u1, u2, v1, v2, selector_11) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q60 = *Bs[upcast(selector_11)];
+    let (u1, u2, v1, v2, selector_12) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q59 = *Bs[upcast(selector_12)];
+    let (u1, u2, v1, v2, selector_13) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q58 = *Bs[upcast(selector_13)];
+    let (u1, u2, v1, v2, selector_14) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q57 = *Bs[upcast(selector_14)];
+    let (u1, u2, v1, v2, selector_15) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q56 = *Bs[upcast(selector_15)];
+    let (u1, u2, v1, v2, selector_16) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q55 = *Bs[upcast(selector_16)];
+    let (u1, u2, v1, v2, selector_17) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q54 = *Bs[upcast(selector_17)];
+    let (u1, u2, v1, v2, selector_18) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q53 = *Bs[upcast(selector_18)];
+    let (u1, u2, v1, v2, selector_19) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q52 = *Bs[upcast(selector_19)];
+    let (u1, u2, v1, v2, selector_20) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q51 = *Bs[upcast(selector_20)];
+    let (u1, u2, v1, v2, selector_21) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q50 = *Bs[upcast(selector_21)];
+    let (u1, u2, v1, v2, selector_22) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q49 = *Bs[upcast(selector_22)];
+    let (u1, u2, v1, v2, selector_23) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q48 = *Bs[upcast(selector_23)];
+    let (u1, u2, v1, v2, selector_24) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q47 = *Bs[upcast(selector_24)];
+    let (u1, u2, v1, v2, selector_25) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q46 = *Bs[upcast(selector_25)];
+    let (u1, u2, v1, v2, selector_26) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q45 = *Bs[upcast(selector_26)];
+    let (u1, u2, v1, v2, selector_27) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q44 = *Bs[upcast(selector_27)];
+    let (u1, u2, v1, v2, selector_28) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q43 = *Bs[upcast(selector_28)];
+    let (u1, u2, v1, v2, selector_29) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q42 = *Bs[upcast(selector_29)];
+    let (u1, u2, v1, v2, selector_30) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q41 = *Bs[upcast(selector_30)];
+    let (u1, u2, v1, v2, selector_31) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q40 = *Bs[upcast(selector_31)];
+    let (u1, u2, v1, v2, selector_32) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q39 = *Bs[upcast(selector_32)];
+    let (u1, u2, v1, v2, selector_33) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q38 = *Bs[upcast(selector_33)];
+    let (u1, u2, v1, v2, selector_34) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q37 = *Bs[upcast(selector_34)];
+    let (u1, u2, v1, v2, selector_35) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q36 = *Bs[upcast(selector_35)];
+    let (u1, u2, v1, v2, selector_36) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q35 = *Bs[upcast(selector_36)];
+    let (u1, u2, v1, v2, selector_37) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q34 = *Bs[upcast(selector_37)];
+    let (u1, u2, v1, v2, selector_38) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q33 = *Bs[upcast(selector_38)];
+    let (u1, u2, v1, v2, selector_39) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q32 = *Bs[upcast(selector_39)];
+    let (u1, u2, v1, v2, selector_40) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q31 = *Bs[upcast(selector_40)];
+    let (u1, u2, v1, v2, selector_41) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q30 = *Bs[upcast(selector_41)];
+    let (u1, u2, v1, v2, selector_42) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q29 = *Bs[upcast(selector_42)];
+    let (u1, u2, v1, v2, selector_43) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q28 = *Bs[upcast(selector_43)];
+    let (u1, u2, v1, v2, selector_44) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q27 = *Bs[upcast(selector_44)];
+    let (u1, u2, v1, v2, selector_45) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q26 = *Bs[upcast(selector_45)];
+    let (u1, u2, v1, v2, selector_46) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q25 = *Bs[upcast(selector_46)];
+    let (u1, u2, v1, v2, selector_47) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q24 = *Bs[upcast(selector_47)];
+    let (u1, u2, v1, v2, selector_48) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q23 = *Bs[upcast(selector_48)];
+    let (u1, u2, v1, v2, selector_49) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q22 = *Bs[upcast(selector_49)];
+    let (u1, u2, v1, v2, selector_50) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q21 = *Bs[upcast(selector_50)];
+    let (u1, u2, v1, v2, selector_51) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q20 = *Bs[upcast(selector_51)];
+    let (u1, u2, v1, v2, selector_52) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q19 = *Bs[upcast(selector_52)];
+    let (u1, u2, v1, v2, selector_53) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q18 = *Bs[upcast(selector_53)];
+    let (u1, u2, v1, v2, selector_54) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q17 = *Bs[upcast(selector_54)];
+    let (u1, u2, v1, v2, selector_55) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q16 = *Bs[upcast(selector_55)];
+    let (u1, u2, v1, v2, selector_56) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q15 = *Bs[upcast(selector_56)];
+    let (u1, u2, v1, v2, selector_57) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q14 = *Bs[upcast(selector_57)];
+    let (u1, u2, v1, v2, selector_58) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q13 = *Bs[upcast(selector_58)];
+    let (u1, u2, v1, v2, selector_59) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q12 = *Bs[upcast(selector_59)];
+    let (u1, u2, v1, v2, selector_60) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q11 = *Bs[upcast(selector_60)];
+    let (u1, u2, v1, v2, selector_61) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q10 = *Bs[upcast(selector_61)];
+    let (u1, u2, v1, v2, selector_62) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q9 = *Bs[upcast(selector_62)];
+    let (u1, u2, v1, v2, selector_63) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q8 = *Bs[upcast(selector_63)];
+    let (u1, u2, v1, v2, selector_64) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q7 = *Bs[upcast(selector_64)];
+    let (u1, u2, v1, v2, selector_65) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q6 = *Bs[upcast(selector_65)];
+    let (u1, u2, v1, v2, selector_66) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q5 = *Bs[upcast(selector_66)];
+    let (u1, u2, v1, v2, selector_67) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q4 = *Bs[upcast(selector_67)];
+    let (u1, u2, v1, v2, selector_68) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q3 = *Bs[upcast(selector_68)];
+    let (u1, u2, v1, v2, selector_69) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q2 = *Bs[upcast(selector_69)];
+    let (u1, u2, v1, v2, selector_70) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q1 = *Bs[upcast(selector_70)];
+    let (_, _, _, _, selector_71) = selectors::_extract_and_calculate_selector_bit_inlined(
+        u1, u2, v1, v2,
+    );
+    let Q0 = *Bs[upcast(selector_71)];
+
+    let (Acc) = ec::run_DOUBLE_AND_ADD_72_circuit(
+        Acc,
+        Q0,
+        Q1,
+        Q2,
+        Q3,
+        Q4,
+        Q5,
+        Q6,
+        Q7,
+        Q8,
+        Q9,
+        Q10,
+        Q11,
+        Q12,
+        Q13,
+        Q14,
+        Q15,
+        Q16,
+        Q17,
+        Q18,
+        Q19,
+        Q20,
+        Q21,
+        Q22,
+        Q23,
+        Q24,
+        Q25,
+        Q26,
+        Q27,
+        Q28,
+        Q29,
+        Q30,
+        Q31,
+        Q32,
+        Q33,
+        Q34,
+        Q35,
+        Q36,
+        Q37,
+        Q38,
+        Q39,
+        Q40,
+        Q41,
+        Q42,
+        Q43,
+        Q44,
+        Q45,
+        Q46,
+        Q47,
+        Q48,
+        Q49,
+        Q50,
+        Q51,
+        Q52,
+        Q53,
+        Q54,
+        Q55,
+        Q56,
+        Q57,
+        Q58,
+        Q59,
+        Q60,
+        Q61,
+        Q62,
+        Q63,
+        Q64,
+        Q65,
+        Q66,
+        Q67,
+        Q68,
+        Q69,
+        Q70,
+        Q71,
+        modulus,
+    );
 
     // println!("Acc final: {:?}", Acc);
     let (Acc) = if u1lsb == 0 {
@@ -735,240 +1132,3 @@ pub fn double_and_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Poin
     let y3 = outputs.get_output(y3);
     return G1Point { x: x3, y: y3 };
 }
-
-// Computes 2*2*2*2*2*2*2*(2*(2*(2*(2*(2*P + Q0) + Q1) + Q2) + Q3) + Q4) + Q5) + Q6) + Q7
-#[inline(always)]
-pub fn double_and_add_8(
-    p: G1Point,
-    q0: G1Point,
-    q1: G1Point,
-    q2: G1Point,
-    q3: G1Point,
-    q4: G1Point,
-    q5: G1Point,
-    q6: G1Point,
-    q7: G1Point,
-    modulus: CircuitModulus,
-) -> G1Point {
-    let px = CircuitElement::<CircuitInput<0>> {};
-    let py = CircuitElement::<CircuitInput<1>> {};
-    let q0x = CircuitElement::<CircuitInput<2>> {};
-    let q0y = CircuitElement::<CircuitInput<3>> {};
-    let q1x = CircuitElement::<CircuitInput<4>> {};
-    let q1y = CircuitElement::<CircuitInput<5>> {};
-    let q2x = CircuitElement::<CircuitInput<6>> {};
-    let q2y = CircuitElement::<CircuitInput<7>> {};
-    let q3x = CircuitElement::<CircuitInput<8>> {};
-    let q3y = CircuitElement::<CircuitInput<9>> {};
-    let q4x = CircuitElement::<CircuitInput<10>> {};
-    let q4y = CircuitElement::<CircuitInput<11>> {};
-    let q5x = CircuitElement::<CircuitInput<12>> {};
-    let q5y = CircuitElement::<CircuitInput<13>> {};
-    let q6x = CircuitElement::<CircuitInput<14>> {};
-    let q6y = CircuitElement::<CircuitInput<15>> {};
-    let q7x = CircuitElement::<CircuitInput<16>> {};
-    let q7y = CircuitElement::<CircuitInput<17>> {};
-
-    // --- Step 1: (2 * CurrentP) + Q0 ---
-    let num_lambda1_0 = circuit_sub(q0y, py);
-    let den_lambda1_0 = circuit_sub(q0x, px);
-    let lambda1_0 = circuit_mul(num_lambda1_0, circuit_inverse(den_lambda1_0));
-
-    let lambda1_sq_0 = circuit_mul(lambda1_0, lambda1_0);
-    let x2_0 = circuit_sub(lambda1_sq_0, px);
-    let x2_0 = circuit_sub(x2_0, q0x);
-
-    let den_lambda2_0 = circuit_sub(x2_0, px);
-    let num_lambda2_0 = circuit_add(py, py);
-    let term2_lambda2_0 = circuit_mul(num_lambda2_0, circuit_inverse(den_lambda2_0));
-    let lambda2_0 = circuit_add(lambda1_0, term2_lambda2_0);
-
-    let lambda2_sq_0 = circuit_mul(lambda2_0, lambda2_0);
-    let tx_temp_0 = circuit_sub(lambda2_sq_0, px);
-    let T1x = circuit_sub(tx_temp_0, x2_0);
-
-    let tx_sub_px_0 = circuit_sub(T1x, px);
-    let term1_ty_0 = circuit_mul(lambda2_0, tx_sub_px_0);
-    let T1y = circuit_sub(term1_ty_0, py);
-
-    // --- Step 2: (2 * CurrentP) + Q1 ---
-    let num_lambda1_1 = circuit_sub(q1y, T1y);
-    let den_lambda1_1 = circuit_sub(q1x, T1x);
-    let lambda1_1 = circuit_mul(num_lambda1_1, circuit_inverse(den_lambda1_1));
-
-    let lambda1_sq_1 = circuit_mul(lambda1_1, lambda1_1);
-    let x2_1 = circuit_sub(lambda1_sq_1, T1x);
-    let x2_1 = circuit_sub(x2_1, q1x);
-
-    let den_lambda2_1 = circuit_sub(x2_1, T1x);
-    let num_lambda2_1 = circuit_add(T1y, T1y);
-    let term2_lambda2_1 = circuit_mul(num_lambda2_1, circuit_inverse(den_lambda2_1));
-    let lambda2_1 = circuit_add(lambda1_1, term2_lambda2_1);
-
-    let lambda2_sq_1 = circuit_mul(lambda2_1, lambda2_1);
-    let tx_temp_1 = circuit_sub(lambda2_sq_1, T1x);
-    let T2x = circuit_sub(tx_temp_1, x2_1);
-
-    let tx_sub_px_1 = circuit_sub(T2x, T1x);
-    let term1_ty_1 = circuit_mul(lambda2_1, tx_sub_px_1);
-    let T2y = circuit_sub(term1_ty_1, T1y);
-
-    // --- Step 3: (2 * CurrentP) + Q2 ---
-    let num_lambda1_2 = circuit_sub(q2y, T2y);
-    let den_lambda1_2 = circuit_sub(q2x, T2x);
-    let lambda1_2 = circuit_mul(num_lambda1_2, circuit_inverse(den_lambda1_2));
-
-    let lambda1_sq_2 = circuit_mul(lambda1_2, lambda1_2);
-    let x2_2 = circuit_sub(lambda1_sq_2, T2x);
-    let x2_2 = circuit_sub(x2_2, q2x);
-
-    let den_lambda2_2 = circuit_sub(x2_2, T2x);
-    let num_lambda2_2 = circuit_add(T2y, T2y);
-    let term2_lambda2_2 = circuit_mul(num_lambda2_2, circuit_inverse(den_lambda2_2));
-    let lambda2_2 = circuit_add(lambda1_2, term2_lambda2_2);
-
-    let lambda2_sq_2 = circuit_mul(lambda2_2, lambda2_2);
-    let tx_temp_2 = circuit_sub(lambda2_sq_2, T2x);
-    let T3x = circuit_sub(tx_temp_2, x2_2);
-
-    let tx_sub_px_2 = circuit_sub(T3x, T2x);
-    let term1_ty_2 = circuit_mul(lambda2_2, tx_sub_px_2);
-    let T3y = circuit_sub(term1_ty_2, T2y);
-
-    // --- Step 4: (2 * CurrentP) + Q3 ---
-    let num_lambda1_3 = circuit_sub(q3y, T3y);
-    let den_lambda1_3 = circuit_sub(q3x, T3x);
-    let lambda1_3 = circuit_mul(num_lambda1_3, circuit_inverse(den_lambda1_3));
-
-    let lambda1_sq_3 = circuit_mul(lambda1_3, lambda1_3);
-    let x2_3 = circuit_sub(lambda1_sq_3, T3x);
-    let x2_3 = circuit_sub(x2_3, q3x);
-
-    let den_lambda2_3 = circuit_sub(x2_3, T3x);
-    let num_lambda2_3 = circuit_add(T3y, T3y);
-    let term2_lambda2_3 = circuit_mul(num_lambda2_3, circuit_inverse(den_lambda2_3));
-    let lambda2_3 = circuit_add(lambda1_3, term2_lambda2_3);
-
-    let lambda2_sq_3 = circuit_mul(lambda2_3, lambda2_3);
-    let tx_temp_3 = circuit_sub(lambda2_sq_3, T3x);
-    let T4x = circuit_sub(tx_temp_3, x2_3);
-
-    let tx_sub_px_3 = circuit_sub(T4x, T3x);
-    let term1_ty_3 = circuit_mul(lambda2_3, tx_sub_px_3);
-    let T4y = circuit_sub(term1_ty_3, T3y);
-
-    // --- Step 5: (2 * CurrentP) + Q4 ---
-    let num_lambda1_4 = circuit_sub(q4y, T4y);
-    let den_lambda1_4 = circuit_sub(q4x, T4x);
-    let lambda1_4 = circuit_mul(num_lambda1_4, circuit_inverse(den_lambda1_4));
-
-    let lambda1_sq_4 = circuit_mul(lambda1_4, lambda1_4);
-    let x2_4 = circuit_sub(lambda1_sq_4, T4x);
-    let x2_4 = circuit_sub(x2_4, q4x);
-
-    let den_lambda2_4 = circuit_sub(x2_4, T4x);
-    let num_lambda2_4 = circuit_add(T4y, T4y);
-    let term2_lambda2_4 = circuit_mul(num_lambda2_4, circuit_inverse(den_lambda2_4));
-    let lambda2_4 = circuit_add(lambda1_4, term2_lambda2_4);
-
-    let lambda2_sq_4 = circuit_mul(lambda2_4, lambda2_4);
-    let tx_temp_4 = circuit_sub(lambda2_sq_4, T4x);
-    let T5x = circuit_sub(tx_temp_4, x2_4);
-
-    let tx_sub_px_4 = circuit_sub(T5x, T4x);
-    let term1_ty_4 = circuit_mul(lambda2_4, tx_sub_px_4);
-    let T5y = circuit_sub(term1_ty_4, T4y);
-
-    // --- Step 6: (2 * CurrentP) + Q5 ---
-    let num_lambda1_5 = circuit_sub(q5y, T5y);
-    let den_lambda1_5 = circuit_sub(q5x, T5x);
-    let lambda1_5 = circuit_mul(num_lambda1_5, circuit_inverse(den_lambda1_5));
-
-    let lambda1_sq_5 = circuit_mul(lambda1_5, lambda1_5);
-    let x2_5 = circuit_sub(lambda1_sq_5, T5x);
-    let x2_5 = circuit_sub(x2_5, q5x);
-
-    let den_lambda2_5 = circuit_sub(x2_5, T5x);
-    let num_lambda2_5 = circuit_add(T5y, T5y);
-    let term2_lambda2_5 = circuit_mul(num_lambda2_5, circuit_inverse(den_lambda2_5));
-    let lambda2_5 = circuit_add(lambda1_5, term2_lambda2_5);
-
-    let lambda2_sq_5 = circuit_mul(lambda2_5, lambda2_5);
-    let tx_temp_5 = circuit_sub(lambda2_sq_5, T5x);
-    let T6x = circuit_sub(tx_temp_5, x2_5);
-
-    let tx_sub_px_5 = circuit_sub(T6x, T5x);
-    let term1_ty_5 = circuit_mul(lambda2_5, tx_sub_px_5);
-    let T6y = circuit_sub(term1_ty_5, T5y);
-
-    // --- Step 7: (2 * CurrentP) + Q6 ---
-    let num_lambda1_6 = circuit_sub(q6y, T6y);
-    let den_lambda1_6 = circuit_sub(q6x, T6x);
-    let lambda1_6 = circuit_mul(num_lambda1_6, circuit_inverse(den_lambda1_6));
-
-    let lambda1_sq_6 = circuit_mul(lambda1_6, lambda1_6);
-    let x2_6 = circuit_sub(lambda1_sq_6, T6x);
-    let x2_6 = circuit_sub(x2_6, q6x);
-
-    let den_lambda2_6 = circuit_sub(x2_6, T6x);
-    let num_lambda2_6 = circuit_add(T6y, T6y);
-    let term2_lambda2_6 = circuit_mul(num_lambda2_6, circuit_inverse(den_lambda2_6));
-    let lambda2_6 = circuit_add(lambda1_6, term2_lambda2_6);
-
-    let lambda2_sq_6 = circuit_mul(lambda2_6, lambda2_6);
-    let tx_temp_6 = circuit_sub(lambda2_sq_6, T6x);
-    let T7x = circuit_sub(tx_temp_6, x2_6);
-
-    let tx_sub_px_6 = circuit_sub(T7x, T6x);
-    let term1_ty_6 = circuit_mul(lambda2_6, tx_sub_px_6);
-    let T7y = circuit_sub(term1_ty_6, T6y);
-
-    // --- Step 8: (2 * CurrentP) + Q7 ---
-    let num_lambda1_7 = circuit_sub(q7y, T7y);
-    let den_lambda1_7 = circuit_sub(q7x, T7x);
-    let lambda1_7 = circuit_mul(num_lambda1_7, circuit_inverse(den_lambda1_7));
-
-    let lambda1_sq_7 = circuit_mul(lambda1_7, lambda1_7);
-    let x2_7 = circuit_sub(lambda1_sq_7, T7x);
-    let x2_7 = circuit_sub(x2_7, q7x);
-
-    let den_lambda2_7 = circuit_sub(x2_7, T7x);
-    let num_lambda2_7 = circuit_add(T7y, T7y);
-    let term2_lambda2_7 = circuit_mul(num_lambda2_7, circuit_inverse(den_lambda2_7));
-    let lambda2_7 = circuit_add(lambda1_7, term2_lambda2_7);
-
-    let lambda2_sq_7 = circuit_mul(lambda2_7, lambda2_7);
-    let tx_temp_7 = circuit_sub(lambda2_sq_7, T7x);
-    let T8x = circuit_sub(tx_temp_7, x2_7);
-
-    let tx_sub_px_7 = circuit_sub(T8x, T7x);
-    let term1_ty_7 = circuit_mul(lambda2_7, tx_sub_px_7);
-    let T8y = circuit_sub(term1_ty_7, T7y);
-
-    let outputs = (T8x, T8y)
-        .new_inputs()
-        .next_2(p.x)
-        .next_2(p.y)
-        .next_2(q0.x)
-        .next_2(q0.y)
-        .next_2(q1.x)
-        .next_2(q1.y)
-        .next_2(q2.x)
-        .next_2(q2.y)
-        .next_2(q3.x)
-        .next_2(q3.y)
-        .next_2(q4.x)
-        .next_2(q4.y)
-        .next_2(q5.x)
-        .next_2(q5.y)
-        .next_2(q6.x)
-        .next_2(q6.y)
-        .next_2(q7.x)
-        .next_2(q7.y)
-        .done_2()
-        .eval(modulus)
-        .expect('double_and_add_8 failed');
-
-    return G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) };
-}
-

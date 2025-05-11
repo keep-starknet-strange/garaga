@@ -1064,6 +1064,47 @@ class QuadrupleAndAdd9Circuit(BaseModuloCircuit):
         return circuit
 
 
+class DoubleAndAdd72Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="double_and_add_72",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # Py
+        for _ in range(72):
+            input.append(self.field.random())  # Qx
+            input.append(self.field.random())  # Qy
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        P = circuit.write_struct(
+            G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
+        )
+        Qs = []
+        for i in range(2, len(input) - 1, 2):
+            Qs.append(
+                circuit.write_struct(
+                    G1PointCircuit(f"Q_{i//2}", [input[i], input[i + 1]]),
+                    WriteOps.INPUT,
+                )
+            )
+
+        Rx, Ry = circuit.n_double_and_add(P, Qs)
+        circuit.extend_struct_output(G1PointCircuit("R", [Rx, Ry]))
+        return circuit
+
+
 class ClearCofactorBLS12_381Circuit(BaseModuloCircuit):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(

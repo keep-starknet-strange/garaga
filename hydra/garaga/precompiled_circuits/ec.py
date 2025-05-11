@@ -722,6 +722,17 @@ class BasicEC(ModuloCircuit):
             Q = self.double_point_a_eq_0(Q)
         return Q
 
+    def n_double_and_add(
+        self,
+        P: tuple[ModuloCircuitElement, ModuloCircuitElement],
+        adds: list[tuple[ModuloCircuitElement, ModuloCircuitElement]],
+    ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
+        """Double a point and add it to the point."""
+        Q = P
+        for add in adds:
+            Q = self.double_and_add(Q, add)
+        return Q
+
     def n_quadruple_and_add(
         self,
         P: tuple[ModuloCircuitElement, ModuloCircuitElement],
