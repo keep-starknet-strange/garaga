@@ -2,9 +2,9 @@
 icon: monero
 ---
 
-# Deploy your SNARK verifier on Starknet
+# Deploy your own SNARK verifier on Starknet
 
 Supported verifiers:
 
 * [groth16](groth16/ "mention")
-* [noir](noir "mention")
+* [noir.md](noir.md "mention")
