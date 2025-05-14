@@ -21,7 +21,7 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
 
     let msg_point = hash_to_curve(message, "sha256");
 
-    let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet));
+    let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
 
     let round = get_randomness_signature_point(chain.hash, round_number);
 
@@ -31,7 +31,7 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
 
     let pairs = [
         G1G2Pair::new(sig_pt.clone(), G2Point::generator()),
-        G1G2Pair::new(msg_point, chain.public_key),
+        G1G2Pair::new(msg_point, chain.public_key.g2_point().unwrap().clone()),
     ];
     let mpc_data = {
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
@@ -57,7 +57,7 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
     Ok(call_data)
 }
 
-fn digest_func(round_number: u64) -> [u8; 32] {
+pub fn digest_func(round_number: u64) -> [u8; 32] {
     let bytes = round_number.to_be_bytes();
     let digest = Sha256::digest(bytes);
     digest.try_into().unwrap()
@@ -548,7 +548,7 @@ fn from_hex(hex: &str) -> [u8; 32] {
     bytes
 }
 
-fn get_chain_hash(network: DrandNetwork) -> [u8; 32] {
+pub fn get_chain_hash(network: DrandNetwork) -> [u8; 32] {
     match network {
         DrandNetwork::Default => {
             from_hex("8990e7a9aaed2ffed73dbd7092123d6f289930540d7651336225dc172e51b2ce")
@@ -559,17 +559,85 @@ fn get_chain_hash(network: DrandNetwork) -> [u8; 32] {
     }
 }
 
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-struct NetworkInfo {
-    public_key: G2Point<BLS12381PrimeField, Degree2ExtensionField>,
-    hash: [u8; 32],
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField as BLS12381Degree2ExtensionField;
+
+pub struct NetworkInfo {
+    pub public_key: PublicKey,
+    pub period: usize,
+    pub genesis_time: usize,
+    pub hash: [u8; 32],
+    pub group_hash: [u8; 32],
+    pub scheme_id: String,
+    pub beacon_id: DrandNetwork,
 }
 
-fn get_chain_info(_chain_hash: [u8; 32]) -> NetworkInfo {
-    // TODO
-    let public_key = G2Point::generator();
-    let hash = [0u8; 32];
-    NetworkInfo { public_key, hash }
+pub enum PublicKey {
+    G1Point(G1Point<BLS12381PrimeField>),
+    G2Point(G2Point<BLS12381PrimeField, BLS12381Degree2ExtensionField>),
+}
+
+impl PublicKey {
+    pub fn g1_point(&self) -> Option<&G1Point<BLS12381PrimeField>> {
+        match self {
+            Self::G1Point(point) => Some(point),
+            _ => None,
+        }
+    }
+    pub fn g2_point(&self) -> Option<&G2Point<BLS12381PrimeField, BLS12381Degree2ExtensionField>> {
+        match self {
+            Self::G2Point(point) => Some(point),
+            _ => None,
+        }
+    }
+}
+
+pub fn get_chain_info(chain_hash: [u8; 32]) -> Result<NetworkInfo, String> {
+    let network = if chain_hash == get_chain_hash(DrandNetwork::Default) {
+        DrandNetwork::Default
+    } else if chain_hash == get_chain_hash(DrandNetwork::Quicknet) {
+        DrandNetwork::Quicknet
+    } else {
+        return Err(format!("Unknown chain hash: {:?}", chain_hash));
+    };
+    let info = match network {
+        DrandNetwork::Default => {
+            let x = FieldElement::from_hex_unchecked("68f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31");
+            let y = FieldElement::from_hex_unchecked("26fa5eef143aaa17c53b3c150d96a18051b718531af576803cfb9acf29b8774a8184e63c62da81ddf4d76fb0a65895c");
+            NetworkInfo {
+                public_key: PublicKey::G1Point(G1Point::new(x, y, false).unwrap()),
+                period: 30,
+                genesis_time: 1595431050,
+                hash: chain_hash,
+                group_hash: from_hex(
+                    "176f93498eac9ca337150b46d21dd58673ea4e3581185f869672e59fa4cb390a",
+                ),
+                scheme_id: "pedersen-bls-chained".to_string(),
+                beacon_id: DrandNetwork::Default,
+            }
+        }
+        DrandNetwork::Quicknet => {
+            let x = [
+                FieldElement::from_hex_unchecked("d1fec758c921cc22b0e17e63aaf4bcb5ed66304de9cf809bd274ca73bab4af5a6e9c76a4bc09e76eae8991ef5ece45a"),
+                FieldElement::from_hex_unchecked("3cf0f2896adee7eb8b5f01fcad3912212c437e0073e911fb90022d3e760183c8c4b450b6a0a6c3ac6a5776a2d106451"),
+            ];
+            let y = [
+                FieldElement::from_hex_unchecked("e5db2b6bfbb01c867749cadffca88b36c24f3012ba09fc4d3022c5c37dce0f977d3adb5d183c7477c442b1f04515273"),
+                FieldElement::from_hex_unchecked("1a714f2edb74119a2f2b0d5a7c75ba902d163700a61bc224ededd8e63aef7be1aaf8e93d7a9718b047ccddb3eb5d68b"),
+            ];
+            NetworkInfo {
+                public_key: PublicKey::G2Point(G2Point::new(x, y).unwrap()),
+                period: 3,
+                genesis_time: 1692803367,
+                hash: chain_hash,
+                group_hash: from_hex(
+                    "f477d5c89f21a17c863a7f937c6a6d15859414d2be09cd448d4279af331c5d3e",
+                ),
+                scheme_id: "bls-unchained-g1-rfc9380".to_string(),
+                beacon_id: DrandNetwork::Quicknet,
+            }
+        }
+    };
+    Ok(info)
 }
 
 struct RandomnessBeacon {
@@ -579,4 +647,14 @@ struct RandomnessBeacon {
 fn get_randomness_signature_point(_chain_hash: [u8; 32], _round_number: u64) -> RandomnessBeacon {
     // TODO
     todo!()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_drand_round_to_calldata_1() {
+        let _ = drand_round_to_calldata(1);
+    }
 }
