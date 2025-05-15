@@ -8,7 +8,10 @@ use crate::definitions::{BLS12381PrimeField, CurveID, CurveParamsProvider, Field
 use crate::io::{
     element_from_biguint, element_from_bytes_be, element_to_biguint, field_element_to_u384_limbs,
 };
-use lambdaworks_math::field::traits::IsPrimeField;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField as BLS12381Degree12ExtensionField;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField as BLS12381Degree2ExtensionField;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField as BLS12381Degree6ExtensionField;
+use lambdaworks_math::field::traits::{IsPrimeField, LegendreSymbol};
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint};
 use num_traits::Num;
@@ -19,30 +22,27 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
 
     let message = digest_func(round_number);
 
-    let msg_point = hash_to_curve(message, "sha256");
+    let msg_point = hash_to_curve(message, "sha256")?;
 
     let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
 
-    let round = get_randomness_signature_point(chain.hash, round_number);
+    let round = get_randomness(chain.hash, round_number);
 
-    let sig_pt = round.signature_point;
+    let sig_pt = round.signature.g1_point().unwrap().clone();
 
-    let hash_to_curve_hint = build_hash_to_curve_hint(message).to_calldata()?;
+    let hash_to_curve_hint = build_hash_to_curve_hint(message)?.to_calldata()?;
 
     let pairs = [
         G1G2Pair::new(sig_pt.clone(), G2Point::generator()),
         G1G2Pair::new(msg_point, chain.public_key.g2_point().unwrap().clone()),
     ];
     let mpc_data = {
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree6ExtensionField;
-        use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
         mpc_calldata::calldata_builder::<
             false,
             BLS12381PrimeField,
-            Degree2ExtensionField,
-            Degree6ExtensionField,
-            Degree12ExtensionField,
+            BLS12381Degree2ExtensionField,
+            BLS12381Degree6ExtensionField,
+            BLS12381Degree12ExtensionField,
         >(&pairs, 2, &None)?
     };
 
@@ -57,18 +57,18 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
     Ok(call_data)
 }
 
-pub fn digest_func(round_number: u64) -> [u8; 32] {
+fn digest_func(round_number: u64) -> [u8; 32] {
     let bytes = round_number.to_be_bytes();
     let digest = Sha256::digest(bytes);
     digest.try_into().unwrap()
 }
 
-fn hash_to_curve<F>(message: [u8; 32], hash_name: &str) -> G1Point<F>
+fn hash_to_curve<F>(message: [u8; 32], hash_name: &str) -> Result<G1Point<F>, String>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    let [felt0, felt1] = hash_to_field::<F>(message, 2, hash_name)
+    let [felt0, felt1] = hash_to_field::<F>(message, 2, hash_name)?
         .try_into()
         .unwrap();
 
@@ -90,7 +90,7 @@ where
     let sum = pt0.add(&pt1);
     assert!(sum.iso_point, "Point {:?} is not an iso point", sum);
 
-    apply_isogeny(sum).scalar_mul(cofactor)
+    Ok(apply_isogeny(sum).scalar_mul(cofactor))
 }
 
 fn map_to_curve<F>(field_element: FieldElement<F>) -> G1Point<F>
@@ -125,29 +125,34 @@ where
     let num_x2 = &zeta_u2 * &num_x1;
 
     let gx1 = (&num_gx1 / &div3).unwrap();
-    let gx1_square = false; // TODO gx1.is_quad_residue();
+    let gx1_square = is_quad_residue(&gx1);
     let y1 = if gx1_square {
-        let (y1, _) = gx1.sqrt(/*min_root=False*/).unwrap(); // TODO
+        let y1 = max_sqrt(&gx1);
         assert!(&y1 * &y1 == gx1);
         y1
     } else {
-        let (y1, _) = (&z * &gx1).sqrt(/*min_root=False*/).unwrap(); // TODO
+        let y1 = max_sqrt(&(&z * &gx1));
         assert!(&y1 * &y1 == &z * &gx1);
         y1
     };
 
     let y2 = &zeta_u2 * &u * &y1;
     let num_x = if gx1_square { num_x1 } else { num_x2 };
-    let y = if gx1_square { y1.clone() } else { y2 };
+    let y = if gx1_square { y1.clone() } else { y2.clone() };
     let x_affine = (&num_x / &div).unwrap();
     let y_flag = element_to_biguint(&y) % BigUint::from(2usize)
         == element_to_biguint(&u) % BigUint::from(2usize);
-    let y_affine = if !y_flag { -y } else { y };
+    let y_affine = if !y_flag { -y.clone() } else { y.clone() };
+
     let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
     point_on_curve
 }
 
-fn hash_to_field<F>(message: [u8; 32], count: usize, hash_name: &str) -> Vec<FieldElement<F>>
+fn hash_to_field<F>(
+    message: [u8; 32],
+    count: usize,
+    hash_name: &str,
+) -> Result<Vec<FieldElement<F>>, String>
 where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
@@ -155,9 +160,12 @@ where
     let len_per_elem = get_len_per_elem::<F>(None);
     let output = match hash_name {
         "sha256" => hash_to_bytes::<Sha256Hasher>(message, count, len_per_elem),
-        _ => panic!("unsupported hash name"),
+        _ => return Err(format!("Unsupported hash function: {}", hash_name)),
     };
-    output.iter().map(|v| element_from_bytes_be(&v)).collect()
+    Ok(output
+        .into_iter()
+        .map(|v| element_from_bytes_be(&v))
+        .collect())
 }
 
 fn hash_to_bytes<H: Hasher>(message: [u8; 32], count: usize, len_per_elem: usize) -> Vec<Vec<u8>> {
@@ -175,6 +183,13 @@ fn hash_to_bytes<H: Hasher>(message: [u8; 32], count: usize, len_per_elem: usize
     output
 }
 
+/*
+This function computes the length in bytes that a hash function should output
+for hashing an element of type `Field`.
+
+:param sec_param: The security parameter.
+:return: The length in bytes.
+*/
 fn get_len_per_elem<F>(sec_param: Option<usize>) -> usize
 where
     F: IsPrimeField,
@@ -189,7 +204,28 @@ where
     bytes_per_base_field_elem
 }
 
-trait Hasher: Clone {
+fn is_quad_residue<F: IsPrimeField>(element: &FieldElement<F>) -> bool {
+    if element == &FieldElement::from(0) {
+        true
+    } else {
+        element.legendre_symbol() == LegendreSymbol::One
+    }
+}
+
+fn max_sqrt<F>(element: &FieldElement<F>) -> FieldElement<F>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    let (sqrt1, sqrt2) = element.sqrt().unwrap();
+    if element_to_biguint(&sqrt1) > element_to_biguint(&sqrt2) {
+        sqrt1
+    } else {
+        sqrt2
+    }
+}
+
+pub trait Hasher: Clone {
     fn new() -> Self;
     fn reset(&mut self);
     fn update(&mut self, bytes: &[u8]);
@@ -198,7 +234,7 @@ trait Hasher: Clone {
 }
 
 #[derive(Clone)]
-struct Sha256Hasher {
+pub struct Sha256Hasher {
     data: Vec<u8>,
 }
 
@@ -225,10 +261,10 @@ const DST: &[u8] = G1_DOMAIN;
 const LONG_DST_PREFIX: &[u8] = b"H2C-OVERSIZE-DST-";
 const MAX_DST_LENGTH: usize = 255;
 
-struct ExpanderXmd<H: Hasher> {
-    hasher: H,
-    dst: Vec<u8>,
-    block_size: usize,
+pub struct ExpanderXmd<H: Hasher> {
+    pub hasher: H,
+    pub dst: Vec<u8>,
+    pub block_size: usize,
 }
 
 impl<H: Hasher> ExpanderXmd<H> {
@@ -299,131 +335,6 @@ impl<H: Hasher> ExpanderXmd<H> {
         }
         uniform_bytes[0..n.try_into().unwrap()].to_vec()
     }
-}
-
-struct MapToCurveHint {
-    gx1_is_square: bool,
-    y1: FieldElement<BLS12381PrimeField>,
-    y_flag: bool,
-}
-
-impl MapToCurveHint {
-    fn to_calldata(self) -> Vec<BigUint> {
-        let mut call_data = vec![];
-        call_data.push(self.gx1_is_square.into());
-        call_data.extend(field_element_to_u384_limbs(&self.y1).map(BigUint::from));
-        call_data.push(self.y_flag.into());
-        call_data
-    }
-}
-
-struct HashToCurveHint {
-    f0_hint: MapToCurveHint,
-    f1_hint: MapToCurveHint,
-    /*
-    scalar_mul_hint: structs.Struct
-    derive_point_from_x_hint: structs.Struct
-    */
-}
-
-impl HashToCurveHint {
-    fn to_calldata(self) -> Result<Vec<BigUint>, String> {
-        let mut call_data = vec![];
-        call_data.extend(self.f0_hint.to_calldata());
-        call_data.extend(self.f1_hint.to_calldata());
-        /*
-        call_data.extend(self.scalar_mul_hint.serialize_to_calldata());
-        call_data.extend(self.derive_point_from_x_hint.serialize_to_calldata());
-        */
-        Ok(call_data)
-    }
-}
-
-fn build_hash_to_curve_hint(message: [u8; 32]) -> HashToCurveHint {
-    let [felt0, felt1] = hash_to_field::<BLS12381PrimeField>(message, 2, "sha256")
-        .try_into()
-        .unwrap();
-    let (pt0, f0_hint) = build_map_to_curve_hint(felt0);
-    let (pt1, f1_hint) = build_map_to_curve_hint(felt1);
-    let sum_pt = pt0.add(&pt1);
-    let _sum_pt = apply_isogeny(sum_pt);
-    let curve_params = BLS12381PrimeField::get_curve_params();
-    let x = BigInt::from(curve_params.x);
-    let n = BigInt::from(curve_params.n);
-    let _cofactor: BigUint = ((BigInt::from(1) - (&x % &n)) % &n).try_into().unwrap();
-
-    /*
-    msm_builder = MSMCalldataBuilder(
-        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
-    )
-    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
-    */
-
-    HashToCurveHint {
-        f0_hint,
-        f1_hint,
-        //scalar_mul_hint=msm_hint,
-        //derive_point_from_x_hint=derive_point_from_x_hint,
-    }
-}
-
-fn build_map_to_curve_hint(
-    u: FieldElement<BLS12381PrimeField>,
-) -> (G1Point<BLS12381PrimeField>, MapToCurveHint) {
-    let curve_params = BLS12381PrimeField::get_curve_params();
-    let swu_params = curve_params.swu_params.unwrap();
-    let a = swu_params.a;
-    let b = swu_params.b;
-    let z = swu_params.z;
-
-    let zeta_u2 = &z * (&u * &u);
-    let ta = (&zeta_u2 * &zeta_u2) + &zeta_u2;
-    let num_x1 = &b * (&ta + FieldElement::<BLS12381PrimeField>::from(1));
-
-    let div = if ta == FieldElement::from(0) {
-        &a * &z
-    } else {
-        &a * -ta
-    };
-
-    let num2_x1 = &num_x1 * &num_x1;
-    let div2 = &div * &div;
-    let div3 = &div2 * &div;
-    assert!(div3 != FieldElement::from(0));
-
-    let num_gx1 = (&num2_x1 + &a * &div2) * &num_x1 + &b * &div3;
-    let num_x2 = &zeta_u2 * &num_x1;
-
-    let gx1 = (&num_gx1 / &div3).unwrap();
-    let gx1_square = false; // TODO gx1.is_quad_residue();
-    let y1 = if gx1_square {
-        let (y1, _) = gx1.sqrt(/*min_root=False*/).unwrap(); // TODO
-        assert!(&y1 * &y1 == gx1);
-        y1
-    } else {
-        let (y1, _) = (&z * &gx1).sqrt(/*min_root=False*/).unwrap(); // TODO
-        assert!(&y1 * &y1 == &z * &gx1);
-        y1
-    };
-
-    let y2 = &zeta_u2 * &u * &y1;
-    let y = if gx1_square { y1.clone() } else { y2 };
-    let y_flag = element_to_biguint(&y) % BigUint::from(2usize)
-        == element_to_biguint(&u) % BigUint::from(2usize);
-
-    let num_x = if gx1_square { num_x1 } else { num_x2 };
-    let x_affine = (&num_x / &div).unwrap();
-    let y_affine = if !y_flag { -y } else { y };
-
-    let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
-    (
-        point_on_curve,
-        MapToCurveHint {
-            gx1_is_square: gx1_square,
-            y1,
-            y_flag,
-        },
-    )
 }
 
 fn apply_isogeny<F>(pt: G1Point<F>) -> G1Point<F>
@@ -527,6 +438,131 @@ where
     }
 }
 
+struct MapToCurveHint {
+    gx1_is_square: bool,
+    y1: FieldElement<BLS12381PrimeField>,
+    y_flag: bool,
+}
+
+impl MapToCurveHint {
+    fn to_calldata(self) -> Vec<BigUint> {
+        let mut call_data = vec![];
+        call_data.push(self.gx1_is_square.into());
+        call_data.extend(field_element_to_u384_limbs(&self.y1).map(BigUint::from));
+        call_data.push(self.y_flag.into());
+        call_data
+    }
+}
+
+struct HashToCurveHint {
+    f0_hint: MapToCurveHint,
+    f1_hint: MapToCurveHint,
+    /*
+    scalar_mul_hint: structs.Struct
+    derive_point_from_x_hint: structs.Struct
+    */
+}
+
+impl HashToCurveHint {
+    fn to_calldata(self) -> Result<Vec<BigUint>, String> {
+        let mut call_data = vec![];
+        call_data.extend(self.f0_hint.to_calldata());
+        call_data.extend(self.f1_hint.to_calldata());
+        /*
+        call_data.extend(self.scalar_mul_hint.serialize_to_calldata());
+        call_data.extend(self.derive_point_from_x_hint.serialize_to_calldata());
+        */
+        Ok(call_data)
+    }
+}
+
+fn build_hash_to_curve_hint(message: [u8; 32]) -> Result<HashToCurveHint, String> {
+    let [felt0, felt1] = hash_to_field::<BLS12381PrimeField>(message, 2, "sha256")?
+        .try_into()
+        .unwrap();
+    let (pt0, f0_hint) = build_map_to_curve_hint(felt0);
+    let (pt1, f1_hint) = build_map_to_curve_hint(felt1);
+    let sum_pt = pt0.add(&pt1);
+    let _sum_pt = apply_isogeny(sum_pt);
+    let curve_params = BLS12381PrimeField::get_curve_params();
+    let x = BigInt::from(curve_params.x);
+    let n = BigInt::from(curve_params.n);
+    let _cofactor: BigUint = ((BigInt::from(1) - (&x % &n)) % &n).try_into().unwrap();
+
+    /*
+    msm_builder = MSMCalldataBuilder(
+        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
+    )
+    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
+    */
+
+    Ok(HashToCurveHint {
+        f0_hint,
+        f1_hint,
+        //scalar_mul_hint=msm_hint,
+        //derive_point_from_x_hint=derive_point_from_x_hint,
+    })
+}
+
+fn build_map_to_curve_hint(
+    u: FieldElement<BLS12381PrimeField>,
+) -> (G1Point<BLS12381PrimeField>, MapToCurveHint) {
+    let curve_params = BLS12381PrimeField::get_curve_params();
+    let swu_params = curve_params.swu_params.unwrap();
+    let a = swu_params.a;
+    let b = swu_params.b;
+    let z = swu_params.z;
+
+    let zeta_u2 = &z * (&u * &u);
+    let ta = (&zeta_u2 * &zeta_u2) + &zeta_u2;
+    let num_x1 = &b * (&ta + FieldElement::<BLS12381PrimeField>::from(1));
+
+    let div = if ta == FieldElement::from(0) {
+        &a * &z
+    } else {
+        &a * -ta
+    };
+
+    let num2_x1 = &num_x1 * &num_x1;
+    let div2 = &div * &div;
+    let div3 = &div2 * &div;
+    assert!(div3 != FieldElement::from(0));
+
+    let num_gx1 = (&num2_x1 + &a * &div2) * &num_x1 + &b * &div3;
+    let num_x2 = &zeta_u2 * &num_x1;
+
+    let gx1 = (&num_gx1 / &div3).unwrap();
+    let gx1_square = is_quad_residue(&gx1);
+    let y1 = if gx1_square {
+        let y1 = max_sqrt(&gx1);
+        assert!(&y1 * &y1 == gx1);
+        y1
+    } else {
+        let y1 = max_sqrt(&(&z * &gx1));
+        assert!(&y1 * &y1 == &z * &gx1);
+        y1
+    };
+
+    let y2 = &zeta_u2 * &u * &y1;
+    let y = if gx1_square { y1.clone() } else { y2 };
+    let y_flag = element_to_biguint(&y) % BigUint::from(2usize)
+        == element_to_biguint(&u) % BigUint::from(2usize);
+
+    let num_x = if gx1_square { num_x1 } else { num_x2 };
+    let x_affine = (&num_x / &div).unwrap();
+    let y_affine = if !y_flag { -y } else { y };
+
+    let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
+    (
+        point_on_curve,
+        MapToCurveHint {
+            gx1_is_square: gx1_square,
+            y1,
+            y_flag,
+        },
+    )
+}
+
 const _BASE_URLS: [&str; 4] = [
     "https://drand.cloudflare.com",
     "https://api.drand.sh",
@@ -537,15 +573,6 @@ const _BASE_URLS: [&str; 4] = [
 pub enum DrandNetwork {
     Default,
     Quicknet,
-}
-
-fn from_hex(hex: &str) -> [u8; 32] {
-    assert!(hex.len() == 64);
-    let mut bytes = [0u8; 32];
-    for i in 0..32 {
-        bytes[i] = u8::from_str_radix(&hex[2 * i..2 * (i + 1)], 16).unwrap();
-    }
-    bytes
 }
 
 pub fn get_chain_hash(network: DrandNetwork) -> [u8; 32] {
@@ -559,24 +586,12 @@ pub fn get_chain_hash(network: DrandNetwork) -> [u8; 32] {
     }
 }
 
-use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField as BLS12381Degree2ExtensionField;
-
-pub struct NetworkInfo {
-    pub public_key: PublicKey,
-    pub period: usize,
-    pub genesis_time: usize,
-    pub hash: [u8; 32],
-    pub group_hash: [u8; 32],
-    pub scheme_id: String,
-    pub beacon_id: DrandNetwork,
-}
-
-pub enum PublicKey {
+pub enum CurvePoint {
     G1Point(G1Point<BLS12381PrimeField>),
     G2Point(G2Point<BLS12381PrimeField, BLS12381Degree2ExtensionField>),
 }
 
-impl PublicKey {
+impl CurvePoint {
     pub fn g1_point(&self) -> Option<&G1Point<BLS12381PrimeField>> {
         match self {
             Self::G1Point(point) => Some(point),
@@ -589,6 +604,16 @@ impl PublicKey {
             _ => None,
         }
     }
+}
+
+pub struct NetworkInfo {
+    pub public_key: CurvePoint,
+    pub period: usize,
+    pub genesis_time: usize,
+    pub hash: [u8; 32],
+    pub group_hash: [u8; 32],
+    pub scheme_id: String,
+    pub beacon_id: DrandNetwork,
 }
 
 pub fn get_chain_info(chain_hash: [u8; 32]) -> Result<NetworkInfo, String> {
@@ -604,7 +629,7 @@ pub fn get_chain_info(chain_hash: [u8; 32]) -> Result<NetworkInfo, String> {
             let x = FieldElement::from_hex_unchecked("68f005eb8e6e4ca0a47c8a77ceaa5309a47978a7c71bc5cce96366b5d7a569937c529eeda66c7293784a9402801af31");
             let y = FieldElement::from_hex_unchecked("26fa5eef143aaa17c53b3c150d96a18051b718531af576803cfb9acf29b8774a8184e63c62da81ddf4d76fb0a65895c");
             NetworkInfo {
-                public_key: PublicKey::G1Point(G1Point::new(x, y, false).unwrap()),
+                public_key: CurvePoint::G1Point(G1Point::new(x, y, false).unwrap()),
                 period: 30,
                 genesis_time: 1595431050,
                 hash: chain_hash,
@@ -625,7 +650,7 @@ pub fn get_chain_info(chain_hash: [u8; 32]) -> Result<NetworkInfo, String> {
                 FieldElement::from_hex_unchecked("1a714f2edb74119a2f2b0d5a7c75ba902d163700a61bc224ededd8e63aef7be1aaf8e93d7a9718b047ccddb3eb5d68b"),
             ];
             NetworkInfo {
-                public_key: PublicKey::G2Point(G2Point::new(x, y).unwrap()),
+                public_key: CurvePoint::G2Point(G2Point::new(x, y).unwrap()),
                 period: 3,
                 genesis_time: 1692803367,
                 hash: chain_hash,
@@ -640,13 +665,25 @@ pub fn get_chain_info(chain_hash: [u8; 32]) -> Result<NetworkInfo, String> {
     Ok(info)
 }
 
-struct RandomnessBeacon {
-    signature_point: G1Point<BLS12381PrimeField>,
+pub struct RandomnessBeacon {
+    pub round_number: usize,
+    //randomness: int
+    pub signature: CurvePoint,
+    //previous_signature: Optional[str] = None
 }
 
-fn get_randomness_signature_point(_chain_hash: [u8; 32], _round_number: u64) -> RandomnessBeacon {
+pub fn get_randomness(_chain_hash: [u8; 32], _round_number: u64) -> RandomnessBeacon {
     // TODO
     todo!()
+}
+
+fn from_hex(hex: &str) -> [u8; 32] {
+    assert!(hex.len() == 64);
+    let mut bytes = [0u8; 32];
+    for i in 0..32 {
+        bytes[i] = u8::from_str_radix(&hex[2 * i..2 * (i + 1)], 16).unwrap();
+    }
+    bytes
 }
 
 #[cfg(test)]

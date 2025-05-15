@@ -131,8 +131,12 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         let curve_params = F::get_curve_params();
-        let a = curve_params.a;
-        let b = curve_params.b;
+        let (a, b) = if self.iso_point {
+            let swu_params = curve_params.swu_params.unwrap();
+            (swu_params.a, swu_params.b)
+        } else {
+            (curve_params.a, curve_params.b)
+        };
         self.y.square() == self.x.clone().square() * self.x.clone() + a * self.x.clone() + b
     }
 
