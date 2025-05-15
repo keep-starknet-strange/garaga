@@ -1,3 +1,4 @@
+use crate::algebra::extf_mul::{from_e2, to_e2};
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
@@ -244,6 +245,19 @@ fn is_quad_residue<F: IsPrimeField>(element: &FieldElement<F>) -> bool {
         true
     } else {
         element.legendre_symbol() == LegendreSymbol::One
+    }
+}
+
+fn min_sqrt<F>(element: &FieldElement<F>) -> FieldElement<F>
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    let (sqrt1, sqrt2) = element.sqrt().unwrap();
+    if element_to_biguint(&sqrt1) < element_to_biguint(&sqrt2) {
+        sqrt1
+    } else {
+        sqrt2
     }
 }
 
@@ -602,6 +616,97 @@ impl CurvePoint {
             Self::G2Point(point) => Some(point),
             _ => None,
         }
+    }
+}
+
+pub fn deserialize_bls_point(s_string: &[u8]) -> Result<CurvePoint, String> {
+    let m_byte = s_string[0] & 0xE0;
+    if [0x20, 0x60, 0xE0].contains(&m_byte) {
+        return Err("Invalid encoding".to_string());
+    }
+
+    let c_bit = (m_byte & 0x80) >> 7; // Compression bit
+    let i_bit = (m_byte & 0x40) >> 6; // Infinity bit
+    let s_bit = (m_byte & 0x20) >> 5; // Sign bit
+
+    let mut s_string = s_string.to_vec();
+    s_string[0] &= 0x1F;
+
+    if i_bit == 1 {
+        if !s_string.iter().all(|&b| b == 0) {
+            return Err("Invalid encoding for point at infinity".to_string());
+        }
+        let point = if [48, 96].contains(&s_string.len()) {
+            CurvePoint::G1Point(G1Point::new_infinity())
+        } else {
+            CurvePoint::G2Point(G2Point::new_infinity())
+        };
+        return Ok(point);
+    }
+
+    if c_bit == 0 {
+        if s_string.len() == 96 {
+            // G1 point (uncompressed)
+            let x = element_from_bytes_be(&s_string[..48]);
+            let y = element_from_bytes_be(&s_string[48..]);
+            return Ok(CurvePoint::G1Point(G1Point::new(x, y, false)?));
+        }
+        if s_string.len() == 192 {
+            // G2 point (uncompressed)
+            let x0 = element_from_bytes_be(&s_string[..48]);
+            let x1 = element_from_bytes_be(&s_string[48..96]);
+            let y0 = element_from_bytes_be(&s_string[96..144]);
+            let y1 = element_from_bytes_be(&s_string[144..]);
+            return Ok(CurvePoint::G2Point(G2Point::new([x0, x1], [y0, y1])?));
+        }
+        return Err(format!(
+            "Invalid length for uncompressed point: {}",
+            s_string.len()
+        ));
+    } else {
+        // C_bit == 1
+        if s_string.len() == 48 {
+            // G1 point (compressed)
+            let x = element_from_bytes_be(&s_string);
+            let y2 = &x * &x * &x + FieldElement::from(4);
+            let y = if s_bit == 1 {
+                max_sqrt(&y2)
+            } else {
+                min_sqrt(&y2)
+            };
+            return Ok(CurvePoint::G1Point(G1Point::new(x, y, false)?));
+        }
+        if s_string.len() == 96 {
+            // G2 point (compressed)
+            let x0 = element_from_bytes_be(&s_string[..48]);
+            let x1 = element_from_bytes_be(&s_string[48..]);
+            let x = to_e2::<BLS12381PrimeField, BLS12381Degree2ExtensionField>([x0, x1]);
+            let y2 = &x * &x * &x
+                + to_e2::<BLS12381PrimeField, BLS12381Degree2ExtensionField>([
+                    FieldElement::from(4),
+                    FieldElement::from(4),
+                ]);
+            let y = if s_bit == 1 {
+                if true {
+                    todo!()
+                } else {
+                    /*max_sqrt(&*/
+                    y2 /*)*/
+                } // TODO
+            } else {
+                if true {
+                    todo!()
+                } else {
+                    /*min_sqrt(&*/
+                    y2 /*)*/
+                } // TODO
+            };
+            return Ok(CurvePoint::G2Point(G2Point::new(from_e2(x), from_e2(y))?));
+        }
+        return Err(format!(
+            "Invalid length for compressed point: {}",
+            s_string.len()
+        ));
     }
 }
 

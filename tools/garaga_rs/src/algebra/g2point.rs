@@ -90,4 +90,9 @@ where
     pub fn compute_adding_slope(a: &Self, b: &Self) -> FieldElement<E2> {
         ((&a.y - &b.y) / (&a.x - &b.x)).unwrap()
     }
+
+    pub fn new_infinity() -> Self {
+        let zero = to_e2([FieldElement::zero(), FieldElement::zero()]);
+        G2Point::new_unchecked(zero.clone(), zero)
+    }
 }

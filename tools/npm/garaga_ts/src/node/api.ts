@@ -1,6 +1,7 @@
 // This files provides a ts-like interface for garaga_rs
 
 import {
+  drand_calldata_builder,
   msm_calldata_builder,
   mpc_calldata_builder,
   schnorr_calldata_builder,
@@ -94,6 +95,10 @@ export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, v
   return get_zk_honk_calldata(proof, publicInputs, verifyingKey, flavor);
 }
 
+export function getDrandCallData(roundNumber: number): bigint[] {
+
+  return drand_calldata_builder([roundNumber, randomness, ]),
+}
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
   try {
