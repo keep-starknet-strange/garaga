@@ -97,10 +97,10 @@ export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, v
 
 export function getDrandCallData(roundNumber: number): bigint[] {
   // TODO
-  let randomness = 0n;
-  let signature_x = 0n;
-  let signature_y = 0n;
-  return drand_calldata_builder([roundNumber, randomness, signature_x, sirnagure_y]);
+  const randomness = 0n;
+  const signature_x = 0n;
+  const signature_y = 0n;
+  return drand_calldata_builder([roundNumber, randomness, signature_x, signature_y]);
 }
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
