@@ -100,7 +100,7 @@ export function getDrandCallData(roundNumber: number): bigint[] {
   let randomness = 0n;
   let signature_x = 0n;
   let signature_y = 0n;
-  return drand_calldata_builder([roundNumber, randomness, signature_x, sirnagure_y]),
+  return drand_calldata_builder([roundNumber, randomness, signature_x, sirnagure_y]);
 }
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
