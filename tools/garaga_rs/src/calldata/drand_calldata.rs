@@ -17,16 +17,45 @@ use num_bigint::{BigInt, BigUint};
 use num_traits::Num;
 use sha2::{Digest, Sha256};
 
-pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, String> {
-    let round_number = round_number.try_into().map_err(|err| format!("{}", err))?;
+pub fn drand_calldata_builder(values: &[BigUint]) -> Result<Vec<BigUint>, String> {
+    if values.len() != 4 {
+        return Err(format!("Invalid data array length: {}", values.len()));
+    }
+    let round_number: usize = (&values[0])
+        .try_into()
+        .map_err(|e| format!("Invalid round number: {}", e))?;
+    let randomness = {
+        let bytes = values[1].to_bytes_be();
+        if bytes.len() > 32 {
+            return Err(format!("Invalid randomness array length: {}", bytes.len()));
+        }
+        let mut padded_bytes = [0; 32];
+        let len = bytes.len();
+        padded_bytes[32 - len..].copy_from_slice(&bytes);
+        padded_bytes
+    };
+    let x = element_from_biguint(&values[2]);
+    let y = element_from_biguint(&values[3]);
+    let signature = CurvePoint::G1Point(
+        G1Point::new(x, y, false).map_err(|e| format!("Invalid signature: {}", e))?,
+    );
+    let round = RandomnessBeacon {
+        round_number,
+        randomness,
+        signature,
+        previous_signature: None,
+    };
+    drand_randomness_to_calldata(round)
+}
+
+pub fn drand_randomness_to_calldata(round: RandomnessBeacon) -> Result<Vec<BigUint>, String> {
+    let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
+
+    let round_number = round.round_number.try_into().unwrap();
 
     let message = digest_func(round_number);
 
     let msg_point = hash_to_curve(message, "sha256")?;
-
-    let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
-
-    let round = get_randomness(chain.hash, round_number);
 
     let sig_pt = round.signature.g1_point().unwrap().clone();
 
@@ -55,6 +84,12 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
     call_data.extend(mpc_data);
     assert!(call_data.len() == 1 + size);
     Ok(call_data)
+}
+
+pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, String> {
+    let round_number = round_number.try_into().map_err(|err| format!("{}", err))?;
+    let round = get_randomness(get_chain_hash(DrandNetwork::Quicknet), round_number);
+    drand_randomness_to_calldata(round)
 }
 
 fn digest_func(round_number: u64) -> [u8; 32] {
@@ -438,10 +473,10 @@ where
     }
 }
 
-struct MapToCurveHint {
-    gx1_is_square: bool,
-    y1: FieldElement<BLS12381PrimeField>,
-    y_flag: bool,
+pub struct MapToCurveHint {
+    pub gx1_is_square: bool,
+    pub y1: FieldElement<BLS12381PrimeField>,
+    pub y_flag: bool,
 }
 
 impl MapToCurveHint {
@@ -454,13 +489,9 @@ impl MapToCurveHint {
     }
 }
 
-struct HashToCurveHint {
-    f0_hint: MapToCurveHint,
-    f1_hint: MapToCurveHint,
-    /*
-    scalar_mul_hint: structs.Struct
-    derive_point_from_x_hint: structs.Struct
-    */
+pub struct HashToCurveHint {
+    pub f0_hint: MapToCurveHint,
+    pub f1_hint: MapToCurveHint,
 }
 
 impl HashToCurveHint {
@@ -468,10 +499,6 @@ impl HashToCurveHint {
         let mut call_data = vec![];
         call_data.extend(self.f0_hint.to_calldata());
         call_data.extend(self.f1_hint.to_calldata());
-        /*
-        call_data.extend(self.scalar_mul_hint.serialize_to_calldata());
-        call_data.extend(self.derive_point_from_x_hint.serialize_to_calldata());
-        */
         Ok(call_data)
     }
 }
@@ -480,33 +507,12 @@ fn build_hash_to_curve_hint(message: [u8; 32]) -> Result<HashToCurveHint, String
     let [felt0, felt1] = hash_to_field::<BLS12381PrimeField>(message, 2, "sha256")?
         .try_into()
         .unwrap();
-    let (pt0, f0_hint) = build_map_to_curve_hint(felt0);
-    let (pt1, f1_hint) = build_map_to_curve_hint(felt1);
-    let sum_pt = pt0.add(&pt1);
-    let _sum_pt = apply_isogeny(sum_pt);
-    let curve_params = BLS12381PrimeField::get_curve_params();
-    let x = BigInt::from(curve_params.x);
-    let n = BigInt::from(curve_params.n);
-    let _cofactor: BigUint = ((BigInt::from(1) - (&x % &n)) % &n).try_into().unwrap();
-
-    /*
-    msm_builder = MSMCalldataBuilder(
-        curve_id=CurveID.BLS12_381, points=[sum_pt], scalars=[cofactor], risc0_mode=True
-    )
-    msm_hint, derive_point_from_x_hint = msm_builder.build_msm_hints()
-    */
-
-    Ok(HashToCurveHint {
-        f0_hint,
-        f1_hint,
-        //scalar_mul_hint=msm_hint,
-        //derive_point_from_x_hint=derive_point_from_x_hint,
-    })
+    let f0_hint = build_map_to_curve_hint(felt0);
+    let f1_hint = build_map_to_curve_hint(felt1);
+    Ok(HashToCurveHint { f0_hint, f1_hint })
 }
 
-fn build_map_to_curve_hint(
-    u: FieldElement<BLS12381PrimeField>,
-) -> (G1Point<BLS12381PrimeField>, MapToCurveHint) {
+fn build_map_to_curve_hint(u: FieldElement<BLS12381PrimeField>) -> MapToCurveHint {
     let curve_params = BLS12381PrimeField::get_curve_params();
     let swu_params = curve_params.swu_params.unwrap();
     let a = swu_params.a;
@@ -529,7 +535,6 @@ fn build_map_to_curve_hint(
     assert!(div3 != FieldElement::from(0));
 
     let num_gx1 = (&num2_x1 + &a * &div2) * &num_x1 + &b * &div3;
-    let num_x2 = &zeta_u2 * &num_x1;
 
     let gx1 = (&num_gx1 / &div3).unwrap();
     let gx1_square = is_quad_residue(&gx1);
@@ -548,19 +553,11 @@ fn build_map_to_curve_hint(
     let y_flag = element_to_biguint(&y) % BigUint::from(2usize)
         == element_to_biguint(&u) % BigUint::from(2usize);
 
-    let num_x = if gx1_square { num_x1 } else { num_x2 };
-    let x_affine = (&num_x / &div).unwrap();
-    let y_affine = if !y_flag { -y } else { y };
-
-    let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
-    (
-        point_on_curve,
-        MapToCurveHint {
-            gx1_is_square: gx1_square,
-            y1,
-            y_flag,
-        },
-    )
+    MapToCurveHint {
+        gx1_is_square: gx1_square,
+        y1,
+        y_flag,
+    }
 }
 
 pub fn get_base_urls() -> Vec<&'static str> {
@@ -674,7 +671,16 @@ pub struct RandomnessBeacon {
     pub previous_signature: Option<CurvePoint>,
 }
 
-pub fn get_randomness(chain_hash: [u8; 32], round_number: u64) -> RandomnessBeacon {
+fn from_hex(hex: &str) -> [u8; 32] {
+    assert!(hex.len() == 64);
+    let mut bytes = [0u8; 32];
+    for i in 0..32 {
+        bytes[i] = u8::from_str_radix(&hex[2 * i..2 * (i + 1)], 16).unwrap();
+    }
+    bytes
+}
+
+fn get_randomness(chain_hash: [u8; 32], round_number: u64) -> RandomnessBeacon {
     /* hardcoded for testing */
     if chain_hash == get_chain_hash(DrandNetwork::Quicknet) {
         match round_number {
@@ -720,21 +726,22 @@ pub fn get_randomness(chain_hash: [u8; 32], round_number: u64) -> RandomnessBeac
     unimplemented!("Not to be used in production");
 }
 
-fn from_hex(hex: &str) -> [u8; 32] {
-    assert!(hex.len() == 64);
-    let mut bytes = [0u8; 32];
-    for i in 0..32 {
-        bytes[i] = u8::from_str_radix(&hex[2 * i..2 * (i + 1)], 16).unwrap();
-    }
-    bytes
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn test_drand_round_to_calldata_1() {
-        let _ = drand_round_to_calldata(1);
+        let _ = drand_round_to_calldata(1).unwrap();
+    }
+
+    #[test]
+    fn test_drand_round_to_calldata_2() {
+        let _ = drand_round_to_calldata(2).unwrap();
+    }
+
+    #[test]
+    fn test_drand_round_to_calldata_3() {
+        let _ = drand_round_to_calldata(3).unwrap();
     }
 }
