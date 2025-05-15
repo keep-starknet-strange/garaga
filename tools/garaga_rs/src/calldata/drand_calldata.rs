@@ -563,12 +563,14 @@ fn build_map_to_curve_hint(
     )
 }
 
-const _BASE_URLS: [&str; 4] = [
-    "https://drand.cloudflare.com",
-    "https://api.drand.sh",
-    "https://api2.drand.sh",
-    "https://api3.drand.sh",
-];
+pub fn get_base_urls() -> Vec<&'static str> {
+    vec![
+        "https://drand.cloudflare.com",
+        "https://api.drand.sh",
+        "https://api2.drand.sh",
+        "https://api3.drand.sh",
+    ]
+}
 
 pub enum DrandNetwork {
     Default,
@@ -667,14 +669,55 @@ pub fn get_chain_info(chain_hash: [u8; 32]) -> Result<NetworkInfo, String> {
 
 pub struct RandomnessBeacon {
     pub round_number: usize,
-    //randomness: int
+    pub randomness: [u8; 32],
     pub signature: CurvePoint,
-    //previous_signature: Optional[str] = None
+    pub previous_signature: Option<CurvePoint>,
 }
 
-pub fn get_randomness(_chain_hash: [u8; 32], _round_number: u64) -> RandomnessBeacon {
-    // TODO
-    todo!()
+pub fn get_randomness(chain_hash: [u8; 32], round_number: u64) -> RandomnessBeacon {
+    /* hardcoded for testing */
+    if chain_hash == get_chain_hash(DrandNetwork::Quicknet) {
+        match round_number {
+            1 => {
+                let x = FieldElement::from_hex_unchecked("155e7cb2d5c613ee0b2e28d6750aabbb78c39dcc96bd9d38c2c2e12198df95571de8e8e402a0cc48871c7089a2b3af4b");
+                let y = FieldElement::from_hex_unchecked("0fbb74ee8788264320f2501b0fa0dd56363bcec5ce4b113b2bf1de6e331116c79191af99234824f03aeb10ab1c4c7771");
+                return RandomnessBeacon {
+                    round_number: round_number.try_into().unwrap(),
+                    randomness: from_hex(
+                        "1466a6cd24e327188770752f6134001c64d6efcc590ccc26b721611ad96f165a",
+                    ),
+                    signature: CurvePoint::G1Point(G1Point::new(x, y, false).unwrap()),
+                    previous_signature: None,
+                };
+            }
+            2 => {
+                let x = FieldElement::from_hex_unchecked("16b6a585449b66eb12e875b64fcbab3799861a00e4dbf092d99e969a5eac57dd3f798acf61e705fe4f093db926626807");
+                let y = FieldElement::from_hex_unchecked("15ff2dfd0adad43e0219d11f00f14d4e14cb0d8292bd2c0a8ec634c1b402c2a067fc5d9c53aa2aa0aab8214ca1fce58c");
+                return RandomnessBeacon {
+                    round_number: round_number.try_into().unwrap(),
+                    randomness: from_hex(
+                        "5782d6987841c654515a0e72b2d1ebb4e741234042c37cb19608ae50d93fb60c",
+                    ),
+                    signature: CurvePoint::G1Point(G1Point::new(x, y, false).unwrap()),
+                    previous_signature: None,
+                };
+            }
+            3 => {
+                let x = FieldElement::from_hex_unchecked("13fab6df720b68cc47175f2c777e86d84187caab5770906f515ff1099cb01e4deaa027075d860823e49477b93c72bd64");
+                let y = FieldElement::from_hex_unchecked("18a83e0a35ee138a879bebc1ac56ab46832bf67deaa63061fb98c8d35333557003c4cde8c2b5320ce2be2073a12b6112");
+                return RandomnessBeacon {
+                    round_number: round_number.try_into().unwrap(),
+                    randomness: from_hex(
+                        "7ef4621ace1c6da4eb2eee7cd901f81385bca5b189771ec0f08d0d2566dd1a21",
+                    ),
+                    signature: CurvePoint::G1Point(G1Point::new(x, y, false).unwrap()),
+                    previous_signature: None,
+                };
+            }
+            _ => (),
+        }
+    }
+    unimplemented!("Not to be used in production");
 }
 
 fn from_hex(hex: &str) -> [u8; 32] {
