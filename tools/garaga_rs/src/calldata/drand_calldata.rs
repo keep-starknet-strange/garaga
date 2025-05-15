@@ -34,7 +34,7 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
 
     let pairs = [
         G1G2Pair::new(sig_pt.clone(), G2Point::generator()),
-        G1G2Pair::new(msg_point, chain.public_key.g2_point().unwrap().clone()),
+        G1G2Pair::new(msg_point, chain.public_key.g2_point().unwrap().neg()),
     ];
     let mpc_data = {
         mpc_calldata::calldata_builder::<

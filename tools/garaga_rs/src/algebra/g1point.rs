@@ -1,6 +1,7 @@
 use crate::definitions::{CurveParamsProvider, FieldElement};
 use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::{BigInt, BigUint, Sign};
+
 #[derive(Debug, Clone)]
 pub struct G1Point<F: IsPrimeField> {
     pub x: FieldElement<F>,
@@ -37,6 +38,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     }
 
     pub fn add(&self, other: &G1Point<F>) -> G1Point<F> {
+        assert!(self.iso_point == other.iso_point);
         if self.is_infinity() {
             return other.clone();
         }
@@ -53,7 +55,13 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         let lambda = if self.eq(other) {
-            let alpha = F::get_curve_params().a;
+            let curve_params = F::get_curve_params();
+            let alpha = if self.iso_point {
+                let swu_params = curve_params.swu_params.unwrap();
+                swu_params.a
+            } else {
+                curve_params.a
+            };
             let numerator = FieldElement::<F>::from(3_u64) * &self.x.square() + alpha;
             let denominator = FieldElement::<F>::from(2_u64) * &self.y;
             numerator / denominator
@@ -147,6 +155,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             self.y.representative().to_string()
         );
     }
+
     pub fn generator() -> Self {
         let curve_params = F::get_curve_params();
         let generator_x = curve_params.g_x;
@@ -163,6 +172,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
         result
     }
+
     pub fn new_infinity() -> Self {
         G1Point::new_unchecked(FieldElement::<F>::zero(), FieldElement::<F>::zero(), false)
     }
