@@ -12,7 +12,7 @@ describe('Drand Getting calldata', () => {
 
         const drandCalldata = await garaga.fetchAndGetDrandCallData(roundNumber as number | 'latest');
 
-        console.log("honkCalldata", drandCalldata);
+        console.log("drandCalldata", drandCalldata);
 
     });
 
