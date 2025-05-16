@@ -56,14 +56,11 @@ def _drand_round_to_calldata_rust(
     chain = get_chain_info(DrandNetwork.quicknet.value)
     round = get_randomness(chain.hash, round_number)
     randomness = round.randomness
-    assert isinstance(randomness, int)
-    signature = round.signature_point
-    assert isinstance(signature, G1Point)
+    signature = int(round.signature, 16)
     data = [
         round_number,
         randomness,
-        signature.x,
-        signature.y,
+        signature,
     ]
     return garaga_rs.drand_calldata_builder(data)
 

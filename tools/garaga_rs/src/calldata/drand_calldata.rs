@@ -1,4 +1,3 @@
-use crate::algebra::extf_mul::{from_e2, to_e2};
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
@@ -19,7 +18,7 @@ use num_traits::Num;
 use sha2::{Digest, Sha256};
 
 pub fn drand_calldata_builder(values: &[BigUint]) -> Result<Vec<BigUint>, String> {
-    if values.len() != 4 {
+    if values.len() != 3 {
         return Err(format!("Invalid data array length: {}", values.len()));
     }
     let round_number: usize = (&values[0])
@@ -35,11 +34,17 @@ pub fn drand_calldata_builder(values: &[BigUint]) -> Result<Vec<BigUint>, String
         padded_bytes[32 - len..].copy_from_slice(&bytes);
         padded_bytes
     };
-    let x = element_from_biguint(&values[2]);
-    let y = element_from_biguint(&values[3]);
-    let signature = CurvePoint::G1Point(
-        G1Point::new(x, y, false).map_err(|e| format!("Invalid signature: {}", e))?,
-    );
+    let signature = {
+        let bytes = values[2].to_bytes_be();
+        // Only supports G1 compressed points as per Quicknet
+        if bytes.len() > 48 {
+            return Err(format!("Invalid signature array length: {}", bytes.len()));
+        }
+        let mut padded_bytes = [0; 48];
+        let len = bytes.len();
+        padded_bytes[48 - len..].copy_from_slice(&bytes);
+        deserialize_bls_point(&padded_bytes)?
+    };
     let round = RandomnessBeacon {
         round_number,
         randomness,
@@ -678,30 +683,7 @@ pub fn deserialize_bls_point(s_string: &[u8]) -> Result<CurvePoint, String> {
         }
         if s_string.len() == 96 {
             // G2 point (compressed)
-            let x0 = element_from_bytes_be(&s_string[..48]);
-            let x1 = element_from_bytes_be(&s_string[48..]);
-            let x = to_e2::<BLS12381PrimeField, BLS12381Degree2ExtensionField>([x0, x1]);
-            let y2 = &x * &x * &x
-                + to_e2::<BLS12381PrimeField, BLS12381Degree2ExtensionField>([
-                    FieldElement::from(4),
-                    FieldElement::from(4),
-                ]);
-            let y = if s_bit == 1 {
-                if true {
-                    todo!()
-                } else {
-                    /*max_sqrt(&*/
-                    y2 /*)*/
-                } // TODO
-            } else {
-                if true {
-                    todo!()
-                } else {
-                    /*min_sqrt(&*/
-                    y2 /*)*/
-                } // TODO
-            };
-            return Ok(CurvePoint::G2Point(G2Point::new(from_e2(x), from_e2(y))?));
+            unimplemented!("Decoding of compressed G2 points not yet supported");
         }
         return Err(format!(
             "Invalid length for compressed point: {}",
