@@ -185,7 +185,6 @@ where
         == element_to_biguint(&u) % BigUint::from(2usize);
     let y_affine = if !y_flag { -y.clone() } else { y.clone() };
 
-
     G1Point::new(x_affine, y_affine, true).unwrap()
 }
 
