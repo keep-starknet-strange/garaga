@@ -1,10 +1,12 @@
+use garaga::utils::drand::DrandResult;
 use super::drand_verifier_constants::{G2_GEN, precomputed_lines};
+
 
 #[starknet::interface]
 trait IDrandQuicknet<TContractState> {
     fn verify_round_and_get_randomness(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> Option<felt252>;
+    ) -> Option<DrandResult>;
 }
 
 #[starknet::contract]
@@ -14,15 +16,18 @@ mod DrandQuicknet {
     use garaga::pairing_check::{MPCheckHintBLS12_381, multi_pairing_check_bls12_381_2P_2F};
     use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
     use garaga::utils::drand::{
-        DRAND_QUICKNET_PUBLIC_KEY, HashToCurveHint, round_to_curve_bls12_381,
+        DRAND_QUICKNET_GENESIS_TIME, DRAND_QUICKNET_PERIOD, DRAND_QUICKNET_PUBLIC_KEY, DrandResult,
+        HashToCurveHint, round_to_curve_bls12_381, CipherText,
     };
     use garaga::utils::hashing::hash_G1Point;
+    use starknet::storage::Map;
     use super::{G2_GEN, precomputed_lines};
-
     // use starknet::ContractAddress;
 
     #[storage]
-    struct Storage {}
+    struct Storage {
+        randomness: Map<u64, felt252>,
+    }
 
     #[derive(Drop)]
     struct DrandHint {
@@ -52,9 +57,10 @@ mod DrandQuicknet {
     }
     #[abi(embed_v0)]
     impl IDrandQuicknet of super::IDrandQuicknet<ContractState> {
+        // Returns the round number and the randomness if the proof for a given round is valid.
         fn verify_round_and_get_randomness(
             self: @ContractState, mut full_proof_with_hints: Span<felt252>,
-        ) -> Option<felt252> {
+        ) -> Option<DrandResult> {
             let drand_hint: DrandHint = Serde::deserialize(ref full_proof_with_hints).unwrap();
             let message = round_to_curve_bls12_381(
                 drand_hint.round_number, drand_hint.hash_to_curve_hint,
@@ -68,7 +74,12 @@ mod DrandQuicknet {
             );
 
             match check {
-                true => Option::Some(hash_G1Point(drand_hint.signature)),
+                true => Option::Some(
+                    DrandResult {
+                        round_number: drand_hint.round_number,
+                        randomness: hash_G1Point(drand_hint.signature),
+                    },
+                ),
                 false => Option::None,
             }
         }
