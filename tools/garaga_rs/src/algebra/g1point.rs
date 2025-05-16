@@ -164,7 +164,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
     }
 
     pub fn msm(points: &[Self], scalars: &[BigUint]) -> Self {
-        assert!(points.len() > 0);
+        assert!(!points.is_empty());
         assert_eq!(points.len(), scalars.len());
         let mut result = points[0].scalar_mul(scalars[0].clone().into());
         for i in 1..points.len() {

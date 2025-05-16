@@ -101,7 +101,7 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
 fn digest_func(round_number: u64) -> [u8; 32] {
     let bytes = round_number.to_be_bytes();
     let digest = Sha256::digest(bytes);
-    digest.try_into().unwrap()
+    digest.into()
 }
 
 fn hash_to_curve<F>(message: [u8; 32], hash_name: &str) -> Result<G1Point<F>, String>
@@ -122,7 +122,7 @@ where
     let cofactor = match curve_params.curve_id {
         CurveID::BLS12_381 => {
             let x = BigInt::from(curve_params.x);
-            let n: BigInt = curve_params.n.try_into().unwrap();
+            let n: BigInt = curve_params.n.into();
             (BigInt::from(1) - (&x % &n)) % &n
         }
         _ => BigInt::from(curve_params.h),
@@ -185,8 +185,8 @@ where
         == element_to_biguint(&u) % BigUint::from(2usize);
     let y_affine = if !y_flag { -y.clone() } else { y.clone() };
 
-    let point_on_curve = G1Point::new(x_affine, y_affine, true).unwrap();
-    point_on_curve
+
+    G1Point::new(x_affine, y_affine, true).unwrap()
 }
 
 fn hash_to_field<F>(
@@ -235,14 +235,11 @@ fn get_len_per_elem<F>(sec_param: Option<usize>) -> usize
 where
     F: IsPrimeField,
 {
-    let sec_param = match sec_param {
-        Option::None => 128,
-        Option::Some(sec_param) => sec_param,
-    };
+    let sec_param = sec_param.unwrap_or(128);
     let base_field_size_in_bits = F::field_bit_size();
     let base_field_size_with_security_padding_in_bits = base_field_size_in_bits + sec_param;
-    let bytes_per_base_field_elem = (base_field_size_with_security_padding_in_bits + 7) / 8;
-    bytes_per_base_field_elem
+
+    base_field_size_with_security_padding_in_bits.div_ceil(8)
 }
 
 fn is_quad_residue<F: IsPrimeField>(element: &FieldElement<F>) -> bool {
@@ -345,7 +342,7 @@ impl<H: Hasher> ExpanderXmd<H> {
         let mut uniform_bytes = vec![];
 
         let b_len = self.hasher.digest_size();
-        let ell = (TryInto::<usize>::try_into(n).unwrap() + (b_len - 1)) / b_len;
+        let ell = Into::<usize>::into(n).div_ceil(b_len);
         assert!(
             ell <= 255,
             "The ratio of desired output to the output size of hash function is too large!"
@@ -387,7 +384,7 @@ impl<H: Hasher> ExpanderXmd<H> {
             bi = hasher.digest();
             uniform_bytes.extend_from_slice(&bi);
         }
-        uniform_bytes[0..n.try_into().unwrap()].to_vec()
+        uniform_bytes[0..n.into()].to_vec()
     }
 }
 
@@ -664,10 +661,10 @@ pub fn deserialize_bls_point(s_string: &[u8]) -> Result<CurvePoint, String> {
             let y1 = element_from_bytes_be(&s_string[144..]);
             return Ok(CurvePoint::G2Point(G2Point::new([x0, x1], [y0, y1])?));
         }
-        return Err(format!(
+        Err(format!(
             "Invalid length for uncompressed point: {}",
             s_string.len()
-        ));
+        ))
     } else {
         // C_bit == 1
         if s_string.len() == 48 {
@@ -685,10 +682,10 @@ pub fn deserialize_bls_point(s_string: &[u8]) -> Result<CurvePoint, String> {
             // G2 point (compressed)
             unimplemented!("Decoding of compressed G2 points not yet supported");
         }
-        return Err(format!(
+        Err(format!(
             "Invalid length for compressed point: {}",
             s_string.len()
-        ));
+        ))
     }
 }
 

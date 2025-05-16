@@ -67,7 +67,7 @@ where
     F: IsPrimeField,
     FieldElement<F>: ByteConversion,
 {
-    let length = (F::field_bit_size() + 7) / 8;
+    let length = F::field_bit_size().div_ceil(8);
     if bytes.len() > length {
         let x = BigUint::from_bytes_be(bytes);
         let p = biguint_from_hex(&F::modulus_minus_one().to_string()) + 1usize;

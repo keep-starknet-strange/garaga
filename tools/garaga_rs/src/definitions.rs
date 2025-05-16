@@ -120,7 +120,7 @@ where
         use rand::Rng;
         let mut rng = rand::rng();
         let bits = F::field_bit_size();
-        let bytes = (bits + 7) / 8; // Round up to nearest byte
+        let bytes = bits.div_ceil(8); // Round up to nearest byte
 
         let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
         let random_num = BigUint::from_bytes_be(&random_bytes);
