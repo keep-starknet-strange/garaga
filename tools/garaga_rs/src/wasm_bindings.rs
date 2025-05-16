@@ -17,6 +17,21 @@ use num_traits::Num;
 use wasm_bindgen::prelude::*; // Import the Num trait
 
 #[wasm_bindgen]
+pub fn drand_calldata_builder(values: Vec<JsValue>) -> Result<Vec<JsValue>, JsValue> {
+    let values: Vec<BigUint> = values
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let result = crate::calldata::drand_calldata::drand_calldata_builder(&values)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
 pub fn msm_calldata_builder(
     values: Vec<JsValue>,
     scalars: Vec<JsValue>,
