@@ -4,13 +4,13 @@ describe('Drand Getting calldata', () => {
 
     const roundNumbers = [1, 2, 3, 'latest'];
 
-    test.each(roundNumbers)("should get honk calldata from proof %s, public inputs %s, vk %s and pub inputs %s", async (roundNumber) => {
+    test.each(roundNumbers)("should get Drand calldata for round %s", async (roundNumber) => {
 
         await garaga.init();
 
         console.log("roundNumber", roundNumber);
 
-        const drandCalldata = await garaga.fetchAndGetDrandCallData(roundNumber);
+        const drandCalldata = await garaga.fetchAndGetDrandCallData(roundNumber as number | 'latest');
 
         console.log("honkCalldata", drandCalldata);
 
