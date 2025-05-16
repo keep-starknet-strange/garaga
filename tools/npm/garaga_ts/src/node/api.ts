@@ -1,6 +1,7 @@
 // This files provides a ts-like interface for garaga_rs
 
 import {
+  drand_calldata_builder,
   msm_calldata_builder,
   mpc_calldata_builder,
   schnorr_calldata_builder,
@@ -94,6 +95,50 @@ export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, v
   return get_zk_honk_calldata(proof, publicInputs, verifyingKey, flavor);
 }
 
+const DRAND_BASE_URLS = [
+  'https://drand.cloudflare.com',
+  'https://api.drand.sh',
+  'https://api2.drand.sh',
+  'https://api3.drand.sh',
+];
+
+const DRAND_QUICKNET_HASH = '52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971';
+
+type DrandRandomnessBeacon = {
+  round: number;
+  randomness: bigint;
+  signature: bigint;
+};
+
+export async function fetchAndGetDrandCallData(roundNumber: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<bigint[]> {
+  return getDrandCallData(await fetchDrandRandomness(roundNumber, chainHash, baseUrls));
+}
+
+export function getDrandCallData({ round, randomness, signature }: DrandRandomnessBeacon): bigint[] {
+  return drand_calldata_builder([round, randomness, signature]);
+}
+
+export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<DrandRandomnessBeacon> {
+  if (baseUrls.length == 0) {
+    throw new Error('No base url provided');
+  }
+  const endpoint = '/' + chainHash + '/public/' + roundNumber;
+  const promises = baseUrls.map((baseUrl) => fetch(baseUrl + endpoint));
+  let response;
+  try {
+    response = await Promise.any(promises);
+  } catch (e) {
+    throw new Error('All urls failed: ' + e);
+  }
+  const data = await response?.json();
+  if (!data || !data.round || !data.randomness || !data.signature) {
+    throw new Error('Unexpected response: ' + JSON.stringify(data));
+  }
+  const round = Number(data.round);
+  const randomness = BigInt('0x' + data.randomness.replace(/^0x/i, ''));
+  const signature = BigInt('0x' + data.signature.replace(/^0x/i, ''));
+  return { round, randomness, signature };
+}
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
   try {
