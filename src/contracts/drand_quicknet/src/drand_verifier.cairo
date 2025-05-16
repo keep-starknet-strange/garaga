@@ -16,8 +16,8 @@ mod DrandQuicknet {
     use garaga::pairing_check::{MPCheckHintBLS12_381, multi_pairing_check_bls12_381_2P_2F};
     use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
     use garaga::utils::drand::{
-        DRAND_QUICKNET_GENESIS_TIME, DRAND_QUICKNET_PERIOD, DRAND_QUICKNET_PUBLIC_KEY, DrandResult,
-        HashToCurveHint, round_to_curve_bls12_381, CipherText,
+        CipherText, DRAND_QUICKNET_GENESIS_TIME, DRAND_QUICKNET_PERIOD, DRAND_QUICKNET_PUBLIC_KEY,
+        DrandResult, HashToCurveHint, round_to_curve_bls12_381,
     };
     use garaga::utils::hashing::hash_G1Point;
     use starknet::storage::Map;
