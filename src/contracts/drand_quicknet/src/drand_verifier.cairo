@@ -68,7 +68,7 @@ mod DrandQuicknet {
             );
 
             match check {
-                true => Option::Some(hash_G1Point(message)),
+                true => Option::Some(hash_G1Point(drand_hint.signature)),
                 false => Option::None,
             }
         }
