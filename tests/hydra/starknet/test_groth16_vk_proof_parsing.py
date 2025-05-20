@@ -20,6 +20,7 @@ PATH = "hydra/garaga/starknet/groth16_contract_generator/examples"
         f"{PATH}/vk_bls.json",
         f"{PATH}/gnark_vk_bn254.json",
         f"{PATH}/vk_risc0.json",
+        f"{PATH}/vk_sp1_4_0_0.json",
     ],
 )
 def test_vk_parsing(vk_path: str):
