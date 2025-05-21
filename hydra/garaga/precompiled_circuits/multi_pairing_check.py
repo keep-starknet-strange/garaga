@@ -506,7 +506,9 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
         if m is not None and len(m) == 12:
             f = self.extf_mul([f, m], 12, r_sparsity=[1] + [0] * 11)
 
-        assert [fi.value for fi in f] == [1] + [0] * 11, f"f: {f}"
+        assert [fi.value for fi in f] == [1] + [
+            0
+        ] * 11, f"Pairing check failed: {[fi.value for fi in f]}"
         return (
             f,
             lambda_root,
