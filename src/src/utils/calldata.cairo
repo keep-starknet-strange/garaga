@@ -52,10 +52,8 @@ fn downcast_u384(l0: felt252, l1: felt252, l2: felt252, l3: felt252) -> u384 {
     }
 }
 
-
-fn deserialize_full_proof_with_hints_risc0(
-    mut serialized: Span<felt252>,
-) -> FullProofWithHintsRisc0 {
+#[inline(always)]
+fn _deserialize_groth16_proof_points(ref serialized: Span<felt252>) -> (G1Point, G2Point, G1Point) {
     let [
         a_x_l0,
         a_x_l1,
@@ -110,6 +108,75 @@ fn deserialize_full_proof_with_hints_risc0(
         x: downcast_u384(c_x_l0, c_x_l1, c_x_l2, c_x_l3),
         y: downcast_u384(c_y_l0, c_y_l1, c_y_l2, c_y_l3),
     };
+    return (a, b, c);
+}
+
+#[inline(always)]
+fn _deserialize_E12D_u288(ref serialized: Span<felt252>) -> E12D<u288> {
+    let [
+        w0l0,
+        w0l1,
+        w0l2,
+        w1l0,
+        w1l1,
+        w1l2,
+        w2l0,
+        w2l1,
+        w2l2,
+        w3l0,
+        w3l1,
+        w3l2,
+        w4l0,
+        w4l1,
+        w4l2,
+        w5l0,
+        w5l1,
+        w5l2,
+        w6l0,
+        w6l1,
+        w6l2,
+        w7l0,
+        w7l1,
+        w7l2,
+        w8l0,
+        w8l1,
+        w8l2,
+        w9l0,
+        w9l1,
+        w9l2,
+        w10l0,
+        w10l1,
+        w10l2,
+        w11l0,
+        w11l1,
+        w11l2,
+    ] =
+        (*serialized
+        .multi_pop_front::<36>()
+        .unwrap())
+        .unbox();
+
+    E12D {
+        w0: downcast_u288(w0l0, w0l1, w0l2),
+        w1: downcast_u288(w1l0, w1l1, w1l2),
+        w2: downcast_u288(w2l0, w2l1, w2l2),
+        w3: downcast_u288(w3l0, w3l1, w3l2),
+        w4: downcast_u288(w4l0, w4l1, w4l2),
+        w5: downcast_u288(w5l0, w5l1, w5l2),
+        w6: downcast_u288(w6l0, w6l1, w6l2),
+        w7: downcast_u288(w7l0, w7l1, w7l2),
+        w8: downcast_u288(w8l0, w8l1, w8l2),
+        w9: downcast_u288(w9l0, w9l1, w9l2),
+        w10: downcast_u288(w10l0, w10l1, w10l2),
+        w11: downcast_u288(w11l0, w11l1, w11l2),
+    }
+}
+
+
+fn deserialize_full_proof_with_hints_risc0(
+    mut serialized: Span<felt252>,
+) -> FullProofWithHintsRisc0 {
+    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
 
     let n_image_id: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut image_id: Array<u32> = array![];
@@ -124,124 +191,9 @@ fn deserialize_full_proof_with_hints_risc0(
     }
 
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
-    let [
-        w0l0,
-        w0l1,
-        w0l2,
-        w1l0,
-        w1l1,
-        w1l2,
-        w2l0,
-        w2l1,
-        w2l2,
-        w3l0,
-        w3l1,
-        w3l2,
-        w4l0,
-        w4l1,
-        w4l2,
-        w5l0,
-        w5l1,
-        w5l2,
-        w6l0,
-        w6l1,
-        w6l2,
-        w7l0,
-        w7l1,
-        w7l2,
-        w8l0,
-        w8l1,
-        w8l2,
-        w9l0,
-        w9l1,
-        w9l2,
-        w10l0,
-        w10l1,
-        w10l2,
-        w11l0,
-        w11l1,
-        w11l2,
-    ] =
-        (*serialized
-        .multi_pop_front::<36>()
-        .unwrap())
-        .unbox();
 
-    let lambda_root = E12D {
-        w0: downcast_u288(w0l0, w0l1, w0l2),
-        w1: downcast_u288(w1l0, w1l1, w1l2),
-        w2: downcast_u288(w2l0, w2l1, w2l2),
-        w3: downcast_u288(w3l0, w3l1, w3l2),
-        w4: downcast_u288(w4l0, w4l1, w4l2),
-        w5: downcast_u288(w5l0, w5l1, w5l2),
-        w6: downcast_u288(w6l0, w6l1, w6l2),
-        w7: downcast_u288(w7l0, w7l1, w7l2),
-        w8: downcast_u288(w8l0, w8l1, w8l2),
-        w9: downcast_u288(w9l0, w9l1, w9l2),
-        w10: downcast_u288(w10l0, w10l1, w10l2),
-        w11: downcast_u288(w11l0, w11l1, w11l2),
-    };
-
-    let [
-        w0l0,
-        w0l1,
-        w0l2,
-        w1l0,
-        w1l1,
-        w1l2,
-        w2l0,
-        w2l1,
-        w2l2,
-        w3l0,
-        w3l1,
-        w3l2,
-        w4l0,
-        w4l1,
-        w4l2,
-        w5l0,
-        w5l1,
-        w5l2,
-        w6l0,
-        w6l1,
-        w6l2,
-        w7l0,
-        w7l1,
-        w7l2,
-        w8l0,
-        w8l1,
-        w8l2,
-        w9l0,
-        w9l1,
-        w9l2,
-        w10l0,
-        w10l1,
-        w10l2,
-        w11l0,
-        w11l1,
-        w11l2,
-    ] =
-        (*serialized
-        .multi_pop_front::<36>()
-        .unwrap())
-        .unbox();
-
-    // full_len -= 36;
-    // assert(full_len == serialized.len(), 'E');
-
-    let lambda_root_inverse = E12D {
-        w0: downcast_u288(w0l0, w0l1, w0l2),
-        w1: downcast_u288(w1l0, w1l1, w1l2),
-        w2: downcast_u288(w2l0, w2l1, w2l2),
-        w3: downcast_u288(w3l0, w3l1, w3l2),
-        w4: downcast_u288(w4l0, w4l1, w4l2),
-        w5: downcast_u288(w5l0, w5l1, w5l2),
-        w6: downcast_u288(w6l0, w6l1, w6l2),
-        w7: downcast_u288(w7l0, w7l1, w7l2),
-        w8: downcast_u288(w8l0, w8l1, w8l2),
-        w9: downcast_u288(w9l0, w9l1, w9l2),
-        w10: downcast_u288(w10l0, w10l1, w10l2),
-        w11: downcast_u288(w11l0, w11l1, w11l2),
-    };
+    let lambda_root = _deserialize_E12D_u288(ref serialized);
+    let lambda_root_inverse = _deserialize_E12D_u288(ref serialized);
 
     let [
         w0_l0,
@@ -433,63 +385,11 @@ fn deserialize_full_proof_with_hints_risc0(
     };
 }
 
+
 fn deserialize_full_proof_with_hints_bn254(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBN254 {
-    let [
-        a_x_l0,
-        a_x_l1,
-        a_x_l2,
-        a_x_l3,
-        a_y_l0,
-        a_y_l1,
-        a_y_l2,
-        a_y_l3,
-        b_x0_l0,
-        b_x0_l1,
-        b_x0_l2,
-        b_x0_l3,
-        b_x1_l0,
-        b_x1_l1,
-        b_x1_l2,
-        b_x1_l3,
-        b_y0_l0,
-        b_y0_l1,
-        b_y0_l2,
-        b_y0_l3,
-        b_y1_l0,
-        b_y1_l1,
-        b_y1_l2,
-        b_y1_l3,
-        c_x_l0,
-        c_x_l1,
-        c_x_l2,
-        c_x_l3,
-        c_y_l0,
-        c_y_l1,
-        c_y_l2,
-        c_y_l3,
-    ] =
-        (*serialized
-        .multi_pop_front::<32>()
-        .unwrap())
-        .unbox();
-
-    let a = G1Point {
-        x: downcast_u384(a_x_l0, a_x_l1, a_x_l2, a_x_l3),
-        y: downcast_u384(a_y_l0, a_y_l1, a_y_l2, a_y_l3),
-    };
-
-    let b = G2Point {
-        x0: downcast_u384(b_x0_l0, b_x0_l1, b_x0_l2, b_x0_l3),
-        x1: downcast_u384(b_x1_l0, b_x1_l1, b_x1_l2, b_x1_l3),
-        y0: downcast_u384(b_y0_l0, b_y0_l1, b_y0_l2, b_y0_l3),
-        y1: downcast_u384(b_y1_l0, b_y1_l1, b_y1_l2, b_y1_l3),
-    };
-    let c = G1Point {
-        x: downcast_u384(c_x_l0, c_x_l1, c_x_l2, c_x_l3),
-        y: downcast_u384(c_y_l0, c_y_l1, c_y_l2, c_y_l3),
-    };
+    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
@@ -504,121 +404,9 @@ fn deserialize_full_proof_with_hints_bn254(
     }
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
-    let [
-        w0l0,
-        w0l1,
-        w0l2,
-        w1l0,
-        w1l1,
-        w1l2,
-        w2l0,
-        w2l1,
-        w2l2,
-        w3l0,
-        w3l1,
-        w3l2,
-        w4l0,
-        w4l1,
-        w4l2,
-        w5l0,
-        w5l1,
-        w5l2,
-        w6l0,
-        w6l1,
-        w6l2,
-        w7l0,
-        w7l1,
-        w7l2,
-        w8l0,
-        w8l1,
-        w8l2,
-        w9l0,
-        w9l1,
-        w9l2,
-        w10l0,
-        w10l1,
-        w10l2,
-        w11l0,
-        w11l1,
-        w11l2,
-    ] =
-        (*serialized
-        .multi_pop_front::<36>()
-        .unwrap())
-        .unbox();
 
-    let lambda_root = E12D {
-        w0: downcast_u288(w0l0, w0l1, w0l2),
-        w1: downcast_u288(w1l0, w1l1, w1l2),
-        w2: downcast_u288(w2l0, w2l1, w2l2),
-        w3: downcast_u288(w3l0, w3l1, w3l2),
-        w4: downcast_u288(w4l0, w4l1, w4l2),
-        w5: downcast_u288(w5l0, w5l1, w5l2),
-        w6: downcast_u288(w6l0, w6l1, w6l2),
-        w7: downcast_u288(w7l0, w7l1, w7l2),
-        w8: downcast_u288(w8l0, w8l1, w8l2),
-        w9: downcast_u288(w9l0, w9l1, w9l2),
-        w10: downcast_u288(w10l0, w10l1, w10l2),
-        w11: downcast_u288(w11l0, w11l1, w11l2),
-    };
-
-    let [
-        w0l0,
-        w0l1,
-        w0l2,
-        w1l0,
-        w1l1,
-        w1l2,
-        w2l0,
-        w2l1,
-        w2l2,
-        w3l0,
-        w3l1,
-        w3l2,
-        w4l0,
-        w4l1,
-        w4l2,
-        w5l0,
-        w5l1,
-        w5l2,
-        w6l0,
-        w6l1,
-        w6l2,
-        w7l0,
-        w7l1,
-        w7l2,
-        w8l0,
-        w8l1,
-        w8l2,
-        w9l0,
-        w9l1,
-        w9l2,
-        w10l0,
-        w10l1,
-        w10l2,
-        w11l0,
-        w11l1,
-        w11l2,
-    ] =
-        (*serialized
-        .multi_pop_front::<36>()
-        .unwrap())
-        .unbox();
-
-    let lambda_root_inverse = E12D {
-        w0: downcast_u288(w0l0, w0l1, w0l2),
-        w1: downcast_u288(w1l0, w1l1, w1l2),
-        w2: downcast_u288(w2l0, w2l1, w2l2),
-        w3: downcast_u288(w3l0, w3l1, w3l2),
-        w4: downcast_u288(w4l0, w4l1, w4l2),
-        w5: downcast_u288(w5l0, w5l1, w5l2),
-        w6: downcast_u288(w6l0, w6l1, w6l2),
-        w7: downcast_u288(w7l0, w7l1, w7l2),
-        w8: downcast_u288(w8l0, w8l1, w8l2),
-        w9: downcast_u288(w9l0, w9l1, w9l2),
-        w10: downcast_u288(w10l0, w10l1, w10l2),
-        w11: downcast_u288(w11l0, w11l1, w11l2),
-    };
+    let lambda_root = _deserialize_E12D_u288(ref serialized);
+    let lambda_root_inverse = _deserialize_E12D_u288(ref serialized);
 
     let [
         w0_l0,
@@ -1018,60 +806,7 @@ fn deserialize_mpcheck_hint_bls12_381(
 fn deserialize_full_proof_with_hints_bls12_381(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBLS12_381 {
-    let [
-        a_x_l0,
-        a_x_l1,
-        a_x_l2,
-        a_x_l3,
-        a_y_l0,
-        a_y_l1,
-        a_y_l2,
-        a_y_l3,
-        b_x0_l0,
-        b_x0_l1,
-        b_x0_l2,
-        b_x0_l3,
-        b_x1_l0,
-        b_x1_l1,
-        b_x1_l2,
-        b_x1_l3,
-        b_y0_l0,
-        b_y0_l1,
-        b_y0_l2,
-        b_y0_l3,
-        b_y1_l0,
-        b_y1_l1,
-        b_y1_l2,
-        b_y1_l3,
-        c_x_l0,
-        c_x_l1,
-        c_x_l2,
-        c_x_l3,
-        c_y_l0,
-        c_y_l1,
-        c_y_l2,
-        c_y_l3,
-    ] =
-        (*serialized
-        .multi_pop_front::<32>()
-        .unwrap())
-        .unbox();
-
-    let a = G1Point {
-        x: downcast_u384(a_x_l0, a_x_l1, a_x_l2, a_x_l3),
-        y: downcast_u384(a_y_l0, a_y_l1, a_y_l2, a_y_l3),
-    };
-
-    let b = G2Point {
-        x0: downcast_u384(b_x0_l0, b_x0_l1, b_x0_l2, b_x0_l3),
-        x1: downcast_u384(b_x1_l0, b_x1_l1, b_x1_l2, b_x1_l3),
-        y0: downcast_u384(b_y0_l0, b_y0_l1, b_y0_l2, b_y0_l3),
-        y1: downcast_u384(b_y1_l0, b_y1_l1, b_y1_l2, b_y1_l3),
-    };
-    let c = G1Point {
-        x: downcast_u384(c_x_l0, c_x_l1, c_x_l2, c_x_l3),
-        y: downcast_u384(c_y_l0, c_y_l1, c_y_l2, c_y_l3),
-    };
+    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
