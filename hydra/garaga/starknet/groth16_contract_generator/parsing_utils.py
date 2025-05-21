@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any, List
 
-from garaga.definitions import CurveID, G1Point, G2Point
+from garaga.definitions import CURVES, CurveID, G1Point, G2Point
 from garaga.hints import io
 from garaga.hints.io import split_128
 from garaga.modulo_circuit_structs import (
@@ -22,6 +22,12 @@ from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 RISC0_CONTROL_ROOT = 0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576
 RISC0_BN254_CONTROL_ID = (
     0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0
+)
+
+# https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v4.0.0-rc.3/SP1VerifierGroth16.sol
+SP1_VERIFIER_VERSION: str = "v4.0.0-rc.3"
+SP1_VERIFIER_HASH: bytes = bytes.fromhex(
+    "11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4"
 )
 
 
@@ -329,6 +335,10 @@ class Groth16Proof:
             self.a.curve_id == self.b.curve_id == self.c.curve_id
         ), f"All points must be on the same curve, got {self.a.curve_id}, {self.b.curve_id}, {self.c.curve_id}"
         self.curve_id = self.a.curve_id
+        for pub in self.public_inputs:
+            assert (
+                0 <= pub < CURVES[self.curve_id.value].n
+            ), f"Public input {pub} is out of bounds for curve {self.curve_id}"
 
     def from_dict(
         data: dict, public_inputs: None | list | dict = None
@@ -350,14 +360,27 @@ class Groth16Proof:
                 image_id=codecs.decode(image_id[2:].replace("\\x", ""), "hex"),
                 journal=codecs.decode(journal[2:].replace("\\x", ""), "hex"),
             )
-        except ValueError:
+        except (ValueError, KeyError, KeyPatternNotFound):
             pass
-        except KeyError:
-            pass
+        except Exception as e:
+            print(f"Error when attempmting to parse as Risc0 proof: {e}")
+            raise e
+
+        try:
+            sp1_vkey = find_item_from_key_patterns(data, ["vkey"])
+            public_inputs = find_item_from_key_patterns(data, ["publicValues"])
+            sp1_proof = find_item_from_key_patterns(data, ["proof"])
+            return Groth16Proof._from_sp1(
+                vkey=codecs.decode(sp1_vkey[2:].replace("\\x", ""), "hex"),
+                proof=codecs.decode(sp1_proof[2:].replace("\\x", ""), "hex"),
+                public_inputs=codecs.decode(
+                    public_inputs[2:].replace("\\x", ""), "hex"
+                ),
+            )
         except KeyPatternNotFound:
             pass
         except Exception as e:
-            print(f"Error: {e}")
+            print(f"Error when attempmting to parse as SP1 proof: {e}")
             raise e
 
         if public_inputs is not None:
@@ -449,6 +472,43 @@ class Groth16Proof:
             ],
             image_id=image_id,
             journal=journal,
+        )
+
+    def _from_sp1(
+        vkey: bytes,
+        public_inputs: bytes,
+        proof: bytes,
+    ) -> "Groth16Proof":
+        _selector, proof = proof[:4], proof[4:]
+        assert (
+            _selector == SP1_VERIFIER_HASH[:4]
+        ), f"Invalid SP1 proof version. Expected {SP1_VERIFIER_HASH[:4]} for version {SP1_VERIFIER_VERSION}, got {_selector}\n Please use SP1 verifier version {SP1_VERIFIER_VERSION} or contact garaga developers to update the SP1 verifier version."
+        pub_input_hash: bytes = hashlib.sha256(public_inputs).digest()
+        pub_input_hash: int = int.from_bytes(pub_input_hash, "big") & ((1 << 253) - 1)
+        print(f"pub_input_hash: {hex(pub_input_hash)}")
+        return Groth16Proof(
+            a=G1Point(
+                x=int.from_bytes(proof[0:32], "big"),
+                y=int.from_bytes(proof[32:64], "big"),
+                curve_id=CurveID.BN254,
+            ),
+            b=G2Point(
+                x=(
+                    int.from_bytes(proof[96:128], "big"),
+                    int.from_bytes(proof[64:96], "big"),
+                ),
+                y=(
+                    int.from_bytes(proof[160:192], "big"),
+                    int.from_bytes(proof[128:160], "big"),
+                ),
+                curve_id=CurveID.BN254,
+            ),
+            c=G1Point(
+                x=int.from_bytes(proof[192:224], "big"),
+                y=int.from_bytes(proof[224:256], "big"),
+                curve_id=CurveID.BN254,
+            ),
+            public_inputs=[int.from_bytes(vkey, "big"), pub_input_hash],
         )
 
     def serialize_to_calldata(self) -> list[int]:
