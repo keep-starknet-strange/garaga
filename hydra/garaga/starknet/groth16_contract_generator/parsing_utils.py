@@ -329,6 +329,7 @@ class Groth16Proof:
     curve_id: CurveID = None
     image_id: bytes = None  # Only used for risc0 proofs
     journal: bytes = None  # Only used for risc0 proofs
+    public_inputs_sp1: bytes = None  # Only used for sp1 proofs
 
     def __post_init__(self):
         assert (
@@ -339,6 +340,13 @@ class Groth16Proof:
             assert (
                 0 <= pub < CURVES[self.curve_id.value].n
             ), f"Public input {pub} is out of bounds for curve {self.curve_id}"
+        if self.public_inputs_sp1 is not None:
+            assert isinstance(
+                self.public_inputs_sp1, bytes
+            ), "SP1 public inputs must be a bytes object"
+            assert (
+                len(self.public_inputs_sp1) % 32 == 0
+            ), "SP1 public inputs must be a multiple of 32 bytes"
 
     def from_dict(
         data: dict, public_inputs: None | list | dict = None
@@ -484,8 +492,10 @@ class Groth16Proof:
             _selector == SP1_VERIFIER_HASH[:4]
         ), f"Invalid SP1 proof version. Expected {SP1_VERIFIER_HASH[:4]} for version {SP1_VERIFIER_VERSION}, got {_selector}\n Please use SP1 verifier version {SP1_VERIFIER_VERSION} or contact garaga developers to update the SP1 verifier version."
         pub_input_hash: bytes = hashlib.sha256(public_inputs).digest()
-        pub_input_hash: int = int.from_bytes(pub_input_hash, "big") & ((1 << 253) - 1)
-        print(f"pub_input_hash: {hex(pub_input_hash)}")
+        pub_input_hash: int = int.from_bytes(pub_input_hash, "big") % (
+            2**253
+        )  # <=> & ((2 << 253) - 1)
+        # print(f"pub_input_hash: {hex(pub_input_hash)}")
         return Groth16Proof(
             a=G1Point(
                 x=int.from_bytes(proof[0:32], "big"),
@@ -509,6 +519,7 @@ class Groth16Proof:
                 curve_id=CurveID.BN254,
             ),
             public_inputs=[int.from_bytes(vkey, "big"), pub_input_hash],
+            public_inputs_sp1=public_inputs,
         )
 
     def serialize_to_calldata(self) -> list[int]:
@@ -521,7 +532,7 @@ class Groth16Proof:
         cd.extend(io.bigint_split(self.b.y[1]))
         cd.extend(io.bigint_split(self.c.x))
         cd.extend(io.bigint_split(self.c.y))
-        if self.image_id and self.journal:
+        if self.image_id and self.journal and self.public_inputs_sp1 is None:
             # Risc0 mode.
             # Public inputs will be reconstructed from image id and journal.
             image_id_u256 = io.bigint_split(
@@ -534,7 +545,20 @@ class Groth16Proof:
             # Span of u8, length depends on input
             cd.append(len(self.journal))
             cd.extend(journal)
+        elif self.public_inputs_sp1 is not None:
+            # SP1 mode.
+            # Public inputs 0 is vkey
+            cd.extend(io.bigint_split(self.public_inputs[0], 2, 2**128))
+            # Public inputs 1 is sha256(public_inputs_sp1) % 2**253
+            # We serialize pub_inputs_sp1 as u32 array for Cairo sha256.
+            n_bytes = len(self.public_inputs_sp1)
+            assert n_bytes % 32 == 0, "SP1 public inputs must be a multiple of 32 bytes"
+            n_words = n_bytes // 32
+            cd.append(n_words)  # Deserialization 8 by 8
+            for i in range(0, n_bytes, 4):
+                cd.append(int.from_bytes(self.public_inputs_sp1[i : i + 4], "big"))
         else:
+            # Normal mode.
             cd.append(len(self.public_inputs))
             for pub in self.public_inputs:
                 cd.extend(io.bigint_split(pub, 2, 2**128))
