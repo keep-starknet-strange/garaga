@@ -309,11 +309,11 @@ fn deserialize_full_proof_with_hints_sp1(mut serialized: Span<felt252>) -> FullP
         low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
         high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
     };
-    let n_u32: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let n_words: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs_sp1: Array<u32> = array![];
 
-    while let Option::Some(word) = serialized.multi_pop_front::<8>() {
-        let [w7, w6, w5, w4, w3, w2, w1, w0] = (*word).unbox();
+    for _ in 0..n_words {
+        let [w7, w6, w5, w4, w3, w2, w1, w0] = (*serialized.multi_pop_front::<8>().unwrap()).unbox();
         public_inputs_sp1.append(w7.try_into().unwrap());
         public_inputs_sp1.append(w6.try_into().unwrap());
         public_inputs_sp1.append(w5.try_into().unwrap());
