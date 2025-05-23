@@ -3,7 +3,7 @@ use crate::calldata::mpc_calldata::mpc_calldata_builder;
 use crate::calldata::msm_calldata::msm_calldata_builder;
 use crate::calldata::G1PointBigUint;
 use crate::calldata::G2PointBigUint;
-use crate::constants::get_risc0_constants;
+use crate::constants::{get_risc0_constants, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION};
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider, FieldElement,
 };
@@ -11,6 +11,7 @@ use crate::io::{
     biguint_split, element_to_biguint, field_elements_from_big_uints,
     parse_g1_points_from_flattened_field_elements_list,
 };
+use hex;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint, Sign};
@@ -178,8 +179,20 @@ impl Groth16Proof {
     }
     pub fn from_sp1(vkey: Vec<u8>, public_values: Vec<u8>, proof: Vec<u8>) -> Self {
         // Skip the first 4 bytes (selector)
-        let _selector = &proof[..4];
+        let selector = &proof[..4];
         let proof = &proof[4..];
+
+        // Validate SP1 verifier version by checking selector against expected hash
+        let expected_selector = hex::decode(&SP1_VERIFIER_HASH[2..]).unwrap()[..4].to_vec();
+        if selector != expected_selector {
+            panic!(
+                "Invalid SP1 proof version. Expected {:02x}{:02x}{:02x}{:02x} for version {}, got {:02x}{:02x}{:02x}{:02x}\nPlease use SP1 verifier version {} or contact garaga developers to update the SP1 verifier version.",
+                expected_selector[0], expected_selector[1], expected_selector[2], expected_selector[3],
+                SP1_VERIFIER_VERSION,
+                selector[0], selector[1], selector[2], selector[3],
+                SP1_VERIFIER_VERSION
+            );
+        }
 
         // sha256(public_values) % 2**253
         assert!(
@@ -653,5 +666,18 @@ mod test_groth16_calldata {
             stored_public_values,
             hex::decode(public_values_hex).unwrap()
         );
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid SP1 proof version")]
+    fn test_from_sp1_invalid_selector() {
+        // Create test data with invalid selector (wrong first 4 bytes)
+        let vkey = vec![0u8; 32];
+        let public_values = vec![0u8; 64]; // Must be multiple of 32
+        let mut proof = vec![0xde, 0xad, 0xbe, 0xef]; // Invalid selector
+        proof.extend(vec![0u8; 252]); // Add remaining proof data
+
+        // This should panic with our error message
+        Groth16Proof::from_sp1(vkey, public_values, proof);
     }
 }

@@ -25,12 +25,16 @@ pub fn get_risc0_constants() -> (BigUint, BigUint) {
 /// SP1 Constants
 /// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v4.0.0-rc.3/SP1VerifierGroth16.sol
 pub const SP1_VERIFIER_VERSION: &str = "v4.0.0-rc.3";
-pub const SP1_VERIFIER_HASH: &str = "0x11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4";
+pub const SP1_VERIFIER_HASH: &str =
+    "0x11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4";
 
 /// Additional RISC0 constants for internal use
-pub const RISC0_SYSTEM_STATE_ZERO_DIGEST: &str = "0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2";
-pub const RISC0_TAG_DIGEST: &str = "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af";
-pub const RISC0_OUTPUT_TAG: &str = "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4";
+pub const RISC0_SYSTEM_STATE_ZERO_DIGEST: &str =
+    "0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2";
+pub const RISC0_TAG_DIGEST: &str =
+    "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af";
+pub const RISC0_OUTPUT_TAG: &str =
+    "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4";
 
 #[cfg(test)]
 mod tests {

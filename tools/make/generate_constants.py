@@ -122,6 +122,19 @@ mod tests {{
         f.write(rust_code)
     print(f"Generated Rust constants: {output_path}")
 
+    # Run cargo fmt on the output file to ensure proper formatting
+    import subprocess
+
+    try:
+        subprocess.run(
+            ["cargo", "fmt", "--", str(output_path)],
+            check=True,
+            cwd=os.path.dirname(output_path),
+        )
+        print(f"Ran cargo fmt on: {output_path}")
+    except Exception as e:
+        print(f"Warning: cargo fmt failed on {output_path}: {e}")
+
 
 def generate_typescript_constants(constants: Dict[str, Any], output_path: str):
     """Generate TypeScript constants file."""
