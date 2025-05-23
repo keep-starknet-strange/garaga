@@ -1,6 +1,6 @@
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
-use crate::calldata::drand_calldata::{digest_func, hash_to_curve};
+use crate::calldata::drand_calldata::{DrandNetwork, digest_func, get_chain_hash, get_chain_info, hash_to_curve};
 use crate::definitions::{BLS12381PrimeField, CurveParamsProvider, FieldElement};
 use crate::pairing::final_exp_witness::{bls12_381_final_exp_witness, to_bls};
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField as BLS12381Degree12ExtensionField;
@@ -12,14 +12,54 @@ use lambdaworks_math::elliptic_curve::traits::{FromAffine, IsPairing};
 use num_bigint::BigUint;
 use sha2::{Digest, Sha256};
 
+pub fn drand_tlock_calldata_builder(values: &[BigUint]) -> Result<Vec<BigUint>, String> {
+    if values.len() != 3 {
+        return Err(format!("Invalid data array length: {}", values.len()));
+    }
+    let round_number: usize = (&values[0])
+        .try_into()
+        .map_err(|e| format!("Invalid round number: {}", e))?;
+    let message = {
+        let bytes = values[1].to_bytes_be();
+        if bytes.len() > 16 {
+            return Err(format!("Invalid message array length: {}", bytes.len()));
+        }
+        let mut padded_bytes = [0; 16];
+        let len = bytes.len();
+        padded_bytes[16 - len..].copy_from_slice(&bytes);
+        padded_bytes
+    };
+    let sigma = {
+        let bytes = values[2].to_bytes_be();
+        if bytes.len() > 16 {
+            return Err(format!("Invalid sigma array length: {}", bytes.len()));
+        }
+        let mut padded_bytes = [0; 16];
+        let len = bytes.len();
+        padded_bytes[16 - len..].copy_from_slice(&bytes);
+        padded_bytes
+    };
+    let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
+    let public_key = chain.public_key.g2_point().unwrap().clone();
+    let cipher_text = encrypt_for_round(public_key, round_number, message, sigma)?;
+    let call_data = cipher_text.serialize_to_calldata();
+    Ok(call_data)
+}
+
 pub struct CipherText {
     pub u: G2Point<BLS12381PrimeField, BLS12381Degree2ExtensionField>,
     pub v: [u8; 16],
     pub w: [u8; 16],
 }
 
+impl CipherText {
+    pub fn serialize_to_calldata(&self) -> Vec<BigUint> {
+        todo!() // TODO
+    }
+}
+
 pub fn encrypt_for_round(
-    drand_public_key: G2Point<BLS12381PrimeField, BLS12381Degree2ExtensionField>,
+    public_key: G2Point<BLS12381PrimeField, BLS12381Degree2ExtensionField>,
     round_number: usize,
     message: [u8; 16],
     sigma: [u8; 16],
@@ -28,7 +68,7 @@ pub fn encrypt_for_round(
     let msg_at_round = digest_func(round_number);
     let pt_at_round = hash_to_curve::<BLS12381PrimeField>(msg_at_round, "sha256")?;
 
-    let gid = bls12381_single_pairing(pt_at_round, drand_public_key)?;
+    let gid = bls12381_single_pairing(pt_at_round, public_key)?;
 
     let r = {
         let mut bytes = vec![];
