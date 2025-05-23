@@ -17,6 +17,14 @@ from garaga.modulo_circuit_structs import (
 )
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
+# Import constants from generated file
+from garaga.starknet.constants import (
+    RISC0_BN254_CONTROL_ID,
+    RISC0_CONTROL_ROOT,
+    SP1_VERIFIER_HASH,
+    SP1_VERIFIER_VERSION,
+)
+
 # https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
 # release 2.0
 RISC0_CONTROL_ROOT = 0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576

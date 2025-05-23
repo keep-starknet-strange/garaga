@@ -3,6 +3,7 @@ use crate::calldata::mpc_calldata::mpc_calldata_builder;
 use crate::calldata::msm_calldata::msm_calldata_builder;
 use crate::calldata::G1PointBigUint;
 use crate::calldata::G2PointBigUint;
+use crate::constants::get_risc0_constants;
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider, FieldElement,
 };
@@ -66,9 +67,9 @@ impl Groth16Proof {
         }
 
         let risc0_mode = self.image_id_journal_risc0.is_some();
-        let sp1_mode = self.vkey_public_values_sp1.is_some();
+        let _sp1_mode = self.vkey_public_values_sp1.is_some();
 
-        if risc0_mode && !sp1_mode {
+        if risc0_mode && !_sp1_mode {
             // Risc0 mode.
             // Public inputs will be reconstructed from image id and journal.
             let (image_id, journal) = self.image_id_journal_risc0.as_ref().unwrap();
@@ -82,9 +83,9 @@ impl Groth16Proof {
             // Span of u8, length depends on input
             cd.push(BigUint::from(journal.len()));
             cd.extend(journal.iter().map(|&x| BigUint::from(x)));
-        } else if sp1_mode && !risc0_mode {
+        } else if _sp1_mode && !risc0_mode {
             // SP1 mode - matches Python implementation exactly
-            let (vkey, public_values) = self.vkey_public_values_sp1.as_ref().unwrap();
+            let (_vkey, public_values) = self.vkey_public_values_sp1.as_ref().unwrap();
 
             // public_inputs[0] is the vkey as BigUint - serialize as 2 limbs of 128 bits
             // This matches Python: cd.extend(io.bigint_split(self.public_inputs[0], 2, 2**128))
@@ -115,7 +116,7 @@ impl Groth16Proof {
                 ]);
                 cd.push(BigUint::from(word));
             }
-        } else if risc0_mode && sp1_mode {
+        } else if risc0_mode && _sp1_mode {
             panic!("Cannot have both RISC0 and SP1 modes enabled");
         } else {
             // Normal mode.
@@ -135,7 +136,7 @@ impl Groth16Proof {
     pub fn from_risc0(seal: Vec<u8>, image_id: Vec<u8>, journal: Vec<u8>) -> Self {
         assert!(image_id.len() <= 32, "image_id must be 32 bytes");
 
-        let (control_root, bn254_control_id) = risc0_utils::get_risc0_constants();
+        let (control_root, bn254_control_id) = get_risc0_constants();
 
         let (control_root_0, control_root_1) = risc0_utils::split_digest(&control_root);
 
@@ -176,13 +177,19 @@ impl Groth16Proof {
         }
     }
     pub fn from_sp1(vkey: Vec<u8>, public_values: Vec<u8>, proof: Vec<u8>) -> Self {
+        // Skip the first 4 bytes (selector)
+        let _selector = &proof[..4];
+        let proof = &proof[4..];
+
         // sha256(public_values) % 2**253
         assert!(
             public_values.len() % 32 == 0,
             "public_values must be a multiple of 32 bytes"
         );
         let pub_input_hash = BigUint::from_bytes_be(&Sha256::digest(&public_values));
-        let pub_input_hash = pub_input_hash % (2u64.pow(253));
+        // 2^253 as BigUint to avoid overflow
+        let modulus = BigUint::from(2u64).pow(253);
+        let pub_input_hash = pub_input_hash % modulus;
 
         let mut public_inputs_sp1 = Vec::new();
         for i in 0..public_values.len() / 32 {
@@ -258,7 +265,7 @@ pub fn get_groth16_calldata(
 ) -> Result<Vec<BigUint>, String> {
     let mut calldata: Vec<BigUint> = Vec::new();
     let risc0_mode = proof.image_id_journal_risc0.is_some();
-    let sp1_mode = proof.vkey_public_values_sp1.is_some();
+    let _sp1_mode = proof.vkey_public_values_sp1.is_some();
     // Calculate vk_x
     let vk_x = calculate_vk_x(vk, &proof.public_inputs, curve_id);
 
@@ -367,21 +374,6 @@ pub mod risc0_utils {
     use num_bigint::BigUint;
     use num_traits::Num;
     use sha2::{Digest, Sha256};
-
-    pub fn get_risc0_constants() -> (BigUint, BigUint) {
-        let risc0_control_root = BigUint::from_str_radix(
-            "539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576",
-            16,
-        )
-        .unwrap();
-        let risc0_bn254_control_id = BigUint::from_str_radix(
-            "04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
-            16,
-        )
-        .unwrap();
-
-        (risc0_control_root, risc0_bn254_control_id)
-    }
 
     pub fn get_risc0_vk() -> Groth16VerificationKey {
         let vk_hex = [
@@ -502,8 +494,12 @@ pub mod risc0_utils {
 #[cfg(test)]
 mod test_groth16_calldata {
     use super::risc0_utils::{ok_digest, split_digest};
+    use super::Groth16Proof;
+    use hex;
     use num_bigint::BigUint;
+    use num_traits::Num;
     use sha2::{Digest, Sha256};
+
     #[test]
     fn test_ok_digest_1() {
         let image_id = vec![
@@ -555,6 +551,107 @@ mod test_groth16_calldata {
         assert_eq!(
             hex::encode(claim1.to_bytes_be()),
             "8875bcad22cdcfda1e2878df4e414108"
+        );
+    }
+
+    #[test]
+    fn test_from_sp1() {
+        // Data from proof_sp1.json
+        let vkey_hex = "00562c19b1948ce8f360ee32da6b8e18b504b7d197d522085d3e74c072e0ff7d";
+        let public_values_hex = "00000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000001a6d0000000000000000000000000000000000000000000000000000000000002ac2";
+        let proof_hex = "11b6a09d15c0a8f6b56f8226262eccb0d78ab7946001762a2a9117b0ce6626ee0f15338a164391b8e4af70b9ad5f80df72a2fd42038afc66190edd82bf1f0d752ce22ab208f5de7a1c73d97f82e989add997eca2e95af1716a5d9c03cbcec2bb477aa06d00b7de11d8465f44fc1073d49a2809a57d31ad543a3602be355ea05aedf894aa0839ad0113478bf84a25faff25306a84185c20d1320772e4769d993832626f081e432d60d8f4cb6f82f8835872aa0c3183ffe09f67d365951722c1a3debd6ae90c31023395fe16b29c3a01524447de9e22aa670c6a7cd880281ba14c642a601b0530706caf4af3644ff20a785ac0e499321f08cfc96cee48b64bfa08925ec27c";
+
+        // Decode hex strings to bytes
+        let vkey = hex::decode(vkey_hex).unwrap();
+        let public_values = hex::decode(public_values_hex).unwrap();
+        let proof = hex::decode(proof_hex).unwrap();
+
+        // Call from_sp1
+        let groth16_proof = Groth16Proof::from_sp1(vkey, public_values, proof);
+
+        // Expected values from the Python output
+        let expected_a_x = BigUint::from_str_radix(
+            "15c0a8f6b56f8226262eccb0d78ab7946001762a2a9117b0ce6626ee0f15338a",
+            16,
+        )
+        .unwrap();
+        let expected_a_y = BigUint::from_str_radix(
+            "164391b8e4af70b9ad5f80df72a2fd42038afc66190edd82bf1f0d752ce22ab2",
+            16,
+        )
+        .unwrap();
+
+        let expected_b_x0 = BigUint::from_str_radix(
+            "b7de11d8465f44fc1073d49a2809a57d31ad543a3602be355ea05aedf894aa",
+            16,
+        )
+        .unwrap();
+        let expected_b_x1 = BigUint::from_str_radix(
+            "8f5de7a1c73d97f82e989add997eca2e95af1716a5d9c03cbcec2bb477aa06d",
+            16,
+        )
+        .unwrap();
+        let expected_b_y0 = BigUint::from_str_radix(
+            "1e432d60d8f4cb6f82f8835872aa0c3183ffe09f67d365951722c1a3debd6ae9",
+            16,
+        )
+        .unwrap();
+        let expected_b_y1 = BigUint::from_str_radix(
+            "839ad0113478bf84a25faff25306a84185c20d1320772e4769d993832626f08",
+            16,
+        )
+        .unwrap();
+
+        let expected_c_x = BigUint::from_str_radix(
+            "c31023395fe16b29c3a01524447de9e22aa670c6a7cd880281ba14c642a601b",
+            16,
+        )
+        .unwrap();
+        let expected_c_y = BigUint::from_str_radix(
+            "530706caf4af3644ff20a785ac0e499321f08cfc96cee48b64bfa08925ec27c",
+            16,
+        )
+        .unwrap();
+
+        let expected_pub_input_0 = BigUint::from_str_radix(
+            "152253217110252243453737875262517125705583962671131257900012625329058283389",
+            10,
+        )
+        .unwrap();
+        let expected_pub_input_1 = BigUint::from_str_radix(
+            "6835433473072582537735779005252378178401920886001391083506222100041177144720",
+            10,
+        )
+        .unwrap();
+
+        // Verify a point
+        assert_eq!(groth16_proof.a.x, expected_a_x);
+        assert_eq!(groth16_proof.a.y, expected_a_y);
+
+        // Verify b point
+        assert_eq!(groth16_proof.b.x0, expected_b_x0);
+        assert_eq!(groth16_proof.b.x1, expected_b_x1);
+        assert_eq!(groth16_proof.b.y0, expected_b_y0);
+        assert_eq!(groth16_proof.b.y1, expected_b_y1);
+
+        // Verify c point
+        assert_eq!(groth16_proof.c.x, expected_c_x);
+        assert_eq!(groth16_proof.c.y, expected_c_y);
+
+        // Verify public inputs
+        assert_eq!(groth16_proof.public_inputs.len(), 2);
+        assert_eq!(groth16_proof.public_inputs[0], expected_pub_input_0);
+        assert_eq!(groth16_proof.public_inputs[1], expected_pub_input_1);
+
+        // Verify SP1 specific fields
+        assert!(groth16_proof.vkey_public_values_sp1.is_some());
+        assert!(groth16_proof.image_id_journal_risc0.is_none());
+
+        let (stored_vkey, stored_public_values) = groth16_proof.vkey_public_values_sp1.unwrap();
+        assert_eq!(stored_vkey, hex::decode(vkey_hex).unwrap());
+        assert_eq!(
+            stored_public_values,
+            hex::decode(public_values_hex).unwrap()
         );
     }
 }

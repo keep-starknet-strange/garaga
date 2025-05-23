@@ -2,15 +2,10 @@ import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from ".
 import * as fs from 'fs';
 import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
 import { createHash } from 'crypto';
+import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST } from "../../../constants";
 
 
 //https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-const RISC0_CONTROL_ROOT = BigInt("0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576");
-const RISC0_BN254_CONTROL_ID = BigInt("0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0");
-const SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from(
-    "A3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2",
-    "hex"
-));
 
 
 export interface Groth16Proof {
@@ -427,7 +422,7 @@ function ok(imageId: Uint8Array, journalDigest: Uint8Array): ReceiptClaim {
     return {
         tagDigest: createHash('sha256').update(Buffer.from("risc0.ReceiptClaim")).digest(),
         preStateDigest: imageId,
-        postStateDigest: SYSTEM_STATE_ZERO_DIGEST,
+        postStateDigest: RISC0_SYSTEM_STATE_ZERO_DIGEST,
         exitCode,
         input: new Uint8Array(32), // bytes32(0) equivalent
         output: digestOutput(output),
