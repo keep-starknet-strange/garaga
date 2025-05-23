@@ -20,7 +20,6 @@ pub mod crypto {
             "internal error: Merkle Mountain Ranges should have at most 2^63 leafs";
     }
     pub mod digest;
-    pub mod drand_tlock;
     pub mod merkle_tree;
     #[allow(dead_code)]
     pub mod poseidon_bn254;

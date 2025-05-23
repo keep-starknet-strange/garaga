@@ -1,6 +1,8 @@
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
-use crate::calldata::drand_calldata::{DrandNetwork, digest_func, get_chain_hash, get_chain_info, hash_to_curve};
+use crate::calldata::drand_calldata::{
+    digest_func, get_chain_hash, get_chain_info, hash_to_curve, DrandNetwork,
+};
 use crate::definitions::{BLS12381PrimeField, CurveParamsProvider, FieldElement};
 use crate::pairing::final_exp_witness::{bls12_381_final_exp_witness, to_bls};
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField as BLS12381Degree12ExtensionField;
