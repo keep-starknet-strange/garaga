@@ -1,6 +1,7 @@
 use crate::algebra::extf_mul::{from_e2, to_e2};
 use crate::definitions::{CurveParamsProvider, FieldElement};
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
+use num_bigint::BigInt;
 
 #[derive(Debug, Clone)]
 pub struct G2Point<F, E2>
@@ -94,5 +95,9 @@ where
     pub fn new_infinity() -> Self {
         let zero = to_e2([FieldElement::zero(), FieldElement::zero()]);
         G2Point::new_unchecked(zero.clone(), zero)
+    }
+
+    pub fn scalar_mul(&self, _scalar: BigInt) -> G2Point<F, E2> {
+        todo!() // TODO
     }
 }
