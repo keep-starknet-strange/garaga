@@ -107,23 +107,23 @@ def test_drand_randomness_to_calldata(
 @pytest.mark.parametrize(
     "message", [b"0000000000000000", b"1234567890abcdef", b"fedababafecacaca"]
 )
-@pytest.mark.parametrize("sigma", [b"0000000000000000", b"dead00013000beef"])
+@pytest.mark.parametrize("randomness", [b"0000000000000000", b"dead00013000beef"])
 def test_drand_encrypt_to_round_calldata(
     round_number,
     message,
-    sigma,
+    randomness,
 ):
     calldata1 = drand_encrypt_to_calldata(
         round_number,
         message,
-        sigma,
+        randomness,
         use_rust=False,
     )
 
     calldata2 = drand_encrypt_to_calldata(
         round_number,
         message,
-        sigma,
+        randomness,
         use_rust=True,
     )
 

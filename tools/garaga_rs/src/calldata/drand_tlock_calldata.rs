@@ -31,10 +31,10 @@ pub fn drand_tlock_encrypt_calldata_builder(values: &[BigUint]) -> Result<Vec<Bi
         padded_bytes[16 - len..].copy_from_slice(&bytes);
         padded_bytes
     };
-    let sigma = {
+    let randomness = {
         let bytes = values[2].to_bytes_be();
         if bytes.len() > 16 {
-            return Err(format!("Invalid sigma array length: {}", bytes.len()));
+            return Err(format!("Invalid randomness array length: {}", bytes.len()));
         }
         let mut padded_bytes = [0; 16];
         let len = bytes.len();
@@ -43,7 +43,7 @@ pub fn drand_tlock_encrypt_calldata_builder(values: &[BigUint]) -> Result<Vec<Bi
     };
     let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
     let public_key = chain.public_key.g2_point().unwrap().clone();
-    let cipher_text = encrypt_for_round(public_key, round_number, message, sigma)?;
+    let cipher_text = encrypt_for_round(public_key, round_number, message, randomness)?;
     let call_data = cipher_text.serialize_to_calldata();
     Ok(call_data)
 }

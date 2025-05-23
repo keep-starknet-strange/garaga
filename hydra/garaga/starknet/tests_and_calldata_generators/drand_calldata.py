@@ -67,13 +67,13 @@ def _drand_round_to_calldata_rust(
 
 
 def drand_encrypt_to_calldata(
-    round_number: int, message: bytes, sigma: bytes, use_rust=False
+    round_number: int, message: bytes, randomness: bytes, use_rust=False
 ) -> list[int]:
     if use_rust:
-        return _drand_encrypt_to_calldata(round_number, message, sigma)
+        return _drand_encrypt_to_calldata(round_number, message, randomness)
     chain = get_chain_info(DrandNetwork.quicknet.value)
     cipher_text = encrypt_for_round(
-        chain.public_key, round_number, message, True, sigma
+        chain.public_key, round_number, message, True, randomness
     )
     return cipher_text.serialize_to_calldata()
 
@@ -86,7 +86,7 @@ def _drand_encrypt_to_calldata(
     data = [
         round_number,
         int.from_bytes(message, "big"),
-        int.from_bytes(sigma, "big"),
+        int.from_bytes(randomness, "big"),
     ]
     return garaga_rs.drand_tlock_encrypt_calldata_builder(data)
 
