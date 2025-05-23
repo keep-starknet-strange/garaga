@@ -1,7 +1,9 @@
 use crate::algebra::extf_mul::{from_e2, to_e2};
 use crate::definitions::{CurveParamsProvider, FieldElement};
+use crate::io::biguint_to_u256;
+use lambdaworks_math::elliptic_curve::short_weierstrass::traits::IsShortWeierstrass;
 use lambdaworks_math::field::traits::{IsField, IsPrimeField, IsSubFieldOf};
-use num_bigint::BigInt;
+use num_bigint::{BigInt, BigUint, Sign};
 
 #[derive(Debug, Clone)]
 pub struct G2Point<F, E2>
@@ -97,7 +99,81 @@ where
         G2Point::new_unchecked(zero.clone(), zero)
     }
 
-    pub fn scalar_mul(&self, _scalar: BigInt) -> G2Point<F, E2> {
-        todo!() // TODO
+    pub fn add<C>(&self, other: &G2Point<F, E2>) -> G2Point<F, E2>
+    where
+        C: IsShortWeierstrass<BaseField = E2>,
+    {
+        g2_point_add::<F, E2, C>(self.clone(), other.clone())
+    }
+
+    pub fn scalar_mul<C>(&self, scalar: BigInt) -> G2Point<F, E2>
+    where
+        C: IsShortWeierstrass<BaseField = E2>,
+    {
+        if self.is_infinity() {
+            return self.clone();
+        }
+        if scalar == BigInt::ZERO {
+            return Self::new_infinity();
+        }
+
+        let base = self.clone();
+
+        let sign = scalar.sign();
+        let abs_scalar = match sign {
+            Sign::Plus => scalar,
+            Sign::Minus => -scalar,
+            _ => scalar,
+        };
+        let scalar: BigUint = abs_scalar.to_biguint().unwrap();
+
+        let mut result = g2_point_scalar_mul::<F, E2, C>(base, scalar);
+
+        if sign == num_bigint::Sign::Minus {
+            result = result.neg();
+        }
+
+        result
+    }
+}
+
+pub fn g2_point_add<F, E2, C>(a: G2Point<F, E2>, b: G2Point<F, E2>) -> G2Point<F, E2>
+where
+    F: IsPrimeField + IsSubFieldOf<E2> + CurveParamsProvider<F>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+    C: IsShortWeierstrass<BaseField = E2>,
+{
+    use lambdaworks_math::cyclic_group::IsGroup;
+    use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
+    use lambdaworks_math::elliptic_curve::traits::FromAffine;
+    let a = ShortWeierstrassProjectivePoint::<C>::from_affine(a.x, a.y).unwrap();
+    let b = ShortWeierstrassProjectivePoint::<C>::from_affine(b.x, b.y).unwrap();
+    let c = a.operate_with(&b).to_affine();
+    if c.z() == &FieldElement::zero() {
+        G2Point::new_infinity()
+    } else {
+        let x = c.x().value().clone();
+        let y = c.y().value().clone();
+        G2Point::new(x, y).unwrap()
+    }
+}
+
+pub fn g2_point_scalar_mul<F, E2, C>(a: G2Point<F, E2>, k: BigUint) -> G2Point<F, E2>
+where
+    F: IsPrimeField + IsSubFieldOf<E2> + CurveParamsProvider<F>,
+    E2: IsField<BaseType = [FieldElement<F>; 2]>,
+    C: IsShortWeierstrass<BaseField = E2>,
+{
+    use lambdaworks_math::cyclic_group::IsGroup;
+    use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
+    use lambdaworks_math::elliptic_curve::traits::FromAffine;
+    let a = ShortWeierstrassProjectivePoint::<C>::from_affine(a.x, a.y).unwrap();
+    let c = a.operate_with_self(biguint_to_u256(&k)).to_affine();
+    if c.z() == &FieldElement::zero() {
+        G2Point::new_infinity()
+    } else {
+        let x = c.x().value().clone();
+        let y = c.y().value().clone();
+        G2Point::new(x, y).unwrap()
     }
 }

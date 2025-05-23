@@ -6,6 +6,7 @@ use crate::pairing::final_exp_witness::{bls12_381_final_exp_witness, to_bls};
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField as BLS12381Degree12ExtensionField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField as BLS12381Degree2ExtensionField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::pairing::BLS12381AtePairing;
+use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::twist::BLS12381TwistCurve;
 use lambdaworks_math::elliptic_curve::short_weierstrass::point::ShortWeierstrassProjectivePoint;
 use lambdaworks_math::elliptic_curve::traits::{FromAffine, IsPairing};
 use num_bigint::BigUint;
@@ -42,7 +43,7 @@ pub fn encrypt_for_round(
         r % curve_params.n
     };
 
-    let u = G2Point::generator().scalar_mul(r.clone().into());
+    let u = G2Point::generator().scalar_mul::<BLS12381TwistCurve>(r.clone().into());
 
     let r_gid = bls12_381_final_exp_witness::pow_custom(&gid, &r);
 
