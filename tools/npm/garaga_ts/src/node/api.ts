@@ -135,7 +135,7 @@ export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'lat
   if (!data || !data.round || !data.randomness || !data.signature) {
     throw new Error('Unexpected response: ' + JSON.stringify(data));
   }
-  if (Number(data.round) !== roundNumber) {
+  if (roundNumber !== 'latest' && Number(data.round) !== roundNumber) {
     throw new Error('Inconsistent roundNumber: ' + JSON.stringify(data));
   }
   const randomness = BigInt('0x' + data.randomness.replace(/^0x/i, ''));
