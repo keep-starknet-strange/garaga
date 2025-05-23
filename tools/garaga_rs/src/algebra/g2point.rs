@@ -137,7 +137,7 @@ where
     }
 }
 
-pub fn g2_point_add<F, E2, C>(a: G2Point<F, E2>, b: G2Point<F, E2>) -> G2Point<F, E2>
+fn g2_point_add<F, E2, C>(a: G2Point<F, E2>, b: G2Point<F, E2>) -> G2Point<F, E2>
 where
     F: IsPrimeField + IsSubFieldOf<E2> + CurveParamsProvider<F>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
@@ -158,7 +158,7 @@ where
     }
 }
 
-pub fn g2_point_scalar_mul<F, E2, C>(a: G2Point<F, E2>, k: BigUint) -> G2Point<F, E2>
+fn g2_point_scalar_mul<F, E2, C>(a: G2Point<F, E2>, k: BigUint) -> G2Point<F, E2>
 where
     F: IsPrimeField + IsSubFieldOf<E2> + CurveParamsProvider<F>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
