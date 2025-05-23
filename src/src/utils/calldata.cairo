@@ -34,6 +34,7 @@ pub struct FullProofWithHintsRisc0 {
 #[derive(Drop)]
 pub struct FullProofWithHintsSP1 {
     pub groth16_proof: Groth16ProofRaw,
+    pub vkey: u256,
     pub public_inputs_sp1: Array<u32>,
     pub mpcheck_hint: MPCheckHintBN254,
     pub small_Q: E12DMulQuotient<u288>,
@@ -304,7 +305,10 @@ fn deserialize_full_proof_with_hints_risc0(
 fn deserialize_full_proof_with_hints_sp1(mut serialized: Span<felt252>) -> FullProofWithHintsSP1 {
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
-
+    let vkey = u256 {
+        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+        high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+    };
     let n_u32: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs_sp1: Array<u32> = array![];
 
@@ -327,6 +331,7 @@ fn deserialize_full_proof_with_hints_sp1(mut serialized: Span<felt252>) -> FullP
     let msm_hint = serialized;
     return FullProofWithHintsSP1 {
         groth16_proof: groth16_proof,
+        vkey: vkey,
         public_inputs_sp1: public_inputs_sp1,
         mpcheck_hint: mpcheck_hint,
         small_Q: small_Q,
