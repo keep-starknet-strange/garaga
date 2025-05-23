@@ -10,7 +10,7 @@ describe('Groth16 Parsing Tests', () => {
     `${PATH}/vk_bls.json`,
     `${PATH}/gnark_vk_bn254.json`,
     `${PATH}/vk_risc0.json`,
-    `${PATH}/vk_sp1_4_0_0.json`,
+    `${PATH}/vk_sp1.json`,
   ];
 
   test.each(vkPaths)('should parse vk from %s', (vkPath) => {
