@@ -34,7 +34,10 @@ class CipherText:
         cd.extend(io.bigint_split(self.U.x[1]))
         cd.extend(io.bigint_split(self.U.y[0]))
         cd.extend(io.bigint_split(self.U.y[1]))
-        # TODO
+        for b in self.V:
+            cd.append(b)
+        for b in self.W:
+            cd.append(b)
         return cd
 
 

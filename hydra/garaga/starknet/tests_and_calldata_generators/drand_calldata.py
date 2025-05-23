@@ -81,7 +81,7 @@ def drand_encrypt_to_calldata(
 def _drand_encrypt_to_calldata(
     round_number: int,
     message: bytes,
-    sigma: bytes,
+    randomness: bytes,
 ) -> list[int]:
     data = [
         round_number,

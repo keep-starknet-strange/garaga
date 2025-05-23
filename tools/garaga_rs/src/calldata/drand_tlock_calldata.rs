@@ -1,9 +1,11 @@
+use crate::algebra::extf_mul::from_e2;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
 use crate::calldata::drand_calldata::{
     digest_func, get_chain_hash, get_chain_info, hash_to_curve, DrandNetwork,
 };
 use crate::definitions::{BLS12381PrimeField, CurveParamsProvider, FieldElement};
+use crate::io::field_element_to_u384_limbs;
 use crate::pairing::final_exp_witness::{bls12_381_final_exp_witness, to_bls};
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField as BLS12381Degree12ExtensionField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree2ExtensionField as BLS12381Degree2ExtensionField;
@@ -44,7 +46,7 @@ pub fn drand_tlock_encrypt_calldata_builder(values: &[BigUint]) -> Result<Vec<Bi
     let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
     let public_key = chain.public_key.g2_point().unwrap().clone();
     let cipher_text = encrypt_for_round(public_key, round_number, message, randomness)?;
-    let call_data = cipher_text.serialize_to_calldata();
+    let call_data = cipher_text.to_calldata();
     Ok(call_data)
 }
 
@@ -55,8 +57,21 @@ pub struct CipherText {
 }
 
 impl CipherText {
-    pub fn serialize_to_calldata(&self) -> Vec<BigUint> {
-        vec![] // TODO
+    pub fn to_calldata(&self) -> Vec<BigUint> {
+        let u_x = from_e2(self.u.x.clone());
+        let u_y = from_e2(self.u.y.clone());
+        let mut call_data = vec![];
+        call_data.extend(field_element_to_u384_limbs(&u_x[0]).map(BigUint::from));
+        call_data.extend(field_element_to_u384_limbs(&u_x[1]).map(BigUint::from));
+        call_data.extend(field_element_to_u384_limbs(&u_y[0]).map(BigUint::from));
+        call_data.extend(field_element_to_u384_limbs(&u_y[1]).map(BigUint::from));
+        for b in self.v {
+            call_data.push(b.into());
+        }
+        for b in self.w {
+            call_data.push(b.into());
+        }
+        call_data
     }
 }
 
@@ -67,7 +82,9 @@ pub fn encrypt_for_round(
     sigma: [u8; 16],
 ) -> Result<CipherText, String> {
     let round_number = round_number.try_into().unwrap();
+
     let msg_at_round = digest_func(round_number);
+
     let pt_at_round = hash_to_curve::<BLS12381PrimeField>(msg_at_round, "sha256")?;
 
     let gid = bls12381_single_pairing(pt_at_round, public_key)?;
@@ -159,7 +176,7 @@ fn expand_message_drand(msg: &[u8], buf_size: usize) -> Vec<u8> {
     const BITS_TO_MASK_FOR_BLS12381: usize = 1;
     let curve_params = BLS12381PrimeField::get_curve_params();
     let order = curve_params.n;
-    for i in 0..65536 {
+    for i in 1..65536 {
         // u16::MAX is 65535
         let i: u16 = i.try_into().unwrap();
 
@@ -194,4 +211,25 @@ fn expand_message_drand(msg: &[u8], buf_size: usize) -> Vec<u8> {
 
 fn sha256_digest(data: &[u8]) -> [u8; 32] {
     Sha256::digest(data).into()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_encrypt_for_round_1() {
+        let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet)).unwrap();
+        let public_key = chain.public_key.g2_point().unwrap().clone();
+        let cypher_text =
+            encrypt_for_round(public_key, 1, *b"1234567890abcdef", *b"deaf00013000beef").unwrap();
+        let expected_v = [
+            211, 169, 110, 124, 57, 249, 177, 59, 54, 206, 185, 125, 242, 220, 74, 184,
+        ];
+        let expected_w = [
+            60, 105, 170, 165, 30, 223, 128, 199, 37, 162, 104, 106, 18, 148, 250, 43,
+        ];
+        assert_eq!(cypher_text.v, expected_v);
+        assert_eq!(cypher_text.w, expected_w);
+    }
 }
