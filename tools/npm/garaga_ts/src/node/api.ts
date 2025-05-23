@@ -2,6 +2,7 @@
 
 import {
   drand_calldata_builder,
+  drand_tlock_encrypt_calldata_builder,
   msm_calldata_builder,
   mpc_calldata_builder,
   schnorr_calldata_builder,
@@ -105,7 +106,7 @@ const DRAND_BASE_URLS = [
 const DRAND_QUICKNET_HASH = '52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971';
 
 type DrandRandomnessBeacon = {
-  round: number;
+  roundNumber: number;
   randomness: bigint;
   signature: bigint;
 };
@@ -114,8 +115,8 @@ export async function fetchAndGetDrandCallData(roundNumber: number | 'latest' = 
   return getDrandCallData(await fetchDrandRandomness(roundNumber, chainHash, baseUrls));
 }
 
-export function getDrandCallData({ round, randomness, signature }: DrandRandomnessBeacon): bigint[] {
-  return drand_calldata_builder([round, randomness, signature]);
+export function getDrandCallData({ roundNumber, randomness, signature }: DrandRandomnessBeacon): bigint[] {
+  return drand_calldata_builder([roundNumber, randomness, signature]);
 }
 
 export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<DrandRandomnessBeacon> {
@@ -134,10 +135,19 @@ export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'lat
   if (!data || !data.round || !data.randomness || !data.signature) {
     throw new Error('Unexpected response: ' + JSON.stringify(data));
   }
-  const round = Number(data.round);
+  if (Number(data.round) !== roundNumber) {
+    throw new Error('Inconsistent roundNumber: ' + JSON.stringify(data));
+  }
   const randomness = BigInt('0x' + data.randomness.replace(/^0x/i, ''));
   const signature = BigInt('0x' + data.signature.replace(/^0x/i, ''));
-  return { round, randomness, signature };
+  return { roundNumber, randomness, signature };
+}
+
+export function encryptToDrandRoundAndGetCallData(roundNumber: number, message: Uint8Array, randomness: bigint): bigint[] {
+  if (message.length != 16) throw new Error('Message size should be 16');
+  const value = message.reduce((acc, b) => (acc << 8n) | BigInt(b), 0n);
+  randomness = randomness % (1n << 128n);
+  return drand_tlock_encrypt_calldata_builder([roundNumber, value, randomness]);
 }
 
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {

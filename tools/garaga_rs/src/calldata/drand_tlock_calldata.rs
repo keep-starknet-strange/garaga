@@ -56,7 +56,7 @@ pub struct CipherText {
 
 impl CipherText {
     pub fn serialize_to_calldata(&self) -> Vec<BigUint> {
-        todo!() // TODO
+        vec![] // TODO
     }
 }
 

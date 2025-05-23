@@ -1,9 +1,11 @@
 import hashlib
 import secrets
 from dataclasses import dataclass
+from typing import Optional
 
 from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
 from garaga.drand.client import DrandNetwork, digest_func
+from garaga.hints import io
 from garaga.hints.tower_backup import E12
 from garaga.signature import hash_to_curve
 
@@ -26,11 +28,27 @@ class CipherText:
         """
         return code
 
+    def serialize_to_calldata(self) -> list[int]:
+        cd = []
+        cd.extend(io.bigint_split(self.U.x[0]))
+        cd.extend(io.bigint_split(self.U.x[1]))
+        cd.extend(io.bigint_split(self.U.y[0]))
+        cd.extend(io.bigint_split(self.U.y[1]))
+        # TODO
+        return cd
+
 
 def encrypt_for_round(
-    drand_public_key: G2Point, round: int, message: bytes, debug: bool = False
+    drand_public_key: G2Point,
+    round: int,
+    message: bytes,
+    debug: bool = False,
+    fixed_sigma: Optional[bytes] = None,
 ) -> CipherText:
     assert len(message) == 16, f"Message should be 16 bytes: {len(message)}"
+    assert (
+        fixed_sigma == None or len(fixed_sigma) == 16
+    ), f"Fixed sigma should be 16 bytes: {len(fixed_sigma)}"
 
     msg_at_round = digest_func(round)
     # print(f"msg_at_round list of ints: {list(msg_at_round)}")
@@ -40,7 +58,7 @@ def encrypt_for_round(
 
     if debug:
         # Use a fixed sigma for debugging:
-        sigma = b"0000000000000000"
+        sigma = b"0000000000000000" if fixed_sigma is None else fixed_sigma
     else:
         sigma: bytes = secrets.token_bytes(16)
 

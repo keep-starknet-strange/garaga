@@ -5,6 +5,7 @@ import pytest
 from garaga.definitions import CURVES, CurveID, G1Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_encrypt_to_calldata,
     drand_round_to_calldata,
 )
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
@@ -96,6 +97,33 @@ def test_drand_randomness_to_calldata(
 
     calldata2 = drand_round_to_calldata(
         round_number,
+        use_rust=True,
+    )
+
+    assert calldata1 == calldata2
+
+
+@pytest.mark.parametrize("round_number", [1, 2, 3])
+@pytest.mark.parametrize(
+    "message", [b"0000000000000000", b"1234567890abcdef", b"fedababafecacaca"]
+)
+@pytest.mark.parametrize("sigma", [b"0000000000000000", b"dead00013000beef"])
+def test_drand_encrypt_to_round_calldata(
+    round_number,
+    message,
+    sigma,
+):
+    calldata1 = drand_encrypt_to_calldata(
+        round_number,
+        message,
+        sigma,
+        use_rust=False,
+    )
+
+    calldata2 = drand_encrypt_to_calldata(
+        round_number,
+        message,
+        sigma,
         use_rust=True,
     )
 
