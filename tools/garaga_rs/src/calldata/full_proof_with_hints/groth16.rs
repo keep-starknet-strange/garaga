@@ -21,8 +21,8 @@ pub struct Groth16Proof {
     pub b: G2PointBigUint,
     pub c: G1PointBigUint,
     pub public_inputs: Vec<BigUint>,
-    pub image_id: Option<Vec<u8>>, // Only used for risc0 proofs
-    pub journal: Option<Vec<u8>>,  // Only used for risc0 proofs
+    pub image_id_journal_risc0: Option<(Vec<u8>, Vec<u8>)>, // Only used for risc0 proofs
+    pub vkey_public_values_sp1: Option<(Vec<u8>, Vec<u8>)>, // Only used for sp1 proofs
 }
 
 impl Groth16Proof {
@@ -34,7 +34,11 @@ impl Groth16Proof {
         result
     }
 
-    pub fn from(values: Vec<BigUint>, image_id: Option<Vec<u8>>, journal: Option<Vec<u8>>) -> Self {
+    pub fn from(
+        values: Vec<BigUint>,
+        image_id_journal_risc0: Option<(Vec<u8>, Vec<u8>)>,
+        vkey_public_values_sp1: Option<(Vec<u8>, Vec<u8>)>,
+    ) -> Self {
         let a = G1PointBigUint::from(values[0..2].to_vec());
         let b = G2PointBigUint::from(values[2..6].to_vec());
         let c = G1PointBigUint::from(values[6..8].to_vec());
@@ -44,49 +48,87 @@ impl Groth16Proof {
             b,
             c,
             public_inputs,
-            image_id,
-            journal,
+            image_id_journal_risc0,
+            vkey_public_values_sp1,
         }
     }
 
     pub fn serialize_to_calldata(&self) -> Vec<BigUint> {
-        let ints = self.flatten();
         let mut cd: Vec<BigUint> = vec![];
 
-        let risc0_mode: bool = self.image_id.is_some() && self.journal.is_some();
-
-        for int in ints {
-            cd.extend(
-                biguint_split::<4, 96>(&int)
-                    .iter()
-                    .map(|&x| BigUint::from(x)),
-            );
+        // Serialize a.x, a.y, b.x[0], b.x[1], b.y[0], b.y[1], c.x, c.y directly
+        // This matches the Python: cd.extend(io.bigint_split(self.a.x)) etc.
+        for v in vec![
+            &self.a.x, &self.a.y, &self.b.x0, &self.b.x1, &self.b.y0, &self.b.y1, &self.c.x,
+            &self.c.y,
+        ] {
+            cd.extend(biguint_split::<4, 96>(v).iter().map(|&x| BigUint::from(x)));
         }
-        match risc0_mode {
-            true => {
-                let image_id_u256 = BigUint::from_bytes_be(self.image_id.as_ref().unwrap());
-                let image_id_u256_split = biguint_split::<8, 32>(&image_id_u256).map(BigUint::from);
-                let image_id_u256_split_reversed = image_id_u256_split.iter().rev().cloned();
-                // Span of u32, length 8.
-                cd.push(BigUint::from(8u64));
-                cd.extend(image_id_u256_split_reversed);
-                // Span of u8, length depends on input
-                cd.push(BigUint::from(self.journal.as_ref().unwrap().len()));
+
+        let risc0_mode = self.image_id_journal_risc0.is_some();
+        let sp1_mode = self.vkey_public_values_sp1.is_some();
+
+        if risc0_mode && !sp1_mode {
+            // Risc0 mode.
+            // Public inputs will be reconstructed from image id and journal.
+            let (image_id, journal) = self.image_id_journal_risc0.as_ref().unwrap();
+            let image_id_u256 = BigUint::from_bytes_be(image_id);
+            let image_id_u256_split = biguint_split::<8, 32>(&image_id_u256).map(BigUint::from);
+            let image_id_u256_split_reversed: Vec<BigUint> =
+                image_id_u256_split.iter().rev().cloned().collect();
+            // Span of u32, length 8.
+            cd.push(BigUint::from(8u64));
+            cd.extend(image_id_u256_split_reversed);
+            // Span of u8, length depends on input
+            cd.push(BigUint::from(journal.len()));
+            cd.extend(journal.iter().map(|&x| BigUint::from(x)));
+        } else if sp1_mode && !risc0_mode {
+            // SP1 mode - matches Python implementation exactly
+            let (vkey, public_values) = self.vkey_public_values_sp1.as_ref().unwrap();
+
+            // public_inputs[0] is the vkey as BigUint - serialize as 2 limbs of 128 bits
+            // This matches Python: cd.extend(io.bigint_split(self.public_inputs[0], 2, 2**128))
+            let vkey_int = &self.public_inputs[0]; // This should already be the vkey as BigUint
+            let vkey_limbs = biguint_split::<2, 128>(vkey_int);
+            cd.extend(vkey_limbs.iter().map(|&x| BigUint::from(x)));
+
+            // Serialize public_values (public_inputs_sp1) as u32 array
+            // This matches Python SP1 serialization exactly
+            let n_bytes = public_values.len();
+            assert_eq!(
+                n_bytes % 32,
+                0,
+                "SP1 public inputs must be a multiple of 32 bytes"
+            );
+            let n_words = n_bytes / 32;
+
+            // Add number of words first (matches Python: cd.append(n_words))
+            cd.push(BigUint::from(n_words));
+
+            // Then serialize as u32 values (matches Python: for i in range(0, n_bytes, 4): cd.append(int.from_bytes(...)))
+            for i in (0..n_bytes).step_by(4) {
+                let word = u32::from_be_bytes([
+                    public_values[i],
+                    public_values[i + 1],
+                    public_values[i + 2],
+                    public_values[i + 3],
+                ]);
+                cd.push(BigUint::from(word));
+            }
+        } else if risc0_mode && sp1_mode {
+            panic!("Cannot have both RISC0 and SP1 modes enabled");
+        } else {
+            // Normal mode.
+            cd.push(BigUint::from(self.public_inputs.len()));
+            for pub_input in &self.public_inputs {
                 cd.extend(
-                    self.journal
-                        .as_ref()
-                        .unwrap()
+                    biguint_split::<2, 128>(pub_input)
                         .iter()
                         .map(|&x| BigUint::from(x)),
                 );
             }
-            false => {
-                cd.push(BigUint::from(self.public_inputs.len()));
-                for pub_input in self.public_inputs.iter() {
-                    cd.extend(biguint_split::<2, 128>(pub_input).map(BigUint::from));
-                }
-            }
         }
+
         cd
     }
 
@@ -129,8 +171,43 @@ impl Groth16Proof {
                 claim1,
                 bn254_control_id,
             ],
-            image_id: Some(image_id),
-            journal: Some(journal),
+            image_id_journal_risc0: Some((image_id, journal)),
+            vkey_public_values_sp1: None,
+        }
+    }
+    pub fn from_sp1(vkey: Vec<u8>, public_values: Vec<u8>, proof: Vec<u8>) -> Self {
+        // sha256(public_values) % 2**253
+        assert!(
+            public_values.len() % 32 == 0,
+            "public_values must be a multiple of 32 bytes"
+        );
+        let pub_input_hash = BigUint::from_bytes_be(&Sha256::digest(&public_values));
+        let pub_input_hash = pub_input_hash % (2u64.pow(253));
+
+        let mut public_inputs_sp1 = Vec::new();
+        for i in 0..public_values.len() / 32 {
+            let public_input = BigUint::from_bytes_be(&public_values[i * 32..(i + 1) * 32]);
+            public_inputs_sp1.push(public_input);
+        }
+
+        Groth16Proof {
+            a: G1PointBigUint {
+                x: BigUint::from_bytes_be(&proof[0..32]),
+                y: BigUint::from_bytes_be(&proof[32..64]),
+            },
+            b: G2PointBigUint {
+                x0: BigUint::from_bytes_be(&proof[96..128]),
+                x1: BigUint::from_bytes_be(&proof[64..96]),
+                y0: BigUint::from_bytes_be(&proof[160..192]),
+                y1: BigUint::from_bytes_be(&proof[128..160]),
+            },
+            c: G1PointBigUint {
+                x: BigUint::from_bytes_be(&proof[192..224]),
+                y: BigUint::from_bytes_be(&proof[224..256]),
+            },
+            public_inputs: vec![BigUint::from_bytes_be(&vkey), pub_input_hash],
+            image_id_journal_risc0: None,
+            vkey_public_values_sp1: Some((vkey, public_values)),
         }
     }
 }
@@ -180,7 +257,8 @@ pub fn get_groth16_calldata(
     curve_id: CurveID,
 ) -> Result<Vec<BigUint>, String> {
     let mut calldata: Vec<BigUint> = Vec::new();
-    let risc0_mode = proof.image_id.is_some() && proof.journal.is_some();
+    let risc0_mode = proof.image_id_journal_risc0.is_some();
+    let sp1_mode = proof.vkey_public_values_sp1.is_some();
     // Calculate vk_x
     let vk_x = calculate_vk_x(vk, &proof.public_inputs, curve_id);
 
@@ -422,7 +500,7 @@ pub mod risc0_utils {
 }
 
 #[cfg(test)]
-mod tests_risc0_utils {
+mod test_groth16_calldata {
     use super::risc0_utils::{ok_digest, split_digest};
     use num_bigint::BigUint;
     use sha2::{Digest, Sha256};
