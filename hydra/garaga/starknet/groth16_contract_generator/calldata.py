@@ -75,12 +75,22 @@ def _groth16_calldata_from_vk_and_proof_rust(
         vk.curve_id == proof.curve_id
     ), f"Curve ID mismatch: {vk.curve_id} != {proof.curve_id}"
 
+    # Determine vkey for SP1 proofs - it's embedded in public_inputs[0]
+    vkey = None
+    if proof.public_inputs_sp1 is not None:
+        # For SP1 proofs, the vkey is stored as public_inputs[0] as a big integer
+        # We need to convert it back to bytes (32 bytes, big endian)
+        vkey_int = proof.public_inputs[0]
+        vkey = vkey_int.to_bytes(32, byteorder="big")
+
     return garaga_rs.get_groth16_calldata(
         proof.flatten(),
         vk.flatten(),
         proof.curve_id.value,
         proof.image_id,
         proof.journal,
+        proof.public_inputs_sp1,
+        vkey,
     )
 
 

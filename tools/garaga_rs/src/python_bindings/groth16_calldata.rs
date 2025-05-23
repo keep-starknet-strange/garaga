@@ -5,7 +5,7 @@ use crate::definitions::CurveID;
 use pyo3::prelude::*;
 use pyo3::types::PyList;
 
-#[pyfunction(signature = (proof, vk, curve_id, image_id=None, journal=None))]
+#[pyfunction(signature = (proof, vk, curve_id, image_id=None, journal=None, public_inputs_sp1=None, vkey=None))]
 pub fn get_groth16_calldata(
     py: Python,
     proof: &Bound<'_, PyList>,
@@ -13,6 +13,8 @@ pub fn get_groth16_calldata(
     curve_id: usize,
     image_id: Option<&[u8]>,
     journal: Option<&[u8]>,
+    public_inputs_sp1: Option<&[u8]>,
+    vkey: Option<&[u8]>,
 ) -> PyResult<PyObject> {
     let proof_values = proof
         .into_iter()
@@ -23,13 +25,23 @@ pub fn get_groth16_calldata(
         .map(|x| x.extract())
         .collect::<Result<Vec<BigUint>, _>>()?;
 
-    // Handle optional parameters
-    let image_id_values = image_id.map(|id| id.to_vec());
+    // Handle RISC0 optional parameters
+    let image_id_journal_risc0 = if let (Some(image_id), Some(journal)) = (image_id, journal) {
+        Some((image_id.to_vec(), journal.to_vec()))
+    } else {
+        None
+    };
 
-    let journal_values = journal.map(|j| j.to_vec());
+    // Handle SP1 optional parameters
+    let vkey_public_values_sp1 =
+        if let (Some(vkey), Some(public_inputs_sp1)) = (vkey, public_inputs_sp1) {
+            Some((vkey.to_vec(), public_inputs_sp1.to_vec()))
+        } else {
+            None
+        };
 
     let result = groth16::get_groth16_calldata(
-        &Groth16Proof::from(proof_values, image_id_values, journal_values),
+        &Groth16Proof::from(proof_values, image_id_journal_risc0, vkey_public_values_sp1),
         &Groth16VerificationKey::from(vk_values),
         CurveID::try_from(curve_id).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?,
     )

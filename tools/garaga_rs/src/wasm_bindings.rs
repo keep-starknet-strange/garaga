@@ -290,7 +290,8 @@ fn jsvalue_from_g1_point_array(
 }
 
 // Optional parsing helper for Uint8Array
-fn parse_optional_uint8_array(value: JsValue) -> Option<Vec<u8>> {
+#[allow(dead_code)]
+fn _parse_optional_uint8_array(value: JsValue) -> Option<Vec<u8>> {
     value.dyn_into::<Uint8Array>().ok().map(|arr| arr.to_vec())
 }
 
@@ -354,16 +355,51 @@ pub fn get_groth16_calldata(
 
     let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
 
-    let image_id = parse_optional_uint8_array(get_property(&proof_obj, "imageId")?);
-    let journal = parse_optional_uint8_array(get_property(&proof_obj, "journal")?);
+    // Parse RISC0 data if present
+    let image_id_journal_risc0 = match get_property(&proof_obj, "imageIdJournalRisc0") {
+        Ok(value) if !value.is_undefined() && !value.is_null() => {
+            let risc0_obj = value
+                .dyn_into::<js_sys::Object>()
+                .map_err(|_| JsValue::from_str("imageIdJournalRisc0 is not an object"))?;
+            let image_id = get_property(&risc0_obj, "imageId")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("imageId is not a Uint8Array"))?;
+            let journal = get_property(&risc0_obj, "journal")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("journal is not a Uint8Array"))?;
+            Some((image_id, journal))
+        }
+        _ => None,
+    };
+
+    // Parse SP1 data if present
+    let vkey_public_values_sp1 = match get_property(&proof_obj, "vkeyPublicValuesSp1") {
+        Ok(value) if !value.is_undefined() && !value.is_null() => {
+            let sp1_obj = value
+                .dyn_into::<js_sys::Object>()
+                .map_err(|_| JsValue::from_str("vkeyPublicValuesSp1 is not an object"))?;
+            let vkey = get_property(&sp1_obj, "vkey")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("vkey is not a Uint8Array"))?;
+            let public_values = get_property(&sp1_obj, "publicValues")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("publicValues is not a Uint8Array"))?;
+            Some((vkey, public_values))
+        }
+        _ => None,
+    };
 
     let proof = Groth16Proof {
         a,
         b,
         c,
         public_inputs,
-        image_id,
-        journal,
+        image_id_journal_risc0,
+        vkey_public_values_sp1,
     };
 
     let vk_obj = vk_js
