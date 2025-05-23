@@ -40,3 +40,6 @@ ci-wasm:
 
 wasm:
 	./tools/make/wasm.sh
+
+wasm-test-gen:
+	./tools/make/wasm-test-gen.sh

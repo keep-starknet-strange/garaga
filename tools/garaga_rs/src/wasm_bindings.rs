@@ -290,7 +290,8 @@ fn jsvalue_from_g1_point_array(
 }
 
 // Optional parsing helper for Uint8Array
-fn parse_optional_uint8_array(value: JsValue) -> Option<Vec<u8>> {
+#[allow(dead_code)]
+fn _parse_optional_uint8_array(value: JsValue) -> Option<Vec<u8>> {
     value.dyn_into::<Uint8Array>().ok().map(|arr| arr.to_vec())
 }
 

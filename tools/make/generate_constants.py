@@ -49,6 +49,18 @@ RISC0_OUTPUT_TAG = "{risc0["output_tag"]}"
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w") as f:
         f.write(python_code)
+    # Run black on the generated file to ensure formatting
+    try:
+        import subprocess
+
+        subprocess.run(
+            ["black", output_path],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+    except Exception as e:
+        print(f"Warning: Could not run black on {output_path}: {e}")
     print(f"Generated Python constants: {output_path}")
 
 
