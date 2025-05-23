@@ -119,11 +119,11 @@ export function getDrandCallData({ roundNumber, randomness, signature }: DrandRa
   return drand_calldata_builder([roundNumber, randomness, signature]);
 }
 
-export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<DrandRandomnessBeacon> {
+export async function fetchDrandRandomness(roundNumberArg: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<DrandRandomnessBeacon> {
   if (baseUrls.length == 0) {
     throw new Error('No base url provided');
   }
-  const endpoint = '/' + chainHash + '/public/' + roundNumber;
+  const endpoint = '/' + chainHash + '/public/' + roundNumberArg;
   const promises = baseUrls.map((baseUrl) => fetch(baseUrl + endpoint));
   let response;
   try {
@@ -135,8 +135,9 @@ export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'lat
   if (!data || !data.round || !data.randomness || !data.signature) {
     throw new Error('Unexpected response: ' + JSON.stringify(data));
   }
-  if (roundNumber !== 'latest' && Number(data.round) !== roundNumber) {
-    throw new Error('Inconsistent roundNumber: ' + JSON.stringify(data));
+  const roundNumber = Number(data.round);
+  if (roundNumberArg !== 'latest' && roundNumber !== roundNumberArg) {
+    throw new Error('Inconsistent roundNumber: found ' + roundNumber + ', expected ' + roundNumberArg);
   }
   const randomness = BigInt('0x' + data.randomness.replace(/^0x/i, ''));
   const signature = BigInt('0x' + data.signature.replace(/^0x/i, ''));
