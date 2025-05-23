@@ -494,7 +494,7 @@ class Groth16Proof:
         pub_input_hash: bytes = hashlib.sha256(public_inputs).digest()
         pub_input_hash: int = int.from_bytes(pub_input_hash, "big") % (
             2**253
-        )  # <=> & ((2 << 253) - 1)
+        )  # <=> & ((1 << 253) - 1)
         # print(f"pub_input_hash: {hex(pub_input_hash)}")
         return Groth16Proof(
             a=G1Point(
