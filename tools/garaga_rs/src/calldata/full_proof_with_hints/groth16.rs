@@ -15,9 +15,9 @@ use hex;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint, Sign};
+use num_traits::Num;
 use sha2::{Digest, Sha256};
 use starknet_types_core::felt::Felt;
-
 pub struct Groth16Proof {
     pub a: G1PointBigUint,
     pub b: G2PointBigUint,
@@ -232,6 +232,7 @@ impl Groth16Proof {
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Groth16VerificationKey {
     pub alpha: G1PointBigUint,
     pub beta: G2PointBigUint,
@@ -259,6 +260,38 @@ impl Groth16VerificationKey {
             ic,
         }
     }
+}
+
+pub fn get_sp1_vk() -> Groth16VerificationKey {
+    let vk_hex = [
+        "2d4d9aa7e302d9df41749d5507949d05dbea33fbb16c643b22f599a2be6df2e2",
+        "14bedd503c37ceb061d8ec60209fe345ce89830a19230301f076caff004d1926",
+        "e187847ad4c798374d0d6732bf501847dd68bc0e071241e0213bc7fc13db7ab",
+        "967032fcbf776d1afc985f88877f182d38480a653f2decaa9794cbc3bf3060c",
+        "1739c1b1a457a8c7313123d24d2f9192f896b7c63eea05a9d57f06547ad0cec8",
+        "304cfbd1e08a704a99f5e847d93f8c3caafddec46b7a0d379da69a4d112346a7",
+        "1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
+        "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
+        "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
+        "90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
+        "2b65c9ae2605f3ef5540d3a64503c84fe5e1d9ec6eb1bd3a906bbc80830e8e54",
+        "262eabe81511aa8e3034cbd75d42e708aa4ed80303fb0e4fb90cd0ff6e909213",
+        "10d11978bbdb3e8ea543e3de42abfc4ab330719ba32f295372ae1f43c7cee800",
+        "1561b6218d8fe8b013f981f0259304a043919da2a7674b397d90e20b01b46b39",
+        "ed6e0c13f353262ae2dbbe49ce6a0b67576d38aaf5958564be7648356830ef7",
+        "28200d54013565dca196841d0a3cd7a5f67531f9748772f553e1e9845f6c0949",
+        "1b611b8f696f28ffb6250c7ffac66efbd638d97f0d6c843c23691c3af532c9e3",
+        "248c1033bd73c4ff820d480a37b39ca6ef178543c5c9190459e8cfe36c48e51a",
+        "2974086bde6c91267b201137cfe6ee8cd50ff0a3da861e808503e7df4da87b8d",
+        "40addd35913f11ea6846f0d583126bab9e8f8ae69797d4c2c7f195be0785471",
+    ];
+
+    Groth16VerificationKey::from(
+        vk_hex
+            .iter()
+            .map(|s| BigUint::from_str_radix(s, 16).unwrap())
+            .collect::<Vec<BigUint>>(),
+    )
 }
 
 pub fn get_groth16_calldata_felt(

@@ -32,9 +32,12 @@ pub fn get_groth16_calldata(
         None
     };
 
+    let verifying_key = Groth16VerificationKey::from(vk_values);
+
     // Handle SP1 optional parameters
     let vkey_public_values_sp1 =
         if let (Some(vkey), Some(public_inputs_sp1)) = (vkey, public_inputs_sp1) {
+            assert!(verifying_key == groth16::get_sp1_vk());
             Some((vkey.to_vec(), public_inputs_sp1.to_vec()))
         } else {
             None
@@ -42,7 +45,7 @@ pub fn get_groth16_calldata(
 
     let result = groth16::get_groth16_calldata(
         &Groth16Proof::from(proof_values, image_id_journal_risc0, vkey_public_values_sp1),
-        &Groth16VerificationKey::from(vk_values),
+        &verifying_key,
         CurveID::try_from(curve_id).map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?,
     )
     .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
