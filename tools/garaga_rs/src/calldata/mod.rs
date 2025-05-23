@@ -11,12 +11,13 @@ pub mod signatures;
 use crate::definitions::{get_modulus_from_curve_id, CurveID};
 use num_bigint::BigUint;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct G1PointBigUint {
     pub x: BigUint,
     pub y: BigUint,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct G2PointBigUint {
     pub x0: BigUint,
     pub x1: BigUint,
