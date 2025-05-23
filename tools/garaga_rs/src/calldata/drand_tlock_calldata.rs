@@ -14,7 +14,7 @@ use lambdaworks_math::elliptic_curve::traits::{FromAffine, IsPairing};
 use num_bigint::BigUint;
 use sha2::{Digest, Sha256};
 
-pub fn drand_tlock_calldata_builder(values: &[BigUint]) -> Result<Vec<BigUint>, String> {
+pub fn drand_tlock_encrypt_calldata_builder(values: &[BigUint]) -> Result<Vec<BigUint>, String> {
     if values.len() != 3 {
         return Err(format!("Invalid data array length: {}", values.len()));
     }
