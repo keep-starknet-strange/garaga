@@ -1,4 +1,4 @@
-import {  parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
+import { parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
 
 const PATH = '../../../hydra/garaga/starknet/groth16_contract_generator/examples';
 
@@ -10,6 +10,7 @@ describe('Groth16 Parsing Tests', () => {
     `${PATH}/vk_bls.json`,
     `${PATH}/gnark_vk_bn254.json`,
     `${PATH}/vk_risc0.json`,
+    `${PATH}/vk_sp1_4_0_0.json`,
   ];
 
   test.each(vkPaths)('should parse vk from %s', (vkPath) => {
@@ -21,7 +22,9 @@ describe('Groth16 Parsing Tests', () => {
 
   const proofPaths = [
     `${PATH}/proof_bn254.json`,
-    `${PATH}/proof_bls.json`
+    `${PATH}/proof_bls.json`,
+    `${PATH}/proof_risc0.json`,
+    `${PATH}/proof_sp1.json`,
   ];
 
   test.each(proofPaths)('should parse proof from %s', (proofPath) => {

@@ -19,8 +19,8 @@ export interface Groth16Proof {
     c: G1Point,
     publicInputs: bigint[],
     curveId?: CurveId,
-    imageId?: Uint8Array,
-    journal?: Uint8Array
+    imageIdJournalRisc0?: { imageId: Uint8Array, journal: Uint8Array },
+    vkeyPublicValuesSp1?: { vkey: Uint8Array, publicValues: Uint8Array }
 }
 
 export interface Groth16VerifyingKey {
@@ -192,22 +192,53 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
             proof = data
         }
 
+        // Try RISC0 parsing first
         try {
-
-
-            const sealHex = toHexStr(findItemFromKeyPatterns(proof, ['seal']));
-            const imageIdHex = toHexStr(findItemFromKeyPatterns(proof, ['image_id']));
-            const journalHex = toHexStr(findItemFromKeyPatterns(proof, ['journal']));
+            const sealHex = toHexStr(findItemFromKeyPatterns(data, ['seal']));
+            const imageIdHex = toHexStr(findItemFromKeyPatterns(data, ['image_id']));
+            const journalHex = toHexStr(findItemFromKeyPatterns(data, ['journal']));
 
             const sealBytes = hexStringToBytes(sealHex);
             const imageIdBytes = hexStringToBytes(imageIdHex);
             const journalBytes = hexStringToBytes(journalHex);
 
-
             return createGroth16ProofFromRisc0(sealBytes, imageIdBytes, journalBytes)
-
         } catch (err) {
+            // Continue to SP1 parsing
+        }
 
+        // Try SP1 parsing second
+        try {
+            const sp1VkeyHex = findItemFromKeyPatterns(data, ['vkey']);
+            const sp1PublicValuesHex = findItemFromKeyPatterns(data, ['publicValues']);
+            const sp1ProofHex = findItemFromKeyPatterns(data, ['proof']);
+
+            let vkeyBytes: Uint8Array;
+            let publicValuesBytes: Uint8Array;
+            let proofBytes: Uint8Array;
+
+            // Handle hex strings directly to preserve leading zeros
+            if (typeof sp1VkeyHex === 'string') {
+                vkeyBytes = hexStringToBytes(sp1VkeyHex);
+            } else {
+                vkeyBytes = hexStringToBytes(toHexStr(sp1VkeyHex));
+            }
+
+            if (typeof sp1PublicValuesHex === 'string') {
+                publicValuesBytes = hexStringToBytes(sp1PublicValuesHex);
+            } else {
+                publicValuesBytes = hexStringToBytes(toHexStr(sp1PublicValuesHex));
+            }
+
+            if (typeof sp1ProofHex === 'string') {
+                proofBytes = hexStringToBytes(sp1ProofHex);
+            } else {
+                proofBytes = hexStringToBytes(toHexStr(sp1ProofHex));
+            }
+
+            return createGroth16ProofFromSp1(vkeyBytes, publicValuesBytes, proofBytes);
+        } catch (err) {
+            // Continue to regular proof parsing
         }
 
         let publicInputs: bigint[] = [];
@@ -308,8 +339,10 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
             claim1,
             bn254ControlId
         ],
-        imageId,
-        journal
+        imageIdJournalRisc0: {
+            imageId,
+            journal: journalBytes
+        }
     }
     if (checkGroth16Proof(groth16Proof)) {
         return groth16Proof;
@@ -669,3 +702,63 @@ const tryParseG2Point = (point: any, curveId: CurveId): G2Point => {
         throw new Error(`Invalid point: ${point}`);
     }
 }
+
+export const createGroth16ProofFromSp1 = (vkey: Uint8Array, publicValues: Uint8Array, proof: Uint8Array): Groth16Proof => {
+    // SP1 version checking - first 4 bytes should match expected hash
+    const SP1_VERIFIER_HASH = hexStringToBytes("11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4");
+    const selector = proof.slice(0, 4);
+    const expectedSelector = SP1_VERIFIER_HASH.slice(0, 4);
+
+    if (!selector.every((byte, index) => byte === expectedSelector[index])) {
+        throw new Error(`Invalid SP1 proof version. Expected ${Array.from(expectedSelector).map(b => b.toString(16).padStart(2, '0')).join('')} for version v4.0.0-rc.3, got ${Array.from(selector).map(b => b.toString(16).padStart(2, '0')).join('')}`);
+    }
+
+    if (publicValues.length % 32 !== 0) {
+        throw new Error("SP1 public values must be a multiple of 32 bytes");
+    }
+
+    // Hash public values and take mod 2^253
+    const pubInputHash = createHash("sha256").update(publicValues).digest();
+    const power253 = 1n << 253n; // 2^253 using bit shift
+    const pubInputHashBigInt = toBigInt(pubInputHash) % power253;
+
+    const actualProof = proof.slice(4);
+
+    const groth16Proof: Groth16Proof = {
+        a: {
+            x: toBigInt(actualProof.slice(0, 32)),
+            y: toBigInt(actualProof.slice(32, 64)),
+            curveId: CurveId.BN254
+        },
+        b: {
+            x: [
+                toBigInt(actualProof.slice(96, 128)),
+                toBigInt(actualProof.slice(64, 96))
+            ],
+            y: [
+                toBigInt(actualProof.slice(160, 192)),
+                toBigInt(actualProof.slice(128, 160))
+            ],
+            curveId: CurveId.BN254
+        },
+        c: {
+            x: toBigInt(actualProof.slice(192, 224)),
+            y: toBigInt(actualProof.slice(224, 256)),
+            curveId: CurveId.BN254
+        },
+        publicInputs: [
+            toBigInt(vkey),
+            pubInputHashBigInt
+        ],
+        vkeyPublicValuesSp1: {
+            vkey,
+            publicValues
+        }
+    };
+
+    if (checkGroth16Proof(groth16Proof)) {
+        return groth16Proof;
+    }
+
+    throw new Error(`Invalid SP1 Groth16 proof: ${groth16Proof}`);
+};
