@@ -88,4 +88,6 @@ docker compose up --build
 
 cd ../integration-test-suite
 
-cp ../garaga_ts/garaga-0.18.0.tgz garaga.tgz
+GARAGA_VERSION=$(jq -r '.release_info.version' ../../make/constants.json)
+cp ../garaga_ts/garaga-$GARAGA_VERSION.tgz garaga.tgz
+npm install garaga.tgz
