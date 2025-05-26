@@ -27,6 +27,12 @@ def test_vk_parsing(vk_path: str):
     vk = Groth16VerifyingKey.from_json(vk_path)
     print(vk)
 
+    # if vk_path == f"{PATH}/vk_sp1.json":
+    #     print("[")
+    #     for e in vk.flatten():
+    #         print(f'"{hex(e)[2:]}",')
+    #     print("]")
+
 
 @pytest.mark.parametrize(
     "proof_path",
