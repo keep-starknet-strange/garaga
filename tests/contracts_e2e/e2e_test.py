@@ -28,6 +28,7 @@ from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_encrypt_to_calldata,
     drand_round_to_calldata,
 )
 
@@ -232,6 +233,28 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
         prepare_invoke = PreparedFunctionInvokeV3(
             to_addr=function_call.contract_data.address,
             calldata=drand_round_to_calldata(drand_round),
+            selector=function_call.get_selector(function_call.name),
+            _contract_data=function_call.contract_data,
+            _client=function_call.client,
+            _account=function_call.account,
+            _payload_transformer=function_call._payload_transformer,
+            resource_bounds=None,
+        )
+
+        invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
+
+        await invoke_result.wait_for_acceptance()
+
+    function_call: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["decrypt"]
+    )
+
+    drand_message = b"hello\x00\x00\x00\x00\x00\x00\x00\x00abc"
+
+    for drand_round in range(1, 5):
+        prepare_invoke = PreparedFunctionInvokeV3(
+            to_addr=function_call.contract_data.address,
+            calldata=drand_encrypt_to_calldata(drand_round, drand_message),
             selector=function_call.get_selector(function_call.name),
             _contract_data=function_call.contract_data,
             _client=function_call.client,

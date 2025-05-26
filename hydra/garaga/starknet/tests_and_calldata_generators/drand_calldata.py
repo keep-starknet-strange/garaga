@@ -1,3 +1,6 @@
+import secrets
+from typing import Optional
+
 import garaga.hints.io as io
 from garaga import garaga_rs
 from garaga.drand.client import (
@@ -67,13 +70,16 @@ def _drand_round_to_calldata_rust(
 
 
 def drand_encrypt_to_calldata(
-    round_number: int, message: bytes, randomness: bytes, use_rust=False
+    round_number: int,
+    message: bytes,
+    randomness: Optional[bytes] = None,
+    use_rust=False,
 ) -> list[int]:
     if use_rust:
         return _drand_encrypt_to_calldata(round_number, message, randomness)
     chain = get_chain_info(DrandNetwork.quicknet.value)
     cipher_text = encrypt_for_round(
-        chain.public_key, round_number, message, True, randomness
+        chain.public_key, round_number, message, randomness != None, randomness
     )
     return cipher_text.serialize_to_calldata()
 
@@ -81,8 +87,10 @@ def drand_encrypt_to_calldata(
 def _drand_encrypt_to_calldata(
     round_number: int,
     message: bytes,
-    randomness: bytes,
+    randomness: Optional[bytes] = None,
 ) -> list[int]:
+    if randomness == None:
+        randomness = secrets.token_bytes(16)
     data = [
         round_number,
         int.from_bytes(message, "big"),
