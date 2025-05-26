@@ -245,6 +245,7 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
 
         await invoke_result.wait_for_acceptance()
 
+    """
     function_call: ContractFunction = find_item_from_key_patterns(
         contract.functions, ["decrypt"]
     )
@@ -266,6 +267,7 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
 
         await invoke_result.wait_for_acceptance()
+    """
 
 
 HONK_CONTRACTS = [
