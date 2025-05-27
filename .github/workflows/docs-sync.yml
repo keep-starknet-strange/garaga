@@ -200,9 +200,14 @@ jobs:
 
           git commit -m "🔄 Sync non-docs files from main @ ${{ github.sha }}"
 
-      # 3) Push back to docs
-      - name: Push changes
+      # ─── 3) Push back to docs ─────────────────────────────────────────────
+      - name: Push changes to docs branch
         env:
-          PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          git push https://"$PUSH_TOKEN"@"github.com/${{ github.repository }}" HEAD:docs
+          # Add the PAT to the remote in the format GitHub expects:
+          git remote set-url origin \
+            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+
+          # Now push (HEAD currently points at docs)
+          git push origin HEAD:docs
