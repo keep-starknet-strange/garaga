@@ -72,7 +72,7 @@ jobs:
         if: env.SKIP_PR != 'true'
         id: cpr
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DOCS_SYNC_PAT }}
           branch: docs-sync            # ← single, reusable branch
           base: main
           title: "📚 Update documentation from GitBook"
@@ -84,7 +84,7 @@ jobs:
       - name: Flag mixed-content PRs
         if: env.SKIP_PR != 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.DOCS_SYNC_PAT }}
         run: |
           set -euo pipefail
           # If *any* file outside docs/gitbook changed, add label + comment
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Check out docs branch (create it if it doesn’t exist)
+      # 1) Check out docs branch (create it if it doesn't exist)
       - uses: actions/checkout@v4
         with:
           ref: docs
@@ -152,7 +152,7 @@ jobs:
       - uses: peter-evans/create-pull-request@v7
         id: cpr
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.DOCS_SYNC_PAT }}
           # the current HEAD contains the commit we just made
           branch: main-sync-${{ github.sha }}-${{ github.run_id }}
           base: docs
@@ -173,7 +173,7 @@ jobs:
       - name: Enable auto-merge
         if: steps.cpr.outputs.pull-request-number
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.DOCS_SYNC_PAT }}
         run: |
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
             --auto --squash --delete-branch --repo "$GITHUB_REPOSITORY" || \
