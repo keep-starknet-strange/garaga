@@ -34,3 +34,5 @@ Repo maintainers and selected contributors can edit directly in GitBook - change
 * All PRs use squash & merge to maintain clean history
 
 The GitBook website updates automatically when changes reach the `docs` branch.
+
+<!-- Test comment to trigger workflow and verify the fix works -->
