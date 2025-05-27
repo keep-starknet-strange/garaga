@@ -1,4 +1,5 @@
 import garaga.hints.io as io
+from garaga import garaga_rs
 from garaga.drand.client import (
     DrandNetwork,
     G2Point,
@@ -14,7 +15,9 @@ from garaga.starknet.tests_and_calldata_generators.mpcheck import (
 )
 
 
-def drand_round_to_calldata(round_number: int) -> list[int]:
+def drand_round_to_calldata(round_number: int, use_rust=False) -> list[int]:
+    if use_rust:
+        return _drand_round_to_calldata_rust(round_number)
 
     message = digest_func(round_number)
     # print(f"round {round_number} message {message}")
@@ -45,6 +48,21 @@ def drand_round_to_calldata(round_number: int) -> list[int]:
     cd.extend(mpc_builder.serialize_to_calldata())
 
     return [len(cd)] + cd
+
+
+def _drand_round_to_calldata_rust(
+    round_number: int,
+) -> list[int]:
+    chain = get_chain_info(DrandNetwork.quicknet.value)
+    round = get_randomness(chain.hash, round_number)
+    randomness = round.randomness
+    signature = int(round.signature, 16)
+    data = [
+        round_number,
+        randomness,
+        signature,
+    ]
+    return garaga_rs.drand_calldata_builder(data)
 
 
 if __name__ == "__main__":

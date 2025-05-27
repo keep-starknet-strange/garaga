@@ -1,5 +1,5 @@
 {
-    "eliptic_curve_id": "bls12_381",
+    "elliptic_curve_id": "bls12_381",
     "verifying_key": {
         "alpha_g1": {
             "x": "0xfda482e4d7d7cfe718413cd03a290e7f48e6d18867caf21e74f594eedeead1ab2ccf6bf0ed52c492f683f27d6c72861",

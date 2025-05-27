@@ -1,5 +1,5 @@
 {
-    "eliptic_curve_id": "bn254",
+    "elliptic_curve_id": "bn254",
     "proof": {
         "a": {
             "x": "0x2abaae3dd6e4c662f5e071bca525a26d21e2400d01d02c87bce2e8363285990a",

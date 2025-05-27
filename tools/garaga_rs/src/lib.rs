@@ -7,6 +7,7 @@ pub mod algebra {
     pub mod rational_function;
 }
 pub mod calldata;
+pub mod constants;
 
 pub mod crypto {
     pub mod mmr {

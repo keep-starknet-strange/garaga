@@ -32,3 +32,4 @@ tests/contracts_e2e/devnet/*
 
 *snfoundry_cache
 !tools/npm/garaga_rs/*.json
+!tools/make/constants.json

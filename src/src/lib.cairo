@@ -68,6 +68,7 @@ pub mod utils {
     pub mod neg_3;
     pub mod noir;
     pub mod risc0;
+    pub mod sp1;
     use core::circuit::{u384, u96};
     use core::panic_with_felt252;
 
