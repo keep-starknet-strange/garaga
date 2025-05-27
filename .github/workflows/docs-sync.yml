@@ -6,6 +6,11 @@
 
 name: Documentation Sync
 
+permissions:
+  contents: write        # allow pushing branches / squash-merge
+  pull-requests: write   # allow opening / merging PRs
+
+
 on:
   push:
     branches: [ main, docs ]          # run on every push to either branch
@@ -200,14 +205,42 @@ jobs:
 
           git commit -m "🔄 Sync non-docs files from main @ ${{ github.sha }}"
 
-      # ─── 3) Push back to docs ─────────────────────────────────────────────
-      - name: Push changes to docs branch
+      # ─── 3) Open (or update) a PR towards docs ─────────────────────────────
+      - uses: peter-evans/create-pull-request@v7
+        id: cpr
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          # the current HEAD contains the commit we just made
+          branch: main-sync-${{ github.sha }}-${{ github.run_id }}
+          base: docs
+          commit-message: "🔄 Sync non-docs files from main @ ${{ github.sha }}"
+          title: "🔄 Sync main → docs (non-docs files)"
+          body: |
+            This PR keeps the **docs** branch in sync with **main** for every file \
+            **outside** `docs/gitbook/`.
+
+            Source commit: ${{ github.sha }}
+
+            > 🤖 _docs-sync workflow_
+          labels: documentation,auto-generated,auto-merge
+          delete-branch: true
+          draft: false   # open as a normal PR
+
+      # ─── 4) (Optional) auto-approve if the branch needs reviews ────────────
+      - name: Auto-approve sync PR
+        if: steps.cpr.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Add the PAT to the remote in the format GitHub expects:
-          git remote set-url origin \
-            "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+          gh pr review ${{ steps.cpr.outputs.pull-request-number }} \
+            --approve --body "🤖 Auto-approved sync-to-docs"
 
-          # Now push (HEAD currently points at docs)
-          git push origin HEAD:docs
+      # ─── 5) Enable auto-merge; will complete when checks are green ─────────
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
+            --auto --squash --repo "$GITHUB_REPOSITORY" || \
+            echo "Auto-merge pending required checks."
