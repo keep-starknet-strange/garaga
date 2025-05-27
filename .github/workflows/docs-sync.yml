@@ -9,7 +9,7 @@ name: Documentation Sync
 permissions:
   contents: write        # allow pushing branches / squash-merge
   pull-requests: write   # allow opening / merging PRs
-
+  issues: write            # create & apply labels
 
 on:
   push:
