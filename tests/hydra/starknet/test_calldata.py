@@ -4,6 +4,9 @@ import pytest
 
 from garaga.definitions import CURVES, CurveID, G1Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
+from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_round_to_calldata,
+)
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
 
@@ -76,6 +79,23 @@ def test_msm_calldata_builder(
     calldata2 = msm.serialize_to_calldata(
         include_points_and_scalars=include_points_and_scalars,
         serialize_as_pure_felt252_array=serialize_as_pure_felt252_array,
+        use_rust=True,
+    )
+
+    assert calldata1 == calldata2
+
+
+@pytest.mark.parametrize("round_number", [1, 2, 3])
+def test_drand_randomness_to_calldata(
+    round_number,
+):
+    calldata1 = drand_round_to_calldata(
+        round_number,
+        use_rust=False,
+    )
+
+    calldata2 = drand_round_to_calldata(
+        round_number,
         use_rust=True,
     )
 

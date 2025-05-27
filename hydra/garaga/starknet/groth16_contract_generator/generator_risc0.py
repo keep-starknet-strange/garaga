@@ -4,6 +4,7 @@ import subprocess
 from garaga.modulo_circuit_structs import G1PointCircuit
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import (
+    CAIRO_VERSION,
     ECIP_OPS_CLASS_HASH,
     get_scarb_toml_file,
     precompute_lines_from_vk,
@@ -164,6 +165,9 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     create_directory(output_folder_path)
     src_dir = os.path.join(output_folder_path, "src")
     create_directory(src_dir)
+
+    with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
+        f.write(f"scarb {CAIRO_VERSION}\n")
 
     with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
         f.write(constants_code)

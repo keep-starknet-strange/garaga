@@ -1,5 +1,5 @@
 {
-    "eliptic_curve_id": "bls12_381",
+    "elliptic_curve_id": "bls12_381",
     "proof": {
         "a": {
             "x": "0x10d63379d266db8045f5c728dfa7fccf252d7a8b8f12403edd8cfcb8222f03b0e4b380fcfbf04de06661c03aa78411a8",

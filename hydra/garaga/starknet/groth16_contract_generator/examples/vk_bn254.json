@@ -1,5 +1,5 @@
 {
-    "eliptic_curve_id": "bn254",
+    "elliptic_curve_id": "bn254",
     "verifying_key": {
         "alpha_g1": {
             "x": "0xef3cb41414ad20b4fc5891f6b41a263d9f0c0509ee5ab16f866ff6a33fb9e73",

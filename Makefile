@@ -1,7 +1,7 @@
-.PHONY: build test coverage run run-profile
+.PHONY: build test coverage run run-profile generate-constants
 
-build:
-	$(MAKE) clean
+constants:
+	python tools/make/generate_constants.py
 
 setup:
 	./tools/make/setup.sh
@@ -40,7 +40,6 @@ ci-wasm:
 
 wasm:
 	./tools/make/wasm.sh
-clean:
-	rm -rf build/compiled_cairo_files
-	mkdir -p build
-	mkdir build/compiled_cairo_files
+
+wasm-test-gen:
+	./tools/make/wasm-test-gen.sh
