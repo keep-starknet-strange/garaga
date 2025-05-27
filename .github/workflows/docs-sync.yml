@@ -23,122 +23,76 @@ concurrency:
   cancel-in-progress: true
 
 #───────────────────────────────────────────────────────────────────────────────
-#  A.  docs ➜ main  – keep ONE rolling PR (branch: docs-sync)
+#  A. docs ➜ main  – single rolling PR on branch: docs-sync
 #───────────────────────────────────────────────────────────────────────────────
-jobs:
   create-docs-pr:
     if: >-
       github.event.ref == 'refs/heads/docs' &&
       ( github.actor == 'gitbook-com[bot]' ||
-        github.actor == 'gitbook-io[bot]' ||
+        github.actor == 'gitbook-io[bot]'  ||
         contains(github.event.head_commit.message, '[gitbook]') )
     runs-on: ubuntu-latest
 
     steps:
-      # 1️⃣  Check out MAIN (clean state)
-      - uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          persist-credentials: false
+    # 1️⃣  Check out the latest MAIN in a clean worktree
+    - uses: actions/checkout@v4
+      with:
+        ref: main
+        fetch-depth: 0
+        persist-credentials: false
 
-      - name: Configure Git
-        run: |
-          git config user.name  "GitBook Docs Bot"
-          git config user.email "docs-bot@garaga.dev"
+    - run: |
+        git config user.name  "GitBook Docs Bot"
+        git config user.email "docs-bot@garaga.dev"
 
-      # 2️⃣  Create or update branch docs-sync, then overlay docs/gitbook
-      - name: Prepare docs-sync branch
-        run: |
-          set -euo pipefail
-          git fetch origin docs:origin-docs
-          BR="docs-sync"
+    # 2️⃣  Overlay docs/gitbook from the docs branch
+    - name: Sync docs/gitbook from docs branch
+      run: |
+        set -euo pipefail
+        git fetch --quiet origin docs
+        git checkout origin/docs -- docs/gitbook
 
-          # If the branch already exists on the remote, check it out;
-          # otherwise create it from current (main).
-          if git ls-remote --exit-code --heads origin "$BR" >/dev/null 2>&1; then
-            git fetch origin "$BR":"$BR"
-            git switch "$BR"
-          else
-            git switch -c "$BR"
-          fi
+        # Exit early if nothing changed
+        if git diff --quiet; then
+          echo "No documentation changes — skipping PR."
+          echo "SKIP_PR=true" >>"$GITHUB_ENV"
+        fi
 
-          # Copy ONLY docs/gitbook from the docs branch
-          git checkout origin-docs -- docs/gitbook
-          echo "PR_BRANCH=$BR" >> "$GITHUB_ENV"
+    # 3️⃣  Commit the changes (only if any)
+    - name: Commit docs update
+      if: env.SKIP_PR != 'true'
+      run: |
+        set -euo pipefail
+        git add docs/gitbook
+        git commit -m "📚 Sync docs/gitbook @ ${{ github.sha }}"
 
-      # 3️⃣  Detect what actually changed
-      - name: Detect docs-only / mixed change
-        id: diff
-        run: |
-          set -euo pipefail
-          CHANGED=$(git diff --name-only origin/main...HEAD)
-          echo "changed_files<<EOF" >> "$GITHUB_OUTPUT"; echo "$CHANGED" >> "$GITHUB_OUTPUT"; echo "EOF" >> "$GITHUB_OUTPUT"
+    # 4️⃣  Create / update the rolling PR on branch docs-sync
+    - uses: peter-evans/create-pull-request@v7
+      if: env.SKIP_PR != 'true'
+      id: cpr
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        branch: docs-sync            # ← single, reusable branch
+        base: main
+        title: "📚 Update documentation from GitBook"
+        commit-message: "📚 docs(branch=docs) → main @ ${{ github.sha }}"
+        labels: documentation,auto-generated
+        delete-branch: true          # auto-delete after you squash-merge
 
-          if [[ -z "$CHANGED" ]]; then
-            echo "no_changes=true" >> "$GITHUB_OUTPUT"; exit 0; fi
-
-          NON_DOCS=$(echo "$CHANGED" | grep -vE '^docs/gitbook/' || true)
-          [[ -z "$NON_DOCS" ]] && echo "docs_only=true"  >> "$GITHUB_OUTPUT" \
-                                || echo "docs_only=false" >> "$GITHUB_OUTPUT"
-
-      - name: Stop if nothing changed
-        if: steps.diff.outputs.no_changes == 'true'
-        run: echo "Nothing new to PR – exiting."
-
-      # 4️⃣  Decide PR metadata
-      - name: Set PR metadata
-        id: meta
-        run: |
-          if [[ "${{ steps.diff.outputs.docs_only }}" == "true" ]]; then
-            echo "labels=documentation,auto-generated" >> $GITHUB_OUTPUT
-            echo "pr_type=📚 Documentation only"       >> $GITHUB_OUTPUT
-          else
-            echo "labels=documentation,auto-generated,needs-review" >> $GITHUB_OUTPUT
-            echo "pr_type=⚠️ Mixed changes (requires review)"        >> $GITHUB_OUTPUT
-          fi
-
-      # 5️⃣  Create / update the single rolling PR (branch = docs-sync)
-      - uses: peter-evans/create-pull-request@v7
-        id: cpr
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          branch: docs-sync                  # ← fixed branch name
-          base: main
-          commit-message: "📚 docs(branch=docs) → main @ ${{ github.sha }}"
-          title: "📚 Update documentation from GitBook"
-          body: |
-            This PR was automatically created to sync documentation from GitBook.
-
-            **Changes**
-            ```
-            ${{ steps.diff.outputs.changed_files }}
-            ```
-
-            **Type:** ${{ steps.meta.outputs.pr_type }}
-            **Commit:** ${{ github.sha }}
-            **Author:** ${{ github.actor }}
-
-            ⚠️ A maintainer review & **Squash & merge** are required.
-            > 🤖 _docs-sync workflow_.
-          labels: ${{ steps.meta.outputs.labels }}
-          delete-branch: true         # branch auto-deleted *after* you squash-merge
-          draft: false
-
-      # 6️⃣  Comment when manual review is mandatory (mixed changes only)
-      - name: Add manual-review comment
-        if: steps.diff.outputs.docs_only == 'false' && steps.cpr.outputs.pull-request-number
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr comment ${{ steps.cpr.outputs.pull-request-number }} --repo "$GITHUB_REPOSITORY" --body $'⚠️ **Manual Review Required**
-
-          This PR touches files outside `docs/gitbook/`.
-
-          **Non-documentation files changed:**
-          ```text
-          $(echo "${{ steps.diff.outputs.changed_files }}" | grep -vE "^docs/gitbook/" || echo "none")
-          ```'
+    # 5️⃣  Add an extra label & comment if non-docs files slipped in
+    - name: Flag mixed-content PRs
+      if: env.SKIP_PR != 'true'
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        set -euo pipefail
+        # If *any* file outside docs/gitbook changed, add label + comment
+        if git diff --name-only origin/main | grep -vqE '^docs/gitbook/'; then
+          gh pr edit "${{ steps.cpr.outputs.pull-request-number }}" \
+            --add-label "needs-review"
+          gh pr comment "${{ steps.cpr.outputs.pull-request-number }}" \
+            --body "⚠️ *Mixed content* – this PR touches files outside \`docs/gitbook\`. Please review."
+        fi
 
 #───────────────────────────────────────────────────────────────────────────────
 #  B.  main ➜ docs  – keep non-docs files identical to main
