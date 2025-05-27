@@ -20,7 +20,7 @@ Documentation updates are handled through an automated bidirectional sync betwee
 1. Create a branch from `main`
 2. Edit files in `docs/gitbook/` folder
 3. PR directly to `main` branch
-4. Changes will automatically sync to `docs` branch after merge
+4. Changes will automatically sync to `docs` branch after merge and reflected on the website.
 
 #### For Maintainers: GitBook Interface
 
@@ -34,5 +34,3 @@ Repo maintainers and selected contributors can edit directly in GitBook - change
 * All PRs use squash & merge to maintain clean history
 
 The GitBook website updates automatically when changes reach the `docs` branch.
-
-<!-- Test comment to trigger workflow and verify the fix works -->
