@@ -23,7 +23,7 @@ concurrency:
   cancel-in-progress: true
 
 #───────────────────────────────────────────────────────────────────────────────
-#  A.  docs ➜ main  – create PR that contains *only* docs/gitbook changes
+#  A.  docs ➜ main  – keep ONE rolling PR (branch: docs-sync)
 #───────────────────────────────────────────────────────────────────────────────
 jobs:
   create-docs-pr:
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1) Check out **main** (not docs!) – we will build a branch *from* main
+      # 1️⃣  Check out MAIN (clean state)
       - uses: actions/checkout@v4
         with:
           ref: main
@@ -47,64 +47,63 @@ jobs:
           git config user.name  "GitBook Docs Bot"
           git config user.email "docs-bot@garaga.dev"
 
-      # 2) Bring in the latest docs/gitbook from the docs branch
-      - name: Copy docs from docs branch
+      # 2️⃣  Create or update branch docs-sync, then overlay docs/gitbook
+      - name: Prepare docs-sync branch
         run: |
           set -euo pipefail
           git fetch origin docs:origin-docs
-          # New branch based on main
-          BR="docs-sync-${{ github.sha }}-${{ github.run_id }}"
-          git switch -c "$BR"
-          # Copy only docs/gitbook (all other files stay as-is from main)
-          git checkout origin-docs -- docs/gitbook
-          echo "PR_BRANCH=$BR" >> $GITHUB_ENV
+          BR="docs-sync"
 
-      # 3) Detect what actually changed
+          # If the branch already exists on the remote, check it out;
+          # otherwise create it from current (main).
+          if git ls-remote --exit-code --heads origin "$BR" >/dev/null 2>&1; then
+            git fetch origin "$BR":"$BR"
+            git switch "$BR"
+          else
+            git switch -c "$BR"
+          fi
+
+          # Copy ONLY docs/gitbook from the docs branch
+          git checkout origin-docs -- docs/gitbook
+          echo "PR_BRANCH=$BR" >> "$GITHUB_ENV"
+
+      # 3️⃣  Detect what actually changed
       - name: Detect docs-only / mixed change
         id: diff
         run: |
           set -euo pipefail
           CHANGED=$(git diff --name-only origin/main...HEAD)
-          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGED"          >> $GITHUB_OUTPUT
-          echo "EOF"               >> $GITHUB_OUTPUT
+          echo "changed_files<<EOF" >> "$GITHUB_OUTPUT"; echo "$CHANGED" >> "$GITHUB_OUTPUT"; echo "EOF" >> "$GITHUB_OUTPUT"
 
           if [[ -z "$CHANGED" ]]; then
-            echo "no_changes=true" >> $GITHUB_OUTPUT
-            exit 0
-          fi
+            echo "no_changes=true" >> "$GITHUB_OUTPUT"; exit 0; fi
 
           NON_DOCS=$(echo "$CHANGED" | grep -vE '^docs/gitbook/' || true)
-          if [[ -z "$NON_DOCS" ]]; then
-            echo "docs_only=true"  >> $GITHUB_OUTPUT
-          else
-            echo "docs_only=false" >> $GITHUB_OUTPUT
-          fi
+          [[ -z "$NON_DOCS" ]] && echo "docs_only=true"  >> "$GITHUB_OUTPUT" \
+                                || echo "docs_only=false" >> "$GITHUB_OUTPUT"
 
       - name: Stop if nothing changed
         if: steps.diff.outputs.no_changes == 'true'
         run: echo "Nothing new to PR – exiting."
 
-      # 4) Decide PR metadata
+      # 4️⃣  Decide PR metadata
       - name: Set PR metadata
         id: meta
         run: |
           if [[ "${{ steps.diff.outputs.docs_only }}" == "true" ]]; then
-            echo "labels=documentation,auto-generated,auto-merge" >> $GITHUB_OUTPUT
-            echo "pr_type=📚 Documentation only"                 >> $GITHUB_OUTPUT
-            echo "automerge=true"                                >> $GITHUB_OUTPUT
+            echo "labels=documentation,auto-generated" >> $GITHUB_OUTPUT
+            echo "pr_type=📚 Documentation only"       >> $GITHUB_OUTPUT
           else
             echo "labels=documentation,auto-generated,needs-review" >> $GITHUB_OUTPUT
             echo "pr_type=⚠️ Mixed changes (requires review)"        >> $GITHUB_OUTPUT
-            echo "automerge=false"                                  >> $GITHUB_OUTPUT
           fi
 
-      # 5) Create or update PR
+      # 5️⃣  Create / update the single rolling PR (branch = docs-sync)
       - uses: peter-evans/create-pull-request@v7
         id: cpr
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ env.PR_BRANCH }}
+          branch: docs-sync                  # ← fixed branch name
           base: main
           commit-message: "📚 docs(branch=docs) → main @ ${{ github.sha }}"
           title: "📚 Update documentation from GitBook"
@@ -120,32 +119,21 @@ jobs:
             **Commit:** ${{ github.sha }}
             **Author:** ${{ github.actor }}
 
-            ${{ steps.meta.outputs.automerge == 'true' && '✅ Will auto-merge when checks pass.' || '⚠️ Requires manual review.' }}
-
+            ⚠️ A maintainer review & **Squash & merge** are required.
             > 🤖 _docs-sync workflow_.
           labels: ${{ steps.meta.outputs.labels }}
-          delete-branch: true
+          delete-branch: true         # branch auto-deleted *after* you squash-merge
           draft: false
 
-      # 6) Attempt auto-merge when safe
-      - name: Enable auto-merge
-        if: steps.meta.outputs.automerge == 'true' && steps.cpr.outputs.pull-request-number
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
-            --auto --squash --repo "$GITHUB_REPOSITORY" || \
-            echo "Branch rules prevent auto-merge – leaving PR open."
-
-      # 7) Comment when manual review needed
+      # 6️⃣  Comment when manual review is mandatory (mixed changes only)
       - name: Add manual-review comment
-        if: steps.meta.outputs.automerge == 'false' && steps.cpr.outputs.pull-request-number
+        if: steps.diff.outputs.docs_only == 'false' && steps.cpr.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr comment ${{ steps.cpr.outputs.pull-request-number }} --repo "$GITHUB_REPOSITORY" --body $'⚠️ **Manual Review Required**
 
-          This PR touches files outside `docs/gitbook/` and cannot be auto-merged.
+          This PR touches files outside `docs/gitbook/`.
 
           **Non-documentation files changed:**
           ```text
@@ -226,21 +214,12 @@ jobs:
           delete-branch: true
           draft: false   # open as a normal PR
 
-      # ─── 4) (Optional) auto-approve if the branch needs reviews ────────────
-      - name: Auto-approve sync PR
-        if: steps.cpr.outputs.pull-request-number
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr review ${{ steps.cpr.outputs.pull-request-number }} \
-            --approve --body "🤖 Auto-approved sync-to-docs"
-
-      # ─── 5) Enable auto-merge; will complete when checks are green ─────────
+      # ─── 4) Enable auto-merge; will complete when checks are green ─────────
       - name: Enable auto-merge
         if: steps.cpr.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
-            --auto --squash --repo "$GITHUB_REPOSITORY" || \
+            --auto --squash --delete-branch --repo "$GITHUB_REPOSITORY" || \
             echo "Auto-merge pending required checks."
