@@ -20,16 +20,28 @@ PATH = "hydra/garaga/starknet/groth16_contract_generator/examples"
         f"{PATH}/vk_bls.json",
         f"{PATH}/gnark_vk_bn254.json",
         f"{PATH}/vk_risc0.json",
+        f"{PATH}/vk_sp1.json",
     ],
 )
 def test_vk_parsing(vk_path: str):
     vk = Groth16VerifyingKey.from_json(vk_path)
     print(vk)
 
+    # if vk_path == f"{PATH}/vk_sp1.json":
+    #     print("[")
+    #     for e in vk.flatten():
+    #         print(f'"{hex(e)[2:]}",')
+    #     print("]")
+
 
 @pytest.mark.parametrize(
     "proof_path",
-    [f"{PATH}/proof_bn254.json", f"{PATH}/proof_bls.json"],
+    [
+        f"{PATH}/proof_bn254.json",
+        f"{PATH}/proof_bls.json",
+        f"{PATH}/proof_risc0.json",
+        f"{PATH}/proof_sp1.json",
+    ],
 )
 def test_proof_parsing(proof_path: str):
     proof = Groth16Proof.from_json(proof_path)
@@ -66,6 +78,7 @@ def test_proof_parsing_with_public_input(proof_path: str, pub_inputs_path: str):
             f"{PATH}/snarkjs_public_bn254.json",
         ),
         (f"{PATH}/proof_risc0.json", f"{PATH}/vk_risc0.json", None),
+        (f"{PATH}/proof_sp1.json", f"{PATH}/vk_sp1.json", None),
     ],
 )
 def test_calldata_generation(

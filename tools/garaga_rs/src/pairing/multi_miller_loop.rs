@@ -703,6 +703,7 @@ mod tests {
                 G1Point::new(
                     FieldElement::<BN254PrimeField>::from_hex(x).unwrap(),
                     FieldElement::<BN254PrimeField>::from_hex(y).unwrap(),
+                    false,
                 )
                 .unwrap()
             })
@@ -731,6 +732,7 @@ mod tests {
                 G1Point::new(
                     FieldElement::<BLS12381PrimeField>::from_hex(x).unwrap(),
                     FieldElement::<BLS12381PrimeField>::from_hex(y).unwrap(),
+                    false,
                 )
                 .unwrap()
             })

@@ -292,10 +292,7 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
             } else if d == minus_one {
                 p.neg()
             } else {
-                G1Point {
-                    x: FieldElement::zero(),
-                    y: FieldElement::zero(),
-                }
+                G1Point::new_infinity()
             }
         })
         .collect();
@@ -333,7 +330,7 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
     dss.reverse();
-    let mut q = G1Point::new_unchecked(FieldElement::zero(), FieldElement::zero());
+    let mut q = G1Point::new_infinity();
     let mut divisors: Vec<FF<F>> = Vec::new();
     for ds in dss.iter() {
         let (div, new_q) = row_function(ds.clone(), bs, q);
