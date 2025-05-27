@@ -213,6 +213,16 @@ fn sha256_digest(data: &[u8]) -> [u8; 32] {
     Sha256::digest(data).into()
 }
 
+pub fn get_drand_round_at(genesis_time: usize, period: usize, time: usize) -> usize {
+    assert!(time >= genesis_time);
+    (time - genesis_time) / period + 1
+}
+
+pub fn get_drand_round_time(genesis_time: usize, period: usize, round_number: usize) -> usize {
+    assert!(round_number >= 1);
+    genesis_time + period * (round_number - 1)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
