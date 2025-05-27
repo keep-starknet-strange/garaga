@@ -127,7 +127,7 @@ jobs:
 
       # 6️⃣  Comment when manual review is mandatory (mixed changes only)
       - name: Add manual-review comment
-        if: steps.meta.outputs.pr_type == '⚠️ Mixed changes (requires review)' && steps.cpr.outputs.pull-request-number
+        if: steps.diff.outputs.docs_only == 'false' && steps.cpr.outputs.pull-request-number
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -221,5 +221,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
-            --auto --squash --repo "$GITHUB_REPOSITORY" || \
+            --auto --squash --delete-branch --repo "$GITHUB_REPOSITORY" || \
             echo "Auto-merge pending required checks."
