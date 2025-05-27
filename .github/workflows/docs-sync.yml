@@ -53,8 +53,8 @@ jobs:
           git fetch --quiet origin docs
           git checkout origin/docs -- docs/gitbook
 
-          # Exit early if nothing changed
-          if git diff --quiet; then
+          # Exit early if nothing changed (check staged changes since git checkout stages them)
+          if git diff --cached --quiet; then
             echo "No documentation changes — skipping PR."
             echo "SKIP_PR=true" >>"$GITHUB_ENV"
           fi
@@ -64,7 +64,7 @@ jobs:
         if: env.SKIP_PR != 'true'
         run: |
           set -euo pipefail
-          git add docs/gitbook
+          # Changes are already staged by git checkout, just commit them
           git commit -m "📚 Sync docs/gitbook @ ${{ github.sha }}"
 
       # 4️⃣  Create / update the rolling PR on branch docs-sync
