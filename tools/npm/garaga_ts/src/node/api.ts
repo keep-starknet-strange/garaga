@@ -19,6 +19,7 @@ import {
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 import { HonkFlavor } from './starknet/honkContractGenerator/parsingUtils';
+import { randomBytes } from './random';
 
 /**
  * Represents a point on an elliptic curve in affine coordinates (x, y)
@@ -376,7 +377,7 @@ export function getDrandCallData({ roundNumber, randomness, signature }: DrandRa
  * Fetches randomness data from the drand distributed randomness beacon network.
  * Tries multiple endpoints for reliability and returns the first successful response.
  *
- * @param roundNumber - The specific round to fetch, or 'latest' for the most recent
+ * @param roundNumberArg - The specific round to fetch, or 'latest' for the most recent
  * @param chainHash - Hash identifier of the drand chain to query
  * @param baseUrls - Array of drand API endpoints to attempt
  * @returns Promise resolving to the randomness beacon data
@@ -419,11 +420,35 @@ export async function fetchDrandRandomness(roundNumberArg: number | 'latest' = '
   return { roundNumber, randomness, signature };
 }
 
-export function encryptToDrandRoundAndGetCallData(roundNumber: number, message: Uint8Array, randomness: bigint): bigint[] {
+/**
+ * Encrypts the given message for a given drand round number and returns the resulting call data.
+ *
+ * @param roundNumber The target drand round number to be used in the encryption process.
+ * @param message The 16-byte message to be encrypted.
+ * @param randomness An optional 16-byte random array used for encryption. Must be generated using a CSPRNG.
+ * @return An array of `bigint` values representing the call data for the encryption result.
+ * @throws Error if the `message` length is not 16 bytes.
+ *
+ * @example
+ * ```typescript
+ * // The round for when the message can be decrypted
+ * const roundNumber = 12345;
+ *
+ * // The clear text for the message
+ * const text = 'Hello, world!';
+ * const message = new Uint8Array(16);
+ * message.set(new TextEncoder().encode(text));
+ *
+ * // Call data generation
+ * const calldata = encryptToDrandRoundAndGetCallData(roundNumber, message);
+ * ```
+ */
+export function encryptToDrandRoundAndGetCallData(roundNumber: number, message: Uint8Array, randomness = randomBytes(16)): bigint[] {
   if (message.length != 16) throw new Error('Message size should be 16');
-  const value = message.reduce((acc, b) => (acc << 8n) | BigInt(b), 0n);
-  randomness = randomness % (1n << 128n);
-  return drand_tlock_encrypt_calldata_builder([roundNumber, value, randomness]);
+  if (randomness.length != 16) throw new Error('Randomness size should be 16');
+  const messageValue = message.reduce((acc, b) => (acc << 8n) | BigInt(b), 0n);
+  const randomnessValue = randomness.reduce((acc, b) => (acc << 8n) | BigInt(b), 0n);
+  return drand_tlock_encrypt_calldata_builder([roundNumber, messageValue, randomnessValue]);
 }
 
 /**

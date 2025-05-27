@@ -31,13 +31,10 @@ describe('Drand Encrypting and Getting calldata', () => {
     	const message = new Uint8Array(16);
 	message.set(new TextEncoder().encode(text));
 
-        const randomness = 1863062983n;
-
         console.log("roundNumber", roundNumber);
         console.log("message", message);
-        console.log("randomness", randomness);
 
-        const drandCalldata = garaga.encryptToDrandRoundAndGetCallData(roundNumber as number, message, randomness);
+        const drandCalldata = garaga.encryptToDrandRoundAndGetCallData(roundNumber as number, message);
 
         console.log("drandCalldata", drandCalldata);
 
