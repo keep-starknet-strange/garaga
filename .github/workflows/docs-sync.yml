@@ -1,0 +1,208 @@
+# .github/workflows/docs-sync.yml
+#
+# Keep GitBook docs (docs/gitbook) and source code in sync.
+#  ├─ create-docs-pr  : docs  ➜  main   (PR auto-merges if docs-only)
+#  └─ sync-main-to-docs : main  ➜  docs  (keeps non-docs files identical to main)
+
+name: Documentation Sync
+
+on:
+  push:
+    branches: [ main, docs ]          # run on every push to either branch
+defaults:
+  run:
+    shell: bash                      # strict mode added in scripts
+
+concurrency:
+  group: docs-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+#───────────────────────────────────────────────────────────────────────────────
+#  A.  docs ➜ main  – create PR that contains *only* docs/gitbook changes
+#───────────────────────────────────────────────────────────────────────────────
+jobs:
+  create-docs-pr:
+    if: >-
+      github.event.ref == 'refs/heads/docs' &&
+      ( github.actor == 'gitbook-com[bot]' ||
+        github.actor == 'gitbook-io[bot]' ||
+        contains(github.event.head_commit.message, '[gitbook]') )
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Check out **main** (not docs!) – we will build a branch *from* main
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configure Git
+        run: |
+          git config user.name  "GitBook Docs Bot"
+          git config user.email "docs-bot@garaga.dev"
+
+      # 2) Bring in the latest docs/gitbook from the docs branch
+      - name: Copy docs from docs branch
+        run: |
+          set -euo pipefail
+          git fetch origin docs:origin-docs
+          # New branch based on main
+          BR="docs-sync-${{ github.sha }}-${{ github.run_id }}"
+          git switch -c "$BR"
+          # Copy only docs/gitbook (all other files stay as-is from main)
+          git checkout origin-docs -- docs/gitbook
+          echo "PR_BRANCH=$BR" >> $GITHUB_ENV
+
+      # 3) Detect what actually changed
+      - name: Detect docs-only / mixed change
+        id: diff
+        run: |
+          set -euo pipefail
+          CHANGED=$(git diff --name-only origin/main...HEAD)
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED"          >> $GITHUB_OUTPUT
+          echo "EOF"               >> $GITHUB_OUTPUT
+
+          if [[ -z "$CHANGED" ]]; then
+            echo "no_changes=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          NON_DOCS=$(echo "$CHANGED" | grep -vE '^docs/gitbook/' || true)
+          if [[ -z "$NON_DOCS" ]]; then
+            echo "docs_only=true"  >> $GITHUB_OUTPUT
+          else
+            echo "docs_only=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Stop if nothing changed
+        if: steps.diff.outputs.no_changes == 'true'
+        run: echo "Nothing new to PR – exiting."
+
+      # 4) Decide PR metadata
+      - name: Set PR metadata
+        id: meta
+        run: |
+          if [[ "${{ steps.diff.outputs.docs_only }}" == "true" ]]; then
+            echo "labels=documentation,auto-generated,auto-merge" >> $GITHUB_OUTPUT
+            echo "pr_type=📚 Documentation only"                 >> $GITHUB_OUTPUT
+            echo "automerge=true"                                >> $GITHUB_OUTPUT
+          else
+            echo "labels=documentation,auto-generated,needs-review" >> $GITHUB_OUTPUT
+            echo "pr_type=⚠️ Mixed changes (requires review)"        >> $GITHUB_OUTPUT
+            echo "automerge=false"                                  >> $GITHUB_OUTPUT
+          fi
+
+      # 5) Create or update PR
+      - uses: peter-evans/create-pull-request@v7
+        id: cpr
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.PR_BRANCH }}
+          base: main
+          commit-message: "📚 docs(branch=docs) → main @ ${{ github.sha }}"
+          title: "📚 Update documentation from GitBook"
+          body: |
+            This PR was automatically created to sync documentation from GitBook.
+
+            **Changes**
+            ```
+            ${{ steps.diff.outputs.changed_files }}
+            ```
+
+            **Type:** ${{ steps.meta.outputs.pr_type }}
+            **Commit:** ${{ github.sha }}
+            **Author:** ${{ github.actor }}
+
+            ${{ steps.meta.outputs.automerge == 'true' && '✅ Will auto-merge when checks pass.' || '⚠️ Requires manual review.' }}
+
+            > 🤖 _docs-sync workflow_.
+          labels: ${{ steps.meta.outputs.labels }}
+          delete-branch: true
+          draft: false
+
+      # 6) Attempt auto-merge when safe
+      - name: Enable auto-merge
+        if: steps.meta.outputs.automerge == 'true' && steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
+            --auto --squash --repo "$GITHUB_REPOSITORY" || \
+            echo "Branch rules prevent auto-merge – leaving PR open."
+
+      # 7) Comment when manual review needed
+      - name: Add manual-review comment
+        if: steps.meta.outputs.automerge == 'false' && steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment ${{ steps.cpr.outputs.pull-request-number }} --repo "$GITHUB_REPOSITORY" --body $'⚠️ **Manual Review Required**
+
+          This PR touches files outside `docs/gitbook/` and cannot be auto-merged.
+
+          **Non-documentation files changed:**
+          ```text
+          $(echo "${{ steps.diff.outputs.changed_files }}" | grep -vE "^docs/gitbook/" || echo "none")
+          ```'
+
+#───────────────────────────────────────────────────────────────────────────────
+#  B.  main ➜ docs  – keep non-docs files identical to main
+#───────────────────────────────────────────────────────────────────────────────
+  sync-main-to-docs:
+    if: >-
+      github.event.ref == 'refs/heads/main' &&
+      !contains(github.event.head_commit.message, '[gitbook]') &&
+      github.actor != 'gitbook-com[bot]' &&
+      github.actor != 'gitbook-io[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Check out docs branch (create it if it doesn’t exist)
+      - uses: actions/checkout@v4
+        with:
+          ref: docs
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configure Git
+        run: |
+          git config user.name  "GitHub Docs Sync"
+          git config user.email "docs-sync@garaga.dev"
+          git fetch origin main --tags --prune
+
+      # 2) Bring code (everything except docs/gitbook) up to date with main
+      - name: Sync non-docs files from main
+        run: |
+          set -euo pipefail
+          TMP=$(mktemp -d)
+          # Save current docs
+          if [[ -d docs/gitbook ]]; then
+            cp -R docs/gitbook "$TMP/"
+          fi
+          # Overwrite working tree with main
+          git checkout origin/main -- .
+          # Restore docs
+          rm -rf docs/gitbook
+          if [[ -d "$TMP/gitbook" ]]; then
+            mkdir -p docs
+            cp -R "$TMP/gitbook" docs/
+          fi
+          rm -rf "$TMP"
+
+          # Stage everything, but commit only if something changed
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No updates required – docs branch already matches main."
+            exit 0
+          fi
+
+          git commit -m "🔄 Sync non-docs files from main @ ${{ github.sha }}"
+
+      # 3) Push back to docs
+      - name: Push changes
+        env:
+          PUSH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push https://"$PUSH_TOKEN"@"github.com/${{ github.repository }}" HEAD:docs
