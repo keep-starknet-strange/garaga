@@ -26,13 +26,6 @@ Documentation updates are handled through an automated bidirectional sync betwee
 
 Repo maintainers and selected contributors can edit directly in GitBook - changes automatically sync to the `docs` branch and create a PR to `main`.
 
-#### Alternative: PR to Docs Branch
-
-1. Create a branch from `docs`
-2. Edit files in `docs/gitbook/` folder
-3. PR to the `docs` branch: [docs/gitbook folder](https://github.com/keep-starknet-strange/garaga/tree/docs/docs/gitbook)
-4. When merged, an automated PR to `main` will be created
-
 ### Automated Workflow
 
 * **Documentation-only changes**: Auto-labeled and ready for review
