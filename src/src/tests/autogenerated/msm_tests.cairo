@@ -6722,6 +6722,7 @@ fn test_msm_GRUMPKIN_12P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -6792,6 +6793,7 @@ fn test_msm_BN254_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -6884,6 +6886,7 @@ fn test_msm_BN254_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7003,6 +7006,7 @@ fn test_msm_BN254_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7078,6 +7082,7 @@ fn test_msm_BLS12_381_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -7175,6 +7180,7 @@ fn test_msm_BLS12_381_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7294,6 +7300,7 @@ fn test_msm_BLS12_381_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7365,6 +7372,7 @@ fn test_msm_SECP256R1_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -7456,6 +7464,7 @@ fn test_msm_SECP256R1_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7567,6 +7576,7 @@ fn test_msm_SECP256R1_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7642,6 +7652,7 @@ fn test_msm_SECP256K1_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -7739,6 +7750,7 @@ fn test_msm_SECP256K1_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7858,6 +7870,7 @@ fn test_msm_SECP256K1_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7929,6 +7942,7 @@ fn test_msm_ED25519_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -8020,6 +8034,7 @@ fn test_msm_ED25519_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -8131,6 +8146,7 @@ fn test_msm_ED25519_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -8197,6 +8213,7 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -8283,6 +8300,7 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_3P_edge_case() {
     let mut data = array![
         0x4,

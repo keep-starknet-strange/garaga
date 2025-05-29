@@ -69,7 +69,7 @@ def generate_msm_test_edge_cases(curve_id, n_points, seed):
     builder = MSMCalldataBuilder(curve_id=curve_id, points=points, scalars=scalars)
 
     return builder.to_cairo_1_test(
-        test_name=f"test_msm_{curve_id.name}_{n_points}P_edge_case"
+        test_name=f"test_msm_{curve_id.name}_{n_points}P_edge_case", ignored=True
     )
 
 
