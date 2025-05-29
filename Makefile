@@ -1,4 +1,4 @@
-.PHONY: build test coverage run run-profile generate-constants profile-test
+.PHONY: build test coverage run run-profile generate-constants profile-test profile-test-with-benchmarks benchmarks
 
 constants:
 	python tools/make/generate_constants.py
@@ -38,20 +38,26 @@ profile-test:
 	@if [ -z "$(TEST)" ]; then \
 		if [ -z "$(JOBS)" ]; then \
 			echo "Running all tests with profiling..."; \
-			python tools/profile_tests.py --all --parallel-jobs 4; \
+			python tools/profile_tests.py --all --parallel-jobs 4 --generate-benchmarks; \
 		else \
 			echo "Running all tests with profiling using $(JOBS) parallel jobs..."; \
-			python tools/profile_tests.py --all --parallel-jobs $(JOBS); \
+			python tools/profile_tests.py --all --parallel-jobs $(JOBS) --generate-benchmarks; \
 		fi \
 	else \
 		if [ -z "$(JOBS)" ]; then \
 			echo "Running tests with filter: $(TEST)"; \
-			python tools/profile_tests.py $(TEST) --parallel-jobs 4; \
+			python tools/profile_tests.py $(TEST) --parallel-jobs 4 --generate-benchmarks; \
 		else \
 			echo "Running tests with filter: $(TEST) using $(JOBS) parallel jobs"; \
-			python tools/profile_tests.py $(TEST) --parallel-jobs $(JOBS); \
+			python tools/profile_tests.py $(TEST) --parallel-jobs $(JOBS) --generate-benchmarks; \
 		fi \
 	fi
+
+# Generate only Cairo benchmarks in README (no profiling)
+# Uses existing test data from docs/benchmarks/test_summary.json
+benchmarks:
+	@echo "Generating Cairo benchmarks from existing test data..."
+	python tools/profile_tests.py --benchmarks-only
 
 ci-e2e:
 	./tools/make/ci_e2e.sh

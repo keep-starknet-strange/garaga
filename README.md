@@ -349,6 +349,8 @@ At this point, you should have everything you need to start developing with Gara
 
 </details>
 
+---
+🔄 **To regenerate these benchmarks:** Run `make benchmarks` from the project root.
 ## Support & How to Contribute
 
 We warmly welcome contributions and support from the community! Here's how you can help Garaga grow and improve:

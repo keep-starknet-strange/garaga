@@ -648,7 +648,12 @@ class ProfileTestRunner:
             )
             return success_count > 0
 
-    def run_profile_workflow(self, test_filter: str = None, parallel_jobs: int = 2):
+    def run_profile_workflow(
+        self,
+        test_filter: str = None,
+        parallel_jobs: int = 2,
+        generate_benchmarks: bool = False,
+    ):
         """Run the complete profiling workflow."""
         global _shutdown_requested
 
@@ -721,11 +726,12 @@ class ProfileTestRunner:
             except Exception as e:
                 log_warning(f"Error during cleanup: {e}")
 
-            # Generate Cairo benchmarks after workflow completion
-            try:
-                self.generate_cairo_benchmarks()
-            except Exception as e:
-                log_warning(f"Error generating Cairo benchmarks: {e}")
+            # Generate Cairo benchmarks only if requested
+            if generate_benchmarks:
+                try:
+                    self.generate_cairo_benchmarks()
+                except Exception as e:
+                    log_warning(f"Error generating Cairo benchmarks: {e}")
 
     def parse_test_summary_json(self) -> dict:
         """Parse the test summary JSON file."""
@@ -1004,6 +1010,9 @@ class ProfileTestRunner:
 
 {hierarchy_content.rstrip()}
 
+---
+🔄 **To regenerate these benchmarks:** Run `make benchmarks` from the project root.
+
 """
 
     def update_readme_with_benchmarks(self, test_data: dict):
@@ -1167,7 +1176,45 @@ Examples:
         help="Number of parallel jobs to use for processing trace files",
     )
 
+    parser.add_argument(
+        "--generate-benchmarks",
+        action="store_true",
+        help="Generate Cairo benchmarks after profiling workflow completes",
+    )
+
+    parser.add_argument(
+        "--benchmarks-only",
+        action="store_true",
+        help="Only generate Cairo benchmarks without running profiling workflow",
+    )
+
     args = parser.parse_args()
+
+    # Handle --benchmarks-only flag
+    if args.benchmarks_only:
+        log_info("🎯 Running in [bold cyan]benchmarks-only[/bold cyan] mode")
+        profiler = ProfileTestRunner(workspace_root=args.workspace)
+
+        success = profiler.generate_cairo_benchmarks()
+
+        if success:
+            console.print(
+                Panel(
+                    Align.center("📊 Cairo benchmarks generated successfully!"),
+                    border_style="green",
+                    title="[green]Benchmarks Complete[/green]",
+                )
+            )
+            sys.exit(0)
+        else:
+            console.print(
+                Panel(
+                    Align.center("💥 Failed to generate Cairo benchmarks!"),
+                    border_style="red",
+                    title="[red]Error[/red]",
+                )
+            )
+            sys.exit(1)
 
     # Validate parallel_jobs parameter
     if args.parallel_jobs < 1:
@@ -1192,7 +1239,9 @@ Examples:
     # Initialize and run the profiler
     profiler = ProfileTestRunner(workspace_root=args.workspace)
 
-    success = profiler.run_profile_workflow(test_filter, args.parallel_jobs)
+    success = profiler.run_profile_workflow(
+        test_filter, args.parallel_jobs, args.generate_benchmarks
+    )
 
     if _shutdown_requested:
         console.print(
