@@ -910,25 +910,56 @@ class ProfileTestRunner:
             new_path = current_path + [module_name]
 
             if isinstance(module_data, list):
-                # This is a leaf module with tests
+                # This is a leaf module with tests - always closed so users click to see data
                 df = self.create_benchmark_dataframe(module_data)
                 table_content = self.generate_markdown_table(df)
 
-                # Leaf modules are open if they have few tests, closed if many
-                is_open = len(module_data) <= 5
+                is_open = False  # Always closed for test data
                 content += self.generate_collapsible_section(
                     module_name, table_content, is_open, len(current_path)
                 )
 
             elif isinstance(module_data, dict):
-                # This is an intermediate module
-                inner_content = self.generate_nested_hierarchy(module_data, new_path)
+                # Check if this is a chain of single children that can be merged
+                merged_name = module_name
+                current_data = module_data
 
-                # Intermediate modules are closed by default
-                is_open = False
-                content += self.generate_collapsible_section(
-                    module_name, inner_content, is_open, len(current_path)
-                )
+                # Keep merging while there's only one child
+                while len(current_data) == 1:
+                    child_name = list(current_data.keys())[0]
+                    child_data = list(current_data.values())[0]
+
+                    # If the child is a list (tests), merge it and stop
+                    if isinstance(child_data, list):
+                        merged_name += "::" + child_name
+
+                        # Generate content for the merged leaf section
+                        df = self.create_benchmark_dataframe(child_data)
+                        table_content = self.generate_markdown_table(df)
+
+                        is_open = False  # Always closed for test data
+                        content += self.generate_collapsible_section(
+                            merged_name, table_content, is_open, len(current_path)
+                        )
+                        break
+
+                    # If the child is a dict, continue merging
+                    elif isinstance(child_data, dict):
+                        merged_name += "::" + child_name
+                        current_data = child_data
+                    else:
+                        break
+                else:
+                    # No more single children to merge, generate nested content
+                    inner_content = self.generate_nested_hierarchy(
+                        current_data, new_path
+                    )
+
+                    # Intermediate modules are open by default to show full hierarchy
+                    is_open = True
+                    content += self.generate_collapsible_section(
+                        merged_name, inner_content, is_open, len(current_path)
+                    )
 
         return content
 
@@ -955,7 +986,7 @@ class ProfileTestRunner:
         return start_idx, end_idx
 
     def generate_cairo_benchmarks_content(self, test_data: dict) -> str:
-        """Generate complete Cairo benchmarks content."""
+        """Generate complete Cairo benchmarks content with proper spacing."""
         if not test_data:
             return """## Cairo Benchmarks
 
@@ -966,9 +997,14 @@ class ProfileTestRunner:
         grouped_data = self.group_tests_by_module(test_data)
         hierarchy_content = self.generate_nested_hierarchy(grouped_data)
 
+        # Ensure content ends with proper spacing
         return f"""## Cairo Benchmarks
 
-{hierarchy_content}"""
+📊 **Click on any section below to expand and view detailed benchmark tables with test performance metrics.**
+
+{hierarchy_content.rstrip()}
+
+"""
 
     def update_readme_with_benchmarks(self, test_data: dict):
         """Update README.md with Cairo benchmarks section."""
@@ -992,8 +1028,16 @@ class ProfileTestRunner:
             new_lines = new_content.rstrip().split("\n")
 
             if start_idx is not None:
-                # Replace existing section
-                updated_lines = lines[:start_idx] + new_lines + lines[end_idx:]
+                # Replace existing section, ensuring we maintain proper spacing
+                # Look ahead to see if there's already blank line(s) after the section
+                if end_idx < len(lines) and lines[end_idx - 1].strip() == "":
+                    # There's already a blank line before the next section
+                    updated_lines = lines[:start_idx] + new_lines + lines[end_idx:]
+                else:
+                    # Add a blank line to separate from the next section
+                    updated_lines = (
+                        lines[:start_idx] + new_lines + [""] + lines[end_idx:]
+                    )
             else:
                 # Add new section before "Support & How to Contribute"
                 support_idx = None
@@ -1003,6 +1047,7 @@ class ProfileTestRunner:
                         break
 
                 if support_idx is not None:
+                    # Ensure there's proper spacing before the Support section
                     updated_lines = (
                         lines[:support_idx] + new_lines + [""] + lines[support_idx:]
                     )
