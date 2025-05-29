@@ -48,7 +48,7 @@ fn test_eddsa_0_0B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_1_2B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xa301be3a9ce627480224ecde57d69162,
@@ -96,7 +96,7 @@ fn test_eddsa_1_2B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_2_4B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x4d6630d51be769278400d1b0c66f4f12,
@@ -146,7 +146,7 @@ fn test_eddsa_2_4B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_3_6B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x3f5a6d63ff558746e1e99c1dfc29d66e,
@@ -198,7 +198,7 @@ fn test_eddsa_3_6B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_4_8B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x88f2e7d378b17bc18a52b0afc5deadd6,
@@ -252,7 +252,7 @@ fn test_eddsa_4_8B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_5_10B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x914eab3f9f3ff001dee95a418c59e428,
@@ -308,7 +308,7 @@ fn test_eddsa_5_10B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_6_12B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x1e38377d274b6106faa2333079d99a0f,
@@ -366,7 +366,7 @@ fn test_eddsa_6_12B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_7_14B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xe6253b6b00b21223eb603ce281fee36e,
@@ -487,7 +487,7 @@ fn test_eddsa_8_16B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_9_18B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xee92302f49750591173ca043d729e9fb,
@@ -551,7 +551,7 @@ fn test_eddsa_9_18B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_10_20B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x4d42f6df7f7e676206982d6abcc2ada1,
@@ -617,7 +617,7 @@ fn test_eddsa_10_20B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_11_22B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x1d6e8787cea32243c5badf8999d0dcb6,
@@ -685,7 +685,7 @@ fn test_eddsa_11_22B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_12_24B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x974e658b38a47047aa489c4d76fa6a83,
@@ -755,7 +755,7 @@ fn test_eddsa_12_24B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_13_26B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x27dd70b034665bf7f00d035a8c5b1f88,
@@ -827,7 +827,7 @@ fn test_eddsa_13_26B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_14_28B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xffd9e58d99e8b56c21661b78235487f5,
@@ -901,7 +901,7 @@ fn test_eddsa_14_28B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_15_30B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x8b375cc7ea20544f1b77de6b1ead8f0f,
@@ -1054,7 +1054,7 @@ fn test_eddsa_16_32B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_17_34B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x7e2eb16ba77c2fdee09a99f2b1edc16,
@@ -1134,7 +1134,7 @@ fn test_eddsa_17_34B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_18_36B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xeecce3639db5961e14a75a33827f95ac,
@@ -1216,7 +1216,7 @@ fn test_eddsa_18_36B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_19_38B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x4973c8372e2332c7549c489c1655b22a,
@@ -1300,7 +1300,7 @@ fn test_eddsa_19_38B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_20_40B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x5b972a3c6db9cea4b893e72476cd2868,
@@ -1386,7 +1386,7 @@ fn test_eddsa_20_40B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_21_42B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x6e7ca9c4d5e470a6262477c6203a721c,
@@ -1474,7 +1474,7 @@ fn test_eddsa_21_42B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_22_44B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xb801bc80df12f7989423c74c3485f89a,
@@ -1564,7 +1564,7 @@ fn test_eddsa_22_44B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_23_46B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xe016915541fad2d520ce87d4a81f692c,
@@ -1749,7 +1749,7 @@ fn test_eddsa_24_48B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_25_50B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xdcda74b5f6ae8167383631a49a4e669,
@@ -1845,7 +1845,7 @@ fn test_eddsa_25_50B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_26_52B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xcc2c3c13dd3b0b36d4f91e81a1c3d427,
@@ -1943,7 +1943,7 @@ fn test_eddsa_26_52B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_27_54B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xa27b806af44a61d382b6b8831d90bb01,
@@ -2043,7 +2043,7 @@ fn test_eddsa_27_54B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_28_56B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x90c02885701acf55147dc8f947c9cba6,
@@ -2145,7 +2145,7 @@ fn test_eddsa_28_56B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_29_58B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xe074ecb682f8165568625d6af241bdef,
@@ -2249,7 +2249,7 @@ fn test_eddsa_29_58B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_30_60B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x409078c3a7fa07258520e79127e0fdd2,
@@ -2355,7 +2355,7 @@ fn test_eddsa_30_60B() {
 }
 
 #[test]
-#[ignore]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_31_62B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xec38dd1c63f1903a5b70c76a43d8e506,
