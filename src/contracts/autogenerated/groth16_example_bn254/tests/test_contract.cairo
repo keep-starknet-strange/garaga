@@ -12,7 +12,7 @@
 use groth16_example_bn254::groth16_verifier::{
     IGroth16VerifierBN254Dispatcher, IGroth16VerifierBN254DispatcherTrait,
 };
-use snforge_std::fs::{File, FileTrait, read_txt};
+use snforge_std::fs::{FileTrait, read_txt};
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
 use starknet::ContractAddress;
 

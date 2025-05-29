@@ -2,13 +2,11 @@ import os
 import subprocess
 
 from garaga.modulo_circuit_structs import G1PointCircuit
-from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import (
-    CAIRO_VERSION,
     ECIP_OPS_CLASS_HASH,
-    STARKNET_FOUNDRY_VERSION,
-    get_scarb_toml_file,
     precompute_lines_from_vk,
+    write_test_calldata_file,
+    write_verifier_files,
 )
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     RISC0_BN254_CONTROL_ID,
@@ -45,6 +43,7 @@ def gen_risc0_groth16_verifier(
         .add(vk.ic[5].scalar_mul(control_id).add(vk.ic[0])),
     )
 
+    contract_cairo_name = f"Risc0Groth16Verifier{curve_id.name}"
     constants_code = f"""
     use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
     use garaga::groth16::Groth16VerifyingKey;
@@ -166,38 +165,24 @@ mod Risc0Groth16Verifier{curve_id.name} {{
 }}
     """
 
-    create_directory(output_folder_path)
-    src_dir = os.path.join(output_folder_path, "src")
-    create_directory(src_dir)
+    # Use the reusable function to write all files
+    write_verifier_files(
+        output_folder_path,
+        output_folder_name,
+        constants_code,
+        contract_code,
+        contract_cairo_name,
+        f"verify_groth16_proof_{curve_id.name.lower()}",
+        cli_mode,
+        include_foundry=True,  # RISC0 includes foundry in .tool-versions
+    )
 
-    with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write(f"scarb {CAIRO_VERSION}\n")
-        f.write(f"starknet-foundry {STARKNET_FOUNDRY_VERSION}\n")
-
-    with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
-        f.write(constants_code)
-
-    with open(os.path.join(src_dir, "groth16_verifier.cairo"), "w") as f:
-        f.write(contract_code)
-
-    with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(get_scarb_toml_file(PACKAGE_NAME, cli_mode=cli_mode))
-
-    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
-        f.write(
-            f"""
-pub mod groth16_verifier;
-pub mod groth16_verifier_constants;
-"""
-        )
     subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
     return constants_code
 
 
 if __name__ == "__main__":
-    from garaga.starknet.groth16_contract_generator.calldata import (
-        groth16_calldata_from_vk_and_proof,
-    )
+    pass
 
     RISCO_VK_PATH = (
         "hydra/garaga/starknet/groth16_contract_generator/examples/vk_risc0.json"
@@ -217,5 +202,8 @@ if __name__ == "__main__":
     vk = Groth16VerifyingKey.from_json(file_path=RISCO_VK_PATH)
     proof = Groth16Proof.from_json(proof_path=PROOF_PATH)
 
-    # Generate the calldata :
-    cd = groth16_calldata_from_vk_and_proof(vk, proof)
+    # Generate the calldata and write test calldata file:
+    output_folder_path = os.path.join(
+        CONTRACTS_FOLDER, f"{FOLDER_NAME}_{vk.curve_id.name.lower()}"
+    )
+    write_test_calldata_file(output_folder_path, vk, proof)
