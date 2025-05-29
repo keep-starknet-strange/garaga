@@ -15,7 +15,7 @@ venv
 *.idea
 *.secrets
 *.pb.gz
-.hypothesis/
+.cargo/hypothesis/
 *.go
 
 tools/garaga_rs/target/
@@ -33,3 +33,8 @@ tests/contracts_e2e/devnet/*
 *snfoundry_cache
 !tools/npm/garaga_rs/*.json
 !tools/make/constants.json
+
+# Benchmarks and profiling data
+.cargo/benchmarks/*/
+src/profile/
+src/snfoundry_trace/
