@@ -7,10 +7,10 @@ from garaga.definitions import CurveID
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
+from garaga.starknet.constants import CAIRO_VERSION, STARKNET_FOUNDRY_VERSION
 from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
 
 ECIP_OPS_CLASS_HASH = 0x465991EC820CF53DBB2B27474B6663FB6F0C8BF3DAC7DB3991960214FAD97F5
-CAIRO_VERSION = "2.11.4"
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -210,7 +210,8 @@ sierra-replace-ids = false
 inlining-strategy = {inlining_level}
 
 [dev-dependencies]
-cairo_test = "{CAIRO_VERSION}"
+snforge_std = "{STARKNET_FOUNDRY_VERSION}"
+assert_macros = "{CAIRO_VERSION}"
 
 [[target.starknet-contract]]
 casm = true
