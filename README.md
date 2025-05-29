@@ -12,7 +12,7 @@
 <div align="center">
 <br />
 
-[![GitHub Workflow Status](https://github.com/keep-starknet-strange/garaga/actions/workflows/test.yml/badge.svg)](https://github.com/keep-starknet-strange/garaga/actions/workflows/test.yml)
+[![CI Status](https://img.shields.io/github/checks-status/keep-starknet-strange/garaga/main?label=All%20Workflows)](https://github.com/keep-starknet-strange/garaga/actions)
 [![Project license](https://img.shields.io/github/license/keep-starknet-strange/garaga.svg?style=flat-square)](LICENSE)
 [![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/keep-starknet-strange/garaga/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
