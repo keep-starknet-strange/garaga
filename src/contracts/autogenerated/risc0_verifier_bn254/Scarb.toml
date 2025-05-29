@@ -1,5 +1,5 @@
 [package]
-name = "risc0_bn254_verifier"
+name = "risc0_verifier"
 version = "0.1.0"
 edition = "2024_07"
 
