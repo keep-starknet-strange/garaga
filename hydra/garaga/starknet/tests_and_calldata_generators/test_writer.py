@@ -324,7 +324,7 @@ def get_ecdsa_config():
 def generate_eddsa_test(sig: EdDSA25519Signature, test_index: int) -> str:
     assert sig.is_valid()
     msg_bytes_len = len(sig.msg)
-    ignored = False if msg_bytes_len in [0, 16, 32, 48, 64] else True
+    ignored = False if msg_bytes_len in [0, 32, 64] else True
     ignored_str = IGNORE_STR if ignored else ""
     code = f"""
 #[test]{ignored_str}

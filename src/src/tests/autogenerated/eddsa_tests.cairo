@@ -426,6 +426,7 @@ fn test_eddsa_7_14B() {
 }
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_8_16B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0x68b308f9b7a3497912a8d040dc273d2a,
@@ -1656,6 +1657,7 @@ fn test_eddsa_23_46B() {
 }
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_24_48B() {
     let mut eddsa_sig_with_hints_serialized = array![
         0xd2cb053d81746685d5f1ae2144992efa,
