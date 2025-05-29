@@ -1,4 +1,4 @@
-.PHONY: build test coverage run run-profile generate-constants
+.PHONY: build test coverage run run-profile generate-constants profile-test
 
 constants:
 	python tools/make/generate_constants.py
@@ -26,6 +26,33 @@ steps:
 
 fmt:
 	scarb fmt && cargo fmt
+
+# Profile a specific test and generate performance visualizations
+# Usage: make profile-test [TEST=<test_name_filter>] [JOBS=<parallel_jobs>]
+# Examples:
+#   make profile-test TEST=msm_BN254_1P       (run specific test)
+#   make profile-test                         (run all tests)
+#   make profile-test TEST=msm_BN254_1P JOBS=4  (run with 4 parallel jobs)
+#   make profile-test JOBS=2                  (run all tests with 2 parallel jobs)
+profile-test:
+	@if [ -z "$(TEST)" ]; then \
+		if [ -z "$(JOBS)" ]; then \
+			echo "Running all tests with profiling..."; \
+			python tools/profile_tests.py --all --parallel-jobs 4; \
+		else \
+			echo "Running all tests with profiling using $(JOBS) parallel jobs..."; \
+			python tools/profile_tests.py --all --parallel-jobs $(JOBS); \
+		fi \
+	else \
+		if [ -z "$(JOBS)" ]; then \
+			echo "Running tests with filter: $(TEST)"; \
+			python tools/profile_tests.py $(TEST) --parallel-jobs 4; \
+		else \
+			echo "Running tests with filter: $(TEST) using $(JOBS) parallel jobs"; \
+			python tools/profile_tests.py $(TEST) --parallel-jobs $(JOBS); \
+		fi \
+	fi
+
 ci-e2e:
 	./tools/make/ci_e2e.sh
 
@@ -43,3 +70,7 @@ wasm:
 
 wasm-test-gen:
 	./tools/make/wasm-test-gen.sh
+
+clean:
+	sudo rm -rf build/
+	mkdir -p build/
