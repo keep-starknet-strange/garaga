@@ -180,6 +180,8 @@ See [LICENSE](LICENSE) for more information.
 - feltroidprime. "Faster Extension Field multiplications for Emulated Pairing Circuits." HackMD, [https://hackmd.io/@feltroidprime/B1eyHHXNT](https://hackmd.io/@feltroidprime/B1eyHHXNT).
 - Liam Eagen, "Zero Knowledge Proofs of Elliptic Curve Inner Products from Principal Divisors and Weil Reciprocity," Cryptology ePrint Archive, Report 2022/596, 2022. Available: [https://eprint.iacr.org/2022/596](https://eprint.iacr.org/2022/596)
 - Andrija Novakovic and Liam Eagen, "On Proving Pairings," Cryptology ePrint Archive, Paper 2024/640, 2024. Available: [https://eprint.iacr.org/2024/640](https://eprint.iacr.org/2024/640)
+- Liam Eagen, Youssef El Housni, Simon Masson, and Thomas Piellard, "Fast elliptic curve scalar multiplications in SN(T)ARK circuits," Cryptology ePrint Archive, Paper 2025/933, 2025. Available: [https://eprint.iacr.org/2025/933](https://eprint.iacr.org/2025/933)
+
 
 > **Note:** This list is not exhaustive, and is not intended to be.
 
