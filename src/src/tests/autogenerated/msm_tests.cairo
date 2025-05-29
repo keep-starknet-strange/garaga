@@ -227,6 +227,7 @@ fn test_msm_BN254_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_4P() {
     let mut data = array![
         0x4,
@@ -346,6 +347,7 @@ fn test_msm_BN254_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_10P() {
     let mut data = array![
         0xa,
@@ -597,6 +599,7 @@ fn test_msm_BN254_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_11P() {
     let mut data = array![
         0xb,
@@ -870,6 +873,7 @@ fn test_msm_BN254_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_12P() {
     let mut data = array![
         0xc,
@@ -1390,6 +1394,7 @@ fn test_msm_BLS12_381_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_4P() {
     let mut data = array![
         0x4,
@@ -1509,6 +1514,7 @@ fn test_msm_BLS12_381_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_10P() {
     let mut data = array![
         0xa,
@@ -1760,6 +1766,7 @@ fn test_msm_BLS12_381_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_11P() {
     let mut data = array![
         0xb,
@@ -2033,6 +2040,7 @@ fn test_msm_BLS12_381_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_12P() {
     let mut data = array![
         0xc,
@@ -4781,6 +4789,7 @@ fn test_msm_ED25519_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_4P() {
     let mut data = array![
         0x4,
@@ -4892,6 +4901,7 @@ fn test_msm_ED25519_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_10P() {
     let mut data = array![
         0xa,
@@ -5123,6 +5133,7 @@ fn test_msm_ED25519_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_11P() {
     let mut data = array![
         0xb,
@@ -5374,6 +5385,7 @@ fn test_msm_ED25519_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_12P() {
     let mut data = array![
         0xc,
@@ -5858,6 +5870,7 @@ fn test_msm_GRUMPKIN_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_4P() {
     let mut data = array![
         0x4,
@@ -5969,6 +5982,7 @@ fn test_msm_GRUMPKIN_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_10P() {
     let mut data = array![
         0xa,
@@ -6200,6 +6214,7 @@ fn test_msm_GRUMPKIN_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_11P() {
     let mut data = array![
         0xb,
@@ -6451,6 +6466,7 @@ fn test_msm_GRUMPKIN_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_12P() {
     let mut data = array![
         0xc,

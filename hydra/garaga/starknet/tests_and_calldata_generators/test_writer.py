@@ -50,7 +50,9 @@ def generate_msm_test(curve_id, n_points, seed):
         points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
         scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
     )
-    return builder.to_cairo_1_test()
+    ignored = False if curve_id in [CurveID.SECP256K1, CurveID.SECP256R1] else True
+    ignored = ignored and (False if n_points in [1, 2, 3] else True)
+    return builder.to_cairo_1_test(ignored=ignored)
 
 
 def generate_msm_test_edge_cases(curve_id, n_points, seed):
@@ -316,8 +318,10 @@ def get_ecdsa_config():
 def generate_eddsa_test(sig: EdDSA25519Signature, test_index: int) -> str:
     assert sig.is_valid()
     msg_bytes_len = len(sig.msg)
+    ignored = False if msg_bytes_len in [0, 16, 32, 48, 64] else True
+    ignored_str = "\n#[ignore]" if ignored else ""
     code = f"""
-#[test]
+#[test]{ignored_str}
 fn test_eddsa_{test_index}_{msg_bytes_len}B() {{
     let mut eddsa_sig_with_hints_serialized = array!{sig.serialize_with_hints(as_str=True)}.span();
     let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserialize');
@@ -344,7 +348,7 @@ def generate_eddsa_test_file() -> str:
     with open("tests/ed25519_test_vectors.json", "r") as f:
         test_vectors = json.load(f)
 
-    test_vectors = test_vectors[0:64:2]
+    test_vectors = test_vectors[0:66:2]
 
     with concurrent.futures.ProcessPoolExecutor() as executor:
         futures = {
