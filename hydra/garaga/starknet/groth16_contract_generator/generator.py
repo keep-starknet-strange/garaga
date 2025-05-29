@@ -197,25 +197,21 @@ def create_verifier_directory_structure(output_folder_path: str) -> tuple[str, s
     return src_dir, tests_dir
 
 
-def write_tool_versions_file(
-    output_folder_path: str, include_foundry: bool = True
-) -> None:
+def write_tool_versions_file(output_folder_path: str) -> None:
     """Write the .tool-versions file."""
     with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
         f.write(f"scarb {CAIRO_VERSION}\n")
-        if include_foundry:
-            f.write(f"starknet-foundry {STARKNET_FOUNDRY_VERSION}\n")
+        f.write(f"starknet-foundry {STARKNET_FOUNDRY_VERSION}\n")
 
 
-def write_lib_cairo_file(src_dir: str) -> None:
-    """Write the standard lib.cairo file."""
+def write_lib_cairo_file(src_dir: str, modules: list[str] = None) -> None:
+    """Write the lib.cairo file with specified modules."""
+    if modules is None:
+        modules = ["groth16_verifier", "groth16_verifier_constants"]
+
+    module_imports = "\n".join(f"pub mod {module};" for module in modules)
     with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
-        f.write(
-            """
-pub mod groth16_verifier;
-pub mod groth16_verifier_constants;
-"""
-        )
+        f.write(f"\n{module_imports}\n")
 
 
 def write_verifier_files(
@@ -225,8 +221,13 @@ def write_verifier_files(
     contract_code: str,
     contract_cairo_name: str,
     verification_function_name: str,
+    system: ProofSystem,
     cli_mode: bool = False,
-    include_foundry: bool = True,
+    circuits_code: str = None,
+    modules: list[str] = None,
+    constants_filename: str = "groth16_verifier_constants.cairo",
+    contract_filename: str = "groth16_verifier.cairo",
+    circuits_filename: str = None,
 ) -> None:
     """Write all the standard verifier files (directories, constants, contract, scarb.toml, lib.cairo, test files)."""
 
@@ -234,34 +235,63 @@ def write_verifier_files(
     src_dir, tests_dir = create_verifier_directory_structure(output_folder_path)
 
     # Write tool versions
-    write_tool_versions_file(output_folder_path, include_foundry)
+    write_tool_versions_file(output_folder_path)
 
     # Write constants file
-    with open(os.path.join(src_dir, "groth16_verifier_constants.cairo"), "w") as f:
+    with open(os.path.join(src_dir, constants_filename), "w") as f:
         f.write(constants_code)
 
     # Write contract file
-    with open(os.path.join(src_dir, "groth16_verifier.cairo"), "w") as f:
+    with open(os.path.join(src_dir, contract_filename), "w") as f:
         f.write(contract_code)
+
+    # Write circuits file if provided
+    if circuits_code and circuits_filename:
+        with open(os.path.join(src_dir, circuits_filename), "w") as f:
+            f.write(circuits_code)
 
     # Write Scarb.toml
     with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
         f.write(get_scarb_toml_file(package_name, cli_mode))
 
     # Write lib.cairo
-    write_lib_cairo_file(src_dir)
+    write_lib_cairo_file(src_dir, modules)
 
     # Write test file
     with open(os.path.join(tests_dir, "test_contract.cairo"), "w") as f:
         f.write(
             gen_test_file(
                 contract_cairo_name,
-                "groth16_verifier.cairo".removesuffix(".cairo"),
-                ProofSystem.Groth16,
+                contract_filename.removesuffix(".cairo"),
+                system,
                 verification_function_name,
                 package_name,
             )
         )
+
+
+def write_test_calldata_file_generic(
+    output_folder_path: str,
+    system: ProofSystem,
+    vk_path: str,
+    proof_path: str,
+    public_inputs_path: str = None,
+) -> None:
+    """Write the test calldata file for any proof system using get_calldata_generic."""
+    from pathlib import Path as PathType
+
+    from garaga.starknet.cli.verify import get_calldata_generic
+
+    tests_dir = os.path.join(output_folder_path, "tests")
+    cd = get_calldata_generic(
+        system,
+        PathType(vk_path),
+        PathType(proof_path),
+        PathType(public_inputs_path) if public_inputs_path else None,
+    )
+    with open(os.path.join(tests_dir, "proof_calldata.txt"), "w") as f:
+        for x in cd[1:]:
+            f.write(f"{hex(x)}\n")
 
 
 def gen_groth16_verifier(
@@ -403,8 +433,8 @@ mod {contract_cairo_name} {{
         contract_code,
         contract_cairo_name,
         f"verify_groth16_proof_{curve_id.name.lower()}",
+        ProofSystem.Groth16,
         cli_mode,
-        include_foundry=False,  # Regular Groth16 doesn't include foundry in .tool-versions
     )
 
     subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
@@ -444,4 +474,9 @@ if __name__ == "__main__":
         vk = Groth16VerifyingKey.from_json(vk_path)
         proof = Groth16Proof.from_json(proof_path=proof_path)
         output_folder_path = os.path.join(CONTRACTS_FOLDER, contract_name)
-        write_test_calldata_file(output_folder_path, vk, proof)
+        write_test_calldata_file_generic(
+            output_folder_path,
+            system=ProofSystem.Groth16,
+            vk_path=vk_path,
+            proof_path=proof_path,
+        )

@@ -1,11 +1,12 @@
 import os
 import subprocess
 
+from garaga.definitions import ProofSystem
 from garaga.modulo_circuit_structs import G1PointCircuit
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     precompute_lines_from_vk,
-    write_test_calldata_file,
+    write_test_calldata_file_generic,
     write_verifier_files,
 )
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
@@ -173,8 +174,8 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         contract_code,
         contract_cairo_name,
         f"verify_groth16_proof_{curve_id.name.lower()}",
+        ProofSystem.Groth16,
         cli_mode,
-        include_foundry=True,  # RISC0 includes foundry in .tool-versions
     )
 
     subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
@@ -206,4 +207,9 @@ if __name__ == "__main__":
     output_folder_path = os.path.join(
         CONTRACTS_FOLDER, f"{FOLDER_NAME}_{vk.curve_id.name.lower()}"
     )
-    write_test_calldata_file(output_folder_path, vk, proof)
+    write_test_calldata_file_generic(
+        output_folder_path,
+        system=ProofSystem.Groth16,  # RISC0 uses Groth16
+        vk_path=RISCO_VK_PATH,
+        proof_path=PROOF_PATH,
+    )
