@@ -529,11 +529,41 @@ fn map_to_curve_inner_final_not_quad_res(
 }
 
 // The result of a timelock encryption over drand quicknet.
-#[derive(Drop, Serde)]
+#[derive(Drop)]
 pub struct CipherText {
     U: G2Point,
     V: [u8; 16],
     W: [u8; 16],
+}
+
+impl CipherTextSerde of Serde<CipherText> {
+    fn serialize(self: @CipherText, ref output: Array<felt252>) {
+        Serde::<G2Point>::serialize(self.U, ref output);
+        let [V0, V1, V2, V3] = u8_16_to_u32_4(*self.V);
+        output.append((V0).into());
+        output.append((V1).into());
+        output.append((V2).into());
+        output.append((V3).into());
+        let [W0, W1, W2, W3] = u8_16_to_u32_4(*self.W);
+        output.append((W0).into());
+        output.append((W1).into());
+        output.append((W2).into());
+        output.append((W3).into());
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<CipherText> {
+        let U = Serde::<G2Point>::deserialize(ref serialized)?;
+        let V0: u32 = (*serialized.pop_front()?).try_into()?;
+        let V1: u32 = (*serialized.pop_front()?).try_into()?;
+        let V2: u32 = (*serialized.pop_front()?).try_into()?;
+        let V3: u32 = (*serialized.pop_front()?).try_into()?;
+        let V = u32_4_to_u8_16([V0, V1, V2, V3]);
+        let W0: u32 = (*serialized.pop_front()?).try_into()?;
+        let W1: u32 = (*serialized.pop_front()?).try_into()?;
+        let W2: u32 = (*serialized.pop_front()?).try_into()?;
+        let W3: u32 = (*serialized.pop_front()?).try_into()?;
+        let W = u32_4_to_u8_16([W0, W1, W2, W3]);
+        return Option::Some(CipherText { U: U, V: V, W: W });
+    }
 }
 
 // bytes("IBE-H2") (4 + 2 bytes)
