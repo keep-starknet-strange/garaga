@@ -24,4 +24,4 @@ assert_macros = "2.11.4"
 #cairo_test = "2.11.4"
 
 [scripts]
-test = "snforge test --include-ignored"
+test = "snforge test -p garaga --include-ignored"
