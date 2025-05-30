@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 from garaga.definitions import ProofSystem
 from garaga.starknet.groth16_contract_generator.generator import (
@@ -158,7 +157,6 @@ mod SP1Groth16Verifier{curve_id.name} {{
         cli_mode,
     )
 
-    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
     return constants_code
 
 

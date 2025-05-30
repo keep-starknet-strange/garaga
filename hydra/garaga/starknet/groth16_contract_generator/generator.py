@@ -268,6 +268,7 @@ def write_verifier_files(
                 package_name,
             )
         )
+    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
 
 
 def write_test_calldata_file_generic(
@@ -437,7 +438,6 @@ mod {contract_cairo_name} {{
         cli_mode,
     )
 
-    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
     return constants_code
 
 

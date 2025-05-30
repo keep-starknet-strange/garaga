@@ -1,5 +1,4 @@
 import os
-import subprocess
 
 from garaga.definitions import ProofSystem
 from garaga.modulo_circuit_structs import G1PointCircuit
@@ -178,7 +177,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         cli_mode,
     )
 
-    subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
     return constants_code
 
 
