@@ -1,4 +1,4 @@
-.PHONY: build test coverage run run-profile generate-constants profile-test profile-test-with-benchmarks benchmarks
+.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks
 
 constants:
 	python tools/make/generate_constants.py
