@@ -47,11 +47,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
         }
 
         if self.x == other.x && self.y != other.y {
-            return Self::new_unchecked(
-                FieldElement::<F>::zero(),
-                FieldElement::<F>::zero(),
-                self.iso_point,
-            );
+            return Self::new_infinity();
         }
 
         let lambda = if self.eq(other) {
@@ -95,21 +91,12 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             return self.clone();
         }
         if scalar == BigInt::ZERO {
-            return Self::new_unchecked(
-                FieldElement::<F>::zero(),
-                FieldElement::<F>::zero(),
-                self.iso_point,
-            );
+            return Self::new_infinity();
         }
 
-        let mut result = Self::new_unchecked(
-            FieldElement::<F>::zero(),
-            FieldElement::<F>::zero(),
-            self.iso_point,
-        );
+        let mut result = Self::new_infinity();
         let mut base = self.clone();
 
-        //println!("scalar mul scalar: {:?}", scalar);
         let sign = scalar.sign();
         let abs_scalar = match sign {
             Sign::Plus => scalar,

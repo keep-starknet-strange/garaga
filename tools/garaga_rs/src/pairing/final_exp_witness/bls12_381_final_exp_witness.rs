@@ -6,7 +6,7 @@ use num_traits::Num;
 
 // Optimized implementation of exponentiation using square-and-multiply algorithm
 // with binary representation scanning
-fn pow_custom(
+pub fn pow_custom(
     base: &FieldElement<Degree12ExtensionField>,
     exponent: &BigUint,
 ) -> FieldElement<Degree12ExtensionField> {
