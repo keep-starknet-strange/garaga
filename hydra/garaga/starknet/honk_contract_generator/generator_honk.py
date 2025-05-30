@@ -1,6 +1,5 @@
 import argparse
 import os
-import subprocess
 from pathlib import Path
 
 from garaga.definitions import CurveID, ProofSystem
@@ -314,17 +313,15 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
-    use garaga::circuits::ec;
-    use super::{{vk, VK_HASH, precomputed_lines, {imports_str}}};
+    use super::{{vk, precomputed_lines, {imports_str}}};
     use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}}};
     use core::num::traits::Zero;
-    use core::poseidon::hades_permutation;
 
     #[storage]
     struct Storage {{}}
@@ -509,7 +506,7 @@ def _gen_honk_verifier_files(
     )
 
     contract_code = f"""{contract_header}
-            let (transcript, transcript_state, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            let (transcript, _, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -626,7 +623,7 @@ def _gen_zk_honk_verifier_files(
     )
 
     contract_code = f"""{contract_header}
-            let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            let (transcript, _, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -740,8 +737,6 @@ def _write_and_format_project_files(
         contract_filename="honk_verifier.cairo",
         circuits_filename="honk_verifier_circuits.cairo",
     )
-
-    subprocess.run(["scarb", "fmt", f"."], check=True, cwd=output_folder_path)
 
 
 if __name__ == "__main__":
