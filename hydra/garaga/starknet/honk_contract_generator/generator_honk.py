@@ -182,7 +182,7 @@ use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
     EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{G1Point};\n
@@ -300,7 +300,7 @@ def _gen_contract_header(flavor: str, is_zk: bool, function_names: list[str]) ->
     imports_str = ", ".join(function_names)
     proof_struct_name = f"{('ZK' if is_zk else '') + 'HonkProof'}"
     header = f"""
-use super::honk_verifier_constants::{{vk, VK_HASH, precomputed_lines}};
+use super::honk_verifier_constants::{{vk, precomputed_lines}};
 use super::honk_verifier_circuits::{{{imports_str}}};
 
 #[starknet::interface]

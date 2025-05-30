@@ -315,7 +315,7 @@ def gen_groth16_verifier(
     output_folder_path = os.path.join(output_folder_path, output_folder_name)
 
     precomputed_lines = precompute_lines_from_vk(vk)
-
+    verification_function_name = f"verify_groth16_proof_{curve_id.name.lower()}"
     contract_cairo_name = f"Groth16Verifier{curve_id.name}"
     constants_code = f"""
     use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384}};
@@ -331,7 +331,7 @@ use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_li
 
 #[starknet::interface]
 pub trait I{contract_cairo_name}<TContractState> {{
-    fn verify_groth16_proof_{curve_id.name.lower()}(
+    fn {verification_function_name}(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
@@ -354,7 +354,7 @@ mod {contract_cairo_name} {{
 
     #[abi(embed_v0)]
     impl IGroth16Verifier{curve_id.name} of super::IGroth16Verifier{curve_id.name}<ContractState> {{
-        fn verify_groth16_proof_{curve_id.name.lower()}(
+        fn {verification_function_name}(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u256>> {{
@@ -433,7 +433,7 @@ mod {contract_cairo_name} {{
         constants_code,
         contract_code,
         contract_cairo_name,
-        f"verify_groth16_proof_{curve_id.name.lower()}",
+        verification_function_name,
         ProofSystem.Groth16,
         cli_mode,
     )

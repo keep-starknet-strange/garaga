@@ -34,7 +34,7 @@ mod FibonacciSequencer {
 
             // calls the RiscZero verifier passing along the proof artifact and
             // checks whether the proof is valid or not, aborting the transaction if not
-            let optional_journal = dispatcher.verify_groth16_proof_bn254(full_proof_with_hints);
+            let optional_journal = dispatcher.verify_r0_groth16_proof_bn254(full_proof_with_hints);
             assert(optional_journal != Option::None, 'Invalid proof');
 
             // parses the public inputs and output from the journal

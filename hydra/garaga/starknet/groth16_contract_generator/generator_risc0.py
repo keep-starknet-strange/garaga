@@ -57,13 +57,14 @@ def gen_risc0_groth16_verifier(
     {vk.serialize_to_cairo()}
     pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
     """
+    verification_function_name = f"verify_r0_groth16_proof_{curve_id.name.lower()}"
 
     contract_code = f"""
 use super::groth16_verifier_constants::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
 #[starknet::interface]
 pub trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
-    fn verify_groth16_proof_{curve_id.name.lower()}(
+    fn {verification_function_name}(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u8>>;
@@ -87,7 +88,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
 
     #[abi(embed_v0)]
     impl IRisc0Groth16Verifier{curve_id.name} of super::IRisc0Groth16Verifier{curve_id.name}<ContractState> {{
-        fn verify_groth16_proof_{curve_id.name.lower()}(
+        fn {verification_function_name}(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>> {{
@@ -172,7 +173,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         constants_code,
         contract_code,
         contract_cairo_name,
-        f"verify_groth16_proof_{curve_id.name.lower()}",
+        verification_function_name,
         ProofSystem.Groth16,
         cli_mode,
     )

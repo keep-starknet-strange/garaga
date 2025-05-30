@@ -36,7 +36,7 @@ fn deploy_contract(name: ByteArray) -> ContractAddress {
     contract_address
 }
 
-/// Test the verification function verify_groth16_proof_bn254 with a valid proof.
+/// Test the verification function verify_r0_groth16_proof_bn254 with a valid proof.
 ///
 /// This test demonstrates the complete verification flow:
 /// 1. Deploy the verification contract
@@ -61,7 +61,7 @@ fn deploy_contract(name: ByteArray) -> ContractAddress {
 /// - No panics or assertion failures should occur
 #[test]
 #[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_8", block_tag: latest)]
-fn test_verify_groth16_proof_bn254() {
+fn test_verify_r0_groth16_proof_bn254() {
     // Step 1: Deploy the verification contract
     let contract_address = deploy_contract("Risc0Groth16VerifierBN254");
     let dispatcher = IRisc0Groth16VerifierBN254Dispatcher { contract_address };
@@ -72,8 +72,8 @@ fn test_verify_groth16_proof_bn254() {
     let calldata = read_txt(@file).span();
 
     // Step 3: Verify the proof on-chain
-    // This calls the contract's verify_groth16_proof_bn254 function with the loaded proof data
-    let result = dispatcher.verify_groth16_proof_bn254(calldata);
+    // This calls the contract's verify_r0_groth16_proof_bn254 function with the loaded proof data
+    let result = dispatcher.verify_r0_groth16_proof_bn254(calldata);
 
     // Step 4: Assert that verification succeeded
     // A valid proof should return Some(public_inputs), not None

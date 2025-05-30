@@ -5,7 +5,7 @@ use super::honk_verifier_circuits::{
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_12_PUB_17_circuit,
 };
-use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
+use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
 pub trait IUltraKeccakZKHonkVerifier<TContractState> {

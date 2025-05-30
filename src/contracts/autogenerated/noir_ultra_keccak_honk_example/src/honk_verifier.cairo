@@ -2,7 +2,7 @@ use super::honk_verifier_circuits::{
     is_on_curve_bn254, run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit,
 };
-use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
+use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
 pub trait IUltraKeccakHonkVerifier<TContractState> {
