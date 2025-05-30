@@ -159,7 +159,16 @@ def get_sierra_casm_artifacts(
     """
     Get the Sierra and CASM artifacts for a contract.
     """
-    target_dir = os.path.join(contract_folder_path, "target/dev/")
+    process = subprocess.run(
+        "scarb metadata --format-version 1",
+        shell=True,
+        capture_output=True,
+        text=True,
+        check=True,
+        cwd=contract_folder_path,
+    )
+    metadata = json.loads(process.stdout)
+    target_dir = os.path.join(contract_folder_path, metadata["target_dir"], "dev")
 
     # Clean the target/dev/ folder if it already exists
     if os.path.exists(target_dir):
@@ -171,7 +180,7 @@ def get_sierra_casm_artifacts(
     artifacts_file = glob.glob(os.path.join(target_dir, "*.starknet_artifacts.json"))
     assert (
         len(artifacts_file) == 1
-    ), "Artifacts JSON file not found or multiple files found."
+    ), f"Artifacts JSON file not found or multiple files found: {artifacts_file}"
 
     with open(artifacts_file[0], "r") as f:
         artifacts = json.load(f)
