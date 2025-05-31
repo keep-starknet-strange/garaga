@@ -4,6 +4,8 @@ import json
 import os
 import shutil
 import subprocess
+import tempfile
+import time
 from enum import Enum
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -153,21 +155,72 @@ def scarb_build_contract_folder(contract_folder_path: str):
         raise
 
 
+def _acquire_scarb_lock():
+    """
+    Acquire a file-based lock for scarb operations to prevent parallel execution issues.
+    Returns the lock file path that should be released later.
+    """
+    lock_dir = tempfile.gettempdir()
+    lock_file = os.path.join(lock_dir, "garaga_scarb_metadata.lock")
+
+    # Try to acquire lock with timeout
+    timeout = 60  # 60 seconds timeout
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        try:
+            # Try to create lock file exclusively
+            fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            return lock_file
+        except OSError:
+            # Lock file exists, wait a bit and retry
+            time.sleep(0.1)
+
+    raise TimeoutError("Could not acquire scarb lock within timeout")
+
+
+def _release_scarb_lock(lock_file: str):
+    """Release the scarb lock by removing the lock file."""
+    try:
+        os.remove(lock_file)
+    except OSError:
+        # Lock file might have been removed already
+        pass
+
+
 def get_sierra_casm_artifacts(
     contract_folder_path: str,
 ) -> tuple[None, None] | tuple[str, str]:
     """
     Get the Sierra and CASM artifacts for a contract.
     """
-    process = subprocess.run(
-        "scarb metadata --format-version 1",
-        shell=True,
-        capture_output=True,
-        text=True,
-        check=True,
-        cwd=contract_folder_path,
-    )
-    metadata = json.loads(process.stdout)
+    lock_file = _acquire_scarb_lock()
+    try:
+        process = subprocess.run(
+            "scarb metadata --format-version 1",
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=contract_folder_path,
+        )
+
+        # Clean up any potential scarb warning messages from stdout
+        stdout_lines = process.stdout.strip().split("\n")
+        # Find the first line that starts with '{' (the JSON)
+        json_start_idx = 0
+        for i, line in enumerate(stdout_lines):
+            if line.strip().startswith("{"):
+                json_start_idx = i
+                break
+
+        json_content = "\n".join(stdout_lines[json_start_idx:])
+        metadata = json.loads(json_content)
+    finally:
+        _release_scarb_lock(lock_file)
+
     target_dir = os.path.join(contract_folder_path, metadata["target_dir"], "dev")
 
     # Clean the target/dev/ folder if it already exists
