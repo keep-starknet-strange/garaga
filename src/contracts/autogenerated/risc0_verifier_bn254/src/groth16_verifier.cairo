@@ -1,8 +1,8 @@
 use super::groth16_verifier_constants::{N_FREE_PUBLIC_INPUTS, T, ic, precomputed_lines, vk};
 
 #[starknet::interface]
-trait IRisc0Groth16VerifierBN254<TContractState> {
-    fn verify_groth16_proof_bn254(
+pub trait IRisc0Groth16VerifierBN254<TContractState> {
+    fn verify_r0_groth16_proof_bn254(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u8>>;
 }
@@ -26,7 +26,7 @@ mod Risc0Groth16VerifierBN254 {
 
     #[abi(embed_v0)]
     impl IRisc0Groth16VerifierBN254 of super::IRisc0Groth16VerifierBN254<ContractState> {
-        fn verify_groth16_proof_bn254(
+        fn verify_r0_groth16_proof_bn254(
             self: @ContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.

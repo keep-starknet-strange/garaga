@@ -123,9 +123,6 @@ def verify_onchain(
             f"Function {endpoint} not found on contract {contract_address}"
         )
 
-    if vk == None:
-        vk = get_default_vk_path(system)
-
     if public_inputs == "":
         public_inputs = None
 
@@ -155,15 +152,22 @@ def verify_onchain(
 class CalldataFormat(str, Enum):
     starkli = "starkli"
     array = "array"
+    snforge = "snforge"
 
 
 def get_calldata_generic(
-    system: ProofSystem, vk: Path, proof: Path, public_inputs: Path | None
+    system: ProofSystem, vk: Path | None, proof: Path, public_inputs: Path | None
 ) -> list[int]:
     match system:
-        case ProofSystem.Groth16 | ProofSystem.Risc0Groth16:
-            vk_obj = Groth16VerifyingKey.from_json(vk)
+        case ProofSystem.Groth16:
             proof_obj = Groth16Proof.from_json(proof, public_inputs)
+            if vk is None:
+                vk_obj = Groth16VerifyingKey.from_json(
+                    get_default_vk_path(proof_obj.vk_type)
+                )
+            else:
+                vk_obj = Groth16VerifyingKey.from_json(vk)
+
             return groth16_calldata_from_vk_and_proof(vk_obj, proof_obj)
         case (
             ProofSystem.UltraKeccakHonk
@@ -227,7 +231,17 @@ def calldata(
             case_sensitive=False,
             show_choices=True,
         ),
-    ] = CalldataFormat.starkli,
+    ] = CalldataFormat.snforge,
+    output_path: Annotated[
+        Path,
+        typer.Option(
+            help="Output directory path for snforge format (defaults to current directory)",
+            file_okay=False,
+            dir_okay=True,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ] = Path("."),
 ):
     """Generate Starknet verifier calldata given a proof and a verification key."""
 
@@ -240,3 +254,10 @@ def calldata(
         print(" ".join([str(x) for x in calldata]))
     elif format == CalldataFormat.array:
         print(calldata[1:])
+    elif format == CalldataFormat.snforge:
+        # Write the calldata to a file in the specified output path
+        output_file = output_path / "proof_calldata.txt"
+        with open(output_file, "w") as f:
+            for x in calldata[1:]:
+                f.write(f"{hex(x)}\n")
+        print(f"Calldata written to: {output_file}")

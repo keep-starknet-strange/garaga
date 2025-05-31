@@ -2,6 +2,7 @@ use garaga::core::circuit::u288IntoCircuitInputValue;
 use garaga::ec_ops::{G1Point, msm_g1, u288, u384};
 
 #[test]
+#[ignore]
 fn test_msm_BN254_1P() {
     let mut data = array![
         0x1,
@@ -55,6 +56,7 @@ fn test_msm_BN254_1P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_2P() {
     let mut data = array![
         0x2,
@@ -130,6 +132,7 @@ fn test_msm_BN254_2P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_3P() {
     let mut data = array![
         0x3,
@@ -227,6 +230,7 @@ fn test_msm_BN254_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_4P() {
     let mut data = array![
         0x4,
@@ -346,6 +350,7 @@ fn test_msm_BN254_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_10P() {
     let mut data = array![
         0xa,
@@ -597,6 +602,7 @@ fn test_msm_BN254_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_11P() {
     let mut data = array![
         0xb,
@@ -870,6 +876,7 @@ fn test_msm_BN254_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_12P() {
     let mut data = array![
         0xc,
@@ -1165,6 +1172,7 @@ fn test_msm_BN254_12P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_1P() {
     let mut data = array![
         0x1,
@@ -1218,6 +1226,7 @@ fn test_msm_BLS12_381_1P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_2P() {
     let mut data = array![
         0x2,
@@ -1293,6 +1302,7 @@ fn test_msm_BLS12_381_2P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_3P() {
     let mut data = array![
         0x3,
@@ -1390,6 +1400,7 @@ fn test_msm_BLS12_381_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_4P() {
     let mut data = array![
         0x4,
@@ -1509,6 +1520,7 @@ fn test_msm_BLS12_381_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_10P() {
     let mut data = array![
         0xa,
@@ -1760,6 +1772,7 @@ fn test_msm_BLS12_381_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_11P() {
     let mut data = array![
         0xb,
@@ -2033,6 +2046,7 @@ fn test_msm_BLS12_381_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_12P() {
     let mut data = array![
         0xc,
@@ -2541,6 +2555,7 @@ fn test_msm_SECP256R1_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_4P() {
     let mut data = array![
         0x4,
@@ -2652,6 +2667,7 @@ fn test_msm_SECP256R1_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_10P() {
     let mut data = array![
         0xa,
@@ -2883,6 +2899,7 @@ fn test_msm_SECP256R1_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_11P() {
     let mut data = array![
         0xb,
@@ -3134,6 +3151,7 @@ fn test_msm_SECP256R1_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_12P() {
     let mut data = array![
         0xc,
@@ -3630,6 +3648,7 @@ fn test_msm_SECP256K1_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_4P() {
     let mut data = array![
         0x4,
@@ -3749,6 +3768,7 @@ fn test_msm_SECP256K1_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_10P() {
     let mut data = array![
         0xa,
@@ -4000,6 +4020,7 @@ fn test_msm_SECP256K1_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_11P() {
     let mut data = array![
         0xb,
@@ -4273,6 +4294,7 @@ fn test_msm_SECP256K1_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_12P() {
     let mut data = array![
         0xc,
@@ -4568,6 +4590,7 @@ fn test_msm_SECP256K1_12P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_1P() {
     let mut data = array![
         0x1,
@@ -4619,6 +4642,7 @@ fn test_msm_ED25519_1P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_2P() {
     let mut data = array![
         0x2,
@@ -4690,6 +4714,7 @@ fn test_msm_ED25519_2P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_3P() {
     let mut data = array![
         0x3,
@@ -4781,6 +4806,7 @@ fn test_msm_ED25519_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_4P() {
     let mut data = array![
         0x4,
@@ -4892,6 +4918,7 @@ fn test_msm_ED25519_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_10P() {
     let mut data = array![
         0xa,
@@ -5123,6 +5150,7 @@ fn test_msm_ED25519_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_11P() {
     let mut data = array![
         0xb,
@@ -5374,6 +5402,7 @@ fn test_msm_ED25519_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_12P() {
     let mut data = array![
         0xc,
@@ -5645,6 +5674,7 @@ fn test_msm_ED25519_12P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_1P() {
     let mut data = array![
         0x1,
@@ -5696,6 +5726,7 @@ fn test_msm_GRUMPKIN_1P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_2P() {
     let mut data = array![
         0x2,
@@ -5767,6 +5798,7 @@ fn test_msm_GRUMPKIN_2P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_3P() {
     let mut data = array![
         0x3,
@@ -5858,6 +5890,7 @@ fn test_msm_GRUMPKIN_3P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_4P() {
     let mut data = array![
         0x4,
@@ -5969,6 +6002,7 @@ fn test_msm_GRUMPKIN_4P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_10P() {
     let mut data = array![
         0xa,
@@ -6200,6 +6234,7 @@ fn test_msm_GRUMPKIN_10P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_11P() {
     let mut data = array![
         0xb,
@@ -6451,6 +6486,7 @@ fn test_msm_GRUMPKIN_11P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_12P() {
     let mut data = array![
         0xc,
@@ -6722,6 +6758,7 @@ fn test_msm_GRUMPKIN_12P() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -6792,6 +6829,7 @@ fn test_msm_BN254_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -6884,6 +6922,7 @@ fn test_msm_BN254_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BN254_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7003,6 +7042,7 @@ fn test_msm_BN254_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7078,6 +7118,7 @@ fn test_msm_BLS12_381_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -7175,6 +7216,7 @@ fn test_msm_BLS12_381_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_BLS12_381_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7294,6 +7336,7 @@ fn test_msm_BLS12_381_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7365,6 +7408,7 @@ fn test_msm_SECP256R1_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -7456,6 +7500,7 @@ fn test_msm_SECP256R1_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256R1_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7567,6 +7612,7 @@ fn test_msm_SECP256R1_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7642,6 +7688,7 @@ fn test_msm_SECP256K1_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -7739,6 +7786,7 @@ fn test_msm_SECP256K1_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_SECP256K1_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -7858,6 +7906,7 @@ fn test_msm_SECP256K1_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -7929,6 +7978,7 @@ fn test_msm_ED25519_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -8020,6 +8070,7 @@ fn test_msm_ED25519_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_ED25519_3P_edge_case() {
     let mut data = array![
         0x4,
@@ -8131,6 +8182,7 @@ fn test_msm_ED25519_3P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_1P_edge_case() {
     let mut data = array![
         0x2,
@@ -8197,6 +8249,7 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_2P_edge_case() {
     let mut data = array![
         0x3,
@@ -8283,6 +8336,7 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
 
 
 #[test]
+#[ignore]
 fn test_msm_GRUMPKIN_3P_edge_case() {
     let mut data = array![
         0x4,

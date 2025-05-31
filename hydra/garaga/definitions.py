@@ -29,8 +29,7 @@ GRUMPKIN_ID = 5
 
 
 class ProofSystem(Enum):
-    Groth16 = "groth16"
-    Risc0Groth16 = "risc0_groth16"
+    Groth16 = "groth16"  # Works for Generic Groth16 (BN254/BLS12-381), Risc0 Groth16 (BN254), and SP1 Groth16 (BN254)
     UltraKeccakHonk = "ultra_keccak_honk"
     UltraStarknetHonk = "ultra_starknet_honk"
     UltraKeccakZKHonk = "ultra_keccak_zk_honk"
@@ -40,8 +39,6 @@ class ProofSystem(Enum):
     def supported_curves(self) -> set[int]:
         if self == ProofSystem.Groth16:
             return {BN254_ID, BLS12_381_ID}
-        if self == ProofSystem.Risc0Groth16:
-            return {BN254_ID}
         if self == ProofSystem.UltraKeccakHonk:
             return {BN254_ID}
         if self == ProofSystem.UltraStarknetHonk:

@@ -1,6 +1,5 @@
 import argparse
 import os
-import subprocess
 from pathlib import Path
 
 from garaga.definitions import CurveID, ProofSystem
@@ -26,10 +25,9 @@ from garaga.precompiled_circuits.honk import (
     HonkVk,
 )
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
-from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.groth16_contract_generator.generator import (
-    CAIRO_VERSION,
-    get_scarb_toml_file,
+    write_test_calldata_file_generic,
+    write_verifier_files,
 )
 
 # nargo --version
@@ -50,16 +48,25 @@ def gen_honk_verifier(
     """
     Generate the honk verifier files and write them to the output folder.
     """
-    output_folder_path = os.path.join(output_folder_path, output_folder_name)
+    output_folder_path_full = os.path.join(output_folder_path, output_folder_name)
 
-    constants_code, circuits_code, contract_code = gen_honk_verifier_files(vk, system)
+    (
+        constants_code,
+        circuits_code,
+        contract_code,
+        contract_name,
+        verification_function_name,
+    ) = gen_honk_verifier_files(vk, system)
     _write_and_format_project_files(
-        output_folder_path,
+        output_folder_path_full,
         output_folder_name,
         cli_mode,
         constants_code,
         circuits_code,
         contract_code,
+        contract_name,
+        verification_function_name,
+        system,
     )
     return True
 
@@ -67,12 +74,14 @@ def gen_honk_verifier(
 def gen_honk_verifier_files(
     vk: str | Path | HonkVk | bytes,
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
-) -> tuple[str, str, str]:
+) -> tuple[str, str, str, str, str]:
     """
     Returns in this order:
     - constants_code
     - circuits_code
     - contract_code
+    - contract_name
+    - verification_function_name
     """
     match system:
         case ProofSystem.UltraKeccakHonk | ProofSystem.UltraStarknetHonk:
@@ -173,7 +182,7 @@ use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
     EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{G1Point};\n
@@ -291,7 +300,7 @@ def _gen_contract_header(flavor: str, is_zk: bool, function_names: list[str]) ->
     imports_str = ", ".join(function_names)
     proof_struct_name = f"{('ZK' if is_zk else '') + 'HonkProof'}"
     header = f"""
-use super::honk_verifier_constants::{{vk, VK_HASH, precomputed_lines}};
+use super::honk_verifier_constants::{{vk, precomputed_lines}};
 use super::honk_verifier_circuits::{{{imports_str}}};
 
 #[starknet::interface]
@@ -304,17 +313,15 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u288, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
-    use garaga::circuits::ec;
-    use super::{{vk, VK_HASH, precomputed_lines, {imports_str}}};
+    use super::{{vk, precomputed_lines, {imports_str}}};
     use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
     use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
     use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}}};
     use core::num::traits::Zero;
-    use core::poseidon::hades_permutation;
 
     #[storage]
     struct Storage {{}}
@@ -456,7 +463,7 @@ def _get_msm_points_array_code(zk: bool, log_n: int) -> tuple[str, (int, int)]:
 def _gen_honk_verifier_files(
     vk: str | Path | HonkVk | bytes,
     system: ProofSystem = ProofSystem.UltraKeccakHonk,
-) -> tuple[str, str, str]:
+) -> tuple[str, str, str, str, str]:
     vk, flavor = setup_vk_flavor(system, vk)
 
     curve_id = CurveID.GRUMPKIN
@@ -482,6 +489,8 @@ def _gen_honk_verifier_files(
     scalars_tuple_into = ",\n            ".join(scalars_tuple_into)
 
     # Generate contract header
+    contract_name = f"Ultra{flavor}HonkVerifier"
+    verification_function_name = f"verify_ultra_{flavor.lower()}_honk_proof"
     contract_header = _gen_contract_header(
         flavor=flavor,
         is_zk=False,
@@ -497,7 +506,7 @@ def _gen_honk_verifier_files(
     )
 
     contract_code = f"""{contract_header}
-            let (transcript, transcript_state, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            let (transcript, _, base_rlc) = HonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -549,13 +558,19 @@ def _gen_honk_verifier_files(
 
     """
 
-    return constants_code, circuits_code, contract_code
+    return (
+        constants_code,
+        circuits_code,
+        contract_code,
+        contract_name,
+        verification_function_name,
+    )
 
 
 def _gen_zk_honk_verifier_files(
     vk: str | Path | HonkVk | bytes,
     system: ProofSystem = ProofSystem.UltraKeccakZKHonk,
-) -> str:
+) -> tuple[str, str, str, str, str]:
     vk, flavor = setup_vk_flavor(system, vk)
 
     curve_id = CurveID.GRUMPKIN
@@ -592,6 +607,8 @@ def _gen_zk_honk_verifier_files(
     scalars_tuple_into = ",\n            ".join(scalars_tuple_into)
 
     # Generate contract header
+    contract_name = f"Ultra{flavor}ZKHonkVerifier"
+    verification_function_name = f"verify_ultra_{flavor.lower()}_zk_honk_proof"
     contract_header = _gen_contract_header(
         flavor=flavor,
         is_zk=True,
@@ -606,7 +623,7 @@ def _gen_zk_honk_verifier_files(
     )
 
     contract_code = f"""{contract_header}
-            let (transcript, transcript_state, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            let (transcript, _, base_rlc) = ZKHonkTranscriptTrait::from_proof::<{flavor}HasherState>(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
                 p_public_inputs: full_proof.proof.public_inputs,
@@ -684,7 +701,13 @@ def _gen_zk_honk_verifier_files(
 
 
     """
-    return constants_code, circuits_code, contract_code
+    return (
+        constants_code,
+        circuits_code,
+        contract_code,
+        contract_name,
+        verification_function_name,
+    )
 
 
 def _write_and_format_project_files(
@@ -694,35 +717,28 @@ def _write_and_format_project_files(
     constants_code: str,
     circuits_code: str,
     contract_code: str,
+    contract_name: str,
+    verification_function_name: str,
+    system: ProofSystem,
+    include_test_sample: bool = True,
 ):
-    create_directory(output_folder_path)
-    src_dir = os.path.join(output_folder_path, "src")
-    create_directory(src_dir)
-
-    with open(os.path.join(output_folder_path, ".tool-versions"), "w") as f:
-        f.write(f"scarb {CAIRO_VERSION}\n")
-
-    with open(os.path.join(src_dir, "honk_verifier_constants.cairo"), "w") as f:
-        f.write(constants_code)
-
-    with open(os.path.join(src_dir, "honk_verifier_circuits.cairo"), "w") as f:
-        f.write(circuits_code)
-
-    with open(os.path.join(src_dir, "honk_verifier.cairo"), "w") as f:
-        f.write(contract_code)
-
-    with open(os.path.join(output_folder_path, "Scarb.toml"), "w") as f:
-        f.write(get_scarb_toml_file(output_folder_name, cli_mode))
-
-    with open(os.path.join(src_dir, "lib.cairo"), "w") as f:
-        f.write(
-            """
-mod honk_verifier;
-mod honk_verifier_constants;
-mod honk_verifier_circuits;
-"""
-        )
-    subprocess.run(["scarb", "fmt", f"."], check=True, cwd=output_folder_path)
+    # Use the reusable function to write all files
+    write_verifier_files(
+        output_folder_path,
+        output_folder_name,
+        constants_code,
+        contract_code,
+        contract_name,
+        verification_function_name,
+        system,
+        cli_mode,
+        circuits_code=circuits_code,
+        modules=["honk_verifier", "honk_verifier_constants", "honk_verifier_circuits"],
+        constants_filename="honk_verifier_constants.cairo",
+        contract_filename="honk_verifier.cairo",
+        circuits_filename="honk_verifier_circuits.cairo",
+        include_test_sample=include_test_sample,
+    )
 
 
 if __name__ == "__main__":
@@ -740,6 +756,7 @@ if __name__ == "__main__":
         "hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin"
     )
     CONTRACTS_FOLDER = "src/contracts/autogenerated/"  # Do not change this
+    EXAMPLES_FOLDER = "hydra/garaga/starknet/honk_contract_generator/examples"
 
     if not args.max_log_n:
         systems = [
@@ -748,6 +765,28 @@ if __name__ == "__main__":
             ProofSystem.UltraKeccakZKHonk,
             ProofSystem.UltraStarknetZKHonk,
         ]
+
+        # Map systems to their corresponding proof and public inputs files
+        system_to_proof_files = {
+            ProofSystem.UltraKeccakHonk: (
+                os.path.join(EXAMPLES_FOLDER, "proof_ultra_keccak.bin"),
+                os.path.join(EXAMPLES_FOLDER, "public_inputs_ultra_keccak.bin"),
+            ),
+            ProofSystem.UltraStarknetHonk: (
+                os.path.join(EXAMPLES_FOLDER, "proof_ultra_starknet.bin"),
+                os.path.join(
+                    EXAMPLES_FOLDER, "public_inputs_ultra_keccak.bin"
+                ),  # Same public inputs
+            ),
+            ProofSystem.UltraKeccakZKHonk: (
+                os.path.join(EXAMPLES_FOLDER, "proof_ultra_keccak_zk.bin"),
+                os.path.join(EXAMPLES_FOLDER, "public_inputs_ultra_keccak.bin"),
+            ),
+            ProofSystem.UltraStarknetZKHonk: (
+                os.path.join(EXAMPLES_FOLDER, "proof_ultra_starknet_zk.bin"),
+                os.path.join(EXAMPLES_FOLDER, "public_inputs_ultra_keccak.bin"),
+            ),
+        }
 
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = []
@@ -764,7 +803,7 @@ if __name__ == "__main__":
                     case _:
                         raise ValueError(f"Proof system {system} not compatible")
 
-                FOLDER_NAME = f"noir_ultra_{flavor}_honk_example"  # '_curve_id' is appended in the end.
+                FOLDER_NAME = f"noir_ultra_{flavor}_honk_example"
 
                 # Submit the task to the executor
                 futures.append(
@@ -783,6 +822,44 @@ if __name__ == "__main__":
                     future.result()  # This will raise an exception if the function raised
                 except Exception as e:
                     print(f"An error occurred: {e}")
+
+        # Generate calldata for each system
+        for system in systems:
+            match system:
+                case ProofSystem.UltraKeccakHonk:
+                    flavor = "keccak"
+                case ProofSystem.UltraStarknetHonk:
+                    flavor = "starknet"
+                case ProofSystem.UltraKeccakZKHonk:
+                    flavor = "keccak_zk"
+                case ProofSystem.UltraStarknetZKHonk:
+                    flavor = "starknet_zk"
+                case _:
+                    continue
+
+            FOLDER_NAME = f"noir_ultra_{flavor}_honk_example"
+            output_folder_path = os.path.join(CONTRACTS_FOLDER, FOLDER_NAME)
+
+            # Get proof and public inputs files for this system
+            proof_file, public_inputs_file = system_to_proof_files[system]
+
+            # Check if files exist before generating calldata
+            if os.path.exists(proof_file) and os.path.exists(public_inputs_file):
+                try:
+                    write_test_calldata_file_generic(
+                        output_folder_path,
+                        system,
+                        VK_PATH,
+                        proof_file,
+                        public_inputs_file,
+                    )
+                    print(f"Generated calldata for {FOLDER_NAME}")
+                except Exception as e:
+                    print(f"Error generating calldata for {FOLDER_NAME}: {e}")
+            else:
+                print(
+                    f"Warning: Proof or public inputs file not found for {FOLDER_NAME}"
+                )
 
     if args.max_log_n:
         # NOTE : each additional public input increase bytecode by ~ 21 felts.
