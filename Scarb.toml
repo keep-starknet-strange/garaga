@@ -8,4 +8,4 @@ cairo_test = "2.11.4"
 starknet = "2.11.4"
 
 [workspace.scripts]
-test = "snforge test -p garaga"
+test = "snforge test -p garaga --include-ignored"
