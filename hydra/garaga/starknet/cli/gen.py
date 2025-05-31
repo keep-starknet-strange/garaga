@@ -10,11 +10,7 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.tree import Tree
 
 from garaga.definitions import ProofSystem
-from garaga.starknet.cli.utils import (
-    complete_proof_system,
-    get_default_vk_path,
-    get_package_version,
-)
+from garaga.starknet.cli.utils import complete_proof_system, get_package_version
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     gen_groth16_verifier,
@@ -146,6 +142,12 @@ def gen(
             autocompletion=lambda: [],  # See https://github.com/fastapi/typer/discussions/731
         ),
     ] = None,
+    include_test_sample: Annotated[
+        bool,
+        typer.Option(
+            help="Include a sample test file in the generated project",
+        ),
+    ] = True,
 ):
     """
     Generate a Cairo verifier for a given proof system.
@@ -162,16 +164,15 @@ def gen(
             f"[bold cyan]Generating Smart Contract project for [bold yellow]{system}[/bold yellow] using [bold yellow]{Path(vk).name}[/bold yellow]...[/bold cyan]",
             total=None,
         )
-        if vk == None:
-            vk = get_default_vk_path(system)
         match system:
-            case ProofSystem.Groth16 | ProofSystem.Risc0Groth16:
+            case ProofSystem.Groth16:
                 gen_groth16_verifier(
                     vk=vk,
                     output_folder_path=cwd,
                     output_folder_name=project_name,
                     ecip_class_hash=ECIP_OPS_CLASS_HASH,
                     cli_mode=True,
+                    include_test_sample=include_test_sample,
                 )
             case (
                 ProofSystem.UltraKeccakHonk
@@ -186,6 +187,7 @@ def gen(
                         output_folder_name=project_name,
                         system=system,
                         cli_mode=True,
+                        include_test_sample=include_test_sample,
                     )
                 except Exception as e:
                     import traceback
