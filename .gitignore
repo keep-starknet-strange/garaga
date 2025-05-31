@@ -37,4 +37,4 @@ tests/contracts_e2e/devnet/*
 # Benchmarks and profiling data
 .cargo/benchmarks/*/
 src/profile/
-**/.snfoundry_trace/** */
+**/.snfoundry_trace/**
