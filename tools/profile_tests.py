@@ -21,7 +21,6 @@ import glob
 import json
 import os
 import re
-import shutil
 import signal
 import subprocess
 import sys
@@ -75,30 +74,27 @@ def signal_handler(signum, frame):
 signal.signal(signal.SIGINT, signal_handler)
 
 
-def log_info(message: str, emoji: str = "ℹ️"):
-    """Log info message with beautiful formatting."""
-    console.print(f"{emoji} [dim]{message}[/dim]")
+# Logging level configuration
+LOG_STYLES = {
+    "info": ("ℹ️", "[dim]{message}[/dim]"),
+    "success": ("✅", "[green]{message}[/green]"),
+    "warning": ("⚠️", "[yellow]{message}[/yellow]"),
+    "error": ("❌", "[bold red]{message}[/bold red]"),
+    "debug": ("🔍", "[dim cyan]{message}[/dim cyan]"),
+}
 
 
-def log_success(message: str, emoji: str = "✅"):
-    """Log success message with beautiful formatting."""
-    console.print(f"{emoji} [green]{message}[/green]")
+def log(message: str, level: str = "info", emoji: str = None):
+    """Consolidated logging function with level-based styling."""
+    if level == "debug" and not console.is_terminal:
+        return  # Skip debug in non-terminal mode
 
+    emoji_char, style_template = LOG_STYLES.get(level, LOG_STYLES["info"])
+    if emoji:
+        emoji_char = emoji
 
-def log_warning(message: str, emoji: str = "⚠️"):
-    """Log warning message with beautiful formatting."""
-    console.print(f"{emoji} [yellow]{message}[/yellow]")
-
-
-def log_error(message: str, emoji: str = "❌"):
-    """Log error message with beautiful formatting."""
-    console.print(f"{emoji} [bold red]{message}[/bold red]")
-
-
-def log_debug(message: str, emoji: str = "🔍"):
-    """Log debug message with beautiful formatting."""
-    if console.is_terminal:  # Only show debug in terminal mode
-        console.print(f"{emoji} [dim cyan]{message}[/dim cyan]")
+    formatted_message = style_template.format(message=message)
+    console.print(f"{emoji_char} {formatted_message}")
 
 
 def print_header(title: str):
@@ -111,6 +107,140 @@ def print_header(title: str):
     )
     console.print(panel)
 
+
+def create_progress(advanced: bool = False) -> Progress:
+    """Create progress bar - advanced mode for file processing."""
+    if advanced:
+        return Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=40, style="cyan", complete_style="green"),
+            "[progress.percentage]{task.percentage:>3.0f}%",
+            "•",
+            TextColumn("({task.completed}/{task.total} files)"),
+            "•",
+            TimeElapsedColumn(),
+            "•",
+            TimeRemainingColumn(),
+            console=console,
+            transient=False,
+        )
+    else:
+        return Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(bar_width=30, style="cyan", complete_style="green"),
+            TaskProgressColumn(),
+            "•",
+            TimeElapsedColumn(),
+            "•",
+            TimeRemainingColumn(),
+            console=console,
+            transient=False,
+        )
+
+
+def show_exit_panel(message: str, status: str, border_style: str = "green"):
+    """Show standardized exit panel."""
+    console.print(
+        Panel(
+            Align.center(message),
+            border_style=border_style,
+            title=f"[{border_style}]{status}[/{border_style}]",
+        )
+    )
+
+
+def _submit_trace_processing_tasks(executor, trace_files, timestamp):
+    """Submit all trace processing tasks to the executor."""
+    return {
+        executor.submit(
+            ProfileTestRunner.process_single_trace_file_static,
+            trace_file_info,
+            timestamp,
+        ): trace_file_info
+        for trace_file_info in trace_files
+    }
+
+
+def _handle_shutdown_request(executor, future_to_file):
+    """Handle graceful shutdown by cancelling all pending futures."""
+    console.print("🛑 [bold red]Shutdown requested, cancelling all tasks...[/bold red]")
+    for future in future_to_file:
+        if not future.done():
+            future.cancel()
+
+    # Force executor shutdown
+    try:
+        executor.shutdown(wait=False, cancel_futures=True)
+    except TypeError:
+        # Fallback for older Python versions
+        executor.shutdown(wait=False)
+
+
+def _process_completed_future(future, trace_file_info, test_resources):
+    """Process a single completed future and return success status."""
+    try:
+        success, test_name, image_path, test_info = future.result()
+        if success and test_info:
+            test_resources.append(test_info)
+            console.print(f"✨ [green]{test_name}[/green]")
+            return True
+        else:
+            console.print(f"💥 [red]{test_name}[/red]")
+            return False
+    except Exception as e:
+        if _shutdown_requested:
+            return False
+        test_name = ProfileTestRunner.extract_test_name_from_trace_file_static(
+            trace_file_info
+        )
+        console.print(f"💥 [red]{test_name}[/red]: {e}")
+        return False
+
+
+def _process_futures_with_progress(future_to_file, test_resources):
+    """Process completed futures with progress tracking."""
+    completed_futures = set()
+    success_count = 0
+
+    with create_progress(True) as progress:
+        task = progress.add_task("Processing trace files", total=len(future_to_file))
+
+        while len(completed_futures) < len(future_to_file):
+            if _shutdown_requested:
+                return success_count
+
+            # Check for newly completed futures
+            for future in list(future_to_file.keys()):
+                if future in completed_futures or not future.done():
+                    continue
+
+                completed_futures.add(future)
+                trace_file_info = future_to_file[future]
+
+                if _process_completed_future(future, trace_file_info, test_resources):
+                    success_count += 1
+
+                progress.advance(task, 1)
+
+            # Small sleep to prevent busy waiting but still be responsive
+            time.sleep(0.1)
+
+    return success_count
+
+
+# Configuration constants
+CONTRACTS_CONFIG = [
+    "autogenerated/groth16_example_bn254",
+    # "autogenerated/groth16_example_bls12_381",
+    "autogenerated/noir_ultra_keccak_honk_example",
+    # "autogenerated/noir_ultra_keccak_zk_honk_example",
+    # "autogenerated/noir_ultra_starknet_honk_example",
+    # "autogenerated/noir_ultra_starknet_zk_honk_example",
+]
+
+EXCLUDED_PROFILE_SAMPLES = {"memory holes", "casm size", "calls"}
 
 # Sierra gas weights
 SIERRA_GAS_WEIGHTS = {
@@ -127,25 +257,103 @@ SIERRA_GAS_WEIGHTS = {
 }
 
 
+# Helper functions for common operations
+def _run_command(
+    cmd: list, check: bool = True, capture_output: bool = True, text: bool = True
+) -> subprocess.CompletedProcess:
+    """Execute command with consistent error handling."""
+    try:
+        return subprocess.run(
+            cmd, capture_output=capture_output, text=text, check=check
+        )
+    except subprocess.CalledProcessError as e:
+        raise RuntimeError(f"Command failed: {' '.join(cmd)}\nError: {e.stderr}")
+    except Exception as e:
+        raise RuntimeError(f"Command execution error: {e}")
+
+
+def _read_json_file(file_path: Path, default=None):
+    """Read JSON file with error handling."""
+    if not file_path.exists():
+        return default if default is not None else {}
+    try:
+        with open(file_path, "r") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, IOError):
+        return default if default is not None else {}
+
+
+def _write_json_file(file_path: Path, data, indent: int = 2):
+    """Write JSON file with error handling."""
+    try:
+        with open(file_path, "w") as f:
+            json.dump(data, f, indent=indent)
+        return True
+    except IOError as e:
+        log(f"Could not save JSON file {file_path}: {e}", level="error")
+        return False
+
+
+def _ensure_directory(path: Path):
+    """Ensure directory exists, create if needed."""
+    path.mkdir(parents=True, exist_ok=True)
+
+
 @dataclass
 class TestResourceInfo:
-    """Container for parsed test resource information."""
+    """Container for test resource information extracted from profile files."""
 
-    full_name: str
+    # Core test identification (from snforge stdout)
+    test_name_hierarchical: str  # e.g., "garaga::ec::ec_ops_g2::tests::test_ec_mul_g2"
+    test_name_simple: str  # e.g., "test_ec_mul_g2" (for backwards compatibility)
+
+    # Derived paths and categorization
+    predicted_trace_path: Path  # Predicted path based on hierarchical name
+    actual_trace_path: Path  # Actual found trace file path
+    profile_file_path: Path
+
+    # Performance metrics
     steps: int
     builtins: dict = field(default_factory=dict)
-    syscalls: list = field(default_factory=list)
-    test_name: str = field(init=False)
+
+    # Optional fields with defaults
+    image_path: str = ""  # docs/benchmarks/ image path
+    category: str = "garaga"  # "garaga" or "contracts"
     sierra_gas: int = field(init=False)
 
     def __post_init__(self):
         """Calculate derived fields after initialization."""
-        self.test_name = self._extract_test_name(self.full_name)
         self.sierra_gas = self._calculate_sierra_gas()
 
-    def _extract_test_name(self, full_name: str) -> str:
-        """Extract the test name from the full qualified name."""
-        return full_name.split("::")[-1]
+        # Auto-determine category from hierarchical name if not set
+        if self.category == "garaga" and "::" in self.test_name_hierarchical:
+            parts = self.test_name_hierarchical.split("::")
+            # If first part is not "garaga", it's likely a contract
+            if parts[0] != "garaga":
+                self.category = "contracts"
+
+    @staticmethod
+    def predict_trace_path(test_name_hierarchical: str, base_trace_dir: Path) -> Path:
+        """Predict trace file path from hierarchical test name."""
+        # Replace "::" with "_" to get expected filename
+        trace_filename = test_name_hierarchical.replace("::", "_") + ".json"
+        return base_trace_dir / trace_filename
+
+    @staticmethod
+    def extract_hierarchy_parts(test_name_hierarchical: str) -> list[str]:
+        """Extract module hierarchy parts from hierarchical test name."""
+        parts = test_name_hierarchical.split("::")
+
+        # Remove test function name if it starts with "test_"
+        if parts and parts[-1].startswith("test_"):
+            parts = parts[:-1]
+
+        # For contract tests, keep the structure as-is
+        # For garaga tests, remove the first "garaga" part to avoid redundancy
+        if parts and parts[0] == "garaga":
+            parts = parts[1:]
+
+        return parts if parts else ["tests"]  # fallback
 
     def _calculate_sierra_gas(self) -> int:
         """Calculate Sierra gas using the weight table."""
@@ -155,7 +363,10 @@ class TestResourceInfo:
             if builtin_name in SIERRA_GAS_WEIGHTS:
                 total_gas += count * SIERRA_GAS_WEIGHTS[builtin_name]
             else:
-                log_warning(f"Unknown builtin '{builtin_name}' not in weight table")
+                log(
+                    f"Unknown builtin '{builtin_name}' not in weight table",
+                    level="warning",
+                )
 
         return total_gas
 
@@ -166,19 +377,22 @@ class TestResourceInfo:
 
         result = {
             "timestamp": timestamp,
-            "full_name": self.full_name,
-            "test_name": self.test_name,
+            "test_name_hierarchical": self.test_name_hierarchical,
+            "test_name": self.test_name_simple,  # For backwards compatibility
+            "full_name": self.test_name_hierarchical,  # For grouping logic
+            "predicted_trace_path": str(self.predicted_trace_path),
+            "actual_trace_path": str(self.actual_trace_path),
             "steps": self.steps,
             "sierra_gas": self.sierra_gas,
+            "profile_file_path": str(self.profile_file_path),
+            "image_path": self.image_path,
+            "category": self.category,
         }
 
         # Add individual builtin columns
         for builtin_name in SIERRA_GAS_WEIGHTS.keys():
             if builtin_name != "steps":
                 result[builtin_name] = self.builtins.get(builtin_name, 0)
-
-        # Add syscalls count
-        result["syscalls_count"] = len(self.syscalls)
 
         return result
 
@@ -190,7 +404,6 @@ class ProfileTestRunner:
         self.src_dir = self.workspace_root / "src"
         self.trace_dir = self.src_dir / "snfoundry_trace"
         self.docs_benchmarks = self.workspace_root / "docs" / "benchmarks"
-        self.cargo_benchmarks = self.workspace_root / ".cargo" / "benchmarks"
 
         # Parse workspace members from Scarb.toml
         self.workspace_members = self._parse_workspace_members()
@@ -200,14 +413,15 @@ class ProfileTestRunner:
         scarb_toml_path = self.workspace_root / "Scarb.toml"
 
         if not scarb_toml_path.exists():
-            log_warning("Scarb.toml not found, using default src directory")
+            log("Scarb.toml not found, using default src directory", level="warning")
             return [self.src_dir]
 
         if tomllib is None:
-            log_warning(
-                "TOML parsing not available. Install 'tomli' package or use Python 3.11+"
+            log(
+                "TOML parsing not available. Install 'tomli' package or use Python 3.11+",
+                level="warning",
             )
-            log_info("Falling back to default src directory")
+            log("Falling back to default src directory", level="info")
             return [self.src_dir]
 
         try:
@@ -221,175 +435,107 @@ class ProfileTestRunner:
             member_paths = []
             for member in members:
                 if "*" in member:
-                    # Handle glob patterns like "src/contracts/autogenerated/*"
-                    pattern_path = self.workspace_root / member
-                    glob_matches = glob.glob(str(pattern_path))
-                    for match in glob_matches:
-                        member_path = Path(match)
-                        if member_path.is_dir():
-                            member_paths.append(member_path)
+                    glob_matches = glob.glob(str(self.workspace_root / member))
+                    member_paths.extend(
+                        [Path(match) for match in glob_matches if Path(match).is_dir()]
+                    )
                 else:
-                    # Handle direct paths
                     member_path = self.workspace_root / member
                     if member_path.exists() and member_path.is_dir():
                         member_paths.append(member_path)
                     else:
-                        log_warning(f"Workspace member not found: {member_path}")
+                        log(
+                            f"Workspace member not found: {member_path}",
+                            level="warning",
+                        )
 
             if not member_paths:
-                log_warning(
-                    "No valid workspace members found, using default src directory"
+                log(
+                    "No valid workspace members found, using default src directory",
+                    level="warning",
                 )
                 return [self.src_dir]
 
-            log_success(f"Found {len(member_paths)} workspace members")
-            for member in member_paths:
-                log_debug(f"  - {member.relative_to(self.workspace_root)}")
+            log(f"Found {len(member_paths)} workspace members", level="success")
 
+            # Add artificial members until scarb fixes https://github.com/software-mansion/scarb/issues/2267
+            self.contracts_paths = [
+                self.workspace_root / "src" / "contracts" / contract
+                for contract in CONTRACTS_CONFIG
+            ]
             return member_paths
 
         except Exception as e:
-            log_warning(f"Error parsing Scarb.toml: {e}")
-            log_info("Falling back to default src directory")
+            log(f"Error parsing Scarb.toml: {e}", level="warning")
+            log("Falling back to default src directory", level="info")
             return [self.src_dir]
 
     def get_all_trace_directories(self) -> list[Path]:
         """Get all potential trace directories from workspace members."""
         trace_dirs = []
-        for member_path in self.workspace_members:
+        for member_path in self.workspace_members + self.contracts_paths:
             trace_dir = member_path / "snfoundry_trace"
             trace_dirs.append(trace_dir)
 
         # Also include the legacy trace directory for backwards compatibility
         if self.trace_dir not in trace_dirs:
             trace_dirs.append(self.trace_dir)
-        log_debug(f"Trace directories: {trace_dirs}")
+        log(f"Trace directories: {trace_dirs}", level="debug")
         return trace_dirs
 
     def check_dependencies(self):
         """Check if required tools are available."""
         print_header("🔍 Checking Dependencies")
-
-        # Check if snforge is available
-        try:
-            result = subprocess.run(
-                ["snforge", "--version"], capture_output=True, text=True, check=True
-            )
-            log_success(f"snforge: {result.stdout.strip()}")
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            log_error("snforge not found. Please install Starknet Foundry.")
-            return False
-
-        # Check if cairo-profiler is available
-        try:
-            result = subprocess.run(
-                ["cairo-profiler", "--version"],
-                capture_output=True,
-                text=True,
-                check=True,
-            )
-            log_success(f"cairo-profiler: {result.stdout.strip()}")
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            log_error("cairo-profiler not found. Please install cairo-profiler.")
-            return False
-
-        # Check if go tool pprof is available
-        try:
-            result = subprocess.run(
-                ["go", "version"], capture_output=True, text=True, check=True
-            )
-            log_success(f"go: {result.stdout.strip()}")
-        except (subprocess.CalledProcessError, FileNotFoundError):
-            log_error("Go not found. Please install Go to use pprof.")
-            return False
+        tools = [
+            ("snforge", "Starknet Foundry", ["snforge", "--version"]),
+            ("cairo-profiler", "cairo-profiler", ["cairo-profiler", "--version"]),
+            ("go", "Go to use pprof", ["go", "version"]),
+        ]
+        for tool, install_msg, command in tools:
+            try:
+                result = _run_command(command)
+                log(f"{tool}: {result.stdout.strip()}", level="success")
+            except RuntimeError:
+                log(f"{tool} not found. Please install {install_msg}.", level="error")
+                return False
 
         console.print("✨ [green]All dependencies satisfied![/green]")
         return True
 
     def setup_directories(self):
         """Create necessary directories."""
-        directories = [self.docs_benchmarks, self.cargo_benchmarks]
-
-        for directory in directories:
-            directory.mkdir(parents=True, exist_ok=True)
-
-        log_success("Directories ready")
+        _ensure_directory(self.docs_benchmarks)
+        log("Directories ready", level="success")
 
     def cleanup_temp_directories(self):
         """Remove temporary directories from previous runs."""
-        trace_dirs = self.get_all_trace_directories()
+        # Note: Intentionally minimal cleanup - letting trace files persist for profile generation
+        log("Cleanup completed", level="success")
 
-        for trace_dir in trace_dirs:
-            if trace_dir.exists():
-                try:
-                    shutil.rmtree(trace_dir)
-                    log_debug(f"Cleaned up {trace_dir}")
-                except Exception as e:
-                    log_debug(f"Could not clean up {trace_dir}: {e}")
+    def extract_passed_tests_from_stdout(self, stdout: str) -> list[str]:
+        """Extract passed test names from snforge test stdout using regex."""
+        import re
 
-        log_success("Cleanup completed")
+        pattern = r"\[PASS\]\s+([^\s]+)\s+\(l1_gas:"
+        matches = re.findall(pattern, stdout)
+        return matches
 
-    def parse_test_resources(self, stdout: str) -> list[TestResourceInfo]:
-        """Parse test resource information from snforge stdout."""
-        # Pattern to match test results with detailed resources
-        test_pattern = r"\[PASS\]\s+([^\s]+)\s+\([^)]+\)\s*\n\s*steps:\s*(\d+)\s*\n\s*memory holes:[^\n]*\n\s*builtins:\s*\(([^)]*)\)\s*\n\s*syscalls:\s*\(([^)]*)\)"
-
-        matches = list(re.finditer(test_pattern, stdout, re.MULTILINE))
-        test_resources = []
-
-        if not matches:
-            log_warning("No test resource data found to parse")
-            return test_resources
-
-        # Create progress bar for parsing
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            BarColumn(bar_width=30, style="cyan", complete_style="green"),
-            TaskProgressColumn(),
-            "•",
-            TimeElapsedColumn(),
-            console=console,
-            transient=True,
-        ) as progress:
-            task = progress.add_task("Parsing test resources", total=len(matches))
-
-            for match in matches:
-                full_name = match.group(1).strip()
-                steps = int(match.group(2))
-                builtins_str = match.group(3).strip()
-                syscalls_str = match.group(4).strip()
-
-                # Parse builtins
-                builtins = {}
-                if builtins_str:
-                    builtin_pairs = re.findall(r"(\w+):\s*(\d+)", builtins_str)
-                    builtins = {name: int(count) for name, count in builtin_pairs}
-
-                # Parse syscalls
-                syscalls = []
-                if syscalls_str:
-                    syscalls = [s.strip() for s in syscalls_str.split(",") if s.strip()]
-
-                test_info = TestResourceInfo(full_name, steps, builtins, syscalls)
-                test_resources.append(test_info)
-
-                progress.update(task, advance=1)
-
-        log_success(
-            f"Parsed [bold cyan]{len(test_resources)}[/bold cyan] test resource entries"
-        )
-        return test_resources
-
-    def run_snforge_test_with_trace(self, test_filter: str = None):
-        """Run snforge test with trace data collection."""
-        # Change to src directory for the test
+    def run_snforge_test_with_trace_and_capture(
+        self, test_filter: str = None
+    ) -> tuple[bool, list[str]]:
+        """Run snforge test with trace data collection and capture passed test names."""
         original_cwd = os.getcwd()
+        all_passed_tests = []
+
         try:
-            cmd = ["snforge", "test"]
+            # Build base command
+            base_cmd = ["snforge", "test"]
             if test_filter:
-                cmd.append(test_filter)
-            cmd.extend(["--save-trace-data", "--detailed-resources"])
+                base_cmd.append(test_filter)
+            base_cmd.append("--save-trace-data")
+
+            # List of directories to run tests in
+            test_directories = [self.src_dir] + self.contracts_paths
 
             # Create indeterminate progress for test execution
             with Progress(
@@ -408,131 +554,105 @@ class ProfileTestRunner:
 
                 task = progress.add_task(task_desc, total=None)
 
-                result = subprocess.run(cmd, capture_output=True, text=True)
+                # Run tests in each directory and capture stdout
+                success_count = 0
+                for test_dir in test_directories:
+                    if not test_dir.exists():
+                        log(
+                            f"Skipping non-existent directory: {test_dir}",
+                            level="debug",
+                        )
+                        continue
 
-                if result.returncode != 0:
-                    log_error(
-                        f"snforge test failed with return code {result.returncode}"
-                    )
-                    log_error(f"stderr: {result.stderr}")
-                    return False, ""
+                    # Check if directory has Scarb.toml (indicating it's a Cairo project)
+                    scarb_toml = test_dir / "Scarb.toml"
+                    if not scarb_toml.exists():
+                        log(
+                            f"Skipping directory without Scarb.toml: {test_dir}",
+                            level="debug",
+                        )
+                        continue
 
-            log_success("Tests completed successfully")
-            return True, result.stdout
+                    log(f"Running tests in: {test_dir}", level="debug")
+
+                    # Change to the test directory
+                    os.chdir(test_dir)
+
+                    # Run the snforge test command and capture output
+                    result = subprocess.run(base_cmd, capture_output=True, text=True)
+
+                    if result.returncode == 0:
+                        success_count += 1
+                        # Extract passed test names from stdout
+                        passed_tests = self.extract_passed_tests_from_stdout(
+                            result.stdout
+                        )
+                        all_passed_tests.extend(passed_tests)
+                        log(
+                            f"Found {len(passed_tests)} passed tests in {test_dir.name}",
+                            level="debug",
+                        )
+                    else:
+                        log(
+                            f"Tests failed in {test_dir}: {result.stderr}",
+                            level="warning",
+                        )
+
+            # Return to original directory
+            os.chdir(original_cwd)
+
+            if success_count > 0:
+                log(
+                    f"Tests completed successfully. Found {len(all_passed_tests)} passed tests total",
+                    level="success",
+                )
+                return True, all_passed_tests
+            else:
+                log("No tests were successfully executed", level="error")
+                return False, []
 
         except Exception as e:
-            log_error(f"Error running snforge test: {e}")
-            return False, ""
+            log(f"Error running snforge test: {e}", level="error")
+            return False, []
         finally:
             os.chdir(original_cwd)
 
-    def find_trace_files(self):
-        """Find all .json trace files in all workspace member trace directories."""
-        all_trace_files = []
+    def find_trace_files_from_test_names(
+        self, passed_test_names: list[str]
+    ) -> list[tuple[str, Path, Path]]:
+        """Find trace files based on passed test names by predicting their paths."""
+        found_traces = []
         trace_dirs = self.get_all_trace_directories()
 
-        for trace_dir in trace_dirs:
-            if trace_dir.exists():
-                trace_files = list(trace_dir.glob("*.json"))
-                if trace_files:
-                    log_debug(f"Found {len(trace_files)} trace files in {trace_dir}")
-                    # Store package context information with trace files
-                    package_path = trace_dir.parent
-                    for trace_file in trace_files:
-                        # Create a tuple with (trace_file, package_path) for later use
-                        all_trace_files.append((trace_file, package_path))
-
-        if not all_trace_files:
-            log_error("No trace files found in any workspace member directories")
-            log_info("Checked directories:")
+        for test_name in passed_test_names:
+            # Try to find the trace file in each possible trace directory
+            trace_found = False
             for trace_dir in trace_dirs:
-                log_info(f"  - {trace_dir}")
-        else:
-            log_success(
-                f"Found [bold cyan]{len(all_trace_files)}[/bold cyan] trace files across all packages"
-            )
+                if not trace_dir.exists():
+                    continue
 
-        return all_trace_files
-
-    def extract_test_name_from_trace_file(self, trace_file_info) -> str:
-        """Extract test name from trace file path with package context."""
-        # Handle both tuple format (trace_file, package_path) and direct Path objects
-        if isinstance(trace_file_info, tuple):
-            trace_file, package_path = trace_file_info
-        else:
-            trace_file = trace_file_info
-            package_path = None
-
-        filename = trace_file.stem
-
-        # For autogenerated contracts, the trace files often have package prefixes
-        # Example: groth16_example_bn254_integrationtest_test_contract_test_verify_groth16_proof_bn254.json
-
-        # Try to extract meaningful test name from the filename
-        parts = filename.split("_")
-
-        # Look for patterns that indicate the actual test function
-        test_start_idx = None
-        for i, part in enumerate(parts):
-            if part == "test" and i + 1 < len(parts):
-                # Check if this looks like a test function (has more meaningful parts after)
-                remaining_parts = parts[i:]
-                if len(remaining_parts) > 1:  # More than just "test"
-                    test_start_idx = i
+                predicted_path = TestResourceInfo.predict_trace_path(
+                    test_name, trace_dir
+                )
+                if predicted_path.exists():
+                    found_traces.append((test_name, predicted_path, trace_dir.parent))
+                    trace_found = True
                     break
 
-        if test_start_idx is not None:
-            # Join all parts from 'test_' onwards
-            test_name = "_".join(parts[test_start_idx:])
-        else:
-            # Fallback: if no clear test pattern, try to extract from the end
-            # Look for common test suffixes
-            if any(part.startswith("test") for part in parts):
-                # Find the last occurrence of a part starting with "test"
-                for i in range(len(parts) - 1, -1, -1):
-                    if parts[i].startswith("test"):
-                        test_name = "_".join(parts[i:])
-                        break
-                else:
-                    test_name = filename
-            else:
-                test_name = filename
+            if not trace_found:
+                log(
+                    f"Warning: No trace file found for test {test_name}",
+                    level="warning",
+                )
 
-        # Add package context if available
-        if package_path and package_path.name != "src":
-            package_name = package_path.name
-            # Only add package context if it's not already in the test name
-            if package_name not in test_name:
-                test_name = f"{package_name}::{test_name}"
-
-        return test_name
-
-    def create_test_name_mapping(self, test_resources: list[TestResourceInfo]) -> dict:
-        """Create a mapping from various test name formats to TestResourceInfo."""
-        mapping = {}
-
-        for test_info in test_resources:
-            # Map by the simple test name (last part after ::)
-            simple_name = test_info.test_name
-            mapping[simple_name] = test_info
-
-            # Map by full name
-            mapping[test_info.full_name] = test_info
-
-            # Map by full name parts to handle package prefixes
-            full_parts = test_info.full_name.split("::")
-            if len(full_parts) > 1:
-                # Create alternative mappings for different package contexts
-                package_name = full_parts[0] if len(full_parts) > 1 else ""
-                if package_name:
-                    alt_name = f"{package_name}::{simple_name}"
-                    mapping[alt_name] = test_info
-
-        return mapping
+        log(
+            f"Found trace files for {len(found_traces)} out of {len(passed_test_names)} passed tests",
+            level="info",
+        )
+        return found_traces
 
     def generate_profile_from_trace(self, trace_file: Path) -> Path:
         """Generate profile data from trace file using cairo-profiler."""
-        # Use the trace file's stem for the profile file name
         profile_file = trace_file.parent / f"{trace_file.stem}.pb.gz"
 
         try:
@@ -543,16 +663,82 @@ class ProfileTestRunner:
                 "--output-path",
                 str(profile_file),
             ]
-
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            _run_command(cmd)
             return profile_file
+        except RuntimeError as e:
+            log(f"cairo-profiler failed for {trace_file.name}: {e}", level="error")
+            return None
 
-        except subprocess.CalledProcessError as e:
-            log_error(f"cairo-profiler failed for {trace_file.name}: {e.stderr}")
-            return None
-        except Exception as e:
-            log_error(f"Error generating profile from trace: {e}")
-            return None
+    def extract_resources_from_profile(self, profile_file: Path) -> dict:
+        """Extract resource information from profile file using cairo-profiler."""
+        try:
+            # Get list of available samples
+            list_cmd = ["cairo-profiler", "view", str(profile_file), "--list-samples"]
+            list_result = _run_command(list_cmd)
+
+            # Parse and filter samples
+            samples = [
+                line.strip()
+                for line in list_result.stdout.strip().split("\n")
+                if line.strip() and line.strip() not in EXCLUDED_PROFILE_SAMPLES
+            ]
+
+            # Extract resource counts for each sample
+            resources = {}
+            for sample in samples:
+                try:
+                    sample_cmd = [
+                        "cairo-profiler",
+                        "view",
+                        str(profile_file),
+                        "--sample",
+                        sample,
+                    ]
+                    sample_result = _run_command(sample_cmd)
+
+                    # Parse the output to extract the total count
+                    pattern = rf"of (\d+) {re.escape(sample)} total"
+                    match = re.search(pattern, sample_result.stdout, re.IGNORECASE)
+
+                    if match:
+                        count = int(match.group(1))
+                        normalized_name = self._normalize_sample_name(sample)
+                        if normalized_name:
+                            resources[normalized_name] = count
+
+                except RuntimeError as e:
+                    log(f"Failed to extract sample '{sample}': {e}", level="debug")
+                    continue
+
+            return resources
+
+        except RuntimeError as e:
+            log(f"Failed to list samples from {profile_file.name}: {e}", level="error")
+            return {}
+
+    def _normalize_sample_name(self, sample_name: str) -> str:
+        """Normalize cairo-profiler sample name to match SIERRA_GAS_WEIGHTS keys."""
+        # Mapping from cairo-profiler sample names to our weight table keys
+        name_mapping = {
+            "steps": "steps",
+            "range check": "range_check",
+            "range check96": "range_check96",
+            "range check builtin": "range_check",
+            "range check96 builtin": "range_check96",
+            "keccak": "keccak",
+            "pedersen": "pedersen",
+            "bitwise": "bitwise",
+            "bitwise builtin": "bitwise",
+            "ecop": "ecop",
+            "poseidon": "poseidon",
+            "add mod": "add_mod",
+            "add mod builtin": "add_mod",
+            "mul mod": "mul_mod",
+            "mul mod builtin": "mul_mod",
+        }
+
+        normalized = sample_name.lower().strip()
+        return name_mapping.get(normalized)
 
     def generate_pprof_image(self, profile_file: Path, output_path: Path):
         """Generate PNG image from profile file using pprof."""
@@ -567,211 +753,155 @@ class ProfileTestRunner:
                 str(output_path),
                 str(profile_file),
             ]
-
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            _run_command(cmd)
             return True
-
-        except subprocess.CalledProcessError as e:
-            log_error(f"pprof failed for {profile_file.name}: {e.stderr}")
+        except RuntimeError as e:
+            log(f"pprof failed for {profile_file.name}: {e}", level="error")
             return False
-        except Exception as e:
-            log_error(f"Error generating pprof image: {e}")
-            return False
-
-    def update_test_history_json(self, test_info: TestResourceInfo, timestamp: str):
-        """Update the test history JSON file for a specific test."""
-        test_dir = self.cargo_benchmarks / test_info.test_name
-        test_dir.mkdir(parents=True, exist_ok=True)
-
-        history_file = test_dir / "test_history.json"
-
-        # Load existing history or create new
-        history_data = []
-        if history_file.exists():
-            try:
-                with open(history_file, "r") as f:
-                    history_data = json.load(f)
-            except (json.JSONDecodeError, IOError):
-                history_data = []
-
-        # Add new entry for this specific test
-        new_entry = test_info.to_dict(timestamp)
-        history_data.append(new_entry)
-
-        # Save updated history
-        try:
-            with open(history_file, "w") as f:
-                json.dump(history_data, f, indent=2)
-        except IOError as e:
-            log_error(f"Could not save test history {history_file}: {e}")
 
     def update_global_summary_json(
         self, test_resources: list[TestResourceInfo], timestamp: str
     ):
         """Update the global summary JSON file in docs/benchmarks/."""
         summary_file = self.docs_benchmarks / "test_summary.json"
-
-        # Create new summary file if it doesn't exist
-        summary_data = {}
-        if summary_file.exists():
-            try:
-                with open(summary_file, "r") as f:
-                    summary_data = json.load(f)
-            except (json.JSONDecodeError, IOError):
-                summary_data = {}
-        else:
-            # Create empty summary file
-            summary_file.touch(mode=0o644)
+        summary_data = _read_json_file(summary_file, {})
 
         # Update summary with new test results
         for test_info in test_resources:
-            summary_data[test_info.test_name] = {
+            summary_data[test_info.test_name_simple] = {
                 "last_updated": timestamp,
-                "full_name": test_info.full_name,
+                "full_name": test_info.test_name_hierarchical,
                 "latest_metrics": test_info.to_dict(timestamp),
             }
 
         # Save updated summary
-        try:
-            with open(summary_file, "w") as f:
-                json.dump(summary_data, f, indent=2)
-            log_success("Performance data saved")
-        except IOError as e:
-            log_error(f"Could not save global summary {summary_file}: {e}")
+        if _write_json_file(summary_file, summary_data):
+            log("Performance data saved", level="success")
 
-    def update_global_summary_with_trace_names(
-        self, trace_extracted_to_test_info: dict, timestamp: str
-    ):
-        """Update the global summary JSON with trace-extracted test names to ensure links match filenames."""
-        summary_file = self.docs_benchmarks / "test_summary.json"
-
-        # Load existing summary or create new
-        summary_data = {}
-        if summary_file.exists():
-            try:
-                with open(summary_file, "r") as f:
-                    summary_data = json.load(f)
-            except (json.JSONDecodeError, IOError):
-                summary_data = {}
-
-        # Update/add entries using trace-extracted test names as keys
-        for trace_extracted_name, test_info in trace_extracted_to_test_info.items():
-            # Use the trace-extracted name as the key and in the test_name field
-            # This ensures the test_name in the JSON matches the image filename
-            image_filename_base = (
-                trace_extracted_name.split("::")[-1]
-                if "::" in trace_extracted_name
-                else trace_extracted_name
-            )
-
-            # Create a modified test data dict with the correct test_name
-            test_data = test_info.to_dict(timestamp)
-            test_data["test_name"] = (
-                image_filename_base  # This will match the image filename
-            )
-
-            summary_data[image_filename_base] = {
-                "last_updated": timestamp,
-                "full_name": test_info.full_name,
-                "latest_metrics": test_data,
-            }
-
-        # Save updated summary
-        try:
-            with open(summary_file, "w") as f:
-                json.dump(summary_data, f, indent=2)
-            log_success("Updated performance data with trace-extracted test names")
-        except IOError as e:
-            log_error(f"Could not save updated global summary {summary_file}: {e}")
-
-    def process_single_trace_file(
-        self, trace_file_info, test_info_map: dict, timestamp: str
-    ) -> tuple[bool, str]:
-        """Process a single trace file and generate profile images.
+    def process_single_trace_file_from_test_name(
+        self, test_name: str, trace_file_path: Path, package_path: Path, timestamp: str
+    ) -> tuple[bool, str, str, TestResourceInfo]:
+        """Process a single trace file identified by test name.
 
         Args:
-            trace_file_info: Either a Path object or (Path, package_path) tuple
-            test_info_map: Mapping of test names to TestResourceInfo
+            test_name: Hierarchical test name from snforge output
+            trace_file_path: Path to the actual trace file
+            package_path: Package/workspace path for context
             timestamp: Timestamp string for file naming
 
         Returns:
-            tuple: (success: bool, test_name: str)
+            tuple: (success: bool, test_name: str, image_path: str, test_info: TestResourceInfo)
         """
-        # Handle both tuple format and direct Path objects
-        if isinstance(trace_file_info, tuple):
-            trace_file, package_path = trace_file_info
-        else:
-            trace_file = trace_file_info
-            package_path = None
-
-        # Extract test name from trace file - this will be used for ALL filenames
-        trace_extracted_test_name = self.extract_test_name_from_trace_file(
-            trace_file_info
-        )
-
         try:
             # Generate profile from trace
-            profile_file = self.generate_profile_from_trace(trace_file)
+            profile_file = self.generate_profile_from_trace(trace_file_path)
             if not profile_file or not profile_file.exists():
-                return False, trace_extracted_test_name
+                return False, test_name, "", None
 
-            # Get test info if available - try multiple mapping approaches
-            test_info = test_info_map.get(trace_extracted_test_name)
-            if not test_info:
-                # Try without package prefix
-                simple_test_name = (
-                    trace_extracted_test_name.split("::")[-1]
-                    if "::" in trace_extracted_test_name
-                    else trace_extracted_test_name
-                )
-                test_info = test_info_map.get(simple_test_name)
+            # Extract resources from profile file using cairo-profiler
+            resources = self.extract_resources_from_profile(profile_file)
 
-            # IMPORTANT: Always use the trace-extracted test name for image filenames
-            # This ensures links in the JSON always match the actual image files
-            image_filename_base = (
-                trace_extracted_test_name.split("::")[-1]
-                if "::" in trace_extracted_test_name
-                else trace_extracted_test_name
-            )
+            # Get steps count (required field)
+            steps = resources.get("steps", 0)
 
-            # Generate image for docs/benchmarks/ using trace-extracted name
+            # Extract builtins (everything except steps)
+            builtins = {k: v for k, v in resources.items() if k != "steps"}
+
+            # Generate image filename from simple test name
+            test_name_simple = test_name.split("::")[-1]
+            image_filename_base = test_name_simple
+
+            # Generate image for docs/benchmarks/
             docs_image_path = self.docs_benchmarks / f"{image_filename_base}.png"
+            log(f"Generating image for {docs_image_path}", level="info")
             docs_success = self.generate_pprof_image(profile_file, docs_image_path)
 
-            # Generate image for .cargo/benchmarks/test_name/ using trace-extracted name
-            test_dir = self.cargo_benchmarks / image_filename_base
-            test_dir.mkdir(parents=True, exist_ok=True)
-            cargo_image_path = test_dir / f"profile_{timestamp}.png"
-            cargo_success = self.generate_pprof_image(profile_file, cargo_image_path)
+            # Create relative image path
+            relative_image_path = f"docs/benchmarks/{image_filename_base}.png"
 
-            # Clean up the temporary profile file
-            try:
-                profile_file.unlink()
-            except Exception:
-                pass  # Ignore cleanup failures
+            # Determine category from hierarchical test name
+            category = "contracts" if not test_name.startswith("garaga::") else "garaga"
 
-            return docs_success and cargo_success, trace_extracted_test_name
+            test_info = TestResourceInfo(
+                test_name_hierarchical=test_name,
+                test_name_simple=test_name_simple,
+                predicted_trace_path=TestResourceInfo.predict_trace_path(
+                    test_name, trace_file_path.parent
+                ),
+                actual_trace_path=trace_file_path,
+                profile_file_path=profile_file,
+                steps=steps,
+                builtins=builtins,
+                image_path=relative_image_path,
+                category=category,
+            )
+
+            return (
+                docs_success,
+                test_name,
+                relative_image_path,
+                test_info,
+            )
 
         except Exception as e:
-            return False, trace_extracted_test_name
+            log(
+                f"Error processing trace file {trace_file_path.name}: {e}",
+                level="debug",
+            )
+            return False, test_name, "", None
 
-    def process_trace_and_generate_profiles(
-        self, test_resources: list[TestResourceInfo], parallel_jobs: int = 2
+    def process_passed_tests_and_generate_profiles(
+        self, passed_test_names: list[str], parallel_jobs: int = 4
     ):
-        """Process trace files and generate profile data and images."""
+        """Process passed tests, extract resources, and generate profile data and images."""
         global _shutdown_requested
 
-        trace_files = self.find_trace_files()
+        # Find trace files from test names
+        trace_file_info = self.find_trace_files_from_test_names(passed_test_names)
 
-        if not trace_files:
-            log_warning("No trace files found to process")
-            return False
+        if not trace_file_info:
+            log("No trace files found for passed tests", level="warning")
+            return []
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         timestamp_iso = datetime.now().isoformat()
-        success_count = 0
+        test_resources = []
 
-        # Update JSON files with test resource data
+        # Beautiful header for processing phase
+        print_header(
+            f"🚀 Processing {len(trace_file_info)} tests with {parallel_jobs} parallel jobs"
+        )
+
+        # Process trace files in parallel
+        try:
+            with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
+                # Submit all tasks using test names and trace paths
+                future_to_test = {
+                    executor.submit(
+                        self.process_single_trace_file_from_test_name,
+                        test_name,
+                        trace_path,
+                        package_path,
+                        timestamp,
+                    ): test_name
+                    for test_name, trace_path, package_path in trace_file_info
+                }
+
+                # Check for early shutdown
+                if _shutdown_requested:
+                    _handle_shutdown_request(executor, future_to_test)
+                    return test_resources
+
+                # Process completed futures with progress tracking
+                success_count = self._process_test_futures_with_progress(
+                    future_to_test, test_resources
+                )
+
+        except KeyboardInterrupt:
+            log("Keyboard interrupt received during processing", level="warning")
+            return test_resources
+
+        # Update JSON files with extracted test resource data
         if test_resources:
             with Progress(
                 SpinnerColumn(),
@@ -780,140 +910,70 @@ class ProfileTestRunner:
                 transient=True,
             ) as progress:
                 task = progress.add_task("", total=None)
-
-                for test_info in test_resources:
-                    self.update_test_history_json(test_info, timestamp_iso)
+                # Update global summary
                 self.update_global_summary_json(test_resources, timestamp_iso)
 
-        # Create a mapping of test names to test resource info using improved mapping
-        test_info_map = {}
-        if test_resources:
-            test_info_map = self.create_test_name_mapping(test_resources)
-
-        # Beautiful header for processing phase
-        print_header(
-            f"🚀 Processing {len(trace_files)} tests with {parallel_jobs} parallel jobs"
-        )
-
-        # Keep track of trace-extracted test names to test resources for final JSON update
-        trace_extracted_to_test_info = {}
-
-        # Process trace files in parallel
-        try:
-            with ThreadPoolExecutor(max_workers=parallel_jobs) as executor:
-                # Submit all tasks
-                future_to_file = {
-                    executor.submit(
-                        self.process_single_trace_file,
-                        trace_file_info,
-                        test_info_map,
-                        timestamp,
-                    ): trace_file_info
-                    for trace_file_info in trace_files
-                }
-
-                # Process completed tasks with beautiful progress bar
-                with create_file_progress() as progress:
-                    task = progress.add_task(
-                        "Processing trace files", total=len(trace_files)
-                    )
-
-                    completed_futures = set()
-
-                    while len(completed_futures) < len(future_to_file):
-                        # Check for shutdown immediately
-                        if _shutdown_requested:
-                            console.print(
-                                "🛑 [bold red]Shutdown requested, cancelling all tasks...[/bold red]"
-                            )
-                            # Cancel all futures immediately
-                            for f in future_to_file:
-                                if not f.done():
-                                    f.cancel()
-                            # Force executor shutdown
-                            try:
-                                executor.shutdown(wait=False, cancel_futures=True)
-                            except TypeError:
-                                # Fallback for older Python versions
-                                executor.shutdown(wait=False)
-                            return success_count > 0
-
-                        # Check for completed futures without blocking
-                        for future in list(future_to_file.keys()):
-                            if future in completed_futures:
-                                continue
-
-                            if future.done():
-                                completed_futures.add(future)
-                                trace_file_info = future_to_file[future]
-
-                                try:
-                                    success, trace_extracted_test_name = future.result()
-                                    if success:
-                                        success_count += 1
-                                        console.print(
-                                            f"✨ [green]{trace_extracted_test_name}[/green]"
-                                        )
-
-                                        # Map trace-extracted name to test info for JSON update
-                                        # Try to find the matching test resource
-                                        matched_test_info = test_info_map.get(
-                                            trace_extracted_test_name
-                                        )
-                                        if not matched_test_info:
-                                            simple_name = (
-                                                trace_extracted_test_name.split("::")[
-                                                    -1
-                                                ]
-                                                if "::" in trace_extracted_test_name
-                                                else trace_extracted_test_name
-                                            )
-                                            matched_test_info = test_info_map.get(
-                                                simple_name
-                                            )
-
-                                        if matched_test_info:
-                                            trace_extracted_to_test_info[
-                                                trace_extracted_test_name
-                                            ] = matched_test_info
-                                    else:
-                                        console.print(
-                                            f"💥 [red]{trace_extracted_test_name}[/red]"
-                                        )
-                                except Exception as e:
-                                    if _shutdown_requested:
-                                        break
-                                    test_name = self.extract_test_name_from_trace_file(
-                                        trace_file_info
-                                    )
-                                    console.print(f"💥 [red]{test_name}[/red]: {e}")
-
-                                progress.advance(task, 1)
-
-                        # Small sleep to prevent busy waiting but still be responsive
-                        time.sleep(0.1)
-
-        except KeyboardInterrupt:
-            # This shouldn't happen since we handle SIGINT, but just in case
-            log_warning("Keyboard interrupt received during processing")
-            return False
-
-        # Update global summary with trace-extracted test names to ensure links match filenames
-        if trace_extracted_to_test_info:
-            self.update_global_summary_with_trace_names(
-                trace_extracted_to_test_info, timestamp_iso
-            )
-
         if _shutdown_requested:
-            log_warning(
-                f"Processing interrupted. Completed {success_count} out of {len(trace_files)} trace files"
+            log(
+                f"Processing interrupted. Completed {success_count} out of {len(trace_file_info)} tests",
+                level="warning",
             )
-            return success_count > 0
         else:
-            log_success(
-                f"Successfully processed [bold cyan]{success_count}[/bold cyan] out of [bold cyan]{len(trace_files)}[/bold cyan] trace files"
+            log(
+                f"Successfully processed [bold cyan]{success_count}[/bold cyan] out of [bold cyan]{len(trace_file_info)}[/bold cyan] tests",
+                level="success",
             )
-            return success_count > 0
+
+        return test_resources
+
+    def _process_test_futures_with_progress(self, future_to_test, test_resources):
+        """Process completed futures with progress tracking for test-based approach."""
+        completed_futures = set()
+        success_count = 0
+
+        with create_progress(True) as progress:
+            task = progress.add_task("Processing tests", total=len(future_to_test))
+
+            while len(completed_futures) < len(future_to_test):
+                if _shutdown_requested:
+                    return success_count
+
+                # Check for newly completed futures
+                for future in list(future_to_test.keys()):
+                    if future in completed_futures or not future.done():
+                        continue
+
+                    completed_futures.add(future)
+                    test_name = future_to_test[future]
+
+                    if self._process_completed_test_future(
+                        future, test_name, test_resources
+                    ):
+                        success_count += 1
+
+                    progress.advance(task, 1)
+
+                # Small sleep to prevent busy waiting but still be responsive
+                time.sleep(0.1)
+
+        return success_count
+
+    def _process_completed_test_future(self, future, test_name, test_resources):
+        """Process a single completed future and return success status."""
+        try:
+            success, returned_test_name, image_path, test_info = future.result()
+            if success and test_info:
+                test_resources.append(test_info)
+                console.print(f"✨ [green]{test_name}[/green]")
+                return True
+            else:
+                console.print(f"💥 [red]{test_name}[/red]")
+                return False
+        except Exception as e:
+            if _shutdown_requested:
+                return False
+            console.print(f"💥 [red]{test_name}[/red]: {e}")
+            return False
 
     def run_profile_workflow(
         self,
@@ -937,151 +997,83 @@ class ProfileTestRunner:
         try:
             # Check for early shutdown
             if _shutdown_requested:
-                log_info("Shutdown requested before test execution")
+                log("Shutdown requested before test execution", level="info")
                 return False
 
             # Run the test with trace data collection
             print_header("🧪 Running Tests & Collecting Traces")
-            success, stdout = self.run_snforge_test_with_trace(test_filter)
+            success, all_passed_tests = self.run_snforge_test_with_trace_and_capture(
+                test_filter
+            )
             if not success:
-                log_error("Test execution failed")
+                log("Test execution failed", level="error")
                 return False
 
             # Check for shutdown after test execution
             if _shutdown_requested:
-                log_info("Shutdown requested after test execution")
+                log("Shutdown requested after test execution", level="info")
                 return False
 
-            # Parse test resource information
-            print_header("📊 Parsing Test Resources")
-            test_resources = self.parse_test_resources(stdout)
+            # Process trace files, extract resources, and generate profiles
+            print_header("🚀 Processing Traces & Extracting Resources")
+            test_resources = self.process_passed_tests_and_generate_profiles(
+                all_passed_tests, parallel_jobs
+            )
 
-            # Check for shutdown after parsing
-            if _shutdown_requested:
-                log_info("Shutdown requested after parsing test resources")
-                return False
-
-            # Process trace files and generate profiles
-            if not self.process_trace_and_generate_profiles(
-                test_resources, parallel_jobs
-            ):
+            # Check results
+            if not test_resources:
                 if _shutdown_requested:
-                    log_info("Profile processing interrupted by user")
+                    log("Profile processing interrupted by user", level="info")
                 else:
-                    log_error("Profile processing failed")
+                    log(
+                        "Profile processing failed - no test resources extracted",
+                        level="error",
+                    )
                 return False
 
             if _shutdown_requested:
-                log_info("Profiling workflow interrupted but partially completed")
+                log(
+                    "Profiling workflow interrupted but partially completed",
+                    level="info",
+                )
             else:
                 print_header("🎯 Workflow Complete")
-                log_success("Profiling workflow completed successfully!")
+                log("Profiling workflow completed successfully!", level="success")
             return True
 
         except Exception as e:
             if _shutdown_requested:
-                log_info("Exception during shutdown - this is expected")
+                log("Exception during shutdown - this is expected", level="info")
             else:
-                log_error(f"Unexpected error in workflow: {e}")
+                log(f"Unexpected error in workflow: {e}", level="error")
             return False
         finally:
             # Always clean up temporary directories, even on interrupt
             try:
                 self.cleanup_temp_directories()
                 if _shutdown_requested:
-                    log_success("Cleanup completed. Exiting gracefully.")
+                    log("Cleanup completed. Exiting gracefully.", level="success")
             except Exception as e:
-                log_warning(f"Error during cleanup: {e}")
+                log(f"Error during cleanup: {e}", level="warning")
 
             # Generate Cairo benchmarks only if requested
             if generate_benchmarks:
                 try:
                     self.generate_cairo_benchmarks()
                 except Exception as e:
-                    log_warning(f"Error generating Cairo benchmarks: {e}")
+                    log(f"Error generating Cairo benchmarks: {e}", level="warning")
 
     def parse_test_summary_json(self) -> dict:
         """Parse the test summary JSON file."""
         summary_file = self.docs_benchmarks / "test_summary.json"
-
         if not summary_file.exists():
-            log_warning("No test summary file found to generate benchmarks")
+            log("No test summary file found to generate benchmarks", level="warning")
             return {}
 
-        try:
-            with open(summary_file, "r") as f:
-                return json.load(f)
-        except (json.JSONDecodeError, IOError) as e:
-            log_error(f"Could not parse test summary file: {e}")
-            return {}
-
-    def extract_module_hierarchy(self, full_name: str) -> list[str]:
-        """Extract module hierarchy from full test name."""
-        # Remove the test function name from the end
-        parts = full_name.split("::")
-        if parts[-1].startswith("test_"):
-            parts = parts[:-1]
-        return parts
-
-    def determine_main_category_from_workspace_path(self, workspace_path: Path) -> str:
-        """Determine the main category (garaga/contracts) from workspace member path."""
-        # Convert path to relative from workspace root
-        try:
-            rel_path = workspace_path.relative_to(self.workspace_root)
-            path_parts = rel_path.parts
-
-            if len(path_parts) >= 2:
-                # Check if path contains 'contracts'
-                if "contracts" in path_parts:
-                    return "contracts"
-                # Check if it's the main src directory or nested under src/src
-                elif path_parts[0] == "src" and (
-                    len(path_parts) == 1 or path_parts[1] != "contracts"
-                ):
-                    return "garaga"
-
-            # Default fallback - if src/, assume garaga
-            if path_parts[0] == "src":
-                return "garaga"
-
-        except ValueError:
-            # Path is not relative to workspace root
-            pass
-
-        # Ultimate fallback
-        return "garaga"
-
-    def create_test_to_category_mapping(self, test_data: dict) -> dict:
-        """Create a mapping from test names to their main categories (garaga/contracts)."""
-        test_to_category = {}
-
-        for test_name, test_info in test_data.items():
-            full_name = test_info.get("full_name", "")
-            if not full_name:
-                continue
-
-            # Determine category based on full_name pattern
-            if full_name.startswith("garaga::"):
-                # Tests from src/src (main garaga library)
-                test_to_category[test_name] = "garaga"
-            else:
-                # Tests from contracts (like groth16_example_*)
-                # Also check workspace members to be generic
-                category = "contracts"  # Default for non-garaga tests
-
-                # Try to find a more specific match based on workspace paths
-                for workspace_path in self.workspace_members:
-                    # Extract package name from workspace path
-                    package_name = workspace_path.name
-                    if package_name in full_name:
-                        category = self.determine_main_category_from_workspace_path(
-                            workspace_path
-                        )
-                        break
-
-                test_to_category[test_name] = category
-
-        return test_to_category
+        data = _read_json_file(summary_file, {})
+        if not data:
+            log("Could not parse test summary file", level="error")
+        return data
 
     def group_tests_by_module(self, test_data: dict) -> dict:
         """Group tests by their module hierarchy with main categories."""
@@ -1091,39 +1083,37 @@ class ProfileTestRunner:
             "contracts": defaultdict(lambda: defaultdict(list)),
         }
 
-        # Create mapping from tests to categories
-        test_to_category = self.create_test_to_category_mapping(test_data)
-
         for test_name, test_info in test_data.items():
-            full_name = test_info.get("full_name", "")
-            if not full_name:
+            latest_metrics = test_info.get("latest_metrics", {})
+            if not latest_metrics:
                 continue
 
-            # Determine which main category this test belongs to
-            main_category = test_to_category.get(test_name, "garaga")
+            # Get the hierarchical test name and category directly from metrics
+            hierarchical_name = latest_metrics.get("test_name_hierarchical", "")
+            if not hierarchical_name:
+                # Fallback to old format
+                hierarchical_name = latest_metrics.get("full_name", "")
 
-            hierarchy = self.extract_module_hierarchy(full_name)
-            if len(hierarchy) < 1:
-                continue
+            category = latest_metrics.get("category", "garaga")
 
-            # For garaga tests, skip the first "garaga" part to avoid redundancy
-            if main_category == "garaga" and hierarchy[0] == "garaga":
-                hierarchy = hierarchy[1:]
-
-            # For contract tests, use the first part as the module name
-            if not hierarchy:
-                hierarchy = ["tests"]  # fallback
+            # Extract hierarchy parts using the static method
+            hierarchy_parts = TestResourceInfo.extract_hierarchy_parts(
+                hierarchical_name
+            )
 
             # Create nested structure within the main category
-            current = main_grouped[main_category]
-            for module in hierarchy[:-1]:
+            current = main_grouped[category]
+            for module in hierarchy_parts[:-1]:
                 if module not in current:
                     current[module] = defaultdict(list)
                 current = current[module]
 
             # Add test to the final module
-            final_module = hierarchy[-1] if hierarchy else "unknown"
-            current[final_module].append(test_info["latest_metrics"])
+            final_module = hierarchy_parts[-1] if hierarchy_parts else "tests"
+            # Ensure current[final_module] is a list
+            if not isinstance(current[final_module], list):
+                current[final_module] = []
+            current[final_module].append(latest_metrics)
 
         # Convert defaultdicts to regular dicts and remove empty categories
         result = {}
@@ -1153,6 +1143,7 @@ class ProfileTestRunner:
             "ecop",
             "syscalls_count",
             "sierra_gas",
+            "image_path",  # Include image_path for link generation
         ]
 
         # Create DataFrame
@@ -1162,8 +1153,8 @@ class ProfileTestRunner:
         available_columns = [col for col in columns if col in df.columns]
         df = df[available_columns]
 
-        # Remove columns where all values are 0 (except test_name, steps, and sierra_gas)
-        essential_columns = ["test_name", "steps", "sierra_gas"]
+        # Remove columns where all values are 0 (except test_name, steps, sierra_gas, and image_path)
+        essential_columns = ["test_name", "steps", "sierra_gas", "image_path"]
         for col in df.columns:
             if col not in essential_columns:
                 if (df[col] == 0).all():
@@ -1185,9 +1176,18 @@ class ProfileTestRunner:
 
         # Convert test names to clickable links to profile images
         if "test_name" in df.columns:
-            df["test_name"] = df["test_name"].apply(
-                lambda test_name: f"[{test_name}](docs/benchmarks/{test_name}.png)"
-            )
+
+            def create_link(row):
+                test_name = row["test_name"]
+                # Use stored image_path if available, otherwise fall back to constructed path
+                if "image_path" in row and row["image_path"]:
+                    image_path = row["image_path"]
+                else:
+                    # Fallback to constructed path for backward compatibility
+                    image_path = f"docs/benchmarks/{test_name}.png"
+                return f"[{test_name}]({image_path})"
+
+            df["test_name"] = df.apply(create_link, axis=1)
 
         # Format large numbers with commas
         numeric_columns = [
@@ -1209,7 +1209,7 @@ class ProfileTestRunner:
             if col in df.columns:
                 df[col] = df[col].apply(lambda x: f"{x:,}" if pd.notna(x) else "0")
 
-        # Rename columns for display
+        # Rename columns for display (exclude image_path from display)
         column_mapping = {
             "test_name": "Test Name",
             "steps": "Steps",
@@ -1226,7 +1226,9 @@ class ProfileTestRunner:
             "sierra_gas": "Sierra Gas",
         }
 
-        df_display = df.rename(columns=column_mapping)
+        # Remove image_path column before display if it exists
+        display_df = df.drop(columns=["image_path"], errors="ignore")
+        df_display = display_df.rename(columns=column_mapping)
 
         return (
             tabulate(df_display, headers="keys", tablefmt="github", showindex=False)
@@ -1378,7 +1380,7 @@ class ProfileTestRunner:
         readme_path = self.workspace_root / "README.md"
 
         if not readme_path.exists():
-            log_error("README.md not found")
+            log("README.md not found", level="error")
             return False
 
         try:
@@ -1426,72 +1428,38 @@ class ProfileTestRunner:
             with open(readme_path, "w", encoding="utf-8") as f:
                 f.write("\n".join(updated_lines))
 
-            log_success("Updated README.md with Cairo benchmarks")
+            log("Updated README.md with Cairo benchmarks", level="success")
             return True
 
         except IOError as e:
-            log_error(f"Could not update README.md: {e}")
+            log(f"Could not update README.md: {e}", level="error")
             return False
 
     def generate_cairo_benchmarks(self):
         """Generate and update Cairo benchmarks in README.md."""
-        log_info("Generating Cairo benchmarks...")
+        log("Generating Cairo benchmarks...", level="info")
 
         # Parse test summary data
         test_data = self.parse_test_summary_json()
 
         if not test_data:
-            log_warning("No test data available for benchmarks")
+            log("No test data available for benchmarks", level="warning")
             return False
 
         # Update README with benchmarks
         success = self.update_readme_with_benchmarks(test_data)
 
         if success:
-            log_success(f"Generated benchmarks for {len(test_data)} tests")
+            log(f"Generated benchmarks for {len(test_data)} tests", level="success")
 
         return success
 
 
-def create_progress() -> Progress:
-    """Create a beautiful progress bar."""
-    return Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(bar_width=30, style="cyan", complete_style="green"),
-        TaskProgressColumn(),
-        "•",
-        TimeElapsedColumn(),
-        "•",
-        TimeRemainingColumn(),
-        console=console,
-        transient=False,
-    )
-
-
-def create_file_progress() -> Progress:
-    """Create an advanced progress bar for file processing."""
-    return Progress(
-        SpinnerColumn(),
-        TextColumn("[progress.description]{task.description}"),
-        BarColumn(bar_width=40, style="cyan", complete_style="green"),
-        "[progress.percentage]{task.percentage:>3.0f}%",
-        "•",
-        TextColumn("({task.completed}/{task.total} files)"),
-        "•",
-        TimeElapsedColumn(),
-        "•",
-        TimeRemainingColumn(),
-        console=console,
-        transient=False,
-    )
-
-
 def main():
     """Main entry point."""
-    # Beautiful welcome header
     print_header("🐺 Garaga Test Profiler")
 
+    # Setup argument parser
     parser = argparse.ArgumentParser(
         description="Run snforge tests with profiling and generate performance visualizations",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -1500,135 +1468,90 @@ Examples:
     python tools/profile_tests.py msm_BN254_1P
     python tools/profile_tests.py --all
     python tools/profile_tests.py test_scalar_to_epns --parallel-jobs 4
-    python tools/profile_tests.py --workspace /path/to/garaga test_name --parallel-jobs 2
         """,
     )
 
+    parser.add_argument("test_filter", nargs="?", help="Test name filter (optional)")
+    parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument(
-        "test_filter",
-        nargs="?",
-        default=None,
-        help="Test name filter to pass to snforge test (optional)",
+        "--workspace", help="Workspace root path (default: current directory)"
     )
-
-    parser.add_argument(
-        "--all",
-        action="store_true",
-        help="Run all tests (same as providing no test filter)",
-    )
-
-    parser.add_argument(
-        "--workspace",
-        default=None,
-        help="Path to the workspace root (default: current directory)",
-    )
-
     parser.add_argument(
         "--verbose", "-v", action="store_true", help="Enable verbose logging"
     )
-
     parser.add_argument(
-        "--parallel-jobs",
-        type=int,
-        default=2,
-        help="Number of parallel jobs to use for processing trace files",
+        "--parallel-jobs", type=int, default=2, help="Number of parallel jobs"
     )
-
     parser.add_argument(
         "--generate-benchmarks",
         action="store_true",
-        help="Generate Cairo benchmarks after profiling workflow completes",
+        help="Generate Cairo benchmarks after profiling",
     )
-
     parser.add_argument(
-        "--benchmarks-only",
-        action="store_true",
-        help="Only generate Cairo benchmarks without running profiling workflow",
+        "--benchmarks-only", action="store_true", help="Only generate Cairo benchmarks"
     )
 
     args = parser.parse_args()
 
-    # Handle --benchmarks-only flag
+    # Handle benchmarks-only mode
     if args.benchmarks_only:
-        log_info("🎯 Running in [bold cyan]benchmarks-only[/bold cyan] mode")
+        log("🎯 Running in [bold cyan]benchmarks-only[/bold cyan] mode", level="info")
         profiler = ProfileTestRunner(workspace_root=args.workspace)
-
         success = profiler.generate_cairo_benchmarks()
 
         if success:
-            console.print(
-                Panel(
-                    Align.center("📊 Cairo benchmarks generated successfully!"),
-                    border_style="green",
-                    title="[green]Benchmarks Complete[/green]",
-                )
+            show_exit_panel(
+                "📊 Cairo benchmarks generated successfully!", "Success", "green"
             )
             sys.exit(0)
         else:
-            console.print(
-                Panel(
-                    Align.center("💥 Failed to generate Cairo benchmarks!"),
-                    border_style="red",
-                    title="[red]Error[/red]",
-                )
-            )
+            show_exit_panel("💥 Failed to generate Cairo benchmarks!", "Error", "red")
             sys.exit(1)
 
-    # Validate parallel_jobs parameter
-    if args.parallel_jobs < 1:
-        log_error("--parallel-jobs must be at least 1")
-        sys.exit(1)
-    elif args.parallel_jobs > 8:
-        log_warning(
-            f"Using {args.parallel_jobs} parallel jobs may overwhelm the system. Consider using fewer jobs."
-        )
+    # Validate parallel jobs
+    if not (1 <= args.parallel_jobs <= 8):
+        if args.parallel_jobs < 1:
+            log("--parallel-jobs must be at least 1", level="error")
+            sys.exit(1)
+        else:
+            log(
+                f"Using {args.parallel_jobs} parallel jobs may overwhelm the system. Consider using fewer jobs.",
+                level="warning",
+            )
 
-    # Handle --all flag or empty test_filter
+    # Determine test filter and show configuration
     test_filter = None if args.all else args.test_filter
-
-    # Show configuration
     if test_filter:
-        log_info(f"🎯 Running tests matching: [bold cyan]{test_filter}[/bold cyan]")
+        log(
+            f"🎯 Running tests matching: [bold cyan]{test_filter}[/bold cyan]",
+            level="info",
+        )
     else:
-        log_info("🎯 Running [bold cyan]all tests[/bold cyan]")
+        log("🎯 Running [bold cyan]all tests[/bold cyan]", level="info")
+    log(
+        f"⚡ Using [bold cyan]{args.parallel_jobs}[/bold cyan] parallel jobs",
+        level="info",
+    )
 
-    log_info(f"⚡ Using [bold cyan]{args.parallel_jobs}[/bold cyan] parallel jobs")
-
-    # Initialize and run the profiler
+    # Run profiling workflow
     profiler = ProfileTestRunner(workspace_root=args.workspace)
-
     success = profiler.run_profile_workflow(
         test_filter, args.parallel_jobs, args.generate_benchmarks
     )
 
+    # Handle results
     if _shutdown_requested:
-        console.print(
-            Panel(
-                Align.center(
-                    "👋 Process interrupted by user\nPartial results may be available"
-                ),
-                border_style="yellow",
-                title="[yellow]Interrupted[/yellow]",
-            )
+        show_exit_panel(
+            "👋 Process interrupted by user\nPartial results may be available",
+            "Interrupted",
+            "yellow",
         )
-        sys.exit(130)  # Standard exit code for SIGINT
+        sys.exit(130)
     elif success:
-        console.print(
-            Panel(
-                Align.center("🎉 All operations completed successfully!"),
-                border_style="green",
-                title="[green]Success[/green]",
-            )
-        )
+        show_exit_panel("🎉 All operations completed successfully!", "Success", "green")
         sys.exit(0)
     else:
-        console.print(
-            Panel(
-                Align.center("💥 Workflow failed!"),
-                border_style="red",
-                title="[red]Error[/red]",
-            )
-        )
+        show_exit_panel("💥 Workflow failed!", "Error", "red")
         sys.exit(1)
 
 
