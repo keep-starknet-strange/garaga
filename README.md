@@ -90,47 +90,6 @@ make setup
 
 At this point, you should have everything you need to start developing with Garaga. Before proceeding, make sure to activate the virtual environment by running `source venv/bin/activate`.
 
-## Benchmarks
-
-
-
-| OP               |   Weight in steps | Comment                                                                                 |
-|------------------|-------------------|-----------------------------------------------------------------------------------------|
-| MULMOD           |                 8 | Equivalent cost of a*b % p with the modulo builtin in VM steps                          |
-| ADDMOD           |                 4 | Equivalent cost of a+b % p with the modulo builtin in VM steps                          |
-| ASSERT_EQ        |                 2 | Equivalent cost of a==b % p with the modulo builtin in VM steps                         |
-| RLC              |                28 | Cost of writing a field element to the value segment and retrieving random coefficients |
-| POSEIDON 4 LIMBS |                17 | Cost of hashing the 4 limbs of 384 bits emulated field element with Poseidon            |
-
-
-| circuit                                   |   MULMOD |   ADDMOD |   ASSERT_EQ |   POSEIDON |   RLC |   ~steps |
-|-------------------------------------------|----------|----------|-------------|------------|-------|----------|
-| Derive Point From X                       |        6 |        2 |           0 |          0 |     0 |       56 |
-| Fp6 SQUARE_TORUS                          |       12 |       22 |           0 |          7 |     1 |      324 |
-| Fp12 SQUARE                               |       25 |       11 |           0 |         13 |     1 |      480 |
-| Fp12 MUL                                  |       36 |       22 |           0 |         13 |     1 |      612 |
-| Fp6 MUL_TORUS                             |       36 |       34 |           0 |         13 |     2 |      688 |
-| MSM 1 points                              |      150 |      128 |           0 |         52 |     0 |     2544 |
-| MSM 2 points                              |      194 |      166 |           0 |         64 |     0 |     3240 |
-| MSM 3 points                              |      238 |      204 |           0 |         76 |     0 |     3936 |
-| MSM 10 points                             |      546 |      470 |           0 |        160 |     0 |     8808 |
-| MSM 50 points                             |     2306 |     1990 |           0 |        640 |     0 |    36648 |
-| Miller n=1 BLS12_381                      |     2672 |     2686 |         137 |        790 |    63 |    47588 |
-| Miller n=1 BN254                          |     3303 |     3228 |         177 |        828 |    66 |    53130 |
-| Miller n=2 BLS12_381                      |     4418 |     4525 |         273 |        812 |    63 |    69558 |
-| Miller n=2 BN254                          |     5639 |     5576 |         353 |        852 |    66 |    81898 |
-| Miller n=3 BLS12_381                      |     6164 |     6364 |         409 |        834 |    63 |    91528 |
-| Final Exp BN254                           |     4681 |     7218 |           3 |       1931 |   317 |   102236 |
-| Miller n=3 BN254                          |     7975 |     7924 |         529 |        876 |    66 |   110666 |
-| Final Exp BLS12_381                       |     5123 |     9056 |           3 |       2333 |   384 |   127627 |
-| MultiPairing n=1 BN254                    |     7984 |    10446 |         180 |       2759 |   383 |   155366 |
-| MultiPairing n=1 BLS12_381                |     7795 |    11742 |         140 |       3123 |   447 |   175215 |
-| MultiPairing n=2 BN254                    |    10320 |    12794 |         356 |       2783 |   383 |   184134 |
-| MultiPairing n=2 BLS12_381                |     9541 |    13581 |         276 |       3145 |   447 |   197185 |
-| MultiPairing n=3 BN254                    |    12656 |    15142 |         532 |       2807 |   383 |   212902 |
-| MultiPairing n=3 BLS12_381                |    11287 |    15420 |         412 |       3167 |   447 |   219155 |
-| BLS12FinalExp Fp12 Karabina No EXTF Trick |     7774 |    43002 |           0 |          0 |     0 |   234200 |
-
 ## Cairo Benchmarks
 
 📊 **Click on any section below to expand and view detailed benchmark tables with test performance metrics.**
