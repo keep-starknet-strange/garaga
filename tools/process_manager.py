@@ -14,15 +14,21 @@ class ProcessManager:
         self.shutdown_event = threading.Event()
         self.original_signal_handler = None
         self.main_process_group = None
+        self.is_main_thread = threading.current_thread() is threading.main_thread()
 
     def __enter__(self):
         # Store the main process group (don't change it)
         self.main_process_group = os.getpgrp()
 
-        # Install signal handler
-        self.original_signal_handler = signal.signal(
-            signal.SIGINT, self._signal_handler
-        )
+        # Only install signal handler in main thread
+        if self.is_main_thread:
+            try:
+                self.original_signal_handler = signal.signal(
+                    signal.SIGINT, self._signal_handler
+                )
+            except ValueError:
+                # Signal operations not supported in this context, continue without signal handling
+                self.is_main_thread = False
 
         return self
 
@@ -46,15 +52,19 @@ class ProcessManager:
 
     def cleanup(self):
         """Kill all tracked processes (but not the main process group)."""
-        # Kill individual tracked processes
+        # Kill individual tracked processes more aggressively
         for proc in self.processes:
             try:
                 if proc.poll() is None:  # Still running
                     proc.terminate()
                     try:
-                        proc.wait(timeout=2)
+                        proc.wait(timeout=0.5)  # Reduced timeout
                     except subprocess.TimeoutExpired:
                         proc.kill()
+                        try:
+                            proc.wait(timeout=0.5)  # Reduced timeout for kill
+                        except subprocess.TimeoutExpired:
+                            pass  # Process is stuck, move on
             except Exception:
                 try:
                     proc.kill()
@@ -64,14 +74,18 @@ class ProcessManager:
         # Clear the process list
         self.processes.clear()
 
-        # Restore original handler
-        if self.original_signal_handler:
-            signal.signal(signal.SIGINT, self.original_signal_handler)
+        # Restore original handler only if we set it up in main thread
+        if self.is_main_thread and self.original_signal_handler:
+            try:
+                signal.signal(signal.SIGINT, self.original_signal_handler)
+            except ValueError:
+                # Signal operations not supported, ignore
+                pass
 
     def run_subprocess(
         self,
         cmd: List[str],
-        timeout: int = 30,
+        timeout: int = 900,
         check: bool = False,
         capture_output: bool = False,
         text: bool = False,

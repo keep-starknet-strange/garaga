@@ -158,7 +158,7 @@ class Logger:
 
 
 def handle_errors(func):
-    """Decorator for centralized error handling."""
+    """Decorator for centralized error handling - only for non-critical functions."""
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -167,6 +167,24 @@ def handle_errors(func):
         except Exception as e:
             Logger.log(f"Error in {func.__name__}: {e}", level="error")
             return False
+
+    return wrapper
+
+
+def fail_on_error(func):
+    """Decorator that prints errors and exits immediately."""
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            import traceback
+
+            Logger.log(f"FATAL ERROR in {func.__name__}: {e}", level="error")
+            Logger.log(f"Full traceback:\n{traceback.format_exc()}", level="error")
+            Logger.exit_panel(f"💥 Fatal error in {func.__name__}: {e}", "Error", "red")
+            sys.exit(1)
 
     return wrapper
 
@@ -350,38 +368,42 @@ class TraceProcessor:
             "mul mod builtin": "mul_mod",
         }
 
-    @handle_errors
     def process(
         self, test_name: str, trace_path: Path
     ) -> Tuple[bool, str, str, Optional[TestResourceInfo]]:
         """Process a single trace file."""
-        with managed_subprocess() as (run_cmd, pm):
-            profile_file = self._generate_profile(trace_path, run_cmd)
-            if not profile_file or not profile_file.exists():
-                return False, test_name, "", None
+        try:
+            with managed_subprocess() as (run_cmd, pm):
+                profile_file = self._generate_profile(trace_path, run_cmd)
+                if not profile_file or not profile_file.exists():
+                    return False, test_name, "", None
 
-            resources = self._extract_resources(profile_file, run_cmd)
-            test_name_simple = test_name.split("::")[-1]
-            docs_image_path = (
-                Paths(Path.cwd()).docs_benchmarks / f"{test_name_simple}.png"
-            )
-            image_success = self._generate_image(profile_file, docs_image_path, run_cmd)
+                resources = self._extract_resources(profile_file, run_cmd)
+                test_name_simple = test_name.split("::")[-1]
+                docs_image_path = (
+                    Paths(Path.cwd()).docs_benchmarks / f"{test_name_simple}.png"
+                )
+                image_success = self._generate_image(
+                    profile_file, docs_image_path, run_cmd
+                )
 
-            test_info = TestResourceInfo.from_trace_file(
-                test_name,
-                trace_path,
-                profile_file,
-                resources,
-                f"docs/benchmarks/{test_name_simple}.png",
-            )
+                test_info = TestResourceInfo.from_trace_file(
+                    test_name,
+                    trace_path,
+                    profile_file,
+                    resources,
+                    f"docs/benchmarks/{test_name_simple}.png",
+                )
 
-            return image_success, test_name, test_info.image_path, test_info
+                return image_success, test_name, test_info.image_path, test_info
+        except Exception as e:
+            # Re-raise with more context
+            raise Exception(f"Failed to process {test_name}: {str(e)}") from e
 
-    @handle_errors
     def _generate_profile(self, trace_file: Path, run_cmd) -> Optional[Path]:
         """Generate profile from trace file."""
         profile_file = trace_file.parent / f"{trace_file.stem}.pb.gz"
-        run_cmd(
+        result = run_cmd(
             [
                 "cairo-profiler",
                 "build-profile",
@@ -393,9 +415,10 @@ class TraceProcessor:
             capture_output=True,
             text=True,
         )
+        if result.returncode != 0:
+            raise Exception(f"cairo-profiler build-profile failed: {result.stderr}")
         return profile_file
 
-    @handle_errors
     def _extract_resources(self, profile_file: Path, run_cmd) -> dict:
         """Extract resources from profile file."""
         result = run_cmd(
@@ -404,6 +427,10 @@ class TraceProcessor:
             capture_output=True,
             text=True,
         )
+        if result.returncode != 0:
+            raise Exception(
+                f"cairo-profiler view --list-samples failed: {result.stderr}"
+            )
 
         samples = [
             line.strip()
@@ -422,23 +449,24 @@ class TraceProcessor:
                 )
 
                 # Updated regex to handle the new cairo-profiler output format
-                # Example: "62 range check builtin, 100.00% of 62 range check builtin total"
-                pattern = rf"(\d+) {re.escape(sample)}, [\d.]+% of \d+ {re.escape(sample)} total"
+                # Example: "Showing nodes accounting for 11582 steps, 94.63% of 12239 steps total"
+                pattern = rf"(\d+) {re.escape(sample)} total"
                 match = re.search(pattern, sample_result.stdout, re.IGNORECASE)
                 if match:
                     count = int(match.group(1))
                     normalized = self.sample_mapping.get(sample.lower().strip())
                     if normalized:
                         resources[normalized] = count
-            except subprocess.CalledProcessError:
+            except subprocess.CalledProcessError as e:
+                # Log individual sample errors but continue
+                Logger.log(f"Failed to extract sample '{sample}': {e}", level="warning")
                 continue
 
         return resources
 
-    @handle_errors
     def _generate_image(self, profile_file: Path, output_path: Path, run_cmd) -> bool:
         """Generate PNG image using pprof."""
-        run_cmd(
+        result = run_cmd(
             [
                 "go",
                 "tool",
@@ -453,6 +481,8 @@ class TraceProcessor:
             capture_output=True,
             text=True,
         )
+        if result.returncode != 0:
+            raise Exception(f"pprof failed: {result.stderr}")
         return True
 
 
@@ -526,17 +556,21 @@ class RunTestsCommand(Command):
 
         with managed_subprocess() as (run_cmd, pm):
             with UIBuilder.progress() as progress:
-                desc = (
+                # Create a single task outside the loop
+                base_desc = (
                     f"Running tests matching: {self.test_filter}"
                     if self.test_filter
                     else "Running all tests"
                 )
-                progress.add_task(desc, total=None)
+                task = progress.add_task(base_desc, total=len(test_dirs))
 
-                for test_dir in test_dirs:
+                for i, test_dir in enumerate(test_dirs):
+                    # Update the description for the current directory
+                    current_desc = f"{base_desc} from {test_dir.relative_to(self.paths.workspace_root)}"
+                    progress.update(task, description=current_desc)
+
                     if not test_dir.exists() or not (test_dir / "Scarb.toml").exists():
                         continue
-
                     os.chdir(test_dir)
                     result = run_cmd(cmd, capture_output=True, text=True)
 
@@ -546,6 +580,9 @@ class RunTestsCommand(Command):
                             r"\[PASS\]\s+([^\s]+)\s+\(l1_gas:", result.stdout
                         )
                         self.passed_tests.extend(passed)
+
+                    # Advance the progress by 1 for each directory processed
+                    progress.advance(task, 1)
 
         os.chdir(original_cwd)
 
@@ -616,8 +653,8 @@ class ProcessTracesCommand(Command):
             return success_count > 0
 
         except KeyboardInterrupt:
-            Logger.log("Processing interrupted", level="warning")
-            return len(self.test_resources) > 0
+            Logger.log("Processing interrupted by user", level="warning")
+            raise
 
     def can_execute(self) -> bool:
         return len(self.passed_tests) > 0
@@ -661,24 +698,54 @@ class ProcessTracesCommand(Command):
         with UIBuilder.progress(True) as progress:
             task = progress.add_task("Processing tests", total=len(futures))
 
-            for future in futures:
-                if pm.shutdown_event.is_set():
+            try:
+                for future in futures:
+                    if pm.shutdown_event.is_set():
+                        future.cancel()
+                        continue
+
+                    try:
+                        success, test_name, _, test_info = future.result(
+                            timeout=60 * 20
+                        )  # Increased timeout
+                        if success and test_info:
+                            self.test_resources.append(test_info)
+                            console.print(f"✨ [green]{test_name}[/green]")
+                            success_count += 1
+                        else:
+                            console.print(
+                                f"💥 [red]{test_name}[/red]: Processing failed"
+                            )
+                    except Exception as e:
+                        test_name = futures[future]
+                        error_msg = str(e)
+                        console.print(f"💥 [red]{test_name}[/red]: {error_msg}")
+
+                        # Print full error details and exit
+                        import traceback
+
+                        Logger.log(
+                            f"FATAL ERROR processing {test_name}: {error_msg}",
+                            level="error",
+                        )
+                        Logger.log(
+                            f"Full traceback:\n{traceback.format_exc()}", level="error"
+                        )
+                        Logger.exit_panel(
+                            f"💥 Fatal error processing {test_name}: {error_msg}",
+                            "Error",
+                            "red",
+                        )
+                        sys.exit(1)
+
+                    progress.advance(task, 1)
+
+            except KeyboardInterrupt:
+                # Cancel all remaining futures immediately
+                for future in futures:
                     future.cancel()
-                    continue
-
-                try:
-                    success, test_name, _, test_info = future.result(timeout=1.0)
-                    if success and test_info:
-                        self.test_resources.append(test_info)
-                        console.print(f"✨ [green]{test_name}[/green]")
-                        success_count += 1
-                    else:
-                        console.print(f"💥 [red]{test_name}[/red]")
-                except Exception as e:
-                    test_name = futures[future]
-                    console.print(f"💥 [red]{test_name}[/red]: {e}")
-
-                progress.advance(task, 1)
+                # Re-raise to propagate the interrupt
+                raise
 
         return success_count
 
@@ -1036,7 +1103,6 @@ class WorkflowExecutor:
         self.paths = paths
         self.executed_commands = []
 
-    @handle_errors
     def execute_workflow(
         self,
         test_filter: Optional[str] = None,
@@ -1044,48 +1110,66 @@ class WorkflowExecutor:
         generate_benchmarks: bool = False,
     ) -> bool:
         """Execute the complete workflow."""
-        self.paths.ensure_dirs()
+        try:
+            self.paths.ensure_dirs()
 
-        commands = [
-            CheckDependenciesCommand(self.config),
-            RunTestsCommand(self.paths, test_filter),
-        ]
+            commands = [
+                CheckDependenciesCommand(self.config),
+                RunTestsCommand(self.paths, test_filter),
+            ]
 
-        for cmd in commands:
-            if not cmd.can_execute():
-                Logger.log(f"Cannot execute {cmd.__class__.__name__}", level="error")
-                return False
+            for cmd in commands:
+                if not cmd.can_execute():
+                    raise Exception(f"Cannot execute {cmd.__class__.__name__}")
 
-            if not cmd.execute():
-                Logger.log(f"Command {cmd.__class__.__name__} failed", level="error")
-                return False
+                if not cmd.execute():
+                    raise Exception(f"Command {cmd.__class__.__name__} failed")
 
-            self.executed_commands.append(cmd)
+                self.executed_commands.append(cmd)
 
-        # Get passed tests from RunTestsCommand
-        run_tests_cmd = next(
-            cmd for cmd in self.executed_commands if isinstance(cmd, RunTestsCommand)
-        )
+            # Get passed tests from RunTestsCommand
+            run_tests_cmd = next(
+                cmd
+                for cmd in self.executed_commands
+                if isinstance(cmd, RunTestsCommand)
+            )
 
-        # Process traces
-        process_cmd = ProcessTracesCommand(
-            self.paths, run_tests_cmd.passed_tests, parallel_jobs
-        )
-        if process_cmd.can_execute() and process_cmd.execute():
+            # Process traces
+            process_cmd = ProcessTracesCommand(
+                self.paths, run_tests_cmd.passed_tests, parallel_jobs
+            )
+            if not process_cmd.can_execute():
+                raise Exception("Cannot execute ProcessTracesCommand")
+
+            if not process_cmd.execute():
+                raise Exception("ProcessTracesCommand failed")
+
             self.executed_commands.append(process_cmd)
-        else:
-            return False
 
-        # Generate benchmarks if requested
-        if generate_benchmarks:
-            benchmark_cmd = GenerateBenchmarksCommand(self.paths)
-            if benchmark_cmd.can_execute():
-                benchmark_cmd.execute()
+            # Generate benchmarks if requested
+            if generate_benchmarks:
+                benchmark_cmd = GenerateBenchmarksCommand(self.paths)
+                if benchmark_cmd.can_execute():
+                    if not benchmark_cmd.execute():
+                        raise Exception("GenerateBenchmarksCommand failed")
 
-        Logger.header("🎯 Workflow Complete")
-        Logger.log("Profiling workflow completed successfully!", level="success")
+            Logger.header("🎯 Workflow Complete")
+            Logger.log("Profiling workflow completed successfully!", level="success")
 
-        return True
+            return True
+
+        except KeyboardInterrupt:
+            # Re-raise KeyboardInterrupt to be handled by main()
+            raise
+        except Exception as e:
+            import traceback
+
+            Logger.log(f"FATAL ERROR in execute_workflow: {e}", level="error")
+            Logger.log(f"Full traceback:\n{traceback.format_exc()}", level="error")
+            Logger.exit_panel(
+                f"💥 Fatal error in execute_workflow: {e}", "Error", "red"
+            )
+            sys.exit(1)
 
 
 # Simplified Main Function & CLI
