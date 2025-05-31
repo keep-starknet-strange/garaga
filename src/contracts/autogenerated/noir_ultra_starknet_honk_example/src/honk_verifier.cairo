@@ -2,7 +2,7 @@ use super::honk_verifier_circuits::{
     is_on_curve_bn254, run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
     run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit,
 };
-use super::honk_verifier_constants::{VK_HASH, precomputed_lines, vk};
+use super::honk_verifier_constants::{precomputed_lines, vk};
 
 #[starknet::interface]
 pub trait IUltraStarknetHonkVerifier<TContractState> {
@@ -14,12 +14,10 @@ pub trait IUltraStarknetHonkVerifier<TContractState> {
 #[starknet::contract]
 mod UltraStarknetHonkVerifier {
     use core::num::traits::Zero;
-    use core::poseidon::hades_permutation;
-    use garaga::circuits::ec;
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, u288IntoCircuitInputValue};
     use garaga::definitions::{
         BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus,
-        get_eigenvalue, get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u288, u384,
+        get_eigenvalue, get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u384,
     };
     use garaga::ec_ops::{G1PointTrait, GlvFakeGlvHint, _ec_safe_add, _scalar_mul_glv_and_fake_glv};
     use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
@@ -29,8 +27,7 @@ mod UltraStarknetHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
     use super::{
-        VK_HASH, is_on_curve_bn254, precomputed_lines,
-        run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+        is_on_curve_bn254, precomputed_lines, run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,
         run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit, vk,
     };
 
@@ -60,7 +57,7 @@ mod UltraStarknetHonkVerifier {
             let mod_bn = get_BN254_modulus();
             let mod_grumpkin = get_GRUMPKIN_modulus();
 
-            let (transcript, transcript_state, base_rlc) = HonkTranscriptTrait::from_proof::<
+            let (transcript, _, base_rlc) = HonkTranscriptTrait::from_proof::<
                 StarknetHasherState,
             >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
             let log_n = vk.log_circuit_size;

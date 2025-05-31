@@ -1,7 +1,7 @@
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
 #[starknet::interface]
-trait ISP1Groth16VerifierBN254<TContractState> {
+pub trait ISP1Groth16VerifierBN254<TContractState> {
     fn verify_sp1_groth16_proof_bn254(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<(u256, Span<u256>)>;

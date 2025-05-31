@@ -155,6 +155,7 @@ def verify_onchain(
 class CalldataFormat(str, Enum):
     starkli = "starkli"
     array = "array"
+    snforge = "snforge"
 
 
 def get_calldata_generic(
@@ -227,7 +228,17 @@ def calldata(
             case_sensitive=False,
             show_choices=True,
         ),
-    ] = CalldataFormat.starkli,
+    ] = CalldataFormat.snforge,
+    output_path: Annotated[
+        Path,
+        typer.Option(
+            help="Output directory path for snforge format (defaults to current directory)",
+            file_okay=False,
+            dir_okay=True,
+            exists=True,
+            autocompletion=lambda: [],
+        ),
+    ] = Path("."),
 ):
     """Generate Starknet verifier calldata given a proof and a verification key."""
 
@@ -240,3 +251,10 @@ def calldata(
         print(" ".join([str(x) for x in calldata]))
     elif format == CalldataFormat.array:
         print(calldata[1:])
+    elif format == CalldataFormat.snforge:
+        # Write the calldata to a file in the specified output path
+        output_file = output_path / "proof_calldata.txt"
+        with open(output_file, "w") as f:
+            for x in calldata[1:]:
+                f.write(f"{hex(x)}\n")
+        print(f"Calldata written to: {output_file}")

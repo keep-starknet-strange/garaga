@@ -2,7 +2,7 @@ use core::circuit::{
     CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
     EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::G1Point;
 
 #[inline(always)]

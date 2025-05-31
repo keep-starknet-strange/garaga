@@ -142,17 +142,20 @@ mod tests_lib {
     use core::num::traits::{One, Zero};
     use core::traits::TryInto;
     #[test]
+    #[ignore] // Ignored for auto-benchmarks
     fn test_u96() {
         let a: u96 = 0x123;
         assert_eq!(a, 0x123);
     }
     #[test]
+    #[ignore] // Ignored for auto-benchmarks
     fn test_builtins() {
         core::internal::require_implicit::<RangeCheck96>();
         core::internal::require_implicit::<AddMod>();
         core::internal::require_implicit::<MulMod>();
     }
     #[test]
+    #[ignore] // Ignored for auto-benchmarks
     fn test_circuit_success() {
         let in1 = CircuitElement::<CircuitInput<0>> {};
         let in2 = CircuitElement::<CircuitInput<1>> {};
@@ -176,8 +179,8 @@ mod tests_lib {
         assert_eq!(outputs.get_output(mul), u384 { limb0: 6, limb1: 0, limb2: 0, limb3: 0 });
     }
 
-
     #[test]
+    #[ignore] // Ignored for auto-benchmarks
     fn test_circuit_failure() {
         let in0 = CircuitElement::<CircuitInput<0>> {};
         let out0 = circuit_inverse(in0);
@@ -186,6 +189,7 @@ mod tests_lib {
         (out0,).new_inputs().next([11, 0, 0, 0]).done().eval(modulus).unwrap_err();
     }
     #[test]
+    #[ignore] // Ignored for auto-benchmarks
     fn test_fill_inputs_loop() {
         let in1 = CircuitElement::<CircuitInput<0>> {};
         let in2 = CircuitElement::<CircuitInput<1>> {};

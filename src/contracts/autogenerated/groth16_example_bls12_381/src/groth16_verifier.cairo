@@ -1,7 +1,7 @@
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
 #[starknet::interface]
-trait IGroth16VerifierBLS12_381<TContractState> {
+pub trait IGroth16VerifierBLS12_381<TContractState> {
     fn verify_groth16_proof_bls12_381(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;

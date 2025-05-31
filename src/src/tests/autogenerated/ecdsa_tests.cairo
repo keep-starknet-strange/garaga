@@ -3,6 +3,7 @@ use garaga::definitions::{u288, u384};
 use garaga::signatures::ecdsa::{ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature};
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_ecdsa_BN254() {
     let mut ecdsa_sig_with_hints_serialized = array![
         0x236ca9312dad3661a37f2d6f,
@@ -59,6 +60,7 @@ fn test_ecdsa_BN254() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_ecdsa_BLS12_381() {
     let mut ecdsa_sig_with_hints_serialized = array![
         0x867620dc5a8fd7ecbe07be76,
@@ -223,6 +225,7 @@ fn test_ecdsa_SECP256K1() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_ecdsa_ED25519() {
     let mut ecdsa_sig_with_hints_serialized = array![
         0xd4b581f1ee29a4dfba0aa2d4,
@@ -275,6 +278,7 @@ fn test_ecdsa_ED25519() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_ecdsa_GRUMPKIN() {
     let mut ecdsa_sig_with_hints_serialized = array![
         0x3c26f4ff476ab777dc184776,

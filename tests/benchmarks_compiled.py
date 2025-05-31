@@ -37,7 +37,7 @@ def benchmark_all_cairo_circuits():
                     "name": f"{circuit_class.__name__}_bench",
                     "curve_id": curve_id.value,
                     "auto_run": True,
-                    "compilation_mode": 1,  # or 1, if you prefer
+                    "compilation_mode": 1,
                 }
 
                 # Possibly update with param dict

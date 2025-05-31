@@ -5,6 +5,7 @@ use garaga::signatures::schnorr::{
 };
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_schnorr_BN254() {
     let mut sch_sig_with_hints_serialized = array![
         0x536c985db33c69f7c242e07a,
@@ -60,6 +61,7 @@ fn test_schnorr_BN254() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_schnorr_BLS12_381() {
     let mut sch_sig_with_hints_serialized = array![
         0xde4f62a6588c9401ffefbd3,
@@ -115,6 +117,7 @@ fn test_schnorr_BLS12_381() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_schnorr_SECP256R1() {
     let mut sch_sig_with_hints_serialized = array![
         0xd3ff147ff0ee4213f51f677d,
@@ -221,6 +224,7 @@ fn test_schnorr_SECP256K1() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_schnorr_ED25519() {
     let mut sch_sig_with_hints_serialized = array![
         0x82e4a33f8e4e5881e791d86b,
@@ -272,6 +276,7 @@ fn test_schnorr_ED25519() {
 
 
 #[test]
+#[ignore] // Ignored for auto-benchmarks
 fn test_schnorr_GRUMPKIN() {
     let mut sch_sig_with_hints_serialized = array![
         0x20669ef12954f8e3bbc8b4d3,

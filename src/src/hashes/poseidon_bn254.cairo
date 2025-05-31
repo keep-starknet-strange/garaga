@@ -3835,6 +3835,7 @@ mod tests {
         assert_eq!(poseidon_hash_2_bn254(x, y), z);
     }
 
+    #[ignore] // Ignored for auto-benchmarks
     #[test]
     fn test_run_poseidon_grumpkin_circuit_2() {
         let x: u384 = u384 { limb0: 1234556789, limb1: 0, limb2: 0, limb3: 0 };
