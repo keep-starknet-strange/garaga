@@ -931,7 +931,8 @@ class ReportBuilder:
             current_path = []
 
         content = ""
-        for module_name, module_data in grouped_data.items():
+        # Sort sections alphabetically by module name
+        for module_name, module_data in sorted(grouped_data.items()):
             if isinstance(module_data, list):
                 df = self._create_dataframe(module_data)
                 table_content = self._generate_table(df)
