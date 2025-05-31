@@ -11,7 +11,7 @@ mod FibonacciSequencer {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
     pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-        0x3fb3a8636b5e6858ee3bfa4477d14cdabf3222d97c94b2a9ccb53c3704ae0fc;
+        0x27e9201ed7b1b323f00f61604d142b6fc5648df4d250f079f0ea5499aa6bab1;
 
     #[storage]
     struct Storage {
@@ -34,7 +34,7 @@ mod FibonacciSequencer {
 
             // calls the RiscZero verifier passing along the proof artifact and
             // checks whether the proof is valid or not, aborting the transaction if not
-            let optional_journal = dispatcher.verify_groth16_proof_bn254(full_proof_with_hints);
+            let optional_journal = dispatcher.verify_r0_groth16_proof_bn254(full_proof_with_hints);
             assert(optional_journal != Option::None, 'Invalid proof');
 
             // parses the public inputs and output from the journal
@@ -87,7 +87,7 @@ mod FibonacciSequencer {
 
     #[starknet::interface]
     trait IRisc0Groth16VerifierBN254<TContractState> {
-        fn verify_groth16_proof_bn254(
+        fn verify_r0_groth16_proof_bn254(
             self: @TContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>>;
     }

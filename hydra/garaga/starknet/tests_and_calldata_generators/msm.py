@@ -112,9 +112,7 @@ class MSMCalldataBuilder:
 
         return inputs
 
-    def to_cairo_1_test(
-        self, test_name: str = None, include_digits_decomposition=False
-    ):
+    def to_cairo_1_test(self, test_name: str = None, ignored=False):
         # print(
         #     f"Generating MSM test for {self.curve_id.name} with {len(self.scalars)} points"
         # )
@@ -131,8 +129,9 @@ class MSMCalldataBuilder:
         )
 
         T = "u384" if self.curve_id == CurveID.BLS12_381 else "u288"
+        ignore_str = "\n#[ignore]" if ignored else ""
         code = f"""
-        #[test]
+        #[test]{ignore_str}
         fn {test_name}() {{
             let mut data = array![{','.join([hex(value) for value in inputs])}].span();
             let points = Serde::deserialize(ref data).unwrap();

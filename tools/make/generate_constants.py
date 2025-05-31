@@ -52,6 +52,12 @@ SP1_VERIFIER_HASH: bytes = bytes.fromhex(
 RISC0_SYSTEM_STATE_ZERO_DIGEST = "{risc0["system_state_zero_digest"]}"
 RISC0_TAG_DIGEST = "{risc0["tag_digest"]}"
 RISC0_OUTPUT_TAG = "{risc0["output_tag"]}"
+
+# Cairo version
+CAIRO_VERSION = "{constants["release_info"]["cairo_version"]}"
+
+# Starknet Foundry version
+STARKNET_FOUNDRY_VERSION = "{constants["release_info"]["starknet_foundry_version"]}"
 '''
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -199,7 +205,7 @@ def update_readme_version(constants: Dict[str, Any], readme_path: str):
     This function uses regex patterns to find and replace version strings
     in pip install commands, making it resilient to formatting changes.
     """
-    version = constants["release_info"]["version"]
+    version = constants["release_info"]["garaga_version"]
 
     try:
         with open(readme_path, "r", encoding="utf-8") as f:
@@ -248,7 +254,7 @@ def update_pyproject_version(constants: Dict[str, Any], pyproject_path: str):
 
     This function updates the version field in the [tool.poetry] section.
     """
-    version = constants["release_info"]["version"]
+    version = constants["release_info"]["garaga_version"]
 
     try:
         with open(pyproject_path, "r", encoding="utf-8") as f:
@@ -297,7 +303,7 @@ def update_cargo_toml_version(constants: Dict[str, Any], cargo_toml_path: str):
     This function updates ONLY the version field in the [package] section,
     not dependency versions.
     """
-    version = constants["release_info"]["version"]
+    version = constants["release_info"]["garaga_version"]
 
     try:
         with open(cargo_toml_path, "r", encoding="utf-8") as f:
@@ -349,7 +355,7 @@ def update_package_json_version(constants: Dict[str, Any], package_json_path: st
 
     This function updates the version field in the package.json file.
     """
-    version = constants["release_info"]["version"]
+    version = constants["release_info"]["garaga_version"]
 
     try:
         with open(package_json_path, "r", encoding="utf-8") as f:
@@ -399,7 +405,7 @@ def update_npm_readme_version(constants: Dict[str, Any], npm_readme_path: str):
 
     This function adds or updates links to the API documentation for the specific version.
     """
-    version = constants["release_info"]["version"]
+    version = constants["release_info"]["garaga_version"]
 
     try:
         with open(npm_readme_path, "r", encoding="utf-8") as f:
