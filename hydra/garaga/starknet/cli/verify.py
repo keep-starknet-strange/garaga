@@ -123,9 +123,6 @@ def verify_onchain(
             f"Function {endpoint} not found on contract {contract_address}"
         )
 
-    if vk == None:
-        vk = get_default_vk_path(system)
-
     if public_inputs == "":
         public_inputs = None
 
@@ -159,12 +156,18 @@ class CalldataFormat(str, Enum):
 
 
 def get_calldata_generic(
-    system: ProofSystem, vk: Path, proof: Path, public_inputs: Path | None
+    system: ProofSystem, vk: Path | None, proof: Path, public_inputs: Path | None
 ) -> list[int]:
     match system:
-        case ProofSystem.Groth16 | ProofSystem.Risc0Groth16:
-            vk_obj = Groth16VerifyingKey.from_json(vk)
+        case ProofSystem.Groth16:
             proof_obj = Groth16Proof.from_json(proof, public_inputs)
+            if vk is None:
+                vk_obj = Groth16VerifyingKey.from_json(
+                    get_default_vk_path(proof_obj.vk_type)
+                )
+            else:
+                vk_obj = Groth16VerifyingKey.from_json(vk)
+
             return groth16_calldata_from_vk_and_proof(vk_obj, proof_obj)
         case (
             ProofSystem.UltraKeccakHonk

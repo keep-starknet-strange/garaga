@@ -183,7 +183,9 @@ def write_test_calldata_file(
             f.write(f"{hex(x)}\n")
 
 
-def create_verifier_directory_structure(output_folder_path: str) -> tuple[str, str]:
+def create_verifier_directory_structure(
+    output_folder_path: str, include_test_sample: bool = True
+) -> tuple[str, str]:
     """Create the standard directory structure for a verifier contract.
 
     Returns:
@@ -191,9 +193,12 @@ def create_verifier_directory_structure(output_folder_path: str) -> tuple[str, s
     """
     create_directory(output_folder_path)
     src_dir = os.path.join(output_folder_path, "src")
-    tests_dir = os.path.join(output_folder_path, "tests")
+    tests_dir = (
+        os.path.join(output_folder_path, "tests") if include_test_sample else None
+    )
     create_directory(src_dir)
-    create_directory(tests_dir)
+    if include_test_sample:
+        create_directory(tests_dir)
     return src_dir, tests_dir
 
 
@@ -228,11 +233,14 @@ def write_verifier_files(
     constants_filename: str = "groth16_verifier_constants.cairo",
     contract_filename: str = "groth16_verifier.cairo",
     circuits_filename: str = None,
+    include_test_sample: bool = True,
 ) -> None:
     """Write all the standard verifier files (directories, constants, contract, scarb.toml, lib.cairo, test files)."""
 
     # Create directory structure
-    src_dir, tests_dir = create_verifier_directory_structure(output_folder_path)
+    src_dir, tests_dir = create_verifier_directory_structure(
+        output_folder_path, include_test_sample
+    )
 
     # Write tool versions
     write_tool_versions_file(output_folder_path)
@@ -257,17 +265,18 @@ def write_verifier_files(
     # Write lib.cairo
     write_lib_cairo_file(src_dir, modules)
 
-    # Write test file
-    with open(os.path.join(tests_dir, "test_contract.cairo"), "w") as f:
-        f.write(
-            gen_test_file(
-                contract_cairo_name,
-                contract_filename.removesuffix(".cairo"),
-                system,
-                verification_function_name,
-                package_name,
+    # Write test file.
+    if include_test_sample:
+        with open(os.path.join(tests_dir, "test_contract.cairo"), "w") as f:
+            f.write(
+                gen_test_file(
+                    contract_cairo_name,
+                    contract_filename.removesuffix(".cairo"),
+                    system,
+                    verification_function_name,
+                    package_name,
+                )
             )
-        )
     subprocess.run(["scarb", "fmt", f"{output_folder_path}"], check=True)
 
 
@@ -301,6 +310,7 @@ def gen_groth16_verifier(
     output_folder_name: str,
     ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
     cli_mode: bool = False,
+    include_test_sample: bool = True,
 ) -> str:
     if isinstance(vk, (Path, str)):
         vk = Groth16VerifyingKey.from_json(vk)
@@ -436,6 +446,7 @@ mod {contract_cairo_name} {{
         verification_function_name,
         ProofSystem.Groth16,
         cli_mode,
+        include_test_sample=include_test_sample,
     )
 
     return constants_code

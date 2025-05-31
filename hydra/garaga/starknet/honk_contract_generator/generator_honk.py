@@ -720,6 +720,7 @@ def _write_and_format_project_files(
     contract_name: str,
     verification_function_name: str,
     system: ProofSystem,
+    include_test_sample: bool = True,
 ):
     # Use the reusable function to write all files
     write_verifier_files(
@@ -736,6 +737,7 @@ def _write_and_format_project_files(
         constants_filename="honk_verifier_constants.cairo",
         contract_filename="honk_verifier.cairo",
         circuits_filename="honk_verifier_circuits.cairo",
+        include_test_sample=include_test_sample,
     )
 
 

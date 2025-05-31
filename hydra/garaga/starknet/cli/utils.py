@@ -258,18 +258,23 @@ def get_sierra_casm_artifacts(
     return sierra, casm
 
 
-def get_default_vk_path(system: ProofSystem) -> Path:
+def get_default_vk_path(vk_type: str) -> Path:
     script_path = Path(__file__).resolve()
     script_folder_path = script_path.parent
-    match system:
-        case ProofSystem.Risc0Groth16:
+    match vk_type:
+        case "risc0":
             return (
                 script_folder_path.parent
                 / "groth16_contract_generator"
                 / "examples"
                 / "vk_risc0.json"
             )
-        case _:
-            raise ValueError(
-                f"Proof system {system} requires an user-provided verification key"
+        case "sp1":
+            return (
+                script_folder_path.parent
+                / "groth16_contract_generator"
+                / "examples"
+                / "vk_sp1.json"
             )
+        case _:
+            raise ValueError(f"Unsupported default VK for proof type: {vk_type}")

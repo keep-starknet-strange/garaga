@@ -356,6 +356,23 @@ class Groth16Proof:
                 len(self.public_inputs_sp1) % 32 == 0
             ), "SP1 public inputs must be a multiple of 32 bytes"
 
+    @property
+    def is_risc0(self) -> bool:
+        return self.image_id is not None and self.journal is not None
+
+    @property
+    def is_sp1(self) -> bool:
+        return self.public_inputs_sp1 is not None
+
+    @property
+    def vk_type(self) -> str:
+        if self.is_risc0:
+            return "risc0"
+        elif self.is_sp1:
+            return "sp1"
+        else:
+            return "groth16_generic"
+
     def from_dict(
         data: dict, public_inputs: None | list | dict = None
     ) -> "Groth16Proof":
