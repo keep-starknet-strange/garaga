@@ -20,10 +20,8 @@ import argparse
 import json
 import os
 import re
-import signal
 import subprocess
 import sys
-import time
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -49,20 +47,10 @@ from rich.progress import (
 from rich.text import Text
 from tabulate import tabulate
 
+from tools.process_manager import ProcessManager, managed_subprocess
+
 # Global state
 console = Console()
-_shutdown_requested = False
-
-
-def signal_handler(signum, frame):
-    """Handle SIGINT (Ctrl+C) gracefully."""
-    global _shutdown_requested
-    _shutdown_requested = True
-    console.print("\n🛑 [bold red]Interrupt received[/bold red]")
-    console.print("⏳ [dim]Waiting for current operations to complete...[/dim]")
-
-
-signal.signal(signal.SIGINT, signal_handler)
 
 
 # Configuration & Constants
@@ -177,8 +165,7 @@ def handle_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            if not _shutdown_requested:
-                Logger.log(f"Error in {func.__name__}: {e}", level="error")
+            Logger.log(f"Error in {func.__name__}: {e}", level="error")
             return False
 
     return wrapper
@@ -368,30 +355,33 @@ class TraceProcessor:
         self, test_name: str, trace_path: Path
     ) -> Tuple[bool, str, str, Optional[TestResourceInfo]]:
         """Process a single trace file."""
-        profile_file = self._generate_profile(trace_path)
-        if not profile_file or not profile_file.exists():
-            return False, test_name, "", None
+        with managed_subprocess() as (run_cmd, pm):
+            profile_file = self._generate_profile(trace_path, run_cmd)
+            if not profile_file or not profile_file.exists():
+                return False, test_name, "", None
 
-        resources = self._extract_resources(profile_file)
-        test_name_simple = test_name.split("::")[-1]
-        docs_image_path = Paths(Path.cwd()).docs_benchmarks / f"{test_name_simple}.png"
-        image_success = self._generate_image(profile_file, docs_image_path)
+            resources = self._extract_resources(profile_file, run_cmd)
+            test_name_simple = test_name.split("::")[-1]
+            docs_image_path = (
+                Paths(Path.cwd()).docs_benchmarks / f"{test_name_simple}.png"
+            )
+            image_success = self._generate_image(profile_file, docs_image_path, run_cmd)
 
-        test_info = TestResourceInfo.from_trace_file(
-            test_name,
-            trace_path,
-            profile_file,
-            resources,
-            f"docs/benchmarks/{test_name_simple}.png",
-        )
+            test_info = TestResourceInfo.from_trace_file(
+                test_name,
+                trace_path,
+                profile_file,
+                resources,
+                f"docs/benchmarks/{test_name_simple}.png",
+            )
 
-        return image_success, test_name, test_info.image_path, test_info
+            return image_success, test_name, test_info.image_path, test_info
 
     @handle_errors
-    def _generate_profile(self, trace_file: Path) -> Optional[Path]:
+    def _generate_profile(self, trace_file: Path, run_cmd) -> Optional[Path]:
         """Generate profile from trace file."""
         profile_file = trace_file.parent / f"{trace_file.stem}.pb.gz"
-        subprocess.run(
+        run_cmd(
             [
                 "cairo-profiler",
                 "build-profile",
@@ -406,9 +396,9 @@ class TraceProcessor:
         return profile_file
 
     @handle_errors
-    def _extract_resources(self, profile_file: Path) -> dict:
+    def _extract_resources(self, profile_file: Path, run_cmd) -> dict:
         """Extract resources from profile file."""
-        result = subprocess.run(
+        result = run_cmd(
             ["cairo-profiler", "view", str(profile_file), "--list-samples"],
             check=True,
             capture_output=True,
@@ -424,7 +414,7 @@ class TraceProcessor:
         resources = {}
         for sample in samples:
             try:
-                sample_result = subprocess.run(
+                sample_result = run_cmd(
                     ["cairo-profiler", "view", str(profile_file), "--sample", sample],
                     check=True,
                     capture_output=True,
@@ -446,9 +436,9 @@ class TraceProcessor:
         return resources
 
     @handle_errors
-    def _generate_image(self, profile_file: Path, output_path: Path) -> bool:
+    def _generate_image(self, profile_file: Path, output_path: Path, run_cmd) -> bool:
         """Generate PNG image using pprof."""
-        subprocess.run(
+        run_cmd(
             [
                 "go",
                 "tool",
@@ -494,13 +484,16 @@ class CheckDependenciesCommand(Command):
     @handle_errors
     def execute(self) -> bool:
         Logger.header("🔍 Checking Dependencies")
-        for tool, desc, cmd in self.tools:
-            try:
-                result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-                Logger.log(f"{tool}: {result.stdout.strip()}", level="success")
-            except subprocess.CalledProcessError:
-                Logger.log(f"{tool} not found. Please install {desc}.", level="error")
-                return False
+        with managed_subprocess() as (run_cmd, pm):
+            for tool, desc, cmd in self.tools:
+                try:
+                    result = run_cmd(cmd, check=True, capture_output=True, text=True)
+                    Logger.log(f"{tool}: {result.stdout.strip()}", level="success")
+                except subprocess.CalledProcessError:
+                    Logger.log(
+                        f"{tool} not found. Please install {desc}.", level="error"
+                    )
+                    return False
 
         Logger.log("All dependencies satisfied!", level="success")
         return True
@@ -531,27 +524,28 @@ class RunTestsCommand(Command):
         test_dirs = [self.paths.src_dir] + self._get_contract_paths()
         success_count = 0
 
-        with UIBuilder.progress() as progress:
-            desc = (
-                f"Running tests matching: {self.test_filter}"
-                if self.test_filter
-                else "Running all tests"
-            )
-            progress.add_task(desc, total=None)
+        with managed_subprocess() as (run_cmd, pm):
+            with UIBuilder.progress() as progress:
+                desc = (
+                    f"Running tests matching: {self.test_filter}"
+                    if self.test_filter
+                    else "Running all tests"
+                )
+                progress.add_task(desc, total=None)
 
-            for test_dir in test_dirs:
-                if not test_dir.exists() or not (test_dir / "Scarb.toml").exists():
-                    continue
+                for test_dir in test_dirs:
+                    if not test_dir.exists() or not (test_dir / "Scarb.toml").exists():
+                        continue
 
-                os.chdir(test_dir)
-                result = subprocess.run(cmd, capture_output=True, text=True)
+                    os.chdir(test_dir)
+                    result = run_cmd(cmd, capture_output=True, text=True)
 
-                if result.returncode == 0:
-                    success_count += 1
-                    passed = re.findall(
-                        r"\[PASS\]\s+([^\s]+)\s+\(l1_gas:", result.stdout
-                    )
-                    self.passed_tests.extend(passed)
+                    if result.returncode == 0:
+                        success_count += 1
+                        passed = re.findall(
+                            r"\[PASS\]\s+([^\s]+)\s+\(l1_gas:", result.stdout
+                        )
+                        self.passed_tests.extend(passed)
 
         os.chdir(original_cwd)
 
@@ -601,13 +595,16 @@ class ProcessTracesCommand(Command):
         processor = TraceProcessor(Config())
 
         try:
-            with ThreadPoolExecutor(max_workers=self.parallel_jobs) as executor:
+            with (
+                ProcessManager() as pm,
+                ThreadPoolExecutor(max_workers=self.parallel_jobs) as executor,
+            ):
                 futures = {
                     executor.submit(processor.process, test_name, trace_path): test_name
                     for test_name, trace_path, _ in trace_files
                 }
 
-                success_count = self._process_futures(futures)
+                success_count = self._process_futures_interruptible(futures, pm)
 
             if self.test_resources:
                 self._update_summary()
@@ -657,40 +654,31 @@ class ProcessTracesCommand(Command):
             )
         return dirs
 
-    def _process_futures(self, futures) -> int:
-        """Process completed futures with progress tracking."""
-        completed = set()
+    def _process_futures_interruptible(self, futures, pm) -> int:
+        """Process completed futures with progress tracking and interruptibility."""
         success_count = 0
 
         with UIBuilder.progress(True) as progress:
             task = progress.add_task("Processing tests", total=len(futures))
 
-            while len(completed) < len(futures):
-                if _shutdown_requested:
-                    break
+            for future in futures:
+                if pm.shutdown_event.is_set():
+                    future.cancel()
+                    continue
 
-                for future in list(futures.keys()):
-                    if future in completed or not future.done():
-                        continue
-
-                    completed.add(future)
+                try:
+                    success, test_name, _, test_info = future.result(timeout=1.0)
+                    if success and test_info:
+                        self.test_resources.append(test_info)
+                        console.print(f"✨ [green]{test_name}[/green]")
+                        success_count += 1
+                    else:
+                        console.print(f"💥 [red]{test_name}[/red]")
+                except Exception as e:
                     test_name = futures[future]
+                    console.print(f"💥 [red]{test_name}[/red]: {e}")
 
-                    try:
-                        success, _, _, test_info = future.result()
-                        if success and test_info:
-                            self.test_resources.append(test_info)
-                            console.print(f"✨ [green]{test_name}[/green]")
-                            success_count += 1
-                        else:
-                            console.print(f"💥 [red]{test_name}[/red]")
-                    except Exception as e:
-                        if not _shutdown_requested:
-                            console.print(f"💥 [red]{test_name}[/red]: {e}")
-
-                    progress.advance(task, 1)
-
-                time.sleep(0.1)
+                progress.advance(task, 1)
 
         return success_count
 
@@ -1064,10 +1052,6 @@ class WorkflowExecutor:
         ]
 
         for cmd in commands:
-            if _shutdown_requested:
-                Logger.log("Workflow interrupted", level="info")
-                return False
-
             if not cmd.can_execute():
                 Logger.log(f"Cannot execute {cmd.__class__.__name__}", level="error")
                 return False
@@ -1098,11 +1082,8 @@ class WorkflowExecutor:
             if benchmark_cmd.can_execute():
                 benchmark_cmd.execute()
 
-        if _shutdown_requested:
-            Logger.log("Workflow interrupted but partially completed", level="info")
-        else:
-            Logger.header("🎯 Workflow Complete")
-            Logger.log("Profiling workflow completed successfully!", level="success")
+        Logger.header("🎯 Workflow Complete")
+        Logger.log("Profiling workflow completed successfully!", level="success")
 
         return True
 
@@ -1176,19 +1157,22 @@ def main():
 
     # Execute workflow
     executor = WorkflowExecutor(config, paths)
-    success = executor.execute_workflow(
-        cli_config.test_filter, cli_config.parallel_jobs, cli_config.generate_benchmarks
-    )
-
-    # Handle results
-    if _shutdown_requested:
+    try:
+        success = executor.execute_workflow(
+            cli_config.test_filter,
+            cli_config.parallel_jobs,
+            cli_config.generate_benchmarks,
+        )
+    except KeyboardInterrupt:
         Logger.exit_panel(
             "👋 Process interrupted by user\nPartial results may be available",
             "Interrupted",
             "yellow",
         )
         sys.exit(130)
-    elif success:
+
+    # Handle results
+    if success:
         Logger.exit_panel(
             "🎉 All operations completed successfully!", "Success", "green"
         )
