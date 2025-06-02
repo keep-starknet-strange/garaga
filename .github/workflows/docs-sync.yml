@@ -120,33 +120,23 @@ jobs:
           git config user.email "docs-sync@garaga.dev"
           git fetch origin main --tags --prune
 
-      # 2) Bring code (everything except docs/gitbook) up to date with main
-      - name: Sync non-docs files from main
+      # 2) Bring EVERYTHING (including docs/gitbook) up to date with main
+      - name: Sync repo from main
         run: |
           set -euo pipefail
-          TMP=$(mktemp -d)
-          # Save current docs
-          if [[ -d docs/gitbook ]]; then
-            cp -R docs/gitbook "$TMP/"
-          fi
-          # Overwrite working tree with main
-          git checkout origin/main -- .
-          # Restore docs
-          rm -rf docs/gitbook
-          if [[ -d "$TMP/gitbook" ]]; then
-            mkdir -p docs
-            cp -R "$TMP/gitbook" docs/
-          fi
-          rm -rf "$TMP"
+          git fetch origin main --tags --prune
 
-          # Stage everything, but commit only if something changed
+          # Overwrite the working tree with the state of main
+          git checkout origin/main -- .
+
+          # Stage everything and commit only if something changed
           git add -A
           if git diff --cached --quiet; then
             echo "No updates required – docs branch already matches main."
             exit 0
           fi
 
-          git commit -m "🔄 Sync non-docs files from main @ ${{ github.sha }}"
+          git commit -m "🔄 Sync all files from main @ ${{ github.sha }}"
 
       # ─── 3) Open (or update) a PR towards docs ─────────────────────────────
       - uses: peter-evans/create-pull-request@v7
@@ -159,8 +149,7 @@ jobs:
           commit-message: "🔄 Sync non-docs files from main @ ${{ github.sha }}"
           title: "🔄 Sync main → docs (non-docs files)"
           body: |
-            This PR keeps the **docs** branch in sync with **main** for every file \
-            **outside** `docs/gitbook/`.
+            This PR keeps the **docs** branch in sync with **main**.
 
             Source commit: ${{ github.sha }}
 
