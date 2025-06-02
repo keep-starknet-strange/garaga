@@ -30,3 +30,8 @@ CAIRO_VERSION = "2.11.4"
 
 # Starknet Foundry version
 STARKNET_FOUNDRY_VERSION = "0.44.0"
+
+# Noir versions
+BB_VERSION = "0.87.4"
+BBUP_VERSION = "0.87.4-starknet.1"
+NARGO_VERSION = "1.0.0-beta.4"

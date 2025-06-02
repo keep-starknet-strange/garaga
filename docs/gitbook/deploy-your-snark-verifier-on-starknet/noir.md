@@ -6,19 +6,46 @@ icon: octopus
 
 ## Requirements (read carefully to avoid 99% of issues!)
 
-* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`
-* Noir 1.0.0-beta.3 (install with `noirup --version 1.0.0-beta.3`  or `npm i @noir-lang/noir_js@1.0.0-beta.3` )
-* Barretenberg 0.86.0-starknet.1 (install with `bbup --version 0.86.0-starknet.1` or `npm i @aztec/bb.js@0.86.0-starknet.1` )
+* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.1 (install with `pip install garaga==0.18.1`
+* Noir 1.0.0-beta.4 (install with `noirup --version 1.0.0-beta.4`  or `npm i @noir-lang/noir_js@1.0.0-beta.4` )
+* Barretenberg 0.87.4-starknet.1 (install with `bbup --version 0.87.4-starknet.1` or `npm i @aztec/bb.js@0.87.4-starknet.1` )
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
 ## Generate a Starknet smart contract for your Noir program
 
-#### Supported barretenberg flavours
+### Supported barretenberg flavours
 
+**Supported Flavors Overview**
 
+<table><thead><tr><th width="200">Flavor</th><th width="150">Oracle Hash</th><th width="100">ZK Support</th><th width="200">Use Case</th></tr></thead><tbody><tr><td><code>ultra_keccak_honk</code></td><td>Keccak</td><td>No</td><td>Cheaper on EVM</td></tr><tr><td><code>ultra_keccak_zk_honk</code></td><td>Keccak</td><td>Yes</td><td>Cheaper on EVM</td></tr><tr><td><code>ultra_starknet_honk</code></td><td>Starknet Poseidon</td><td>No</td><td>Cheaper on Starknet</td></tr><tr><td><code>ultra_starknet_zk_honk</code></td><td>Starknet Poseidon</td><td>Yes</td><td>Cheaper on Starknet</td></tr></tbody></table>
 
-<table><thead><tr><th width="134">BB --scheme</th><th width="160.800048828125">BB --oracle_hash</th><th width="90.1666259765625" data-type="checkbox">--zk flag</th><th width="124.3665771484375">Local support</th><th>Browser (bb.js) support</th><th>System name in garaga</th></tr></thead><tbody><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>false</td><td>✅</td><td>✅</td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>keccak</code></td><td>true</td><td>✅</td><td>✅</td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>false</td><td>Not planned</td><td>-</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>poseidon</code></td><td>true</td><td>Not planned</td><td>-</td><td>-</td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>false</td><td>✅</td><td>✅</td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>ultra_honk</code></td><td><code>starknet</code></td><td>true</td><td>✅</td><td>Missing ❌</td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>
+**1. Verification Key Generation (Same for All Flavors)**
+
+```bash
+bb write_vk --scheme ultra_honk -b target/program.json -o target/vk
+```
+This creates the binary verification key file `vk` in `target/vk`.
+
+**2. Smart Contract Generation (Different per Flavor)**
+
+<table><thead><tr><th width="300">Flavor</th><th width="400">Garaga CLI Command</th></tr></thead><tbody><tr><td><code>ultra_keccak_honk</code></td><td><code>garaga gen --system ultra_keccak_honk --vk target/vk</code></td></tr><tr><td><code>ultra_keccak_zk_honk</code></td><td><code>garaga gen --system ultra_keccak_zk_honk --vk target/vk</code></td></tr><tr><td><code>ultra_starknet_honk</code></td><td><code>garaga gen --system ultra_starknet_honk --vk target/vk</code></td></tr><tr><td><code>ultra_starknet_zk_honk</code></td><td><code>garaga gen --system ultra_starknet_zk_honk --vk target/vk</code></td></tr></tbody></table>
+
+**3. Proof Generation & Calldata Generation**
+
+{% hint style="info" %}
+Use `bb prove --help` and `garaga calldata --help` to see the available options.
+{% endhint %}
+
+<table><thead><tr><th width="400">BB Prove Command</th><th width="350">Garaga Calldata Command</th></tr></thead><tbody><tr><td><code>bb prove --scheme ultra_honk --oracle_hash keccak</code></td><td><code>garaga calldata --system ultra_keccak_honk</code></td></tr><tr><td><code>bb prove --scheme ultra_honk --oracle_hash keccak --zk</code></td><td><code>garaga calldata --system ultra_keccak_zk_honk</code></td></tr><tr><td><code>bb prove --scheme ultra_honk --oracle_hash starknet</code></td><td><code>garaga calldata --system ultra_starknet_honk</code></td></tr><tr><td><code>bb prove --scheme ultra_honk --oracle_hash starknet --zk</code></td><td><code>garaga calldata --system ultra_starknet_zk_honk</code></td></tr></tbody></table>
+
+**4. BB.js Integration**
+
+{% hint style="info" %}
+See [bb.js backend.ts](https://github.com/AztecProtocol/aztec-packages/blob/v0.87.4-starknet.1/barretenberg/ts/src/barretenberg/backend.ts) and [garaga_ts/src/node/api.ts](https://github.com/keep-starknet-strange/garaga/blob/v0.18.1/tools/npm/garaga_ts/src/node/api.ts) for reference.
+{% endhint %}
+
+<table><thead><tr><th width="200">UltraHonkBackendOptions</th><th width="200">Garaga NPM Function</th><th width="200">HonkFlavor</th><th width="150">System</th></tr></thead><tbody><tr><td><code>{ keccak: true }</code></td><td><code>getHonkCallData()</code></td><td><code>HonkFlavor.KECCAK</code></td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>{ keccakZK: true }</code></td><td><code>getZKHonkCallData()</code></td><td><code>HonkFlavor.KECCAK</code></td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>{ starknet: true }</code></td><td><code>getHonkCallData()</code></td><td><code>HonkFlavor.STARKNET</code></td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>{ starknetZK: true }</code></td><td><code>getZKHonkCallData()</code></td><td><code>HonkFlavor.STARKNET</code></td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>
 
 First, create a new Noir project and compile it with `nargo build`.
 
@@ -67,7 +94,7 @@ The contract interface will be
 trait IUltraKeccakZKHonkVerifier<TContractState> {
     fn verify_ultra_keccak_zk_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>; // Returns the public inputs in case of success.  
+    ) -> Option<Span<u256>>; // Returns the public inputs in case of success.
 }
 ```
 
@@ -189,7 +216,7 @@ from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof
 )
 
-# 1. Add the pip package to your project using the same release tag as the version that 
+# 1. Add the pip package to your project using the same release tag as the version that
 # generated the verifier.
 
 # 2. Load your proof and verification key
@@ -238,7 +265,7 @@ You can follow the previous tutorial using the starknet flavours of [#supported-
 
 Follow the  [Scaffold‑Garaga repository](https://github.com/m-kus/scaffold-garaga). This starter kit combines **Noir**, **Garaga**, and **Starknet** with in‑browser proving to help you ship a privacy‑preserving dApp fast.
 
-#### What you’ll learn
+#### What you'll learn
 
 1. **Generate & deploy an UltraHonk proof verifier** to a local Starknet devnet.
 2. **Add on‑chain state** to your privacy‑preserving app.

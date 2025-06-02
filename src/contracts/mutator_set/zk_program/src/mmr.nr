@@ -1,4 +1,4 @@
-use dep::std::hash::poseidon::bn254::hash_2;
+use poseidon::poseidon::bn254::hash_2;
 
 // Represents a Merkle Mountain Range proof element
 pub struct MMRProofElement {
