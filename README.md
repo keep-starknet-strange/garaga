@@ -159,7 +159,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                    | Steps   | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 290,850 | 14,593        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,116,929   |
+| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 290,849 | 14,593        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,116,829   |
 
 </details>
 
@@ -389,6 +389,7 @@ Check the profile file for more details.
 
 ---
 🔄 **To regenerate these benchmarks:** Run `make profile-test` from the project root.
+
 ## Support & How to Contribute
 
 We warmly welcome contributions and support from the community! Here's how you can help Garaga grow and improve:
