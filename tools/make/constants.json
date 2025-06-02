@@ -15,5 +15,10 @@
         "risc0_release": "2.0",
         "cairo_version": "2.11.4",
         "starknet_foundry_version": "0.44.0"
+    },
+    "noir": {
+        "bb_version": "0.87.4",
+        "bbup_version": "0.87.4-starknet.1",
+        "nargo_version": "1.0.0-beta.4"
     }
 }
