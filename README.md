@@ -105,7 +105,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps   | Range Check   | Range Check 96   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|---------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_groth16_proof_bls12_381](docs/benchmarks/test_verify_groth16_proof_bls12_381.png) | 245,613 | 12,095        | 61,344           |        597 | 5,325     | 7,504     | 34,893,507   |
+| [test_verify_groth16_proof_bls12_381](docs/benchmarks/test_verify_groth16_proof_bls12_381.png) | 245,251 | 12,083        | 61,344           |        597 | 5,325     | 7,504     | 34,856,467   |
 
 </details>
 
@@ -114,7 +114,7 @@ Check the profile file for more details.
 
 | Test Name                                                                              | Steps   | Range Check   | Range Check 96   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------|---------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_groth16_proof_bn254](docs/benchmarks/test_verify_groth16_proof_bn254.png) | 251,904 | 11,227        | 75,704           |        681 | 6,341     | 9,662     | 37,844,363   |
+| [test_verify_groth16_proof_bn254](docs/benchmarks/test_verify_groth16_proof_bn254.png) | 251,542 | 11,215        | 75,704           |        681 | 6,341     | 9,662     | 37,807,323   |
 
 </details>
 
@@ -123,7 +123,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_honk_proof](docs/benchmarks/test_verify_ultra_keccak_honk_proof.png) | 1,331,905 | 68,886        | 412,841          | 3,180     |        608 | 45,756    | 43,622    | 200,155,652  |
+| [test_verify_ultra_keccak_honk_proof](docs/benchmarks/test_verify_ultra_keccak_honk_proof.png) | 1,331,543 | 68,874        | 412,841          | 3,180     |        608 | 45,756    | 43,622    | 200,118,612  |
 
 </details>
 
@@ -132,7 +132,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                            | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,435,123 | 73,896        | 452,092          | 3,476     |        608 | 49,930    | 48,054    | 216,835,724  |
+| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,434,761 | 73,884        | 452,092          | 3,476     |        608 | 49,930    | 48,054    | 216,798,684  |
 
 </details>
 
@@ -141,7 +141,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                          | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_honk_proof](docs/benchmarks/test_verify_ultra_starknet_honk_proof.png) | 1,198,092 | 61,839        | 412,707          | 1,139      | 45,742    | 43,606    | 184,667,455  |
+| [test_verify_ultra_starknet_honk_proof](docs/benchmarks/test_verify_ultra_starknet_honk_proof.png) | 1,197,730 | 61,827        | 412,707          | 1,139      | 45,742    | 43,606    | 184,630,415  |
 
 </details>
 
@@ -150,7 +150,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                                | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,294,614 | 66,612        | 451,134          | 1,191      | 49,860    | 47,958    | 200,406,957  |
+| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,294,252 | 66,600        | 451,134          | 1,191      | 49,860    | 47,958    | 200,369,917  |
 
 </details>
 
@@ -159,7 +159,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                    | Steps   | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 291,212 | 14,605        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,153,969   |
+| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 290,850 | 14,593        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,116,929   |
 
 </details>
 
@@ -168,7 +168,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps   | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_sp1_groth16_proof_bn254](docs/benchmarks/test_verify_sp1_groth16_proof_bn254.png) | 269,598 | 13,596        | 91,460           | 2,230     |        681 | 8,167     | 11,264    | 43,349,607   |
+| [test_verify_sp1_groth16_proof_bn254](docs/benchmarks/test_verify_sp1_groth16_proof_bn254.png) | 269,236 | 13,584        | 91,460           | 2,230     |        681 | 8,167     | 11,264    | 43,312,567   |
 
 </details>
 
@@ -389,6 +389,7 @@ Check the profile file for more details.
 
 ---
 🔄 **To regenerate these benchmarks:** Run `make profile-test` from the project root.
+
 ## Support & How to Contribute
 
 We warmly welcome contributions and support from the community! Here's how you can help Garaga grow and improve:
