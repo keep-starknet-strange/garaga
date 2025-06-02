@@ -30,9 +30,6 @@ from garaga.starknet.groth16_contract_generator.generator import (
     write_verifier_files,
 )
 
-# nargo --version
-# bb --version
-
 
 def gen_honk_verifier(
     vk: str | Path | HonkVk | bytes,

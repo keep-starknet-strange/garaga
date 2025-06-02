@@ -495,7 +495,8 @@ def update_noir_docs_version(constants: Dict[str, Any], noir_docs_path: str):
     Update the Noir documentation file with current versions.
 
     This function updates the Garaga CLI, Noir, and Barretenberg versions
-    in the requirements section of the Noir documentation.
+    in the requirements section of the Noir documentation, as well as
+    the GitHub links with the correct version tags.
     """
     garaga_version = constants["release_info"]["garaga_version"]
     nargo_version = constants["noir"]["nargo_version"]
@@ -540,6 +541,27 @@ def update_noir_docs_version(constants: Dict[str, Any], noir_docs_path: str):
                 updated_content = updated_content.replace(old_version, bbup_version)
                 changes_made = True
 
+        # Update GitHub links with correct version tags
+        # Update AztecProtocol/aztec-packages link with bbup_version
+        aztec_pattern = r"(https://github\.com/AztecProtocol/aztec-packages/blob/v)[\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?([-\w\.]*)(/.*/backend\.ts)"
+        aztec_replacement = f"\\g<1>{bbup_version}\\g<3>"
+
+        new_content = re.sub(aztec_pattern, aztec_replacement, updated_content)
+        if new_content != updated_content:
+            changes_made = True
+            updated_content = new_content
+
+        # Update keep-starknet-strange/garaga link with garaga_version
+        garaga_link_pattern = r"(https://github\.com/keep-starknet-strange/garaga/blob/v)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(/tools/npm/garaga_ts/src/node/api\.ts)"
+        garaga_link_replacement = f"\\g<1>{garaga_version}\\g<2>"
+
+        new_content = re.sub(
+            garaga_link_pattern, garaga_link_replacement, updated_content
+        )
+        if new_content != updated_content:
+            changes_made = True
+            updated_content = new_content
+
         # Verify that content actually changed
         if not changes_made:
             print(f"No version updates needed in {noir_docs_path} (already current)")
@@ -553,6 +575,7 @@ def update_noir_docs_version(constants: Dict[str, Any], noir_docs_path: str):
         print(f"  - Garaga CLI: {garaga_version}")
         print(f"  - Noir: {nargo_version}")
         print(f"  - Barretenberg: {bbup_version}")
+        print(f"  - Updated GitHub links with version tags")
         return True
 
     except FileNotFoundError:
