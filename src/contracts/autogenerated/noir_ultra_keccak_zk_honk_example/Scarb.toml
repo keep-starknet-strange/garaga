@@ -8,7 +8,7 @@ garaga = { path = "../../../" }
 starknet = "2.11.4"
 
 [cairo]
-sierra-replace-ids = false
+sierra-replace-ids = true
 inlining-strategy = 2
 
 [dev-dependencies]
