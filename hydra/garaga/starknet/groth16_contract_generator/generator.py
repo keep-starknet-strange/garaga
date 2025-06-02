@@ -51,9 +51,9 @@ def gen_test_file(
 //! - Test both positive (valid proof) and negative (invalid proof) cases
 
 use snforge_std::fs::{{FileTrait, read_txt}};
-use snforge_std::{{ContractClassTrait, DeclareResultTrait, declare}};
+use snforge_std::{{DeclareResultTrait, declare}};
 use {package_name}::{verifier_name}::{{
-    I{contract_name}LibraryDispatcher, I{contract_name}LibraryDispatcherTrait,
+    I{contract_name}LibraryDispatcher, I{contract_name}DispatcherTrait,
 }};
 use starknet::ClassHash;
 
@@ -155,7 +155,7 @@ garaga = {{ {dep} }}
 starknet = "{CAIRO_VERSION}"
 
 [cairo]
-sierra-replace-ids = false
+sierra-replace-ids = true
 inlining-strategy = {inlining_level}
 
 [dev-dependencies]

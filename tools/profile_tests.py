@@ -580,7 +580,8 @@ class RunTestsCommand(Command):
                             r"\[PASS\]\s+([^\s]+)\s+\(l1_gas:", result.stdout
                         )
                         self.passed_tests.extend(passed)
-
+                    else:
+                        raise Exception(f"Failed to run tests: {result.stderr}")
                     # Advance the progress by 1 for each directory processed
                     progress.advance(task, 1)
 
