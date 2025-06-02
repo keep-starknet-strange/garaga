@@ -1,4 +1,4 @@
-use core::array::ArrayTrait;
+use core::array::{ArrayTrait, array_at};
 use core::circuit::{
     AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement, CircuitInput,
     CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
@@ -338,15 +338,15 @@ pub fn _scalar_mul_fake_glv(
             selector_y
             .unbox();
 
-        let Bi = *Ts[selector_y0];
-        let Bi1 = *Ts[selector_y1];
-        let Bi2 = *Ts[selector_y2];
-        let Bi3 = *Ts[selector_y3];
-        let Bi4 = *Ts[selector_y4];
-        let Bi5 = *Ts[selector_y5];
-        let Bi6 = *Ts[selector_y6];
-        let Bi7 = *Ts[selector_y7];
-        let Bi8 = *Ts[selector_y8];
+        let Bi = *Ts.at(selector_y0);
+        let Bi1 = *Ts.at(selector_y1);
+        let Bi2 = *Ts.at(selector_y2);
+        let Bi3 = *Ts.at(selector_y3);
+        let Bi4 = *Ts.at(selector_y4);
+        let Bi5 = *Ts.at(selector_y5);
+        let Bi6 = *Ts.at(selector_y6);
+        let Bi7 = *Ts.at(selector_y7);
+        let Bi8 = *Ts.at(selector_y8);
 
         let (_Acc) = ec::run_QUADRUPLE_AND_ADD_9_circuit(
             Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, Bi8, A_weirstrass, modulus,
@@ -626,14 +626,14 @@ pub fn _scalar_mul_glv_and_fake_glv(
         ] =
             (*selector_y)
             .unbox();
-        let Bi = *Bs[selector_y0];
-        let Bi1 = *Bs[selector_y1];
-        let Bi2 = *Bs[selector_y2];
-        let Bi3 = *Bs[selector_y3];
-        let Bi4 = *Bs[selector_y4];
-        let Bi5 = *Bs[selector_y5];
-        let Bi6 = *Bs[selector_y6];
-        let Bi7 = *Bs[selector_y7];
+        let Bi = *Bs.at(selector_y0);
+        let Bi1 = *Bs.at(selector_y1);
+        let Bi2 = *Bs.at(selector_y2);
+        let Bi3 = *Bs.at(selector_y3);
+        let Bi4 = *Bs.at(selector_y4);
+        let Bi5 = *Bs.at(selector_y5);
+        let Bi6 = *Bs.at(selector_y6);
+        let Bi7 = *Bs.at(selector_y7);
 
         Acc = double_and_add_8(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
     }

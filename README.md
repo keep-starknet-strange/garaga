@@ -123,7 +123,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_honk_proof](docs/benchmarks/test_verify_ultra_keccak_honk_proof.png) | 1,331,543 | 68,874        | 412,841          | 3,180     |        608 | 45,756    | 43,622    | 200,118,612  |
+| [test_verify_ultra_keccak_honk_proof](docs/benchmarks/test_verify_ultra_keccak_honk_proof.png) | 1,300,439 | 68,874        | 412,841          | 3,180     |        608 | 45,756    | 43,622    | 197,008,212  |
 
 </details>
 
@@ -132,7 +132,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                            | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,434,761 | 73,884        | 452,092          | 3,476     |        608 | 49,930    | 48,054    | 216,798,684  |
+| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,401,065 | 73,884        | 452,092          | 3,476     |        608 | 49,930    | 48,054    | 213,429,084  |
 
 </details>
 
@@ -141,7 +141,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                          | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_honk_proof](docs/benchmarks/test_verify_ultra_starknet_honk_proof.png) | 1,197,730 | 61,827        | 412,707          | 1,139      | 45,742    | 43,606    | 184,630,415  |
+| [test_verify_ultra_starknet_honk_proof](docs/benchmarks/test_verify_ultra_starknet_honk_proof.png) | 1,166,626 | 61,827        | 412,707          | 1,139      | 45,742    | 43,606    | 181,520,015  |
 
 </details>
 
@@ -150,7 +150,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                                | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,294,252 | 66,600        | 451,134          | 1,191      | 49,860    | 47,958    | 200,369,917  |
+| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,260,556 | 66,600        | 451,134          | 1,191      | 49,860    | 47,958    | 197,000,317  |
 
 </details>
 
@@ -159,7 +159,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                    | Steps   | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 290,850 | 14,593        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,116,929   |
+| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 290,849 | 14,593        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,116,829   |
 
 </details>
 
