@@ -8,9 +8,9 @@
 //! - Test both positive (valid proof) and negative (invalid proof) cases
 
 use snforge_std::fs::{FileTrait, read_txt};
-use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
+use snforge_std::{DeclareResultTrait, declare};
 use sp1_verifier_bn254::groth16_verifier::{
-    ISP1Groth16VerifierBN254LibraryDispatcher, ISP1Groth16VerifierBN254LibraryDispatcherTrait,
+    ISP1Groth16VerifierBN254DispatcherTrait, ISP1Groth16VerifierBN254LibraryDispatcher,
 };
 use starknet::ClassHash;
 
