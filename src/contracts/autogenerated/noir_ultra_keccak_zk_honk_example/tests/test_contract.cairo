@@ -8,10 +8,10 @@
 //! - Test both positive (valid proof) and negative (invalid proof) cases
 
 use noir_ultra_keccak_zk_honk_example::honk_verifier::{
-    IUltraKeccakZKHonkVerifierLibraryDispatcher, IUltraKeccakZKHonkVerifierLibraryDispatcherTrait,
+    IUltraKeccakZKHonkVerifierDispatcherTrait, IUltraKeccakZKHonkVerifierLibraryDispatcher,
 };
 use snforge_std::fs::{FileTrait, read_txt};
-use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
+use snforge_std::{DeclareResultTrait, declare};
 use starknet::ClassHash;
 
 /// Declare the UltraKeccakZKHonkVerifier contract for testing.
