@@ -120,33 +120,32 @@ jobs:
           git config user.email "docs-sync@garaga.dev"
           git fetch origin main --tags --prune
 
-      # 2) Bring code (everything except docs/gitbook) up to date with main
-      - name: Sync non-docs files from main
+      # 2️⃣  Bring branch up to date with main, but protect GitBook work if needed
+      - name: Smart sync from main
         run: |
           set -euo pipefail
-          TMP=$(mktemp -d)
-          # Save current docs
-          if [[ -d docs/gitbook ]]; then
-            cp -R docs/gitbook "$TMP/"
-          fi
-          # Overwrite working tree with main
-          git checkout origin/main -- .
-          # Restore docs
-          rm -rf docs/gitbook
-          if [[ -d "$TMP/gitbook" ]]; then
-            mkdir -p docs
-            cp -R "$TMP/gitbook" docs/
-          fi
-          rm -rf "$TMP"
 
-          # Stage everything, but commit only if something changed
+          # Is docs fast-forwardable to main? (i.e. docs has no unique commits)
+          if git merge-base --is-ancestor HEAD origin/main; then
+            echo "docs is behind main ⇒ full sync (code + docs/gitbook)"
+            git checkout origin/main -- .
+          else
+            echo "docs has unmerged commits ⇒ code-only sync"
+            # copy everything EXCEPT docs/gitbook
+            TMP=$(mktemp -d)
+            cp -R docs/gitbook "$TMP/" || true         # save current docs
+            git checkout origin/main -- .              # overlay whole repo
+            rm -rf docs/gitbook                        # remove main's docs
+            mv "$TMP/gitbook" docs/ || true            # restore previous docs
+          fi
+
           git add -A
           if git diff --cached --quiet; then
-            echo "No updates required – docs branch already matches main."
+            echo "No updates required – docs already matches desired state."
             exit 0
           fi
 
-          git commit -m "🔄 Sync non-docs files from main @ ${{ github.sha }}"
+          git commit -m "🔄 Sync from main @ ${{ github.sha }}"
 
       # ─── 3) Open (or update) a PR towards docs ─────────────────────────────
       - uses: peter-evans/create-pull-request@v7
