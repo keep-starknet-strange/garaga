@@ -1,10 +1,12 @@
 use core::circuit::{CircuitModulus, u96};
 use garaga::basic_field_ops::{is_even_u384, neg_mod_p};
+use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };
-use garaga::ec_ops::{DerivePointFromXHint, G1Point, G1PointTrait, MSMHint, msm_g1, u384};
+use garaga::ec_ops::{G1Point, G1PointTrait, msm_g1, u384};
 use garaga::utils::u384_eq_zero;
+
 /// A Schnorr signature with associated public key and challenge.
 ///
 /// # Fields
@@ -50,8 +52,7 @@ impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
 #[derive(Drop, Debug, PartialEq, Serde)]
 struct SchnorrSignatureWithHint {
     signature: SchnorrSignature,
-    msm_hint: MSMHint,
-    msm_derive_hint: DerivePointFromXHint,
+    msm_hint: Span<felt252>,
 }
 
 /// Verifies a Schnorr signature with associated hints for a hash challenge.
@@ -83,7 +84,7 @@ struct SchnorrSignatureWithHint {
 /// Which proves the signer knew the private key x where P = xG
 /// Returns false if the signature is invalid.
 pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id: usize) -> bool {
-    let SchnorrSignatureWithHint { signature, msm_hint, msm_derive_hint } = signature;
+    let SchnorrSignatureWithHint { signature, msm_hint } = signature;
     let SchnorrSignature { rx, s, e, px, py } = signature;
     // println!("rx: {rx}");
     // println!("s: {s}");
@@ -113,7 +114,7 @@ pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id:
     let points = array![get_G(curve_id), pk_point].span();
     let scalars = array![s, e_neg].span();
 
-    let res = msm_g1(Option::None, msm_hint, msm_derive_hint, points, scalars, curve_id);
+    let res = msm_g1(points, scalars, curve_id, msm_hint);
 
     let ry_l0_f252: felt252 = res.y.limb0.into();
     let ry_l0_u128: u128 = ry_l0_f252.try_into().unwrap();

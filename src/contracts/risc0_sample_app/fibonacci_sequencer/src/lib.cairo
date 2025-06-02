@@ -7,11 +7,11 @@ pub trait IFibonacciSequencer<TContractState> {
 
 #[starknet::contract]
 mod FibonacciSequencer {
-    use core::starknet::ClassHash;
-    use core::starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
+    use starknet::ClassHash;
+    use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
     pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-        0x7039bf030f1b8fe58dd7ae4796eaf3783522994493d53646ad9eef141f3aef0;
+        0x79e03d2c47e1e6d976ee7a3a0014a9f384570d2bb4c09b90b6e882a21e99593;
 
     #[storage]
     struct Storage {
@@ -34,7 +34,7 @@ mod FibonacciSequencer {
 
             // calls the RiscZero verifier passing along the proof artifact and
             // checks whether the proof is valid or not, aborting the transaction if not
-            let optional_journal = dispatcher.verify_groth16_proof_bn254(full_proof_with_hints);
+            let optional_journal = dispatcher.verify_r0_groth16_proof_bn254(full_proof_with_hints);
             assert(optional_journal != Option::None, 'Invalid proof');
 
             // parses the public inputs and output from the journal
@@ -87,7 +87,7 @@ mod FibonacciSequencer {
 
     #[starknet::interface]
     trait IRisc0Groth16VerifierBN254<TContractState> {
-        fn verify_groth16_proof_bn254(
+        fn verify_r0_groth16_proof_bn254(
             self: @TContractState, full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>>;
     }

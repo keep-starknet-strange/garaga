@@ -1,0 +1,20 @@
+[package]
+name = "sp1_verifier_bn254"
+version = "0.1.0"
+edition = "2024_07"
+
+[dependencies]
+garaga = { path = "../../../" }
+starknet = "2.11.4"
+
+[cairo]
+sierra-replace-ids = true
+inlining-strategy = 2
+
+[dev-dependencies]
+snforge_std = "0.44.0"
+assert_macros = "2.11.4"
+
+[[target.starknet-contract]]
+casm = true
+casm-add-pythonic-hints = true

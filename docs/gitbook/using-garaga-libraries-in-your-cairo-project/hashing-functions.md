@@ -12,11 +12,18 @@ Below we show Noir and Cairo code computing the same hash.
 
 {% code title="main.nr" %}
 ```rust
-use std::hash::poseidon;
+// For nargo < 1.0.0-beta.4:
+use std::hash::poseidon::bn254::hash_2;
+
+// For nargo >= 1.0.0-beta.4: (poseidon has been moved to a separate package)
+// Add to Nargo.toml:
+// [dependencies]
+// poseidon = { tag = "v0.1.1", git = "https://github.com/noir-lang/poseidon" }
+use poseidon::poseidon::bn254::hash_2;
 
 fn main(x: Field, y: pub Field) {
     let x1 = [x, y];
-    let z = poseidon::bn254::hash_2(x1);
+    let z = hash_2(x1);
     assert(z == 7853200120776062878684798364095072458815029376092732009249414926327459813530);
 }
 

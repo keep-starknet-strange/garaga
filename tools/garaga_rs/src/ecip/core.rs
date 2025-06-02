@@ -157,7 +157,38 @@ where
     ]
 }
 
-fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) -> FF<F> {
+// Equivalent to line(p, p.neg()), converted to a polynomial
+fn line_p_p_neg<F: IsPrimeField + CurveParamsProvider<F>>(p: &G1Point<F>) -> FF<F> {
+    if p.is_infinity() {
+        // 1 + 0 * y.
+        return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
+    }
+
+    // (-px + x) + 0 * y
+    FF::new(vec![Polynomial::new(vec![-&p.x, FieldElement::one()])])
+}
+
+// Equivalent to (line(a, a.neg()) * line(b, b.neg())).to_poly()
+fn mul_line_line_p_p_neg<F: IsPrimeField>(p: &G1Point<F>, q: &G1Point<F>) -> Polynomial<F> {
+    if p.is_infinity() {
+        // 1
+        if q.is_infinity() {
+            // 1
+            Polynomial::one()
+        } else {
+            // -qx + X
+            Polynomial::new(vec![-&q.x, FieldElement::one()])
+        }
+    } else if q.is_infinity() {
+        // -px + X
+        Polynomial::new(vec![-&p.x, FieldElement::one()])
+    } else {
+        // (-px+X) * (-qx+X) = px*qx -px * X - qx* X + X^2 = px*qx -(px + qx)X + X^2
+        Polynomial::new(vec![&p.x * &q.x, -&p.x - &q.x, FieldElement::one()])
+    }
+}
+
+fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: &G1Point<F>, q: &G1Point<F>) -> FF<F> {
     if p.is_infinity() {
         if q.is_infinity() {
             return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
@@ -174,27 +205,26 @@ fn line<F: IsPrimeField + CurveParamsProvider<F>>(p: G1Point<F>, q: G1Point<F>) 
     let px = p.x.clone();
     let py = p.y.clone();
     let three: FieldElement<F> = FieldElement::from(3);
-    let two: FieldElement<F> = FieldElement::from(2);
     if p == q {
-        let m = (three * px.clone() * px.clone() + F::get_curve_params().a) / (two * py.clone());
+        let m = (three * &px.square() + F::get_curve_params().a) / (py.double());
         let m = m.unwrap();
-        let b = py.clone() - m.clone() * px.clone();
+        let b = py - &m * px;
         return FF::new(vec![
             Polynomial::new(vec![-b, -m]),
             Polynomial::new(vec![FieldElement::one()]),
         ]);
     }
 
-    if p == q.neg() {
+    if p == &q.neg() {
         return FF::new(vec![Polynomial::new(vec![-px, FieldElement::one()])]);
     }
 
     let qx = q.x.clone();
     let qy = q.y.clone();
 
-    let m = (py.clone() - qy.clone()) / (px.clone() - qx.clone());
+    let m = (py - &qy) / (px - &qx);
     let m = m.unwrap();
-    let b = qy - m.clone() * qx;
+    let b = qy - &m * qx;
     FF::new(vec![
         Polynomial::new(vec![-b, -m]),
         Polynomial::new(vec![FieldElement::one()]),
@@ -206,10 +236,8 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         return FF::new(vec![Polynomial::new(vec![FieldElement::one()])]);
     }
 
-    let mut xs: Vec<(G1Point<F>, FF<F>)> = ps
-        .iter()
-        .map(|p| (p.clone(), line(p.clone(), p.neg())))
-        .collect();
+    let mut xs: Vec<(G1Point<F>, FF<F>)> =
+        ps.iter().map(|p| (p.clone(), line_p_p_neg(p))).collect();
 
     while xs.len() != 1 {
         let mut xs2: Vec<(G1Point<F>, FF<F>)> = Vec::new();
@@ -225,12 +253,12 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
         for n in 0..(xs.len() / 2) {
             let (a, a_num) = &xs[2 * n];
             let (b, b_num) = &xs[2 * n + 1];
-            let a_num_b_num = a_num.clone() * b_num.clone();
+            let a_num_b_num = a_num * b_num;
 
-            let line_ab = line(a.clone(), b.clone());
+            let line_ab = line(a, b);
             let product = a_num_b_num * line_ab;
             let num = product.reduce();
-            let den = (line(a.clone(), a.neg()) * line(b.clone(), b.neg())).to_poly();
+            let den = mul_line_line_p_p_neg(a, b);
             let d = num.div_by_poly(&den);
             xs2.push((a.add(b), d));
         }
@@ -264,10 +292,7 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
             } else if d == minus_one {
                 p.neg()
             } else {
-                G1Point {
-                    x: FieldElement::zero(),
-                    y: FieldElement::zero(),
-                }
+                G1Point::new_infinity()
             }
         })
         .collect();
@@ -282,10 +307,17 @@ fn row_function<F: IsPrimeField + CurveParamsProvider<F>>(
 
     let q_neg = q.neg();
 
-    let mut div_ = vec![q_neg.clone(), q_neg.clone(), q_neg.clone(), q2.neg()];
-    div_.extend(digits_points.iter().cloned());
+    // Pre-allocate with exact capacity to avoid reallocations
+    let mut div = Vec::with_capacity(4 + digits_points.len());
 
-    let div: Vec<G1Point<F>> = div_.into_iter().filter(|p| !p.is_infinity()).collect();
+    // Push negated points without cloning
+    div.push(q_neg.clone()); // Only clone once
+    div.push(q_neg.clone());
+    div.push(q_neg.clone());
+    div.push(q2.neg());
+
+    // Extend with non-infinity points directly to avoid double filtering
+    div.extend(digits_points.iter().filter(|p| !p.is_infinity()).cloned());
 
     let d = construct_function(div);
 
@@ -298,7 +330,7 @@ fn ecip_functions<F: IsPrimeField + CurveParamsProvider<F>>(
 ) -> (G1Point<F>, Vec<FF<F>>) {
     let mut dss = dss;
     dss.reverse();
-    let mut q = G1Point::new_unchecked(FieldElement::zero(), FieldElement::zero());
+    let mut q = G1Point::new_infinity();
     let mut divisors: Vec<FF<F>> = Vec::new();
     for ds in dss.iter() {
         let (div, new_q) = row_function(ds.clone(), bs, q);
@@ -339,9 +371,9 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
             FieldElement::from(3),
         ]);
 
-    let u = dx.clone() * two_y.clone() + FF::new(vec![poly, Polynomial::zero()]);
+    let u = dx * two_y.clone() + FF::new(vec![poly, Polynomial::zero()]);
 
-    let v = two_y * d.clone();
+    let v = two_y * d;
 
     let num = (u * v.clone().neg_y()).reduce();
 
@@ -355,26 +387,24 @@ fn dlog<F: IsPrimeField + CurveParamsProvider<F>>(d: FF<F>) -> FunctionFelt<F> {
 
     let den = den_ff.coeffs[0].clone();
 
+    let den_lead_inv = den.leading_coefficient().inv().unwrap();
+
     let (_, _, gcd_0) = Polynomial::xgcd(&num.coeffs[0], &den);
     let (_, _, gcd_1) = Polynomial::xgcd(&num.coeffs[1], &den);
 
-    let a_num = num.coeffs[0].clone().divfloor(&gcd_0);
-    let a_den = den.clone().divfloor(&gcd_0);
-    let b_num = num.coeffs[1].clone().divfloor(&gcd_1);
-    let b_den = den.clone().divfloor(&gcd_1);
+    let a_num = num.coeffs[0].divfloor(&gcd_0);
+    let a_den = den.divfloor(&gcd_0);
+    let b_num = num.coeffs[1].divfloor(&gcd_1);
+    let b_den = den.divfloor(&gcd_1);
 
     FunctionFelt {
         a: RationalFunction::new(
-            a_num.scale_by_coeff(&den.leading_coefficient().inv().unwrap()),
-            a_den
-                .clone()
-                .scale_by_coeff(&a_den.leading_coefficient().inv().unwrap()),
+            a_num.scale_by_coeff(&den_lead_inv),
+            a_den.scale_by_coeff(&a_den.leading_coefficient().inv().unwrap()),
         ),
         b: RationalFunction::new(
-            b_num.scale_by_coeff(&den.leading_coefficient().inv().unwrap()),
-            b_den
-                .clone()
-                .scale_by_coeff(&b_den.leading_coefficient().inv().unwrap()),
+            b_num.scale_by_coeff(&den_lead_inv),
+            b_den.scale_by_coeff(&b_den.leading_coefficient().inv().unwrap()),
         ),
     }
 }

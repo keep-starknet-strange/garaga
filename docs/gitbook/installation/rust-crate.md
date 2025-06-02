@@ -12,10 +12,10 @@ garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git"}
 
 ```
 
-It is recommended to use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) of the form `vX.Y.Z` (example `v0.15.4`) to be in sync with the latest declared [maintained-smart-contracts](../maintained-smart-contracts/ "mention").
+It is recommended to use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) of the form `vX.Y.Z` (example `v0.18.0`) to be in sync with the latest declared [maintained-smart-contracts](../maintained-smart-contracts/ "mention").
 
 ```
 [dependencies]
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.15.4" }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.18.0" }
 
 ```

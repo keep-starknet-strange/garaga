@@ -108,9 +108,12 @@ class SchnorrSignature:
     def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
-            return garaga_rs.schnorr_calldata_builder(
+            cd = garaga_rs.schnorr_calldata_builder(
                 self.rx, self.s, self.e, self.px, self.py, self.curve_id.value
             )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
 
         cd = self.serialize()
         e_neg = -self.e % CURVES[self.curve_id.value].n
@@ -123,11 +126,9 @@ class SchnorrSignature:
             ],
             [self.s, e_neg],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
-            False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
-        )[1:]
+            True,  # serialize_as_pure_felt252_array
+        )
         cd.extend(msm_calldata)
         if as_str:
             return "[{}]".format(", ".join(map(hex, cd)))
@@ -259,9 +260,12 @@ class ECDSASignature:
     def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
-            return garaga_rs.ecdsa_calldata_builder(
+            cd = garaga_rs.ecdsa_calldata_builder(
                 self.r, self.s, self.v, self.px, self.py, self.z, self.curve_id.value
             )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
 
         cd = self.serialize()
         n = CURVES[self.curve_id.value].n
@@ -278,11 +282,9 @@ class ECDSASignature:
             ],
             [u1, u2],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
-            False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
-        )[1:]
+            True,  # serialize_as_pure_felt252_array
+        )
         cd.extend(msm_calldata)
         if as_str:
             return "[{}]".format(", ".join(map(hex, cd)))
@@ -424,11 +426,9 @@ class EdDSA25519Signature:
             ],
             [self.s, h],
             self.curve_id.value,
-            False,  # include_digits_decomposition
             False,  # include_points_and_scalars
-            False,  # serialize_as_pure_felt252_array
-            False,  # risc0_mode
-        )[1:]
+            True,  # serialize_as_pure_felt252_array
+        )
 
         cd.extend(msm_calldata)
         (Rx_twisted, _) = self.curve.to_twistededwards(R.x, R.y)

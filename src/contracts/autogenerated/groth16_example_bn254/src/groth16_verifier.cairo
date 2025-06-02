@@ -1,7 +1,7 @@
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
 #[starknet::interface]
-trait IGroth16VerifierBN254<TContractState> {
+pub trait IGroth16VerifierBN254<TContractState> {
     fn verify_groth16_proof_bn254(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<Span<u256>>;
@@ -18,7 +18,7 @@ mod Groth16VerifierBN254 {
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x30490df346e1c3b4ff5a8d9d3e296962e3bcb8b3a959211995c9a6620a1e3e2;
+        0x146ee805dd0252256484a6001dc932dd940b1787c0f24e65629f4f6645f0692;
 
     #[storage]
     struct Storage {}
@@ -50,12 +50,16 @@ mod Groth16VerifierBN254 {
                 1 => *ic.at(0),
                 _ => {
                     // Start serialization with the hint array directly to avoid copying it.
-                    let mut msm_calldata: Array<felt252> = msm_hint;
+                    let mut msm_calldata: Array<felt252> = array![];
                     // Add the points from VK and public inputs to the proof.
                     Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
                     Serde::serialize(@groth16_proof.public_inputs, ref msm_calldata);
                     // Complete with the curve indentifier (0 for BN254):
                     msm_calldata.append(0);
+                    // Add the hint array.
+                    for x in msm_hint {
+                        msm_calldata.append(*x);
+                    }
 
                     // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
                     // to obtain vk_x.

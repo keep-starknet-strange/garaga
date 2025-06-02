@@ -1,0 +1,169 @@
+# .github/workflows/docs-sync.yml
+#
+# Keep GitBook docs (docs/gitbook) and source code in sync.
+#  ├─ create-docs-pr  : docs  ➜  main   (PR auto-merges if docs-only)
+#  └─ sync-main-to-docs : main  ➜  docs  (keeps non-docs files identical to main)
+
+name: Documentation Sync
+
+permissions:
+  contents: write        # allow pushing branches / squash-merge
+  pull-requests: write   # allow opening / merging PRs
+  issues: write            # create & apply labels
+
+on:
+  push:
+    branches: [ main, docs ]          # run on every push to either branch
+defaults:
+  run:
+    shell: bash                      # strict mode added in scripts
+
+concurrency:
+  group: docs-sync-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  #───────────────────────────────────────────────────────────────────────────────
+  #  A. docs ➜ main  – single rolling PR on branch: docs-sync
+  #───────────────────────────────────────────────────────────────────────────────
+  create-docs-pr:
+    if: >-
+      github.event.ref == 'refs/heads/docs' &&
+      ( github.actor == 'gitbook-com[bot]' ||
+        github.actor == 'gitbook-io[bot]'  ||
+        contains(github.event.head_commit.message, '[gitbook]') )
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣  Check out the latest MAIN in a clean worktree
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          persist-credentials: false
+
+      - run: |
+          git config user.name  "GitBook Docs Bot"
+          git config user.email "docs-bot@garaga.dev"
+
+      # 2️⃣  Overlay docs/gitbook from the docs branch
+      - name: Sync docs/gitbook from docs branch
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin docs
+          git checkout origin/docs -- docs/gitbook
+
+          # Exit early if nothing changed (check staged changes since git checkout stages them)
+          if git diff --cached --quiet; then
+            echo "No documentation changes — skipping PR."
+            echo "SKIP_PR=true" >>"$GITHUB_ENV"
+          fi
+
+      # 3️⃣  Commit the changes (only if any)
+      - name: Commit docs update
+        if: env.SKIP_PR != 'true'
+        run: |
+          set -euo pipefail
+          # Changes are already staged by git checkout, just commit them
+          git commit -m "📚 Sync docs/gitbook @ ${{ github.sha }}"
+
+      # 4️⃣  Create / update the rolling PR on branch docs-sync
+      - uses: peter-evans/create-pull-request@v7
+        if: env.SKIP_PR != 'true'
+        id: cpr
+        with:
+          token: ${{ secrets.DOCS_SYNC_PAT }}
+          branch: docs-sync            # ← single, reusable branch
+          base: main
+          title: "📚 Update documentation from GitBook"
+          commit-message: "📚 docs(branch=docs) → main @ ${{ github.sha }}"
+          labels: documentation,auto-generated
+          delete-branch: true          # auto-delete after you squash-merge
+
+      # 5️⃣  Add an extra label & comment if non-docs files slipped in
+      - name: Flag mixed-content PRs
+        if: env.SKIP_PR != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_SYNC_PAT }}
+        run: |
+          set -euo pipefail
+          # If *any* file outside docs/gitbook changed, add label + comment
+          if git diff --name-only origin/main | grep -vqE '^docs/gitbook/'; then
+            gh pr edit "${{ steps.cpr.outputs.pull-request-number }}" \
+              --add-label "needs-review"
+            gh pr comment "${{ steps.cpr.outputs.pull-request-number }}" \
+              --body "⚠️ *Mixed content* – this PR touches files outside \`docs/gitbook\`. Please review."
+          fi
+
+  #───────────────────────────────────────────────────────────────────────────────
+  #  B.  main ➜ docs  – keep non-docs files identical to main
+  #───────────────────────────────────────────────────────────────────────────────
+  sync-main-to-docs:
+    if: >-
+      github.event.ref == 'refs/heads/main' &&
+      !contains(github.event.head_commit.message, '[gitbook]') &&
+      github.actor != 'gitbook-com[bot]' &&
+      github.actor != 'gitbook-io[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) Check out docs branch (create it if it doesn't exist)
+      - uses: actions/checkout@v4
+        with:
+          ref: docs
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Configure Git
+        run: |
+          git config user.name  "GitHub Docs Sync"
+          git config user.email "docs-sync@garaga.dev"
+          git fetch origin main --tags --prune
+
+      # 2) Bring EVERYTHING (including docs/gitbook) up to date with main
+      - name: Sync repo from main
+        run: |
+          set -euo pipefail
+          git fetch origin main --tags --prune
+
+          # Overwrite the working tree with the state of main
+          git checkout origin/main -- .
+
+          # Stage everything and commit only if something changed
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No updates required – docs branch already matches main."
+            exit 0
+          fi
+
+          git commit -m "🔄 Sync all files from main @ ${{ github.sha }}"
+
+      # ─── 3) Open (or update) a PR towards docs ─────────────────────────────
+      - uses: peter-evans/create-pull-request@v7
+        id: cpr
+        with:
+          token: ${{ secrets.DOCS_SYNC_PAT }}
+          # the current HEAD contains the commit we just made
+          branch: main-sync-${{ github.sha }}-${{ github.run_id }}
+          base: docs
+          commit-message: "🔄 Sync non-docs files from main @ ${{ github.sha }}"
+          title: "🔄 Sync main → docs (non-docs files)"
+          body: |
+            This PR keeps the **docs** branch in sync with **main**.
+
+            Source commit: ${{ github.sha }}
+
+            > 🤖 _docs-sync workflow_
+          labels: documentation,auto-generated,auto-merge
+          delete-branch: true
+          draft: false   # open as a normal PR
+
+      # ─── 4) Enable auto-merge; will complete when checks are green ─────────
+      - name: Enable auto-merge
+        if: steps.cpr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ secrets.DOCS_SYNC_PAT }}
+        run: |
+          gh pr merge ${{ steps.cpr.outputs.pull-request-number }} \
+            --auto --squash --delete-branch --repo "$GITHUB_REPOSITORY" || \
+            echo "Auto-merge pending required checks."

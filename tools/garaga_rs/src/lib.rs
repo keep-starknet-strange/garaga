@@ -7,6 +7,7 @@ pub mod algebra {
     pub mod rational_function;
 }
 pub mod calldata;
+pub mod constants;
 
 pub mod crypto {
     pub mod mmr {
@@ -39,6 +40,11 @@ pub mod pairing {
 }
 
 pub mod poseidon_transcript;
+
+pub mod hints {
+    pub mod eisenstein;
+    pub mod fake_glv;
+}
 
 // automatically excludes python bindings on wasm32-unknown-unknown (pyo3 not supported)
 #[cfg(all(feature = "python", not(target_arch = "wasm32")))]

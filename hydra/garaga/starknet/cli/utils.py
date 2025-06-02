@@ -4,6 +4,8 @@ import json
 import os
 import shutil
 import subprocess
+import tempfile
+import time
 from enum import Enum
 from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
@@ -38,13 +40,17 @@ def load_account(network: Network):
     rpc_url = os.getenv(f"{network.name.upper()}_RPC_URL")
     account_address = os.getenv(f"{network.name.upper()}_ACCOUNT_ADDRESS")
     account_private_key = os.getenv(f"{network.name.upper()}_ACCOUNT_PRIVATE_KEY")
+    if network == Network.MAINNET:
+        chain = StarknetChainId.MAINNET
+    else:
+        chain = StarknetChainId.SEPOLIA
 
     client = FullNodeClient(node_url=rpc_url)
     account = Account(
         address=account_address,
         client=client,
         key_pair=KeyPair.from_private_key(to_int(account_private_key)),
-        chain=StarknetChainId.SEPOLIA,
+        chain=chain,
     )
     account.ESTIMATED_AMOUNT_MULTIPLIER = 1.02
     account.ESTIMATED_FEE_MULTIPLIER = 1.02
@@ -62,7 +68,22 @@ def get_contract_if_exists(account: Account, contract_address: int) -> Contract 
     except ClientError as e:
         if "no contract with address" in e.message.lower():
             return None
-        raise
+        raise e
+
+
+async def get_contract_if_exists_async(
+    account: Account, contract_address: int
+) -> Contract | None:
+    try:
+        res = await Contract.from_address(contract_address, account)
+        return res
+    except ContractNotFoundError:
+
+        return None
+    except ClientError as e:
+        if "no contract with address" in e.message.lower():
+            return None
+        raise e
 
 
 def get_contract_iff_exists(account: Account, contract_address: int) -> Contract:
@@ -94,11 +115,6 @@ def complete_proof_system(incomplete: str):
 def complete_network(incomplete: str):
     networks = [network.name for network in StarknetChainId]
     return [network for network in networks if network.startswith(incomplete)]
-
-
-def complete_fee(incomplete: str):
-    tokens = ["eth", "strk"]
-    return [token for token in tokens if token.startswith(incomplete)]
 
 
 def get_voyager_network_prefix(network: Network) -> str:
@@ -139,13 +155,73 @@ def scarb_build_contract_folder(contract_folder_path: str):
         raise
 
 
+def _acquire_scarb_lock():
+    """
+    Acquire a file-based lock for scarb operations to prevent parallel execution issues.
+    Returns the lock file path that should be released later.
+    """
+    lock_dir = tempfile.gettempdir()
+    lock_file = os.path.join(lock_dir, "garaga_scarb_metadata.lock")
+
+    # Try to acquire lock with timeout
+    timeout = 60  # 60 seconds timeout
+    start_time = time.time()
+
+    while time.time() - start_time < timeout:
+        try:
+            # Try to create lock file exclusively
+            fd = os.open(lock_file, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, str(os.getpid()).encode())
+            os.close(fd)
+            return lock_file
+        except OSError:
+            # Lock file exists, wait a bit and retry
+            time.sleep(0.1)
+
+    raise TimeoutError("Could not acquire scarb lock within timeout")
+
+
+def _release_scarb_lock(lock_file: str):
+    """Release the scarb lock by removing the lock file."""
+    try:
+        os.remove(lock_file)
+    except OSError:
+        # Lock file might have been removed already
+        pass
+
+
 def get_sierra_casm_artifacts(
     contract_folder_path: str,
 ) -> tuple[None, None] | tuple[str, str]:
     """
     Get the Sierra and CASM artifacts for a contract.
     """
-    target_dir = os.path.join(contract_folder_path, "target/dev/")
+    lock_file = _acquire_scarb_lock()
+    try:
+        process = subprocess.run(
+            "scarb metadata --format-version 1",
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=True,
+            cwd=contract_folder_path,
+        )
+
+        # Clean up any potential scarb warning messages from stdout
+        stdout_lines = process.stdout.strip().split("\n")
+        # Find the first line that starts with '{' (the JSON)
+        json_start_idx = 0
+        for i, line in enumerate(stdout_lines):
+            if line.strip().startswith("{"):
+                json_start_idx = i
+                break
+
+        json_content = "\n".join(stdout_lines[json_start_idx:])
+        metadata = json.loads(json_content)
+    finally:
+        _release_scarb_lock(lock_file)
+
+    target_dir = os.path.join(contract_folder_path, metadata["target_dir"], "dev")
 
     # Clean the target/dev/ folder if it already exists
     if os.path.exists(target_dir):
@@ -157,7 +233,7 @@ def get_sierra_casm_artifacts(
     artifacts_file = glob.glob(os.path.join(target_dir, "*.starknet_artifacts.json"))
     assert (
         len(artifacts_file) == 1
-    ), "Artifacts JSON file not found or multiple files found."
+    ), f"Artifacts JSON file not found or multiple files found: {artifacts_file}"
 
     with open(artifacts_file[0], "r") as f:
         artifacts = json.load(f)
@@ -182,18 +258,23 @@ def get_sierra_casm_artifacts(
     return sierra, casm
 
 
-def get_default_vk_path(system: ProofSystem) -> Path:
+def get_default_vk_path(vk_type: str) -> Path:
     script_path = Path(__file__).resolve()
     script_folder_path = script_path.parent
-    match system:
-        case ProofSystem.Risc0Groth16:
+    match vk_type:
+        case "risc0":
             return (
                 script_folder_path.parent
                 / "groth16_contract_generator"
                 / "examples"
                 / "vk_risc0.json"
             )
-        case _:
-            raise ValueError(
-                f"Proof system {system} requires an user-provided verification key"
+        case "sp1":
+            return (
+                script_folder_path.parent
+                / "groth16_contract_generator"
+                / "examples"
+                / "vk_sp1.json"
             )
+        case _:
+            raise ValueError(f"Unsupported default VK for proof type: {vk_type}")

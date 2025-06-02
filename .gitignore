@@ -15,6 +15,8 @@ venv
 *.idea
 *.secrets
 *.pb.gz
+.cargo/hypothesis/
+*.go
 
 tools/garaga_rs/target/
 tools/make/requirements.txt
@@ -27,6 +29,12 @@ Scarb.lock
 tests/contracts_e2e/devnet/*
 
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json
-
+!docs/benchmarks/test_summary.json
 *snfoundry_cache
 !tools/npm/garaga_rs/*.json
+!tools/make/constants.json
+
+# Benchmarks and profiling data
+.cargo/benchmarks/*/
+src/profile/
+**/.snfoundry_trace/**

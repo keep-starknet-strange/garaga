@@ -3,6 +3,7 @@ use crate::calldata::mpc_calldata::mpc_calldata_builder;
 use crate::calldata::msm_calldata::msm_calldata_builder;
 use crate::calldata::G1PointBigUint;
 use crate::calldata::G2PointBigUint;
+use crate::constants::{get_risc0_constants, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION};
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider, FieldElement,
 };
@@ -10,19 +11,20 @@ use crate::io::{
     biguint_split, element_to_biguint, field_elements_from_big_uints,
     parse_g1_points_from_flattened_field_elements_list,
 };
+use hex;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint, Sign};
+use num_traits::Num;
 use sha2::{Digest, Sha256};
 use starknet_types_core::felt::Felt;
-
 pub struct Groth16Proof {
     pub a: G1PointBigUint,
     pub b: G2PointBigUint,
     pub c: G1PointBigUint,
     pub public_inputs: Vec<BigUint>,
-    pub image_id: Option<Vec<u8>>, // Only used for risc0 proofs
-    pub journal: Option<Vec<u8>>,  // Only used for risc0 proofs
+    pub image_id_journal_risc0: Option<(Vec<u8>, Vec<u8>)>, // Only used for risc0 proofs
+    pub vkey_public_values_sp1: Option<(Vec<u8>, Vec<u8>)>, // Only used for sp1 proofs
 }
 
 impl Groth16Proof {
@@ -34,7 +36,11 @@ impl Groth16Proof {
         result
     }
 
-    pub fn from(values: Vec<BigUint>, image_id: Option<Vec<u8>>, journal: Option<Vec<u8>>) -> Self {
+    pub fn from(
+        values: Vec<BigUint>,
+        image_id_journal_risc0: Option<(Vec<u8>, Vec<u8>)>,
+        vkey_public_values_sp1: Option<(Vec<u8>, Vec<u8>)>,
+    ) -> Self {
         let a = G1PointBigUint::from(values[0..2].to_vec());
         let b = G2PointBigUint::from(values[2..6].to_vec());
         let c = G1PointBigUint::from(values[6..8].to_vec());
@@ -44,56 +50,94 @@ impl Groth16Proof {
             b,
             c,
             public_inputs,
-            image_id,
-            journal,
+            image_id_journal_risc0,
+            vkey_public_values_sp1,
         }
     }
 
     pub fn serialize_to_calldata(&self) -> Vec<BigUint> {
-        let ints = self.flatten();
         let mut cd: Vec<BigUint> = vec![];
 
-        let risc0_mode: bool = self.image_id.is_some() && self.journal.is_some();
-
-        for int in ints {
-            cd.extend(
-                biguint_split::<4, 96>(&int)
-                    .iter()
-                    .map(|&x| BigUint::from(x)),
-            );
+        // Serialize a.x, a.y, b.x[0], b.x[1], b.y[0], b.y[1], c.x, c.y directly
+        // This matches the Python: cd.extend(io.bigint_split(self.a.x)) etc.
+        for v in vec![
+            &self.a.x, &self.a.y, &self.b.x0, &self.b.x1, &self.b.y0, &self.b.y1, &self.c.x,
+            &self.c.y,
+        ] {
+            cd.extend(biguint_split::<4, 96>(v).iter().map(|&x| BigUint::from(x)));
         }
-        match risc0_mode {
-            true => {
-                let image_id_u256 = BigUint::from_bytes_be(self.image_id.as_ref().unwrap());
-                let image_id_u256_split = biguint_split::<8, 32>(&image_id_u256).map(BigUint::from);
-                let image_id_u256_split_reversed = image_id_u256_split.iter().rev().cloned();
-                // Span of u32, length 8.
-                cd.push(BigUint::from(8u64));
-                cd.extend(image_id_u256_split_reversed);
-                // Span of u8, length depends on input
-                cd.push(BigUint::from(self.journal.as_ref().unwrap().len()));
+
+        let risc0_mode = self.image_id_journal_risc0.is_some();
+        let _sp1_mode = self.vkey_public_values_sp1.is_some();
+
+        if risc0_mode && !_sp1_mode {
+            // Risc0 mode.
+            // Public inputs will be reconstructed from image id and journal.
+            let (image_id, journal) = self.image_id_journal_risc0.as_ref().unwrap();
+            let image_id_u256 = BigUint::from_bytes_be(image_id);
+            let image_id_u256_split = biguint_split::<8, 32>(&image_id_u256).map(BigUint::from);
+            let image_id_u256_split_reversed: Vec<BigUint> =
+                image_id_u256_split.iter().rev().cloned().collect();
+            // Span of u32, length 8.
+            cd.push(BigUint::from(8u64));
+            cd.extend(image_id_u256_split_reversed);
+            // Span of u8, length depends on input
+            cd.push(BigUint::from(journal.len()));
+            cd.extend(journal.iter().map(|&x| BigUint::from(x)));
+        } else if _sp1_mode && !risc0_mode {
+            // SP1 mode - matches Python implementation exactly
+            let (_vkey, public_values) = self.vkey_public_values_sp1.as_ref().unwrap();
+
+            // public_inputs[0] is the vkey as BigUint - serialize as 2 limbs of 128 bits
+            // This matches Python: cd.extend(io.bigint_split(self.public_inputs[0], 2, 2**128))
+            let vkey_int = &self.public_inputs[0]; // This should already be the vkey as BigUint
+            let vkey_limbs = biguint_split::<2, 128>(vkey_int);
+            cd.extend(vkey_limbs.iter().map(|&x| BigUint::from(x)));
+
+            // Serialize public_values (public_inputs_sp1) as u32 array
+            // This matches Python SP1 serialization exactly
+            let n_bytes = public_values.len();
+            assert_eq!(
+                n_bytes % 32,
+                0,
+                "SP1 public inputs must be a multiple of 32 bytes"
+            );
+            let n_words = n_bytes / 32;
+
+            // Add number of words first (matches Python: cd.append(n_words))
+            cd.push(BigUint::from(n_words));
+
+            // Then serialize as u32 values (matches Python: for i in range(0, n_bytes, 4): cd.append(int.from_bytes(...)))
+            for i in (0..n_bytes).step_by(4) {
+                let word = u32::from_be_bytes([
+                    public_values[i],
+                    public_values[i + 1],
+                    public_values[i + 2],
+                    public_values[i + 3],
+                ]);
+                cd.push(BigUint::from(word));
+            }
+        } else if risc0_mode && _sp1_mode {
+            panic!("Cannot have both RISC0 and SP1 modes enabled");
+        } else {
+            // Normal mode.
+            cd.push(BigUint::from(self.public_inputs.len()));
+            for pub_input in &self.public_inputs {
                 cd.extend(
-                    self.journal
-                        .as_ref()
-                        .unwrap()
+                    biguint_split::<2, 128>(pub_input)
                         .iter()
                         .map(|&x| BigUint::from(x)),
                 );
             }
-            false => {
-                cd.push(BigUint::from(self.public_inputs.len()));
-                for pub_input in self.public_inputs.iter() {
-                    cd.extend(biguint_split::<2, 128>(pub_input).map(BigUint::from));
-                }
-            }
         }
+
         cd
     }
 
     pub fn from_risc0(seal: Vec<u8>, image_id: Vec<u8>, journal: Vec<u8>) -> Self {
         assert!(image_id.len() <= 32, "image_id must be 32 bytes");
 
-        let (control_root, bn254_control_id) = risc0_utils::get_risc0_constants();
+        let (control_root, bn254_control_id) = get_risc0_constants();
 
         let (control_root_0, control_root_1) = risc0_utils::split_digest(&control_root);
 
@@ -129,12 +173,66 @@ impl Groth16Proof {
                 claim1,
                 bn254_control_id,
             ],
-            image_id: Some(image_id),
-            journal: Some(journal),
+            image_id_journal_risc0: Some((image_id, journal)),
+            vkey_public_values_sp1: None,
+        }
+    }
+    pub fn from_sp1(vkey: Vec<u8>, public_values: Vec<u8>, proof: Vec<u8>) -> Self {
+        // Skip the first 4 bytes (selector)
+        let selector = &proof[..4];
+        let proof = &proof[4..];
+
+        // Validate SP1 verifier version by checking selector against expected hash
+        let expected_selector = hex::decode(&SP1_VERIFIER_HASH[2..]).unwrap()[..4].to_vec();
+        if selector != expected_selector {
+            panic!(
+                "Invalid SP1 proof version. Expected {:02x}{:02x}{:02x}{:02x} for version {}, got {:02x}{:02x}{:02x}{:02x}\nPlease use SP1 verifier version {} or contact garaga developers to update the SP1 verifier version.",
+                expected_selector[0], expected_selector[1], expected_selector[2], expected_selector[3],
+                SP1_VERIFIER_VERSION,
+                selector[0], selector[1], selector[2], selector[3],
+                SP1_VERIFIER_VERSION
+            );
+        }
+
+        // sha256(public_values) % 2**253
+        assert!(
+            public_values.len() % 32 == 0,
+            "public_values must be a multiple of 32 bytes"
+        );
+        let pub_input_hash = BigUint::from_bytes_be(&Sha256::digest(&public_values));
+        // 2^253 as BigUint to avoid overflow
+        let modulus = BigUint::from(2u64).pow(253);
+        let pub_input_hash = pub_input_hash % modulus;
+
+        let mut public_inputs_sp1 = Vec::new();
+        for i in 0..public_values.len() / 32 {
+            let public_input = BigUint::from_bytes_be(&public_values[i * 32..(i + 1) * 32]);
+            public_inputs_sp1.push(public_input);
+        }
+
+        Groth16Proof {
+            a: G1PointBigUint {
+                x: BigUint::from_bytes_be(&proof[0..32]),
+                y: BigUint::from_bytes_be(&proof[32..64]),
+            },
+            b: G2PointBigUint {
+                x0: BigUint::from_bytes_be(&proof[96..128]),
+                x1: BigUint::from_bytes_be(&proof[64..96]),
+                y0: BigUint::from_bytes_be(&proof[160..192]),
+                y1: BigUint::from_bytes_be(&proof[128..160]),
+            },
+            c: G1PointBigUint {
+                x: BigUint::from_bytes_be(&proof[192..224]),
+                y: BigUint::from_bytes_be(&proof[224..256]),
+            },
+            public_inputs: vec![BigUint::from_bytes_be(&vkey), pub_input_hash],
+            image_id_journal_risc0: None,
+            vkey_public_values_sp1: Some((vkey, public_values)),
         }
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Groth16VerificationKey {
     pub alpha: G1PointBigUint,
     pub beta: G2PointBigUint,
@@ -164,6 +262,38 @@ impl Groth16VerificationKey {
     }
 }
 
+pub fn get_sp1_vk() -> Groth16VerificationKey {
+    let vk_hex = [
+        "2d4d9aa7e302d9df41749d5507949d05dbea33fbb16c643b22f599a2be6df2e2",
+        "14bedd503c37ceb061d8ec60209fe345ce89830a19230301f076caff004d1926",
+        "e187847ad4c798374d0d6732bf501847dd68bc0e071241e0213bc7fc13db7ab",
+        "967032fcbf776d1afc985f88877f182d38480a653f2decaa9794cbc3bf3060c",
+        "1739c1b1a457a8c7313123d24d2f9192f896b7c63eea05a9d57f06547ad0cec8",
+        "304cfbd1e08a704a99f5e847d93f8c3caafddec46b7a0d379da69a4d112346a7",
+        "1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
+        "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
+        "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
+        "90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
+        "2b65c9ae2605f3ef5540d3a64503c84fe5e1d9ec6eb1bd3a906bbc80830e8e54",
+        "262eabe81511aa8e3034cbd75d42e708aa4ed80303fb0e4fb90cd0ff6e909213",
+        "10d11978bbdb3e8ea543e3de42abfc4ab330719ba32f295372ae1f43c7cee800",
+        "1561b6218d8fe8b013f981f0259304a043919da2a7674b397d90e20b01b46b39",
+        "ed6e0c13f353262ae2dbbe49ce6a0b67576d38aaf5958564be7648356830ef7",
+        "28200d54013565dca196841d0a3cd7a5f67531f9748772f553e1e9845f6c0949",
+        "1b611b8f696f28ffb6250c7ffac66efbd638d97f0d6c843c23691c3af532c9e3",
+        "248c1033bd73c4ff820d480a37b39ca6ef178543c5c9190459e8cfe36c48e51a",
+        "2974086bde6c91267b201137cfe6ee8cd50ff0a3da861e808503e7df4da87b8d",
+        "40addd35913f11ea6846f0d583126bab9e8f8ae69797d4c2c7f195be0785471",
+    ];
+
+    Groth16VerificationKey::from(
+        vk_hex
+            .iter()
+            .map(|s| BigUint::from_str_radix(s, 16).unwrap())
+            .collect::<Vec<BigUint>>(),
+    )
+}
+
 pub fn get_groth16_calldata_felt(
     proof: &Groth16Proof,
     vk: &Groth16VerificationKey,
@@ -180,7 +310,8 @@ pub fn get_groth16_calldata(
     curve_id: CurveID,
 ) -> Result<Vec<BigUint>, String> {
     let mut calldata: Vec<BigUint> = Vec::new();
-    let risc0_mode = proof.image_id.is_some() && proof.journal.is_some();
+    let risc0_mode = proof.image_id_journal_risc0.is_some();
+    let _sp1_mode = proof.vkey_public_values_sp1.is_some();
     // Calculate vk_x
     let vk_x = calculate_vk_x(vk, &proof.public_inputs, curve_id);
 
@@ -209,10 +340,8 @@ pub fn get_groth16_calldata(
                 .collect::<Vec<BigUint>>(),
             &proof.public_inputs,
             curve_id as usize,
-            Some(true),
             false,
             true,
-            false,
         )?,
         true => msm_calldata_builder(
             &[
@@ -226,9 +355,7 @@ pub fn get_groth16_calldata(
                 proof.public_inputs[3].clone(),
             ],
             curve_id as usize,
-            Some(true),
             false,
-            true,
             true,
         )?,
     };
@@ -293,21 +420,6 @@ pub mod risc0_utils {
     use num_bigint::BigUint;
     use num_traits::Num;
     use sha2::{Digest, Sha256};
-
-    pub fn get_risc0_constants() -> (BigUint, BigUint) {
-        let risc0_control_root = BigUint::from_str_radix(
-            "539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576",
-            16,
-        )
-        .unwrap();
-        let risc0_bn254_control_id = BigUint::from_str_radix(
-            "04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
-            16,
-        )
-        .unwrap();
-
-        (risc0_control_root, risc0_bn254_control_id)
-    }
 
     pub fn get_risc0_vk() -> Groth16VerificationKey {
         let vk_hex = [
@@ -426,10 +538,14 @@ pub mod risc0_utils {
 }
 
 #[cfg(test)]
-mod tests_risc0_utils {
+mod test_groth16_calldata {
     use super::risc0_utils::{ok_digest, split_digest};
+    use super::Groth16Proof;
+    use hex;
     use num_bigint::BigUint;
+    use num_traits::Num;
     use sha2::{Digest, Sha256};
+
     #[test]
     fn test_ok_digest_1() {
         let image_id = vec![
@@ -482,5 +598,119 @@ mod tests_risc0_utils {
             hex::encode(claim1.to_bytes_be()),
             "8875bcad22cdcfda1e2878df4e414108"
         );
+    }
+
+    #[test]
+    fn test_from_sp1() {
+        // Data from proof_sp1.json
+        let vkey_hex = "00562c19b1948ce8f360ee32da6b8e18b504b7d197d522085d3e74c072e0ff7d";
+        let public_values_hex = "00000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000001a6d0000000000000000000000000000000000000000000000000000000000002ac2";
+        let proof_hex = "11b6a09d15c0a8f6b56f8226262eccb0d78ab7946001762a2a9117b0ce6626ee0f15338a164391b8e4af70b9ad5f80df72a2fd42038afc66190edd82bf1f0d752ce22ab208f5de7a1c73d97f82e989add997eca2e95af1716a5d9c03cbcec2bb477aa06d00b7de11d8465f44fc1073d49a2809a57d31ad543a3602be355ea05aedf894aa0839ad0113478bf84a25faff25306a84185c20d1320772e4769d993832626f081e432d60d8f4cb6f82f8835872aa0c3183ffe09f67d365951722c1a3debd6ae90c31023395fe16b29c3a01524447de9e22aa670c6a7cd880281ba14c642a601b0530706caf4af3644ff20a785ac0e499321f08cfc96cee48b64bfa08925ec27c";
+
+        // Decode hex strings to bytes
+        let vkey = hex::decode(vkey_hex).unwrap();
+        let public_values = hex::decode(public_values_hex).unwrap();
+        let proof = hex::decode(proof_hex).unwrap();
+
+        // Call from_sp1
+        let groth16_proof = Groth16Proof::from_sp1(vkey, public_values, proof);
+
+        // Expected values from the Python output
+        let expected_a_x = BigUint::from_str_radix(
+            "15c0a8f6b56f8226262eccb0d78ab7946001762a2a9117b0ce6626ee0f15338a",
+            16,
+        )
+        .unwrap();
+        let expected_a_y = BigUint::from_str_radix(
+            "164391b8e4af70b9ad5f80df72a2fd42038afc66190edd82bf1f0d752ce22ab2",
+            16,
+        )
+        .unwrap();
+
+        let expected_b_x0 = BigUint::from_str_radix(
+            "b7de11d8465f44fc1073d49a2809a57d31ad543a3602be355ea05aedf894aa",
+            16,
+        )
+        .unwrap();
+        let expected_b_x1 = BigUint::from_str_radix(
+            "8f5de7a1c73d97f82e989add997eca2e95af1716a5d9c03cbcec2bb477aa06d",
+            16,
+        )
+        .unwrap();
+        let expected_b_y0 = BigUint::from_str_radix(
+            "1e432d60d8f4cb6f82f8835872aa0c3183ffe09f67d365951722c1a3debd6ae9",
+            16,
+        )
+        .unwrap();
+        let expected_b_y1 = BigUint::from_str_radix(
+            "839ad0113478bf84a25faff25306a84185c20d1320772e4769d993832626f08",
+            16,
+        )
+        .unwrap();
+
+        let expected_c_x = BigUint::from_str_radix(
+            "c31023395fe16b29c3a01524447de9e22aa670c6a7cd880281ba14c642a601b",
+            16,
+        )
+        .unwrap();
+        let expected_c_y = BigUint::from_str_radix(
+            "530706caf4af3644ff20a785ac0e499321f08cfc96cee48b64bfa08925ec27c",
+            16,
+        )
+        .unwrap();
+
+        let expected_pub_input_0 = BigUint::from_str_radix(
+            "152253217110252243453737875262517125705583962671131257900012625329058283389",
+            10,
+        )
+        .unwrap();
+        let expected_pub_input_1 = BigUint::from_str_radix(
+            "6835433473072582537735779005252378178401920886001391083506222100041177144720",
+            10,
+        )
+        .unwrap();
+
+        // Verify a point
+        assert_eq!(groth16_proof.a.x, expected_a_x);
+        assert_eq!(groth16_proof.a.y, expected_a_y);
+
+        // Verify b point
+        assert_eq!(groth16_proof.b.x0, expected_b_x0);
+        assert_eq!(groth16_proof.b.x1, expected_b_x1);
+        assert_eq!(groth16_proof.b.y0, expected_b_y0);
+        assert_eq!(groth16_proof.b.y1, expected_b_y1);
+
+        // Verify c point
+        assert_eq!(groth16_proof.c.x, expected_c_x);
+        assert_eq!(groth16_proof.c.y, expected_c_y);
+
+        // Verify public inputs
+        assert_eq!(groth16_proof.public_inputs.len(), 2);
+        assert_eq!(groth16_proof.public_inputs[0], expected_pub_input_0);
+        assert_eq!(groth16_proof.public_inputs[1], expected_pub_input_1);
+
+        // Verify SP1 specific fields
+        assert!(groth16_proof.vkey_public_values_sp1.is_some());
+        assert!(groth16_proof.image_id_journal_risc0.is_none());
+
+        let (stored_vkey, stored_public_values) = groth16_proof.vkey_public_values_sp1.unwrap();
+        assert_eq!(stored_vkey, hex::decode(vkey_hex).unwrap());
+        assert_eq!(
+            stored_public_values,
+            hex::decode(public_values_hex).unwrap()
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "Invalid SP1 proof version")]
+    fn test_from_sp1_invalid_selector() {
+        // Create test data with invalid selector (wrong first 4 bytes)
+        let vkey = vec![0u8; 32];
+        let public_values = vec![0u8; 64]; // Must be multiple of 32
+        let mut proof = vec![0xde, 0xad, 0xbe, 0xef]; // Invalid selector
+        proof.extend(vec![0u8; 252]); // Add remaining proof data
+
+        // This should panic with our error message
+        Groth16Proof::from_sp1(vkey, public_values, proof);
     }
 }

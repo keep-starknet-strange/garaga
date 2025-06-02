@@ -1,6 +1,5 @@
 from random import randint
 
-import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
 from garaga.definitions import CURVES, CurveID, G1Point, G2Point
 from garaga.hints import neg_3
@@ -11,6 +10,7 @@ from garaga.hints.ecip import (
 )
 from garaga.modulo_circuit import WriteOps
 from garaga.modulo_circuit_structs import G1PointCircuit, G2PointCircuit, u384
+from garaga.precompiled_circuits.cofactor_clearing import G1CofactorClearing
 from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseModuloCircuit,
     ModuloCircuit,
@@ -20,6 +20,7 @@ from garaga.precompiled_circuits.ec import (
     BasicEC,
     BasicECG2,
     ECIPCircuits,
+    FakeGLVCircuits,
     IsOnCurveCircuit,
 )
 
@@ -696,16 +697,16 @@ class AccumulateFunctionChallengeDuplCircuit(BaseModuloCircuit):
         xA0_power = circuit.write_struct(u384("xA0_power", [input[10]]), WriteOps.INPUT)
         xA2_power = circuit.write_struct(u384("xA2_power", [input[11]]), WriteOps.INPUT)
         next_a_num_coeff = circuit.write_struct(
-            u384("next_a_num_coeff", [input[12]]), WriteOps.INPUT
+            structs.GenericT("next_a_num_coeff", [input[12]]), WriteOps.INPUT
         )
         next_a_den_coeff = circuit.write_struct(
-            u384("next_a_den_coeff", [input[13]]), WriteOps.INPUT
+            structs.GenericT("next_a_den_coeff", [input[13]]), WriteOps.INPUT
         )
         next_b_num_coeff = circuit.write_struct(
-            u384("next_b_num_coeff", [input[14]]), WriteOps.INPUT
+            structs.GenericT("next_b_num_coeff", [input[14]]), WriteOps.INPUT
         )
         next_b_den_coeff = circuit.write_struct(
-            u384("next_b_den_coeff", [input[15]]), WriteOps.INPUT
+            structs.GenericT("next_b_den_coeff", [input[15]]), WriteOps.INPUT
         )
 
         res = circuit._accumulate_function_challenge_dupl(
@@ -804,6 +805,7 @@ class AddECPointCircuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        circuit.generic_modulus = True
         xP, yP = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
         xQ, yQ = circuit.write_struct(G1PointCircuit("q", input[2:4]), WriteOps.INPUT)
         xR, yR = circuit.add_points((xP, yP), (xQ, yQ))
@@ -838,6 +840,7 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         circuit = BasicEC(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        circuit.generic_modulus = True
         xP, yP = circuit.write_struct(G1PointCircuit("p", input[0:2]), WriteOps.INPUT)
         A = circuit.write_struct(u384("A_weirstrass", [input[2]]))
         xR, yR = circuit.double_point((xP, yP), A)
@@ -846,273 +849,245 @@ class DoubleECPointCircuit(BaseModuloCircuit):
         return circuit
 
 
-class FullECIPCircuitBatched(BaseModuloCircuit):
-    def __init__(
-        self,
-        curve_id: int,
-        n_points: int = 1,
-        auto_run: bool = True,
-        compilation_mode: int = 0,
-    ) -> None:
-        self.n_points = n_points
+class PrepareGLVFakeGLVPtsCircuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
         super().__init__(
-            name=f"full_ecip_{n_points}P",
+            name="prepare_glv_fake_glv_pts",
             curve_id=curve_id,
             auto_run=auto_run,
             compilation_mode=compilation_mode,
         )
 
-    @staticmethod
-    def _n_coeffs_from_n_points(n_points: int) -> tuple[int, int, int, int]:
-        return (
-            1 + n_points + 2,
-            1 + n_points + 1 + 2,
-            1 + n_points + 1 + 2,
-            1 + n_points + 4 + 2,
-        )
-
-    @staticmethod
-    def _n_points_from_n_coeffs(n_coeffs: int) -> int:
-        # n_coeffs = 18 + 4n_points => 4n_points = n_coeffs - 18
-        assert n_coeffs >= 18 + 4
-        assert (n_coeffs - 18) % 4 == 0
-        return (n_coeffs - 18) // 4
-
     def build_input(self) -> list[PyFelt]:
         input = []
-        n_coeffs = self._n_coeffs_from_n_points(self.n_points)
-
-        # RLCSumDlogDiv
-        for _ in range(sum(n_coeffs)):
-            input.append(self.field.random())
-
-        for _ in range(self.n_points):
-            input.append(self.field.random())  # x
-            input.append(self.field.random())  # y
-            input.append(self.field.random())  # ep_low
-            input.append(self.field.random())  # en_low
-            input.append(self.field.random())  # sp_low
-            input.append(self.field.random())  # sn_low
-            input.append(self.field.random())  # ep_high
-            input.append(self.field.random())  # en_high
-            input.append(self.field.random())  # sp_high
-            input.append(self.field.random())  # sn_high
-
-        # Q_low/high/high_shifted + A0
-        for i in range(4):
-            input.append(self.field.random())  # x
-            input.append(self.field.random())  # y
-
-        input.append(self.field(CURVES[self.curve_id].a))  # A_weirstrass
-        input.append(self.field.random())  # base_rlc.
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # P0y
+        input.append(self.field.random())  # P1y
+        input.append(self.field.random())  # Qx
+        input.append(self.field.random())  # Q0y
+        input.append(self.field.random())  # Phi_P0y
+        input.append(self.field.random())  # Phi_P1y
+        input.append(self.field.random())  # Phi_Q0y
+        input.append(self.field.random())  # Gen_x
+        input.append(self.field.random())  # Gen_y
+        input.append(self.field.random())  # third_root
 
         return input
 
     def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
-        circuit = ECIPCircuits(
+        circuit = FakeGLVCircuits(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
-        n_coeffs = self._n_coeffs_from_n_points(self.n_points)
-        ff_coeffs = input[: sum(n_coeffs)]
-
-        all_points = input[sum(n_coeffs) :]
-
-        def split_list(input_list, lengths):
-            start_idx, result = 0, []
-            for length in lengths:
-                result.append(input_list[start_idx : start_idx + length])
-                start_idx += length
-            return result
-
-        points = []
-        ep_lows = []
-        en_lows = []
-        sp_lows = []
-        sn_lows = []
-        ep_highs = []
-        en_highs = []
-        sp_highs = []
-        sn_highs = []
-        for i in range(self.n_points):
-            points.append(
-                circuit.write_struct(
-                    G1PointCircuit(f"p_{i}", all_points[i * 8 : i * 8 + 2]),
-                )
-            )
-            ep_lows.append(all_points[i * 8 + 3])
-            en_lows.append(all_points[i * 8 + 4])
-            sp_lows.append(all_points[i * 8 + 5])
-            sn_lows.append(all_points[i * 8 + 6])
-            ep_highs.append(all_points[i * 8 + 7])
-            en_highs.append(all_points[i * 8 + 8])
-            sp_highs.append(all_points[i * 8 + 9])
-            sn_highs.append(all_points[i * 8 + 10])
-
-        epns_low = circuit.write_struct(
-            structs.StructSpan(
-                "epns_low",
-                [
-                    structs.Tuple(
-                        f"epn_{i}",
-                        elmts=[
-                            structs.u384("ep", [ep_lows[i]]),
-                            structs.u384("en", [en_lows[i]]),
-                            structs.u384("sp", [sp_lows[i]]),
-                            structs.u384("sn", [sn_lows[i]]),
-                        ],
-                    )
-                    for i in range(self.n_points)
-                ],
-            )
+        circuit.generic_modulus = True
+        Px = circuit.write_struct(u384("Px", [input[0]]), WriteOps.INPUT)
+        P0y = circuit.write_struct(u384("P0y", [input[1]]), WriteOps.INPUT)
+        P1y = circuit.write_struct(u384("P1y", [input[2]]), WriteOps.INPUT)
+        Qx = circuit.write_struct(u384("Qx", [input[3]]), WriteOps.INPUT)
+        Q0y = circuit.write_struct(u384("Q0y", [input[4]]), WriteOps.INPUT)
+        Phi_P0y = circuit.write_struct(u384("Phi_P0y", [input[5]]), WriteOps.INPUT)
+        Phi_P1y = circuit.write_struct(u384("Phi_P1y", [input[6]]), WriteOps.INPUT)
+        Phi_Q0y = circuit.write_struct(u384("Phi_Q0y", [input[7]]), WriteOps.INPUT)
+        Gen = circuit.write_struct(
+            G1PointCircuit("Gen", [input[8], input[9]]), WriteOps.INPUT
+        )
+        third_root = circuit.write_struct(
+            u384("third_root", [input[10]]), WriteOps.INPUT
         )
 
-        print(f"epns_low: {epns_low} (n_points: {self.n_points})")
+        (
+            B1,
+            B2,
+            B3,
+            B4,
+            B5,
+            B6,
+            B7,
+            B8,
+            B9y,
+            B10y,
+            B11y,
+            B12y,
+            B13y,
+            B14y,
+            B15y,
+            B16y,
+            Phi_P0x,
+            Phi_Q0x,
+            Acc,
+        ) = circuit.prepare_points_glv_fake_glv(
+            Px, P0y, P1y, Qx, Q0y, Phi_P0y, Phi_P1y, Phi_Q0y, Gen, third_root
+        )
+        # circuit.exact_output_refs_needed = [B2[0], B3[0], B4[0], B5[0], B6[0], B7[0], B8[0], B10y, B11y, B12y, B13y, B14y, B15y, B16y, Acc[0], Acc[1]]
+        circuit.extend_struct_output(G1PointCircuit("B1", [B1[0], B1[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B2", [B2[0], B2[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B3", [B3[0], B3[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B4", [B4[0], B4[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B5", [B5[0], B5[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B6", [B6[0], B6[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B7", [B7[0], B7[1]]))
+        circuit.extend_struct_output(G1PointCircuit("B8", [B8[0], B8[1]]))
+        circuit.extend_struct_output(u384("B9y", [B9y]))
+        circuit.extend_struct_output(u384("B10y", [B10y]))
+        circuit.extend_struct_output(u384("B11y", [B11y]))
+        circuit.extend_struct_output(u384("B12y", [B12y]))
+        circuit.extend_struct_output(u384("B13y", [B13y]))
+        circuit.extend_struct_output(u384("B14y", [B14y]))
+        circuit.extend_struct_output(u384("B15y", [B15y]))
+        circuit.extend_struct_output(u384("B16y", [B16y]))
+        circuit.extend_struct_output(u384("Phi_P0x", [Phi_P0x]))
+        circuit.extend_struct_output(u384("Phi_Q0x", [Phi_Q0x]))
+        circuit.extend_struct_output(G1PointCircuit("Acc", [Acc[0], Acc[1]]))
+        return circuit
 
-        epns_high = circuit.write_struct(
-            structs.StructSpan(
-                "epns_high",
-                [
-                    structs.Tuple(
-                        f"epn_{i}",
-                        elmts=[
-                            structs.u384("ep", [ep_highs[i]]),
-                            structs.u384("en", [en_highs[i]]),
-                            structs.u384("sp", [sp_highs[i]]),
-                            structs.u384("sn", [sn_highs[i]]),
-                        ],
-                    )
-                    for i in range(self.n_points)
-                ],
-            )
+
+class PrepareFakeGLVPtsCircuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="prepare_fake_glv_pts",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
-        rest_points = all_points[self.n_points * 8 :]
-        q_low = circuit.write_struct(
-            structs.G1PointCircuit("q_low", elmts=rest_points[0:2])
-        )
-        q_high = circuit.write_struct(
-            structs.G1PointCircuit("q_high", elmts=rest_points[2:4])
-        )
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # Py
+        input.append(self.field.random())  # Qx
+        input.append(self.field.random())  # Qy
+        input.append(self.field.random())  # s2_sign
+        input.append(self.field.random())  # A_weirstrass
 
-        q_high_shifted = circuit.write_struct(
-            structs.G1PointCircuit("q_high_shifted", elmts=rest_points[4:6]),
-        )
-        a0 = circuit.write_struct(structs.G1PointCircuit("a0", elmts=rest_points[6:8]))
+        return input
 
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = FakeGLVCircuits(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        P = circuit.write_struct(
+            G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
+        )
+        Q = circuit.write_struct(
+            G1PointCircuit("Q", [input[2], input[3]]), WriteOps.INPUT
+        )
+        s2_sign = circuit.write_struct(u384("s2_sign", [input[4]]), WriteOps.INPUT)
         A_weirstrass = circuit.write_struct(
-            structs.u384("A_weirstrass", elmts=[rest_points[8]])
-        )
-        base_rlc = circuit.write_struct(
-            structs.u384("base_rlc", elmts=[rest_points[9]])
+            u384("A_weirstrass", [input[5]]), WriteOps.INPUT
         )
 
-        m_A0, b_A0, xA0, yA0, xA2, yA2, coeff0, coeff2 = (
-            circuit._slope_intercept_same_point(a0, A_weirstrass)
+        (
+            T1,
+            T2,
+            T3,
+            T4,
+            T5y,
+            T6y,
+            T7y,
+            T8y,
+            T9,
+            T10,
+            T11,
+            T12,
+            T13y,
+            T14y,
+            T15y,
+            T16y,
+            R2,
+            R0y,
+        ) = circuit.prepare_points_fake_glv(P, Q, s2_sign, A_weirstrass)
+        # circuit.exact_output_refs_needed = [B2[0], B3[0], B4[0], B5[0], B6[0], B7[0], B8[0], B10y, B11y, B12y, B13y, B14y, B15y, B16y, Acc[0], Acc[1]]
+        circuit.extend_struct_output(G1PointCircuit("T1", [T1[0], T1[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T2", [T2[0], T2[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T3", [T3[0], T3[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T4", [T4[0], T4[1]]))
+        circuit.extend_struct_output(u384("T5y", [T5y]))
+        circuit.extend_struct_output(u384("T6y", [T6y]))
+        circuit.extend_struct_output(u384("T7y", [T7y]))
+        circuit.extend_struct_output(u384("T8y", [T8y]))
+        circuit.extend_struct_output(G1PointCircuit("T9", [T9[0], T9[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T10", [T10[0], T10[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T11", [T11[0], T11[1]]))
+        circuit.extend_struct_output(G1PointCircuit("T12", [T12[0], T12[1]]))
+        circuit.extend_struct_output(u384("T13y", [T13y]))
+        circuit.extend_struct_output(u384("T14y", [T14y]))
+        circuit.extend_struct_output(u384("T15y", [T15y]))
+        circuit.extend_struct_output(u384("T16y", [T16y]))
+        circuit.extend_struct_output(G1PointCircuit("R2", [R2[0], R2[1]]))
+        circuit.extend_struct_output(u384("R0y", [R0y]))
+        return circuit
+
+
+class QuadrupleAndAdd9Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="quadruple_and_add_9",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
-        def get_log_div_coeffs(circuit, ff_coeffs):
-            _log_div_a_num, _log_div_a_den, _log_div_b_num, _log_div_b_den = split_list(
-                ff_coeffs, self._n_coeffs_from_n_points(self.n_points)
-            )
-            log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den = (
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # Py
+        for _ in range(9):
+            input.append(self.field.random())  # Qx
+            input.append(self.field.random())  # Qy
+        input.append(self.field.random())  # A_weirstrass
+
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicEC(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        P = circuit.write_struct(
+            G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
+        )
+        Qs = []
+        for i in range(2, len(input) - 1, 2):
+            Qs.append(
                 circuit.write_struct(
-                    structs.FunctionFeltCircuit(
-                        name="SumDlogDiv",
-                        elmts=[
-                            structs.u384Span("log_div_a_num", _log_div_a_num),
-                            structs.u384Span("log_div_a_den", _log_div_a_den),
-                            structs.u384Span("log_dsumiv_b_num", _log_div_b_num),
-                            structs.u384Span("log_div_b_den", _log_div_b_den),
-                        ],
-                    ),
+                    G1PointCircuit(f"Q_{i//2}", [input[i], input[i + 1]]),
                     WriteOps.INPUT,
                 )
             )
 
-            return log_div_a_num, log_div_a_den, log_div_b_num, log_div_b_den
-
-        log_div_a_num_low, log_div_a_den_low, log_div_b_num_low, log_div_b_den_low = (
-            get_log_div_coeffs(circuit, ff_coeffs)
+        A_weirstrass = circuit.write_struct(
+            u384("A_weirstrass", [input[len(input) - 1]]), WriteOps.INPUT
         )
 
-        lhs = circuit._eval_function_challenge_dupl(
-            (xA0, yA0),
-            (xA2, yA2),
-            coeff0,
-            coeff2,
-            log_div_a_num_low,
-            log_div_a_den_low,
-            log_div_b_num_low,
-            log_div_b_den_low,
+        Rx, Ry = circuit.n_quadruple_and_add(P, Qs, A_weirstrass)
+        circuit.extend_struct_output(G1PointCircuit("R", [Rx, Ry]))
+        return circuit
+
+
+class ClearCofactorBLS12_381Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="clear_cofactor_bls12_381",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
         )
 
-        def compute_base_rhs(circuit: ECIPCircuits, points, epns, m_A0, b_A0, xA0):
-            acc = circuit.set_or_get_constant(0)
-            for pt, _epns in zip(points, epns):
-                _epns = io.flatten(_epns)
-                print(f"epns: {_epns}")
-                print(f"epns[0]: {_epns[0]}")
-                print(f"epns[1]: {_epns[1]}")
-                print(f"epns[2]: {_epns[2]}")
-                print(f"epns[3]: {_epns[3]}")
-                acc = circuit._accumulate_eval_point_challenge_signed_same_point(
-                    eval_accumulator=acc,
-                    slope_intercept=(m_A0, b_A0),
-                    xA=xA0,
-                    P=pt,
-                    ep=_epns[0],
-                    en=_epns[1],
-                    sign_ep=_epns[2],
-                    sign_en=_epns[3],
-                )
-            return acc
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        input.append(self.field.random())  # Px
+        input.append(self.field.random())  # Py
+        return input
 
-        base_rhs_low = compute_base_rhs(circuit, points, epns_low, m_A0, b_A0, xA0)
-        rhs_low = circuit._RHS_finalize_acc(
-            base_rhs_low, (m_A0, b_A0), xA0, (q_low[0], q_low[1])
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = G1CofactorClearing(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        P = circuit.write_struct(
+            G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
         )
 
-        base_rhs_high = compute_base_rhs(circuit, points, epns_high, m_A0, b_A0, xA0)
-        rhs_high = circuit._RHS_finalize_acc(
-            base_rhs_high, (m_A0, b_A0), xA0, (q_high[0], q_high[1])
-        )
-        base_rhs_high_shifted = compute_base_rhs(
-            circuit,
-            [q_high_shifted],
-            [
-                [
-                    circuit.set_or_get_constant(5279154705627724249993186093248666011),
-                    circuit.set_or_get_constant(
-                        345561521626566187713367793525016877467
-                    ),
-                    circuit.set_or_get_constant(-1),
-                    circuit.set_or_get_constant(-1),
-                ]
-            ],
-            m_A0,
-            b_A0,
-            xA0,
-        )
-        rhs_high_shifted = circuit._RHS_finalize_acc(
-            base_rhs_high_shifted,
-            (m_A0, b_A0),
-            xA0,
-            (q_high_shifted[0], q_high_shifted[1]),
-        )
-
-        c0 = base_rlc
-        c1 = circuit.mul(c0, c0)
-        c2 = circuit.mul(c1, c0)
-
-        rhs = circuit.sum(
-            [
-                circuit.mul(rhs_low, c0),
-                circuit.mul(rhs_high, c1),
-                circuit.mul(rhs_high_shifted, c2),
-            ]
-        )
-
-        final_check = circuit.sub(lhs, rhs)
-        circuit.extend_struct_output(u384("final_check", [final_check]))
-
+        res = circuit.clear_cofactor(P)
+        circuit.extend_struct_output(G1PointCircuit("res", [res[0], res[1]]))
         return circuit

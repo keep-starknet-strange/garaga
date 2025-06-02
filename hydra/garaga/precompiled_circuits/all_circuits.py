@@ -44,21 +44,18 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import
     TowerMillerInitBit,
 )
 from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuits import (
-    AccumulateEvalPointChallengeSignedCircuit,
-    AccumulateFunctionChallengeDuplCircuit,
     AddECPointCircuit,
     AddECPointsG2Circuit,
+    ClearCofactorBLS12_381Circuit,
     DoubleECPointCircuit,
     DoubleECPointG2AEq0Circuit,
     DummyCircuit,
-    EvalFunctionChallengeDuplCircuit,
-    FinalizeFunctionChallengeDuplCircuit,
-    InitFunctionChallengeDuplCircuit,
     IsOnCurveG1Circuit,
     IsOnCurveG1G2Circuit,
     IsOnCurveG2Circuit,
-    RHSFinalizeAccCircuit,
-    SlopeInterceptSamePointCircuit,
+    PrepareFakeGLVPtsCircuit,
+    PrepareGLVFakeGLVPtsCircuit,
+    QuadrupleAndAdd9Circuit,
 )
 from garaga.starknet.cli.utils import create_directory
 
@@ -76,24 +73,12 @@ class CircuitID(Enum):
     IS_ON_CURVE_G1_G2 = int.from_bytes(b"is_on_curve_g1_g2", "big")
     IS_ON_CURVE_G1 = int.from_bytes(b"is_on_curve_g1", "big")
     IS_ON_CURVE_G2 = int.from_bytes(b"is_on_curve_g2", "big")
-    DERIVE_POINT_FROM_X = int.from_bytes(b"derive_point_from_x", "big")
-    SLOPE_INTERCEPT_SAME_POINT = int.from_bytes(b"slope_intercept_same_point", "big")
-    ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED = int.from_bytes(
-        b"acc_eval_point_challenge", "big"
-    )
-    RHS_FINALIZE_ACC = int.from_bytes(b"rhs_finalize_acc", "big")
-    EVAL_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
-        b"eval_function_challenge_dupl", "big"
-    )
-    INIT_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
-        b"init_function_challenge_dupl", "big"
-    )
-    ACC_FUNCTION_CHALLENGE_DUPL = int.from_bytes(b"acc_function_challenge_dupl", "big")
-    FINALIZE_FUNCTION_CHALLENGE_DUPL = int.from_bytes(
-        b"finalize_function_challenge_dupl", "big"
-    )
+    CLEAR_COFACTOR_BLS12_381 = int.from_bytes(b"clear_cofactor_bls12_381", "big")
     ADD_EC_POINT = int.from_bytes(b"add_ec_point", "big")
     DOUBLE_EC_POINT = int.from_bytes(b"double_ec_point", "big")
+    PREPARE_GLV_FAKE_GLV_PTS = int.from_bytes(b"prepare_glv_fake_glv_pts", "big")
+    PREPARE_FAKE_GLV_PTS = int.from_bytes(b"prepare_fake_glv_pts", "big")
+    QUADRUPLE_AND_ADD_9 = int.from_bytes(b"quadruple_and_add_9", "big")
     MP_CHECK_BIT0_LOOP = int.from_bytes(b"mp_check_bit0_loop", "big")
     MP_CHECK_BIT00_LOOP = int.from_bytes(b"mp_check_bit00_loop", "big")
     MP_CHECK_BIT1_LOOP = int.from_bytes(b"mp_check_bit1_loop", "big")
@@ -158,43 +143,11 @@ ALL_CAIRO_CIRCUITS = {
         "params": None,
         "filename": "ec",
     },
-    CircuitID.SLOPE_INTERCEPT_SAME_POINT: {
-        "class": SlopeInterceptSamePointCircuit,
+    CircuitID.CLEAR_COFACTOR_BLS12_381: {
+        "class": ClearCofactorBLS12_381Circuit,
         "params": None,
         "filename": "ec",
-    },
-    CircuitID.ACCUMULATE_EVAL_POINT_CHALLENGE_SIGNED: {
-        "class": AccumulateEvalPointChallengeSignedCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.RHS_FINALIZE_ACC: {
-        "class": RHSFinalizeAccCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.EVAL_FUNCTION_CHALLENGE_DUPL: {
-        "class": EvalFunctionChallengeDuplCircuit,
-        "params": [
-            {"n_points": k, "batched": True} for k in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-        ]
-        + [{"n_points": k, "batched": False} for k in [1, 2]],
-        "filename": "ec",
-    },
-    CircuitID.INIT_FUNCTION_CHALLENGE_DUPL: {
-        "class": InitFunctionChallengeDuplCircuit,
-        "params": [{"n_points": k, "batched": True} for k in [11]],
-        "filename": "ec",
-    },
-    CircuitID.ACC_FUNCTION_CHALLENGE_DUPL: {
-        "class": AccumulateFunctionChallengeDuplCircuit,
-        "params": None,
-        "filename": "ec",
-    },
-    CircuitID.FINALIZE_FUNCTION_CHALLENGE_DUPL: {
-        "class": FinalizeFunctionChallengeDuplCircuit,
-        "params": None,
-        "filename": "ec",
+        "curve_ids": [CurveID.BLS12_381],
     },
     CircuitID.ADD_EC_POINT: {
         "class": AddECPointCircuit,
@@ -203,6 +156,21 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.DOUBLE_EC_POINT: {
         "class": DoubleECPointCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.PREPARE_GLV_FAKE_GLV_PTS: {
+        "class": PrepareGLVFakeGLVPtsCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.PREPARE_FAKE_GLV_PTS: {
+        "class": PrepareFakeGLVPtsCircuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.QUADRUPLE_AND_ADD_9: {
+        "class": QuadrupleAndAdd9Circuit,
         "params": None,
         "filename": "ec",
     },
@@ -554,7 +522,6 @@ def compile_circuits(
                 circuit_info["class"],
                 circuit_info["params"],
                 compilation_mode,
-                filename_key,
             )
             codes[filename_key].update(compiled_circuits)
             for circuit_instance in circuit_instances:
@@ -618,10 +585,10 @@ def write_compiled_circuits(
         for compiled_circuit in sorted(codes[filename]):
             file.write(compiled_circuit + "\n")
 
-        if compilation_mode == 1:
-            write_cairo1_tests(
-                file, filename, cairo1_full_function_names, cairo1_tests_functions
-            )
+        # if compilation_mode == 1:
+        #     write_cairo1_tests(
+        #         file, filename, cairo1_full_function_names, cairo1_tests_functions
+        #     )
 
 
 def write_cairo1_tests(

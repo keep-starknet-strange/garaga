@@ -8,26 +8,15 @@ use crate::definitions::CurveParamsProvider;
 #[derive(Debug, Clone)]
 pub struct FF<F: IsPrimeField> {
     pub coeffs: Vec<Polynomial<F>>,
-    pub y2: Polynomial<F>,
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
     pub fn new(coeffs: Vec<Polynomial<F>>) -> Self {
-        let curve_params = F::get_curve_params();
-        let a = curve_params.a;
-        let b = curve_params.b;
-
-        let y2 = Polynomial::new(vec![b, a, FieldElement::zero(), FieldElement::one()]);
-
-        FF { coeffs, y2 }
+        FF { coeffs }
     }
 
     pub fn degree(&self) -> usize {
         self.coeffs.len() - 1
-    }
-
-    pub fn get(&self, i: usize) -> Polynomial<F> {
-        self.coeffs.get(i).cloned().unwrap_or_else(Polynomial::zero)
     }
 
     pub fn neg_y(self) -> FF<F> {
@@ -36,12 +25,9 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
         } else {
             let mut coeff_neg = self.coeffs.clone();
             for i in (1..coeff_neg.len()).step_by(2) {
-                coeff_neg[i] = -coeff_neg[i].clone();
+                coeff_neg[i] = -&coeff_neg[i];
             }
-            FF {
-                coeffs: coeff_neg,
-                y2: self.y2.clone(),
-            }
+            FF { coeffs: coeff_neg }
         }
     }
 
@@ -49,16 +35,18 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
         match self.coeffs.len() {
             0 => FF {
                 coeffs: vec![Polynomial::zero(), Polynomial::zero()],
-                y2: self.y2.clone(),
             },
             1 => FF {
                 coeffs: vec![self.coeffs[0].clone(), Polynomial::zero()],
-                y2: self.y2.clone(),
             },
             _ => {
                 let mut deg_0_coeff = self.coeffs[0].clone();
                 let mut deg_1_coeff = self.coeffs[1].clone();
-                let mut y2 = self.y2.clone();
+                let curve_params = F::get_curve_params();
+                let a = curve_params.a;
+                let b = curve_params.b;
+
+                let mut y2 = Polynomial::new(vec![b, a, FieldElement::zero(), FieldElement::one()]);
 
                 for (i, poly) in self.coeffs.iter().enumerate().skip(2) {
                     if i % 2 == 0 {
@@ -72,7 +60,6 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
 
                 FF {
                     coeffs: vec![deg_0_coeff, deg_1_coeff],
-                    y2: self.y2.clone(),
                 }
             }
         }
@@ -88,7 +75,6 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
                 .iter()
                 .map(|c| c.scale_by_coeff(&inv_coeff))
                 .collect(),
-            y2: self.y2.clone(),
         }
     }
 
@@ -106,10 +92,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> FF<F> {
 
         // println!("Final coefficients after division: {:?}", coeffs);
 
-        FF {
-            coeffs,
-            y2: self.y2.clone(),
-        }
+        FF { coeffs }
     }
 
     pub fn print_as_sage_poly(&self) -> String {
@@ -144,11 +127,11 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Add for FF<F> {
         let mut coeffs = vec![Polynomial::zero(); max_degree];
 
         for i in 0..self.coeffs.len() {
-            coeffs[i] = coeffs[i].clone() + self.coeffs[i].clone();
+            coeffs[i] = &coeffs[i] + &self.coeffs[i];
         }
 
         for i in 0..other.coeffs.len() {
-            coeffs[i] = coeffs[i].clone() + other.coeffs[i].clone();
+            coeffs[i] = &coeffs[i] + &other.coeffs[i];
         }
 
         FF::new(coeffs)
@@ -169,7 +152,29 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for FF<F> {
         for (i, self_poly) in self.coeffs.iter().enumerate() {
             for (j, other_poly) in other.coeffs.iter().enumerate() {
                 let product = self_poly * other_poly;
-                coeffs[i + j] = coeffs[i + j].clone() + product;
+                coeffs[i + j] = &coeffs[i + j] + &product;
+            }
+        }
+
+        FF::new(coeffs)
+    }
+}
+
+impl<F: IsPrimeField + CurveParamsProvider<F>> Mul for &FF<F> {
+    type Output = FF<F>;
+
+    fn mul(self, other: Self) -> Self::Output {
+        let max_degree = self.coeffs.len() + other.coeffs.len() - 1;
+        let mut coeffs = vec![Polynomial::zero(); max_degree];
+
+        if self.coeffs.is_empty() || other.coeffs.is_empty() {
+            return FF::new(vec![Polynomial::zero()]);
+        }
+
+        for (i, self_poly) in self.coeffs.iter().enumerate() {
+            for (j, other_poly) in other.coeffs.iter().enumerate() {
+                let product = self_poly * other_poly;
+                coeffs[i + j] = &coeffs[i + j] + &product;
             }
         }
 

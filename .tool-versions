@@ -1,1 +1,3 @@
-scarb 2.11.2
+scarb 2.11.4
+starknet-foundry 0.44.0
+starknet-devnet 0.4.1

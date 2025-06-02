@@ -17,14 +17,27 @@ use num_traits::Num;
 use wasm_bindgen::prelude::*; // Import the Num trait
 
 #[wasm_bindgen]
+pub fn drand_calldata_builder(values: Vec<JsValue>) -> Result<Vec<JsValue>, JsValue> {
+    let values: Vec<BigUint> = values
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let result = crate::calldata::drand_calldata::drand_calldata_builder(&values)
+        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+
+    let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
 pub fn msm_calldata_builder(
     values: Vec<JsValue>,
     scalars: Vec<JsValue>,
     curve_id: usize,
-    include_digits_decomposition: bool,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-    risc0_mode: bool,
 ) -> Result<Vec<JsValue>, JsValue> {
     let values: Vec<BigUint> = values
         .into_iter()
@@ -40,10 +53,8 @@ pub fn msm_calldata_builder(
         &values,
         &scalars,
         curve_id,
-        Some(include_digits_decomposition),
         include_points_and_scalars,
         serialize_as_pure_felt252_array,
-        risc0_mode,
     )
     .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
@@ -279,7 +290,8 @@ fn jsvalue_from_g1_point_array(
 }
 
 // Optional parsing helper for Uint8Array
-fn parse_optional_uint8_array(value: JsValue) -> Option<Vec<u8>> {
+#[allow(dead_code)]
+fn _parse_optional_uint8_array(value: JsValue) -> Option<Vec<u8>> {
     value.dyn_into::<Uint8Array>().ok().map(|arr| arr.to_vec())
 }
 
@@ -343,16 +355,51 @@ pub fn get_groth16_calldata(
 
     let public_inputs = parse_biguint_array(get_property(&proof_obj, "publicInputs")?)?;
 
-    let image_id = parse_optional_uint8_array(get_property(&proof_obj, "imageId")?);
-    let journal = parse_optional_uint8_array(get_property(&proof_obj, "journal")?);
+    // Parse RISC0 data if present
+    let image_id_journal_risc0 = match get_property(&proof_obj, "imageIdJournalRisc0") {
+        Ok(value) if !value.is_undefined() && !value.is_null() => {
+            let risc0_obj = value
+                .dyn_into::<js_sys::Object>()
+                .map_err(|_| JsValue::from_str("imageIdJournalRisc0 is not an object"))?;
+            let image_id = get_property(&risc0_obj, "imageId")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("imageId is not a Uint8Array"))?;
+            let journal = get_property(&risc0_obj, "journal")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("journal is not a Uint8Array"))?;
+            Some((image_id, journal))
+        }
+        _ => None,
+    };
+
+    // Parse SP1 data if present
+    let vkey_public_values_sp1 = match get_property(&proof_obj, "vkeyPublicValuesSp1") {
+        Ok(value) if !value.is_undefined() && !value.is_null() => {
+            let sp1_obj = value
+                .dyn_into::<js_sys::Object>()
+                .map_err(|_| JsValue::from_str("vkeyPublicValuesSp1 is not an object"))?;
+            let vkey = get_property(&sp1_obj, "vkey")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("vkey is not a Uint8Array"))?;
+            let public_values = get_property(&sp1_obj, "publicValues")?
+                .dyn_into::<Uint8Array>()
+                .map(|arr| arr.to_vec())
+                .map_err(|_| JsValue::from_str("publicValues is not a Uint8Array"))?;
+            Some((vkey, public_values))
+        }
+        _ => None,
+    };
 
     let proof = Groth16Proof {
         a,
         b,
         c,
         public_inputs,
-        image_id,
-        journal,
+        image_id_journal_risc0,
+        vkey_public_values_sp1,
     };
 
     let vk_obj = vk_js
@@ -393,12 +440,14 @@ pub fn get_groth16_calldata(
 }
 
 #[wasm_bindgen]
-pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
-    let bytes = uint8_array
+pub fn parse_honk_proof(proof_js: JsValue, public_inputs_js: JsValue) -> Result<JsValue, JsValue> {
+    let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let public_inputs_bytes = public_inputs_js
         .dyn_into::<Uint8Array>()
         .map(|arr| arr.to_vec())?;
 
-    let proof = HonkProof::from_bytes(&bytes).map_err(|s| JsValue::from_str(&s))?;
+    let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
+        .map_err(|s| JsValue::from_str(&s))?;
 
     let curve_id = CurveID::BN254 as usize;
 
@@ -407,6 +456,11 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
         &proof_obj,
         "publicInputs",
         &jsvalue_from_biguint_array(&proof.public_inputs)?,
+    )?;
+    set_property(
+        &proof_obj,
+        "pairingPointObject",
+        &jsvalue_from_biguint_array(&proof.pairing_point_object)?,
     )?;
     set_property(
         &proof_obj,
@@ -490,13 +544,18 @@ pub fn parse_honk_proof(uint8_array: JsValue) -> Result<JsValue, JsValue> {
 #[wasm_bindgen]
 pub fn get_honk_calldata(
     proof_js: JsValue,
+    public_inputs_js: JsValue,
     vk_js: JsValue,
     flavor_js: JsValue,
 ) -> Result<Vec<JsValue>, JsValue> {
     let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let public_inputs_bytes = public_inputs_js
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
     let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
 
-    let proof = HonkProof::from_bytes(&proof_bytes).map_err(|s| JsValue::from_str(&s))?;
+    let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
+        .map_err(|s| JsValue::from_str(&s))?;
     let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
 
     //Parse flavor_js into usize
@@ -521,13 +580,18 @@ pub fn get_honk_calldata(
 #[wasm_bindgen]
 pub fn get_zk_honk_calldata(
     proof_js: JsValue,
+    public_inputs_js: JsValue,
     vk_js: JsValue,
     flavor_js: JsValue,
 ) -> Result<Vec<JsValue>, JsValue> {
     let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
+    let public_inputs_bytes = public_inputs_js
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())?;
     let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
 
-    let proof = ZKHonkProof::from_bytes(&proof_bytes).map_err(|s| JsValue::from_str(&s))?;
+    let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
+        .map_err(|s| JsValue::from_str(&s))?;
     let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
 
     //Parse flavor_js into usize

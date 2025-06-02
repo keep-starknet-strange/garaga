@@ -1,14 +1,50 @@
 {
   "type": "module",
   "name": "garaga",
-  "version": "0.16.0",
+  "version": "0.18.1",
+  "description": "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "files": [
-    "./dist/"
+    "./dist/",
+    "README.md",
+    "API.md"
   ],
+  "keywords": [
+    "elliptic-curves",
+    "cryptography",
+    "zk-snarks",
+    "zero-knowledge",
+    "pairing",
+    "starknet",
+    "cairo",
+    "groth16",
+    "noir",
+    "honk",
+    "blockchain",
+    "wasm",
+    "typescript",
+    "rust"
+  ],
+  "author": {
+    "name": "feltroidprime"
+  },
+  "contributors": [
+    "Keep Starknet Strange Contributors"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/keep-starknet-strange/garaga",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/keep-starknet-strange/garaga.git",
+    "directory": "tools/npm/garaga_ts"
+  },
+  "bugs": {
+    "url": "https://github.com/keep-starknet-strange/garaga/issues"
+  },
+  "documentation": "https://garaga.gitbook.io/",
   "scripts": {
     "build:wasm": "cd ../../garaga_rs && RUSTFLAGS='--cfg getrandom_backend=\"wasm_js\"' wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features",
     "patch:wasm": "node patch.wasm.cjs",

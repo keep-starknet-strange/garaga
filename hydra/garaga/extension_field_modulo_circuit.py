@@ -186,7 +186,6 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
     def create_powers_of_Z(
         self,
         Z: PyFelt | ModuloCircuitElement,
-        mock: bool = False,
         max_degree: int = None,
     ) -> list[ModuloCircuitElement]:
         if max_degree is None:
@@ -200,16 +199,10 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
         else:
             raise ValueError(f"Invalid type for Z: {type(Z)}")
         powers = [Z]
-        if not mock:
-            for i in range(2, max_degree + 1):
-                powers.append(self.mul(powers[-1], powers[0], comment=f"Compute z^{i}"))
-        else:
-            powers = powers + [
-                self.write_element(
-                    self.field(Z.value**i), write_source=WriteOps.WITNESS
-                )
-                for i in range(2, max_degree + 1)
-            ]
+
+        for i in range(2, max_degree + 1):
+            powers.append(self.mul(powers[-1], powers[0], comment=f"Compute z^{i}"))
+
         self.z_powers = powers
         return powers
 
@@ -542,7 +535,6 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
     def finalize_circuit(
         self,
         extension_degree: int = None,
-        mock=False,
     ):
         ######### Flags #########
         extension_degree = extension_degree or self.extension_degree
@@ -596,7 +588,7 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
 
         z = self.transcript.continuable_hash
 
-        self.create_powers_of_Z(z, mock=mock, max_degree=compute_z_up_to)
+        self.create_powers_of_Z(z, max_degree=compute_z_up_to)
 
         for acc_index in acc_indexes:
             for i in range(self.accumulate_poly_instructions[acc_index].n):
@@ -621,32 +613,29 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
                     instruction_index=i,
                 )
 
-            if not mock:
-                Q_of_Z = self.eval_poly_in_precomputed_Z(Q[acc_index])
-                P, P_sparsity = self.write_sparse_constant_elements(
-                    get_irreducible_poly(
-                        self.curve_id, (acc_index + 1) * extension_degree
-                    ).get_coeffs(),
-                )
-                P_of_z = self.eval_poly_in_precomputed_Z(P, P_sparsity)
-                R = self.acc[acc_index].R
-                R_of_Z = self.eval_poly_in_precomputed_Z(R)
+            Q_of_Z = self.eval_poly_in_precomputed_Z(Q[acc_index])
+            P, P_sparsity = self.write_sparse_constant_elements(
+                get_irreducible_poly(
+                    self.curve_id, (acc_index + 1) * extension_degree
+                ).get_coeffs(),
+            )
+            P_of_z = self.eval_poly_in_precomputed_Z(P, P_sparsity)
+            R = self.acc[acc_index].R
+            R_of_Z = self.eval_poly_in_precomputed_Z(R)
 
-                lhs = self.acc[acc_index].lhs
-                rhs = self.add(
-                    self.mul(Q_of_Z, P_of_z),
-                    self.add(R_of_Z, self.acc[acc_index].R_evaluated),
+            lhs = self.acc[acc_index].lhs
+            rhs = self.add(
+                self.mul(Q_of_Z, P_of_z),
+                self.add(R_of_Z, self.acc[acc_index].R_evaluated),
+            )
+            assert lhs.value == rhs.value, f"{lhs.value} != {rhs.value}, {acc_index}"
+            if self.compilation_mode == 0:
+                self.sub_and_assert(
+                    lhs, rhs, self.set_or_get_constant(self.field.zero())
                 )
-                assert (
-                    lhs.value == rhs.value
-                ), f"{lhs.value} != {rhs.value}, {acc_index}"
-                if self.compilation_mode == 0:
-                    self.sub_and_assert(
-                        lhs, rhs, self.set_or_get_constant(self.field.zero())
-                    )
-                else:
-                    eq_check = self.sub(rhs, lhs)
-                    self.extend_output([eq_check])
+            else:
+                eq_check = self.sub(rhs, lhs)
+                self.extend_output([eq_check])
         return True
 
     def summarize(self):

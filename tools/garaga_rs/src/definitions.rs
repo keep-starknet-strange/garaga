@@ -9,6 +9,7 @@ use lambdaworks_math::field::fields::montgomery_backed_prime_fields::{
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use lambdaworks_math::unsigned_integer::element::U256;
+use num_bigint::BigInt;
 use num_bigint::BigUint;
 use num_traits::Num;
 use std::cmp::PartialEq;
@@ -119,7 +120,7 @@ where
         use rand::Rng;
         let mut rng = rand::rng();
         let bits = F::field_bit_size();
-        let bytes = (bits + 7) / 8; // Round up to nearest byte
+        let bytes = bits.div_ceil(8); // Round up to nearest byte
 
         let random_bytes: Vec<u8> = (0..bytes).map(|_| rng.random()).collect();
         let random_num = BigUint::from_bytes_be(&random_bytes);
@@ -141,10 +142,19 @@ pub struct CurveParams<F: IsPrimeField> {
     pub g2_y: Option<[FieldElement<F>; 2]>, // Only for pairing curves
     pub n: BigUint,                         // Order of the curve
     pub h: u32,                             // Cofactor
+    pub x: i128,
     pub fp_generator: FieldElement<F>,
     pub irreducible_polys: HashMap<usize, &'static [i8]>,
     pub loop_counter: &'static [i8],
-    pub nr_a0: u64, // E2 non residue
+    pub nr_a0: u64,                  // E2 non residue
+    pub eigen_value: Option<BigInt>, // Endomorphism eigenvalue
+    pub swu_params: Option<SWUParams<F>>,
+}
+
+pub struct SWUParams<F: IsPrimeField> {
+    pub a: FieldElement<F>,
+    pub b: FieldElement<F>,
+    pub z: FieldElement<F>,
 }
 
 pub fn get_irreducible_poly<F: IsPrimeField + CurveParamsProvider<F>>(
@@ -193,10 +203,19 @@ impl CurveParamsProvider<SECP256K1PrimeField> for SECP256K1PrimeField {
             )
             .unwrap(),
             h: 1,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: Some(
+                BigInt::from_str_radix(
+                    "5363AD4CC05C30E0A5261C028812645A122E22EA20816678DF02967C1B23BD72",
+                    16,
+                )
+                .unwrap(),
+            ),
+            swu_params: None,
         }
     }
 }
@@ -227,10 +246,13 @@ impl CurveParamsProvider<SECP256R1PrimeField> for SECP256R1PrimeField {
             )
             .unwrap(),
             h: 1,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: None, // SECP256R1 does not have a known endomorphism eigenvalue for GLV
+            swu_params: None,
         }
     }
 }
@@ -261,10 +283,13 @@ impl CurveParamsProvider<X25519PrimeField> for X25519PrimeField {
             )
             .unwrap(),
             h: 8,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(6),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: None, // X25519 (Edwards/Montgomery) does not typically use this type of endomorphism
+            swu_params: None,
         }
     }
 }
@@ -291,10 +316,13 @@ impl CurveParamsProvider<GrumpkinPrimeField> for GrumpkinPrimeField {
             )
             .unwrap(),
             h: 1,
+            x: 0, // Replace with actual 'x'
             fp_generator: FieldElement::from(5),
             irreducible_polys: HashMap::from([]), // Provide appropriate values here
             loop_counter: &[],                    // Provide appropriate values here
             nr_a0: 0,                             // Provide appropriate values here
+            eigen_value: None, // Grumpkin does not have a known endomorphism eigenvalue for GLV
+            swu_params: None,
         }
     }
 }
@@ -335,6 +363,7 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
             )
             .unwrap(),
             h: 1, // Replace with actual 'h'
+            x: 0x44E992B44A6909F1,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [82, 0, 0, -18, 0, 0, 1].as_slice()),
@@ -346,6 +375,11 @@ impl CurveParamsProvider<BN254PrimeField> for BN254PrimeField {
                 -1, 0, 0, 0, -1, 0, -1, 0, 0, 0, 1, 0, -1, 0, 1,
             ],
             nr_a0: 9,
+            eigen_value: Some(
+                BigInt::from_str_radix("B3C4D79D41A917585BFC41088D8DAAA78B17EA66B99C90DD", 16)
+                    .unwrap(),
+            ),
+            swu_params: None,
         }
     }
 }
@@ -374,6 +408,7 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
             )
             .unwrap(),
             h: 1, // Replace with actual 'h'
+            x: -0xD201000000010000,
             fp_generator: FieldElement::from(3),
             irreducible_polys: HashMap::from([
                 (6, [2, 0, 0, -2, 0, 0, 1].as_slice()),
@@ -385,6 +420,14 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
                 0, 1, 0, 0, 1, 0, 1, 1,
             ],
             nr_a0: 1,
+            eigen_value: Some(
+                BigInt::from_str_radix("AC45A4010001A40200000000FFFFFFFF", 16).unwrap(),
+            ),
+            swu_params: Some(SWUParams {
+                a: FieldElement::from_hex_unchecked("144698A3B8E9433D693A02C96D4982B0EA985383EE66A8D8E8981AEFD881AC98936F8DA0E0F97F5CF428082D584C1D"),
+                b: FieldElement::from_hex_unchecked("12E2908D11688030018B12E8753EEE3B2016C1F0F24F4070A0B9C14FCEF35EF55A23215A316CEAA5D1CC48E98E172BE0"),
+                z: FieldElement::from_hex_unchecked("B"),
+            }),
         }
     }
 }

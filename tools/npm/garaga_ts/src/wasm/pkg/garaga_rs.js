@@ -210,22 +210,45 @@ function getArrayJsValueFromWasm0(ptr, len) {
 }
 /**
  * @param {any[]} values
- * @param {any[]} scalars
- * @param {number} curve_id
- * @param {boolean} include_digits_decomposition
- * @param {boolean} include_points_and_scalars
- * @param {boolean} serialize_as_pure_felt252_array
- * @param {boolean} risc0_mode
  * @returns {any[]}
  */
-export function msm_calldata_builder(values, scalars, curve_id, include_digits_decomposition, include_points_and_scalars, serialize_as_pure_felt252_array, risc0_mode) {
+export function drand_calldata_builder(values) {
+    try {
+        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
+        const ptr0 = passArrayJsValueToWasm0(values, wasm.__wbindgen_malloc);
+        const len0 = WASM_VECTOR_LEN;
+        wasm.drand_calldata_builder(retptr, ptr0, len0);
+        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
+        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
+        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
+        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
+        if (r3) {
+            throw takeObject(r2);
+        }
+        var v2 = getArrayJsValueFromWasm0(r0, r1).slice();
+        wasm.__wbindgen_free(r0, r1 * 4, 4);
+        return v2;
+    } finally {
+        wasm.__wbindgen_add_to_stack_pointer(16);
+    }
+}
+
+/**
+ * @param {any[]} values
+ * @param {any[]} scalars
+ * @param {number} curve_id
+ * @param {boolean} include_points_and_scalars
+ * @param {boolean} serialize_as_pure_felt252_array
+ * @returns {any[]}
+ */
+export function msm_calldata_builder(values, scalars, curve_id, include_points_and_scalars, serialize_as_pure_felt252_array) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
         const ptr0 = passArrayJsValueToWasm0(values, wasm.__wbindgen_malloc);
         const len0 = WASM_VECTOR_LEN;
         const ptr1 = passArrayJsValueToWasm0(scalars, wasm.__wbindgen_malloc);
         const len1 = WASM_VECTOR_LEN;
-        wasm.msm_calldata_builder(retptr, ptr0, len0, ptr1, len1, curve_id, include_digits_decomposition, include_points_and_scalars, serialize_as_pure_felt252_array, risc0_mode);
+        wasm.msm_calldata_builder(retptr, ptr0, len0, ptr1, len1, curve_id, include_points_and_scalars, serialize_as_pure_felt252_array);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -428,13 +451,14 @@ export function get_groth16_calldata(proof_js, vk_js, curve_id_js) {
 }
 
 /**
- * @param {any} uint8_array
+ * @param {any} proof_js
+ * @param {any} public_inputs_js
  * @returns {any}
  */
-export function parse_honk_proof(uint8_array) {
+export function parse_honk_proof(proof_js, public_inputs_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.parse_honk_proof(retptr, addHeapObject(uint8_array));
+        wasm.parse_honk_proof(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -449,14 +473,15 @@ export function parse_honk_proof(uint8_array) {
 
 /**
  * @param {any} proof_js
+ * @param {any} public_inputs_js
  * @param {any} vk_js
  * @param {any} flavor_js
  * @returns {any[]}
  */
-export function get_honk_calldata(proof_js, vk_js, flavor_js) {
+export function get_honk_calldata(proof_js, public_inputs_js, vk_js, flavor_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(vk_js), addHeapObject(flavor_js));
+        wasm.get_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js), addHeapObject(flavor_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -474,14 +499,15 @@ export function get_honk_calldata(proof_js, vk_js, flavor_js) {
 
 /**
  * @param {any} proof_js
+ * @param {any} public_inputs_js
  * @param {any} vk_js
  * @param {any} flavor_js
  * @returns {any[]}
  */
-export function get_zk_honk_calldata(proof_js, vk_js, flavor_js) {
+export function get_zk_honk_calldata(proof_js, public_inputs_js, vk_js, flavor_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_zk_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(vk_js), addHeapObject(flavor_js));
+        wasm.get_zk_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js), addHeapObject(flavor_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -632,6 +658,14 @@ function __wbg_get_imports() {
         const len1 = WASM_VECTOR_LEN;
         getDataViewMemory0().setInt32(arg0 + 4 * 1, len1, true);
         getDataViewMemory0().setInt32(arg0 + 4 * 0, ptr1, true);
+    };
+    imports.wbg.__wbindgen_is_null = function(arg0) {
+        const ret = getObject(arg0) === null;
+        return ret;
+    };
+    imports.wbg.__wbindgen_is_undefined = function(arg0) {
+        const ret = getObject(arg0) === undefined;
+        return ret;
     };
     imports.wbg.__wbindgen_memory = function() {
         const ret = wasm.memory;
