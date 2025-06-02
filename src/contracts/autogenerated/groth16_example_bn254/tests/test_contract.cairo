@@ -8,10 +8,10 @@
 //! - Test both positive (valid proof) and negative (invalid proof) cases
 
 use groth16_example_bn254::groth16_verifier::{
-    IGroth16VerifierBN254LibraryDispatcher, IGroth16VerifierBN254LibraryDispatcherTrait,
+    IGroth16VerifierBN254DispatcherTrait, IGroth16VerifierBN254LibraryDispatcher,
 };
 use snforge_std::fs::{FileTrait, read_txt};
-use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
+use snforge_std::{DeclareResultTrait, declare};
 use starknet::ClassHash;
 
 /// Declare the Groth16VerifierBN254 contract for testing.
