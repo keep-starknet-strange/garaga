@@ -6,9 +6,9 @@ icon: octopus
 
 ## Requirements (read carefully to avoid 99% of issues!)
 
-* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.0 (install with `pip install garaga==0.18.0`
-* Noir 1.0.0-beta.3 (install with `noirup --version 1.0.0-beta.3`  or `npm i @noir-lang/noir_js@1.0.0-beta.3` )
-* Barretenberg 0.86.0-starknet.1 (install with `bbup --version 0.86.0-starknet.1` or `npm i @aztec/bb.js@0.86.0-starknet.1` )
+* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.1 (install with `pip install garaga==0.18.1`
+* Noir 1.0.0-beta.4 (install with `noirup --version 1.0.0-beta.4`  or `npm i @noir-lang/noir_js@1.0.0-beta.4` )
+* Barretenberg 0.87.4-starknet.1 (install with `bbup --version 0.87.4-starknet.1` or `npm i @aztec/bb.js@0.87.4-starknet.1` )
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
@@ -67,7 +67,7 @@ The contract interface will be
 trait IUltraKeccakZKHonkVerifier<TContractState> {
     fn verify_ultra_keccak_zk_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>; // Returns the public inputs in case of success.  
+    ) -> Option<Span<u256>>; // Returns the public inputs in case of success.
 }
 ```
 
@@ -189,7 +189,7 @@ from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof
 )
 
-# 1. Add the pip package to your project using the same release tag as the version that 
+# 1. Add the pip package to your project using the same release tag as the version that
 # generated the verifier.
 
 # 2. Load your proof and verification key
