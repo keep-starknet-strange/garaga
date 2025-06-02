@@ -17,9 +17,11 @@ reset
 BB_PATH="bb"
 
 
-echo "nargo version : $(nargo --version)" # 1.0.0-beta.3
-echo "bb version : $($BB_PATH --version)" # 0.86.0 || 0.86.0-starknet.1
+echo "nargo version : $(nargo --version)" # See constants.json for nargo version
+echo "bb version : $($BB_PATH --version)" # See constants.json for bb version
 
+SCRIPT_PATH=$(dirname $(realpath $0))
+HONK_FIXTURES_PATH="$SCRIPT_PATH/../../hydra/garaga/starknet/honk_contract_generator/examples"
 
 run_noir_proof_basic() {
     cd hello
@@ -30,7 +32,6 @@ run_noir_proof_basic() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
@@ -50,7 +51,6 @@ run_noir_proof_ultra() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
@@ -70,7 +70,12 @@ run_noir_proof_ultra_keccak() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    # Copy and replace vk.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/vk${suffix}.bin $HONK_FIXTURES_PATH/
+    # Copy and replace public_inputs.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/public_inputs${suffix}.bin $HONK_FIXTURES_PATH/
+    # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk --oracle_hash keccak -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
@@ -91,7 +96,8 @@ run_noir_proof_ultra_starknet() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk --oracle_hash starknet -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
@@ -111,7 +117,8 @@ run_noir_proof_ultra_keccak_zk() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk --oracle_hash keccak --zk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
@@ -132,7 +139,8 @@ run_noir_proof_ultra_starknet_zk() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    mv -f target/proof${suffix}/vk_fields.json target/vk${suffix}.json
+    # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk --oracle_hash starknet --zk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then

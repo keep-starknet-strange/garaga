@@ -58,6 +58,11 @@ CAIRO_VERSION = "{constants["release_info"]["cairo_version"]}"
 
 # Starknet Foundry version
 STARKNET_FOUNDRY_VERSION = "{constants["release_info"]["starknet_foundry_version"]}"
+
+# Noir versions
+BB_VERSION = "{constants["noir"]["bb_version"]}"
+BBUP_VERSION = "{constants["noir"]["bbup_version"]}"
+NARGO_VERSION = "{constants["noir"]["nargo_version"]}"
 '''
 
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
@@ -485,6 +490,102 @@ def update_npm_readme_version(constants: Dict[str, Any], npm_readme_path: str):
         return False
 
 
+def update_noir_docs_version(constants: Dict[str, Any], noir_docs_path: str):
+    """
+    Update the Noir documentation file with current versions.
+
+    This function updates the Garaga CLI, Noir, and Barretenberg versions
+    in the requirements section of the Noir documentation, as well as
+    the GitHub links with the correct version tags.
+    """
+    garaga_version = constants["release_info"]["garaga_version"]
+    nargo_version = constants["noir"]["nargo_version"]
+    bbup_version = constants["noir"]["bbup_version"]
+
+    try:
+        with open(noir_docs_path, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        # Track if any changes were made
+        changes_made = False
+        updated_content = content
+
+        # Update Garaga CLI version
+        # Pattern: "version X.Y.Z (install with `pip install garaga==X.Y.Z`" (handles incomplete backticks too)
+        garaga_pattern = r"(version\s+)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(\s+\(install with `pip install garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(`?)"
+        garaga_replacement = f"\\g<1>{garaga_version}\\g<2>{garaga_version}\\g<3>"
+
+        new_content = re.sub(garaga_pattern, garaga_replacement, updated_content)
+        if new_content != updated_content:
+            changes_made = True
+            updated_content = new_content
+
+        # Update Noir version - use multiple simple replacements
+        # Replace all instances of old version with new version
+        noir_old_version = re.search(
+            r"Noir\s+([\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?)", updated_content
+        )
+        if noir_old_version:
+            old_version = noir_old_version.group(1)
+            if old_version != nargo_version:
+                updated_content = updated_content.replace(old_version, nargo_version)
+                changes_made = True
+
+        # Update Barretenberg version - use multiple simple replacements
+        bb_old_version = re.search(
+            r"Barretenberg\s+([\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?)", updated_content
+        )
+        if bb_old_version:
+            old_version = bb_old_version.group(1)
+            if old_version != bbup_version:
+                updated_content = updated_content.replace(old_version, bbup_version)
+                changes_made = True
+
+        # Update GitHub links with correct version tags
+        # Update AztecProtocol/aztec-packages link with bbup_version
+        aztec_pattern = r"(https://github\.com/AztecProtocol/aztec-packages/blob/v)[\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?([-\w\.]*)(/.*/backend\.ts)"
+        aztec_replacement = f"\\g<1>{bbup_version}\\g<3>"
+
+        new_content = re.sub(aztec_pattern, aztec_replacement, updated_content)
+        if new_content != updated_content:
+            changes_made = True
+            updated_content = new_content
+
+        # Update keep-starknet-strange/garaga link with garaga_version
+        garaga_link_pattern = r"(https://github\.com/keep-starknet-strange/garaga/blob/v)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(/tools/npm/garaga_ts/src/node/api\.ts)"
+        garaga_link_replacement = f"\\g<1>{garaga_version}\\g<2>"
+
+        new_content = re.sub(
+            garaga_link_pattern, garaga_link_replacement, updated_content
+        )
+        if new_content != updated_content:
+            changes_made = True
+            updated_content = new_content
+
+        # Verify that content actually changed
+        if not changes_made:
+            print(f"No version updates needed in {noir_docs_path} (already current)")
+            return True
+
+        # Write the updated content back
+        with open(noir_docs_path, "w", encoding="utf-8") as f:
+            f.write(updated_content)
+
+        print(f"Updated Noir documentation versions in {noir_docs_path}")
+        print(f"  - Garaga CLI: {garaga_version}")
+        print(f"  - Noir: {nargo_version}")
+        print(f"  - Barretenberg: {bbup_version}")
+        print(f"  - Updated GitHub links with version tags")
+        return True
+
+    except FileNotFoundError:
+        print(f"Error: Noir docs file not found at {noir_docs_path}")
+        return False
+    except Exception as e:
+        print(f"Error updating Noir docs versions: {e}")
+        return False
+
+
 def main():
     """Main function to generate all constants files and update version references."""
     constants = load_constants()
@@ -502,6 +603,13 @@ def main():
     garaga_rs_cargo_path = project_root / "tools" / "garaga_rs" / "Cargo.toml"
     package_json_path = project_root / "tools" / "npm" / "garaga_ts" / "package.json"
     npm_readme_path = project_root / "tools" / "npm" / "garaga_ts" / "README.md"
+    noir_docs_path = (
+        project_root
+        / "docs"
+        / "gitbook"
+        / "deploy-your-snark-verifier-on-starknet"
+        / "noir.md"
+    )
 
     # Generate constants files
     generate_python_constants(constants, str(python_output))
@@ -522,6 +630,9 @@ def main():
     )
     results.append(
         ("npm README", update_npm_readme_version(constants, str(npm_readme_path)))
+    )
+    results.append(
+        ("Noir docs", update_noir_docs_version(constants, str(noir_docs_path)))
     )
 
     failed = [(name, result) for name, result in results if not result]
