@@ -81,7 +81,10 @@ def drand_encrypt_to_calldata(
     cipher_text = encrypt_for_round(
         chain.public_key, round_number, message, randomness != None, randomness
     )
-    return cipher_text.serialize_to_calldata()
+    cd = []
+    cd.append(round_number)
+    cd.extend(cipher_text.serialize_to_calldata())
+    return [len(cd)] + cd
 
 
 def _drand_encrypt_to_calldata(

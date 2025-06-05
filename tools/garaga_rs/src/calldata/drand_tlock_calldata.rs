@@ -46,7 +46,12 @@ pub fn drand_tlock_encrypt_calldata_builder(values: &[BigUint]) -> Result<Vec<Bi
     let chain = get_chain_info(get_chain_hash(DrandNetwork::Quicknet))?;
     let public_key = chain.public_key.g2_point().unwrap().clone();
     let cipher_text = encrypt_for_round(public_key, round_number, message, randomness)?;
-    let call_data = cipher_text.to_calldata();
+    let cipher_text_hint = cipher_text.to_calldata();
+    let size = 1 + cipher_text_hint.len();
+    let mut call_data = vec![size.into()];
+    call_data.push(round_number.into());
+    call_data.extend(cipher_text_hint);
+    assert!(call_data.len() == 1 + size);
     Ok(call_data)
 }
 

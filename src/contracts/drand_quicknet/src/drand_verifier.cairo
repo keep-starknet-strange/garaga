@@ -88,12 +88,11 @@ mod DrandQuicknet {
         // Returns clear text for the encrypted cypher text if the proof for a given round is valid.
         fn decrypt_cipher_text(self: @ContractState, mut full_proof_with_hints: Span<felt252>) {
             //) -> Option<[u8; 16]> {
-            let _cipher_text: CipherText = Serde::deserialize(ref full_proof_with_hints).unwrap();
+            let _round_number = Serde::<u64>::deserialize(ref full_proof_with_hints).unwrap();
+            let _cipher_text = Serde::<CipherText>::deserialize(ref full_proof_with_hints).unwrap();
             //let msg_decrypted = decrypt_at_round(drand_hint.signature, cipher_text);
-
-            //Option::Some(msg_decrypted)
-
-            //    Option::None
+        //Option::Some(msg_decrypted)
+        //    Option::None
         }
     }
 }
