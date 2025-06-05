@@ -529,25 +529,11 @@ fn map_to_curve_inner_final_not_quad_res(
 }
 
 // The result of a timelock encryption over drand quicknet.
-#[derive(Drop)]
+#[derive(Drop, Serde)]
 pub struct CipherText {
     U: G2Point,
     V: [u8; 16],
     W: [u8; 16],
-}
-
-impl CipherTextSerde of Serde<CipherText> {
-    fn serialize(self: @CipherText, ref output: Array<felt252>) {
-        Serde::<G2Point>::serialize(self.U, ref output);
-	Serde::<[u8; 16]>::serialize(self.V, ref output);
-	Serde::<[u8; 16]>::serialize(self.W, ref output);
-    }
-    fn deserialize(ref serialized: Span<felt252>) -> Option<CipherText> {
-        let U = Serde::<G2Point>::deserialize(ref serialized)?;
-        let V = Serde::<[u8; 16]>::deserialize(ref serialized)?;
-        let W = Serde::<[u8; 16]>::deserialize(ref serialized)?;
-        return Option::Some(CipherText { U: U, V: V, W: W });
-    }
 }
 
 // bytes("IBE-H2") (4 + 2 bytes)
