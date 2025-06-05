@@ -14,7 +14,7 @@ trait IDrandQuicknet<TContractState> {
 #[starknet::contract]
 mod DrandQuicknet {
     // use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1G2Pair, G1Point};
+    use garaga::definitions::{G1G2Pair, G1Point, G1PointStorePacking};
     use garaga::pairing_check::{MPCheckHintBLS12_381, multi_pairing_check_bls12_381_2P_2F};
     use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
     use garaga::utils::drand::{
@@ -22,13 +22,14 @@ mod DrandQuicknet {
         round_to_curve_bls12_381,
     };
     use garaga::utils::hashing::hash_G1Point;
-    use starknet::storage::Map;
+    use starknet::storage::{Map, StoragePointerReadAccess, StoragePointerWriteAccess};
     use super::{G2_GEN, precomputed_lines};
     // use starknet::ContractAddress;
 
     #[storage]
     struct Storage {
-        randomness: Map<u64, felt252>,
+        signatures: Map<u64, G1Point>,
+        signature: G1Point,
     }
 
     #[derive(Drop)]
@@ -76,12 +77,16 @@ mod DrandQuicknet {
             );
 
             match check {
-                true => Option::Some(
-                    DrandResult {
-                        round_number: drand_hint.round_number,
-                        randomness: hash_G1Point(drand_hint.signature),
-                    },
-                ),
+                true => {
+                    //self.signature.write(drand_hint.signature);
+                    //self.signatures.entry(drand_hint.round_number).write(drand_hint.signature);
+                    Option::Some(
+                        DrandResult {
+                            round_number: drand_hint.round_number,
+                            randomness: hash_G1Point(drand_hint.signature),
+                        },
+                    )
+                },
                 false => Option::None,
             }
         }
@@ -90,7 +95,9 @@ mod DrandQuicknet {
             //) -> Option<[u8; 16]> {
             let _round_number = Serde::<u64>::deserialize(ref full_proof_with_hints).unwrap();
             let _cipher_text = Serde::<CipherText>::deserialize(ref full_proof_with_hints).unwrap();
-            //let msg_decrypted = decrypt_at_round(drand_hint.signature, cipher_text);
+            let _signature = self.signature.read();
+            //let _signature = self.signatures.entry(round_number).read();
+        //let _msg_decrypted = decrypt_at_round(signature, cipher_text);
         //Option::Some(msg_decrypted)
         //    Option::None
         }

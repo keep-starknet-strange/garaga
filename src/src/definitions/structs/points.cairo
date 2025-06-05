@@ -1,8 +1,9 @@
-use core::circuit::u384;
+use core::circuit::{conversions, u384};
 use core::num;
 use core::num::traits::{One, Zero};
 use core::serde::Serde;
 use garaga::definitions::{deserialize_u384, serialize_u384};
+use starknet::storage_access::StorePacking;
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct G1Point {
@@ -19,6 +20,31 @@ impl G1PointSerde of Serde<G1Point> {
         let x = deserialize_u384(ref serialized);
         let y = deserialize_u384(ref serialized);
         return Option::Some(G1Point { x: x, y: y });
+    }
+}
+
+impl G1PointStorePacking of StorePacking<G1Point, [felt252; 4]> {
+    fn pack(value: G1Point) -> [felt252; 4] {
+        let x0 = conversions::two_u96_into_felt252(value.x.limb0, value.x.limb1);
+        let x1 = conversions::two_u96_into_felt252(value.x.limb2, value.x.limb3);
+        let y0 = conversions::two_u96_into_felt252(value.y.limb0, value.y.limb1);
+        let y1 = conversions::two_u96_into_felt252(value.y.limb2, value.y.limb3);
+        [x0, x1, y0, y1]
+    }
+
+    fn unpack(value: [felt252; 4]) -> G1Point {
+        let [x0, x1, y0, y1] = value;
+        let x = {
+            let (limb0, limb1) = conversions::felt252_try_into_two_u96(x0).unwrap();
+            let (limb2, limb3) = conversions::felt252_try_into_two_u96(x1).unwrap();
+            u384 { limb0, limb1, limb2, limb3 }
+        };
+        let y = {
+            let (limb0, limb1) = conversions::felt252_try_into_two_u96(y0).unwrap();
+            let (limb2, limb3) = conversions::felt252_try_into_two_u96(y1).unwrap();
+            u384 { limb0, limb1, limb2, limb3 }
+        };
+        return G1Point { x: x, y: y };
     }
 }
 
