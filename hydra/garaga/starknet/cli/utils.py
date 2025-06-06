@@ -191,7 +191,7 @@ def _release_scarb_lock(lock_file: str):
 
 
 def get_sierra_casm_artifacts(
-    contract_folder_path: str,
+    contract_folder_path: str, contract_index: int = 0
 ) -> tuple[None, None] | tuple[str, str]:
     """
     Get the Sierra and CASM artifacts for a contract.
@@ -242,8 +242,8 @@ def get_sierra_casm_artifacts(
     if len(contracts) == 0:
         return None, None
 
-    sierra_file = contracts[0]["artifacts"]["sierra"]
-    casm_file = contracts[0]["artifacts"]["casm"]
+    sierra_file = contracts[contract_index]["artifacts"]["sierra"]
+    casm_file = contracts[contract_index]["artifacts"]["casm"]
 
     sierra_path = os.path.join(target_dir, sierra_file)
     casm_path = os.path.join(target_dir, casm_file)

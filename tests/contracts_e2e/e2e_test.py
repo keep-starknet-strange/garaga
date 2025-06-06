@@ -196,6 +196,12 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
 
     print(f"Declared contract class hash: {hex(drand_class_hash)}")
 
+    drand_decrypt_lib_class_hash, _ = await contract_project.declare_class_hash(
+        account, 1
+    )
+
+    print(f"Declared decrypt library class hash: {hex(drand_decrypt_lib_class_hash)}")
+
     # Deploy the drand contract
     precomputed_address = compute_address(
         class_hash=drand_class_hash,
@@ -210,6 +216,7 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
             account=account,
             class_hash=drand_class_hash,
             abi=drand_abi,
+            constructor_args=[drand_decrypt_lib_class_hash],
             deployer_address=DEPLOYER_ADDRESS,
             auto_estimate=True,
             salt=1,
@@ -245,7 +252,6 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
 
         await invoke_result.wait_for_acceptance()
 
-    """
     function_call: ContractFunction = find_item_from_key_patterns(
         contract.functions, ["decrypt"]
     )
@@ -267,7 +273,6 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
 
         await invoke_result.wait_for_acceptance()
-    """
 
 
 HONK_CONTRACTS = [

@@ -31,7 +31,7 @@ import rich
 
 # Add at module level
 @lru_cache(maxsize=32)
-def _get_cached_artifacts(folder: Path) -> tuple[str, str]:
+def _get_cached_artifacts(folder: Path, contract_index: int = 0) -> tuple[str, str]:
     """Module level cache for scarb build artifacts"""
     # Create lock file in the target directory of the contract
     lock_file = folder / "target" / ".build.lock"
@@ -41,7 +41,7 @@ def _get_cached_artifacts(folder: Path) -> tuple[str, str]:
     lock = filelock.FileLock(str(lock_file), timeout=300)  # 5 minute timeout
 
     with lock:
-        return get_sierra_casm_artifacts(folder)
+        return get_sierra_casm_artifacts(folder, contract_index)
 
 
 @dataclass
@@ -51,37 +51,37 @@ class SmartContractProject:
     def __hash__(self) -> int:
         return hash(self.smart_contract_folder)
 
-    def get_contract_artifacts(self) -> tuple[str, str]:
+    def get_contract_artifacts(self, contract_index: int = 0) -> tuple[str, str]:
         """
         Returns the sierra and casm artifacts for the contract (uses scarb to build the contract folder)
         """
-        return _get_cached_artifacts(self.smart_contract_folder)
+        return _get_cached_artifacts(self.smart_contract_folder, contract_index)
 
     @lru_cache(maxsize=1)
-    def get_casm_class_hash(self) -> int:
+    def get_casm_class_hash(self, contract_index: int = 0) -> int:
         """
         Returns the class hash for the contract (uses scarb to build the contract folder)
         """
-        _, casm_artifact = self.get_contract_artifacts()
+        _, casm_artifact = self.get_contract_artifacts(contract_index)
         casm_class = create_casm_class(casm_artifact)
         return compute_casm_class_hash(casm_class)
 
     @lru_cache(maxsize=1)
-    def get_sierra_class_hash(self) -> int:
+    def get_sierra_class_hash(self, contract_index: int = 0) -> int:
         """
         Returns the class hash for the contract (uses scarb to build the contract folder)
         """
-        sierra_artifact, _ = self.get_contract_artifacts()
+        sierra_artifact, _ = self.get_contract_artifacts(contract_index)
         return compute_sierra_class_hash(
             create_sierra_compiled_contract(sierra_artifact)
         )
 
     @lru_cache(maxsize=1)
-    def get_abi(self) -> str:
+    def get_abi(self, contract_index: int = 0) -> str:
         """
         Returns the abi for the contract (uses scarb to build the contract folder)
         """
-        sierra_artifact, _ = self.get_contract_artifacts()
+        sierra_artifact, _ = self.get_contract_artifacts(contract_index)
         return create_sierra_compiled_contract(sierra_artifact).parsed_abi
 
     async def _check_class_exists(self, account: Account, class_hash: int) -> bool:
@@ -94,20 +94,22 @@ class SmartContractProject:
                 return False
             raise e
 
-    async def declare_class_hash(self, account: Account) -> tuple[int, str]:
+    async def declare_class_hash(
+        self, account: Account, contract_index: int = 0
+    ) -> tuple[int, str]:
         """Returns class hash and abi"""
         rich.print(
             f"[bold cyan]Contract project: {self.smart_contract_folder}[/bold cyan]"
         )
 
         # Get artifacts once
-        sierra, casm = self.get_contract_artifacts()
+        sierra, casm = self.get_contract_artifacts(contract_index)
         if sierra is None or casm is None:
             raise EmptyContract
 
         # Use cached properties that don't trigger new builds
-        class_hash = self.get_sierra_class_hash()
-        abi = self.get_abi()
+        class_hash = self.get_sierra_class_hash(contract_index)
+        abi = self.get_abi(contract_index)
 
         if await self._check_class_exists(account, class_hash):
             rich.print(
