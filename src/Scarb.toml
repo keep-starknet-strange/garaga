@@ -17,11 +17,11 @@ sierra-replace-ids = false
 full = []
 
 [dependencies]
+starknet = "2.11.4"
 
 [dev-dependencies]
 snforge_std = "0.44.0"
 assert_macros = "2.11.4"
-starknet = "2.11.4"
 #cairo_test = "2.11.4"
 
 [scripts]
