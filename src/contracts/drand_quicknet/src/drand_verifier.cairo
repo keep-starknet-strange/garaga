@@ -114,7 +114,8 @@ mod DrandQuicknet {
                 let dispatcher = IDrandDecryptLibQuicknetLibraryDispatcher {
                     class_hash: self.decrypt_lib.read(),
                 };
-                let msg_decrypted = dispatcher.decrypt_cipher_text(signature, drand_hint.cipher_text);
+                let msg_decrypted = dispatcher
+                    .decrypt_cipher_text(signature, drand_hint.cipher_text);
                 Option::Some(msg_decrypted)
             }
         }
