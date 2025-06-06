@@ -25,6 +25,7 @@ pub enum CurveID {
     SECP256R1 = 3,
     X25519 = 4,
     GRUMPKIN = 5,
+    STARKNET = 6,
 }
 
 impl TryFrom<u8> for CurveID {
@@ -38,6 +39,7 @@ impl TryFrom<u8> for CurveID {
             3 => Ok(CurveID::SECP256R1),
             4 => Ok(CurveID::X25519),
             5 => Ok(CurveID::GRUMPKIN),
+            6 => Ok(CurveID::STARKNET),
             _ => Err(format!("Invalid curve ID: {}", value)),
         }
     }
@@ -54,6 +56,7 @@ impl TryFrom<usize> for CurveID {
             3 => Ok(CurveID::SECP256R1),
             4 => Ok(CurveID::X25519),
             5 => Ok(CurveID::GRUMPKIN),
+            6 => Ok(CurveID::STARKNET),
             _ => Err(format!("Invalid curve ID: {}", value)),
         }
     }
@@ -432,6 +435,41 @@ impl CurveParamsProvider<BLS12381PrimeField> for BLS12381PrimeField {
     }
 }
 
+impl CurveParamsProvider<Stark252PrimeField> for Stark252PrimeField {
+    fn get_curve_params() -> CurveParams<Stark252PrimeField> {
+        CurveParams {
+            curve_id: CurveID::STARKNET,
+            a: FieldElement::one(),
+            b: FieldElement::from_hex_unchecked(
+                "6f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89",
+            ),
+            b20: FieldElement::from_hex_unchecked("0"),
+            b21: FieldElement::from_hex_unchecked("0"),
+            g_x: FieldElement::from_hex_unchecked(
+                "1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca",
+            ), // Replace with actual 'g_x'
+            g_y: FieldElement::from_hex_unchecked(
+                "5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f",
+            ), // Replace with actual 'g_y'
+            g2_x: None,
+            g2_y: None,
+            n: BigUint::from_str_radix(
+                "800000000000010ffffffffffffffffb781126dcae7b2321e66a241adc64d2f",
+                16,
+            )
+            .unwrap(),
+            h: 1,
+            x: 0,
+            fp_generator: FieldElement::from(3),
+            irreducible_polys: HashMap::from([]),
+            loop_counter: &[],
+            nr_a0: 0,
+            eigen_value: None,
+            swu_params: None,
+        }
+    }
+}
+
 pub trait ToWeierstrassCurve {
     fn to_weirstrass(
         x_twisted: FieldElement<X25519PrimeField>,
@@ -524,6 +562,7 @@ pub fn get_modulus_from_curve_id(curve_id: CurveID) -> BigUint {
         CurveID::SECP256R1 => biguint_from_hex("0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF"),
         CurveID::X25519 => biguint_from_hex("0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFED"),
         CurveID::GRUMPKIN => biguint_from_hex("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001"),
+        CurveID::STARKNET => biguint_from_hex("0x800000000000011000000000000000000000000000000000000000000000001"),
     }
 }
 

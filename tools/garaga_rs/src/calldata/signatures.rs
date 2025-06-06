@@ -1,8 +1,8 @@
 use crate::algebra::g1point::G1Point;
 use crate::definitions::{
     get_modulus_from_curve_id, BLS12381PrimeField, BN254PrimeField, CurveParamsProvider,
-    GrumpkinPrimeField, SECP256K1PrimeField, SECP256R1PrimeField, ToWeierstrassCurve,
-    X25519PrimeField,
+    GrumpkinPrimeField, SECP256K1PrimeField, SECP256R1PrimeField, Stark252PrimeField,
+    ToWeierstrassCurve, X25519PrimeField,
 };
 
 use crate::calldata::msm_calldata::msm_calldata_builder;
@@ -24,6 +24,7 @@ pub fn get_curve_order(curve_id: CurveID) -> BigUint {
         CurveID::SECP256R1 => SECP256R1PrimeField::get_curve_params().n,
         CurveID::X25519 => X25519PrimeField::get_curve_params().n,
         CurveID::GRUMPKIN => GrumpkinPrimeField::get_curve_params().n,
+        CurveID::STARKNET => Stark252PrimeField::get_curve_params().n,
     }
 }
 /// Build calldata for Schnorr signature verification
@@ -75,6 +76,7 @@ pub fn schnorr_calldata_builder(
                 CurveID::GRUMPKIN => {
                     element_to_biguint(&GrumpkinPrimeField::get_curve_params().g_x)
                 }
+                CurveID::STARKNET => panic!("Starknet curve not supported"),
             },
             match curve_id {
                 CurveID::BN254 => element_to_biguint(&BN254PrimeField::get_curve_params().g_y),
@@ -91,6 +93,7 @@ pub fn schnorr_calldata_builder(
                 CurveID::GRUMPKIN => {
                     element_to_biguint(&GrumpkinPrimeField::get_curve_params().g_y)
                 }
+                CurveID::STARKNET => panic!("Starknet curve not supported"),
             },
             px,
             py,
@@ -160,6 +163,7 @@ pub fn ecdsa_calldata_builder(
                 CurveID::GRUMPKIN => {
                     element_to_biguint(&GrumpkinPrimeField::get_curve_params().g_x)
                 }
+                CurveID::STARKNET => panic!("Starknet curve not supported"),
             },
             match curve_id {
                 CurveID::BN254 => element_to_biguint(&BN254PrimeField::get_curve_params().g_y),
@@ -176,6 +180,7 @@ pub fn ecdsa_calldata_builder(
                 CurveID::GRUMPKIN => {
                     element_to_biguint(&GrumpkinPrimeField::get_curve_params().g_y)
                 }
+                CurveID::STARKNET => panic!("Starknet curve not supported"),
             },
             px,
             py,

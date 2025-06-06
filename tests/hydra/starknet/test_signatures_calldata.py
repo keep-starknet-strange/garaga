@@ -11,6 +11,7 @@ from garaga.starknet.tests_and_calldata_generators.signatures import (
 
 # Define the curves to be tested
 curves = list(CurveID)
+curves.remove(CurveID.STARKNET)
 
 
 @pytest.mark.parametrize("curve_id", curves)

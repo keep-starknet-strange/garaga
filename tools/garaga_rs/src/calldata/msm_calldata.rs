@@ -69,6 +69,7 @@ pub fn msm_calldata_builder(
             include_points_and_scalars,
             serialize_as_pure_felt252_array,
         ),
+        CurveID::STARKNET => Result::Err("Starknet curve not supported".to_string()),
     }
 }
 

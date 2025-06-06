@@ -26,6 +26,7 @@ SECP256K1_ID = 2
 SECP256R1_ID = 3
 ED25519_ID = 4
 GRUMPKIN_ID = 5
+STARKNET_ID = 6
 
 
 class ProofSystem(Enum):
@@ -57,6 +58,7 @@ class CurveID(Enum):
     SECP256R1 = 3
     ED25519 = 4
     GRUMPKIN = 5
+    STARKNET = 6
 
     @staticmethod
     def from_str(s: str) -> "CurveID":
@@ -475,6 +477,21 @@ CURVES: dict[int, WeierstrassCurve] = {
         fp_generator=5,
         Gx=0x1,
         Gy=0x2CF135E7506A45D632D270D45F1181294833FC48D823F272C,
+        swu_params=None,
+        eigen_value=None,
+        third_root_of_unity=None,
+    ),
+    STARKNET_ID: WeierstrassCurve(
+        cairo_zero_namespace_name="starknet",
+        id=STARKNET_ID,
+        p=0x800000000000011000000000000000000000000000000000000000000000001,
+        n=0x800000000000010FFFFFFFFFFFFFFFFB781126DCAE7B2321E66A241ADC64D2F,
+        h=1,
+        a=1,
+        b=0x6F21413EFBE40DE150E596D72F7A8C5609AD26C15C915C1F4CDFCB99CEE9E89,
+        fp_generator=3,
+        Gx=0x1EF15C18599971B7BECED415A40F0C7DEACFD9B0D1819E03D723D8BC943CFCA,
+        Gy=0x5668060AA49730B7BE4801DF46EC62DE53ECD11ABE43A32873000C36E8DC1F,
         swu_params=None,
         eigen_value=None,
         third_root_of_unity=None,
