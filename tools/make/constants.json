@@ -7,8 +7,8 @@
         "output_tag": "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4"
     },
     "sp1": {
-        "verifier_version": "v4.0.0-rc.3",
-        "verifier_hash": "0x11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4"
+        "verifier_version": "v5.0.0",
+        "verifier_hash": "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913"
     },
     "release_info": {
         "garaga_version": "0.18.1",
