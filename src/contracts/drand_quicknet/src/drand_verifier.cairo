@@ -105,19 +105,19 @@ mod DrandQuicknet {
         fn decrypt_cipher_text(
             self: @ContractState, mut full_proof_with_hints: Span<felt252>,
         ) -> Option<Span<u8>> {
-            let drand_hint = Serde::<DrandDecryptHint>::deserialize(ref full_proof_with_hints)
-                .unwrap();
-            let signature = self.signatures.entry(drand_hint.round_number).read();
-            if signature.is_zero() {
-                Option::None
-            } else {
-                let dispatcher = IDrandDecryptLibQuicknetLibraryDispatcher {
-                    class_hash: self.decrypt_lib.read(),
-                };
-                let msg_decrypted = dispatcher
-                    .decrypt_cipher_text(signature, drand_hint.cipher_text);
-                Option::Some(msg_decrypted)
-            }
+            //let drand_hint = Serde::<DrandDecryptHint>::deserialize(ref full_proof_with_hints)
+            //    .unwrap();
+            //let signature = self.signatures.entry(drand_hint.round_number).read();
+            //if signature.is_zero() {
+            Option::None
+            //} else {
+        //    let dispatcher = IDrandDecryptLibQuicknetLibraryDispatcher {
+        //        class_hash: self.decrypt_lib.read(),
+        //    };
+        //    let msg_decrypted = dispatcher
+        //        .decrypt_cipher_text(signature, drand_hint.cipher_text);
+        //    Option::Some(msg_decrypted)
+        //}
         }
     }
 }
