@@ -5,9 +5,9 @@ use super::drand_verifier_constants::{G2_GEN, precomputed_lines};
 #[starknet::interface]
 trait IDrandQuicknet<TContractState> {
     fn verify_round_and_get_randomness(
-        self: @TContractState, full_proof_with_hints: Span<felt252>,
+        ref self: TContractState, full_proof_with_hints: Span<felt252>,
     ) -> Option<DrandResult>;
-    fn decrypt_cipher_text(self: @TContractState, full_proof_with_hints: Span<felt252>);
+    fn decrypt_cipher_text(ref self: TContractState, full_proof_with_hints: Span<felt252>);
     // -> Option<[u8; 16]>;
 }
 
@@ -62,7 +62,7 @@ mod DrandQuicknet {
     impl IDrandQuicknet of super::IDrandQuicknet<ContractState> {
         // Returns the round number and the randomness if the proof for a given round is valid.
         fn verify_round_and_get_randomness(
-            self: @ContractState, mut full_proof_with_hints: Span<felt252>,
+            ref self: ContractState, mut full_proof_with_hints: Span<felt252>,
         ) -> Option<DrandResult> {
             let drand_hint: DrandHint = Serde::deserialize(ref full_proof_with_hints).unwrap();
             let message = round_to_curve_bls12_381(
@@ -78,7 +78,7 @@ mod DrandQuicknet {
 
             match check {
                 true => {
-                    //self.signature.write(drand_hint.signature);
+                    self.signature.write(drand_hint.signature);
                     //self.signatures.entry(drand_hint.round_number).write(drand_hint.signature);
                     Option::Some(
                         DrandResult {
@@ -91,7 +91,7 @@ mod DrandQuicknet {
             }
         }
         // Returns clear text for the encrypted cypher text if the proof for a given round is valid.
-        fn decrypt_cipher_text(self: @ContractState, mut full_proof_with_hints: Span<felt252>) {
+        fn decrypt_cipher_text(ref self: ContractState, mut full_proof_with_hints: Span<felt252>) {
             //) -> Option<[u8; 16]> {
             let _round_number = Serde::<u64>::deserialize(ref full_proof_with_hints).unwrap();
             let _cipher_text = Serde::<CipherText>::deserialize(ref full_proof_with_hints).unwrap();
