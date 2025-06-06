@@ -17,6 +17,7 @@ sierra-replace-ids = false
 full = []
 
 [dependencies]
+starknet = "2.11.4"
 
 [dev-dependencies]
 snforge_std = "0.44.0"

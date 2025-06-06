@@ -22,7 +22,8 @@ pub use structs::fields::{
     E12D, E12DMulQuotient, E12T, MillerLoopResultScalingFactor, u288, u288Serde,
 };
 pub use structs::points::{
-    G1G2Pair, G1Point, G1PointSerde, G1PointZero, G2Line, G2Point, G2PointSerde, G2PointZero,
+    G1G2Pair, G1Point, G1PointSerde, G1PointStorePacking, G1PointZero, G2Line, G2Point,
+    G2PointSerde, G2PointZero,
 };
 
 

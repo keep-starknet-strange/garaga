@@ -3,6 +3,7 @@
 
 import {
   drand_calldata_builder,
+  drand_tlock_encrypt_calldata_builder,
   msm_calldata_builder,
   mpc_calldata_builder,
   schnorr_calldata_builder,
@@ -18,6 +19,7 @@ import {
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 import { HonkFlavor } from './starknet/honkContractGenerator/parsingUtils';
+import { randomBytes } from './random';
 
 /**
  * Represents a point on an elliptic curve in affine coordinates (x, y)
@@ -321,7 +323,7 @@ const DRAND_QUICKNET_HASH = '52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792b
  */
 type DrandRandomnessBeacon = {
   /** The round number of this randomness beacon */
-  round: number;
+  roundNumber: number;
   /** The random value generated for this round */
   randomness: bigint;
   /** The BLS signature proving the randomness */
@@ -367,15 +369,15 @@ export async function fetchAndGetDrandCallData(roundNumber: number | 'latest' = 
  * const calldata = getDrandCallData(beacon);
  * ```
  */
-export function getDrandCallData({ round, randomness, signature }: DrandRandomnessBeacon): bigint[] {
-  return drand_calldata_builder([round, randomness, signature]);
+export function getDrandCallData({ roundNumber, randomness, signature }: DrandRandomnessBeacon): bigint[] {
+  return drand_calldata_builder([roundNumber, randomness, signature]);
 }
 
 /**
  * Fetches randomness data from the drand distributed randomness beacon network.
  * Tries multiple endpoints for reliability and returns the first successful response.
  *
- * @param roundNumber - The specific round to fetch, or 'latest' for the most recent
+ * @param roundNumberArg - The specific round to fetch, or 'latest' for the most recent
  * @param chainHash - Hash identifier of the drand chain to query
  * @param baseUrls - Array of drand API endpoints to attempt
  * @returns Promise resolving to the randomness beacon data
@@ -393,11 +395,11 @@ export function getDrandCallData({ round, randomness, signature }: DrandRandomne
  * const custom = await fetchDrandRandomness('latest', 'custom-hash', ['https://custom-drand.com']);
  * ```
  */
-export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<DrandRandomnessBeacon> {
+export async function fetchDrandRandomness(roundNumberArg: number | 'latest' = 'latest', chainHash = DRAND_QUICKNET_HASH, baseUrls = DRAND_BASE_URLS): Promise<DrandRandomnessBeacon> {
   if (baseUrls.length == 0) {
     throw new Error('No base url provided');
   }
-  const endpoint = '/' + chainHash + '/public/' + roundNumber;
+  const endpoint = '/' + chainHash + '/public/' + roundNumberArg;
   const promises = baseUrls.map((baseUrl) => fetch(baseUrl + endpoint));
   let response;
   try {
@@ -409,10 +411,44 @@ export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'lat
   if (!data || !data.round || !data.randomness || !data.signature) {
     throw new Error('Unexpected response: ' + JSON.stringify(data));
   }
-  const round = Number(data.round);
+  const roundNumber = Number(data.round);
+  if (roundNumberArg !== 'latest' && roundNumber !== roundNumberArg) {
+    throw new Error('Inconsistent roundNumber: found ' + roundNumber + ', expected ' + roundNumberArg);
+  }
   const randomness = BigInt('0x' + data.randomness.replace(/^0x/i, ''));
   const signature = BigInt('0x' + data.signature.replace(/^0x/i, ''));
-  return { round, randomness, signature };
+  return { roundNumber, randomness, signature };
+}
+
+/**
+ * Encrypts the given message for a given drand round number and returns the resulting call data.
+ *
+ * @param roundNumber The target drand round number to be used in the encryption process.
+ * @param message The 16-byte message to be encrypted.
+ * @param randomness An optional 16-byte random array used for encryption. Must be generated using a CSPRNG.
+ * @return An array of `bigint` values representing the call data for the encryption result.
+ * @throws Error if the `message` length is not 16 bytes.
+ *
+ * @example
+ * ```typescript
+ * // The round for when the message can be decrypted
+ * const roundNumber = 12345;
+ *
+ * // The clear text for the message
+ * const text = 'Hello, world!';
+ * const message = new Uint8Array(16);
+ * message.set(new TextEncoder().encode(text));
+ *
+ * // Call data generation
+ * const calldata = encryptToDrandRoundAndGetCallData(roundNumber, message);
+ * ```
+ */
+export function encryptToDrandRoundAndGetCallData(roundNumber: number, message: Uint8Array, randomness = randomBytes(16)): bigint[] {
+  if (message.length != 16) throw new Error('Message size should be 16');
+  if (randomness.length != 16) throw new Error('Randomness size should be 16');
+  const messageValue = message.reduce((acc, b) => (acc << 8n) | BigInt(b), 0n);
+  const randomnessValue = randomness.reduce((acc, b) => (acc << 8n) | BigInt(b), 0n);
+  return drand_tlock_encrypt_calldata_builder([roundNumber, messageValue, randomnessValue]);
 }
 
 /**

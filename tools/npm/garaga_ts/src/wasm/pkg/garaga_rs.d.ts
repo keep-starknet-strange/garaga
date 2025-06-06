@@ -1,6 +1,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export function drand_calldata_builder(values: any[]): any[];
+export function drand_tlock_encrypt_calldata_builder(values: any[]): any[];
 export function msm_calldata_builder(values: any[], scalars: any[], curve_id: number, include_points_and_scalars: boolean, serialize_as_pure_felt252_array: boolean): any[];
 export function mpc_calldata_builder(curve_id: number, values1: any[], n_fixed_g2: number, values2: any[]): any[];
 export function schnorr_calldata_builder(rx: any, s: any, e: any, px: any, py: any, curve_id: number): any[];
@@ -19,6 +20,7 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly drand_calldata_builder: (a: number, b: number, c: number) => void;
+  readonly drand_tlock_encrypt_calldata_builder: (a: number, b: number, c: number) => void;
   readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
   readonly mpc_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
   readonly schnorr_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;

@@ -28,6 +28,7 @@ from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_encrypt_to_calldata,
     drand_round_to_calldata,
 )
 
@@ -195,6 +196,12 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
 
     print(f"Declared contract class hash: {hex(drand_class_hash)}")
 
+    drand_decrypt_lib_class_hash, _ = await contract_project.declare_class_hash(
+        account, 1
+    )
+
+    print(f"Declared decrypt library class hash: {hex(drand_decrypt_lib_class_hash)}")
+
     # Deploy the drand contract
     precomputed_address = compute_address(
         class_hash=drand_class_hash,
@@ -209,6 +216,7 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
             account=account,
             class_hash=drand_class_hash,
             abi=drand_abi,
+            constructor_args=[drand_decrypt_lib_class_hash],
             deployer_address=DEPLOYER_ADDRESS,
             auto_estimate=True,
             salt=1,
@@ -232,6 +240,28 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
         prepare_invoke = PreparedFunctionInvokeV3(
             to_addr=function_call.contract_data.address,
             calldata=drand_round_to_calldata(drand_round),
+            selector=function_call.get_selector(function_call.name),
+            _contract_data=function_call.contract_data,
+            _client=function_call.client,
+            _account=function_call.account,
+            _payload_transformer=function_call._payload_transformer,
+            resource_bounds=None,
+        )
+
+        invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
+
+        await invoke_result.wait_for_acceptance()
+
+    function_call: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["decrypt"]
+    )
+
+    drand_message = b"hello\x00\x00\x00\x00\x00\x00\x00\x00abc"
+
+    for drand_round in range(1, 5):
+        prepare_invoke = PreparedFunctionInvokeV3(
+            to_addr=function_call.contract_data.address,
+            calldata=drand_encrypt_to_calldata(drand_round, drand_message),
             selector=function_call.get_selector(function_call.name),
             _contract_data=function_call.contract_data,
             _client=function_call.client,
