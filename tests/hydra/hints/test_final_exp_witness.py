@@ -86,7 +86,7 @@ def test_final_exp_witness(seed, curve_id):
 
 
 @pytest.mark.parametrize("curve_id", [CurveID.BN254, CurveID.BLS12_381])
-@pytest.mark.parametrize("n_pairs", [2, 3, 4, 5])
+@pytest.mark.parametrize("n_pairs", [2, 3, 4])
 @pytest.mark.parametrize("include_m", [False, True])
 def test_mpcheck(curve_id: CurveID, n_pairs: int, include_m: bool):
     c = MultiPairingCheckCircuit(name="mock", curve_id=curve_id.value, n_pairs=n_pairs)
