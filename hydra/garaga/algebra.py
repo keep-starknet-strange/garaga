@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 from sympy import legendre_symbol, sqrt_mod
 
@@ -58,15 +58,16 @@ class PyFelt:
             return PyFelt((self.value - right) % p, p)
         raise TypeError(f"Cannot subtract PyFelt and {type(right)}")
 
-    def __mul__(self, right: PyFelt | int) -> PyFelt:
+    def __mul__(self, right: PyFelt | int | Any) -> PyFelt:
         p = self.p
         if isinstance(right, PyFelt):
             return PyFelt((self.value * right.value) % p, p)
-        if isinstance(right, int):
+        elif isinstance(right, int):
             return PyFelt((self.value * right) % p, p)
-        raise TypeError(f"Cannot multiply PyFelt and {type(right)}")
+        else:
+            return right.__mul__(self)
 
-    def __rmul__(self, left: PyFelt | int) -> PyFelt:
+    def __rmul__(self, left: PyFelt | int | Any) -> PyFelt:
         return self.__mul__(left)
 
     def __inv__(self) -> PyFelt:
@@ -75,6 +76,9 @@ class PyFelt:
         except ValueError:
             raise ValueError(f"Cannot invert {self.value} modulo {self.p}")
         return PyFelt(inv, self.p)
+
+    def inverse(self) -> PyFelt:
+        return self.__inv__()
 
     def __truediv__(self, right: PyFelt) -> PyFelt:
         assert isinstance(self, PyFelt) and isinstance(

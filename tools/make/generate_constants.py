@@ -157,12 +157,12 @@ mod tests {{
     import subprocess
 
     try:
+        print(f"Running cargo fmt on: {output_path}")
+
         subprocess.run(
-            ["cargo", "fmt", "--", str(output_path)],
+            ["cargo", "fmt"],
             check=True,
-            cwd=os.path.dirname(output_path),
         )
-        print(f"Ran cargo fmt on: {output_path}")
     except Exception as e:
         print(f"Warning: cargo fmt failed on {output_path}: {e}")
 

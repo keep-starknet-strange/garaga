@@ -18,24 +18,28 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
-  readonly drand_calldata_builder: (a: number, b: number, c: number) => void;
-  readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly mpc_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly schnorr_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => void;
-  readonly ecdsa_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number, h: number) => void;
-  readonly eddsa_calldata_builder: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly to_weirstrass: (a: number, b: number, c: number) => void;
-  readonly to_twistededwards: (a: number, b: number, c: number) => void;
-  readonly get_groth16_calldata: (a: number, b: number, c: number, d: number) => void;
-  readonly parse_honk_proof: (a: number, b: number, c: number) => void;
-  readonly get_honk_calldata: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly get_zk_honk_calldata: (a: number, b: number, c: number, d: number, e: number) => void;
-  readonly poseidon_hash: (a: number, b: number, c: number) => void;
+  readonly drand_calldata_builder: (a: number, b: number) => [number, number, number, number];
+  readonly msm_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+  readonly mpc_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number) => [number, number, number, number];
+  readonly schnorr_calldata_builder: (a: any, b: any, c: any, d: any, e: any, f: number) => [number, number, number, number];
+  readonly ecdsa_calldata_builder: (a: any, b: any, c: number, d: any, e: any, f: any, g: number) => [number, number, number, number];
+  readonly eddsa_calldata_builder: (a: any, b: any, c: any, d: any) => [number, number, number, number];
+  readonly to_weirstrass: (a: any, b: any) => [number, number, number, number];
+  readonly to_twistededwards: (a: any, b: any) => [number, number, number, number];
+  readonly get_groth16_calldata: (a: any, b: any, c: any) => [number, number, number, number];
+  readonly parse_honk_proof: (a: any, b: any) => [number, number, number];
+  readonly get_honk_calldata: (a: any, b: any, c: any, d: any) => [number, number, number, number];
+  readonly get_zk_honk_calldata: (a: any, b: any, c: any, d: any) => [number, number, number, number];
+  readonly poseidon_hash: (a: any, b: any) => [number, number, number];
   readonly __wbindgen_exn_store: (a: number) => void;
+  readonly __externref_table_alloc: () => number;
+  readonly __wbindgen_export_2: WebAssembly.Table;
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
-  readonly __wbindgen_add_to_stack_pointer: (a: number) => number;
+  readonly __externref_table_dealloc: (a: number) => void;
+  readonly __externref_drop_slice: (a: number, b: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
+  readonly __wbindgen_start: () => void;
 }
 
 export type SyncInitInput = BufferSource | WebAssembly.Module;

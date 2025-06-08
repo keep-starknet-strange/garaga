@@ -33,7 +33,7 @@ jobs:
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
-          toolchain: 1.81.0
+          toolchain: stable
           override: true
           profile: minimal
       - name: Setup Scarb

@@ -6,10 +6,12 @@ pub mod g2;
 pub mod groth16_calldata;
 pub mod hades_permutation;
 pub mod honk_calldata;
+pub mod merlin_transcript;
 pub mod mpc_calldata;
 pub mod msm;
 pub mod pairing;
 pub mod signatures;
+pub mod wlna;
 
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 
@@ -30,6 +32,24 @@ use pyo3::{
 
 const CURVE_BN254: usize = 0;
 const CURVE_BLS12_381: usize = 1;
+
+#[pyclass]
+struct TestClass {
+    #[pyo3(get)]
+    value: i32,
+}
+
+#[pymethods]
+impl TestClass {
+    #[new]
+    fn new(value: i32) -> Self {
+        TestClass { value }
+    }
+
+    fn hello(&self) -> String {
+        format!("Hello from TestClass with value {}", self.value)
+    }
+}
 
 #[pyfunction]
 pub fn poseidon_hash_bn254(
@@ -75,5 +95,12 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(poseidon_hash_bn254, m)?)?;
     m.add_function(wrap_pyfunction!(pairing::final_exp, m)?)?;
     m.add_function(wrap_pyfunction!(drand_calldata::drand_calldata_builder, m)?)?;
+
+    // Add WLNA functions and class directly to main module
+    m.add_function(wrap_pyfunction!(wlna::prove_wlna_with_challenges, m)?)?;
+    m.add_function(wrap_pyfunction!(wlna::verify_wlna, m)?)?;
+    m.add_class::<wlna::PyWLNAProof>()?;
+
+    m.add_class::<merlin_transcript::PyMerlinTranscript>()?;
     Ok(())
 }

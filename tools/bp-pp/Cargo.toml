@@ -1,0 +1,20 @@
+[package]
+name = "bp-pp"
+version = "0.1.1"
+edition = "2021"
+authors = ["Oleg Fomenko <oleg.fomenko@distributedlab.com>"]
+license = "MIT"
+description = "Rust library for Bulletproofs++ - range-proof protocol in discret loggarithm setting"
+repository = "https://github.com/distributed-lab/bp-pp"
+categories = ["cryptography"]
+keywords = ["crypto", "bulletproofs", "rangeproofs", "zeroknowledge", "zkp"]
+readme = "README.md"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+k256 = { version = "0.13.3", features = ["serde"]}
+merlin = { path = "./merlin", features = [] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
+hex = "0.4"

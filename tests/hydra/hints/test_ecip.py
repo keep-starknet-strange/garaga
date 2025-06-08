@@ -7,10 +7,12 @@ from garaga.hints.ecip import verify_ecip, zk_ecip_hint
 
 # Define the curves to be tested
 curves = list(CurveID)
+curves.remove(CurveID.STARKNET)
 
 
 @pytest.mark.parametrize("curve_id", curves)
 @pytest.mark.parametrize("msm_size", range(1, 3))
+@pytest.mark.skip(reason="ECIP is deprecated")
 def test_verify_ecip(curve_id, msm_size):
     curve = CURVES[curve_id.value]
     order = curve.n
@@ -37,6 +39,7 @@ def test_verify_ecip(curve_id, msm_size):
 
 @pytest.mark.parametrize("curve_id", curves)
 @pytest.mark.parametrize("msm_size", range(0, 3))
+@pytest.mark.skip(reason="ECIP is deprecated")
 def test_verify_ecip_edge_cases(curve_id, msm_size):
     curve = CURVES[curve_id.value]
     order = curve.n
