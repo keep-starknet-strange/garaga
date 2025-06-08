@@ -26,6 +26,7 @@ SECP256K1_ID = 2
 SECP256R1_ID = 3
 ED25519_ID = 4
 GRUMPKIN_ID = 5
+STARKNET_ID = 6
 
 
 class ProofSystem(Enum):
@@ -57,6 +58,7 @@ class CurveID(Enum):
     SECP256R1 = 3
     ED25519 = 4
     GRUMPKIN = 5
+    STARKNET = 6
 
     @staticmethod
     def from_str(s: str) -> "CurveID":
@@ -479,6 +481,21 @@ CURVES: dict[int, WeierstrassCurve] = {
         eigen_value=None,
         third_root_of_unity=None,
     ),
+    STARKNET_ID: WeierstrassCurve(
+        cairo_zero_namespace_name="starknet",
+        id=STARKNET_ID,
+        p=0x800000000000011000000000000000000000000000000000000000000000001,
+        n=0x800000000000010FFFFFFFFFFFFFFFFB781126DCAE7B2321E66A241ADC64D2F,
+        h=1,
+        a=1,
+        b=0x6F21413EFBE40DE150E596D72F7A8C5609AD26C15C915C1F4CDFCB99CEE9E89,
+        fp_generator=3,
+        Gx=0x1EF15C18599971B7BECED415A40F0C7DEACFD9B0D1819E03D723D8BC943CFCA,
+        Gy=0x5668060AA49730B7BE4801DF46EC62DE53ECD11ABE43A32873000C36E8DC1F,
+        swu_params=None,
+        eigen_value=None,
+        third_root_of_unity=None,
+    ),
 }
 
 
@@ -574,6 +591,27 @@ def get_base_field(
         raise ValueError(f"Invalid field type: {field_type}. Expected PyFelt or Fp2.")
 
 
+def get_scalar_field(curve_id: int | CurveID) -> BaseField:
+    """
+    Returns the base field for a given elliptic curve.
+
+    Parameters:
+    curve_id (int | CurveID): The ID of the elliptic curve.
+    field_type (PyFelt | Fp2): The type of the field (default is PyFelt).
+
+    Returns:
+    BaseField | BaseFp2Field: The base field corresponding to the curve and field type.
+
+    Raises:
+    ValueError: If the field_type is invalid.
+    """
+    if isinstance(curve_id, CurveID):
+        curve_id = curve_id.value
+
+    curve = CURVES[curve_id]
+    return BaseField(curve.n)
+
+
 def get_irreducible_poly(curve_id: int | CurveID, extension_degree: int) -> Polynomial:
     if isinstance(curve_id, CurveID):
         curve_id = curve_id.value
@@ -628,6 +666,20 @@ class G1Point:
             and self.curve_id.value == other.curve_id.value
             and self.iso_point == other.iso_point
         )
+
+    def __add__(self, other: "G1Point") -> "G1Point":
+        """Addition operator for G1Points."""
+        return self.add(other)
+
+    def __mul__(self, scalar: int) -> "G1Point":
+        """Scalar multiplication operator for G1Points."""
+        if isinstance(scalar, PyFelt):
+            scalar = scalar.value
+        return self.scalar_mul(scalar)
+
+    def __rmul__(self, scalar: int) -> "G1Point":
+        """Right scalar multiplication operator for G1Points."""
+        return self.scalar_mul(scalar)
 
     def __post_init__(self):
         """
