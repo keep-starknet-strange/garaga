@@ -85,3 +85,6 @@ wasm-test-gen:
 clean:
 	sudo rm -rf build/
 	mkdir -p build/
+
+maturin:
+	source venv/bin/activate && maturin develop --release
