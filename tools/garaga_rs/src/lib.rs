@@ -50,6 +50,6 @@ pub mod hints {
 #[cfg(all(feature = "python", not(target_arch = "wasm32")))]
 pub mod python_bindings;
 
-// automatically includes wasm bindings on wasm32-unknown-unknown
-#[cfg(any(feature = "wasm", target_arch = "wasm32"))]
+// only include wasm bindings when both wasm feature is enabled AND on wasm32 target
+#[cfg(all(feature = "wasm", target_arch = "wasm32"))]
 pub mod wasm_bindings;
