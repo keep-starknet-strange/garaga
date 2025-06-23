@@ -47,14 +47,14 @@ Internaly the `build` NPM script uses `wasm-pack` to produce the WASM interopera
 
 ````
 ```bash
-cd tools/garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features
+cd tools/garaga_rs && wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features --features wasm
 cd tools/npm/garaga_ts && node patch.wasm.cjs
 ```
 ````
 
 Let's unpack it.
 
-In the Rust source folder we run `wasm-pack` in `--target web` mode. This generates TypeScript code targeting web pages. The `--release` option is required to minimize the size of the WASM module. And the `--no-default-features` disables the need to build non WASM features of garaga\_rs.
+In the Rust source folder we run `wasm-pack` in `--target web` mode. This generates TypeScript code targeting web pages. The `--release` option is required to minimize the size of the WASM module. The `--no-default-features` ensures we start with a clean slate (no bindings), and `--features wasm` explicitly enables only the WASM bindings we need.
 
 Once the `wasm-pack` is done, the code is generated under the folder `src/wasm/pkg` of garaga\_ts that houses the TypeScript source code.
 
