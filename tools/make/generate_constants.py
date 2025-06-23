@@ -76,6 +76,9 @@ class UpdateConfig:
     pattern: str
     replacement: str
     description: str = ""
+    version_key: str = (
+        "garaga_version"  # Default to garaga_version for backward compatibility
+    )
 
     def apply_update(self, content: str, version: str) -> tuple[str, bool]:
         """Apply the update to content and return (new_content, changed)."""
@@ -177,6 +180,16 @@ class PathConfig:
         )
 
     @property
+    def noir_smart_contract_docs_path(self) -> Path:
+        return (
+            self.project_root
+            / "docs"
+            / "gitbook"
+            / "smart-contract-generators"
+            / "noir.md"
+        )
+
+    @property
     def groth16_rust_file(self) -> Path:
         return (
             self.project_root
@@ -249,6 +262,28 @@ VERSION_UPDATES = [
             pattern=r"(version\s+)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(\s+\(install with `pip install garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(`?)",
             replacement=r"\g<1>{version}\g<2>{version}\g<3>",
             description="Garaga CLI version in docs",
+        ),
+    ),
+    (
+        "Noir version in docs",
+        "noir_docs_path",
+        UpdateConfig(
+            name="Noir version in docs",
+            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\)\s+)",
+            replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
+            description="Noir version in documentation",
+            version_key="nargo_version",
+        ),
+    ),
+    (
+        "Noir version in smart contract docs",
+        "noir_smart_contract_docs_path",
+        UpdateConfig(
+            name="Noir version in smart contract docs",
+            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\)\s+)",
+            replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
+            description="Noir version in smart contract generator documentation",
+            version_key="nargo_version",
         ),
     ),
 ]
@@ -451,6 +486,7 @@ def generate_unified_constants(
                 f'RISC0_SYSTEM_STATE_ZERO_DIGEST = "{risc0_info["system_state_zero_digest"]}"',
                 f'RISC0_TAG_DIGEST = "{risc0_info["tag_digest"]}"',
                 f'RISC0_OUTPUT_TAG = "{risc0_info["output_tag"]}"',
+                f'RISC0_RELEASE_VERSION = "{constants["release_info"]["risc0_release"]}"',
             ]
         )
     elif config.name == "TypeScript":
@@ -660,12 +696,19 @@ def update_all_versions(
 ) -> list[tuple[str, bool]]:
     """Update version references across all files."""
     results = []
-    version = constants["release_info"]["garaga_version"]
 
     for mapping in VERSION_UPDATES:
         try:
             file_path = str(getattr(paths, mapping[1]))
-            success = update_file_version(file_path, mapping[2], version)
+            config = mapping[2]
+
+            # Get the appropriate version based on the version_key
+            if config.version_key == "nargo_version":
+                version = constants["noir"]["nargo_version"]
+            else:
+                version = constants["release_info"]["garaga_version"]
+
+            success = update_file_version(file_path, config, version)
             results.append((mapping[0], success))
             if success:
                 logger.info(f"Successfully updated {mapping[0]}")

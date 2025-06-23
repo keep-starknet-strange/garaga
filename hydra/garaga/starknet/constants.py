@@ -3,9 +3,9 @@ Auto-generated constants file from constants.json. Do not edit manually.
 """
 
 # RISC0 Constants
-# https://github.com/risc0/risc0-ethereum/blob/v2.2.0/contracts/src/groth16/ControlID.sol
-# release v2.2.0
-RISC0_CONTROL_ROOT = 0x884389273E128B32475B334DEC75EE619B77CB33D41C332021FE7E44C746EE60
+# https://github.com/risc0/risc0-ethereum/blob/v2.1.0/contracts/src/groth16/ControlID.sol
+# release v2.1.0
+RISC0_CONTROL_ROOT = 0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576
 RISC0_BN254_CONTROL_ID = (
     0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0
 )
@@ -23,6 +23,7 @@ RISC0_SYSTEM_STATE_ZERO_DIGEST = (
 )
 RISC0_TAG_DIGEST = "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af"
 RISC0_OUTPUT_TAG = "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4"
+RISC0_RELEASE_VERSION = "v2.1.0"
 
 # Version info
 CAIRO_VERSION = "2.11.4"
