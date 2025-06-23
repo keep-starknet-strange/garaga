@@ -1,4 +1,4 @@
-//! Auto-generated constants file. Do not edit manually.
+//! Auto-generated constants file from constants.json. Do not edit manually.
 
 use num_bigint::BigUint;
 use num_traits::Num;

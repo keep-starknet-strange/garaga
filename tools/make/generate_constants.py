@@ -298,7 +298,9 @@ class LanguageConfig:
 
 
 # Language-specific configurations
-COMMON_FILE_HEADER = "Auto-generated constants file. Do not edit manually."
+COMMON_FILE_HEADER = (
+    "Auto-generated constants file from constants.json. Do not edit manually."
+)
 
 LANGUAGE_CONFIGS = [
     LanguageConfig(

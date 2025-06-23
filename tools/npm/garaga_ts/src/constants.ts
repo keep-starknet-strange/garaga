@@ -1,5 +1,5 @@
 /**
- * Auto-generated constants file. Do not edit manually.
+ * Auto-generated constants file from constants.json. Do not edit manually.
  */
 
 // RISC0 Constants
