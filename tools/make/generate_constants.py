@@ -367,12 +367,12 @@ def generate_unified_constants(
 
     # RISC0 section
     risc0_info = constants["risc0"]
-    release_info = constants["release_info"]
+    release_version = constants["release_info"]["risc0_release"]
     lines.extend(
         [
             f"{config.comment_prefix} RISC0 Constants",
-            f"{config.comment_prefix} https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol",
-            f"{config.comment_prefix} release {release_info['risc0_release']}",
+            f"{config.comment_prefix} https://github.com/risc0/risc0-ethereum/blob/{release_version}/contracts/src/groth16/ControlID.sol",
+            f"{config.comment_prefix} release {release_version}",
         ]
     )
 
@@ -396,8 +396,8 @@ def generate_unified_constants(
     else:  # Python
         lines.extend(
             [
-                f'RISC0_CONTROL_ROOT = "{risc0_info["control_root"]}"',
-                f'RISC0_BN254_CONTROL_ID = "{risc0_info["bn254_control_id"]}"',
+                f'RISC0_CONTROL_ROOT = {risc0_info["control_root"]}',
+                f'RISC0_BN254_CONTROL_ID = {risc0_info["bn254_control_id"]}',
             ]
         )
 
