@@ -28,37 +28,46 @@ def check_bb_version(version: str) -> tuple[bool, str]:
 
 
 def check_version(cmd: str, version: str) -> tuple[bool, str]:
-    result = subprocess.run(
-        [cmd, "--version"], capture_output=True, text=True, check=True
-    )
-    result_version = result.stdout.strip()
-    return (
-        result.returncode == 0 and version in result_version,
-        result_version,
-    )
+    try:
+        result = subprocess.run([cmd, "--version"], capture_output=True, text=True)
+        result_version = result.stdout.strip()
+        return (
+            result.returncode == 0 and version in result_version,
+            result_version,
+        )
+    except (FileNotFoundError, OSError):
+        # Command not found or other OS error
+        return (False, f"Command '{cmd}' not found or not executable")
 
 
 def _get_bb_oracle_hash_options() -> list[str]:
     """Get the available oracle hash options from bb command"""
-    result_hash = subprocess.run(
-        ["bb", "prove", "-h"], capture_output=True, text=True, check=True
-    )
-    # Extract oracle hash options
-    oracle_hash_options = []
-    lines = result_hash.stdout.splitlines()
-    for i, line in enumerate(lines):
-        if "--oracle_hash" in line:
-            # Look in the next few lines for the options
-            for j in range(i + 1, min(i + 100, len(lines))):
-                if "Options: {" in lines[j]:
-                    options_str = lines[j].split("{")[1].split("}")[0]
-                    oracle_hash_options = [
-                        opt.strip() for opt in options_str.split(",")
-                    ]
-                    break
-            break
+    try:
+        result_hash = subprocess.run(
+            ["bb", "prove", "-h"], capture_output=True, text=True
+        )
+        if result_hash.returncode != 0:
+            return []
 
-    return oracle_hash_options
+        # Extract oracle hash options
+        oracle_hash_options = []
+        lines = result_hash.stdout.splitlines()
+        for i, line in enumerate(lines):
+            if "--oracle_hash" in line:
+                # Look in the next few lines for the options
+                for j in range(i + 1, min(i + 100, len(lines))):
+                    if "Options: {" in lines[j]:
+                        options_str = lines[j].split("{")[1].split("}")[0]
+                        oracle_hash_options = [
+                            opt.strip() for opt in options_str.split(",")
+                        ]
+                        break
+                break
+
+        return oracle_hash_options
+    except (FileNotFoundError, OSError):
+        # Command not found or other OS error
+        return []
 
 
 def check_bb_starknet_support(

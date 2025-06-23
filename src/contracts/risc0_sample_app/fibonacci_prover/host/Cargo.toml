@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 methods = { path = "../methods" }
-risc0-zkvm = { version = "2.0.1" }
-risc0-ethereum-contracts = { version = "2.0.0" }
+risc0-zkvm = { version = "2.1.0" }
+risc0-ethereum-contracts = { version = "2.1.0" }
 garaga_rs = { path = "../../../../../tools/garaga_rs" }
 hex = "0.4"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

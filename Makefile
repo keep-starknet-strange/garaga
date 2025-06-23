@@ -83,7 +83,7 @@ wasm-test-gen:
 	./tools/make/wasm-test-gen.sh
 
 maturin:
-	maturin build --release --features python
+	maturin develop --release --features python
 
 clean:
 	sudo rm -rf build/

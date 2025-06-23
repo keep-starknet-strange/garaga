@@ -2,7 +2,7 @@ import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from ".
 import * as fs from 'fs';
 import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
 import { createHash } from 'crypto';
-import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST } from "../../../constants";
+import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION } from "../../../constants";
 
 
 //https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
@@ -700,12 +700,12 @@ const tryParseG2Point = (point: any, curveId: CurveId): G2Point => {
 
 export const createGroth16ProofFromSp1 = (vkey: Uint8Array, publicValues: Uint8Array, proof: Uint8Array): Groth16Proof => {
     // SP1 version checking - first 4 bytes should match expected hash
-    const SP1_VERIFIER_HASH = hexStringToBytes("11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4");
+    const sp1VerifierHashBytes = hexStringToBytes(SP1_VERIFIER_HASH);
     const selector = proof.slice(0, 4);
-    const expectedSelector = SP1_VERIFIER_HASH.slice(0, 4);
+    const expectedSelector = sp1VerifierHashBytes.slice(0, 4);
 
     if (!selector.every((byte, index) => byte === expectedSelector[index])) {
-        throw new Error(`Invalid SP1 proof version. Expected ${Array.from(expectedSelector).map(b => b.toString(16).padStart(2, '0')).join('')} for version v4.0.0-rc.3, got ${Array.from(selector).map(b => b.toString(16).padStart(2, '0')).join('')}`);
+        throw new Error(`Invalid SP1 proof version. Expected ${Array.from(expectedSelector).map(b => b.toString(16).padStart(2, '0')).join('')} for version ${SP1_VERIFIER_VERSION}, got ${Array.from(selector).map(b => b.toString(16).padStart(2, '0')).join('')}`);
     }
 
     if (publicValues.length % 32 !== 0) {

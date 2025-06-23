@@ -2,6 +2,7 @@ use garaga::definitions::{E12D, G1Point, G2Line, G2Point, u288, u384};
 use garaga::groth16::Groth16VerifyingKey;
 
 pub const N_FREE_PUBLIC_INPUTS: usize = 2;
+// RISC0 version tag : v2.1.0
 // CONTROL ROOT USED : 0x539032186827b06719244873b17b2d4c122e2d02cfb1994fe958b2523b844576
 // CONTROL_ROOT_0 : 0x4c2d7bb17348241967b0276818329053
 // CONTROL_ROOT_1 : 0x7645843b52b258e94f99b1cf022d2e12

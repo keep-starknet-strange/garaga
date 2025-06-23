@@ -2,6 +2,7 @@ import os
 
 from garaga.definitions import ProofSystem
 from garaga.modulo_circuit_structs import G1PointCircuit
+from garaga.starknet.constants import RISC0_RELEASE_VERSION
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     precompute_lines_from_vk,
@@ -49,6 +50,7 @@ def gen_risc0_groth16_verifier(
     use garaga::groth16::Groth16VerifyingKey;
 
     pub const N_FREE_PUBLIC_INPUTS:usize = 2;
+    // RISC0 version tag : {RISC0_RELEASE_VERSION}
     // CONTROL ROOT USED : {hex(control_root)}
     // \t CONTROL_ROOT_0 : {hex(CONTROL_ROOT_0)}
     // \t CONTROL_ROOT_1 : {hex(CONTROL_ROOT_1)}
