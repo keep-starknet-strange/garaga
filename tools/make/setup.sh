@@ -105,8 +105,8 @@ echo "Compiling garaga_rs Rust extension..."
 mkdir -p .cargo/garaga_rs/target
 chmod 755 .cargo/garaga_rs/target
 
-# Build the Rust extension
-maturin develop --release
+# Build the Rust extension with Python feature enabled
+maturin develop --release --features python
 
 echo "All done!"
 

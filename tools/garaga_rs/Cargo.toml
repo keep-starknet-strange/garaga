@@ -9,30 +9,40 @@ name = "garaga_rs"
 crate-type = ["cdylib", "rlib"]
 
 [features]
-# both features are on by default, but note that
-# - python bindings are automatically excluded on wasm32-unknown-unknown
-# - wasm bindings are garbage collected when not on wasm32-unknown-unknown
-default = ["python", "wasm"]
+# By default, we don't include any bindings - pure Rust library mode
+# This allows users to import garaga_rs without pulling in pyo3 or wasm-bindgen
+default = []
+# Enable Python bindings (for maturin builds)
 python = ["dep:pyo3"]
-wasm = ["dep:wasm-bindgen"]
+# Enable WASM bindings (for wasm-pack builds)
+wasm = ["dep:wasm-bindgen", "dep:js-sys"]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
 #proptest = "1.6.0"
 #proptest-arbitrary-interop = "0.1"
 test-strategy = "0.4.0"
 
-# assumes python dependencies when not on wasm32-unknown-unknown
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pyo3 = { version = "0.24", features = ["extension-module", "num-bigint"] }
+# WASM-specific dev dependencies - only included when target is wasm32
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3"
 
-# assumes wasm dependencies when on wasm32-unknown-unknown
+# Platform-specific optional dependencies:
+# These ensure the right bindings are available only when needed and on the right platform
+
+# Python bindings - only available when:
+# 1. Not on wasm32 target AND
+# 2. "python" feature is enabled (e.g., when building with maturin)
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+pyo3 = { version = "0.24", features = ["extension-module", "num-bigint"], optional = true }
+
+# WASM bindings - only available when:
+# 1. On wasm32 target AND
+# 2. "wasm" feature is enabled (e.g., when building with wasm-pack)
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen = "0.2"
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
 
 [dependencies]
-pyo3 = { version = "0.24", features = ["extension-module", "num-bigint"], optional = true }
-wasm-bindgen = { version = "0.2", optional = true }
 getrandom = { version = "0.3.1", features = ["wasm_js"] }
 num-bigint = "0.4"
 num-integer = "0.1"
@@ -40,7 +50,6 @@ num-traits = "0.2"
 hex = "0.4"
 sha2 = "0.10"
 sha3 = "0.10"
-js-sys = "0.3"
 lazy_static = "1.4"
 rand = "0.9.0"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
