@@ -187,7 +187,7 @@ The following utilities are available in the codebase:
 
 1. Build/Update the Rust extension:
 ```bash
-maturin develop --release
+maturin develop --release --features python
 ```
 
 2. Run tests:

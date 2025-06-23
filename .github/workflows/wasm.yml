@@ -38,7 +38,7 @@ jobs:
       - run: cargo install wasm-pack
       - name: Run wasm specific tests
         working-directory: tools/garaga_rs
-        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features
+        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features --features wasm
 
   build-wasm:
     needs: pre_job
