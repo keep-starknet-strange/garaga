@@ -82,6 +82,9 @@ wasm:
 wasm-test-gen:
 	./tools/make/wasm-test-gen.sh
 
+maturin:
+	cd tools/garaga_rs && maturin build --release --features python
+
 clean:
 	sudo rm -rf build/
 	mkdir -p build/
