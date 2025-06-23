@@ -15,13 +15,16 @@ default = []
 # Enable Python bindings (for maturin builds)
 python = ["dep:pyo3"]
 # Enable WASM bindings (for wasm-pack builds)
-wasm = ["dep:wasm-bindgen"]
+wasm = ["dep:wasm-bindgen", "dep:js-sys"]
 
 [dev-dependencies]
-wasm-bindgen-test = "0.3"
 #proptest = "1.6.0"
 #proptest-arbitrary-interop = "0.1"
 test-strategy = "0.4.0"
+
+# WASM-specific dev dependencies - only included when target is wasm32
+[target.'cfg(target_arch = "wasm32")'.dev-dependencies]
+wasm-bindgen-test = "0.3"
 
 # Platform-specific optional dependencies:
 # These ensure the right bindings are available only when needed and on the right platform
@@ -37,6 +40,7 @@ pyo3 = { version = "0.24", features = ["extension-module", "num-bigint"], option
 # 2. "wasm" feature is enabled (e.g., when building with wasm-pack)
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
 
 [dependencies]
 getrandom = { version = "0.3.1", features = ["wasm_js"] }
@@ -46,7 +50,6 @@ num-traits = "0.2"
 hex = "0.4"
 sha2 = "0.10"
 sha3 = "0.10"
-js-sys = "0.3"
 lazy_static = "1.4"
 rand = "0.9.0"
 starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
