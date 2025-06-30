@@ -20,8 +20,10 @@ import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGen
 import { HonkFlavor } from './starknet/honkContractGenerator/parsingUtils';
 
 export {
+  parseGroth16ProofFromJson,
   parseGroth16ProofFromObject,
   parseGroth16VerifyingKeyFromObject,
+  parseGroth16VerifyingKeyFromJson,
 } from './starknet/groth16ContractGenerator/parsingUtils';
 
 /**
