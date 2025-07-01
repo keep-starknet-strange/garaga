@@ -8,6 +8,15 @@ module.exports = {
     filename: 'bootstrap.js',
   },
   mode: 'production',
+  resolve: {
+    fallback: {
+      "crypto": require.resolve("crypto-browserify"),
+      "stream": require.resolve("stream-browserify"),
+      "vm": require.resolve("vm-browserify"),
+      "buffer": require.resolve("buffer"),
+      "fs": false
+    }
+  },
   performance: {
     maxAssetSize: 4 * 1024 * 1024, // 4MB to avoid warning
   },
