@@ -11,5 +11,4 @@ starknet = "2.11.4"
 test = "snforge test -p garaga --include-ignored"
 
 [cairo]
-sierra-replace-ids = true
-inlining-strategy = 2
+sierra-replace-ids = false
