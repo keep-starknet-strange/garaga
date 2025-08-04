@@ -155,7 +155,7 @@ garaga = {{ {dep} }}
 starknet = "{CAIRO_VERSION}"
 
 [cairo]
-sierra-replace-ids = true
+sierra-replace-ids = false
 inlining-strategy = {inlining_level}
 
 [dev-dependencies]
