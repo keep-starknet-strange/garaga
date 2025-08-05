@@ -9,7 +9,7 @@ use num_traits::Num;
 /// release 2.0
 pub fn get_risc0_constants() -> (BigUint, BigUint) {
     let risc0_control_root = BigUint::from_str_radix(
-        "539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576",
+        "ce52bf56033842021af3cf6db8a50d1b7535c125a34f1a22c6fdcf002c5a1529",
         16,
     )
     .unwrap();

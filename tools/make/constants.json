@@ -1,24 +1,24 @@
 {
-    "risc0": {
-        "control_root": "0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576",
-        "bn254_control_id": "0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
-        "system_state_zero_digest": "0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2",
-        "tag_digest": "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af",
-        "output_tag": "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4"
-    },
-    "sp1": {
-        "verifier_version": "v4.0.0-rc.3",
-        "verifier_hash": "0x11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4"
-    },
-    "release_info": {
-        "garaga_version": "0.18.1",
-        "risc0_release": "2.0",
-        "cairo_version": "2.11.4",
-        "starknet_foundry_version": "0.44.0"
-    },
-    "noir": {
-        "bb_version": "0.87.4",
-        "bbup_version": "0.87.4-starknet.1",
-        "nargo_version": "1.0.0-beta.4"
-    }
+  "risc0": {
+    "control_root": "0xce52bf56033842021af3cf6db8a50d1b7535c125a34f1a22c6fdcf002c5a1529",
+    "bn254_control_id": "0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
+    "system_state_zero_digest": "0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2",
+    "tag_digest": "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af",
+    "output_tag": "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4"
+  },
+  "sp1": {
+    "verifier_version": "v4.0.0-rc.3",
+    "verifier_hash": "0x11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4"
+  },
+  "release_info": {
+    "garaga_version": "0.18.1",
+    "risc0_release": "2.0",
+    "cairo_version": "2.11.4",
+    "starknet_foundry_version": "0.44.0"
+  },
+  "noir": {
+    "bb_version": "0.87.4",
+    "bbup_version": "0.87.4-starknet.1",
+    "nargo_version": "1.0.0-beta.4"
+  }
 }

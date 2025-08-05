@@ -2,7 +2,7 @@ use garaga::definitions::{E12D, G1Point, G2Line, G2Point, u288, u384};
 use garaga::groth16::Groth16VerifyingKey;
 
 pub const N_FREE_PUBLIC_INPUTS: usize = 2;
-// CONTROL ROOT USED : 0x539032186827b06719244873b17b2d4c122e2d02cfb1994fe958b2523b844576
+// CONTROL ROOT USED : 0xce52bf56033842021af3cf6db8a50d1b7535c125a34f1a22c6fdcf002c5a1529
 // CONTROL_ROOT_0 : 0x4c2d7bb17348241967b0276818329053
 // CONTROL_ROOT_1 : 0x7645843b52b258e94f99b1cf022d2e12
 // BN254 CONTROL ID USED : 0x4446e66d300eb7fb45c9726bb53c793dda407a62e9601618bb43c5c14657ac0
@@ -4100,4 +4100,3 @@ pub const precomputed_lines: [G2Line; 176] = [
         },
     },
 ];
-
