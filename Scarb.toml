@@ -9,3 +9,6 @@ starknet = "2.11.4"
 
 [workspace.scripts]
 test = "snforge test -p garaga --include-ignored"
+
+[cairo]
+sierra-replace-ids = false

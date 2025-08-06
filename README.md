@@ -132,7 +132,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                            | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,401,065 | 73,884        | 452,092          | 3,476     |        608 | 49,930    | 48,054    | 213,429,084  |
+| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,399,701 | 73,900        | 451,836          | 3,476     |        608 | 49,914    | 48,030    | 213,261,292  |
 
 </details>
 
@@ -150,7 +150,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                                | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,260,556 | 66,600        | 451,134          | 1,191      | 49,860    | 47,958    | 197,000,317  |
+| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,262,593 | 66,624        | 451,761          | 1,191      | 49,911    | 48,024    | 197,292,403  |
 
 </details>
 
@@ -389,7 +389,6 @@ Check the profile file for more details.
 
 ---
 🔄 **To regenerate these benchmarks:** Run `make profile-test` from the project root.
-
 ## Support & How to Contribute
 
 We warmly welcome contributions and support from the community! Here's how you can help Garaga grow and improve:
