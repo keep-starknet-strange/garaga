@@ -3,10 +3,10 @@
  */
 
 // RISC0 Constants
-// https://github.com/risc0/risc0-ethereum/blob/v2.1.0/contracts/src/groth16/ControlID.sol
-// release v2.1.0
+// https://github.com/risc0/risc0-ethereum/blob/v2.2.2/contracts/src/groth16/ControlID.sol
+// release v2.2.2
 export const RISC0_CONTROL_ROOT = BigInt(
-  "0x539032186827b06719244873b17b2d4c122e2d02cfb1994fe958b2523b844576",
+  "0xCE52BF56033842021AF3CF6DB8A50D1B7535C125A34F1A22C6FDCF002C5A1529",
 );
 export const RISC0_BN254_CONTROL_ID = BigInt(
   "0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",

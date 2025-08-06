@@ -1,6 +1,6 @@
 {
     "risc0": {
-        "control_root": "0x539032186827b06719244873b17b2d4c122e2d02cfb1994fe958b2523b844576",
+        "control_root": "0xCE52BF56033842021AF3CF6DB8A50D1B7535C125A34F1A22C6FDCF002C5A1529",
         "bn254_control_id": "0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
         "system_state_zero_digest": "0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2",
         "tag_digest": "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af",
@@ -12,7 +12,7 @@
     },
     "release_info": {
         "garaga_version": "0.18.1",
-        "risc0_release": "v2.1.0",
+        "risc0_release": "v2.2.2",
         "cairo_version": "2.11.4",
         "starknet_foundry_version": "0.44.0"
     },

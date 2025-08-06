@@ -31,6 +31,7 @@ class SubprocessFormatter:
 
     def format_file(self, file_path: str, cwd: Optional[str] = None) -> bool:
         """Format a file using subprocess command."""
+        print(f"Formatting {file_path} with {self.name}")
         try:
             cmd = self.cmd + [file_path]
             subprocess.run(cmd, check=True, capture_output=True, text=True, cwd=cwd)

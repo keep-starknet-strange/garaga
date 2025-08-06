@@ -4,11 +4,11 @@ use num_bigint::BigUint;
 use num_traits::Num;
 
 // RISC0 Constants
-// https://github.com/risc0/risc0-ethereum/blob/v2.1.0/contracts/src/groth16/ControlID.sol
-// release v2.1.0
+// https://github.com/risc0/risc0-ethereum/blob/v2.2.2/contracts/src/groth16/ControlID.sol
+// release v2.2.2
 pub fn get_risc0_constants() -> (BigUint, BigUint) {
     let risc0_control_root = BigUint::from_str_radix(
-        "539032186827b06719244873b17b2d4c122e2d02cfb1994fe958b2523b844576",
+        "CE52BF56033842021AF3CF6DB8A50D1B7535C125A34F1A22C6FDCF002C5A1529",
         16,
     )
     .unwrap();
