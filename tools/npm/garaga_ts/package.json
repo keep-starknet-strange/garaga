@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "garaga",
-  "version": "0.18.1",
+  "version": "0.18.2",
   "description": "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺",
   "main": "./dist/index.cjs",
   "module": "./dist/index.mjs",
