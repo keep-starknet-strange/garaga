@@ -7,7 +7,7 @@ icon: octopus
 ## Requirements (read carefully to avoid 99% of issues!)
 
 * Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.1 (install with `pip install garaga==0.18.1`
-* Noir 1.0.0-beta.4 (install with `noirup --version 1.0.0-beta.4`  or `npm i @noir-lang/noir_js@1.0.0-beta.4` )
+* Noir 1.0.0-beta.5 (install with `noirup --version 1.0.0-beta.5`  or `npm i @noir-lang/noir_js@1.0.0-beta.5` )
 * Barretenberg 0.87.4-starknet.1 (install with `bbup --version 0.87.4-starknet.1` or `npm i @aztec/bb.js@0.87.4-starknet.1` )
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
