@@ -14,6 +14,13 @@ impl<F: IsPrimeField> G1Point<F> {
         let zero = FieldElement::zero();
         self.x.eq(&zero) && self.y.eq(&zero)
     }
+    pub fn representative(&self) -> String {
+        format!(
+            "({:?}, {:?})",
+            self.x.representative().to_string(),
+            self.y.representative().to_string()
+        )
+    }
 }
 
 impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
