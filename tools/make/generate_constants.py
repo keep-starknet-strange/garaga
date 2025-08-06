@@ -1,653 +1,779 @@
 #!/usr/bin/env python3
 """
-Generate language-specific constants from the centralized constants.json file.
-This script is used in the build process to ensure constants are synchronized across all languages.
-
-Additionally, this script syncs version numbers across:
-- pyproject.toml (Python package version)
-- tools/garaga_rs/Cargo.toml (Rust crate version)
-- tools/npm/garaga_ts/package.json (TypeScript package version)
-- tools/npm/garaga_ts/README.md (API documentation links)
-- docs/PYPI_README.md (pip install commands)
+Generate language-specific constants from constants.json and sync version numbers across files.
 """
 
 import json
+import logging
 import os
 import re
+import subprocess
+import sys
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional, Protocol
+
+from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
+
+
+class FormatterProtocol(Protocol):
+    """Protocol for code formatters."""
+
+    def format_file(self, file_path: str, cwd: Optional[str] = None) -> bool:
+        """Format a file. Returns True if successful, False otherwise."""
+        ...
+
+
+class SubprocessFormatter:
+    """Formatter that uses external subprocess commands."""
+
+    def __init__(self, cmd: list[str], name: str):
+        self.cmd = cmd
+        self.name = name
+
+    def format_file(self, file_path: str, cwd: Optional[str] = None) -> bool:
+        """Format a file using subprocess command."""
+        print(f"Formatting {file_path} with {self.name}")
+        try:
+            cmd = self.cmd + [file_path]
+            subprocess.run(cmd, check=True, capture_output=True, text=True, cwd=cwd)
+            logger.info(f"Successfully formatted with {self.name}")
+            return True
+        except subprocess.CalledProcessError as e:
+            logger.warning(f"{self.name} formatting failed: {e.stderr}")
+            return False
+        except FileNotFoundError:
+            logger.warning(f"{self.name} not found - skipping formatting")
+            return False
+        except Exception as e:
+            logger.warning(f"Unexpected error running {self.name}: {e}")
+            return False
+
+
+from rich.logging import RichHandler
+
+# Configure logging with rich for color-based level printing
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[
+        RichHandler(),
+    ],
+)
+logger = logging.getLogger(__name__)
+
+
+class ConstantsError(Exception):
+    """Base exception for constants generation errors."""
+
+
+class VKError(ConstantsError):
+    """Raised when verification key processing fails."""
+
+
+@dataclass(frozen=True)
+class UpdateConfig:
+    """Configuration for version update operations."""
+
+    name: str
+    pattern: str
+    replacement: str
+    description: str = ""
+    version_key: str = (
+        "garaga_version"  # Default to garaga_version for backward compatibility
+    )
+
+    def apply_update(self, content: str, version: str) -> tuple[str, bool]:
+        """Apply the update to content and return (new_content, changed)."""
+        replacement = self.replacement.replace("{version}", version)
+        new_content = re.sub(self.pattern, replacement, content)
+        return new_content, content != new_content
+
+
+@dataclass(frozen=True)
+class VKConfig:
+    """Configuration for verification key updates."""
+
+    name: str
+    json_filename: str
+    function_name: str
+
+    def get_json_path(self, project_root: Path) -> Path:
+        return (
+            project_root
+            / "hydra"
+            / "garaga"
+            / "starknet"
+            / "groth16_contract_generator"
+            / "examples"
+            / self.json_filename
+        )
+
+    def get_function_pattern(self) -> str:
+        """Generate the regex pattern for this VK function."""
+        return (
+            f"(pub fn {self.function_name}\\(\\) -> Groth16VerificationKey \\{{\\s*let vk_hex = \\[)"
+            "([\\s\\S]*?)"
+            "(\\];\\s*Groth16VerificationKey::from\\([\\s\\S]*?\\}\\s*\\})"
+        )
+
+
+# VK Configurations - simplified with pattern generation
+SP1_VK_CONFIG = VKConfig(
+    name="SP1",
+    json_filename="vk_sp1.json",
+    function_name="get_sp1_vk",
+)
+
+RISC0_VK_CONFIG = VKConfig(
+    name="RISC0",
+    json_filename="vk_risc0.json",
+    function_name="get_risc0_vk",
+)
+
+
+@dataclass(frozen=True)
+class PathConfig:
+    """Configuration for all file paths used in the script."""
+
+    project_root: Path
+
+    @property
+    def python_output(self) -> Path:
+        return self.project_root / "hydra" / "garaga" / "starknet" / "constants.py"
+
+    @property
+    def rust_output(self) -> Path:
+        return self.project_root / "tools" / "garaga_rs" / "src" / "constants.rs"
+
+    @property
+    def typescript_output(self) -> Path:
+        return (
+            self.project_root / "tools" / "npm" / "garaga_ts" / "src" / "constants.ts"
+        )
+
+    @property
+    def readme_path(self) -> Path:
+        return self.project_root / "docs" / "PYPI_README.md"
+
+    @property
+    def pyproject_path(self) -> Path:
+        return self.project_root / "pyproject.toml"
+
+    @property
+    def garaga_rs_cargo_path(self) -> Path:
+        return self.project_root / "tools" / "garaga_rs" / "Cargo.toml"
+
+    @property
+    def package_json_path(self) -> Path:
+        return self.project_root / "tools" / "npm" / "garaga_ts" / "package.json"
+
+    @property
+    def npm_readme_path(self) -> Path:
+        return self.project_root / "tools" / "npm" / "garaga_ts" / "README.md"
+
+    @property
+    def noir_docs_path(self) -> Path:
+        return (
+            self.project_root
+            / "docs"
+            / "gitbook"
+            / "deploy-your-snark-verifier-on-starknet"
+            / "noir.md"
+        )
+
+    @property
+    def noir_smart_contract_docs_path(self) -> Path:
+        return (
+            self.project_root
+            / "docs"
+            / "gitbook"
+            / "smart-contract-generators"
+            / "noir.md"
+        )
+
+    @property
+    def groth16_rust_file(self) -> Path:
+        return (
+            self.project_root
+            / "tools"
+            / "garaga_rs"
+            / "src"
+            / "calldata"
+            / "full_proof_with_hints"
+            / "groth16.rs"
+        )
+
+
+# File path to update config mappings
+VERSION_UPDATES = [
+    (
+        "PYPI README",
+        "readme_path",
+        UpdateConfig(
+            name="PYPI README",
+            pattern=r"(pip\s+install\s+garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?",
+            replacement=r"\g<1>{version}",
+            description="pip install commands",
+        ),
+    ),
+    (
+        "pyproject.toml",
+        "pyproject_path",
+        UpdateConfig(
+            name="pyproject.toml",
+            pattern=r'(version\s*=\s*["\'])[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(["\'])',
+            replacement=r"\g<1>{version}\g<2>",
+            description="Python package version",
+        ),
+    ),
+    (
+        "Cargo.toml",
+        "garaga_rs_cargo_path",
+        UpdateConfig(
+            name="Cargo.toml",
+            pattern=r'(\[package\].*?^version\s*=\s*["\'])[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(["\'])',
+            replacement=r"\g<1>{version}\g<2>",
+            description="Rust package version",
+        ),
+    ),
+    (
+        "package.json",
+        "package_json_path",
+        UpdateConfig(
+            name="package.json",
+            pattern=r'("version"\s*:\s*["\'])[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(["\'])',
+            replacement=r"\g<1>{version}\g<2>",
+            description="NPM package version",
+        ),
+    ),
+    (
+        "npm README",
+        "npm_readme_path",
+        UpdateConfig(
+            name="npm README",
+            pattern=r"(📋 \*\*For complete API documentation.*?)v[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(/tools/npm/garaga_ts/src/node/api\.ts)",
+            replacement=r"\g<1>v{version}\g<2>",
+            description="API documentation links",
+        ),
+    ),
+    (
+        "Noir docs",
+        "noir_docs_path",
+        UpdateConfig(
+            name="Noir docs",
+            pattern=r"(version\s+)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(\s+\(install with `pip install garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(`?)",
+            replacement=r"\g<1>{version}\g<2>{version}\g<3>",
+            description="Garaga CLI version in docs",
+        ),
+    ),
+    (
+        "Noir version in docs",
+        "noir_docs_path",
+        UpdateConfig(
+            name="Noir version in docs",
+            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\)\s+)",
+            replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
+            description="Noir version in documentation",
+            version_key="nargo_version",
+        ),
+    ),
+    (
+        "Noir version in smart contract docs",
+        "noir_smart_contract_docs_path",
+        UpdateConfig(
+            name="Noir version in smart contract docs",
+            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\)\s+)",
+            replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
+            description="Noir version in smart contract generator documentation",
+            version_key="nargo_version",
+        ),
+    ),
+]
+
+VK_UPDATES = [
+    ("SP1 VK in Rust", SP1_VK_CONFIG),
+    ("RISC0 VK in Rust", RISC0_VK_CONFIG),
+]
 
 
 def load_constants() -> Dict[str, Any]:
     """Load constants from the centralized JSON file."""
     constants_file = Path(__file__).parent / "constants.json"
-    with open(constants_file, "r") as f:
-        return json.load(f)
+
+    try:
+        if not constants_file.exists():
+            raise ConstantsError(f"Constants file not found: {constants_file}")
+
+        with open(constants_file, "r") as f:
+            constants = json.load(f)
+
+        # Basic validation
+        required_keys = ["risc0", "sp1", "release_info", "noir"]
+        missing_keys = [key for key in required_keys if key not in constants]
+        if missing_keys:
+            raise ConstantsError(
+                f"Missing required keys in constants.json: {missing_keys}"
+            )
+
+        logger.info(f"Successfully loaded constants from {constants_file}")
+        return constants
+
+    except (json.JSONDecodeError, IOError) as e:
+        raise ConstantsError(f"Failed to load constants from {constants_file}: {e}")
+    except Exception as e:
+        raise ConstantsError(f"Unexpected error loading constants: {e}")
 
 
-def generate_python_constants(constants: Dict[str, Any], output_path: str):
-    """Generate Python constants file."""
-    risc0 = constants["risc0"]
-    sp1 = constants["sp1"]
+@dataclass(frozen=True)
+class LanguageConfig:
+    """Configuration for language-specific code generation."""
 
-    python_code = f'''"""
-Auto-generated constants file. Do not edit manually.
-Generated from constants.json by tools/make/generate_constants.py
-"""
+    name: str
+    comment_prefix: str
+    constant_template: str
+    formatter: FormatterProtocol
 
-# RISC0 Constants
-# https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-# release {constants["release_info"]["risc0_release"]}
-RISC0_CONTROL_ROOT = {risc0["control_root"]}
-RISC0_BN254_CONTROL_ID = {risc0["bn254_control_id"]}
 
-# SP1 Constants
-# https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/{sp1["verifier_version"]}/SP1VerifierGroth16.sol
-SP1_VERIFIER_VERSION: str = "{sp1["verifier_version"]}"
-SP1_VERIFIER_HASH: bytes = bytes.fromhex(
-    "{sp1["verifier_hash"][2:]}"
+# Language-specific configurations
+COMMON_FILE_HEADER = (
+    "Auto-generated constants file from constants.json. Do not edit manually."
 )
 
-# Additional RISC0 constants for internal use
-RISC0_SYSTEM_STATE_ZERO_DIGEST = "{risc0["system_state_zero_digest"]}"
-RISC0_TAG_DIGEST = "{risc0["tag_digest"]}"
-RISC0_OUTPUT_TAG = "{risc0["output_tag"]}"
+LANGUAGE_CONFIGS = [
+    LanguageConfig(
+        name="Python",
+        comment_prefix="#",
+        constant_template="{name} = {value}",
+        formatter=SubprocessFormatter(["black"], "black"),
+    ),
+    LanguageConfig(
+        name="Rust",
+        comment_prefix="//",
+        constant_template="pub const {name}: &str = {value};",
+        formatter=SubprocessFormatter(["cargo", "fmt", "--"], "cargo fmt"),
+    ),
+    LanguageConfig(
+        name="TypeScript",
+        comment_prefix="//",
+        constant_template="export const {name}: string = {value};",
+        formatter=SubprocessFormatter(
+            ["npx", "prettier", "--write"], "prettier (ensure it's installed)"
+        ),
+    ),
+]
 
-# Cairo version
-CAIRO_VERSION = "{constants["release_info"]["cairo_version"]}"
 
-# Starknet Foundry version
-STARKNET_FOUNDRY_VERSION = "{constants["release_info"]["starknet_foundry_version"]}"
-
-# Noir versions
-BB_VERSION = "{constants["noir"]["bb_version"]}"
-BBUP_VERSION = "{constants["noir"]["bbup_version"]}"
-NARGO_VERSION = "{constants["noir"]["nargo_version"]}"
-'''
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w") as f:
-        f.write(python_code)
-    # Run black on the generated file to ensure formatting
+def safe_read_file(file_path: str) -> str:
+    """Safely read a file with proper error handling."""
     try:
-        import subprocess
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except IOError as e:
+        raise ConstantsError(f"Failed to read {file_path}: {e}")
 
-        subprocess.run(
-            ["black", output_path],
-            check=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+
+def safe_write_file(file_path: str, content: str) -> None:
+    """Safely write to a file with proper error handling."""
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, "w", encoding="utf-8") as f:
+            f.write(content)
+    except IOError as e:
+        raise ConstantsError(f"Failed to write {file_path}: {e}")
+
+
+def generate_unified_constants(
+    constants: Dict[str, Any], config: LanguageConfig
+) -> str:
+    """Generate constants file content using unified template."""
+
+    # Build content sections
+    lines = []
+
+    # File header
+    if config.name == "Python":
+        lines.extend(['"""', COMMON_FILE_HEADER, '"""', ""])
+    elif config.name == "TypeScript":
+        lines.extend(
+            ["/**", " * " + COMMON_FILE_HEADER.replace("\n", "\n * "), " */", ""]
         )
-    except Exception as e:
-        print(f"Warning: Could not run black on {output_path}: {e}")
-    print(f"Generated Python constants: {output_path}")
+    else:  # Rust
+        lines.extend([f"//! {line}" for line in COMMON_FILE_HEADER.split("\n")] + [""])
 
+    # Add Rust-specific imports
+    if config.name == "Rust":
+        lines.extend(["use num_bigint::BigUint;", "use num_traits::Num;", ""])
 
-def generate_rust_constants(constants: Dict[str, Any], output_path: str):
-    """Generate Rust constants file."""
-    risc0 = constants["risc0"]
-    sp1 = constants["sp1"]
-
-    rust_code = f"""//! Auto-generated constants file. Do not edit manually.
-//! Generated from constants.json by tools/make/generate_constants.py
-
-use num_bigint::BigUint;
-use num_traits::Num;
-
-/// RISC0 Constants
-/// https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-/// release {constants["release_info"]["risc0_release"]}
-pub fn get_risc0_constants() -> (BigUint, BigUint) {{
-    let risc0_control_root = BigUint::from_str_radix(
-        "{risc0["control_root"][2:]}",
-        16,
+    # RISC0 section
+    risc0_info = constants["risc0"]
+    release_version = constants["release_info"]["risc0_release"]
+    lines.extend(
+        [
+            f"{config.comment_prefix} RISC0 Constants",
+            f"{config.comment_prefix} https://github.com/risc0/risc0-ethereum/blob/{release_version}/contracts/src/groth16/ControlID.sol",
+            f"{config.comment_prefix} release {release_version}",
+        ]
     )
-    .unwrap();
-    let risc0_bn254_control_id = BigUint::from_str_radix(
-        "{risc0["bn254_control_id"][2:]}",
-        16,
+
+    if config.name == "Rust":
+        lines.extend(
+            [
+                "pub fn get_risc0_constants() -> (BigUint, BigUint) {",
+                f'    let risc0_control_root = BigUint::from_str_radix("{risc0_info["control_root"][2:]}", 16).unwrap();',
+                f'    let risc0_bn254_control_id = BigUint::from_str_radix("{risc0_info["bn254_control_id"][2:]}", 16).unwrap();',
+                "    (risc0_control_root, risc0_bn254_control_id)",
+                "}",
+            ]
+        )
+    elif config.name == "TypeScript":
+        lines.extend(
+            [
+                f'export const RISC0_CONTROL_ROOT = BigInt("{risc0_info["control_root"]}");',
+                f'export const RISC0_BN254_CONTROL_ID = BigInt("{risc0_info["bn254_control_id"]}");',
+            ]
+        )
+    else:  # Python
+        lines.extend(
+            [
+                f'RISC0_CONTROL_ROOT = {risc0_info["control_root"]}',
+                f'RISC0_BN254_CONTROL_ID = {risc0_info["bn254_control_id"]}',
+            ]
+        )
+
+    lines.append("")
+
+    # SP1 section
+    sp1_info = constants["sp1"]
+    lines.extend(
+        [
+            f"{config.comment_prefix} SP1 Constants",
+            f"{config.comment_prefix} https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/{sp1_info['verifier_version']}/SP1VerifierGroth16.sol",
+        ]
     )
-    .unwrap();
 
-    (risc0_control_root, risc0_bn254_control_id)
-}}
-
-/// SP1 Constants
-/// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/{sp1["verifier_version"]}/SP1VerifierGroth16.sol
-pub const SP1_VERIFIER_VERSION: &str = "{sp1["verifier_version"]}";
-pub const SP1_VERIFIER_HASH: &str = "{sp1["verifier_hash"]}";
-
-/// Additional RISC0 constants for internal use
-pub const RISC0_SYSTEM_STATE_ZERO_DIGEST: &str = "{risc0["system_state_zero_digest"]}";
-pub const RISC0_TAG_DIGEST: &str = "{risc0["tag_digest"]}";
-pub const RISC0_OUTPUT_TAG: &str = "{risc0["output_tag"]}";
-
-#[cfg(test)]
-mod tests {{
-    use super::*;
-
-    #[test]
-    fn test_risc0_constants() {{
-        let (control_root, bn254_control_id) = get_risc0_constants();
-
-        // Verify the constants are not zero
-        assert!(control_root > BigUint::from(0u32));
-        assert!(bn254_control_id > BigUint::from(0u32));
-
-        // Verify they have the expected bit length (256 bits)
-        assert!(control_root.bits() <= 256);
-        assert!(bn254_control_id.bits() <= 256);
-    }}
-
-    #[test]
-    fn test_sp1_constants() {{
-        assert_eq!(SP1_VERIFIER_VERSION, "{sp1["verifier_version"]}");
-        assert!(SP1_VERIFIER_HASH.starts_with("0x"));
-        assert_eq!(SP1_VERIFIER_HASH.len(), 66); // 0x + 64 hex chars = 66
-    }}
-}}
-"""
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w") as f:
-        f.write(rust_code)
-    print(f"Generated Rust constants: {output_path}")
-
-    # Run cargo fmt on the output file to ensure proper formatting
-    import subprocess
-
-    try:
-        subprocess.run(
-            ["cargo", "fmt", "--", str(output_path)],
-            check=True,
-            cwd=os.path.dirname(output_path),
+    if config.name == "Python":
+        lines.extend(
+            [
+                f'SP1_VERIFIER_VERSION = "{sp1_info["verifier_version"]}"',
+                f'SP1_VERIFIER_HASH = bytes.fromhex("{sp1_info["verifier_hash"][2:]}")',
+            ]
         )
-        print(f"Ran cargo fmt on: {output_path}")
+    elif config.name == "TypeScript":
+        lines.extend(
+            [
+                f'export const SP1_VERIFIER_VERSION = "{sp1_info["verifier_version"]}";',
+                f'export const SP1_VERIFIER_HASH = "{sp1_info["verifier_hash"]}";',
+            ]
+        )
+    else:  # Rust
+        lines.extend(
+            [
+                f'pub const SP1_VERIFIER_VERSION: &str = "{sp1_info["verifier_version"]}";',
+                f'pub const SP1_VERIFIER_HASH: &str = "{sp1_info["verifier_hash"]}";',
+            ]
+        )
+
+    lines.append("")
+
+    # Additional constants
+    lines.extend(
+        [
+            f"{config.comment_prefix} Additional RISC0 constants for internal use",
+        ]
+    )
+
+    if config.name == "Python":
+        lines.extend(
+            [
+                f'RISC0_SYSTEM_STATE_ZERO_DIGEST = "{risc0_info["system_state_zero_digest"]}"',
+                f'RISC0_TAG_DIGEST = "{risc0_info["tag_digest"]}"',
+                f'RISC0_OUTPUT_TAG = "{risc0_info["output_tag"]}"',
+                f'RISC0_RELEASE_VERSION = "{constants["release_info"]["risc0_release"]}"',
+            ]
+        )
+    elif config.name == "TypeScript":
+        lines.extend(
+            [
+                f'export const RISC0_SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from("{risc0_info["system_state_zero_digest"].lstrip("0x")}", "hex"));',
+                f'export const RISC0_TAG_DIGEST = "{risc0_info["tag_digest"]}";',
+                f'export const RISC0_OUTPUT_TAG = "{risc0_info["output_tag"]}";',
+            ]
+        )
+    else:  # Rust
+        lines.extend(
+            [
+                f'pub const RISC0_SYSTEM_STATE_ZERO_DIGEST: &str = "{risc0_info["system_state_zero_digest"]}";',
+                f'pub const RISC0_TAG_DIGEST: &str = "{risc0_info["tag_digest"]}";',
+                f'pub const RISC0_OUTPUT_TAG: &str = "{risc0_info["output_tag"]}";',
+            ]
+        )
+
+    if config.name == "Python":
+        release_info = constants["release_info"]
+        noir_info = constants["noir"]
+        lines.extend(
+            [
+                "",
+                f"{config.comment_prefix} Version info",
+                f'CAIRO_VERSION = "{release_info["cairo_version"]}"',
+                f'STARKNET_FOUNDRY_VERSION = "{release_info["starknet_foundry_version"]}"',
+                f'BB_VERSION = "{noir_info["bb_version"]}"',
+                f'BBUP_VERSION = "{noir_info["bbup_version"]}"',
+                f'NARGO_VERSION = "{noir_info["nargo_version"]}"',
+            ]
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def generate_language_constants(
+    constants: Dict[str, Any], config: LanguageConfig, output_path: str
+) -> None:
+    """Generate constants file for a specific language."""
+    try:
+        content = generate_unified_constants(constants, config)
+        safe_write_file(output_path, content)
+
+        # Format if formatter available
+        if config.formatter:
+            cwd = os.path.dirname(output_path) if config.name == "Rust" else None
+            config.formatter.format_file(output_path, cwd)
+
+        logger.info(f"Generated {config.name} constants: {output_path}")
+
     except Exception as e:
-        print(f"Warning: cargo fmt failed on {output_path}: {e}")
+        raise ConstantsError(f"Failed to generate {config.name} constants: {e}")
 
 
-def generate_typescript_constants(constants: Dict[str, Any], output_path: str):
-    """Generate TypeScript constants file."""
-    risc0 = constants["risc0"]
-    sp1 = constants["sp1"]
+def generate_constants_by_language(
+    constants: Dict[str, Any], language: str, output_path: str
+):
+    """Generate constants file for a specific language by name."""
+    # Find language config
+    config = next((cfg for cfg in LANGUAGE_CONFIGS if cfg.name == language), None)
+    if not config:
+        raise ConstantsError(f"Unknown language: {language}")
 
-    typescript_code = f"""/**
- * Auto-generated constants file. Do not edit manually.
- * Generated from constants.json by tools/make/generate_constants.py
- */
-
-// RISC0 Constants
-// https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-// release {constants["release_info"]["risc0_release"]}
-export const RISC0_CONTROL_ROOT = BigInt("{risc0["control_root"]}");
-export const RISC0_BN254_CONTROL_ID = BigInt("{risc0["bn254_control_id"]}");
-
-// SP1 Constants
-// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/{sp1["verifier_version"]}/SP1VerifierGroth16.sol
-export const SP1_VERIFIER_VERSION: string = "{sp1["verifier_version"]}";
-export const SP1_VERIFIER_HASH: string = "{sp1["verifier_hash"]}";
-
-// Additional RISC0 constants for internal use
-export const RISC0_SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from(
-    "{risc0["system_state_zero_digest"][2:]}",
-    "hex"
-));
-export const RISC0_TAG_DIGEST = "{risc0["tag_digest"]}";
-export const RISC0_OUTPUT_TAG = "{risc0["output_tag"]}";
-"""
-
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    with open(output_path, "w") as f:
-        f.write(typescript_code)
-    print(f"Generated TypeScript constants: {output_path}")
+    generate_language_constants(constants, config, output_path)
 
 
-def update_readme_version(constants: Dict[str, Any], readme_path: str):
-    """
-    Update the version in the PYPI README file robustly.
-
-    This function uses regex patterns to find and replace version strings
-    in pip install commands, making it resilient to formatting changes.
-    """
-    version = constants["release_info"]["garaga_version"]
-
+def update_file_version(file_path: str, config: UpdateConfig, version: str) -> bool:
+    """Generic file version update function."""
     try:
-        with open(readme_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Pattern to match pip install garaga==X.Y.Z
-        # This pattern is flexible and handles various formatting
-        pip_install_pattern = (
-            r"(pip\s+install\s+garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?"
-        )
-        replacement = f"\\g<1>{version}"
-
-        # Count matches before replacement for verification
-        matches = re.findall(pip_install_pattern, content)
-        if not matches:
-            print(f"Warning: No pip install garaga== pattern found in {readme_path}")
+        if not Path(file_path).exists():
+            logger.warning(f"{config.name} file not found: {file_path}")
             return False
 
-        # Perform the replacement
-        updated_content = re.sub(pip_install_pattern, replacement, content)
+        content = safe_read_file(file_path)
+        new_content, changed = config.apply_update(content, version)
 
-        # Verify that content actually changed
-        if content == updated_content:
-            print(f"No version update needed in {readme_path} (already {version})")
+        if not changed:
+            logger.info(f"No {config.name} update needed (already {version})")
             return True
 
-        # Write the updated content back
-        with open(readme_path, "w", encoding="utf-8") as f:
-            f.write(updated_content)
-
-        print(f"Updated README version to {version} in {readme_path}")
-        print(f"  - Updated {len(matches)} pip install command(s)")
+        safe_write_file(file_path, new_content)
+        logger.info(f"Updated {config.name} to version {version}")
         return True
 
-    except FileNotFoundError:
-        print(f"Error: README file not found at {readme_path}")
-        return False
     except Exception as e:
-        print(f"Error updating README version: {e}")
-        return False
+        raise ConstantsError(f"Failed to update {config.name}: {e}")
 
 
-def update_pyproject_version(constants: Dict[str, Any], pyproject_path: str):
-    """
-    Update the version in pyproject.toml file robustly.
-
-    This function updates the version field in the [tool.poetry] section.
-    """
-    version = constants["release_info"]["garaga_version"]
-
+def update_vk_in_rust(
+    project_root: Path, groth16_rust_file: str, config: VKConfig
+) -> bool:
+    """Update verification key function in Rust with values from JSON."""
     try:
-        with open(pyproject_path, "r", encoding="utf-8") as f:
-            content = f.read()
 
-        # Pattern to match version = "X.Y.Z" in pyproject.toml
-        # This handles both single and double quotes
-        version_pattern = (
-            r'(version\s*=\s*["\'])[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(["\'])'
-        )
-        replacement = f"\\g<1>{version}\\g<2>"
+        # Load and parse VK
+        vk_path = config.get_json_path(project_root)
+        if not vk_path.exists():
+            raise ConstantsError(f"{config.name} VK file not found at {vk_path}")
 
-        # Count matches before replacement
-        matches = re.findall(version_pattern, content)
-        if not matches:
-            print(f"Warning: No version field found in {pyproject_path}")
-            return False
+        try:
+            vk = Groth16VerifyingKey.from_json(vk_path)
+            logger.info(f"Successfully loaded {config.name} VK from {vk_path}")
+        except Exception as e:
+            raise VKError(f"Failed to parse {config.name} VK: {e}")
 
-        # Perform the replacement
-        updated_content = re.sub(version_pattern, replacement, content)
+        # Process VK data
+        hex_values = [hex(value)[2:] for value in vk.flatten()]
 
-        # Verify that content actually changed
-        if content == updated_content:
-            print(f"No version update needed in {pyproject_path} (already {version})")
-            return True
+        # Format hex array
+        hex_lines = []
+        for i in range(0, len(hex_values), 4):
+            line_values = hex_values[i : i + 4]
+            formatted_line = "        " + ", ".join(f'"{val}"' for val in line_values)
+            hex_lines.append(formatted_line)
+        new_hex_array = ",\n".join(hex_lines) + ","
 
-        # Write the updated content back
-        with open(pyproject_path, "w", encoding="utf-8") as f:
-            f.write(updated_content)
+        # Update file
+        content = safe_read_file(groth16_rust_file)
 
-        print(f"Updated pyproject.toml version to {version} in {pyproject_path}")
-        return True
-
-    except FileNotFoundError:
-        print(f"Error: pyproject.toml file not found at {pyproject_path}")
-        return False
-    except Exception as e:
-        print(f"Error updating pyproject.toml version: {e}")
-        return False
-
-
-def update_cargo_toml_version(constants: Dict[str, Any], cargo_toml_path: str):
-    """
-    Update the version in Cargo.toml file robustly.
-
-    This function updates ONLY the version field in the [package] section,
-    not dependency versions.
-    """
-    version = constants["release_info"]["garaga_version"]
-
-    try:
-        with open(cargo_toml_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Pattern to match version = "X.Y.Z" ONLY in the [package] section
-        # This uses a more specific pattern that looks for the package section
-        # and stops at the next section or end of file
-        package_section_pattern = r'(\[package\].*?^version\s*=\s*["\'])[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(["\'])'
-        replacement = f"\\g<1>{version}\\g<2>"
-
-        # Count matches before replacement
-        matches = re.findall(package_section_pattern, content, re.MULTILINE | re.DOTALL)
-        if not matches:
-            print(f"Warning: No package version field found in {cargo_toml_path}")
-            return False
-
-        # Perform the replacement
-        updated_content = re.sub(
-            package_section_pattern,
-            replacement,
-            content,
-            flags=re.MULTILINE | re.DOTALL,
-        )
-
-        # Verify that content actually changed
-        if content == updated_content:
-            print(f"No version update needed in {cargo_toml_path} (already {version})")
-            return True
-
-        # Write the updated content back
-        with open(cargo_toml_path, "w", encoding="utf-8") as f:
-            f.write(updated_content)
-
-        print(f"Updated Cargo.toml package version to {version} in {cargo_toml_path}")
-        return True
-
-    except FileNotFoundError:
-        print(f"Error: Cargo.toml file not found at {cargo_toml_path}")
-        return False
-    except Exception as e:
-        print(f"Error updating Cargo.toml version: {e}")
-        return False
-
-
-def update_package_json_version(constants: Dict[str, Any], package_json_path: str):
-    """
-    Update the version in package.json file robustly.
-
-    This function updates the version field in the package.json file.
-    """
-    version = constants["release_info"]["garaga_version"]
-
-    try:
-        with open(package_json_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Pattern to match "version": "X.Y.Z" in package.json
-        # This handles both single and double quotes
-        version_pattern = (
-            r'("version"\s*:\s*["\'])[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(["\'])'
-        )
-        replacement = f"\\g<1>{version}\\g<2>"
-
-        # Count matches before replacement
-        matches = re.findall(version_pattern, content)
-        if not matches:
-            print(f"Warning: No version field found in {package_json_path}")
-            return False
-
-        # Perform the replacement
-        updated_content = re.sub(version_pattern, replacement, content)
-
-        # Verify that content actually changed
-        if content == updated_content:
-            print(
-                f"No version update needed in {package_json_path} (already {version})"
-            )
-            return True
-
-        # Write the updated content back
-        with open(package_json_path, "w", encoding="utf-8") as f:
-            f.write(updated_content)
-
-        print(f"Updated package.json version to {version} in {package_json_path}")
-        return True
-
-    except FileNotFoundError:
-        print(f"Error: package.json file not found at {package_json_path}")
-        return False
-    except Exception as e:
-        print(f"Error updating package.json version: {e}")
-        return False
-
-
-def update_npm_readme_version(constants: Dict[str, Any], npm_readme_path: str):
-    """
-    Update the npm README.md file to include version-specific API links.
-
-    This function adds or updates links to the API documentation for the specific version.
-    """
-    version = constants["release_info"]["garaga_version"]
-
-    try:
-        with open(npm_readme_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Create the API link with clear call-to-action
-        api_section = f"""📋 **For complete API documentation with examples, see:** [API Reference](https://github.com/keep-starknet-strange/garaga/blob/v{version}/tools/npm/garaga_ts/src/node/api.ts)
-
-"""
-
-        # Pattern to find the Available Functions section
-        available_functions_pattern = r"(## Available Functions\s*\n\n?)"
-
-        # Check if the section exists
-        functions_match = re.search(available_functions_pattern, content)
-        if not functions_match:
-            print(
-                f"Warning: Available Functions section not found in {npm_readme_path}"
-            )
-            return False
-
-        # Check if API reference already exists in this section
-        # Look for the pattern from the start of Available Functions to the next section
-        next_section_pattern = r"(## Available Functions\s*\n)(.*?)(\n## |$)"
-        section_match = re.search(next_section_pattern, content, re.DOTALL)
-
-        if section_match:
-            current_section_content = section_match.group(2)
-            api_reference_pattern = r"📋 \*\*For complete API documentation.*?\n\n"
-
-            if re.search(api_reference_pattern, current_section_content):
-                # Update existing API reference
-                updated_section = re.sub(
-                    api_reference_pattern, api_section, current_section_content
-                )
-                updated_content = (
-                    content[: section_match.start(2)]
-                    + updated_section
-                    + content[section_match.end(2) :]
-                )
-            else:
-                # Add API reference at the beginning of the section
-                updated_content = (
-                    content[: functions_match.end()]
-                    + api_section
-                    + content[functions_match.end() :]
-                )
-        else:
-            # Fallback: just add after the header
-            updated_content = (
-                content[: functions_match.end()]
-                + api_section
-                + content[functions_match.end() :]
-            )
-
-        # Verify that content actually changed
-        if content == updated_content:
-            print(
-                f"No API link update needed in {npm_readme_path} (already v{version})"
-            )
-            return True
-
-        # Write the updated content back
-        with open(npm_readme_path, "w", encoding="utf-8") as f:
-            f.write(updated_content)
-
-        print(
-            f"Updated npm README.md API link to v{version} in Available Functions section"
-        )
-        return True
-
-    except FileNotFoundError:
-        print(f"Error: npm README.md file not found at {npm_readme_path}")
-        return False
-    except Exception as e:
-        print(f"Error updating npm README.md: {e}")
-        return False
-
-
-def update_noir_docs_version(constants: Dict[str, Any], noir_docs_path: str):
-    """
-    Update the Noir documentation file with current versions.
-
-    This function updates the Garaga CLI, Noir, and Barretenberg versions
-    in the requirements section of the Noir documentation, as well as
-    the GitHub links with the correct version tags.
-    """
-    garaga_version = constants["release_info"]["garaga_version"]
-    nargo_version = constants["noir"]["nargo_version"]
-    bbup_version = constants["noir"]["bbup_version"]
-
-    try:
-        with open(noir_docs_path, "r", encoding="utf-8") as f:
-            content = f.read()
-
-        # Track if any changes were made
-        changes_made = False
-        updated_content = content
-
-        # Update Garaga CLI version
-        # Pattern: "version X.Y.Z (install with `pip install garaga==X.Y.Z`" (handles incomplete backticks too)
-        garaga_pattern = r"(version\s+)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(\s+\(install with `pip install garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(`?)"
-        garaga_replacement = f"\\g<1>{garaga_version}\\g<2>{garaga_version}\\g<3>"
-
-        new_content = re.sub(garaga_pattern, garaga_replacement, updated_content)
-        if new_content != updated_content:
-            changes_made = True
-            updated_content = new_content
-
-        # Update Noir version - use multiple simple replacements
-        # Replace all instances of old version with new version
-        noir_old_version = re.search(
-            r"Noir\s+([\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?)", updated_content
-        )
-        if noir_old_version:
-            old_version = noir_old_version.group(1)
-            if old_version != nargo_version:
-                updated_content = updated_content.replace(old_version, nargo_version)
-                changes_made = True
-
-        # Update Barretenberg version - use multiple simple replacements
-        bb_old_version = re.search(
-            r"Barretenberg\s+([\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?)", updated_content
-        )
-        if bb_old_version:
-            old_version = bb_old_version.group(1)
-            if old_version != bbup_version:
-                updated_content = updated_content.replace(old_version, bbup_version)
-                changes_made = True
-
-        # Update GitHub links with correct version tags
-        # Update AztecProtocol/aztec-packages link with bbup_version
-        aztec_pattern = r"(https://github\.com/AztecProtocol/aztec-packages/blob/v)[\d]+\.[\d]+\.[\d]+(?:-[\w\.]+)?([-\w\.]*)(/.*/backend\.ts)"
-        aztec_replacement = f"\\g<1>{bbup_version}\\g<3>"
-
-        new_content = re.sub(aztec_pattern, aztec_replacement, updated_content)
-        if new_content != updated_content:
-            changes_made = True
-            updated_content = new_content
-
-        # Update keep-starknet-strange/garaga link with garaga_version
-        garaga_link_pattern = r"(https://github\.com/keep-starknet-strange/garaga/blob/v)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(/tools/npm/garaga_ts/src/node/api\.ts)"
-        garaga_link_replacement = f"\\g<1>{garaga_version}\\g<2>"
+        match = re.search(config.get_function_pattern(), content)
+        if not match:
+            raise VKError(f"Could not find {config.name} VK function pattern")
 
         new_content = re.sub(
-            garaga_link_pattern, garaga_link_replacement, updated_content
+            config.get_function_pattern(),
+            f"\\g<1>\n{new_hex_array}\n    \\g<3>",
+            content,
         )
-        if new_content != updated_content:
-            changes_made = True
-            updated_content = new_content
 
-        # Verify that content actually changed
-        if not changes_made:
-            print(f"No version updates needed in {noir_docs_path} (already current)")
+        if content == new_content:
+            logger.info(f"No {config.name} VK update needed - already current")
             return True
 
-        # Write the updated content back
-        with open(noir_docs_path, "w", encoding="utf-8") as f:
-            f.write(updated_content)
+        safe_write_file(groth16_rust_file, new_content)
+        logger.info(
+            f"Updated {config.name} verification key ({len(hex_values)} values)"
+        )
 
-        print(f"Updated Noir documentation versions in {noir_docs_path}")
-        print(f"  - Garaga CLI: {garaga_version}")
-        print(f"  - Noir: {nargo_version}")
-        print(f"  - Barretenberg: {bbup_version}")
-        print(f"  - Updated GitHub links with version tags")
+        # Format with cargo
+        rust_config = next(
+            (cfg for cfg in LANGUAGE_CONFIGS if cfg.name == "Rust"), None
+        )
+        if rust_config:
+            rust_config.formatter.format_file(
+                groth16_rust_file, os.path.dirname(groth16_rust_file)
+            )
+
         return True
 
-    except FileNotFoundError:
-        print(f"Error: Noir docs file not found at {noir_docs_path}")
-        return False
+    except (VKError, ConstantsError):
+        raise
     except Exception as e:
-        print(f"Error updating Noir docs versions: {e}")
-        return False
+        raise VKError(f"Unexpected error updating {config.name} VK: {e}")
+    finally:
+        if str(project_root / "hydra") in sys.path:
+            sys.path.remove(str(project_root / "hydra"))
+
+
+def report_results(all_results: list[tuple[str, bool]]) -> int:
+    """Report operation results and return exit code."""
+    failed = [result for result in all_results if not result[1]]
+    successful = [result for result in all_results if result[1]]
+
+    logger.info(
+        f"Operations completed: {len(successful)}/{len(all_results)} successful"
+    )
+
+    if successful:
+        logger.info("Successful operations:")
+        for result in successful:
+            logger.info(f"  ✓ {result[0]}")
+
+    if failed:
+        logger.warning("Failed operations:")
+        for result in failed:
+            logger.warning(f"  ✗ {result[0]}")
+
+        logger.warning(f"{len(failed)} operations failed")
+        return 1
+    else:
+        logger.info("All constants files and version references updated successfully!")
+        return 0
+
+
+def generate_all_constants(constants: Dict[str, Any], paths: PathConfig) -> None:
+    """Generate constants files for all languages."""
+    generate_constants_by_language(constants, "Python", str(paths.python_output))
+    generate_constants_by_language(constants, "Rust", str(paths.rust_output))
+    generate_constants_by_language(
+        constants, "TypeScript", str(paths.typescript_output)
+    )
+    logger.info("Successfully generated all constants files")
+
+
+def update_all_versions(
+    constants: Dict[str, Any], paths: PathConfig
+) -> list[tuple[str, bool]]:
+    """Update version references across all files."""
+    results = []
+
+    for mapping in VERSION_UPDATES:
+        try:
+            file_path = str(getattr(paths, mapping[1]))
+            config = mapping[2]
+
+            # Get the appropriate version based on the version_key
+            if config.version_key == "nargo_version":
+                version = constants["noir"]["nargo_version"]
+            else:
+                version = constants["release_info"]["garaga_version"]
+
+            success = update_file_version(file_path, config, version)
+            results.append((mapping[0], success))
+            if success:
+                logger.info(f"Successfully updated {mapping[0]}")
+            else:
+                logger.warning(f"No updates needed for {mapping[0]}")
+        except Exception as e:
+            logger.error(f"Failed to update {mapping[0]}: {e}")
+            results.append((mapping[0], False))
+
+    return results
+
+
+def update_verification_keys(paths: PathConfig) -> list[tuple[str, bool]]:
+    """Update verification keys in Rust code."""
+    results = []
+
+    for mapping in VK_UPDATES:
+        try:
+            success = update_vk_in_rust(
+                paths.project_root,
+                str(paths.groth16_rust_file),
+                mapping[1],
+            )
+            results.append((mapping[0], success))
+            if success:
+                logger.info(f"Successfully updated {mapping[0]}")
+        except (VKError, ConstantsError) as e:
+            logger.error(f"Failed to update {mapping[0]}: {e}")
+            results.append((mapping[0], False))
+        except Exception as e:
+            logger.error(f"Unexpected error updating {mapping[0]}: {e}")
+            results.append((mapping[0], False))
+
+    return results
 
 
 def main():
     """Main function to generate all constants files and update version references."""
-    constants = load_constants()
+    try:
+        logger.info("Starting constants generation and version updates...")
 
-    # Define output paths
-    project_root = Path(__file__).parent.parent.parent
+        # Load and validate constants
+        constants = load_constants()
 
-    python_output = project_root / "hydra" / "garaga" / "starknet" / "constants.py"
-    rust_output = project_root / "tools" / "garaga_rs" / "src" / "constants.rs"
-    typescript_output = (
-        project_root / "tools" / "npm" / "garaga_ts" / "src" / "constants.ts"
-    )
-    readme_path = project_root / "docs" / "PYPI_README.md"
-    pyproject_path = project_root / "pyproject.toml"
-    garaga_rs_cargo_path = project_root / "tools" / "garaga_rs" / "Cargo.toml"
-    package_json_path = project_root / "tools" / "npm" / "garaga_ts" / "package.json"
-    npm_readme_path = project_root / "tools" / "npm" / "garaga_ts" / "README.md"
-    noir_docs_path = (
-        project_root
-        / "docs"
-        / "gitbook"
-        / "deploy-your-snark-verifier-on-starknet"
-        / "noir.md"
-    )
+        # Define output paths
+        project_root = Path(__file__).parent.parent.parent
+        paths = PathConfig(project_root)
 
-    # Generate constants files
-    generate_python_constants(constants, str(python_output))
-    generate_rust_constants(constants, str(rust_output))
-    generate_typescript_constants(constants, str(typescript_output))
+        # Generate constants files
+        generate_all_constants(constants, paths)
 
-    # Update version references
-    results = []
-    results.append(("PYPI README", update_readme_version(constants, str(readme_path))))
-    results.append(
-        ("pyproject.toml", update_pyproject_version(constants, str(pyproject_path)))
-    )
-    results.append(
-        ("Cargo.toml", update_cargo_toml_version(constants, str(garaga_rs_cargo_path)))
-    )
-    results.append(
-        ("package.json", update_package_json_version(constants, str(package_json_path)))
-    )
-    results.append(
-        ("npm README", update_npm_readme_version(constants, str(npm_readme_path)))
-    )
-    results.append(
-        ("Noir docs", update_noir_docs_version(constants, str(noir_docs_path)))
-    )
+        # Update version references and verification keys
+        logger.info("Updating version references...")
+        version_results = update_all_versions(constants, paths)
 
-    failed = [(name, result) for name, result in results if not result]
-    if failed:
-        print("\nWarning: Some updates failed:")
-        for name, _ in failed:
-            print(f"  - {name}")
+        logger.info("Updating verification keys...")
+        vk_results = update_verification_keys(paths)
 
-    if not failed:
-        print("All constants files and version references updated successfully!")
-    else:
-        print(
-            f"\n{len(results) - len(failed)}/{len(results)} updates completed successfully."
-        )
+        # Report results and return appropriate exit code
+        all_results = version_results + vk_results
+        return report_results(all_results)
+
+    except ConstantsError as e:
+        logger.error(f"Constants error: {e}")
+        return 1
+    except Exception as e:
+        logger.error(f"Unexpected error in main: {e}")
+        return 1
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    sys.exit(exit_code)
