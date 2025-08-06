@@ -11,7 +11,7 @@
         "verifier_hash": "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913"
     },
     "release_info": {
-        "garaga_version": "0.18.1",
+        "garaga_version": "0.18.2",
         "risc0_release": "v2.2.2",
         "cairo_version": "2.11.4",
         "starknet_foundry_version": "0.44.0"
