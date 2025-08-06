@@ -285,7 +285,6 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journalBytes: Uint8Array,
     controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof => {
 
-
     if (imageId.length > 32) {
         throw new Error("imageId must be 32 bytes")
     }
@@ -296,9 +295,9 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
 
 
 
-    const journal = createHash("sha256").update(journalBytes).digest();
+    const journal_digest = createHash("sha256").update(journalBytes).digest();
 
-    const claimDigest = digestReceiptClaim(ok(imageId, journal));
+    const claimDigest = digestReceiptClaim(ok(imageId, journal_digest));
 
 
     const [claim0, claim1] = splitDigest(claimDigest);
