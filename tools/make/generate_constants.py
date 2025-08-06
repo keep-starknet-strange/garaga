@@ -495,7 +495,7 @@ def generate_unified_constants(
     elif config.name == "TypeScript":
         lines.extend(
             [
-                f'export const RISC0_SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from("{risc0_info["system_state_zero_digest"]}", "hex"));',
+                f'export const RISC0_SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from("{risc0_info["system_state_zero_digest"].lstrip("0x")}", "hex"));',
                 f'export const RISC0_TAG_DIGEST = "{risc0_info["tag_digest"]}";',
                 f'export const RISC0_OUTPUT_TAG = "{risc0_info["output_tag"]}";',
             ]
