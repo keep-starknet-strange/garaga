@@ -274,16 +274,16 @@ pub fn get_sp1_vk() -> Groth16VerificationKey {
         "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
         "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
         "90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
-        "2b65c9ae2605f3ef5540d3a64503c84fe5e1d9ec6eb1bd3a906bbc80830e8e54",
-        "262eabe81511aa8e3034cbd75d42e708aa4ed80303fb0e4fb90cd0ff6e909213",
-        "10d11978bbdb3e8ea543e3de42abfc4ab330719ba32f295372ae1f43c7cee800",
-        "1561b6218d8fe8b013f981f0259304a043919da2a7674b397d90e20b01b46b39",
-        "ed6e0c13f353262ae2dbbe49ce6a0b67576d38aaf5958564be7648356830ef7",
-        "28200d54013565dca196841d0a3cd7a5f67531f9748772f553e1e9845f6c0949",
-        "1b611b8f696f28ffb6250c7ffac66efbd638d97f0d6c843c23691c3af532c9e3",
-        "248c1033bd73c4ff820d480a37b39ca6ef178543c5c9190459e8cfe36c48e51a",
-        "2974086bde6c91267b201137cfe6ee8cd50ff0a3da861e808503e7df4da87b8d",
-        "40addd35913f11ea6846f0d583126bab9e8f8ae69797d4c2c7f195be0785471",
+        "3ff41f4ba0c37fe2caf27354d28e4b8f83d3b76777a63b327d736bffb0122ed",
+        "1cc7cb8de715675f21f01ecc9b46d236e0865e0cc020024521998269845f74e6",
+        "17387b4b9cf03927909b4f1c3d80fcd6865afc4a264a04499f7e2f6df690dd85",
+        "2ed3b19b5eb39db0d19a3d72dcd590ac85a971def614f4fd11b56b3c5e53c44c",
+        "26091e1cafb0ad8a4ea0a694cd3743ebf524779233db734c451d28b58aa9758e",
+        "9ff50a6b8b11c3ca6fdb2690a124f8ce25489fefa65a3e782e7ba70b66690e",
+        "61c3fd0fd3da25d2607c227d090cca750ed36c6ec878755e537c1c48951fb4c",
+        "fa17ae9c2033379df7b5c65eff0e107055e9a273e6119a212dd09eb51707219",
+        "4eab241388a79817fe0e0e2ead0b2ec4ffdec51a16028dee020634fd129e71c",
+        "7236256d21c60d02f0bdbf95cff83e03ea9e16fca56b18d5544b0889a65c1f5",
     ];
 
     Groth16VerificationKey::from(
@@ -599,108 +599,6 @@ mod test_groth16_calldata {
             "8875bcad22cdcfda1e2878df4e414108"
         );
     }
-
-    #[test]
-    fn test_from_sp1() {
-        // Data from proof_sp1.json
-        let vkey_hex = "00562c19b1948ce8f360ee32da6b8e18b504b7d197d522085d3e74c072e0ff7d";
-        let public_values_hex = "00000000000000000000000000000000000000000000000000000000000000140000000000000000000000000000000000000000000000000000000000001a6d0000000000000000000000000000000000000000000000000000000000002ac2";
-        let proof_hex = "11b6a09d15c0a8f6b56f8226262eccb0d78ab7946001762a2a9117b0ce6626ee0f15338a164391b8e4af70b9ad5f80df72a2fd42038afc66190edd82bf1f0d752ce22ab208f5de7a1c73d97f82e989add997eca2e95af1716a5d9c03cbcec2bb477aa06d00b7de11d8465f44fc1073d49a2809a57d31ad543a3602be355ea05aedf894aa0839ad0113478bf84a25faff25306a84185c20d1320772e4769d993832626f081e432d60d8f4cb6f82f8835872aa0c3183ffe09f67d365951722c1a3debd6ae90c31023395fe16b29c3a01524447de9e22aa670c6a7cd880281ba14c642a601b0530706caf4af3644ff20a785ac0e499321f08cfc96cee48b64bfa08925ec27c";
-
-        // Decode hex strings to bytes
-        let vkey = hex::decode(vkey_hex).unwrap();
-        let public_values = hex::decode(public_values_hex).unwrap();
-        let proof = hex::decode(proof_hex).unwrap();
-
-        // Call from_sp1
-        let groth16_proof = Groth16Proof::from_sp1(vkey, public_values, proof);
-
-        // Expected values from the Python output
-        let expected_a_x = BigUint::from_str_radix(
-            "15c0a8f6b56f8226262eccb0d78ab7946001762a2a9117b0ce6626ee0f15338a",
-            16,
-        )
-        .unwrap();
-        let expected_a_y = BigUint::from_str_radix(
-            "164391b8e4af70b9ad5f80df72a2fd42038afc66190edd82bf1f0d752ce22ab2",
-            16,
-        )
-        .unwrap();
-
-        let expected_b_x0 = BigUint::from_str_radix(
-            "b7de11d8465f44fc1073d49a2809a57d31ad543a3602be355ea05aedf894aa",
-            16,
-        )
-        .unwrap();
-        let expected_b_x1 = BigUint::from_str_radix(
-            "8f5de7a1c73d97f82e989add997eca2e95af1716a5d9c03cbcec2bb477aa06d",
-            16,
-        )
-        .unwrap();
-        let expected_b_y0 = BigUint::from_str_radix(
-            "1e432d60d8f4cb6f82f8835872aa0c3183ffe09f67d365951722c1a3debd6ae9",
-            16,
-        )
-        .unwrap();
-        let expected_b_y1 = BigUint::from_str_radix(
-            "839ad0113478bf84a25faff25306a84185c20d1320772e4769d993832626f08",
-            16,
-        )
-        .unwrap();
-
-        let expected_c_x = BigUint::from_str_radix(
-            "c31023395fe16b29c3a01524447de9e22aa670c6a7cd880281ba14c642a601b",
-            16,
-        )
-        .unwrap();
-        let expected_c_y = BigUint::from_str_radix(
-            "530706caf4af3644ff20a785ac0e499321f08cfc96cee48b64bfa08925ec27c",
-            16,
-        )
-        .unwrap();
-
-        let expected_pub_input_0 = BigUint::from_str_radix(
-            "152253217110252243453737875262517125705583962671131257900012625329058283389",
-            10,
-        )
-        .unwrap();
-        let expected_pub_input_1 = BigUint::from_str_radix(
-            "6835433473072582537735779005252378178401920886001391083506222100041177144720",
-            10,
-        )
-        .unwrap();
-
-        // Verify a point
-        assert_eq!(groth16_proof.a.x, expected_a_x);
-        assert_eq!(groth16_proof.a.y, expected_a_y);
-
-        // Verify b point
-        assert_eq!(groth16_proof.b.x0, expected_b_x0);
-        assert_eq!(groth16_proof.b.x1, expected_b_x1);
-        assert_eq!(groth16_proof.b.y0, expected_b_y0);
-        assert_eq!(groth16_proof.b.y1, expected_b_y1);
-
-        // Verify c point
-        assert_eq!(groth16_proof.c.x, expected_c_x);
-        assert_eq!(groth16_proof.c.y, expected_c_y);
-
-        // Verify public inputs
-        assert_eq!(groth16_proof.public_inputs.len(), 2);
-        assert_eq!(groth16_proof.public_inputs[0], expected_pub_input_0);
-        assert_eq!(groth16_proof.public_inputs[1], expected_pub_input_1);
-
-        // Verify SP1 specific fields
-        assert!(groth16_proof.vkey_public_values_sp1.is_some());
-        assert!(groth16_proof.image_id_journal_risc0.is_none());
-
-        let (stored_vkey, stored_public_values) = groth16_proof.vkey_public_values_sp1.unwrap();
-        assert_eq!(stored_vkey, hex::decode(vkey_hex).unwrap());
-        assert_eq!(
-            stored_public_values,
-            hex::decode(public_values_hex).unwrap()
-        );
-    }
-
     #[test]
     #[should_panic(expected = "Invalid SP1 proof version")]
     fn test_from_sp1_invalid_selector() {

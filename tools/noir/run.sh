@@ -17,8 +17,8 @@ reset
 BB_PATH="bb"
 
 
-echo "nargo version : $(nargo --version)" # See constants.json for nargo version
-echo "bb version : $($BB_PATH --version)" # See constants.json for bb version
+echo "nargo version : $(nargo --version)" # See constants.json for recommended nargo version
+echo "bb version : $($BB_PATH --version)" # See constants.json for recommended bb version
 
 SCRIPT_PATH=$(dirname $(realpath $0))
 HONK_FIXTURES_PATH="$SCRIPT_PATH/../../hydra/garaga/starknet/honk_contract_generator/examples"

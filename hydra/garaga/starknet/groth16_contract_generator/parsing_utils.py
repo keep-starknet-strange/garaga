@@ -25,19 +25,6 @@ from garaga.starknet.constants import (
     SP1_VERIFIER_VERSION,
 )
 
-# https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
-# release 2.0
-RISC0_CONTROL_ROOT = 0x539032186827B06719244873B17B2D4C122E2D02CFB1994FE958B2523B844576
-RISC0_BN254_CONTROL_ID = (
-    0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0
-)
-
-# https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v4.0.0-rc.3/SP1VerifierGroth16.sol
-SP1_VERIFIER_VERSION: str = "v4.0.0-rc.3"
-SP1_VERIFIER_HASH: bytes = bytes.fromhex(
-    "11b6a09d63d255ad425ee3a7f6211d5ec63fbde9805b40551c3136275b6f4eb4"
-)
-
 
 class KeyPatternNotFound(Exception):
     def __init__(self, key_patterns):

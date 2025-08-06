@@ -114,9 +114,13 @@ const VERIFIER_CLASS_HASH: felt252 = {class_hash};
             with open(self.paths["target_dir"] / "vk", "rb") as f:
                 vk = HonkVk.from_bytes(f.read())
 
-            constants_code, circuits_code, contract_code = gen_honk_verifier_files(
-                vk, self.config.proof_system
-            )
+            (
+                constants_code,
+                circuits_code,
+                contract_code,
+                contract_name,
+                verification_function_name,
+            ) = gen_honk_verifier_files(vk, self.config.proof_system)
 
             # Write files
             create_directory(self.paths["verifier_dir"])
