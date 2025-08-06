@@ -21,6 +21,16 @@ where
         (from_e2(self.x.clone()), from_e2(self.y.clone()))
     }
 
+    pub fn representative(&self) -> String {
+        let ([x0, x1], [y0, y1]) = self.get_coords();
+        format!(
+            "G2Point: X = ({:?}, {:?}), Y = ({:?}, {:?})",
+            x0.representative().to_string(),
+            x1.representative().to_string(),
+            y0.representative().to_string(),
+            y1.representative().to_string()
+        )
+    }
     pub fn new(x: [FieldElement<F>; 2], y: [FieldElement<F>; 2]) -> Result<Self, String> {
         let x = to_e2(x);
         let y = to_e2(y);
