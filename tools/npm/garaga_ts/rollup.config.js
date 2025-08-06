@@ -16,6 +16,7 @@ export default [
         sourcemap: true,
       },
     ],
+    external: ['fs', 'crypto', 'path', 'util', 'os', 'stream', 'buffer'],
     plugins: [typescript()],
   },
   {
@@ -25,6 +26,7 @@ export default [
       format: 'esm',
       sourcemap: false,
     },
+    external: ['fs', 'crypto', 'path', 'util', 'os', 'stream', 'buffer'],
     plugins: [typescript(), dts()],
   },
 ];
