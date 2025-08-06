@@ -48,7 +48,7 @@ garaga gen
 
 Install specific version:
 ```bash
-pip install garaga==0.18.1
+pip install garaga==0.18.2
 ```
 
 Install from Git commit:
