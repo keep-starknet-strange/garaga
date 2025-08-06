@@ -13,6 +13,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Optional, Protocol
 
+from garaga.starknet.groth16_contract_generator.parsing_utils import Groth16VerifyingKey
+
 
 class FormatterProtocol(Protocol):
     """Protocol for code formatters."""
@@ -583,14 +585,6 @@ def update_vk_in_rust(
 ) -> bool:
     """Update verification key function in Rust with values from JSON."""
     try:
-        # Import Garaga modules
-        sys.path.insert(0, str(project_root / "hydra"))
-        try:
-            from garaga.starknet.groth16_contract_generator.parsing_utils import (
-                Groth16VerifyingKey,
-            )
-        except ImportError as e:
-            raise VKError(f"Could not import Garaga modules: {e}")
 
         # Load and parse VK
         vk_path = config.get_json_path(project_root)
