@@ -1,6 +1,9 @@
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
+use crate::calldata::full_proof_with_hints::honk_common::extract_msm_scalars;
+use crate::calldata::full_proof_with_hints::honk_common::honk_proof_from_bytes_internal;
+use crate::calldata::full_proof_with_hints::honk_common::ProofParser;
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
 use crate::calldata::G1PointBigUint;
@@ -225,113 +228,40 @@ pub struct HonkProof {
 
 impl HonkProof {
     pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
-        if proof_bytes.len() != 32 * PROOF_SIZE {
-            return Err(format!("Invalid proof bytes length: {}", proof_bytes.len()));
-        }
-
-        let mut values = vec![];
-
-        for i in (0..).step_by(32).take(PROOF_SIZE) {
-            values.push(BigUint::from_bytes_be(&proof_bytes[i..i + 32]));
-        }
-
-        if public_inputs_bytes.len() % 32 != 0 {
-            return Err(format!(
-                "Invalid public input bytes length: {}",
-                public_inputs_bytes.len()
-            ));
-        }
-
-        let public_inputs_size = public_inputs_bytes.len() / 32;
-
-        let mut public_inputs = vec![];
-
-        for i in (0..).step_by(32).take(public_inputs_size) {
-            public_inputs.push(BigUint::from_bytes_be(&public_inputs_bytes[i..i + 32]));
-        }
-
+        let (values, public_inputs) =
+            honk_proof_from_bytes_internal(proof_bytes, public_inputs_bytes, PROOF_SIZE)?;
         Self::from(values, public_inputs)
     }
+
     pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
         if values.len() != PROOF_SIZE {
             return Err(format!("Invalid proof length: {}", values.len()));
         }
 
-        let mut offset = 0;
-        let mut pairing_point_object = vec![];
-        for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
-            pairing_point_object.push(values[i].clone());
-        }
-        let pairing_point_object = pairing_point_object.try_into().unwrap();
-        offset += PAIRING_POINT_OBJECT_LENGTH;
+        let mut parser = ProofParser::new(values);
 
-        fn parse_g1_proof_point(values: [BigUint; 4]) -> G1PointBigUint {
-            let [x0, x1, y0, y1] = values;
-            let x = (x1 << 136) | x0;
-            let y = (y1 << 136) | y0;
-            G1PointBigUint::from(vec![x, y])
-        }
+        let pairing_point_object = parser.extract_array::<PAIRING_POINT_OBJECT_LENGTH>();
 
-        let mut points = vec![];
-        for i in (offset..).step_by(4).take(8) {
-            points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
-            ));
-        }
-        offset += 8 * 4;
         let [w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm] =
-            points.try_into().unwrap();
+            parser.extract_g1_points_array::<8>();
 
-        let mut sumcheck_univariates = vec![];
-        for i in (offset..)
-            .step_by(BATCHED_RELATION_PARTIAL_LENGTH)
-            .take(CONST_PROOF_SIZE_LOG_N)
-        {
-            let mut sumcheck_univariate = vec![];
-            for j in (i..).step_by(1).take(BATCHED_RELATION_PARTIAL_LENGTH) {
-                sumcheck_univariate.push(values[j].clone());
-            }
-            let sumcheck_univariate = sumcheck_univariate.try_into().unwrap();
-            sumcheck_univariates.push(sumcheck_univariate);
-        }
-        let sumcheck_univariates = sumcheck_univariates.try_into().unwrap();
-        offset += CONST_PROOF_SIZE_LOG_N * BATCHED_RELATION_PARTIAL_LENGTH;
+        let sumcheck_univariates =
+            parser.extract_sumcheck_univariates::<BATCHED_RELATION_PARTIAL_LENGTH>();
 
-        let mut sumcheck_evaluations = vec![];
-        for i in (offset..).step_by(1).take(NUMBER_OF_ENTITIES) {
-            sumcheck_evaluations.push(values[i].clone());
-        }
-        let sumcheck_evaluations = sumcheck_evaluations.try_into().unwrap();
-        offset += NUMBER_OF_ENTITIES;
+        let sumcheck_evaluations = parser.extract_array::<NUMBER_OF_ENTITIES>();
 
-        let mut gemini_fold_comms = vec![];
-        for i in (offset..).step_by(4).take(CONST_PROOF_SIZE_LOG_N - 1) {
-            gemini_fold_comms.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
-            ));
-        }
-        let gemini_fold_comms = gemini_fold_comms.try_into().unwrap();
-        offset += (CONST_PROOF_SIZE_LOG_N - 1) * 4;
+        let gemini_fold_comms = parser
+            .extract_g1_points(CONST_PROOF_SIZE_LOG_N - 1)
+            .try_into()
+            .unwrap();
 
-        let mut gemini_a_evaluations = vec![];
-        for i in (offset..).step_by(1).take(CONST_PROOF_SIZE_LOG_N) {
-            gemini_a_evaluations.push(values[i].clone());
-        }
-        let gemini_a_evaluations = gemini_a_evaluations.try_into().unwrap();
-        offset += CONST_PROOF_SIZE_LOG_N;
+        let gemini_a_evaluations = parser.extract_array::<CONST_PROOF_SIZE_LOG_N>();
 
-        let mut points = vec![];
-        for i in (offset..).step_by(4).take(2) {
-            points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
-            ));
-        }
-        let [shplonk_q, kzg_quotient] = points.try_into().unwrap();
-        offset += 4 * 2;
+        let [shplonk_q, kzg_quotient] = parser.extract_g1_points_array::<2>();
 
-        assert_eq!(offset, PROOF_SIZE);
+        assert_eq!(parser.current_offset(), PROOF_SIZE);
 
-        let proof = Self {
+        Ok(Self {
             public_inputs,
             pairing_point_object,
             w1,
@@ -348,9 +278,7 @@ impl HonkProof {
             gemini_a_evaluations,
             shplonk_q,
             kzg_quotient,
-        };
-
-        Ok(proof)
+        })
     }
 }
 
@@ -1091,19 +1019,6 @@ fn compute_shplemini_msm_scalars(
         .collect::<Vec<_>>()
         .try_into()
         .unwrap())
-}
-
-fn extract_msm_scalars(
-    log_circuit_size: usize,
-    scalars: [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2],
-) -> Vec<BigUint> {
-    let i = NUMBER_OF_ENTITIES + log_circuit_size;
-    let j = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N;
-    [&scalars[1..i], &scalars[j..]]
-        .concat()
-        .into_iter()
-        .flatten()
-        .collect()
 }
 
 #[cfg(test)]
