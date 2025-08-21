@@ -1,6 +1,6 @@
 use core::integer;
-use core::internal::bounded_int;
-use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, upcast};
+use garaga::core::bounded_int::bounded_int;
+use garaga::core::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, upcast};
 use core::sha256::{compute_sha256_byte_array, compute_sha256_u32_array};
 use garaga::utils::usize_assert_eq;
 

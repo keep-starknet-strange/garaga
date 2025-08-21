@@ -1,6 +1,7 @@
 pub mod basic_field_ops;
 pub mod core {
     pub mod circuit;
+    pub mod bounded_int;
 }
 pub mod circuits {
     mod dummy;

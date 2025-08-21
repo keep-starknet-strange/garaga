@@ -1,7 +1,7 @@
 use core::circuit::{u384, u96};
 use core::integer::{downcast, upcast};
-use core::internal::bounded_int;
-use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt};
+use garaga::core::bounded_int::bounded_int;
+use garaga::core::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt};
 use garaga::definitions::get_min_one;
 
 

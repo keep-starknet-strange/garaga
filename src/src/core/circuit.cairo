@@ -8,7 +8,7 @@ use core::circuit::{
     U96Guarantee, add_circuit_input, init_circuit_data, into_u96_guarantee, u384, u96,
 };
 // use core::panics::panic;
-use core::internal::bounded_int;
+use garaga::core::bounded_int::bounded_int;
 use core::panic_with_felt252;
 use garaga::definitions::{E12D, G2Line, u288};
 use garaga::utils::hashing::{PoseidonState, hades_permutation};
@@ -75,7 +75,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     }
     // #[inline(never)]
     fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
-        let (limb1, limb0) = core::internal::bounded_int::div_rem(value, NZ_POW96_TYPED);
+        let (limb1, limb0) = bounded_int::div_rem(value, NZ_POW96_TYPED);
         let limb1: u96 = core::integer::upcast(limb1);
         let c = match self {
             AddInputResult::More(accumulator) => add_circuit_input(

@@ -38,12 +38,8 @@ pub fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u3
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res = array![
-        outputs.get_output(t0),
-        outputs.get_output(t2),
-        outputs.get_output(t3),
-        outputs.get_output(t4),
-        outputs.get_output(t5),
-        outputs.get_output(t7),
+        outputs.get_output(t0), outputs.get_output(t2), outputs.get_output(t3),
+        outputs.get_output(t4), outputs.get_output(t5), outputs.get_output(t7),
     ];
     return res;
 }

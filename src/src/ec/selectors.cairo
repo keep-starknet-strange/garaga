@@ -1,5 +1,5 @@
-use core::internal::bounded_int;
-use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, upcast};
+use garaga::core::bounded_int::bounded_int;
+use garaga::core::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, upcast};
 
 const TWO: felt252 = 2;
 const TWO_UI: UnitInt<TWO> = 2;

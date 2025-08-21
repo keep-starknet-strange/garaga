@@ -544,7 +544,7 @@ use core::circuit::conversions::{
     DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED, POW64,
     POW64_TYPED, UnitInt,
 };
-use core::internal::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
+use garaga::core::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
 
 const POW80: felt252 = 0x100000000000000000000;
 const NZ_POW80_TYPED: NonZero<UnitInt<POW80>> = 0x100000000000000000000;

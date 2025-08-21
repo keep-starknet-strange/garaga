@@ -5,8 +5,9 @@ use core::circuit::{
     EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
 pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
+#[feature("bounded-int-utils")]
 use core::internal::bounded_int;
-use core::internal::bounded_int::{
+use bounded_int::{
     AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
 };
 use core::num::traits::{One, Zero};
