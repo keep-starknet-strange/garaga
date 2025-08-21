@@ -1,3 +1,4 @@
+use bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast};
 use core::array::{ArrayTrait, array_at};
 use core::circuit::{
     AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement, CircuitInput,
@@ -7,9 +8,6 @@ use core::circuit::{
 pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
 #[feature("bounded-int-utils")]
 use core::internal::bounded_int;
-use bounded_int::{
-    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
-};
 use core::num::traits::{One, Zero};
 use core::option::Option;
 use core::panic_with_felt252;
@@ -164,7 +162,7 @@ struct FakeGlvHint {
     s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
 }
 
-fn msm_g1(
+pub fn msm_g1(
     points: Span<G1Point>, scalars: Span<u256>, curve_index: usize, mut hint: Span<felt252>,
 ) -> G1Point {
     match curve_index {
@@ -282,22 +280,10 @@ pub fn _scalar_mul_fake_glv(
     // ['T6', 'T7', 'T10', 'T11', 'T8', 'T5', 'T12', 'T9', 'T14', 'T15', 'T2', 'T3', 'T16', 'T13',
     // 'T4', 'T1']
     let mut Ts: Array<G1Point> = array![
-        G1Point { x: T1.x, y: T6y },
-        G1Point { x: T4.x, y: T7y },
-        T10,
-        T11,
-        G1Point { x: T3.x, y: T8y },
-        G1Point { x: T2.x, y: T5y },
-        T12,
-        T9,
-        G1Point { x: T9.x, y: T14y },
-        G1Point { x: T12.x, y: T15y },
-        T2,
-        T3,
-        G1Point { x: T11.x, y: T16y },
-        G1Point { x: T10.x, y: T13y },
-        T4,
-        T1,
+        G1Point { x: T1.x, y: T6y }, G1Point { x: T4.x, y: T7y }, T10, T11,
+        G1Point { x: T3.x, y: T8y }, G1Point { x: T2.x, y: T5y }, T12, T9,
+        G1Point { x: T9.x, y: T14y }, G1Point { x: T12.x, y: T15y }, T2, T3,
+        G1Point { x: T11.x, y: T16y }, G1Point { x: T10.x, y: T13y }, T4, T1,
     ];
 
     let (mut selectors, s1lsb, s2lsb) = selectors::build_selectors_inlined_fake_glv(
@@ -581,22 +567,10 @@ pub fn _scalar_mul_glv_and_fake_glv(
         modulus,
     );
     let Bs: Span<G1Point> = array![
-        G1Point { x: B1.x, y: B16y },
-        B8,
-        G1Point { x: B3.x, y: B14y },
-        B6,
-        G1Point { x: B5.x, y: B12y },
-        B4,
-        G1Point { x: B7.x, y: B10y },
-        B2,
-        G1Point { x: B2.x, y: B15y },
-        B7,
-        G1Point { x: B4.x, y: B13y },
-        B5,
-        G1Point { x: B6.x, y: B11y },
-        B3,
-        G1Point { x: B8.x, y: B9y },
-        B1,
+        G1Point { x: B1.x, y: B16y }, B8, G1Point { x: B3.x, y: B14y }, B6,
+        G1Point { x: B5.x, y: B12y }, B4, G1Point { x: B7.x, y: B10y }, B2,
+        G1Point { x: B2.x, y: B15y }, B7, G1Point { x: B4.x, y: B13y }, B5,
+        G1Point { x: B6.x, y: B11y }, B3, G1Point { x: B8.x, y: B9y }, B1,
     ]
         .span();
 

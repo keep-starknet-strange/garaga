@@ -1,6 +1,7 @@
 [workspace]
 members = [
     "src/",
+    "src/corelib_imports",
 ]
 
 [workspace.dependencies]

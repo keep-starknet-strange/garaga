@@ -1,4 +1,4 @@
-use core::circuit::{u384, u96};
+use core::circuit::{u384};
 pub use core::poseidon::hades_permutation;
 use garaga::definitions::{
     E12D, E12DMulQuotient, G1G2Pair, G1Point, MillerLoopResultScalingFactor, u288,

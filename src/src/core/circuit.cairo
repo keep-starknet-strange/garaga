@@ -1,17 +1,15 @@
-use core::circuit::conversions::{
+use corelib_imports::circuit::conversions::{
     AddHelperTo128By64Impl, AddHelperTo128By96Impl, AddHelperTo96By32Impl, DivRemU128By96,
     DivRemU96By32, DivRemU96By64, MulHelper32By96Impl, MulHelper64By32Impl, MulHelper64By64Impl,
     NZ_POW32_TYPED, NZ_POW64_TYPED, NZ_POW96_TYPED, POW64_TYPED, POW96_TYPED, upcast,
 };
-use core::circuit::{
-    AddInputResult, CircuitData, CircuitDefinition, CircuitInputAccumulator, IntoCircuitInputValue,
-    U96Guarantee, add_circuit_input, init_circuit_data, into_u96_guarantee, u384, u96,
+use corelib_imports::circuit::{
+    AddInputResult, CircuitData, IntoCircuitInputValue,
+    U96Guarantee, add_circuit_input, into_u96_guarantee, u384, u96,
 };
-// use core::panics::panic;
-use garaga::core::bounded_int::bounded_int;
+use corelib_imports::bounded_int::bounded_int;
 use core::panic_with_felt252;
-use garaga::definitions::{E12D, G2Line, u288};
-use garaga::utils::hashing::{PoseidonState, hades_permutation};
+use garaga::definitions::{u288};
 
 
 impl U32IntoU384 of Into<u32, u384> {
@@ -76,7 +74,7 @@ pub impl AddInputResultImpl2<C> of AddInputResultTrait2<C> {
     // #[inline(never)]
     fn next_u128(self: AddInputResult<C>, value: u128) -> AddInputResult<C> {
         let (limb1, limb0) = bounded_int::div_rem(value, NZ_POW96_TYPED);
-        let limb1: u96 = core::integer::upcast(limb1);
+        let limb1: u96 = upcast(limb1);
         let c = match self {
             AddInputResult::More(accumulator) => add_circuit_input(
                 accumulator,

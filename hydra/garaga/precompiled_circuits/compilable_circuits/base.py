@@ -152,11 +152,10 @@ from definitions import bn, bls
         ]
         return f"""
 use core::circuit::{{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
+    u384, u96, circuit_add, circuit_sub,
+    circuit_mul, circuit_inverse, EvalCircuitTrait, CircuitOutputsTrait,
     CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
-    CircuitData, CircuitInputAccumulator
-}};
+    }};
 use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue}};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
@@ -172,7 +171,7 @@ mod tests {
     use core::traits::TryInto;
 
     use core::circuit::{
-        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+        RangeCheck96, AddMod, MulMod, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
