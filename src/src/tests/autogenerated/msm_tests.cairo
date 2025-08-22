@@ -1,5 +1,6 @@
 use garaga::core::circuit::u288IntoCircuitInputValue;
-use garaga::ec_ops::{G1Point, msm_g1, u288, u384};
+use garaga::definitions::{G1Point, u384};
+use garaga::ec_ops::msm_g1;
 
 #[test]
 #[ignore]

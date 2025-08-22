@@ -1,6 +1,5 @@
 use garaga::core::circuit::u288IntoCircuitInputValue;
-use garaga::definitions::{u288, u384};
-use garaga::signatures::ecdsa::{ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature};
+use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature};
 
 #[test]
 #[ignore] // Ignored for auto-benchmarks

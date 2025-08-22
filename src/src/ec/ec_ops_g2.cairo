@@ -183,7 +183,7 @@ pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
 #[cfg(test)]
 mod tests {
     use garaga::definitions::BLS_G2_GENERATOR;
-    use super::{G2Point, G2PointZero, ec_mul, ec_safe_add, eq_mod_p, eq_neg_mod_p, u384};
+    use super::{G2Point, G2PointZero, ec_mul, u384};
     #[test]
     fn test_ec_mul_g2() {
         let g = BLS_G2_GENERATOR;

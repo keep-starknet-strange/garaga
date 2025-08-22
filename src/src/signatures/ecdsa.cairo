@@ -15,7 +15,7 @@ use garaga::utils::u384_eq_zero;
 /// * `py`: `u384` - The y-coordinate of the public key.
 /// * `z`: `u256` - The message hash.
 #[derive(Drop, Debug, PartialEq)]
-struct ECDSASignature {
+pub struct ECDSASignature {
     rx: u384,
     s: u256,
     v: bool,
@@ -24,7 +24,7 @@ struct ECDSASignature {
     z: u256,
 }
 
-impl SerdeECDSASignature of Serde<ECDSASignature> {
+pub impl SerdeECDSASignature of Serde<ECDSASignature> {
     fn serialize(self: @ECDSASignature, ref output: Array<felt252>) {
         serialize_u384(self.rx, ref output);
         Serde::<u256>::serialize(self.s, ref output);
@@ -51,7 +51,7 @@ impl SerdeECDSASignature of Serde<ECDSASignature> {
 /// * `msm_hint`: `MSMHint` - Hint for multi-scalar multiplication computation.
 /// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving point from x-coordinate.
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct ECDSASignatureWithHint {
+pub struct ECDSASignatureWithHint {
     signature: ECDSASignature,
     msm_hint: Span<felt252>,
 }

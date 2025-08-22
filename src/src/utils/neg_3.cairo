@@ -194,8 +194,6 @@ pub fn scalar_to_epns_with_digits(
 
 #[cfg(test)]
 mod tests {
-    use core::circuit::u384;
-    use core::traits::TryInto;
     use super::scalar_to_epns;
 
     #[test]

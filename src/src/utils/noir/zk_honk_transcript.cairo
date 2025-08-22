@@ -210,7 +210,7 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
 mod tests {
     use garaga::utils::noir::honk_transcript::{KeccakHasherState, StarknetHasherState};
     use garaga::utils::noir::{get_vk, get_zk_proof_keccak, get_zk_proof_starknet};
-    use super::{G1Point256, ZKHonkProof, ZKHonkTranscript, ZKHonkTranscriptTrait};
+    use super::{ZKHonkTranscript, ZKHonkTranscriptTrait};
     #[test]
     fn test_zk_transcript_keccak() {
         let vk = get_vk();

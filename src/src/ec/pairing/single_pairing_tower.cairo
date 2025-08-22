@@ -5,7 +5,7 @@ use garaga::circuits::tower_circuits as tw;
 use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point};
 
 
-impl E12TOne of One<E12T> {
+pub impl E12TOne of One<E12T> {
     fn one() -> E12T {
         E12T {
             c0b0a0: One::one(),

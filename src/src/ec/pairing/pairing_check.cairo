@@ -51,7 +51,7 @@ pub struct MPCheckHintBLS12_381 {
 
 
 #[inline(always)]
-fn multi_pairing_check_bn254_2P_2F(
+pub fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 145);
@@ -220,7 +220,7 @@ fn multi_pairing_check_bn254_2P_2F(
 }
 
 #[inline(always)]
-fn multi_pairing_check_bls12_381_2P_2F(
+pub fn multi_pairing_check_bls12_381_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381,
 ) -> bool {
     usize_assert_eq(hint.big_Q.len(), 81);

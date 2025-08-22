@@ -53,7 +53,7 @@ pub trait IHasher<T> {
 }
 
 #[derive(Drop, Debug)]
-struct KeccakHasherState {
+pub struct KeccakHasherState {
     arr: Array<u64>,
 }
 
@@ -112,7 +112,7 @@ impl KeccakHasher of IHasher<KeccakHasherState> {
 }
 
 #[derive(Drop, Debug)]
-struct StarknetHasherState {
+pub struct StarknetHasherState {
     s0: felt252,
     s1: felt252,
     s2: felt252,
@@ -521,7 +521,7 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
 mod tests {
     use garaga::utils::noir::{get_proof_keccak, get_proof_starknet, get_vk};
     use super::{
-        G1Point256, HonkProof, HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
+        HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
         StarknetHasherState,
     };
     #[test]

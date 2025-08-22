@@ -1,8 +1,9 @@
 use crate::utils::calldata::{
     E12D, E12DMulQuotient, FullProofWithHintsBLS12_381, G1Point, G2Point, Groth16Proof,
     MPCheckHintBLS12_381, MillerLoopResultScalingFactor,
-    deserialize_full_proof_with_hints_bls12_381, u384,
+    deserialize_full_proof_with_hints_bls12_381,
 };
+use crate::definitions::u384;
 
 
 // Old test, mainly for

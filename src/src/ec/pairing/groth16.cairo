@@ -84,7 +84,7 @@ pub struct Groth16VerifyingKey<T> {
 //      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
 // - public_inputs_msm_hint: the MSM hint of the public inputs
 // - mpcheck_hint: the MPCheck hint of the proof
-fn verify_groth16_bn254(
+pub fn verify_groth16_bn254(
     proof: Groth16Proof,
     verification_key: Groth16VerifyingKey<u288>,
     mut lines: Span<G2Line<u288>>,
@@ -127,7 +127,7 @@ fn verify_groth16_bn254(
 //      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
 // - public_inputs_msm_hint: the MSM hint of the public inputs
 // - mpcheck_hint: the MPCheck hint of the proof
-fn verify_groth16_bls12_381(
+pub fn verify_groth16_bls12_381(
     proof: Groth16Proof,
     verification_key: Groth16VerifyingKey<u384>,
     mut lines: Span<G2Line<u384>>,
@@ -203,7 +203,7 @@ fn verify_groth16_bls12_381(
 // Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
 // reusing fᵢ(z) evaluations in the next step.
 #[inline]
-fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
+pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
     pair2: G1G2Pair,
@@ -481,7 +481,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 // Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
 // reusing fᵢ(z) evaluations in the next step.
 #[inline]
-fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
+pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
     pair2: G1G2Pair,
@@ -658,7 +658,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     return true;
 }
 
-fn conjugate_e12D(self: E12D<u384>, curve_index: usize) -> E12D<u384> {
+pub fn conjugate_e12D(self: E12D<u384>, curve_index: usize) -> E12D<u384> {
     let modulus = get_modulus(curve_index);
     E12D {
         w0: self.w0,

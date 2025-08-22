@@ -1,6 +1,4 @@
-use garaga::signatures::eddsa_25519::{
-    EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature,
-};
+use garaga::signatures::eddsa_25519::{EdDSASignatureWithHint, is_valid_eddsa_signature};
 
 #[test]
 fn test_eddsa_0_0B() {

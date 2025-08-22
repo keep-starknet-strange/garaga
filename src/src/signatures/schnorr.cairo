@@ -14,7 +14,7 @@ use garaga::utils::u384_eq_zero;
 /// * `px`: `u256` - The x-coordinate of the public key.
 /// * `py`: `u256` - The y-coordinate of the public key.
 #[derive(Drop, Debug, PartialEq)]
-struct SchnorrSignature {
+pub struct SchnorrSignature {
     rx: u384,
     s: u256,
     e: u256,
@@ -22,7 +22,7 @@ struct SchnorrSignature {
     py: u384,
 }
 
-impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
+pub impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
     fn serialize(self: @SchnorrSignature, ref output: Array<felt252>) {
         serialize_u384(self.rx, ref output);
         Serde::<u256>::serialize(self.s, ref output);
@@ -48,7 +48,7 @@ impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
 /// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving the full point from
 /// x-coordinate (part of MSM algo).
 #[derive(Drop, Debug, PartialEq, Serde)]
-struct SchnorrSignatureWithHint {
+pub struct SchnorrSignatureWithHint {
     signature: SchnorrSignature,
     msm_hint: Span<felt252>,
 }

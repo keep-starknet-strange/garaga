@@ -1,8 +1,5 @@
 use garaga::core::circuit::u288IntoCircuitInputValue;
-use garaga::definitions::{u288, u384};
-use garaga::signatures::schnorr::{
-    SchnorrSignature, SchnorrSignatureWithHint, is_valid_schnorr_signature,
-};
+use garaga::signatures::schnorr::{SchnorrSignatureWithHint, is_valid_schnorr_signature};
 
 #[test]
 #[ignore] // Ignored for auto-benchmarks

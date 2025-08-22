@@ -139,7 +139,6 @@ mod tests_lib {
         CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
         circuit_mul, circuit_sub, u384, u96,
     };
-    use core::num::traits::{One, Zero};
     use core::traits::TryInto;
     #[test]
     #[ignore] // Ignored for auto-benchmarks
