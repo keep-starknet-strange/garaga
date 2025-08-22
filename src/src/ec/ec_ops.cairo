@@ -1,4 +1,4 @@
-use bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast};
+use corelib_imports::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast};
 use core::array::{ArrayTrait, array_at};
 use core::circuit::{
     AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement, CircuitInput,

@@ -152,9 +152,9 @@ from definitions import bn, bls
         ]
         return f"""
 use core::circuit::{{
-    u384, u96, circuit_add, circuit_sub,
+    u384, circuit_add, circuit_sub,
     circuit_mul, circuit_inverse, EvalCircuitTrait, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
+    AddInputResultTrait, CircuitInputs,
     }};
 use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue}};
 use core::circuit::CircuitElement as CE;

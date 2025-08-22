@@ -1,7 +1,7 @@
 use core::circuit::{
-    AddInputResultTrait, AddMod, CircuitDefinition, CircuitElement as CE, CircuitInput as CI,
-    CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96,
-    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
+    AddInputResultTrait, CircuitElement as CE, CircuitInput as CI, CircuitInputs,
+    CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub,
+    u384,
 };
 use core::option::Option;
 use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};

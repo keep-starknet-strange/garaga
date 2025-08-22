@@ -1,6 +1,5 @@
 use core::circuit::{CircuitModulus, u96};
 use garaga::basic_field_ops::{is_even_u384, neg_mod_p};
-use garaga::core::circuit::IntoCircuitInputValue;
 use garaga::definitions::{
     Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
 };

@@ -3,12 +3,12 @@ pub mod core {
     pub mod circuit;
 }
 pub mod circuits {
-    mod dummy;
-    mod ec;
-    mod extf_mul;
-    mod isogeny;
-    mod multi_pairing_check;
-    mod tower_circuits;
+    pub (crate) mod dummy;
+    pub (crate) mod ec;
+    pub (crate) mod extf_mul;
+    pub (crate) mod isogeny;
+    pub (crate) mod multi_pairing_check;
+    pub (crate) mod tower_circuits;
 }
 pub mod crypto {
     pub mod mmr;

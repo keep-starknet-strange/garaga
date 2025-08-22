@@ -1,7 +1,7 @@
 pub mod honk_transcript;
 pub mod zk_honk_transcript;
 use garaga::core::circuit::U64IntoU384;
-use garaga::definitions::{G1Point, G2Point, u288, u384};
+use garaga::definitions::{G1Point, G2Point, u384};
 
 #[derive(Drop, Copy, Serde)]
 struct G1Point256 {
