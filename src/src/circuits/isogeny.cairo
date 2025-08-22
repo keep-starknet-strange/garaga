@@ -1,15 +1,9 @@
 use core::circuit::{
-    AddInputResultTrait, CircuitElement as CE, CircuitInput as CI, CircuitInputs,
-    CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub,
-    u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
-use garaga::definitions::{
-    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
-    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_a, get_b, get_g, get_min_one,
-    get_modulus, u288,
-};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::definitions::G1Point;
 #[inline(always)]
 pub fn run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(pt: G1Point) -> (G1Point,) {
     // CONSTANT stack
@@ -284,7 +278,7 @@ pub fn run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit(pt: G1Point) -> (G1Point,) 
     let t105 = circuit_mul(t73, t104);
     let t106 = circuit_mul(t105, in55);
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t43, t106).new_inputs();
     // Prefill constants:

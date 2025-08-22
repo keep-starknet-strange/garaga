@@ -371,7 +371,7 @@ pub fn get_ED25519_modulus() -> CircuitModulus {
 
 // Returns the modulus of GRUMPKIN
 #[inline(always)]
-fn get_GRUMPKIN_modulus() -> CircuitModulus {
+pub fn get_GRUMPKIN_modulus() -> CircuitModulus {
     let modulus = TryInto::<
         _, CircuitModulus,
     >::try_into([0x79b9709143e1f593f0000001, 0xb85045b68181585d2833e848, 0x30644e72e131a029, 0x0])

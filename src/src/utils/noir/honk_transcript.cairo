@@ -1,9 +1,9 @@
-use core::array::array_slice;
-use core::keccak;
 use core::poseidon::hades_permutation;
 use core::traits::Into;
+use corelib_imports::array::array_slice;
+use corelib_imports::keccak;
 use garaga::definitions::G1Point;
-use garaga::utils::noir::{G1Point256, G1PointProof, HonkProof, HonkVk};
+use garaga::utils::noir::{G1Point256, G1PointProof, HonkProof};
 
 pub const POW2_136: u256 = 0x10000000000000000000000000000000000;
 pub const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
@@ -43,7 +43,7 @@ pub impl Point256IntoCircuitPoint of Into<G1Point256, G1Point> {
     }
 }
 
-trait IHasher<T> {
+pub trait IHasher<T> {
     fn new() -> T;
     fn update_u64_as_u256(ref self: T, v: u64);
     fn update_0_256(ref self: T);
@@ -118,7 +118,7 @@ struct StarknetHasherState {
     s2: felt252,
 }
 
-impl StarknetHasher of IHasher<StarknetHasherState> {
+pub impl StarknetHasher of IHasher<StarknetHasherState> {
     #[inline]
     fn new() -> StarknetHasherState {
         // "StarknetHonk", 0, 1
@@ -424,7 +424,7 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
         hasher.update(challenge);
 
         match array_slice(
-            sumcheck_univariates.snapshot,
+            sumcheck_univariates.into(),
             i * BATCHED_RELATION_PARTIAL_LENGTH,
             BATCHED_RELATION_PARTIAL_LENGTH,
         ) {

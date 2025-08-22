@@ -1,4 +1,4 @@
-use garaga::core::bounded_int::{
+use corelib_imports::bounded_int::{
     AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, bounded_int, upcast,
 };
 

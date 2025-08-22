@@ -1,6 +1,5 @@
-use core::circuit::{CircuitModulus, u384, u96};
+use core::circuit::{u384, u96};
 use core::num::traits::{One, Zero};
-use core::result::Result;
 use core::serde::Serde;
 use core::{RangeCheck, num};
 

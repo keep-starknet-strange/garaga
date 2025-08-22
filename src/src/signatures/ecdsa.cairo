@@ -1,11 +1,8 @@
-use core::circuit::{CircuitModulus, u96};
-use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p};
-use garaga::core::circuit::IntoCircuitInputValue;
+use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p};
 use garaga::definitions::{
-    Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
+    G1Point, Zero, deserialize_u384, get_G, get_curve_order_modulus, get_n, serialize_u384, u384,
 };
-use garaga::ec_ops::{G1Point, G1PointTrait, msm_g1, u384};
-use garaga::utils::hashing::HashFeltTranscriptTrait;
+use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::utils::u384_eq_zero;
 
 /// An ECDSA signature with associated public key and message hash.

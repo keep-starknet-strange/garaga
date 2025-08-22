@@ -1,6 +1,6 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_sub, u384,
 };
 use core::option::Option;
 use garaga::basic_field_ops::neg_mod_p;
@@ -11,7 +11,7 @@ use garaga::utils::u384_assert_zero;
 
 
 #[generate_trait]
-impl G2PointImpl of G2PointTrait {
+pub impl G2PointImpl of G2PointTrait {
     fn assert_on_curve(self: @G2Point, curve_index: usize) {
         let (b20, b21) = get_b2(curve_index).unwrap();
         let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
@@ -41,7 +41,7 @@ impl G2PointImpl of G2PointTrait {
 // G2 Ops for BLS12-381.
 
 // Returns Option::None in case of error.
-fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
+pub fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
     if pt.is_zero() {
         // Input point is at infinity, return it
         return Option::Some(pt);
@@ -67,7 +67,7 @@ fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
 }
 
 // Returns the bits of the 256 bit number in little endian format.
-fn get_bits_little(s: u256) -> Array<felt252> {
+pub fn get_bits_little(s: u256) -> Array<felt252> {
     let mut bits = ArrayTrait::new();
     let mut s_low = s.low;
     while s_low != 0 {
@@ -90,7 +90,7 @@ fn get_bits_little(s: u256) -> Array<felt252> {
 }
 
 #[inline]
-fn ec_safe_add(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
+pub fn ec_safe_add(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
     // assumes that the points are on the curve and not the point at infinity.
     // Returns None if the points are the same and opposite y coordinates (Point at infinity)
     let same_x = eq_mod_p(P.x0, P.x1, Q.x0, Q.x1);
@@ -112,7 +112,7 @@ fn ec_safe_add(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
 // Should not be called outside of ec_mul.
 // Returns Option::None in case of point at infinity.
 // The size of bits array must be at minimum 2 and the point must be on the curve.
-fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -> Option<G2Point> {
+pub fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -> Option<G2Point> {
     let mut temp = pt;
     let mut result: Option<G2Point> = Option::None;
     for bit in bits {

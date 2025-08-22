@@ -13,24 +13,21 @@ use core::option::Option;
 
 use core::option::OptionTrait;
 use core::poseidon::hades_permutation;
+use garaga::basic_field_ops;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
-use garaga::circuits::extf_mul::run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit;
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
     run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
     run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_2P_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
     run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
     run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_2P_circuit,
+    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
 };
 use garaga::definitions::{
-    BLSProcessedPair, BNProcessedPair, E12D, G1G2Pair, G1Point, G2Line, G2Point,
-    MillerLoopResultScalingFactor, bls_bits, bn_bits, u288,
+    E12D, G1G2Pair, G2Line, MillerLoopResultScalingFactor, bls_bits, bn_bits, u288,
 };
-use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
-use garaga::{basic_field_ops, utils};
+use garaga::utils::{hashing, usize_assert_eq};
 
 
 #[derive(Drop, Serde, Debug)]

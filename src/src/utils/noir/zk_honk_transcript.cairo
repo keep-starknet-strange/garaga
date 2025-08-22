@@ -1,5 +1,5 @@
-use corelib_imports::array::array_slice;
 use core::poseidon::hades_permutation;
+use corelib_imports::array::array_slice;
 use garaga::utils::noir::honk_transcript::{
     CONST_PROOF_SIZE_LOG_N, IHasher, Point256IntoProofPoint, append_proof_point,
     generate_alpha_challenges, generate_gate_challenges, generate_gemini_r_challenge,
@@ -138,13 +138,13 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
         hasher.update(challenge);
 
         match array_slice(
-            sumcheck_univariates.snapshot,
+            sumcheck_univariates.into(),
             i * ZK_BATCHED_RELATION_PARTIAL_LENGTH,
             ZK_BATCHED_RELATION_PARTIAL_LENGTH,
         ) {
             Option::Some(slice) => {
                 for j in 0..ZK_BATCHED_RELATION_PARTIAL_LENGTH {
-                    hasher.update(slice.at(j));
+                    hasher.update(*slice.at(j));
                 };
             },
             Option::None => {

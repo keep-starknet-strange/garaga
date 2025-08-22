@@ -1,7 +1,6 @@
 use core::circuit::{
-    AddInputResultTrait, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
-    CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse,
-    circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::Zero;
 use core::sha256::compute_sha256_u32_array;
@@ -13,10 +12,8 @@ use garaga::definitions::{
     BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, get_BLS12_381_modulus, serialize_u384,
     u384Serde,
 };
-use garaga::ec_ops::{ec_safe_add, msm_g1};
 use garaga::ec_ops_g2;
 use garaga::single_pairing_tower::{final_exp_bls12_381_tower, miller_loop_bls12_381_tower};
-use garaga::utils::usize_assert_eq;
 
 // Chain: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971
 //   Public Key:
@@ -540,11 +537,10 @@ const IBE_H2: [u32; 2] = [0x4942452d, 0x4832];
 // bytes("IBE-H4") (4 + 2 bytes)
 const IBE_H4: [u32; 2] = [0x4942452d, 0x4834];
 const IBE_H3: [u32; 2] = [0x4942452d, 0x4833];
-use corelib_imports::circuit::conversions::{
-    DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED, POW64,
-    POW64_TYPED, UnitInt,
-};
 use corelib_imports::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
+use corelib_imports::circuit::conversions::{
+    DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW64, UnitInt,
+};
 
 const POW80: felt252 = 0x100000000000000000000;
 const NZ_POW80_TYPED: NonZero<UnitInt<POW80>> = 0x100000000000000000000;

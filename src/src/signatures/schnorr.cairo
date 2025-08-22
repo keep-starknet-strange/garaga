@@ -1,9 +1,8 @@
-use core::circuit::{CircuitModulus, u96};
 use garaga::basic_field_ops::{is_even_u384, neg_mod_p};
 use garaga::definitions::{
-    Zero, deserialize_u384, get_G, get_curve_order_modulus, get_modulus, get_n, serialize_u384,
+    G1Point, Zero, deserialize_u384, get_G, get_curve_order_modulus, get_n, serialize_u384, u384,
 };
-use garaga::ec_ops::{G1Point, G1PointTrait, msm_g1, u384};
+use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::utils::u384_eq_zero;
 
 /// A Schnorr signature with associated public key and challenge.

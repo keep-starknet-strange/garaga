@@ -1,35 +1,26 @@
-use corelib_imports::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast};
-use core::array::{ArrayTrait, array_at};
+use core::array::ArrayTrait;
 use core::circuit::{
-    AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement, CircuitInput,
-    CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
-    EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
-pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
-#[feature("bounded-int-utils")]
-use core::internal::bounded_int;
 use core::num::traits::{One, Zero};
-use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
 use core::result::ResultTrait;
-use garaga::basic_field_ops::{
-    add_mod_p, batch_3_mod_p, is_opposite_mod_p, is_zero_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
-};
+use corelib_imports::bounded_int::{downcast, upcast};
+use corelib_imports::integer::{U128sFromFelt252Result, u128s_from_felt252};
+use garaga::basic_field_ops::{is_opposite_mod_p, neg_mod_p, sub_mod_p};
 use garaga::circuits::ec;
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
-    BLS_X_SEED_SQ, G1Point, G1PointZero, G2Point, THIRD_ROOT_OF_UNITY_BLS12_381_G1,
-    deserialize_u288_array, deserialize_u384, deserialize_u384_array, get_G, get_a, get_b, get_b2,
-    get_curve_order_modulus, get_eigenvalue, get_g, get_min_one, get_min_one_order, get_modulus,
-    get_n, get_nG_glv_fake_glv, get_third_root_of_unity, serialize_u288_array, serialize_u384,
-    serialize_u384_array, u288, u384Serde,
+    G1Point, G1PointZero, get_G, get_a, get_b, get_curve_order_modulus, get_eigenvalue, get_min_one,
+    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity, u384Serde,
 };
 use garaga::ec::selectors;
-use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
+use garaga::utils::u384_assert_zero;
 
 #[generate_trait]
-impl G1PointImpl of G1PointTrait {
+pub impl G1PointImpl of G1PointTrait {
     fn assert_on_curve(self: @G1Point, curve_index: usize) {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
             *self, get_a(curve_index), get_b(curve_index), curve_index,

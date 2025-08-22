@@ -3,12 +3,12 @@ pub mod core {
     pub mod circuit;
 }
 pub mod circuits {
-    pub (crate) mod dummy;
-    pub (crate) mod ec;
-    pub (crate) mod extf_mul;
-    pub (crate) mod isogeny;
-    pub (crate) mod multi_pairing_check;
-    pub (crate) mod tower_circuits;
+    pub(crate) mod dummy;
+    pub(crate) mod ec;
+    pub(crate) mod extf_mul;
+    pub(crate) mod isogeny;
+    pub(crate) mod multi_pairing_check;
+    pub(crate) mod tower_circuits;
 }
 pub mod crypto {
     pub mod mmr;
@@ -69,7 +69,7 @@ pub mod utils {
     pub mod noir;
     pub mod risc0;
     pub mod sp1;
-    use core::circuit::{u384, u96};
+    use core::circuit::u384;
     use core::panic_with_felt252;
 
     pub fn u384_assert_zero(x: u384) {

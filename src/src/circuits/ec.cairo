@@ -1,15 +1,9 @@
 use core::circuit::{
-    AddInputResultTrait, CircuitElement as CE, CircuitInput as CI, CircuitInputs,
-    CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub,
-    u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
-use garaga::definitions::{
-    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
-    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
-    get_g, get_min_one, get_modulus, u288,
-};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::definitions::{G1Point, G2Point};
 
 impl CircuitDefinition27<
     E0,
@@ -365,7 +359,7 @@ pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) 
     let t34 = circuit_sub(t30, in3); // Fp2 sub coeff 0/1
     let t35 = circuit_sub(t33, in4); // Fp2 sub coeff 1/1
 
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
 
     let mut circuit_inputs = (t24, t25, t34, t35).new_inputs();
     // Prefill constants:
@@ -390,7 +384,9 @@ pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) 
     return (result,);
 }
 #[inline(always)]
-pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, modulus: CircuitModulus) -> (G1Point,) {
+pub fn run_ADD_EC_POINT_circuit(
+    p: G1Point, q: G1Point, modulus: core::circuit::CircuitModulus,
+) -> (G1Point,) {
     // INPUT stack
     let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
     let in3 = CE::<CI<3>> {};
@@ -421,7 +417,9 @@ pub fn run_ADD_EC_POINT_circuit(p: G1Point, q: G1Point, modulus: CircuitModulus)
     return (r,);
 }
 #[inline(always)]
-pub fn run_CLEAR_COFACTOR_BLS12_381_circuit(P: G1Point, modulus: CircuitModulus) -> (G1Point,) {
+pub fn run_CLEAR_COFACTOR_BLS12_381_circuit(
+    P: G1Point, modulus: core::circuit::CircuitModulus,
+) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
 
@@ -1245,7 +1243,7 @@ pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> 
     let t39 = circuit_sub(t35, in4); // Fp2 sub coeff 0/1
     let t40 = circuit_sub(t38, in5); // Fp2 sub coeff 1/1
 
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
 
     let mut circuit_inputs = (t29, t30, t39, t40).new_inputs();
     // Prefill constants:
@@ -1268,7 +1266,7 @@ pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> 
 }
 #[inline(always)]
 pub fn run_DOUBLE_EC_POINT_circuit(
-    p: G1Point, A_weirstrass: u384, modulus: CircuitModulus,
+    p: G1Point, A_weirstrass: u384, modulus: core::circuit::CircuitModulus,
 ) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
@@ -1341,7 +1339,7 @@ pub fn run_IS_ON_CURVE_G1_G2_circuit(
     let t27 = circuit_sub(t6, t24);
     let t28 = circuit_sub(t8, t25);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
 
     let mut circuit_inputs = (t26, t27, t28).new_inputs();
     // Prefill constants:
@@ -1377,7 +1375,7 @@ pub fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usi
     let t5 = circuit_add(t2, t4);
     let t6 = circuit_sub(t0, t5);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
 
     let mut circuit_inputs = (t6,).new_inputs();
     // Prefill constants:
@@ -1425,7 +1423,7 @@ pub fn run_IS_ON_CURVE_G2_circuit(
     let t22 = circuit_sub(t2, t20);
     let t23 = circuit_sub(t4, t21);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
 
     let mut circuit_inputs = (t22, t23).new_inputs();
     // Prefill constants:
@@ -1446,7 +1444,11 @@ pub fn run_IS_ON_CURVE_G2_circuit(
 }
 #[inline(always)]
 pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
-    P: G1Point, Q: G1Point, s2_sign: u384, A_weirstrass: u384, modulus: CircuitModulus,
+    P: G1Point,
+    Q: G1Point,
+    s2_sign: u384,
+    A_weirstrass: u384,
+    modulus: core::circuit::CircuitModulus,
 ) -> (
     G1Point,
     G1Point,
@@ -1682,7 +1684,7 @@ pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
     Phi_Q0y: u384,
     Gen: G1Point,
     third_root: u384,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (
     G1Point,
     G1Point,
@@ -1959,7 +1961,7 @@ pub fn run_QUADRUPLE_AND_ADD_9_circuit(
     Q_8: G1Point,
     Q_9: G1Point,
     A_weirstrass: u384,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (G1Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3

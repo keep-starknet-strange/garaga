@@ -1,8 +1,7 @@
-// Originally taken from Alexandria library.
-
-use core::integer::{bitwise, u64_bitwise};
-use core::num::traits::{Bounded, WrappingAdd};
-use core::traits::{BitAnd, BitOr, BitXor};
+// Optimized version, originally from Alexandria library.
+// use core::integer::{bitwise, u64_bitwise};
+use core::num::traits::WrappingAdd;
+use core::traits::{BitAnd, BitNot, BitOr, BitXor};
 
 
 // Variable naming is compliant to RFC-6234 (https://datatracker.ietf.org/doc/html/rfc6234)
@@ -110,10 +109,8 @@ impl WordIntoFelt252 of Into<Word64, felt252> {
         self.data.into()
     }
 }
-use core::circuit::conversions::bounded_int::{
-    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt,
-};
-use core::circuit::conversions::{DivRemU128By64, NZ_POW64_TYPED, bounded_int, upcast};
+use corelib_imports::bounded_int::{bounded_int, upcast};
+use corelib_imports::circuit::conversions::{DivRemU128By64, NZ_POW64_TYPED};
 
 impl Felt252IntoWord of Into<felt252, Word64> {
     fn into(self: felt252) -> Word64 {

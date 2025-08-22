@@ -1,15 +1,9 @@
 use core::circuit::{
-    AddInputResultTrait, CircuitElement as CE, CircuitInput as CI, CircuitInputs,
-    CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub,
-    u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
-use garaga::definitions::{
-    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
-    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
-    get_g, get_min_one, get_modulus, u288,
-};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::definitions::{E12T, G2Point};
 #[inline(always)]
 pub fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     // INPUT stack
@@ -143,7 +137,7 @@ pub fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     let t123 = circuit_add(t121, t40); // Fp2 add coeff 0/1
     let t124 = circuit_add(t122, t41); // Fp2 add coeff 1/1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t93, t94, t99, t100, t105, t106, t111, t112, t117, t118, t123, t124)
         .new_inputs();
@@ -281,7 +275,7 @@ pub fn run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
     let t83 = circuit_add(t77, t81); // Fp2 add coeff 0/1
     let t84 = circuit_add(t78, t82); // Fp2 add coeff 1/1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t73, t74, t60, t61, t42, t43, t83, t84).new_inputs();
     // Prefill constants:
@@ -376,7 +370,7 @@ pub fn run_BLS12_381_E12T_DECOMP_KARABINA_II_circuit(
     let t42 = circuit_sub(t41, t37);
     let t43 = circuit_add(t40, in1);
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t43, t42, t9, t12).new_inputs();
     // Prefill constants:
@@ -446,7 +440,7 @@ pub fn run_BLS12_381_E12T_DECOMP_KARABINA_I_NZ_circuit(
     let t25 = circuit_add(t23, t23); // Fp2 add coeff 0/1
     let t26 = circuit_add(t24, t24); // Fp2 add coeff 1/1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t21, t22, t25, t26).new_inputs();
     // Prefill constants:
@@ -484,7 +478,7 @@ pub fn run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
     let t6 = circuit_add(t2, t2); // Fp2 add coeff 0/1
     let t7 = circuit_add(t5, t5); // Fp2 add coeff 1/1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t6, t7).new_inputs();
     // Prefill constants:
@@ -552,7 +546,7 @@ pub fn run_BLS12_381_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     let t31 = circuit_mul(in3, in15);
     let t32 = circuit_add(t30, t31); // Fp2 mul imag part end
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t1, t0, t9, t12, t13, t14, t17, t20, t23, t26, t29, t32).new_inputs();
     // Prefill constants:
@@ -646,7 +640,7 @@ pub fn run_BLS12_381_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
     let t10 = circuit_mul(in5, in16);
     let t11 = circuit_mul(in5, in17);
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11).new_inputs();
     // Prefill constants:
@@ -782,7 +776,7 @@ pub fn run_BLS12_381_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     let t31 = circuit_mul(in7, in18);
     let t32 = circuit_add(t30, t31); // Fp2 mul imag part end
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t1, t0, t9, t12, t13, t14, t17, t20, t23, t26, t29, t32).new_inputs();
     // Prefill constants:
@@ -1263,7 +1257,7 @@ pub fn run_BLS12_381_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
     let t384 = circuit_sub(in0, t378); // Fp6 neg coeff 4/5
     let t385 = circuit_sub(in0, t379); // Fp6 neg coeff 5/5
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
         t265, t266, t286, t287, t302, t303, t380, t381, t382, t383, t384, t385,
@@ -1577,7 +1571,7 @@ pub fn run_BLS12_381_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     let t261 = circuit_add(t222, t162); // Fp6 add coeff 4/5
     let t262 = circuit_add(t223, t163); // Fp6 add coeff 5/5
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
         t257, t258, t259, t260, t261, t262, t246, t247, t248, t249, t250, t251,
@@ -2044,7 +2038,7 @@ pub fn run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit(
     let t396 = circuit_add(t395, t236);
     let t397 = circuit_add(t396, t237);
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
         t397, t389, t390, t391, t392, t393, t394, t378, t379, t380, t381, t382, t383,
@@ -2697,7 +2691,7 @@ pub fn run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit(
     let t579 = circuit_add(t578, t270);
     let t580 = circuit_add(t579, t271);
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
         t580, t572, t573, t574, t575, t576, t577, t561, t562, t563, t564, t565, t566,
@@ -2894,7 +2888,7 @@ pub fn run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
     let t125 = circuit_add(t122, t92); // Fp2 add coeff 0/1
     let t126 = circuit_add(t124, t95); // Fp2 add coeff 1/1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (
         t70, t71, t80, t81, t125, t126, t116, t117, t98, t101, t102, t103, t118, t119,
@@ -3073,7 +3067,7 @@ pub fn run_BN254_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {
     let t127 = circuit_add(t125, t40); // Fp2 add coeff 0/1
     let t128 = circuit_add(t126, t41); // Fp2 add coeff 1/1
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t97, t98, t103, t104, t109, t110, t115, t116, t121, t122, t127, t128)
         .new_inputs();
@@ -3171,7 +3165,7 @@ pub fn run_BN254_E12T_FROBENIUS_CUBE_circuit(M: E12T) -> (E12T,) {
     let t35 = circuit_mul(in10, in21);
     let t36 = circuit_add(t34, t35); // Fp2 mul imag part end
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t1, t0, t9, t12, t15, t18, t21, t24, t27, t30, t33, t36).new_inputs();
     // Prefill constants:
@@ -3301,7 +3295,7 @@ pub fn run_BN254_E12T_FROBENIUS_SQUARE_circuit(M: E12T) -> (E12T,) {
     let t10 = circuit_mul(in5, in16);
     let t11 = circuit_mul(in5, in17);
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t0, t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11).new_inputs();
     // Prefill constants:
@@ -3413,7 +3407,7 @@ pub fn run_BN254_E12T_FROBENIUS_circuit(M: E12T) -> (E12T,) {
     let t35 = circuit_mul(in10, in21);
     let t36 = circuit_add(t34, t35); // Fp2 mul imag part end
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t1, t0, t9, t12, t15, t18, t21, t24, t27, t30, t33, t36).new_inputs();
     // Prefill constants:
@@ -3925,7 +3919,7 @@ pub fn run_BN254_E12T_INVERSE_circuit(M: E12T) -> (E12T,) {
     let t396 = circuit_sub(in2, t390); // Fp6 neg coeff 4/5
     let t397 = circuit_sub(in2, t391); // Fp6 neg coeff 5/5
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
         t274, t275, t296, t297, t312, t313, t392, t393, t394, t395, t396, t397,
@@ -4252,7 +4246,7 @@ pub fn run_BN254_E12T_MUL_circuit(X: E12T, Y: E12T) -> (E12T,) {
     let t268 = circuit_add(t228, t166); // Fp6 add coeff 4/5
     let t269 = circuit_add(t229, t167); // Fp6 add coeff 5/5
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
         t264, t265, t266, t267, t268, t269, t252, t253, t254, t255, t256, t257,
@@ -4733,7 +4727,7 @@ pub fn run_BN254_TOWER_MILLER_BIT0_1P_circuit(
     let t407 = circuit_add(t406, t242);
     let t408 = circuit_add(t407, t243);
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
         t408, t400, t401, t402, t403, t404, t405, t388, t389, t390, t391, t392, t393,
@@ -5406,7 +5400,7 @@ pub fn run_BN254_TOWER_MILLER_BIT1_1P_circuit(
     let t595 = circuit_add(t594, t276);
     let t596 = circuit_add(t595, t277);
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
         t596, t588, t589, t590, t591, t592, t593, t576, t577, t578, t579, t580, t581,
@@ -5891,7 +5885,7 @@ pub fn run_BN254_TOWER_MILLER_FINALIZE_BN_1P_circuit(
     let t400 = circuit_add(t360, t298); // Fp6 add coeff 4/5
     let t401 = circuit_add(t361, t299); // Fp6 add coeff 5/5
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (
         t396, t397, t398, t399, t400, t401, t384, t385, t386, t387, t388, t389,
@@ -5996,7 +5990,7 @@ pub fn run_FP6_NEG_circuit(
     let t4 = circuit_sub(in0, in5);
     let t5 = circuit_sub(in0, in6);
 
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
 
     let mut circuit_inputs = (t0, t1, t2, t3, t4, t5).new_inputs();
     // Prefill constants:

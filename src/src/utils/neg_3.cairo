@@ -1,6 +1,7 @@
-use core::circuit::{u384};
-use corelib_imports::bounded_int::{upcast};
-use corelib_imports::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, bounded_int};
+use core::circuit::u384;
+use corelib_imports::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, UnitInt, bounded_int, upcast,
+};
 use garaga::definitions::get_min_one;
 
 

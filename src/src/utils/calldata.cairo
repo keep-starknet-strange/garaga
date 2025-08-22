@@ -3,7 +3,8 @@ use core::circuit::u384;
 use garaga::definitions::{
     E12D, E12DMulQuotient, G1Point, G2Point, MillerLoopResultScalingFactor, u288,
 };
-use garaga::groth16::{Groth16Proof, Groth16ProofRaw, MPCheckHintBLS12_381, MPCheckHintBN254};
+use garaga::groth16::{Groth16Proof, Groth16ProofRaw};
+use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 
 #[derive(Drop)]
 pub struct FullProofWithHintsBN254 {

@@ -1,15 +1,9 @@
 use core::circuit::{
-    AddInputResultTrait, CircuitElement as CE, CircuitInput as CI, CircuitInputs,
-    CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub,
-    u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
+    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use core::option::Option;
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
-use garaga::definitions::{
-    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, E12T, G1G2Pair, G1Point, G2Line,
-    G2Point, MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, get_a, get_b,
-    get_g, get_min_one, get_modulus, u288,
-};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::definitions::{E12D, E12DMulQuotient, u288};
 #[inline(always)]
 pub fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     // INPUT stack
@@ -41,7 +35,7 @@ pub fn run_BLS12_381_EVAL_E12D_circuit(f: E12D<u384>, z: u384) -> (u384,) {
     let t20 = circuit_mul(t19, in12); // Eval X Horner step: multiply by z
     let t21 = circuit_add(in0, t20); // Eval X Horner step: add coefficient_0
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t21,).new_inputs();
     // Prefill constants:
@@ -170,7 +164,7 @@ pub fn run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit(
     let t80 = circuit_sub(t78, t79); // (X(z) * Y(z)) - (Q(z) * P(z))
     let t81 = circuit_sub(t80, in2); // (X(z) * Y(z) - Q(z) * P(z)) - 1
 
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
@@ -256,7 +250,7 @@ pub fn run_BN254_EVAL_E12D_circuit(f: E12D<u288>, z: u384) -> (u384,) {
     let t20 = circuit_mul(t19, in12); // Eval X Horner step: multiply by z
     let t21 = circuit_add(in0, t20); // Eval X Horner step: add coefficient_0
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t21,).new_inputs();
     // Prefill constants:
@@ -385,7 +379,7 @@ pub fn run_BN254_FP12_MUL_ASSERT_ONE_circuit(
     let t80 = circuit_sub(t78, t79); // (X(z) * Y(z)) - (Q(z) * P(z))
     let t81 = circuit_sub(t80, in2); // (X(z) * Y(z) - Q(z) * P(z)) - 1
 
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
 
     let mut circuit_inputs = (t81,).new_inputs();
     // Prefill constants:
