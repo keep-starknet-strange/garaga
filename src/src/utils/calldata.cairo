@@ -64,7 +64,9 @@ fn downcast_u384(l0: felt252, l1: felt252, l2: felt252, l3: felt252) -> u384 {
 }
 
 #[inline(always)]
-pub fn _deserialize_groth16_proof_points(ref serialized: Span<felt252>) -> (G1Point, G2Point, G1Point) {
+pub fn _deserialize_groth16_proof_points(
+    ref serialized: Span<felt252>,
+) -> (G1Point, G2Point, G1Point) {
     let [
         a_x_l0,
         a_x_l1,
@@ -303,7 +305,9 @@ pub fn deserialize_full_proof_with_hints_risc0(
 }
 
 
-pub fn deserialize_full_proof_with_hints_sp1(mut serialized: Span<felt252>) -> FullProofWithHintsSP1 {
+pub fn deserialize_full_proof_with_hints_sp1(
+    mut serialized: Span<felt252>,
+) -> FullProofWithHintsSP1 {
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
     let vkey = u256 {

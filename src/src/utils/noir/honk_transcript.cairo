@@ -520,10 +520,7 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
 #[cfg(test)]
 mod tests {
     use garaga::utils::noir::{get_proof_keccak, get_proof_starknet, get_vk};
-    use super::{
-        HonkTranscript, HonkTranscriptTrait, KeccakHasherState,
-        StarknetHasherState,
-    };
+    use super::{HonkTranscript, HonkTranscriptTrait, KeccakHasherState, StarknetHasherState};
     #[test]
     fn test_transcript_keccak() {
         let vk = get_vk();
