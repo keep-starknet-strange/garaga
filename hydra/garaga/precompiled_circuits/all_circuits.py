@@ -7,6 +7,7 @@ from garaga.precompiled_circuits.compilable_circuits.apply_isogeny import (
 )
 from garaga.precompiled_circuits.compilable_circuits.base import (
     cairo1_tests_header,
+    collect_struct_dependencies,
     compilation_mode_to_file_header,
     compile_circuit,
     create_cairo1_test,
@@ -452,13 +453,17 @@ def write_headers(
     compilation_mode: int,
     output_sizes_exceeding_limit: dict[str, set[int]],
     file_curve_ids: dict[str, set[CurveID]],
+    file_struct_dependencies: dict[str, set[str]],
 ) -> None:
     """
     Write the header to the files. Add a specific header if max output length exceeds the limit.
     """
 
     for filename, curve_ids in file_curve_ids.items():
-        HEADER = compilation_mode_to_file_header(compilation_mode, curve_ids)
+        required_structs = file_struct_dependencies.get(filename, set())
+        HEADER = compilation_mode_to_file_header(
+            compilation_mode, curve_ids, required_structs
+        )
         files[filename].write(HEADER)
 
     TEMPLATE = """
@@ -507,6 +512,7 @@ def compile_circuits(
     cairo1_full_function_names: dict[str, set[str]],
     cairo1_tests_functions: dict[str, set[str]],
     output_sizes_exceeding_limit: dict[str, set[int]],
+    file_struct_dependencies: dict[str, set[str]],
     limit: int,
 ) -> None:
     """
@@ -524,6 +530,14 @@ def compile_circuits(
                 compilation_mode,
             )
             codes[filename_key].update(compiled_circuits)
+
+            # Collect struct dependencies for this file if compilation_mode == 1
+            if compilation_mode == 1:
+                struct_deps = collect_struct_dependencies(circuit_instances)
+                if filename_key not in file_struct_dependencies:
+                    file_struct_dependencies[filename_key] = set()
+                file_struct_dependencies[filename_key].update(struct_deps)
+
             for circuit_instance in circuit_instances:
                 output_length = len(circuit_instance.circuit.output)
                 if (
@@ -617,6 +631,7 @@ def main(
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
     file_curve_ids = {filename: set() for filename in filenames_used}
+    file_struct_dependencies = {filename: set() for filename in filenames_used}
 
     # Populate file_curve_ids with curve IDs
     for circuit_info in CIRCUITS_TO_COMPILE.values():
@@ -633,9 +648,16 @@ def main(
         cairo1_full_function_names,
         cairo1_tests_functions,
         output_sizes_exceeding_limit,
+        file_struct_dependencies,
         limit,
     )
-    write_headers(files, compilation_mode, output_sizes_exceeding_limit, file_curve_ids)
+    write_headers(
+        files,
+        compilation_mode,
+        output_sizes_exceeding_limit,
+        file_curve_ids,
+        file_struct_dependencies,
+    )
     write_compiled_circuits(
         files,
         codes,
