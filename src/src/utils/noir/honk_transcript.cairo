@@ -57,7 +57,7 @@ pub struct KeccakHasherState {
     arr: Array<u64>,
 }
 
-impl KeccakHasher of IHasher<KeccakHasherState> {
+pub impl KeccakHasher of IHasher<KeccakHasherState> {
     #[inline]
     fn new() -> KeccakHasherState {
         KeccakHasherState { arr: array![] }
@@ -113,9 +113,9 @@ impl KeccakHasher of IHasher<KeccakHasherState> {
 
 #[derive(Drop, Debug)]
 pub struct StarknetHasherState {
-    s0: felt252,
-    s1: felt252,
-    s2: felt252,
+    pub s0: felt252,
+    pub s1: felt252,
+    pub s2: felt252,
 }
 
 pub impl StarknetHasher of IHasher<StarknetHasherState> {
@@ -172,23 +172,23 @@ pub impl StarknetHasher of IHasher<StarknetHasherState> {
 }
 
 #[derive(Drop, Debug, PartialEq)]
-struct HonkTranscript {
-    eta: u128,
-    eta_two: u128,
-    eta_three: u128,
-    beta: u128,
-    gamma: u128,
-    alphas: Array<u128>,
-    gate_challenges: Array<u128>,
-    sum_check_u_challenges: Array<u128>,
-    rho: u128,
-    gemini_r: u128,
-    shplonk_nu: u128,
-    shplonk_z: u128,
+pub struct HonkTranscript {
+    pub eta: u128,
+    pub eta_two: u128,
+    pub eta_three: u128,
+    pub beta: u128,
+    pub gamma: u128,
+    pub alphas: Array<u128>,
+    pub gate_challenges: Array<u128>,
+    pub sum_check_u_challenges: Array<u128>,
+    pub rho: u128,
+    pub gemini_r: u128,
+    pub shplonk_nu: u128,
+    pub shplonk_z: u128,
 }
 
 #[generate_trait]
-impl HonkTranscriptImpl of HonkTranscriptTrait {
+pub impl HonkTranscriptImpl of HonkTranscriptTrait {
     fn from_proof<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
         circuit_size: usize,
         public_inputs_size: usize,

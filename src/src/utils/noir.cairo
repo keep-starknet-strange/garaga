@@ -4,17 +4,17 @@ pub mod zk_honk_transcript;
 use garaga::definitions::{G1Point, G2Point, u384};
 
 #[derive(Drop, Copy, Serde)]
-struct G1Point256 {
-    x: u256,
-    y: u256,
+pub struct G1Point256 {
+    pub x: u256,
+    pub y: u256,
 }
 
 #[derive(Drop, Copy)]
-struct G1PointProof {
-    x0: u256,
-    x1: u256,
-    y0: u256,
-    y1: u256,
+pub struct G1PointProof {
+    pub x0: u256,
+    pub x1: u256,
+    pub y0: u256,
+    pub y1: u256,
 }
 
 #[derive(Drop, Serde, Copy)]
@@ -67,37 +67,37 @@ pub struct ZKHonkProof {
 
 #[derive(Drop, Copy)]
 pub struct HonkVk {
-    circuit_size: usize,
-    log_circuit_size: usize,
-    public_inputs_size: usize,
-    public_inputs_offset: usize,
-    qm: G1Point,
-    qc: G1Point,
-    ql: G1Point,
-    qr: G1Point,
-    qo: G1Point,
-    q4: G1Point,
-    qLookup: G1Point,
-    qArith: G1Point,
-    qDeltaRange: G1Point,
-    qElliptic: G1Point,
-    qAux: G1Point,
-    qPoseidon2External: G1Point,
-    qPoseidon2Internal: G1Point,
-    s1: G1Point,
-    s2: G1Point,
-    s3: G1Point,
-    s4: G1Point,
-    id1: G1Point,
-    id2: G1Point,
-    id3: G1Point,
-    id4: G1Point,
-    t1: G1Point,
-    t2: G1Point,
-    t3: G1Point,
-    t4: G1Point,
-    lagrange_first: G1Point,
-    lagrange_last: G1Point,
+    pub circuit_size: usize,
+    pub log_circuit_size: usize,
+    pub public_inputs_size: usize,
+    pub public_inputs_offset: usize,
+    pub qm: G1Point,
+    pub qc: G1Point,
+    pub ql: G1Point,
+    pub qr: G1Point,
+    pub qo: G1Point,
+    pub q4: G1Point,
+    pub qLookup: G1Point,
+    pub qArith: G1Point,
+    pub qDeltaRange: G1Point,
+    pub qElliptic: G1Point,
+    pub qAux: G1Point,
+    pub qPoseidon2External: G1Point,
+    pub qPoseidon2Internal: G1Point,
+    pub s1: G1Point,
+    pub s2: G1Point,
+    pub s3: G1Point,
+    pub s4: G1Point,
+    pub id1: G1Point,
+    pub id2: G1Point,
+    pub id3: G1Point,
+    pub id4: G1Point,
+    pub t1: G1Point,
+    pub t2: G1Point,
+    pub t3: G1Point,
+    pub t4: G1Point,
+    pub lagrange_first: G1Point,
+    pub lagrange_last: G1Point,
 }
 
 

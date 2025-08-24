@@ -12,13 +12,13 @@ use corelib_imports::circuit::{
 use garaga::definitions::u288;
 
 
-impl U32IntoU384 of Into<u32, u384> {
+pub impl U32IntoU384 of Into<u32, u384> {
     fn into(self: u32) -> u384 {
         u384 { limb0: upcast(self), limb1: 0, limb2: 0, limb3: 0 }
     }
 }
 
-impl U64IntoU384 of Into<u64, u384> {
+pub impl U64IntoU384 of Into<u64, u384> {
     fn into(self: u64) -> u384 {
         u384 { limb0: upcast(self), limb1: 0, limb2: 0, limb3: 0 }
     }

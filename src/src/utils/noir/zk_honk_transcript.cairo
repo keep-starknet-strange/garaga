@@ -7,28 +7,28 @@ use garaga::utils::noir::honk_transcript::{
 };
 use garaga::utils::noir::{G1Point256, G1PointProof, ZKHonkProof};
 
-const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
+pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 
 
 #[derive(Drop, Debug, PartialEq)]
 pub struct ZKHonkTranscript {
-    eta: u128,
-    eta_two: u128,
-    eta_three: u128,
-    beta: u128,
-    gamma: u128,
-    alphas: Array<u128>,
-    gate_challenges: Array<u128>,
-    libra_challenge: u128,
-    sum_check_u_challenges: Array<u128>,
-    rho: u128,
-    gemini_r: u128,
-    shplonk_nu: u128,
-    shplonk_z: u128,
+    pub eta: u128,
+    pub eta_two: u128,
+    pub eta_three: u128,
+    pub beta: u128,
+    pub gamma: u128,
+    pub alphas: Array<u128>,
+    pub gate_challenges: Array<u128>,
+    pub libra_challenge: u128,
+    pub sum_check_u_challenges: Array<u128>,
+    pub rho: u128,
+    pub gemini_r: u128,
+    pub shplonk_nu: u128,
+    pub shplonk_z: u128,
 }
 
 #[generate_trait]
-impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
+pub impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
     fn from_proof<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
         circuit_size: usize,
         public_inputs_size: usize,

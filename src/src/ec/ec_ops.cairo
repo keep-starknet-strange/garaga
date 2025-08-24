@@ -138,19 +138,19 @@ pub fn _ec_safe_add(
 }
 
 #[derive(Drop, Serde)]
-struct GlvFakeGlvHint {
-    Q: G1Point,
-    u1: felt252, // Encoded as 2^128 * sign + abs(u1)
-    u2: felt252, // Encoded as 2^128 * sign + abs(u2)
-    v1: felt252, // Encoded as 2^128 * sign + abs(v1)
-    v2: felt252 // Encoded as 2^128 * sign + abs(v2)
+pub struct GlvFakeGlvHint {
+    pub Q: G1Point,
+    pub u1: felt252, // Encoded as 2^128 * sign + abs(u1)
+    pub u2: felt252, // Encoded as 2^128 * sign + abs(u2)
+    pub v1: felt252, // Encoded as 2^128 * sign + abs(v1)
+    pub v2: felt252 // Encoded as 2^128 * sign + abs(v2)
 }
 
 #[derive(Drop, Serde)]
-struct FakeGlvHint {
-    Q: G1Point,
-    s1: u128, // (s1)_u128 (always positive)
-    s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
+pub struct FakeGlvHint {
+    pub Q: G1Point,
+    pub s1: u128, // (s1)_u128 (always positive)
+    pub s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
 }
 
 pub fn msm_g1(
