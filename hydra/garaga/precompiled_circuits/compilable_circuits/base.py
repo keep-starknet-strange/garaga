@@ -138,7 +138,9 @@ class BaseEXTFCircuit(BaseModuloCircuit):
         self.init_hash = init_hash
 
 
-def compilation_mode_to_file_header(mode: int, curve_ids: set[CurveID]) -> str:
+def compilation_mode_to_file_header(
+    mode: int, curve_ids: set[CurveID], required_structs: set[str] = None
+) -> str:
     if mode == 0:
         return """
 from starkware.cairo.common.registers import get_fp_and_pc, get_label_location
@@ -146,22 +148,46 @@ from modulo_circuit import ExtensionFieldModuloCircuit, ModuloCircuit, get_void_
 from definitions import bn, bls
 """
     elif mode == 1:
-        moduluses = [
-            f"get_{curve_id.name}_modulus"
-            for curve_id in sorted(curve_ids, key=lambda x: x.name)
+
+        # Default structs (always included for backward compatibility if no required_structs specified)
+        default_structs = [
+            "G1Point",
+            "G2Point",
+            "E12D",
+            "u288",
+            "E12DMulQuotient",
+            "G1G2Pair",
+            "BNProcessedPair",
+            "BLSProcessedPair",
+            "MillerLoopResultScalingFactor",
+            "G2Line",
+            "E12T",
         ]
+
+        # Use required_structs if provided, otherwise use default structs
+        # If required_structs is an empty set, that means no structs are needed
+        if required_structs is not None:
+            structs_to_import = list(sorted(required_structs))
+        else:
+            structs_to_import = default_structs.copy()
+
+        # remove u384 from structs_to_import list if it exists
+        if "u384" in structs_to_import:
+            structs_to_import.remove("u384")
+
+        # Combine all definitions
+        all_definitions = structs_to_import
+
         return f"""
 use core::circuit::{{
-    RangeCheck96, AddMod, MulMod, u384, u96, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, CircuitOutputsTrait,
-    CircuitModulus, AddInputResultTrait, CircuitInputs, CircuitDefinition,
-    CircuitData, CircuitInputAccumulator
-}};
-use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue, IntoCircuitInputValue}};
+    u384, circuit_add, circuit_sub,
+    circuit_mul, circuit_inverse, EvalCircuitTrait, CircuitOutputsTrait,
+    CircuitInputs,
+    }};
+use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue}};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{{get_a, get_b, get_modulus, get_g, get_min_one, G1Point, G2Point, E12D, u288, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line, E12T, {', '.join(moduluses)}}};
-use core::option::Option;
+use garaga::definitions::{{{', '.join(all_definitions)}}};
 """
 
 
@@ -172,13 +198,86 @@ mod tests {
     use core::traits::TryInto;
 
     use core::circuit::{
-        RangeCheck96, AddMod, MulMod, u96, CircuitElement, CircuitInput, circuit_add, circuit_sub,
+        RangeCheck96, AddMod, MulMod, CircuitElement, CircuitInput, circuit_add, circuit_sub,
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
     use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
 
 """
+
+
+def parse_struct_name(struct_name: str) -> list[str]:
+    """
+    Parse struct names and extract the types that need to be imported.
+
+    Rules:
+    - Span<T> or Array<T> -> only add T
+    - Struct<T> -> add Struct and T separately
+    - Other structs -> add as is
+
+    Returns:
+        list[str]: List of struct names to import
+    """
+    import re
+
+    # Handle Span<T> and Array<T> - only add T
+    span_array_match = re.match(r"^(Span|Array)<(.+)>$", struct_name)
+    if span_array_match:
+        inner_type = span_array_match.group(2)
+        return [inner_type]
+
+    # Handle other generic types like Struct<T> - add both Struct and T
+    generic_match = re.match(r"^([^<]+)<(.+)>$", struct_name)
+    if generic_match:
+        base_struct = generic_match.group(1)
+        inner_type = generic_match.group(2)
+        return [base_struct, inner_type]
+
+    # Non-generic struct - add as is
+    return [struct_name]
+
+
+def collect_struct_dependencies(circuit_instances: list[BaseModuloCircuit]) -> set[str]:
+    """
+    Collect all Cairo1SerializableStruct types used in the input_structs and output_structs
+    of the given circuit instances.
+
+    Returns:
+        set[str]: Set of struct class names that need to be imported
+    """
+    struct_types = set()
+
+    def add_struct_types(struct):
+        """Helper function to add struct types recursively"""
+        struct_name = struct.struct_name
+        parsed_types = parse_struct_name(struct_name)
+        struct_types.update(parsed_types)
+
+        # Also add nested struct types if they exist
+        if hasattr(struct, "elmts") and struct.elmts:
+            for elmt in struct.elmts:
+                if isinstance(elmt, Cairo1SerializableStruct):
+                    add_struct_types(elmt)
+
+    for circuit_instance in circuit_instances:
+        # Collect from input_structs
+        if (
+            hasattr(circuit_instance.circuit, "input_structs")
+            and circuit_instance.circuit.input_structs
+        ):
+            for struct in circuit_instance.circuit.input_structs:
+                add_struct_types(struct)
+
+        # Collect from output_structs
+        if (
+            hasattr(circuit_instance.circuit, "output_structs")
+            and circuit_instance.circuit.output_structs
+        ):
+            for struct in circuit_instance.circuit.output_structs:
+                add_struct_types(struct)
+
+    return struct_types
 
 
 def to_snake_case(s: str) -> str:

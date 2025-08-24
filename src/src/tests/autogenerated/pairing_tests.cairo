@@ -1,11 +1,14 @@
+use garaga::definitions::{
+    E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point, MillerLoopResultScalingFactor, u288,
+    u384,
+};
 use garaga::groth16::{
-    E12DMulQuotient, multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
+    multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
     multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
 };
 use garaga::pairing_check::{
-    E12D, G1G2Pair, G1Point, G2Line, G2Point, MPCheckHintBLS12_381, MPCheckHintBN254,
-    MillerLoopResultScalingFactor, multi_pairing_check_bls12_381_2P_2F,
-    multi_pairing_check_bn254_2P_2F, u288, u384,
+    MPCheckHintBLS12_381, MPCheckHintBN254, multi_pairing_check_bls12_381_2P_2F,
+    multi_pairing_check_bn254_2P_2F,
 };
 
 #[test]

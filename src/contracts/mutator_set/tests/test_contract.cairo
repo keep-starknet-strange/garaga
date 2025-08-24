@@ -112,8 +112,7 @@ fn test_append_leaf_aocl() {
     assert(
         peaks_after == array![
             0x18f43331537ee2af2e3d758d50f72106467c6eea50371dd528d57eb2b856d238,
-            0x1069673dcdb12263df301a6ff584a7ec261a44cb9dc68df067a4774460b1f1e1,
-            0,
+            0x1069673dcdb12263df301a6ff584a7ec261a44cb9dc68df067a4774460b1f1e1, 0,
         ],
         'Invalid peaks_after',
     );

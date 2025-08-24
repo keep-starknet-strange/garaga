@@ -1,7 +1,6 @@
 use core::circuit::{
-    AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
-    CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
-    circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::Zero;
 use core::sha256::compute_sha256_u32_array;
@@ -13,10 +12,8 @@ use garaga::definitions::{
     BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, get_BLS12_381_modulus, serialize_u384,
     u384Serde,
 };
-use garaga::ec_ops::{ec_safe_add, msm_g1};
 use garaga::ec_ops_g2;
 use garaga::single_pairing_tower::{final_exp_bls12_381_tower, miller_loop_bls12_381_tower};
-use garaga::utils::usize_assert_eq;
 
 // Chain: 52db9ba70e0cc0f6eaf7803dd07447a1f5477735fd3f661792ba94600c84e971
 //   Public Key:
@@ -33,7 +30,7 @@ use garaga::utils::usize_assert_eq;
 //   Beacon ID: quicknet
 // ----------------------------------------
 // Note : Negated to use in pairing check.
-const DRAND_QUICKNET_PUBLIC_KEY: G2Point = G2Point {
+pub const DRAND_QUICKNET_PUBLIC_KEY: G2Point = G2Point {
     x0: u384 {
         limb0: 0x4bc09e76eae8991ef5ece45a,
         limb1: 0xbd274ca73bab4af5a6e9c76a,
@@ -103,18 +100,18 @@ fn get_i_dst_prime_first_word(i: usize) -> u32 {
 // Used in drand verifier contract.
 #[derive(Drop, Serde)]
 pub struct DrandResult {
-    round_number: u64,
-    randomness: felt252,
+    pub round_number: u64,
+    pub randomness: felt252,
 }
 
 #[derive(Drop)]
-struct MapToCurveHint {
-    gx1_is_square: bool,
-    y1: u384,
-    y_flag: bool // true if y and u have same parity, false otherwise
+pub struct MapToCurveHint {
+    pub gx1_is_square: bool,
+    pub y1: u384,
+    pub y_flag: bool // true if y and u have same parity, false otherwise
 }
 
-impl MapToCurveHintSerde of Serde<MapToCurveHint> {
+pub impl MapToCurveHintSerde of Serde<MapToCurveHint> {
     fn serialize(self: @MapToCurveHint, ref output: Array<felt252>) {
         Serde::<bool>::serialize(self.gx1_is_square, ref output);
         serialize_u384(self.y1, ref output);
@@ -133,20 +130,20 @@ impl MapToCurveHintSerde of Serde<MapToCurveHint> {
 }
 
 #[derive(Drop, Serde)]
-struct HashToCurveHint {
-    f0_hint: MapToCurveHint,
-    f1_hint: MapToCurveHint,
+pub struct HashToCurveHint {
+    pub f0_hint: MapToCurveHint,
+    pub f1_hint: MapToCurveHint,
 }
 
 
 // Like hash to curve but we start with the drand round number for simplicity.
-fn round_to_curve_bls12_381(round: u64, hash_to_curve_hint: HashToCurveHint) -> G1Point {
+pub fn round_to_curve_bls12_381(round: u64, hash_to_curve_hint: HashToCurveHint) -> G1Point {
     let message = round_to_message(round);
     return hash_to_curve_bls12_381(message, hash_to_curve_hint);
 }
 
 #[inline]
-fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHint) -> G1Point {
+pub fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHint) -> G1Point {
     let (felt0, felt1) = hash_to_two_bls_felts(message);
     let pt0 = map_to_curve(felt0, hash_to_curve_hint.f0_hint);
     let pt1 = map_to_curve(felt1, hash_to_curve_hint.f1_hint);
@@ -164,13 +161,13 @@ fn hash_to_curve_bls12_381(message: [u32; 8], hash_to_curve_hint: HashToCurveHin
 // n = BLS12_381 EC prime order subgroup
 // cofactor = (1 - (x % n)) % n
 // const bls_cofactor: u128 = 0xd201000000010001;
-const BLS_COFACTOR_EPNS: (felt252, felt252, felt252, felt252) = (
+pub const BLS_COFACTOR_EPNS: (felt252, felt252, felt252, felt252) = (
     12124305939094075449, 3008070283847567304, 1, -1,
 );
-const BLS_COFACTOR: u128 = 0xd201000000010001;
+pub const BLS_COFACTOR: u128 = 0xd201000000010001;
 
 // "digest function"
-fn round_to_message(round: u64) -> [u32; 8] {
+pub fn round_to_message(round: u64) -> [u32; 8] {
     let (high, low) = DivRem::div_rem(round, NZ_POW2_32_64);
     let mut array: Array<u32> = array![];
     array.append(high.try_into().unwrap());
@@ -540,11 +537,10 @@ const IBE_H2: [u32; 2] = [0x4942452d, 0x4832];
 // bytes("IBE-H4") (4 + 2 bytes)
 const IBE_H4: [u32; 2] = [0x4942452d, 0x4834];
 const IBE_H3: [u32; 2] = [0x4942452d, 0x4833];
-use core::circuit::conversions::{
-    DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW32_TYPED, POW64,
-    POW64_TYPED, UnitInt,
+use corelib_imports::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
+use corelib_imports::circuit::conversions::{
+    DivRemU96By32, DivRemU96By64, NZ_POW32_TYPED, NZ_POW64_TYPED, POW32, POW64, UnitInt,
 };
-use core::internal::bounded_int::{BoundedInt, DivRemHelper, bounded_int_div_rem};
 
 const POW80: felt252 = 0x100000000000000000000;
 const NZ_POW80_TYPED: NonZero<UnitInt<POW80>> = 0x100000000000000000000;

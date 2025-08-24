@@ -14,7 +14,6 @@ pub trait IMutatorSetContract<TContractState> {
 #[starknet::contract]
 mod MutatorSetContract {
     use garaga::crypto::mmr::trailing_ones;
-    use garaga::definitions::u384;
     use garaga::hashes::poseidon_bn254::poseidon_hash_2 as hash_2;
     use mutator_set::VERIFIER_CLASS_HASH;
     use starknet::SyscallResultTrait;

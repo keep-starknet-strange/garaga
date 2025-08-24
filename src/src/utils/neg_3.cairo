@@ -1,7 +1,7 @@
-use core::circuit::{u384, u96};
-use core::integer::{downcast, upcast};
-use core::internal::bounded_int;
-use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt};
+use core::circuit::u384;
+use corelib_imports::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, UnitInt, bounded_int, upcast,
+};
 use garaga::definitions::get_min_one;
 
 
@@ -194,8 +194,6 @@ pub fn scalar_to_epns_with_digits(
 
 #[cfg(test)]
 mod tests {
-    use core::circuit::u384;
-    use core::traits::TryInto;
     use super::scalar_to_epns;
 
     #[test]

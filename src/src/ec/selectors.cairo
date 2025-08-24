@@ -1,5 +1,6 @@
-use core::internal::bounded_int;
-use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, upcast};
+use corelib_imports::bounded_int::{
+    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, bounded_int, upcast,
+};
 
 const TWO: felt252 = 2;
 const TWO_UI: UnitInt<TWO> = 2;
