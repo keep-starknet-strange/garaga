@@ -1,36 +1,26 @@
-use core::array::{ArrayTrait, array_at};
+use core::array::ArrayTrait;
 use core::circuit::{
-    AddInputResultTrait, AddMod, CircuitData, CircuitDefinition, CircuitElement, CircuitInput,
-    CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait, EvalCircuitResult,
-    EvalCircuitTrait, MulMod, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
-};
-pub use core::integer::{U128sFromFelt252Result, u128s_from_felt252};
-use core::internal::bounded_int;
-use core::internal::bounded_int::{
-    AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, downcast, upcast,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::{One, Zero};
-use core::option::Option;
 use core::panic_with_felt252;
 use core::poseidon::hades_permutation;
 use core::result::ResultTrait;
-use garaga::basic_field_ops::{
-    add_mod_p, batch_3_mod_p, is_opposite_mod_p, is_zero_mod_p, mul_mod_p, neg_mod_p, sub_mod_p,
-};
+use corelib_imports::bounded_int::{downcast, upcast};
+use corelib_imports::integer::{U128sFromFelt252Result, u128s_from_felt252};
+use garaga::basic_field_ops::{is_opposite_mod_p, neg_mod_p, sub_mod_p};
 use garaga::circuits::ec;
-use garaga::core::circuit::{AddInputResultTrait2, IntoCircuitInputValue, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
-    BLS_X_SEED_SQ, G1Point, G1PointZero, G2Point, THIRD_ROOT_OF_UNITY_BLS12_381_G1,
-    deserialize_u288_array, deserialize_u384, deserialize_u384_array, get_G, get_a, get_b, get_b2,
-    get_curve_order_modulus, get_eigenvalue, get_g, get_min_one, get_min_one_order, get_modulus,
-    get_n, get_nG_glv_fake_glv, get_third_root_of_unity, serialize_u288_array, serialize_u384,
-    serialize_u384_array, u288, u384Serde,
+    G1Point, G1PointZero, get_G, get_a, get_b, get_curve_order_modulus, get_eigenvalue, get_min_one,
+    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity, u384Serde,
 };
 use garaga::ec::selectors;
-use garaga::utils::{hashing, neg_3, u384_assert_eq, u384_assert_zero};
+use garaga::utils::u384_assert_zero;
 
 #[generate_trait]
-impl G1PointImpl of G1PointTrait {
+pub impl G1PointImpl of G1PointTrait {
     fn assert_on_curve(self: @G1Point, curve_index: usize) {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
             *self, get_a(curve_index), get_b(curve_index), curve_index,
@@ -148,22 +138,22 @@ pub fn _ec_safe_add(
 }
 
 #[derive(Drop, Serde)]
-struct GlvFakeGlvHint {
-    Q: G1Point,
-    u1: felt252, // Encoded as 2^128 * sign + abs(u1)
-    u2: felt252, // Encoded as 2^128 * sign + abs(u2)
-    v1: felt252, // Encoded as 2^128 * sign + abs(v1)
-    v2: felt252 // Encoded as 2^128 * sign + abs(v2)
+pub struct GlvFakeGlvHint {
+    pub Q: G1Point,
+    pub u1: felt252, // Encoded as 2^128 * sign + abs(u1)
+    pub u2: felt252, // Encoded as 2^128 * sign + abs(u2)
+    pub v1: felt252, // Encoded as 2^128 * sign + abs(v1)
+    pub v2: felt252 // Encoded as 2^128 * sign + abs(v2)
 }
 
 #[derive(Drop, Serde)]
-struct FakeGlvHint {
-    Q: G1Point,
-    s1: u128, // (s1)_u128 (always positive)
-    s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
+pub struct FakeGlvHint {
+    pub Q: G1Point,
+    pub s1: u128, // (s1)_u128 (always positive)
+    pub s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
 }
 
-fn msm_g1(
+pub fn msm_g1(
     points: Span<G1Point>, scalars: Span<u256>, curve_index: usize, mut hint: Span<felt252>,
 ) -> G1Point {
     match curve_index {
@@ -281,22 +271,10 @@ pub fn _scalar_mul_fake_glv(
     // ['T6', 'T7', 'T10', 'T11', 'T8', 'T5', 'T12', 'T9', 'T14', 'T15', 'T2', 'T3', 'T16', 'T13',
     // 'T4', 'T1']
     let mut Ts: Array<G1Point> = array![
-        G1Point { x: T1.x, y: T6y },
-        G1Point { x: T4.x, y: T7y },
-        T10,
-        T11,
-        G1Point { x: T3.x, y: T8y },
-        G1Point { x: T2.x, y: T5y },
-        T12,
-        T9,
-        G1Point { x: T9.x, y: T14y },
-        G1Point { x: T12.x, y: T15y },
-        T2,
-        T3,
-        G1Point { x: T11.x, y: T16y },
-        G1Point { x: T10.x, y: T13y },
-        T4,
-        T1,
+        G1Point { x: T1.x, y: T6y }, G1Point { x: T4.x, y: T7y }, T10, T11,
+        G1Point { x: T3.x, y: T8y }, G1Point { x: T2.x, y: T5y }, T12, T9,
+        G1Point { x: T9.x, y: T14y }, G1Point { x: T12.x, y: T15y }, T2, T3,
+        G1Point { x: T11.x, y: T16y }, G1Point { x: T10.x, y: T13y }, T4, T1,
     ];
 
     let (mut selectors, s1lsb, s2lsb) = selectors::build_selectors_inlined_fake_glv(
@@ -580,22 +558,10 @@ pub fn _scalar_mul_glv_and_fake_glv(
         modulus,
     );
     let Bs: Span<G1Point> = array![
-        G1Point { x: B1.x, y: B16y },
-        B8,
-        G1Point { x: B3.x, y: B14y },
-        B6,
-        G1Point { x: B5.x, y: B12y },
-        B4,
-        G1Point { x: B7.x, y: B10y },
-        B2,
-        G1Point { x: B2.x, y: B15y },
-        B7,
-        G1Point { x: B4.x, y: B13y },
-        B5,
-        G1Point { x: B6.x, y: B11y },
-        B3,
-        G1Point { x: B8.x, y: B9y },
-        B1,
+        G1Point { x: B1.x, y: B16y }, B8, G1Point { x: B3.x, y: B14y }, B6,
+        G1Point { x: B5.x, y: B12y }, B4, G1Point { x: B7.x, y: B10y }, B2,
+        G1Point { x: B2.x, y: B15y }, B7, G1Point { x: B4.x, y: B13y }, B5,
+        G1Point { x: B6.x, y: B11y }, B3, G1Point { x: B8.x, y: B9y }, B1,
     ]
         .span();
 

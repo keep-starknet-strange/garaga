@@ -1,9 +1,10 @@
 use garaga::circuits::tower_circuits::{run_BLS12_381_E12T_MUL_circuit, run_BN254_E12T_MUL_circuit};
+use garaga::definitions::{E12T, G1Point, G2Point, u384};
 use garaga::ec_ops::G1PointImpl;
 use garaga::ec_ops_g2::G2PointImpl;
 use garaga::single_pairing_tower::{
-    E12T, E12TOne, G1Point, G2Point, final_exp_bls12_381_tower, final_exp_bn254_tower,
-    miller_loop_bls12_381_tower, miller_loop_bn254_tower, u384,
+    E12TOne, final_exp_bls12_381_tower, final_exp_bn254_tower, miller_loop_bls12_381_tower,
+    miller_loop_bn254_tower,
 };
 
 #[test]

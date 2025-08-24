@@ -207,9 +207,10 @@ def get_tower_pairing_config():
     """Configuration for tower pairing tests"""
     header = """
     use garaga::single_pairing_tower::{
-        E12TOne, u384,G1Point, G2Point, E12T, miller_loop_bls12_381_tower,
+        E12TOne, miller_loop_bls12_381_tower,
         miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
     };
+    use garaga::definitions::{u384, G1Point, G2Point, E12T};
     use garaga::ec_ops::{G1PointImpl};
     use garaga::ec_ops_g2::{G2PointImpl};
     use garaga::circuits::tower_circuits::{
@@ -230,16 +231,13 @@ def get_pairing_config():
     """Configuration for pairing tests"""
     header = """
         use garaga::pairing_check::{
-            G1G2Pair, G1Point, G2Point, G2Line, E12D, MillerLoopResultScalingFactor,
             multi_pairing_check_bn254_2P_2F,
             multi_pairing_check_bls12_381_2P_2F,
-            u384,
             MPCheckHintBN254,
             MPCheckHintBLS12_381,
-            u288,
         };
+        use garaga::definitions::{u288, u384, G1Point, G2Point, G2Line, E12D, E12DMulQuotient,G1G2Pair, MillerLoopResultScalingFactor};
         use garaga::groth16::{
-            E12DMulQuotient,
             multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
             multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
         };
@@ -254,7 +252,8 @@ def get_pairing_config():
 def get_msm_config():
     """Configuration for MSM tests"""
     header = """
-        use garaga::ec_ops::{G1Point, u384, u288, msm_g1};
+        use garaga::ec_ops::msm_g1;
+        use garaga::definitions::{G1Point, u384};
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
@@ -281,9 +280,8 @@ def get_schnorr_config():
     """Configuration for Schnorr signature tests"""
     header = """
         use garaga::signatures::schnorr::{
-            SchnorrSignature, SchnorrSignatureWithHint, is_valid_schnorr_signature,
+            SchnorrSignatureWithHint, is_valid_schnorr_signature,
         };
-        use garaga::definitions::{u288, u384};
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
@@ -303,9 +301,8 @@ def get_ecdsa_config():
     """Configuration for ECDSA signature tests"""
     header = """
         use garaga::signatures::ecdsa::{
-            ECDSASignature, ECDSASignatureWithHint, is_valid_ecdsa_signature,
+            ECDSASignatureWithHint, is_valid_ecdsa_signature,
         };
-        use garaga::definitions::{u288, u384};
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
 
@@ -347,7 +344,7 @@ def generate_eddsa_test_file() -> str:
     """Configuration for EDDSA signature tests"""
     code = """
     use garaga::signatures::eddsa_25519::{
-        EdDSASignature, EdDSASignatureWithHint, is_valid_eddsa_signature
+        EdDSASignatureWithHint, is_valid_eddsa_signature
     };
     """
 

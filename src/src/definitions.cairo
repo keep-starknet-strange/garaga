@@ -6,7 +6,7 @@ pub mod structs {
 use core::RangeCheck;
 
 pub use core::circuit::{u384, u96};
-use core::num::traits::{One, Zero};
+pub use core::num::traits::{One, Zero};
 use core::serde::Serde;
 
 

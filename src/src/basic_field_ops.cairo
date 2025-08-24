@@ -1,11 +1,10 @@
-use core::circuit::conversions::upcast;
 use core::circuit::{
-    AddInputResultTrait, AddMod, CircuitElement, CircuitElement as CE, CircuitInput,
-    CircuitInput as CI, CircuitInputAccumulator, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitResult, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
-    circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitElement as CE, CircuitInput, CircuitInput as CI, CircuitInputs,
+    CircuitModulus, CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384,
 };
 use core::num::traits::Zero;
+use corelib_imports::bounded_int::upcast;
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
 use garaga::utils::hashing::hades_permutation;
@@ -197,7 +196,7 @@ pub fn batch_3_mod_p(x: u384, y: u384, z: u384, c0: u384, modulus: CircuitModulu
 }
 
 
-fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
+pub fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
     let inv = circuit_inverse(in1);
 

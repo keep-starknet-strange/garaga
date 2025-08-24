@@ -17,9 +17,9 @@
 ///
 /// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
 use core::circuit::u384;
-use core::num::traits::One;
 use core::option::Option;
 use core::poseidon::hades_permutation;
+use garaga::basic_field_ops;
 use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, neg_mod_p};
 use garaga::circuits::extf_mul::{
     run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
@@ -28,17 +28,16 @@ use garaga::circuits::multi_pairing_check as mpc;
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
     run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_3P_circuit,
+    run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
 use garaga::definitions::{
     BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point,
-    MillerLoopResultScalingFactor, bls_bits, bn_bits, get_modulus, u288,
+    bls_bits, bn_bits, get_modulus, u288,
 };
 use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
 use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
-use garaga::{basic_field_ops, utils};
 
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
@@ -85,7 +84,7 @@ pub struct Groth16VerifyingKey<T> {
 //      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
 // - public_inputs_msm_hint: the MSM hint of the public inputs
 // - mpcheck_hint: the MPCheck hint of the proof
-fn verify_groth16_bn254(
+pub fn verify_groth16_bn254(
     proof: Groth16Proof,
     verification_key: Groth16VerifyingKey<u288>,
     mut lines: Span<G2Line<u288>>,
@@ -128,7 +127,7 @@ fn verify_groth16_bn254(
 //      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
 // - public_inputs_msm_hint: the MSM hint of the public inputs
 // - mpcheck_hint: the MPCheck hint of the proof
-fn verify_groth16_bls12_381(
+pub fn verify_groth16_bls12_381(
     proof: Groth16Proof,
     verification_key: Groth16VerifyingKey<u384>,
     mut lines: Span<G2Line<u384>>,
@@ -204,7 +203,7 @@ fn verify_groth16_bls12_381(
 // Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
 // reusing fᵢ(z) evaluations in the next step.
 #[inline]
-fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
+pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
     pair2: G1G2Pair,
@@ -218,7 +217,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
-    let (processed_pair2) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
+    let (processed_pair2): (BNProcessedPair,) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
         pair2.p, pair2.q.y0, pair2.q.y1,
     );
 
@@ -482,7 +481,7 @@ fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 // Σᵢ cᵢ * (fᵢ₋₁(z))² * Πⱼ (Lᵢⱼ(z)) = big_Q(z) * P_irr(z) + Σᵢ cᵢ * fᵢ(z),
 // reusing fᵢ(z) evaluations in the next step.
 #[inline]
-fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
+pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     pair0: G1G2Pair,
     pair1: G1G2Pair,
     pair2: G1G2Pair,
@@ -659,7 +658,7 @@ fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     return true;
 }
 
-fn conjugate_e12D(self: E12D<u384>, curve_index: usize) -> E12D<u384> {
+pub fn conjugate_e12D(self: E12D<u384>, curve_index: usize) -> E12D<u384> {
     let modulus = get_modulus(curve_index);
     E12D {
         w0: self.w0,

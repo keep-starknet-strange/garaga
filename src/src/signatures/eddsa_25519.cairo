@@ -1,18 +1,13 @@
 use core::circuit::{
-    AddInputResultTrait, AddMod, CircuitElement, CircuitInput, CircuitInputs, CircuitModulus,
-    CircuitOutputsTrait, EvalCircuitTrait, MulMod, RangeCheck96, circuit_add, circuit_inverse,
-    circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait, circuit_add,
+    circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use core::integer::u128_byte_reverse;
-use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p, neg_mod_p, u512_mod_p};
+use garaga::basic_field_ops::{neg_mod_p, u512_mod_p};
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
-use garaga::definitions::{
-    Zero, deserialize_u384, get_ED25519_modulus, get_G, get_curve_order_modulus, get_modulus, get_n,
-    serialize_u384, u288, u288Serde,
-};
-use garaga::ec_ops::{G1Point, G1PointTrait, ec_safe_add, msm_fake_glv};
-use garaga::hashes::sha_512::{Word64, _sha512, from_WordArray_to_u8array};
-use garaga::utils::u384_eq_zero;
+use garaga::definitions::{G1Point, Zero, get_ED25519_modulus, get_curve_order_modulus, u288Serde};
+use garaga::ec_ops::{G1PointTrait, ec_safe_add, msm_fake_glv};
+use garaga::hashes::sha_512::_sha512;
 
 const POW_2_32_u64: NonZero<u64> = 0x100000000;
 const POW_2_127_u128: NonZero<u128> = 0x80000000000000000000000000000000;

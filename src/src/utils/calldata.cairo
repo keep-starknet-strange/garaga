@@ -1,9 +1,10 @@
 use core::RangeCheck;
 use core::circuit::u384;
-use garaga::definitions::{
+pub use garaga::definitions::{
     E12D, E12DMulQuotient, G1Point, G2Point, MillerLoopResultScalingFactor, u288,
 };
-use garaga::groth16::{Groth16Proof, Groth16ProofRaw, MPCheckHintBLS12_381, MPCheckHintBN254};
+pub use garaga::groth16::{Groth16Proof, Groth16ProofRaw};
+pub use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 
 #[derive(Drop)]
 pub struct FullProofWithHintsBN254 {
@@ -63,7 +64,9 @@ fn downcast_u384(l0: felt252, l1: felt252, l2: felt252, l3: felt252) -> u384 {
 }
 
 #[inline(always)]
-fn _deserialize_groth16_proof_points(ref serialized: Span<felt252>) -> (G1Point, G2Point, G1Point) {
+pub fn _deserialize_groth16_proof_points(
+    ref serialized: Span<felt252>,
+) -> (G1Point, G2Point, G1Point) {
     let [
         a_x_l0,
         a_x_l1,
@@ -122,7 +125,7 @@ fn _deserialize_groth16_proof_points(ref serialized: Span<felt252>) -> (G1Point,
 }
 
 #[inline(always)]
-fn _deserialize_E12D_u288(ref serialized: Span<felt252>) -> E12D<u288> {
+pub fn _deserialize_E12D_u288(ref serialized: Span<felt252>) -> E12D<u288> {
     let [
         w0l0,
         w0l1,
@@ -183,7 +186,7 @@ fn _deserialize_E12D_u288(ref serialized: Span<felt252>) -> E12D<u288> {
 }
 
 #[inline(always)]
-fn _deserialize_E12DMulQuotient_u288(ref serialized: Span<felt252>) -> E12DMulQuotient<u288> {
+pub fn _deserialize_E12DMulQuotient_u288(ref serialized: Span<felt252>) -> E12DMulQuotient<u288> {
     let [
         w0l0,
         w0l1,
@@ -240,7 +243,7 @@ fn _deserialize_E12DMulQuotient_u288(ref serialized: Span<felt252>) -> E12DMulQu
 }
 
 #[inline(always)]
-fn deserialize_full_proof_with_hints_bn254(
+pub fn deserialize_full_proof_with_hints_bn254(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBN254 {
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
@@ -267,7 +270,7 @@ fn deserialize_full_proof_with_hints_bn254(
     return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
 }
 
-fn deserialize_full_proof_with_hints_risc0(
+pub fn deserialize_full_proof_with_hints_risc0(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsRisc0 {
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
@@ -302,7 +305,9 @@ fn deserialize_full_proof_with_hints_risc0(
 }
 
 
-fn deserialize_full_proof_with_hints_sp1(mut serialized: Span<felt252>) -> FullProofWithHintsSP1 {
+pub fn deserialize_full_proof_with_hints_sp1(
+    mut serialized: Span<felt252>,
+) -> FullProofWithHintsSP1 {
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
     let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
     let vkey = u256 {
@@ -342,7 +347,7 @@ fn deserialize_full_proof_with_hints_sp1(mut serialized: Span<felt252>) -> FullP
 
 
 #[inline(always)]
-fn _deserialize_mpcheck_hint_bn254(ref serialized: Span<felt252>) -> MPCheckHintBN254 {
+pub fn _deserialize_mpcheck_hint_bn254(ref serialized: Span<felt252>) -> MPCheckHintBN254 {
     let lambda_root = _deserialize_E12D_u288(ref serialized);
     let lambda_root_inverse = _deserialize_E12D_u288(ref serialized);
 
@@ -474,7 +479,7 @@ fn _deserialize_mpcheck_hint_bn254(ref serialized: Span<felt252>) -> MPCheckHint
 }
 
 
-fn deserialize_mpcheck_hint_bls12_381(
+pub fn deserialize_mpcheck_hint_bls12_381(
     ref serialized: Span<felt252>, two_pairs: bool,
 ) -> MPCheckHintBLS12_381 {
     let [
@@ -686,7 +691,8 @@ fn deserialize_mpcheck_hint_bls12_381(
 
     return mpcheck_hint;
 }
-fn deserialize_full_proof_with_hints_bls12_381(
+
+pub fn deserialize_full_proof_with_hints_bls12_381(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBLS12_381 {
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
