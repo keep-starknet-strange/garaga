@@ -6,14 +6,14 @@ use core::option::Option;
 use garaga::basic_field_ops::neg_mod_p;
 use garaga::circuits::ec;
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_a, get_b2, get_modulus};
+use garaga::definitions::{G2Point, G2PointZero, get_BLS12_381_modulus, get_a, get_b_twist, get_modulus};
 use garaga::utils::u384_assert_zero;
 
 
 #[generate_trait]
 pub impl G2PointImpl of G2PointTrait {
     fn assert_on_curve(self: @G2Point, curve_index: usize) {
-        let (b20, b21) = get_b2(curve_index).unwrap();
+        let (b20, b21) = get_b_twist(curve_index).unwrap();
         let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
             *self, get_a(curve_index), b20, b21, curve_index,
         );
@@ -21,7 +21,7 @@ pub impl G2PointImpl of G2PointTrait {
         u384_assert_zero(check1);
     }
     fn is_on_curve(self: @G2Point, curve_index: usize) -> bool {
-        let (b20, b21) = get_b2(curve_index).unwrap();
+        let (b20, b21) = get_b_twist(curve_index).unwrap();
         let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
             *self, get_a(curve_index), b20, b21, curve_index,
         );

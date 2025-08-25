@@ -93,7 +93,9 @@ pub fn get_b(curve_index: usize) -> u384 {
     }
 }
 
-pub fn get_b2(curve_index: usize) -> Result<(u384, u384), felt252> {
+// Returns the b parameter for the twisted curve equation of BN254/BLS12_381.
+// Result is given as (b0, b1) such that b = b0 + i*b1 (in Fp2)
+pub fn get_b_twist(curve_index: usize) -> Result<(u384, u384), felt252> {
     if curve_index == 0 {
         return Result::Ok(
             (
