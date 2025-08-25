@@ -14,7 +14,7 @@ use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
     G1Point, G1PointZero, get_G, get_a, get_b, get_curve_order_modulus, get_eigenvalue, get_min_one,
-    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity, u384Serde,
+    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity,
 };
 use garaga::ec::selectors;
 use garaga::utils::u384_assert_zero;
