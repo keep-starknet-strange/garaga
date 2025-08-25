@@ -1215,7 +1215,7 @@ class ModuloCircuit:
             attribute = ""
         generic_modulus = generic_modulus or self.generic_modulus
         if generic_modulus:
-            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, modulus:CircuitModulus)->{signature_output} {{\n"
+            code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, modulus:core::circuit::CircuitModulus)->{signature_output} {{\n"
         elif self.generic_circuit:
             code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input}, curve_index:usize)->{signature_output} {{\n"
         else:
@@ -1262,11 +1262,11 @@ class ModuloCircuit:
             code += "\nlet modulus = modulus;\n"
         elif curve_index is not None:
             code += f"""
-    let modulus = get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
+    let modulus = crate::definitions::get_{CurveID(self.curve_id).name}_modulus(); // {CurveID(self.curve_id).name} prime field modulus
         """
         else:
             code += """
-    let modulus = get_modulus(curve_index);
+    let modulus = crate::definitions::get_modulus(curve_index);
         """
 
         code += f"""
@@ -1302,7 +1302,7 @@ class ModuloCircuit:
             code += """
     let mut input = input;
     while let Option::Some(val) = input.pop_front() {
-        circuit_inputs = circuit_inputs.next(val);
+        circuit_inputs = circuit_inputs.next_2(val);
     };
     """
         code += """

@@ -21,7 +21,7 @@ pub fn run_GRUMPKIN_HONK_SUMCHECK_SIZE_12_PUB_17_circuit(
     tp_gamma: u128,
     tp_base_rlc: u384,
     tp_alphas: Span<u128>,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -1573,7 +1573,7 @@ pub fn run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit(
     tp_shplonk_z: u384,
     tp_shplonk_nu: u384,
     tp_sum_check_u_challenges: Span<u128>,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (
     u384,
     u384,

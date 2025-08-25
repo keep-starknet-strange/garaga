@@ -1,18 +1,11 @@
 use core::num::traits::{One, Zero};
-use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
-use garaga::circuits::multi_pairing_check::{
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit, run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
-};
+use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
+use garaga::circuits::multi_pairing_check::run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit;
 use garaga::circuits::tower_circuits as tw;
-use garaga::circuits::tower_circuits::{
-    run_BLS12_381_TOWER_MILLER_BIT0_1P_circuit, run_BLS12_381_TOWER_MILLER_BIT1_1P_circuit,
-    run_BN254_TOWER_MILLER_BIT0_1P_circuit, run_BN254_TOWER_MILLER_BIT1_1P_circuit,
-};
-use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point, u384};
-use garaga::ec_ops_g2::G2PointTrait;
+use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point};
 
 
-impl E12TOne of One<E12T> {
+pub impl E12TOne of One<E12T> {
     fn one() -> E12T {
         E12T {
             c0b0a0: One::one(),
@@ -50,17 +43,17 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
     for bit in bits {
         let (_Qi, _Mi) = match *bit {
             0 => {
-                run_BN254_TOWER_MILLER_BIT0_1P_circuit(
+                tw::run_BN254_TOWER_MILLER_BIT0_1P_circuit(
                     processed_pair.yInv, processed_pair.xNegOverY, Qi, Mi,
                 )
             },
             1 => {
-                run_BN254_TOWER_MILLER_BIT1_1P_circuit(
+                tw::run_BN254_TOWER_MILLER_BIT1_1P_circuit(
                     processed_pair.yInv, processed_pair.xNegOverY, Qi, Q, Mi,
                 )
             },
             _ => {
-                run_BN254_TOWER_MILLER_BIT1_1P_circuit(
+                tw::run_BN254_TOWER_MILLER_BIT1_1P_circuit(
                     processed_pair.yInv,
                     processed_pair.xNegOverY,
                     Qi,

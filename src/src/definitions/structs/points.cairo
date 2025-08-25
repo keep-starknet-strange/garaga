@@ -1,6 +1,5 @@
 use core::circuit::u384;
-use core::num;
-use core::num::traits::{One, Zero};
+use core::num::traits::Zero;
 use core::serde::Serde;
 use garaga::definitions::{deserialize_u384, serialize_u384};
 
@@ -10,7 +9,7 @@ pub struct G1Point {
     pub y: u384,
 }
 
-impl G1PointSerde of Serde<G1Point> {
+pub impl G1PointSerde of Serde<G1Point> {
     fn serialize(self: @G1Point, ref output: Array<felt252>) {
         serialize_u384(self.x, ref output);
         serialize_u384(self.y, ref output);
@@ -30,7 +29,7 @@ pub struct G2Point {
     pub y0: u384,
     pub y1: u384,
 }
-impl G2PointSerde of Serde<G2Point> {
+pub impl G2PointSerde of Serde<G2Point> {
     fn serialize(self: @G2Point, ref output: Array<felt252>) {
         serialize_u384(self.x0, ref output);
         serialize_u384(self.x1, ref output);
@@ -63,7 +62,7 @@ pub struct G1G2Pair {
 
 
 // Represents the point at infinity
-impl G1PointZero of num::traits::Zero<G1Point> {
+pub impl G1PointZero of Zero<G1Point> {
     fn zero() -> G1Point {
         G1Point { x: Zero::zero(), y: Zero::zero() }
     }
@@ -76,7 +75,7 @@ impl G1PointZero of num::traits::Zero<G1Point> {
 }
 
 // Represents the point at infinity
-impl G2PointZero of num::traits::Zero<G2Point> {
+pub impl G2PointZero of Zero<G2Point> {
     fn zero() -> G2Point {
         G2Point { x0: Zero::zero(), x1: Zero::zero(), y0: Zero::zero(), y1: Zero::zero() }
     }

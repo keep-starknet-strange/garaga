@@ -1,11 +1,12 @@
 [workspace]
 members = [
     "src/",
+    "src/corelib_imports",
 ]
 
 [workspace.dependencies]
-cairo_test = "2.11.4"
-starknet = "2.11.4"
+cairo_test = "2.12.0"
+starknet = "2.12.0"
 
 [workspace.scripts]
 test = "snforge test -p garaga --include-ignored"
