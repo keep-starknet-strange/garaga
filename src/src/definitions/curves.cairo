@@ -34,13 +34,14 @@ pub struct BNProcessedPair {
 // curve_index 2: SECP256K1
 // curve_index 3: SECP256R1
 // curve_index 4: ED25519
+// curve_index 5: GRUMPKIN
 
 pub struct Curve {
     pub p: u384, // Prime modulus
     pub n: u256, // Order of the curve
     pub a: u384, // Weierstrass a parameter in eqn: y^2 = x^3 + ax + b
     pub b: u384, // Weierstrass b parameter in eqn: y^2 = x^3 + ax + b
-    pub g: u384, // Generator of Fp. (Used to verify square roots)
+    pub g: u384, // Generator of Fp* (the multiplicative group of the field)
     pub min_one: u384, // (-1) % p
     pub min_one_order: u384, // (-1) % n
     pub G: G1Point // Generator of the curve
