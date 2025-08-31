@@ -1,10 +1,16 @@
 use std::array;
 
+use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 use num_bigint::BigUint;
 
-use crate::calldata::{
-    full_proof_with_hints::honk::{CONST_PROOF_SIZE_LOG_N, NUMBER_OF_ENTITIES},
-    G1PointBigUint,
+use crate::{
+    algebra::g1point::G1Point,
+    calldata::{
+        full_proof_with_hints::honk::{CONST_PROOF_SIZE_LOG_N, NUMBER_OF_ENTITIES},
+        G1PointBigUint,
+    },
+    definitions::{BN254PrimeField, FieldElement, GrumpkinPrimeField},
+    io::{element_from_biguint, field_element_to_u256_limbs},
 };
 
 pub fn extract_msm_scalars<const N: usize>(
@@ -110,4 +116,101 @@ impl ProofParser {
     pub fn current_offset(&self) -> usize {
         self.offset
     }
+}
+
+// Honk Calldata
+pub fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
+    element_from_biguint(element)
+}
+
+pub fn g1_point_on_curve(point: &G1PointBigUint) -> Result<G1Point<BN254PrimeField>, String> {
+    G1Point::new(
+        element_from_biguint(&point.x),
+        element_from_biguint(&point.y),
+        false,
+    )
+}
+
+pub fn biguint_slice_to_field_element(b: &[BigUint]) -> Vec<FieldElement<GrumpkinPrimeField>> {
+    b.iter().map(element_from_biguint).collect()
+}
+
+pub fn array_to_field_element<const N: usize>(
+    a: &[BigUint; N],
+) -> [FieldElement<GrumpkinPrimeField>; N] {
+    std::array::from_fn(|i| element_from_biguint(&a[i]))
+}
+
+pub fn g1_slice_to_curve<const N: usize>(
+    pts: &[G1PointBigUint; N],
+) -> Result<[G1Point<BN254PrimeField>; N], String> {
+    pts.iter()
+        .map(g1_point_on_curve)
+        .collect::<Result<Vec<_>, _>>()?
+        .try_into()
+        .map_err(|_| "length mismatch".to_string())
+}
+
+pub fn g1_slice_ref_to_curve<const N: usize>(
+    pts: &[&G1PointBigUint; N],
+) -> Result<[G1Point<BN254PrimeField>; N], String> {
+    pts.iter()
+        .map(|point| g1_point_on_curve(point))
+        .collect::<Result<Vec<_>, _>>()?
+        .try_into()
+        .map_err(|_| "length mismatch".to_string())
+}
+
+#[macro_export]
+macro_rules! declare_element_on_curve {
+    ($transcript:expr, $curve:ident, $($name:ident),*) => {
+        $(
+            let $name = $curve(&$transcript.$name);
+        )*
+    };
+}
+
+#[macro_export]
+macro_rules! transform_fields {
+    ($vk:expr, $transform:ident, $($field:ident),+ $(,)?) => {
+        $(
+        let $field =$transform(&$vk.$field)?;
+        )+
+    };
+}
+
+pub fn push<T>(call_data_ref: &mut Vec<BigUint>, value: T)
+where
+    BigUint: From<T>,
+{
+    call_data_ref.push(value.into());
+}
+
+pub fn push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
+where
+    F: IsPrimeField,
+    FieldElement<F>: ByteConversion,
+{
+    let limbs = field_element_to_u256_limbs(element);
+    for limb in limbs {
+        push(call_data_ref, limb);
+    }
+}
+
+pub fn push_elements(
+    call_data_ref: &mut Vec<BigUint>,
+    elements: &[FieldElement<GrumpkinPrimeField>],
+    prepend_length: bool,
+) {
+    if prepend_length {
+        push(call_data_ref, elements.len());
+    }
+    for element in elements {
+        push_element(call_data_ref, element);
+    }
+}
+
+pub fn push_point(call_data_ref: &mut Vec<BigUint>, point: &G1Point<BN254PrimeField>) {
+    push_element(call_data_ref, &point.x);
+    push_element(call_data_ref, &point.y);
 }
