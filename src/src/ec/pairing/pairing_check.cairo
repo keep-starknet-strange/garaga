@@ -25,7 +25,8 @@ use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
 };
 use garaga::definitions::{
-    E12D, G1G2Pair, G2Line, MillerLoopResultScalingFactor, bls_bits, bn_bits, u288,
+    BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
+    MillerLoopResultScalingFactor, u288,
 };
 use garaga::utils::{hashing, usize_assert_eq};
 
@@ -125,7 +126,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
     c_i = _c_i;
 
     // rest of miller loop
-    let mut bits = bn_bits.span();
+    let mut bits = BN254_SEED_BITS_JY00_COMPRESSED.span();
 
     while let Option::Some(bit) = bits.pop_front() {
         // println!("bit {}", *bit);
@@ -301,7 +302,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
     // => LHS = Σ_i (Π_k (c_i*P_k(z))) - Σ_i c_i * R_i(z)
 
     // rest of miller loop
-    let mut bits = bls_bits.span();
+    let mut bits = BLS12_381_SEED_BITS_COMPRESSED.span();
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i_of_z = *evals.pop_front().unwrap();

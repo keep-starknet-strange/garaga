@@ -449,19 +449,34 @@ pub const BLS_G2_GENERATOR: G2Point = G2Point {
 
 
 // recode_naf_bits(jy00(6 * 0x44E992B44A6909F1 + 2)[2:]) (see definitions.py)
+// Using the following replacements:
 // "00" -> 0
 // "10" -> 1
 // "-10" -> 2
 // "01" -> 3
 // "0-1" -> 4
-pub const bn_bits: [felt252; 32] = [
+pub const BN254_SEED_BITS_JY00_COMPRESSED: [felt252; 32] = [
     2, 1, 0, 2, 2, 0, 2, 3, 1, 4, 0, 0, 3, 0, 2, 1, 4, 0, 0, 2, 1, 0, 2, 2, 3, 0, 4, 0, 4, 4, 2, 0,
 ];
 
 // [int(x) for x in bin(0xD201000000010000)[2:]][2:] with two-consecutive zeros replaced by 3
-pub const bls_bits: [felt252; 34] = [
+pub const BLS12_381_SEED_BITS_COMPRESSED: [felt252; 34] = [
     0, 1, 3, 1, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 1, 3, 3, 3, 3, 3, 3,
     3, 3,
+];
+
+// NAF(6 * 0x44E992B44A6909F1 + 2)[1:] with "-1" replaced by "2"
+// See definitions.py for the NAF (Non-Adjacent Form) function.
+pub const BN254_SEED_BITS_NAF: [usize; 65] = [
+    0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 1,
+    0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 0, 0,
+    0,
+];
+
+// [int(x) for x in bin(0xD201000000010000)[2:]][2:]
+pub const BLS12_381_SEED_BITS: [usize; 62] = [
+    0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
 

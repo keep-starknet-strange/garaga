@@ -31,7 +31,8 @@ use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
 use garaga::definitions::{
-    E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point, bls_bits, bn_bits, get_modulus, u288,
+    BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, E12DMulQuotient,
+    G1G2Pair, G1Point, G2Line, G2Point, get_modulus, u288,
 };
 use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
@@ -283,7 +284,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     c_i = _c_i;
 
     // rest of miller loop
-    let mut bits = bn_bits.span();
+    let mut bits = BN254_SEED_BITS_JY00_COMPRESSED.span();
     while let Option::Some(bit) = bits.pop_front() {
         let R_i_of_z = *evals.pop_front().unwrap();
         let (_Q2, _LHS, _c_i): (G2Point, u384, u384) = match *bit {
@@ -563,7 +564,7 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     // => LHS = Σ_i (Π_k (c_i*P_k(z))) - Σ_i c_i * R_i(z)
 
     // rest of miller loop
-    let mut bits = bls_bits.span();
+    let mut bits = BLS12_381_SEED_BITS_COMPRESSED.span();
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i_of_z = *evals.pop_front().unwrap();
