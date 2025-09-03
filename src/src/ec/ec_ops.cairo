@@ -39,7 +39,6 @@ pub impl G1PointImpl of G1PointTrait {
         self: @G1Point,
         curve_index: usize,
         hint: Span<felt252> // msm_hint: Option<MSMHintSmallScalar<T>>,
-        // derive_point_from_x_hint: Option<DerivePointFromXHint>,
     ) { // TODO
     // match curve_index {
     //     0 => { self.assert_on_curve_excluding_infinity(curve_index) }, // BN254 (cofactor 1)
