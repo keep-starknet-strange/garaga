@@ -20,7 +20,7 @@ use core::circuit::u384;
 use core::option::Option;
 use core::poseidon::hades_permutation;
 use garaga::basic_field_ops;
-use garaga::basic_field_ops::{compute_yInvXnegOverY_BN254, neg_mod_p};
+use garaga::basic_field_ops::neg_mod_p;
 use garaga::circuits::extf_mul::{
     run_BLS12_381_FP12_MUL_ASSERT_ONE_circuit, run_BN254_FP12_MUL_ASSERT_ONE_circuit,
 };
@@ -32,12 +32,13 @@ use garaga::circuits::multi_pairing_check::{
 };
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, E12DMulQuotient,
-    G1G2Pair, G1Point, G2Line, G2Point, get_modulus, u288,
+    G1G2Pair, G1Point, G2Line, G2Point, get_BN254_modulus, get_modulus, u288,
 };
 use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
 use garaga::pairing_check::{
     BLSProcessedPair, BNProcessedPair, MPCheckHintBLS12_381, MPCheckHintBN254,
+    compute_yInvXnegOverY,
 };
 use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
 
@@ -217,8 +218,9 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
     usize_assert_eq(mpcheck_hint.Ris.len(), 35);
 
-    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
-    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY(pair0.p.x, pair0.p.y, modulus);
+    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY(pair1.p.x, pair1.p.y, modulus);
     let (processed_pair2): (BNProcessedPair,) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
         pair2.p, pair2.q.y0, pair2.q.y1,
     );

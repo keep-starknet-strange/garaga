@@ -56,52 +56,6 @@ pub fn is_even_u384(a: u384) -> bool {
 }
 
 
-pub fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
-    let in1 = CircuitElement::<CircuitInput<0>> {};
-    let in2 = CircuitElement::<CircuitInput<1>> {};
-    let in3 = CircuitElement::<CircuitInput<2>> {};
-    let yInv = circuit_inverse(in3);
-    let xNeg = circuit_sub(in1, in2);
-    let xNegOverY = circuit_mul(xNeg, yInv);
-
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
-
-    let outputs = (yInv, xNegOverY)
-        .new_inputs()
-        .next_2([0, 0, 0, 0])
-        .next_2(x)
-        .next_2(y)
-        .done_2()
-        .eval(modulus)
-        .unwrap();
-
-    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
-}
-
-#[inline(always)]
-pub fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
-    let in1 = CircuitElement::<CircuitInput<0>> {};
-    let in2 = CircuitElement::<CircuitInput<1>> {};
-    let in3 = CircuitElement::<CircuitInput<2>> {};
-    let yInv = circuit_inverse(in3);
-    let xNeg = circuit_sub(in1, in2);
-    let xNegOverY = circuit_mul(xNeg, yInv);
-
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
-
-    let outputs = (yInv, xNegOverY)
-        .new_inputs()
-        .next_2([0, 0, 0, 0])
-        .next_2(x)
-        .next_2(y)
-        .done_2()
-        .eval(modulus)
-        .unwrap();
-
-    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
-}
-
-
 pub fn u32_8_to_u384(a: [u32; 8]) -> u384 {
     let [a_0, a_1, a_2, a_3, a_4, a_5, a_6, a_7] = a;
     let l0: felt252 = a_7.into() + a_6.into() * POW_2_32_252 + a_5.into() * POW_2_64_252;

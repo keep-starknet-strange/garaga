@@ -1,5 +1,8 @@
 use core::array::{ArrayTrait, SpanTrait};
-use core::circuit::u384;
+use core::circuit::{
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitTrait, circuit_inverse, circuit_mul, circuit_sub, u384,
+};
 use core::num::traits::{One, Zero};
 use core::option::Option;
 
@@ -14,7 +17,6 @@ use core::option::Option;
 use core::option::OptionTrait;
 use core::poseidon::hades_permutation;
 use garaga::basic_field_ops;
-use garaga::basic_field_ops::{compute_yInvXnegOverY_BLS12_381, compute_yInvXnegOverY_BN254};
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
     run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
@@ -26,9 +28,10 @@ use garaga::circuits::multi_pairing_check::{
 };
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
-    MillerLoopResultScalingFactor, u288,
+    MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, u288,
 };
 use garaga::utils::{hashing, usize_assert_eq};
+use crate::core::circuit::AddInputResultTrait2;
 
 
 #[derive(Drop, Serde, Debug)]
@@ -66,7 +69,26 @@ pub struct BNProcessedPair {
     pub QyNeg1: u384,
 }
 
+// From a point (x, y), returns (1/y, -x/y)
+pub fn compute_yInvXnegOverY(x: u384, y: u384, modulus: CircuitModulus) -> (u384, u384) {
+    let in1 = CE::<CI<0>> {};
+    let in2 = CE::<CI<1>> {};
+    let in3 = CE::<CI<2>> {};
+    let yInv = circuit_inverse(in3);
+    let xNeg = circuit_sub(in1, in2);
+    let xNegOverY = circuit_mul(xNeg, yInv);
 
+    let outputs = (yInv, xNegOverY)
+        .new_inputs()
+        .next_2([0, 0, 0, 0])
+        .next_2(x)
+        .next_2(y)
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
+}
 #[inline(always)]
 pub fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
@@ -74,8 +96,9 @@ pub fn multi_pairing_check_bn254_2P_2F(
     usize_assert_eq(hint.big_Q.len(), 145);
     usize_assert_eq(hint.Ris.len(), 34);
 
-    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BN254(pair0.p.x, pair0.p.y);
-    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BN254(pair1.p.x, pair1.p.y);
+    let modulus = get_BN254_modulus(); // BN254 prime field modulus
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY(pair0.p.x, pair0.p.y, modulus);
+    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY(pair1.p.x, pair1.p.y, modulus);
 
     // Init sponge state
     // >>> hades_permutation(int.from_bytes(b"MPCHECK_BN254_2P_2F", "big"), 0, 1)
@@ -243,8 +266,9 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
     usize_assert_eq(hint.big_Q.len(), 81);
     usize_assert_eq(hint.Ris.len(), 35);
 
-    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY_BLS12_381(pair0.p.x, pair0.p.y);
-    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY_BLS12_381(pair1.p.x, pair1.p.y);
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+    let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY(pair0.p.x, pair0.p.y, modulus);
+    let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY(pair1.p.x, pair1.p.y, modulus);
 
     // Init sponge state
     let (s0, s1, s2) = hades_permutation('MPCHECK_BLS12_381_2P_2F', 0, 1);

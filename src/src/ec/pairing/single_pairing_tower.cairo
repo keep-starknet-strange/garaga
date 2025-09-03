@@ -1,9 +1,9 @@
 use core::num::traits::{One, Zero};
-use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
 use garaga::circuits::multi_pairing_check::run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit;
 use garaga::circuits::tower_circuits as tw;
-use garaga::definitions::curves::{BLS12_381_SEED_BITS, BN254_SEED_BITS_NAF};
+use garaga::definitions::curves::{BLS12_381_SEED_BITS, BN254_SEED_BITS_NAF, get_BLS12_381_modulus};
 use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point};
+use garaga::ec::pairing::pairing_check::compute_yInvXnegOverY;
 
 
 pub impl E12TOne of One<E12T> {
@@ -434,8 +434,8 @@ pub fn expt_bls12_381_tower(M: E12T) -> (E12T,) {
 
 pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
     let bits = BLS12_381_SEED_BITS.span();
-
-    let (yInv, xNegOverY) = compute_yInvXnegOverY_BLS12_381(P.x, P.y);
+    let modulus = get_BLS12_381_modulus();
+    let (yInv, xNegOverY) = compute_yInvXnegOverY(P.x, P.y, modulus);
 
     let (TripleQ, c0b0a0, c0b0a1, c0b1a0, c0b1a1, c0b2a0, c0b2a1, c1b1a0, c1b1a1, c1b2a0, c1b2a1) =
         tw::run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
