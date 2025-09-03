@@ -11,24 +11,6 @@ pub const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 = u384 {
     limb3: 0x1a0111ea397fe699ec024086,
 };
 
-
-// From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
-#[derive(Drop, Debug, PartialEq)]
-pub struct BLSProcessedPair {
-    pub yInv: u384,
-    pub xNegOverY: u384,
-}
-
-
-// From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py,-Qy0, -Qy1)
-#[derive(Drop, Debug, PartialEq)]
-pub struct BNProcessedPair {
-    pub yInv: u384,
-    pub xNegOverY: u384,
-    pub QyNeg0: u384,
-    pub QyNeg1: u384,
-}
-
 // curve_index 0: BN254
 // curve_index 1: BLS12_381
 // curve_index 2: SECP256K1

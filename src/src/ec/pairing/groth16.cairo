@@ -31,12 +31,13 @@ use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
 use garaga::definitions::{
-    BLSProcessedPair, BNProcessedPair, E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point,
-    bls_bits, bn_bits, get_modulus, u288,
+    E12D, E12DMulQuotient, G1G2Pair, G1Point, G2Line, G2Point, bls_bits, bn_bits, get_modulus, u288,
 };
 use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
-use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
+use garaga::pairing_check::{
+    BLSProcessedPair, BNProcessedPair, MPCheckHintBLS12_381, MPCheckHintBN254,
+};
 use garaga::utils::{hashing, u384_assert_zero, usize_assert_eq};
 
 

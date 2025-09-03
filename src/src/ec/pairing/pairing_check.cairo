@@ -49,6 +49,22 @@ pub struct MPCheckHintBLS12_381 {
     pub z: felt252,
 }
 
+// From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py)
+#[derive(Drop, Debug, PartialEq)]
+pub struct BLSProcessedPair {
+    pub yInv: u384,
+    pub xNegOverY: u384,
+}
+
+// From a G1G2Pair(Px, Py, Qx0, Qx1, Qy0, Qy1), returns (1/Py, -Px/Py,-Qy0, -Qy1)
+#[derive(Drop, Debug, PartialEq)]
+pub struct BNProcessedPair {
+    pub yInv: u384,
+    pub xNegOverY: u384,
+    pub QyNeg0: u384,
+    pub QyNeg1: u384,
+}
+
 
 #[inline(always)]
 pub fn multi_pairing_check_bn254_2P_2F(

@@ -11,15 +11,14 @@ use core::serde::Serde;
 
 
 pub use curves::{
-    BLS12_381, BLSProcessedPair, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BN254, BN254_G1_GENERATOR,
-    BNProcessedPair, Curve, ED25519, GRUMPKIN, SECP256K1, SECP256R1,
-    THIRD_ROOT_OF_UNITY_BLS12_381_G1, bls_bits, bn_bits, get_BLS12_381_modulus,
-    get_BLS12_381_order_modulus, get_BN254_modulus, get_BN254_order_modulus, get_ED25519_modulus,
-    get_ED25519_order_modulus, get_G, get_GRUMPKIN_modulus, get_GRUMPKIN_order_modulus,
-    get_SECP256K1_modulus, get_SECP256K1_order_modulus, get_SECP256R1_modulus,
-    get_SECP256R1_order_modulus, get_a, get_b, get_b_twist, get_curve_order_modulus, get_eigenvalue,
-    get_g, get_min_one, get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_p,
-    get_third_root_of_unity, has_endomorphism_available,
+    BLS12_381, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BN254, BN254_G1_GENERATOR, Curve,
+    ED25519, GRUMPKIN, SECP256K1, SECP256R1, THIRD_ROOT_OF_UNITY_BLS12_381_G1, bls_bits, bn_bits,
+    get_BLS12_381_modulus, get_BLS12_381_order_modulus, get_BN254_modulus, get_BN254_order_modulus,
+    get_ED25519_modulus, get_ED25519_order_modulus, get_G, get_GRUMPKIN_modulus,
+    get_GRUMPKIN_order_modulus, get_SECP256K1_modulus, get_SECP256K1_order_modulus,
+    get_SECP256R1_modulus, get_SECP256R1_order_modulus, get_a, get_b, get_b_twist,
+    get_curve_order_modulus, get_eigenvalue, get_g, get_min_one, get_min_one_order, get_modulus,
+    get_n, get_nG_glv_fake_glv, get_p, get_third_root_of_unity, has_endomorphism_available,
 };
 pub use structs::fields::{
     E12D, E12DMulQuotient, E12T, MillerLoopResultScalingFactor, u288, u288Serde,
@@ -27,6 +26,7 @@ pub use structs::fields::{
 pub use structs::points::{
     G1G2Pair, G1Point, G1PointSerde, G1PointZero, G2Line, G2Point, G2PointSerde, G2PointZero,
 };
+pub use crate::ec::pairing::pairing_check::{BLSProcessedPair, BNProcessedPair};
 
 
 extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
