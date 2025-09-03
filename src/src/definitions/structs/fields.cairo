@@ -46,6 +46,73 @@ pub struct E12T {
     pub c1b2a1: u384,
 }
 
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+pub struct MillerLoopResultScalingFactor<T> {
+    pub w0: T,
+    pub w2: T,
+    pub w4: T,
+    pub w6: T,
+    pub w8: T,
+    pub w10: T,
+}
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+pub struct E12DMulQuotient<T> {
+    pub w0: T,
+    pub w1: T,
+    pub w2: T,
+    pub w3: T,
+    pub w4: T,
+    pub w5: T,
+    pub w6: T,
+    pub w7: T,
+    pub w8: T,
+    pub w9: T,
+    pub w10: T,
+}
+
+
+pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
+    output.append((*self.limb0).into());
+    output.append((*self.limb1).into());
+    output.append((*self.limb2).into());
+    output.append((*self.limb3).into());
+}
+pub fn deserialize_u384(ref serialized: Span<felt252>) -> u384 {
+    let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
+    let limb0: u96 = downcast(l0).unwrap();
+    let limb1: u96 = downcast(l1).unwrap();
+    let limb2: u96 = downcast(l2).unwrap();
+    let limb3: u96 = downcast(l3).unwrap();
+    return u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 };
+}
+
+pub fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
+    self.len().serialize(ref output);
+    serialize_u384_array_helper(self.span(), ref output);
+}
+
+pub fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
+    if let Option::Some(value) = input.pop_front() {
+        serialize_u384(value, ref output);
+        serialize_u384_array_helper(input, ref output);
+    }
+}
+
+pub fn deserialize_u384_array(ref serialized: Span<felt252>) -> Array<u384> {
+    let length = *serialized.pop_front().unwrap();
+    let mut arr = array![];
+    deserialize_u384_array_helper(ref serialized, arr, length)
+}
+
+pub fn deserialize_u384_array_helper(
+    ref serialized: Span<felt252>, mut curr_output: Array<u384>, remaining: felt252,
+) -> Array<u384> {
+    if remaining == 0 {
+        return curr_output;
+    }
+    curr_output.append(deserialize_u384(ref serialized));
+    deserialize_u384_array_helper(ref serialized, curr_output, remaining - 1)
+}
 
 pub impl u288Serde of Serde<u288> {
     fn serialize(self: @u288, ref output: Array<felt252>) {
@@ -498,28 +565,4 @@ impl E12DSerde288 of Serde<E12D<u288>> {
             },
         )
     }
-}
-
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-pub struct MillerLoopResultScalingFactor<T> {
-    pub w0: T,
-    pub w2: T,
-    pub w4: T,
-    pub w6: T,
-    pub w8: T,
-    pub w10: T,
-}
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-pub struct E12DMulQuotient<T> {
-    pub w0: T,
-    pub w1: T,
-    pub w2: T,
-    pub w3: T,
-    pub w4: T,
-    pub w5: T,
-    pub w6: T,
-    pub w7: T,
-    pub w8: T,
-    pub w9: T,
-    pub w10: T,
 }

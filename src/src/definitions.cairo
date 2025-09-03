@@ -6,8 +6,6 @@ pub mod structs {
 
 pub use core::circuit::{u384, u96};
 pub use core::num::traits::{One, Zero};
-use core::serde::Serde;
-use corelib_imports::bounded_int::downcast;
 
 
 pub use curves::{
@@ -22,91 +20,11 @@ pub use curves::{
     get_third_root_of_unity, has_endomorphism_available,
 };
 pub use structs::fields::{
-    E12D, E12DMulQuotient, E12T, MillerLoopResultScalingFactor, u288, u288Serde,
+    E12D, E12DMulQuotient, E12T, MillerLoopResultScalingFactor, deserialize_u384,
+    deserialize_u384_array, serialize_u384, serialize_u384_array, u288, u288Serde,
 };
 pub use structs::points::{
     G1G2Pair, G1Point, G1PointSerde, G1PointZero, G2Line, G2Point, G2PointSerde, G2PointZero,
 };
 pub use crate::ec::pairing::pairing_check::{BLSProcessedPair, BNProcessedPair};
 
-
-pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
-    output.append((*self.limb0).into());
-    output.append((*self.limb1).into());
-    output.append((*self.limb2).into());
-    output.append((*self.limb3).into());
-}
-pub fn deserialize_u384(ref serialized: Span<felt252>) -> u384 {
-    let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
-    let limb0: u96 = downcast(l0).unwrap();
-    let limb1: u96 = downcast(l1).unwrap();
-    let limb2: u96 = downcast(l2).unwrap();
-    let limb3: u96 = downcast(l3).unwrap();
-    return u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 };
-}
-
-fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
-    self.len().serialize(ref output);
-    serialize_u384_array_helper(self.span(), ref output);
-}
-
-fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
-    if let Option::Some(value) = input.pop_front() {
-        serialize_u384(value, ref output);
-        serialize_u384_array_helper(input, ref output);
-    }
-}
-
-fn deserialize_u384_array(ref serialized: Span<felt252>) -> Array<u384> {
-    let length = *serialized.pop_front().unwrap();
-    let mut arr = array![];
-    deserialize_u384_array_helper(ref serialized, arr, length)
-}
-
-fn deserialize_u384_array_helper(
-    ref serialized: Span<felt252>, mut curr_output: Array<u384>, remaining: felt252,
-) -> Array<u384> {
-    if remaining == 0 {
-        return curr_output;
-    }
-    curr_output.append(deserialize_u384(ref serialized));
-    deserialize_u384_array_helper(ref serialized, curr_output, remaining - 1)
-}
-
-
-fn serialize_u288_array(self: @Array<u288>, ref output: Array<felt252>) {
-    self.len().serialize(ref output);
-    serialize_u288_array_helper(self.span(), ref output);
-}
-
-fn serialize_u288_array_helper(mut input: Span<u288>, ref output: Array<felt252>) {
-    if let Option::Some(value) = input.pop_front() {
-        u288Serde::serialize(value, ref output);
-        serialize_u288_array_helper(input, ref output);
-    }
-}
-
-fn deserialize_u288_array(ref serialized: Span<felt252>) -> Array<u288> {
-    let length = *serialized.pop_front().unwrap();
-    let mut arr = array![];
-    deserialize_u288_array_helper(ref serialized, arr, length)
-}
-
-
-fn deserialize_u288(ref serialized: Span<felt252>) -> u288 {
-    let [l0, l1, l2] = (*serialized.multi_pop_front::<3>().unwrap()).unbox();
-    let limb0: u96 = downcast(l0).unwrap();
-    let limb1: u96 = downcast(l1).unwrap();
-    let limb2: u96 = downcast(l2).unwrap();
-    return u288 { limb0: limb0, limb1: limb1, limb2: limb2 };
-}
-
-fn deserialize_u288_array_helper(
-    ref serialized: Span<felt252>, mut curr_output: Array<u288>, remaining: felt252,
-) -> Array<u288> {
-    if remaining == 0 {
-        return curr_output;
-    }
-    curr_output.append(deserialize_u288(ref serialized));
-    deserialize_u288_array_helper(ref serialized, curr_output, remaining - 1)
-}
