@@ -420,11 +420,6 @@ pub const GRUMPKIN: Curve = Curve {
     third_root_of_unity: None,
 };
 
-pub const BN254_G1_GENERATOR: G1Point = G1Point {
-    x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-};
-
 pub const BLS_G2_GENERATOR: G2Point = G2Point {
     x0: u384 {
         limb0: 0xa805bbefd48056c8c121bdb8,

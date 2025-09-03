@@ -11,7 +11,7 @@ use core::serde::Serde;
 
 
 pub use curves::{
-    BLS12_381, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BN254, BN254_G1_GENERATOR, Curve,
+    BLS12_381, BLS_G2_GENERATOR, BLS_X_SEED_SQ, BN254, Curve,
     ED25519, GRUMPKIN, SECP256K1, SECP256R1, THIRD_ROOT_OF_UNITY_BLS12_381_G1, bls_bits, bn_bits,
     get_BLS12_381_modulus, get_BLS12_381_order_modulus, get_BN254_modulus, get_BN254_order_modulus,
     get_ED25519_modulus, get_ED25519_order_modulus, get_G, get_GRUMPKIN_modulus,

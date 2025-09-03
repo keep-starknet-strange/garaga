@@ -19,8 +19,8 @@ mod UltraKeccakZKHonkVerifier {
     use core::num::traits::Zero;
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, u256_to_u384, u288IntoCircuitInputValue};
     use garaga::definitions::{
-        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus,
-        get_eigenvalue, get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u384,
+        BN254, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, get_eigenvalue,
+        get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u384,
     };
     use garaga::ec_ops::{G1PointTrait, GlvFakeGlvHint, _ec_safe_add, _scalar_mul_glv_and_fake_glv};
     use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
@@ -207,7 +207,7 @@ mod UltraKeccakZKHonkVerifier {
                 _points.append((*lib_comm).into());
             } // 3 points || Proof points 21-23
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 24
-            _points.append(BN254_G1_GENERATOR);
+            _points.append(BN254.G);
 
             let mut points = _points.span();
             let mut scalars: Span<u384> = array![

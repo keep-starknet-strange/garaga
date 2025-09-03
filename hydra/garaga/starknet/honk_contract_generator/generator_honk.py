@@ -306,7 +306,7 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
     use super::{{vk, precomputed_lines, {imports_str}}};
@@ -442,7 +442,7 @@ def _get_msm_points_array_code(zk: bool, log_n: int) -> tuple[str, (int, int)]:
     # Add common final points
     code += f"""
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point {next_proof_point_counter}
-            _points.append(BN254_G1_GENERATOR);
+            _points.append(BN254.G);
 
             let mut points = _points.span();"""
 
