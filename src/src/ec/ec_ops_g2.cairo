@@ -14,7 +14,7 @@ use garaga::utils::u384_assert_zero;
 
 #[generate_trait]
 pub impl G2PointImpl of G2PointTrait {
-    fn assert_on_curve(self: @G2Point, curve_index: usize) {
+    fn assert_on_curve_excluding_infinity(self: @G2Point, curve_index: usize) {
         let (b20, b21) = get_b_twist(curve_index);
         let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
             *self, get_a(curve_index), b20, b21, curve_index,
@@ -22,12 +22,15 @@ pub impl G2PointImpl of G2PointTrait {
         u384_assert_zero(check0);
         u384_assert_zero(check1);
     }
-    fn is_on_curve(self: @G2Point, curve_index: usize) -> bool {
+    fn is_on_curve_excluding_infinity(self: @G2Point, curve_index: usize) -> bool {
         let (b20, b21) = get_b_twist(curve_index);
         let (check0, check1) = ec::run_IS_ON_CURVE_G2_circuit(
             *self, get_a(curve_index), b20, b21, curve_index,
         );
         return check0.is_zero() && check1.is_zero();
+    }
+    fn is_infinity(self: @G2Point) -> bool {
+        return self.is_zero();
     }
     fn negate(self: @G2Point, curve_index: usize) -> G2Point {
         let modulus = get_modulus(curve_index);
@@ -47,7 +50,7 @@ pub fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
     if pt.is_zero() {
         // Input point is at infinity, return it
         return Option::Some(pt);
-    } else if pt.is_on_curve(curve_index) {
+    } else if pt.is_on_curve_excluding_infinity(curve_index) {
         if s == 0 {
             return Option::Some(G2PointZero::zero());
         } else if s == 1 {

@@ -17,17 +17,15 @@ use garaga::definitions::{
     get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity,
 };
 use garaga::ec::selectors;
-use garaga::utils::u384_assert_zero;
 
 #[generate_trait]
 pub impl G1PointImpl of G1PointTrait {
-    fn assert_on_curve(self: @G1Point, curve_index: usize) {
-        let (check) = ec::run_IS_ON_CURVE_G1_circuit(
-            *self, get_a(curve_index), get_b(curve_index), curve_index,
-        );
-        u384_assert_zero(check);
+    fn assert_on_curve_excluding_infinity(self: @G1Point, curve_index: usize) {
+        if self.is_on_curve_excluding_infinity(curve_index) == false {
+            panic_with_felt252('point not on curve');
+        }
     }
-    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool {
+    fn is_on_curve_excluding_infinity(self: @G1Point, curve_index: usize) -> bool {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
             *self, get_a(curve_index), get_b(curve_index), curve_index,
         );
@@ -44,7 +42,7 @@ pub impl G1PointImpl of G1PointTrait {
         // derive_point_from_x_hint: Option<DerivePointFromXHint>,
     ) { // TODO
     // match curve_index {
-    //     0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
+    //     0 => { self.assert_on_curve_excluding_infinity(curve_index) }, // BN254 (cofactor 1)
     //     1 => {
     //         //
     //         https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
@@ -217,7 +215,7 @@ pub fn _scalar_mul_fake_glv(
     if scalar.is_zero() || point.is_infinity() {
         return G1PointZero::zero();
     }
-    point.assert_on_curve(curve_index);
+    point.assert_on_curve_excluding_infinity(curve_index);
 
     if scalar.is_one() {
         return point;
@@ -226,7 +224,7 @@ pub fn _scalar_mul_fake_glv(
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
     }
 
-    hint.Q.assert_on_curve(curve_index);
+    hint.Q.assert_on_curve_excluding_infinity(curve_index);
 
     let (_s2_sign_order, _s2_sign_base, _s2_abs): (u384, u384, u128) =
         match u128s_from_felt252(hint.s2) {
@@ -380,7 +378,7 @@ fn msm_glv_fake_glv(
         match pt.is_infinity() {
             true => { acc = acc; },
             false => {
-                pt.assert_on_curve(curve_index);
+                pt.assert_on_curve_excluding_infinity(curve_index);
                 let temp = _scalar_mul_glv_and_fake_glv(
                     pt,
                     scalar_u384,
@@ -423,7 +421,7 @@ pub fn _scalar_mul_glv_and_fake_glv(
         return point;
     }
 
-    hint.Q.assert_on_curve(curve_index);
+    hint.Q.assert_on_curve_excluding_infinity(curve_index);
 
     if scalar == minus_one {
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };

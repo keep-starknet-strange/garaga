@@ -104,9 +104,9 @@ fn test_tower_pairing_{curve_id.name}_{n_pairs}P() {{
     for i, pair in enumerate(pairs):
         code += f"""
     {structs.G1PointCircuit.from_G1Point(f"p{i}", pair.p).serialize()}
-    p{i}.assert_on_curve({curve_id.value});
+    p{i}.assert_on_curve_excluding_infinity({curve_id.value});
     {structs.G2PointCircuit.from_G2Point(f"q{i}", pair.q).serialize()}
-    q{i}.assert_on_curve({curve_id.value});
+    q{i}.assert_on_curve_excluding_infinity({curve_id.value});
     let (tmp{i}) = miller_loop_{pair.p.curve_id.name.lower()}_tower(p{i}, q{i});
     let (res) = run_{pair.p.curve_id.name.upper()}_E12T_MUL_circuit(tmp{i}, res);"""
     code += f"""

@@ -16,7 +16,7 @@ fn test_tower_pairing_BN254_1P() {
         y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     };
 
-    p0.assert_on_curve(0);
+    p0.assert_on_curve_excluding_infinity(0);
     let q0: G2Point = G2Point {
         x0: u384 {
             limb0: 0xf75edadd46debd5cd992f6ed,
@@ -44,7 +44,7 @@ fn test_tower_pairing_BN254_1P() {
         },
     };
 
-    q0.assert_on_curve(0);
+    q0.assert_on_curve_excluding_infinity(0);
     let (tmp0) = miller_loop_bn254_tower(p0, q0);
     let (res) = run_BN254_E12T_MUL_circuit(tmp0, res);
     let final = final_exp_bn254_tower(res);
@@ -147,7 +147,7 @@ fn test_tower_pairing_BN254_2P() {
         },
     };
 
-    p0.assert_on_curve(0);
+    p0.assert_on_curve_excluding_infinity(0);
     let q0: G2Point = G2Point {
         x0: u384 {
             limb0: 0xf75edadd46debd5cd992f6ed,
@@ -175,7 +175,7 @@ fn test_tower_pairing_BN254_2P() {
         },
     };
 
-    q0.assert_on_curve(0);
+    q0.assert_on_curve_excluding_infinity(0);
     let (tmp0) = miller_loop_bn254_tower(p0, q0);
     let (res) = run_BN254_E12T_MUL_circuit(tmp0, res);
     let p1: G1Point = G1Point {
@@ -193,7 +193,7 @@ fn test_tower_pairing_BN254_2P() {
         },
     };
 
-    p1.assert_on_curve(0);
+    p1.assert_on_curve_excluding_infinity(0);
     let q1: G2Point = G2Point {
         x0: u384 {
             limb0: 0x335eb0538f718d8e6651eeb1,
@@ -221,7 +221,7 @@ fn test_tower_pairing_BN254_2P() {
         },
     };
 
-    q1.assert_on_curve(0);
+    q1.assert_on_curve_excluding_infinity(0);
     let (tmp1) = miller_loop_bn254_tower(p1, q1);
     let (res) = run_BN254_E12T_MUL_circuit(tmp1, res);
     let final = final_exp_bn254_tower(res);
@@ -264,7 +264,7 @@ fn test_tower_pairing_BN254_3P() {
         },
     };
 
-    p0.assert_on_curve(0);
+    p0.assert_on_curve_excluding_infinity(0);
     let q0: G2Point = G2Point {
         x0: u384 {
             limb0: 0xa30b422f34656d6c94e40be,
@@ -292,7 +292,7 @@ fn test_tower_pairing_BN254_3P() {
         },
     };
 
-    q0.assert_on_curve(0);
+    q0.assert_on_curve_excluding_infinity(0);
     let (tmp0) = miller_loop_bn254_tower(p0, q0);
     let (res) = run_BN254_E12T_MUL_circuit(tmp0, res);
     let p1: G1Point = G1Point {
@@ -310,7 +310,7 @@ fn test_tower_pairing_BN254_3P() {
         },
     };
 
-    p1.assert_on_curve(0);
+    p1.assert_on_curve_excluding_infinity(0);
     let q1: G2Point = G2Point {
         x0: u384 {
             limb0: 0xa30b422f34656d6c94e40be,
@@ -338,7 +338,7 @@ fn test_tower_pairing_BN254_3P() {
         },
     };
 
-    q1.assert_on_curve(0);
+    q1.assert_on_curve_excluding_infinity(0);
     let (tmp1) = miller_loop_bn254_tower(p1, q1);
     let (res) = run_BN254_E12T_MUL_circuit(tmp1, res);
     let p2: G1Point = G1Point {
@@ -356,7 +356,7 @@ fn test_tower_pairing_BN254_3P() {
         },
     };
 
-    p2.assert_on_curve(0);
+    p2.assert_on_curve_excluding_infinity(0);
     let q2: G2Point = G2Point {
         x0: u384 {
             limb0: 0xa30b422f34656d6c94e40be,
@@ -384,7 +384,7 @@ fn test_tower_pairing_BN254_3P() {
         },
     };
 
-    q2.assert_on_curve(0);
+    q2.assert_on_curve_excluding_infinity(0);
     let (tmp2) = miller_loop_bn254_tower(p2, q2);
     let (res) = run_BN254_E12T_MUL_circuit(tmp2, res);
     let final = final_exp_bn254_tower(res);
@@ -427,7 +427,7 @@ fn test_tower_pairing_BLS12_381_1P() {
         },
     };
 
-    p0.assert_on_curve(1);
+    p0.assert_on_curve_excluding_infinity(1);
     let q0: G2Point = G2Point {
         x0: u384 {
             limb0: 0xa805bbefd48056c8c121bdb8,
@@ -455,7 +455,7 @@ fn test_tower_pairing_BLS12_381_1P() {
         },
     };
 
-    q0.assert_on_curve(1);
+    q0.assert_on_curve_excluding_infinity(1);
     let (tmp0) = miller_loop_bls12_381_tower(p0, q0);
     let (res) = run_BLS12_381_E12T_MUL_circuit(tmp0, res);
     let final = final_exp_bls12_381_tower(res);
@@ -558,7 +558,7 @@ fn test_tower_pairing_BLS12_381_2P() {
         },
     };
 
-    p0.assert_on_curve(1);
+    p0.assert_on_curve_excluding_infinity(1);
     let q0: G2Point = G2Point {
         x0: u384 {
             limb0: 0xa805bbefd48056c8c121bdb8,
@@ -586,7 +586,7 @@ fn test_tower_pairing_BLS12_381_2P() {
         },
     };
 
-    q0.assert_on_curve(1);
+    q0.assert_on_curve_excluding_infinity(1);
     let (tmp0) = miller_loop_bls12_381_tower(p0, q0);
     let (res) = run_BLS12_381_E12T_MUL_circuit(tmp0, res);
     let p1: G1Point = G1Point {
@@ -604,7 +604,7 @@ fn test_tower_pairing_BLS12_381_2P() {
         },
     };
 
-    p1.assert_on_curve(1);
+    p1.assert_on_curve_excluding_infinity(1);
     let q1: G2Point = G2Point {
         x0: u384 {
             limb0: 0x3b3d3c305a70960906e6cb09,
@@ -632,7 +632,7 @@ fn test_tower_pairing_BLS12_381_2P() {
         },
     };
 
-    q1.assert_on_curve(1);
+    q1.assert_on_curve_excluding_infinity(1);
     let (tmp1) = miller_loop_bls12_381_tower(p1, q1);
     let (res) = run_BLS12_381_E12T_MUL_circuit(tmp1, res);
     let final = final_exp_bls12_381_tower(res);
@@ -675,7 +675,7 @@ fn test_tower_pairing_BLS12_381_3P() {
         },
     };
 
-    p0.assert_on_curve(1);
+    p0.assert_on_curve_excluding_infinity(1);
     let q0: G2Point = G2Point {
         x0: u384 {
             limb0: 0x30d2fddc2fa171cdd4d31a55,
@@ -703,7 +703,7 @@ fn test_tower_pairing_BLS12_381_3P() {
         },
     };
 
-    q0.assert_on_curve(1);
+    q0.assert_on_curve_excluding_infinity(1);
     let (tmp0) = miller_loop_bls12_381_tower(p0, q0);
     let (res) = run_BLS12_381_E12T_MUL_circuit(tmp0, res);
     let p1: G1Point = G1Point {
@@ -721,7 +721,7 @@ fn test_tower_pairing_BLS12_381_3P() {
         },
     };
 
-    p1.assert_on_curve(1);
+    p1.assert_on_curve_excluding_infinity(1);
     let q1: G2Point = G2Point {
         x0: u384 {
             limb0: 0x30d2fddc2fa171cdd4d31a55,
@@ -749,7 +749,7 @@ fn test_tower_pairing_BLS12_381_3P() {
         },
     };
 
-    q1.assert_on_curve(1);
+    q1.assert_on_curve_excluding_infinity(1);
     let (tmp1) = miller_loop_bls12_381_tower(p1, q1);
     let (res) = run_BLS12_381_E12T_MUL_circuit(tmp1, res);
     let p2: G1Point = G1Point {
@@ -767,7 +767,7 @@ fn test_tower_pairing_BLS12_381_3P() {
         },
     };
 
-    p2.assert_on_curve(1);
+    p2.assert_on_curve_excluding_infinity(1);
     let q2: G2Point = G2Point {
         x0: u384 {
             limb0: 0x30d2fddc2fa171cdd4d31a55,
@@ -795,7 +795,7 @@ fn test_tower_pairing_BLS12_381_3P() {
         },
     };
 
-    q2.assert_on_curve(1);
+    q2.assert_on_curve_excluding_infinity(1);
     let (tmp2) = miller_loop_bls12_381_tower(p2, q2);
     let (res) = run_BLS12_381_E12T_MUL_circuit(tmp2, res);
     let final = final_exp_bls12_381_tower(res);

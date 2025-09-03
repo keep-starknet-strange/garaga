@@ -39,9 +39,9 @@ mod Groth16VerifierBLS12_381 {
             let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve(1);
-            groth16_proof.b.assert_on_curve(1);
-            groth16_proof.c.assert_on_curve(1);
+            groth16_proof.a.assert_on_curve_excluding_infinity(1);
+            groth16_proof.b.assert_on_curve_excluding_infinity(1);
+            groth16_proof.c.assert_on_curve_excluding_infinity(1);
 
             let ic = ic.span();
 

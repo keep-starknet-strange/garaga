@@ -100,9 +100,9 @@ pub fn verify_groth16_bn254(
         ic.slice(1, ic.len() - 1), proof.public_inputs, 0, public_inputs_msm_hint,
     );
 
-    proof.a.assert_on_curve(0);
-    proof.b.assert_on_curve(0);
-    proof.c.assert_on_curve(0);
+    proof.a.assert_on_curve_excluding_infinity(0);
+    proof.b.assert_on_curve_excluding_infinity(0);
+    proof.c.assert_on_curve_excluding_infinity(0);
 
     return multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
@@ -143,9 +143,9 @@ pub fn verify_groth16_bls12_381(
         ic.slice(1, ic.len() - 1), proof.public_inputs, 1, public_inputs_msm_hint,
     );
 
-    proof.a.assert_on_curve(1);
-    proof.b.assert_on_curve(1);
-    proof.c.assert_on_curve(1);
+    proof.a.assert_on_curve_excluding_infinity(1);
+    proof.b.assert_on_curve_excluding_infinity(1);
+    proof.c.assert_on_curve_excluding_infinity(1);
 
     return multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },

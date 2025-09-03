@@ -85,9 +85,9 @@ mod SP1Groth16Verifier{curve_id.name} {{
             let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve({curve_id.value});
-            groth16_proof.b.assert_on_curve({curve_id.value});
-            groth16_proof.c.assert_on_curve({curve_id.value});
+            groth16_proof.a.assert_on_curve_excluding_infinity({curve_id.value});
+            groth16_proof.b.assert_on_curve_excluding_infinity({curve_id.value});
+            groth16_proof.c.assert_on_curve_excluding_infinity({curve_id.value});
 
             let ic = ic.span();
 

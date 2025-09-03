@@ -86,7 +86,7 @@ pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usi
 
     // Verify public key is on curve
     let pk_point = G1Point { x: px, y: py };
-    if !pk_point.is_on_curve(curve_id) {
+    if !pk_point.is_on_curve_excluding_infinity(curve_id) {
         return false;
     }
 

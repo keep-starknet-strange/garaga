@@ -250,7 +250,7 @@ def _gen_circuits_code(
 
     is_on_curve_code = """
 #[inline(never)]
-pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
+pub fn is_on_curve_excluding_infinity_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
     // INPUT stack
     // y^2 = x^3 + 3
     let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
@@ -272,7 +272,7 @@ pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
 }
     """
     code += is_on_curve_code
-    is_on_curve_function_name = f"is_on_curve_bn254"
+    is_on_curve_function_name = f"is_on_curve_excluding_infinity_bn254"
 
     return (
         code,

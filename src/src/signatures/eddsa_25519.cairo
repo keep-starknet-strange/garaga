@@ -79,7 +79,7 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let P: G1Point = P_opt.unwrap();
     let R: G1Point = R_opt.unwrap();
 
-    if !R.is_on_curve(4) || !P.is_on_curve(4) {
+    if !R.is_on_curve_excluding_infinity(4) || !P.is_on_curve_excluding_infinity(4) {
         // println!("R or P is not on curve");
         return false;
     }

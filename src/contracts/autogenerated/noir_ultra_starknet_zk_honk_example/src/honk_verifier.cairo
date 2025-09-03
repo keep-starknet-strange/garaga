@@ -1,5 +1,5 @@
 use super::honk_verifier_circuits::{
-    is_on_curve_bn254, run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+    is_on_curve_excluding_infinity_bn254, run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_12_circuit,
@@ -30,7 +30,8 @@ mod UltraStarknetZKHonkVerifier {
     };
     use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
-        is_on_curve_bn254, precomputed_lines, run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+        is_on_curve_excluding_infinity_bn254, precomputed_lines,
+        run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_12_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_12_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_12_circuit,
@@ -225,12 +226,18 @@ mod UltraStarknetZKHonkVerifier {
             // Check input points are on curve.
             // Skip the first 27 points as they are from VK and keep the last 24 proof points
             for point in points.slice(27, 24) {
-                assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
+                assert(
+                    is_on_curve_excluding_infinity_bn254(*point, mod_bn),
+                    'proof point not on curve',
+                );
             }
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
-            assert(is_on_curve_bn254(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
+            assert(
+                is_on_curve_excluding_infinity_bn254(shplonk_q_pt, mod_bn),
+                'shplonk_q not on curve',
+            );
 
             let mut msm_hint = full_proof.msm_hint;
             assert(msm_hint.len() == 52 * 12, 'wrong glv&fakeglv hint size');

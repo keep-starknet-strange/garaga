@@ -44,9 +44,9 @@ mod SP1Groth16VerifierBN254 {
             let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve(0);
-            groth16_proof.b.assert_on_curve(0);
-            groth16_proof.c.assert_on_curve(0);
+            groth16_proof.a.assert_on_curve_excluding_infinity(0);
+            groth16_proof.b.assert_on_curve_excluding_infinity(0);
+            groth16_proof.c.assert_on_curve_excluding_infinity(0);
 
             let ic = ic.span();
 
