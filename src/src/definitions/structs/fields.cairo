@@ -1,9 +1,8 @@
 use core::circuit::{u384, u96};
+use core::num;
 use core::num::traits::{One, Zero};
 use core::serde::Serde;
-use core::{RangeCheck, num};
-
-extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
+use corelib_imports::bounded_int::downcast;
 
 
 #[derive(Copy, Drop, Debug, PartialEq)]

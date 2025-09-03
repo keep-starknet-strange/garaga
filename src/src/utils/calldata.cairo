@@ -1,5 +1,5 @@
-use core::RangeCheck;
 use core::circuit::u384;
+use corelib_imports::bounded_int::downcast;
 pub use garaga::definitions::{
     E12D, E12DMulQuotient, G1Point, G2Point, MillerLoopResultScalingFactor, u288,
 };
@@ -45,7 +45,6 @@ pub struct FullProofWithHintsSP1 {
 const U288_N_LIMBS: usize = 3;
 const U384_N_LIMBS: usize = 4;
 
-extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
 
 #[inline(always)]
 fn downcast_u288(l0: felt252, l1: felt252, l2: felt252) -> u288 {

@@ -3,11 +3,11 @@ pub mod structs {
     pub mod fields;
     pub mod points;
 }
-use core::RangeCheck;
 
 pub use core::circuit::{u384, u96};
 pub use core::num::traits::{One, Zero};
 use core::serde::Serde;
+use corelib_imports::bounded_int::downcast;
 
 
 pub use curves::{
@@ -30,9 +30,6 @@ pub use structs::points::{
 pub use crate::ec::pairing::pairing_check::{BLSProcessedPair, BNProcessedPair};
 
 
-extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
-
-
 pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
     output.append((*self.limb0).into());
     output.append((*self.limb1).into());
@@ -41,10 +38,10 @@ pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
 }
 pub fn deserialize_u384(ref serialized: Span<felt252>) -> u384 {
     let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
-    let limb0 = downcast(l0).unwrap();
-    let limb1 = downcast(l1).unwrap();
-    let limb2 = downcast(l2).unwrap();
-    let limb3 = downcast(l3).unwrap();
+    let limb0: u96 = downcast(l0).unwrap();
+    let limb1: u96 = downcast(l1).unwrap();
+    let limb2: u96 = downcast(l2).unwrap();
+    let limb3: u96 = downcast(l3).unwrap();
     return u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 };
 }
 
@@ -98,9 +95,9 @@ fn deserialize_u288_array(ref serialized: Span<felt252>) -> Array<u288> {
 
 fn deserialize_u288(ref serialized: Span<felt252>) -> u288 {
     let [l0, l1, l2] = (*serialized.multi_pop_front::<3>().unwrap()).unbox();
-    let limb0 = downcast(l0).unwrap();
-    let limb1 = downcast(l1).unwrap();
-    let limb2 = downcast(l2).unwrap();
+    let limb0: u96 = downcast(l0).unwrap();
+    let limb1: u96 = downcast(l1).unwrap();
+    let limb2: u96 = downcast(l2).unwrap();
     return u288 { limb0: limb0, limb1: limb1, limb2: limb2 };
 }
 
