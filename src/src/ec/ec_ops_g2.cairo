@@ -94,26 +94,7 @@ pub fn get_bits_little(s: u256) -> Array<felt252> {
     bits
 }
 
-#[inline]
-pub fn ec_safe_add(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
-    // assumes that the points are on the curve and not the point at infinity.
-    // Returns None if the points are the same and opposite y coordinates (Point at infinity)
-    let same_x = eq_mod_p(P.x0, P.x1, Q.x0, Q.x1);
 
-    if same_x {
-        let opposite_y = eq_neg_mod_p(P.y0, P.y1, Q.y0, Q.y1);
-
-        if opposite_y {
-            return Option::None;
-        } else {
-            let (R) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(P, curve_index);
-            return Option::Some(R);
-        }
-    } else {
-        let (R) = ec::run_ADD_EC_POINTS_G2_circuit(P, Q, curve_index);
-        return Option::Some(R);
-    }
-}
 // Should not be called outside of ec_mul.
 // Returns Option::None in case of point at infinity.
 // The size of bits array must be at minimum 2 and the point must be on the curve.
@@ -123,7 +104,7 @@ pub fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -
     for bit in bits {
         if bit != 0 {
             match result {
-                Option::Some(R) => result = ec_safe_add(temp, R, curve_index),
+                Option::Some(R) => result = _ec_add_inner(temp, R, curve_index),
                 Option::None => result = Option::Some(temp),
             };
         }
@@ -132,6 +113,26 @@ pub fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -
     }
 
     return result;
+}
+#[inline]
+fn _ec_add_inner(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
+    // assumes that the points are on the curve and not the point at infinity.
+    // Returns None if the points are the same and opposite y coordinates (Point at infinity)
+    let same_x = eq_mod_p(P.x0, P.x1, Q.x0, Q.x1);
+
+    if same_x {
+        let opposite_y = eq_neg_mod_p(P.y0, P.y1, Q.y0, Q.y1);
+
+        if opposite_y {
+            return Option::None; // Point at infinity
+        } else {
+            let (R) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(P, curve_index);
+            return Option::Some(R);
+        }
+    } else {
+        let (R) = ec::run_ADD_EC_POINTS_G2_circuit(P, Q, curve_index);
+        return Option::Some(R);
+    }
 }
 
 
