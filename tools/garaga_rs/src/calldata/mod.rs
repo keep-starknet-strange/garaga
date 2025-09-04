@@ -2,6 +2,7 @@ pub mod drand_calldata;
 pub mod full_proof_with_hints {
     pub mod groth16;
     pub mod honk;
+    pub mod honk_common;
     pub mod zk_honk;
 }
 pub mod mpc_calldata;
