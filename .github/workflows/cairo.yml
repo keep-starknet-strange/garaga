@@ -57,3 +57,10 @@ jobs:
       # - name: Run snforge test in risc0_sample_app
       #   working-directory: src/contracts/risc0_sample_app/fibonacci_sequencer
       #   run: snforge test
+
+      - name: Publish to Scarb Registry
+        if: startsWith(github.ref, 'refs/tags/')
+        working-directory: src/
+        env:
+          SCARB_REGISTRY_AUTH_TOKEN: ${{ secrets.SCARB_REGISTRY_AUTH_TOKEN }}
+        run: scarb publish
