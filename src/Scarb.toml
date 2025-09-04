@@ -15,7 +15,7 @@ documentation = "https://garaga.gitbook.io/garaga/"
 full = []
 
 [dependencies]
-corelib_imports = { path = "corelib_imports", version = "0.1.0" }
+corelib_imports = { path = "corelib_imports", version = "0.1.1" }
 
 [dev-dependencies]
 snforge_std = "0.48.0"

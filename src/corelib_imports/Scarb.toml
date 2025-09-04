@@ -1,6 +1,6 @@
 [package]
 name = "corelib_imports"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2023_10"
 description = "Useful Corelib non-public functions, structs, and traits made public and re-exported through 2023_10 edition"
 readme = "README.md"
