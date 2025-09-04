@@ -26,9 +26,9 @@ class CairoPoseidonTranscript:
     def __init__(self, init_hash: int) -> None:
         self.init_hash = init_hash
         self.s0, self.s1, self.s2 = hades_permutation(
-            init_hash,
             0,
-            1,
+            0,
+            init_hash,
         )
         self.permutations_count = 1
         self.poseidon_ptr_indexes = []

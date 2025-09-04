@@ -24,7 +24,7 @@ fn biguint_split_2_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 2] {
 
 impl CairoPoseidonTranscript {
     pub fn new(init_hash: FieldElement<Stark252PrimeField>) -> Self {
-        let mut state = [init_hash, FieldElement::zero(), FieldElement::one()];
+        let mut state = [FieldElement::zero(), FieldElement::zero(), init_hash];
         PoseidonCairoStark252::hades_permutation(&mut state);
         Self { init_hash, state }
     }

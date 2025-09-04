@@ -101,12 +101,12 @@ pub fn multi_pairing_check_bn254_2P_2F(
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY(pair1.p.x, pair1.p.y, modulus);
 
     // Init sponge state
-    // >>> hades_permutation(int.from_bytes(b"MPCHECK_BN254_2P_2F", "big"), 0, 1)
+    // >>> hades_permutation(0, 0, int.from_bytes(b"MPCHECK_BN254_2P_2F", "big"))
 
     let (s0, s1, s2) = (
-        0x68d2a3cc4a3b2f1d317e7666256ca63efd983952025ffa78d32d4032e76e918,
-        0x4ea762aacef0cbba4cf150cf273fcc20874daaf40937062001104ce970a76f3,
-        0x42aab602bbf1944066179f43c84e0eee75c531ec7b2c7d479d554e368c4e07c,
+        0x1a0eeac356472db3074d1ca6bb7bbb60fa9f0d53b34ef38a4eddde21b332b28,
+        0x2783a4227674921675bfa12e30fda0dad992bb9be9785908ac1338b14018182,
+        0x5d4b7659197d4e54258057765dd5e6dbf106bb3bd5a559fe1951303901e2e81,
     );
     // Hash Inputs
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
@@ -271,7 +271,13 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
     let (yInv_1, xNegOverY_1) = compute_yInvXnegOverY(pair1.p.x, pair1.p.y, modulus);
 
     // Init sponge state
-    let (s0, s1, s2) = hades_permutation('MPCHECK_BLS12_381_2P_2F', 0, 1);
+    // >>> hades_permutation(0, 0, int.from_bytes(b"MPCHECK_BLS12_381_2P_2F", "big"))
+    let (s0, s1, s2) = (
+        0x38fc487c6a5413cb099f102857912e93570c7a3628b34722ec1fff8cefa6f5f,
+        0x3cec4f7f551bccf7cbfbfd86cde672f2104b89d5443707c7ca7aca8196f4d0f,
+        0x5ff52024b20f5cd082b347b5455a15a265874a39983c38ed544090b750ee718,
+    );
+
     // Hash Inputs
 
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);

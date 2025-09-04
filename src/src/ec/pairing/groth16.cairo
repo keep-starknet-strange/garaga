@@ -225,11 +225,11 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         pair2.p, pair2.q.y0, pair2.q.y1,
     );
 
-    // Init sponge state == hades_permutation(int.from_bytes(b'MPCHECK_BN254_3P_2F', "big"), 0, 1)
+    // Init sponge state == hades_permutation(0, 0, int.from_bytes(b"MPCHECK_BN254_3P_2F", "big"))
     let (s0, s1, s2) = (
-        0x716fcd6880324d6d3638aeb033dfab41310a98ce7aa8f44159a67f4a8a4fbc8,
-        0x68dc029639a62ca19056e890fb846e0b9c89926a0ba1371b79201a6563a0df6,
-        0x45cdbfd4efe739304e9ec6744f6bdb99016ab57885cbe7e4c59108d2a649b,
+        0x63dd5cf2946ee642aef494d22ee96f6e9168664a2f9c485a6084bd03289b83f,
+        0x22380e74267f899ea972f4f0fc327a181ed44093d778c9ad778437c7a41e418,
+        0x3c3e169429d0a04b80b97617d27b5b37b8e7734bf57faaffc841b8f2cfb6bc7,
     );
     // Hash Inputs
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
@@ -508,9 +508,14 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     );
 
     // Init sponge state :
-    let (s0, s1, s2) = hades_permutation('MPCHECK_BLS12_381_3P_2F', 0, 1);
-    // Hash Inputs.
+    // >>> hades_permutation(0, 0, int.from_bytes(b"MPCHECK_BLS12_381_3P_2F", "big"))
+    let (s0, s1, s2) = (
+        0x2cdfabd228064e9e12d17c6b3c59bff3db6b737403a03e9b5f5e9f53409097b,
+        0x37fe3519c1f442f6e45b0abd23d975f1937365ed27e08019d58d011269ecac2,
+        0x2eec9f98b93d8f14927c5de60386404306a0e55acb61076c1ad847b456efe0e,
+    );
 
+    // Hash Inputs.
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
     let (s0, s1, s2) = hashing::hash_G1G2Pair(pair2, s0, s1, s2);
