@@ -7,7 +7,8 @@ keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elli
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet"
 readme = "../README.md"
 repository = "https://github.com/keep-starknet-strange/garaga"
-
+authors = ["feltroidprime", "Keep Starknet Strange Contributors"]
+documentation = "https://garaga.gitbook.io/garaga/"
 # See more keys and their definitions at https://docs.swmansion.com/scarb/docs/reference/manifest.html
 
 [features]
