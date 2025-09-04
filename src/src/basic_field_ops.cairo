@@ -14,6 +14,23 @@ const POW_2_64_252: felt252 = 0x10000000000000000;
 
 const POW_2_256_384: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x10000000000000000, limb3: 0x0 };
 
+// Reduces a u384 given a circuit modulus by computing (a + 0) mod p.
+// Circuits outputs are reduced mod p.
+pub fn reduce_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let in2 = CircuitElement::<CircuitInput<1>> {};
+    let reduce = circuit_add(in1, in2);
+
+    let outputs = (reduce,)
+        .new_inputs()
+        .next_2(a)
+        .next_2([0, 0, 0, 0])
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return outputs.get_output(reduce);
+}
 
 pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -30,7 +47,6 @@ pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 
     return outputs.get_output(neg);
 }
-
 
 // Returns true if a == -b mod p (a + b = 0 mod p)
 pub fn is_opposite_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> bool {

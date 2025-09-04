@@ -206,6 +206,7 @@ class AddECPointsG2Circuit(BaseModuloCircuit):
         circuit = BasicECG2(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        circuit.generic_modulus = True
         px0, px1, py0, py1 = circuit.write_struct(
             G2PointCircuit("p", input[0:4]), WriteOps.INPUT
         )
@@ -244,6 +245,7 @@ class DoubleECPointG2AEq0Circuit(BaseModuloCircuit):
         circuit = BasicECG2(
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
+        circuit.generic_modulus = True
         px0, px1, py0, py1 = circuit.write_struct(
             G2PointCircuit("p", input[0:4]), WriteOps.INPUT
         )

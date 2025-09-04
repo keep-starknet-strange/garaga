@@ -314,7 +314,9 @@ impl MyDrp_28<
     ),
 >;
 #[inline(always)]
-pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (G2Point,) {
+pub fn run_ADD_EC_POINTS_G2_circuit(
+    p: G2Point, q: G2Point, modulus: core::circuit::CircuitModulus,
+) -> (G2Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -359,7 +361,7 @@ pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) 
     let t34 = circuit_sub(t30, in3); // Fp2 sub coeff 0/1
     let t35 = circuit_sub(t33, in4); // Fp2 sub coeff 1/1
 
-    let modulus = crate::definitions::get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t24, t25, t34, t35).new_inputs();
     // Prefill constants:
@@ -1193,7 +1195,9 @@ pub fn run_CLEAR_COFACTOR_BLS12_381_circuit(
     return (res,);
 }
 #[inline(always)]
-pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2Point,) {
+pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(
+    p: G2Point, modulus: core::circuit::CircuitModulus,
+) -> (G2Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
     let in1 = CE::<CI<1>> {}; // 0x0
@@ -1243,7 +1247,7 @@ pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> 
     let t39 = circuit_sub(t35, in4); // Fp2 sub coeff 0/1
     let t40 = circuit_sub(t38, in5); // Fp2 sub coeff 1/1
 
-    let modulus = crate::definitions::get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t29, t30, t39, t40).new_inputs();
     // Prefill constants:

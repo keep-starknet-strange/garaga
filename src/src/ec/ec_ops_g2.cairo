@@ -1,14 +1,13 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
-    circuit_add, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
+    EvalCircuitTrait, circuit_add, circuit_sub, u384,
 };
+use core::num::traits::Zero;
 use core::option::Option;
-use garaga::basic_field_ops::neg_mod_p;
+use garaga::basic_field_ops::{neg_mod_p, reduce_mod_p};
 use garaga::circuits::ec;
 use garaga::core::circuit::AddInputResultTrait2;
-use garaga::definitions::{
-    G2Point, G2PointZero, get_BLS12_381_modulus, get_a, get_b_twist, get_modulus,
-};
+use garaga::definitions::{G2Point, G2PointZero, get_a, get_b_twist, get_modulus};
 use garaga::utils::u384_assert_zero;
 
 
@@ -43,9 +42,51 @@ pub impl G2PointImpl of G2PointTrait {
     }
 }
 
-// G2 Ops for BLS12-381.
+/// G2 Ops for BLS12-381.
 
-// Returns Option::None in case of error.
+/// Adds two elliptic curve points on a given curve twist.
+///
+/// # Assumptions
+/// - The curve equation is of the form y^2 = x^3 + b [Fp2] (i.e. a = 0) for the given curve index.
+/// - The curve index should be either 0 (BN254) or 1 (BLS12_381). Behavior is undefined otherwise.
+/// - The points are on the curve (can be the point at infinity as well).
+///
+/// # Returns
+/// - Point at infinity if the points have the same x coordinate and opposite y coordinates.
+/// - The result of the addition otherwise.
+pub fn ec_safe_add_g2(p: G2Point, q: G2Point, curve_index: usize) -> G2Point {
+    if p.is_infinity() {
+        return q;
+    }
+    if q.is_infinity() {
+        return p;
+    }
+    let modulus = get_modulus(curve_index);
+    let same_x = eq_mod_p(p.x0, p.x1, q.x0, q.x1, modulus);
+
+    if same_x {
+        let opposite_y = eq_neg_mod_p(p.y0, p.y1, q.y0, q.y1, modulus);
+
+        if opposite_y {
+            return G2PointZero::zero(); // Point at infinity
+        } else {
+            let (res) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p, modulus);
+            return res;
+        }
+    } else {
+        let (res) = ec::run_ADD_EC_POINTS_G2_circuit(p, q, modulus);
+        return res;
+    }
+}
+
+/// Multiplies a G2 point by a u256 scalar.
+///
+/// # Returns
+/// - `Option::None` if the point is not on the curve.
+///
+/// # Notes
+/// - `curve_index` should be either 0 (BN254) or 1 (BLS12_381). Behavior is undefined otherwise.
+/// - Input points outside of the r-torsion subgroup are supported.
 pub fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
     if pt.is_zero() {
         // Input point is at infinity, return it
@@ -60,10 +101,7 @@ pub fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
             // s is >= 2.
             let bits = get_bits_little(s);
             let pt = ec_mul_inner(pt, bits, curve_index);
-            match pt {
-                Option::Some(r) => Option::Some(r),
-                Option::None => Option::Some(G2PointZero::zero()),
-            }
+            return Option::Some(pt);
         }
     } else {
         // Point is not on the curve
@@ -71,7 +109,7 @@ pub fn ec_mul(pt: G2Point, s: u256, curve_index: usize) -> Option<G2Point> {
     }
 }
 
-// Returns the bits of the 256 bit number in little endian format.
+// Returns the bits of a 256 bit number in little endian format.
 pub fn get_bits_little(s: u256) -> Array<felt252> {
     let mut bits = ArrayTrait::new();
     let mut s_low = s.low;
@@ -97,56 +135,74 @@ pub fn get_bits_little(s: u256) -> Array<felt252> {
 
 // Should not be called outside of ec_mul.
 // Returns Option::None in case of point at infinity.
-// The size of bits array must be at minimum 2 and the point must be on the curve.
-pub fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -> Option<G2Point> {
-    let mut temp = pt;
-    let mut result: Option<G2Point> = Option::None;
+// The size of bits array must be at minimum 2 and the point must be strictly on the curve.
+fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -> G2Point {
+    let mut temp = pt; // 2^0 * pt
+    let mut result: G2Point = G2PointZero::zero();
+    let modulus = get_modulus(curve_index);
+
+    // Make sure input x coordinate is reduced mod p before the loop for check inside ec_add_inner.
+    temp.x0 = reduce_mod_p(temp.x0, modulus);
+    temp.x1 = reduce_mod_p(temp.x1, modulus);
+    // Make sure input y coordinate is reduced mod p before the loop for the check before doubling.
+    temp.y0 = reduce_mod_p(temp.y0, modulus);
+    temp.y1 = reduce_mod_p(temp.y1, modulus);
+
     for bit in bits {
         if bit != 0 {
-            match result {
-                Option::Some(R) => result = _ec_add_inner(temp, R, curve_index),
-                Option::None => result = Option::Some(temp),
-            };
+            result = _ec_add_inner(temp, result, modulus);
         }
-        let (_temp) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(temp, curve_index);
-        temp = _temp;
+        if temp.y0.is_zero() && temp.y1.is_zero() {
+            // P = -P. Doubling will result in a point at infinity.
+            temp = G2PointZero::zero();
+        } else {
+            let (_temp) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(temp, modulus);
+            temp = _temp; // 2^i * pt
+        }
     }
 
     return result;
 }
+
+// Inner add function for ec_mul_inner.
+// Assumptions:
+//     - The points are on the curve (can be the point at infinity as well)
+//     - p and q have their coordinates in reduced form.
 #[inline]
-fn _ec_add_inner(P: G2Point, Q: G2Point, curve_index: usize) -> Option<G2Point> {
-    // assumes that the points are on the curve and not the point at infinity.
-    // Returns None if the points are the same and opposite y coordinates (Point at infinity)
-    let same_x = eq_mod_p(P.x0, P.x1, Q.x0, Q.x1);
+fn _ec_add_inner(p: G2Point, q: G2Point, modulus: CircuitModulus) -> G2Point {
+    if p.is_infinity() {
+        return q;
+    }
+    if q.is_infinity() {
+        return p;
+    }
+    let same_x = (p.x0 == q.x0 && p.x1 == q.x1);
 
     if same_x {
-        let opposite_y = eq_neg_mod_p(P.y0, P.y1, Q.y0, Q.y1);
+        let opposite_y = eq_neg_mod_p(p.y0, p.y1, q.y0, q.y1, modulus);
 
         if opposite_y {
-            return Option::None; // Point at infinity
+            return G2PointZero::zero(); // Point at infinity
         } else {
-            let (R) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(P, curve_index);
-            return Option::Some(R);
+            let (res) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p, modulus);
+            return res;
         }
     } else {
-        let (R) = ec::run_ADD_EC_POINTS_G2_circuit(P, Q, curve_index);
-        return Option::Some(R);
+        let (res) = ec::run_ADD_EC_POINTS_G2_circuit(p, q, modulus);
+        return res;
     }
 }
 
 
 // returns true if a == b mod p bls12-381
 #[inline]
-pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
+pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384, modulus: CircuitModulus) -> bool {
     let _a0 = CE::<CI<0>> {};
     let _a1 = CE::<CI<1>> {};
     let _b0 = CE::<CI<2>> {};
     let _b1 = CE::<CI<3>> {};
     let sub0 = circuit_sub(_a0, _b0);
     let sub1 = circuit_sub(_a1, _b1);
-
-    let modulus = get_BLS12_381_modulus();
 
     let outputs = (sub0, sub1)
         .new_inputs()
@@ -163,7 +219,7 @@ pub fn eq_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
 
 // returns true if a == -b mod p bls12-381
 #[inline]
-pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
+pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384, modulus: CircuitModulus) -> bool {
     let _a0 = CE::<CI<0>> {};
     let _a1 = CE::<CI<1>> {};
     let _b0 = CE::<CI<2>> {};
@@ -171,7 +227,6 @@ pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384) -> bool {
     let check0 = circuit_add(_a0, _b0);
     let check1 = circuit_add(_a1, _b1);
 
-    let modulus = get_BLS12_381_modulus();
     let outputs = (check0, check1)
         .new_inputs()
         .next_2(a0)
