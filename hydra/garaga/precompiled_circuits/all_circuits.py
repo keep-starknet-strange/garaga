@@ -23,8 +23,8 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     FixedG2MPCheckFinalizeBN,
     FixedG2MPCheckInitBit,
     FP12MulAssertOne,
+    InitializeMPCheck,
     MPCheckFinalizeBLS,
-    MPCheckPrepareLambdaRootEvaluations,
     MPCheckPreparePairs,
 )
 from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import (
@@ -86,9 +86,7 @@ class CircuitID(Enum):
     MP_CHECK_BIT01_LOOP = int.from_bytes(b"mp_check_bit01_loop", "big")
     MP_CHECK_BIT10_LOOP = int.from_bytes(b"mp_check_bit10_loop", "big")
     MP_CHECK_PREPARE_PAIRS = int.from_bytes(b"mp_check_prepare_pairs", "big")
-    MP_CHECK_PREPARE_LAMBDA_ROOT = int.from_bytes(
-        b"mp_check_prepare_lambda_root", "big"
-    )
+    MP_CHECK_INITIALIZE = int.from_bytes(b"mp_check_initialize", "big")
     MP_CHECK_INIT_BIT = int.from_bytes(b"mp_check_init_bit", "big")
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
@@ -236,8 +234,8 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
-    CircuitID.MP_CHECK_PREPARE_LAMBDA_ROOT: {
-        "class": MPCheckPrepareLambdaRootEvaluations,
+    CircuitID.MP_CHECK_INITIALIZE: {
+        "class": InitializeMPCheck,
         "params": None,
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],

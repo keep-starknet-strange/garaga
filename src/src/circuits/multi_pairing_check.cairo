@@ -8,6 +8,281 @@ use garaga::definitions::{
     MillerLoopResultScalingFactor, u288,
 };
 #[inline(always)]
+pub fn run_BLS12_381_INITIALIZE_MPCHECK_circuit(
+    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor<u384>,
+) -> (u384, u384, u384) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+    let in1 = CE::<CI<1>> {}; // 0x2
+    let in2 = CE::<
+        CI<2>,
+    > {}; // 0x18089593cbf626353947d5b1fd0c6d66bb34bc7585f5abdf8f17b50e12c47d65ce514a7c167b027b600febdb244714c5
+    let in3 = CE::<
+        CI<3>,
+    > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffeffff
+    let in4 = CE::<
+        CI<4>,
+    > {}; // 0xd5e1c086ffe8016d063c6dad7a2fffc9072bb5785a686bcefeedc2e0124838bdccf325ee5d80be9902109f7dbc79812
+    let in5 = CE::<
+        CI<5>,
+    > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
+    let in6 = CE::<
+        CI<6>,
+    > {}; // 0x1a0111ea397fe6998ce8d956845e1033efa3bf761f6622e9abc9802928bfc912627c4fd7ed3ffffb5dfb00000001aaaf
+    let in7 = CE::<
+        CI<7>,
+    > {}; // 0xb659fb20274bfb1be8ff4d69163c08be7302c4818171fdd17d5be9b1d380acd8c747cdc4aff0e653631f5d3000f022c
+    let in8 = CE::<CI<8>> {}; // -0x1 % p
+    let in9 = CE::<
+        CI<9>,
+    > {}; // 0xfc3e2b36c4e03288e9e902231f9fb854a14787b6c7b36fec0c8ec971f63c5f282d5ac14d6c7ec22cf78a126ddc4af3
+    let in10 = CE::<
+        CI<10>,
+    > {}; // 0x1f87c566d89c06511d3d204463f3f70a9428f0f6d8f66dfd8191d92e3ec78be505ab5829ad8fd8459ef1424dbb895e6
+    let in11 = CE::<
+        CI<11>,
+    > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
+    let in12 = CE::<
+        CI<12>,
+    > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
+    let in13 = CE::<
+        CI<13>,
+    > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffefffe
+    let in14 = CE::<
+        CI<14>,
+    > {}; // 0x144e4211384586c16bd3ad4afa99cc9170df3560e77982d0db45f3536814f0bd5871c1908bd478cd1ee605167ff82995
+    let in15 = CE::<
+        CI<15>,
+    > {}; // 0xe9b7238370b26e88c8bb2dfb1e7ec4b7d471f3cdb6df2e24f5b1405d978eb56923783226654f19a83cd0a2cfff0a87f
+
+    // INPUT stack
+    let (in16, in17, in18) = (CE::<CI<16>> {}, CE::<CI<17>> {}, CE::<CI<18>> {});
+    let (in19, in20, in21) = (CE::<CI<19>> {}, CE::<CI<20>> {}, CE::<CI<21>> {});
+    let (in22, in23, in24) = (CE::<CI<22>> {}, CE::<CI<23>> {}, CE::<CI<24>> {});
+    let (in25, in26, in27) = (CE::<CI<25>> {}, CE::<CI<26>> {}, CE::<CI<27>> {});
+    let (in28, in29, in30) = (CE::<CI<28>> {}, CE::<CI<29>> {}, CE::<CI<30>> {});
+    let (in31, in32, in33) = (CE::<CI<31>> {}, CE::<CI<32>> {}, CE::<CI<33>> {});
+    let in34 = CE::<CI<34>> {};
+    let t0 = circuit_mul(in28, in28); // Compute z^2
+    let t1 = circuit_mul(t0, in28); // Compute z^3
+    let t2 = circuit_mul(t1, in28); // Compute z^4
+    let t3 = circuit_mul(t2, in28); // Compute z^5
+    let t4 = circuit_mul(t3, in28); // Compute z^6
+    let t5 = circuit_mul(t4, in28); // Compute z^7
+    let t6 = circuit_mul(t5, in28); // Compute z^8
+    let t7 = circuit_mul(t6, in28); // Compute z^9
+    let t8 = circuit_mul(t7, in28); // Compute z^10
+    let t9 = circuit_mul(t8, in28); // Compute z^11
+    let t10 = circuit_sub(in0, in17);
+    let t11 = circuit_sub(in0, in19);
+    let t12 = circuit_sub(in0, in21);
+    let t13 = circuit_sub(in0, in23);
+    let t14 = circuit_sub(in0, in25);
+    let t15 = circuit_sub(in0, in27);
+    let t16 = circuit_mul(t10, in28); // Eval C_inv step coeff_1 * z^1
+    let t17 = circuit_add(in16, t16); // Eval C_inv step + (coeff_1 * z^1)
+    let t18 = circuit_mul(in18, t0); // Eval C_inv step coeff_2 * z^2
+    let t19 = circuit_add(t17, t18); // Eval C_inv step + (coeff_2 * z^2)
+    let t20 = circuit_mul(t11, t1); // Eval C_inv step coeff_3 * z^3
+    let t21 = circuit_add(t19, t20); // Eval C_inv step + (coeff_3 * z^3)
+    let t22 = circuit_mul(in20, t2); // Eval C_inv step coeff_4 * z^4
+    let t23 = circuit_add(t21, t22); // Eval C_inv step + (coeff_4 * z^4)
+    let t24 = circuit_mul(t12, t3); // Eval C_inv step coeff_5 * z^5
+    let t25 = circuit_add(t23, t24); // Eval C_inv step + (coeff_5 * z^5)
+    let t26 = circuit_mul(in22, t4); // Eval C_inv step coeff_6 * z^6
+    let t27 = circuit_add(t25, t26); // Eval C_inv step + (coeff_6 * z^6)
+    let t28 = circuit_mul(t13, t5); // Eval C_inv step coeff_7 * z^7
+    let t29 = circuit_add(t27, t28); // Eval C_inv step + (coeff_7 * z^7)
+    let t30 = circuit_mul(in24, t6); // Eval C_inv step coeff_8 * z^8
+    let t31 = circuit_add(t29, t30); // Eval C_inv step + (coeff_8 * z^8)
+    let t32 = circuit_mul(t14, t7); // Eval C_inv step coeff_9 * z^9
+    let t33 = circuit_add(t31, t32); // Eval C_inv step + (coeff_9 * z^9)
+    let t34 = circuit_mul(in26, t8); // Eval C_inv step coeff_10 * z^10
+    let t35 = circuit_add(t33, t34); // Eval C_inv step + (coeff_10 * z^10)
+    let t36 = circuit_mul(t15, t9); // Eval C_inv step coeff_11 * z^11
+    let t37 = circuit_add(t35, t36); // Eval C_inv step + (coeff_11 * z^11)
+    let t38 = circuit_mul(in30, t0); // Eval sparse poly W step coeff_2 * z^2
+    let t39 = circuit_add(in29, t38); // Eval sparse poly W step + coeff_2 * z^2
+    let t40 = circuit_mul(in31, t2); // Eval sparse poly W step coeff_4 * z^4
+    let t41 = circuit_add(t39, t40); // Eval sparse poly W step + coeff_4 * z^4
+    let t42 = circuit_mul(in32, t4); // Eval sparse poly W step coeff_6 * z^6
+    let t43 = circuit_add(t41, t42); // Eval sparse poly W step + coeff_6 * z^6
+    let t44 = circuit_mul(in33, t6); // Eval sparse poly W step coeff_8 * z^8
+    let t45 = circuit_add(t43, t44); // Eval sparse poly W step + coeff_8 * z^8
+    let t46 = circuit_mul(in34, t8); // Eval sparse poly W step coeff_10 * z^10
+    let t47 = circuit_add(t45, t46); // Eval sparse poly W step + coeff_10 * z^10
+    let t48 = circuit_mul(in22, in1);
+    let t49 = circuit_add(in16, t48);
+    let t50 = circuit_mul(t10, in2);
+    let t51 = circuit_mul(t13, in2);
+    let t52 = circuit_add(t50, t51);
+    let t53 = circuit_mul(in18, in3);
+    let t54 = circuit_mul(t14, in4);
+    let t55 = circuit_mul(in20, in5);
+    let t56 = circuit_mul(in26, in6);
+    let t57 = circuit_add(t55, t56);
+    let t58 = circuit_mul(t12, in7);
+    let t59 = circuit_mul(t15, in7);
+    let t60 = circuit_add(t58, t59);
+    let t61 = circuit_mul(in22, in8);
+    let t62 = circuit_mul(t10, in9);
+    let t63 = circuit_mul(t13, in10);
+    let t64 = circuit_add(t62, t63);
+    let t65 = circuit_mul(in18, in11);
+    let t66 = circuit_mul(in24, in11);
+    let t67 = circuit_add(t65, t66);
+    let t68 = circuit_mul(t11, in12);
+    let t69 = circuit_mul(in26, in13);
+    let t70 = circuit_mul(t12, in14);
+    let t71 = circuit_mul(t15, in15);
+    let t72 = circuit_add(t70, t71);
+    let t73 = circuit_mul(t52, in28); // Eval C_inv_frob_1 step coeff_1 * z^1
+    let t74 = circuit_add(t49, t73); // Eval C_inv_frob_1 step + (coeff_1 * z^1)
+    let t75 = circuit_mul(t53, t0); // Eval C_inv_frob_1 step coeff_2 * z^2
+    let t76 = circuit_add(t74, t75); // Eval C_inv_frob_1 step + (coeff_2 * z^2)
+    let t77 = circuit_mul(t54, t1); // Eval C_inv_frob_1 step coeff_3 * z^3
+    let t78 = circuit_add(t76, t77); // Eval C_inv_frob_1 step + (coeff_3 * z^3)
+    let t79 = circuit_mul(t57, t2); // Eval C_inv_frob_1 step coeff_4 * z^4
+    let t80 = circuit_add(t78, t79); // Eval C_inv_frob_1 step + (coeff_4 * z^4)
+    let t81 = circuit_mul(t60, t3); // Eval C_inv_frob_1 step coeff_5 * z^5
+    let t82 = circuit_add(t80, t81); // Eval C_inv_frob_1 step + (coeff_5 * z^5)
+    let t83 = circuit_mul(t61, t4); // Eval C_inv_frob_1 step coeff_6 * z^6
+    let t84 = circuit_add(t82, t83); // Eval C_inv_frob_1 step + (coeff_6 * z^6)
+    let t85 = circuit_mul(t64, t5); // Eval C_inv_frob_1 step coeff_7 * z^7
+    let t86 = circuit_add(t84, t85); // Eval C_inv_frob_1 step + (coeff_7 * z^7)
+    let t87 = circuit_mul(t67, t6); // Eval C_inv_frob_1 step coeff_8 * z^8
+    let t88 = circuit_add(t86, t87); // Eval C_inv_frob_1 step + (coeff_8 * z^8)
+    let t89 = circuit_mul(t68, t7); // Eval C_inv_frob_1 step coeff_9 * z^9
+    let t90 = circuit_add(t88, t89); // Eval C_inv_frob_1 step + (coeff_9 * z^9)
+    let t91 = circuit_mul(t69, t8); // Eval C_inv_frob_1 step coeff_10 * z^10
+    let t92 = circuit_add(t90, t91); // Eval C_inv_frob_1 step + (coeff_10 * z^10)
+    let t93 = circuit_mul(t72, t9); // Eval C_inv_frob_1 step coeff_11 * z^11
+    let t94 = circuit_add(t92, t93); // Eval C_inv_frob_1 step + (coeff_11 * z^11)
+
+    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
+
+    let mut circuit_inputs = (t37, t47, t94).new_inputs();
+    // Prefill constants:
+
+    circuit_inputs = circuit_inputs
+        .next_span(INITIALIZE_MPCHECK_BLS12_381_CONSTANTS.span()); // in0 - in15
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w0); // in16
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w1); // in17
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w2); // in18
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w3); // in19
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w4); // in20
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w5); // in21
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w6); // in22
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w7); // in23
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w8); // in24
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w9); // in25
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w10); // in26
+    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w11); // in27
+    circuit_inputs = circuit_inputs.next_2(z); // in28
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w0); // in29
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w2); // in30
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w4); // in31
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w6); // in32
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in33
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in34
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let c_inv_of_z: u384 = outputs.get_output(t37);
+    let scaling_factor_of_z: u384 = outputs.get_output(t47);
+    let c_inv_frob_1_of_z: u384 = outputs.get_output(t94);
+    return (c_inv_of_z, scaling_factor_of_z, c_inv_frob_1_of_z);
+}
+const INITIALIZE_MPCHECK_BLS12_381_CONSTANTS: [u384; 16] = [
+    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 {
+        limb0: 0x167b027b600febdb244714c5,
+        limb1: 0x8f17b50e12c47d65ce514a7c,
+        limb2: 0xfd0c6d66bb34bc7585f5abdf,
+        limb3: 0x18089593cbf626353947d5b1,
+    },
+    u384 {
+        limb0: 0x620a00022e01fffffffeffff,
+        limb1: 0xddb3a93be6f89688de17d813,
+        limb2: 0xdf76ce51ba69c6076a0f77ea,
+        limb3: 0x5f19672f,
+    },
+    u384 {
+        limb0: 0xe5d80be9902109f7dbc79812,
+        limb1: 0xefeedc2e0124838bdccf325e,
+        limb2: 0xd7a2fffc9072bb5785a686bc,
+        limb3: 0xd5e1c086ffe8016d063c6da,
+    },
+    u384 {
+        limb0: 0x4f49fffd8bfd00000000aaad,
+        limb1: 0x897d29650fb85f9b409427eb,
+        limb2: 0x63d4de85aa0d857d89759ad4,
+        limb3: 0x1a0111ea397fe699ec024086,
+    },
+    u384 {
+        limb0: 0xed3ffffb5dfb00000001aaaf,
+        limb1: 0xabc9802928bfc912627c4fd7,
+        limb2: 0x845e1033efa3bf761f6622e9,
+        limb3: 0x1a0111ea397fe6998ce8d956,
+    },
+    u384 {
+        limb0: 0x4aff0e653631f5d3000f022c,
+        limb1: 0x17d5be9b1d380acd8c747cdc,
+        limb2: 0x9163c08be7302c4818171fdd,
+        limb3: 0xb659fb20274bfb1be8ff4d6,
+    },
+    u384 {
+        limb0: 0xb153ffffb9feffffffffaaaa,
+        limb1: 0x6730d2a0f6b0f6241eabfffe,
+        limb2: 0x434bacd764774b84f38512bf,
+        limb3: 0x1a0111ea397fe69a4b1ba7b6,
+    },
+    u384 {
+        limb0: 0x4d6c7ec22cf78a126ddc4af3,
+        limb1: 0xec0c8ec971f63c5f282d5ac1,
+        limb2: 0x231f9fb854a14787b6c7b36f,
+        limb3: 0xfc3e2b36c4e03288e9e902,
+    },
+    u384 {
+        limb0: 0x9ad8fd8459ef1424dbb895e6,
+        limb1: 0xd8191d92e3ec78be505ab582,
+        limb2: 0x463f3f70a9428f0f6d8f66df,
+        limb3: 0x1f87c566d89c06511d3d204,
+    },
+    u384 {
+        limb0: 0x4f49fffd8bfd00000000aaac,
+        limb1: 0x897d29650fb85f9b409427eb,
+        limb2: 0x63d4de85aa0d857d89759ad4,
+        limb3: 0x1a0111ea397fe699ec024086,
+    },
+    u384 {
+        limb0: 0x72ec05f4c81084fbede3cc09,
+        limb1: 0x77f76e17009241c5ee67992f,
+        limb2: 0x6bd17ffe48395dabc2d3435e,
+        limb3: 0x6af0e0437ff400b6831e36d,
+    },
+    u384 {
+        limb0: 0x620a00022e01fffffffefffe,
+        limb1: 0xddb3a93be6f89688de17d813,
+        limb2: 0xdf76ce51ba69c6076a0f77ea,
+        limb3: 0x5f19672f,
+    },
+    u384 {
+        limb0: 0x8bd478cd1ee605167ff82995,
+        limb1: 0xdb45f3536814f0bd5871c190,
+        limb2: 0xfa99cc9170df3560e77982d0,
+        limb3: 0x144e4211384586c16bd3ad4a,
+    },
+    u384 {
+        limb0: 0x6654f19a83cd0a2cfff0a87f,
+        limb1: 0x4f5b1405d978eb5692378322,
+        limb2: 0xb1e7ec4b7d471f3cdb6df2e2,
+        limb3: 0xe9b7238370b26e88c8bb2df,
+    },
+];
+#[inline(always)]
 pub fn run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
     xNegOverY_0: u384,
@@ -2036,281 +2311,6 @@ pub fn run_BLS12_381_MP_CHECK_INIT_BIT_3P_2F_circuit(
     return (Q0, new_lhs);
 }
 #[inline(always)]
-pub fn run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-    lambda_root_inverse: E12D<u384>, z: u384, scaling_factor: MillerLoopResultScalingFactor<u384>,
-) -> (u384, u384, u384) {
-    // CONSTANT stack
-    let in0 = CE::<CI<0>> {}; // 0x0
-    let in1 = CE::<CI<1>> {}; // 0x2
-    let in2 = CE::<
-        CI<2>,
-    > {}; // 0x18089593cbf626353947d5b1fd0c6d66bb34bc7585f5abdf8f17b50e12c47d65ce514a7c167b027b600febdb244714c5
-    let in3 = CE::<
-        CI<3>,
-    > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffeffff
-    let in4 = CE::<
-        CI<4>,
-    > {}; // 0xd5e1c086ffe8016d063c6dad7a2fffc9072bb5785a686bcefeedc2e0124838bdccf325ee5d80be9902109f7dbc79812
-    let in5 = CE::<
-        CI<5>,
-    > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
-    let in6 = CE::<
-        CI<6>,
-    > {}; // 0x1a0111ea397fe6998ce8d956845e1033efa3bf761f6622e9abc9802928bfc912627c4fd7ed3ffffb5dfb00000001aaaf
-    let in7 = CE::<
-        CI<7>,
-    > {}; // 0xb659fb20274bfb1be8ff4d69163c08be7302c4818171fdd17d5be9b1d380acd8c747cdc4aff0e653631f5d3000f022c
-    let in8 = CE::<CI<8>> {}; // -0x1 % p
-    let in9 = CE::<
-        CI<9>,
-    > {}; // 0xfc3e2b36c4e03288e9e902231f9fb854a14787b6c7b36fec0c8ec971f63c5f282d5ac14d6c7ec22cf78a126ddc4af3
-    let in10 = CE::<
-        CI<10>,
-    > {}; // 0x1f87c566d89c06511d3d204463f3f70a9428f0f6d8f66dfd8191d92e3ec78be505ab5829ad8fd8459ef1424dbb895e6
-    let in11 = CE::<
-        CI<11>,
-    > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaac
-    let in12 = CE::<
-        CI<12>,
-    > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
-    let in13 = CE::<
-        CI<13>,
-    > {}; // 0x5f19672fdf76ce51ba69c6076a0f77eaddb3a93be6f89688de17d813620a00022e01fffffffefffe
-    let in14 = CE::<
-        CI<14>,
-    > {}; // 0x144e4211384586c16bd3ad4afa99cc9170df3560e77982d0db45f3536814f0bd5871c1908bd478cd1ee605167ff82995
-    let in15 = CE::<
-        CI<15>,
-    > {}; // 0xe9b7238370b26e88c8bb2dfb1e7ec4b7d471f3cdb6df2e24f5b1405d978eb56923783226654f19a83cd0a2cfff0a87f
-
-    // INPUT stack
-    let (in16, in17, in18) = (CE::<CI<16>> {}, CE::<CI<17>> {}, CE::<CI<18>> {});
-    let (in19, in20, in21) = (CE::<CI<19>> {}, CE::<CI<20>> {}, CE::<CI<21>> {});
-    let (in22, in23, in24) = (CE::<CI<22>> {}, CE::<CI<23>> {}, CE::<CI<24>> {});
-    let (in25, in26, in27) = (CE::<CI<25>> {}, CE::<CI<26>> {}, CE::<CI<27>> {});
-    let (in28, in29, in30) = (CE::<CI<28>> {}, CE::<CI<29>> {}, CE::<CI<30>> {});
-    let (in31, in32, in33) = (CE::<CI<31>> {}, CE::<CI<32>> {}, CE::<CI<33>> {});
-    let in34 = CE::<CI<34>> {};
-    let t0 = circuit_mul(in28, in28); // Compute z^2
-    let t1 = circuit_mul(t0, in28); // Compute z^3
-    let t2 = circuit_mul(t1, in28); // Compute z^4
-    let t3 = circuit_mul(t2, in28); // Compute z^5
-    let t4 = circuit_mul(t3, in28); // Compute z^6
-    let t5 = circuit_mul(t4, in28); // Compute z^7
-    let t6 = circuit_mul(t5, in28); // Compute z^8
-    let t7 = circuit_mul(t6, in28); // Compute z^9
-    let t8 = circuit_mul(t7, in28); // Compute z^10
-    let t9 = circuit_mul(t8, in28); // Compute z^11
-    let t10 = circuit_sub(in0, in17);
-    let t11 = circuit_sub(in0, in19);
-    let t12 = circuit_sub(in0, in21);
-    let t13 = circuit_sub(in0, in23);
-    let t14 = circuit_sub(in0, in25);
-    let t15 = circuit_sub(in0, in27);
-    let t16 = circuit_mul(t10, in28); // Eval C_inv step coeff_1 * z^1
-    let t17 = circuit_add(in16, t16); // Eval C_inv step + (coeff_1 * z^1)
-    let t18 = circuit_mul(in18, t0); // Eval C_inv step coeff_2 * z^2
-    let t19 = circuit_add(t17, t18); // Eval C_inv step + (coeff_2 * z^2)
-    let t20 = circuit_mul(t11, t1); // Eval C_inv step coeff_3 * z^3
-    let t21 = circuit_add(t19, t20); // Eval C_inv step + (coeff_3 * z^3)
-    let t22 = circuit_mul(in20, t2); // Eval C_inv step coeff_4 * z^4
-    let t23 = circuit_add(t21, t22); // Eval C_inv step + (coeff_4 * z^4)
-    let t24 = circuit_mul(t12, t3); // Eval C_inv step coeff_5 * z^5
-    let t25 = circuit_add(t23, t24); // Eval C_inv step + (coeff_5 * z^5)
-    let t26 = circuit_mul(in22, t4); // Eval C_inv step coeff_6 * z^6
-    let t27 = circuit_add(t25, t26); // Eval C_inv step + (coeff_6 * z^6)
-    let t28 = circuit_mul(t13, t5); // Eval C_inv step coeff_7 * z^7
-    let t29 = circuit_add(t27, t28); // Eval C_inv step + (coeff_7 * z^7)
-    let t30 = circuit_mul(in24, t6); // Eval C_inv step coeff_8 * z^8
-    let t31 = circuit_add(t29, t30); // Eval C_inv step + (coeff_8 * z^8)
-    let t32 = circuit_mul(t14, t7); // Eval C_inv step coeff_9 * z^9
-    let t33 = circuit_add(t31, t32); // Eval C_inv step + (coeff_9 * z^9)
-    let t34 = circuit_mul(in26, t8); // Eval C_inv step coeff_10 * z^10
-    let t35 = circuit_add(t33, t34); // Eval C_inv step + (coeff_10 * z^10)
-    let t36 = circuit_mul(t15, t9); // Eval C_inv step coeff_11 * z^11
-    let t37 = circuit_add(t35, t36); // Eval C_inv step + (coeff_11 * z^11)
-    let t38 = circuit_mul(in30, t0); // Eval sparse poly W step coeff_2 * z^2
-    let t39 = circuit_add(in29, t38); // Eval sparse poly W step + coeff_2 * z^2
-    let t40 = circuit_mul(in31, t2); // Eval sparse poly W step coeff_4 * z^4
-    let t41 = circuit_add(t39, t40); // Eval sparse poly W step + coeff_4 * z^4
-    let t42 = circuit_mul(in32, t4); // Eval sparse poly W step coeff_6 * z^6
-    let t43 = circuit_add(t41, t42); // Eval sparse poly W step + coeff_6 * z^6
-    let t44 = circuit_mul(in33, t6); // Eval sparse poly W step coeff_8 * z^8
-    let t45 = circuit_add(t43, t44); // Eval sparse poly W step + coeff_8 * z^8
-    let t46 = circuit_mul(in34, t8); // Eval sparse poly W step coeff_10 * z^10
-    let t47 = circuit_add(t45, t46); // Eval sparse poly W step + coeff_10 * z^10
-    let t48 = circuit_mul(in22, in1);
-    let t49 = circuit_add(in16, t48);
-    let t50 = circuit_mul(t10, in2);
-    let t51 = circuit_mul(t13, in2);
-    let t52 = circuit_add(t50, t51);
-    let t53 = circuit_mul(in18, in3);
-    let t54 = circuit_mul(t14, in4);
-    let t55 = circuit_mul(in20, in5);
-    let t56 = circuit_mul(in26, in6);
-    let t57 = circuit_add(t55, t56);
-    let t58 = circuit_mul(t12, in7);
-    let t59 = circuit_mul(t15, in7);
-    let t60 = circuit_add(t58, t59);
-    let t61 = circuit_mul(in22, in8);
-    let t62 = circuit_mul(t10, in9);
-    let t63 = circuit_mul(t13, in10);
-    let t64 = circuit_add(t62, t63);
-    let t65 = circuit_mul(in18, in11);
-    let t66 = circuit_mul(in24, in11);
-    let t67 = circuit_add(t65, t66);
-    let t68 = circuit_mul(t11, in12);
-    let t69 = circuit_mul(in26, in13);
-    let t70 = circuit_mul(t12, in14);
-    let t71 = circuit_mul(t15, in15);
-    let t72 = circuit_add(t70, t71);
-    let t73 = circuit_mul(t52, in28); // Eval C_inv_frob_1 step coeff_1 * z^1
-    let t74 = circuit_add(t49, t73); // Eval C_inv_frob_1 step + (coeff_1 * z^1)
-    let t75 = circuit_mul(t53, t0); // Eval C_inv_frob_1 step coeff_2 * z^2
-    let t76 = circuit_add(t74, t75); // Eval C_inv_frob_1 step + (coeff_2 * z^2)
-    let t77 = circuit_mul(t54, t1); // Eval C_inv_frob_1 step coeff_3 * z^3
-    let t78 = circuit_add(t76, t77); // Eval C_inv_frob_1 step + (coeff_3 * z^3)
-    let t79 = circuit_mul(t57, t2); // Eval C_inv_frob_1 step coeff_4 * z^4
-    let t80 = circuit_add(t78, t79); // Eval C_inv_frob_1 step + (coeff_4 * z^4)
-    let t81 = circuit_mul(t60, t3); // Eval C_inv_frob_1 step coeff_5 * z^5
-    let t82 = circuit_add(t80, t81); // Eval C_inv_frob_1 step + (coeff_5 * z^5)
-    let t83 = circuit_mul(t61, t4); // Eval C_inv_frob_1 step coeff_6 * z^6
-    let t84 = circuit_add(t82, t83); // Eval C_inv_frob_1 step + (coeff_6 * z^6)
-    let t85 = circuit_mul(t64, t5); // Eval C_inv_frob_1 step coeff_7 * z^7
-    let t86 = circuit_add(t84, t85); // Eval C_inv_frob_1 step + (coeff_7 * z^7)
-    let t87 = circuit_mul(t67, t6); // Eval C_inv_frob_1 step coeff_8 * z^8
-    let t88 = circuit_add(t86, t87); // Eval C_inv_frob_1 step + (coeff_8 * z^8)
-    let t89 = circuit_mul(t68, t7); // Eval C_inv_frob_1 step coeff_9 * z^9
-    let t90 = circuit_add(t88, t89); // Eval C_inv_frob_1 step + (coeff_9 * z^9)
-    let t91 = circuit_mul(t69, t8); // Eval C_inv_frob_1 step coeff_10 * z^10
-    let t92 = circuit_add(t90, t91); // Eval C_inv_frob_1 step + (coeff_10 * z^10)
-    let t93 = circuit_mul(t72, t9); // Eval C_inv_frob_1 step coeff_11 * z^11
-    let t94 = circuit_add(t92, t93); // Eval C_inv_frob_1 step + (coeff_11 * z^11)
-
-    let modulus = crate::definitions::get_BLS12_381_modulus(); // BLS12_381 prime field modulus
-
-    let mut circuit_inputs = (t37, t47, t94).new_inputs();
-    // Prefill constants:
-
-    circuit_inputs = circuit_inputs
-        .next_span(MP_CHECK_PREPARE_LAMBDA_ROOT_BLS12_381_CONSTANTS.span()); // in0 - in15
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w0); // in16
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w1); // in17
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w2); // in18
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w3); // in19
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w4); // in20
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w5); // in21
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w6); // in22
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w7); // in23
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w8); // in24
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w9); // in25
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w10); // in26
-    circuit_inputs = circuit_inputs.next_2(lambda_root_inverse.w11); // in27
-    circuit_inputs = circuit_inputs.next_2(z); // in28
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w0); // in29
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w2); // in30
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w4); // in31
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w6); // in32
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in33
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in34
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let c_inv_of_z: u384 = outputs.get_output(t37);
-    let scaling_factor_of_z: u384 = outputs.get_output(t47);
-    let c_inv_frob_1_of_z: u384 = outputs.get_output(t94);
-    return (c_inv_of_z, scaling_factor_of_z, c_inv_frob_1_of_z);
-}
-const MP_CHECK_PREPARE_LAMBDA_ROOT_BLS12_381_CONSTANTS: [u384; 16] = [
-    u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 {
-        limb0: 0x167b027b600febdb244714c5,
-        limb1: 0x8f17b50e12c47d65ce514a7c,
-        limb2: 0xfd0c6d66bb34bc7585f5abdf,
-        limb3: 0x18089593cbf626353947d5b1,
-    },
-    u384 {
-        limb0: 0x620a00022e01fffffffeffff,
-        limb1: 0xddb3a93be6f89688de17d813,
-        limb2: 0xdf76ce51ba69c6076a0f77ea,
-        limb3: 0x5f19672f,
-    },
-    u384 {
-        limb0: 0xe5d80be9902109f7dbc79812,
-        limb1: 0xefeedc2e0124838bdccf325e,
-        limb2: 0xd7a2fffc9072bb5785a686bc,
-        limb3: 0xd5e1c086ffe8016d063c6da,
-    },
-    u384 {
-        limb0: 0x4f49fffd8bfd00000000aaad,
-        limb1: 0x897d29650fb85f9b409427eb,
-        limb2: 0x63d4de85aa0d857d89759ad4,
-        limb3: 0x1a0111ea397fe699ec024086,
-    },
-    u384 {
-        limb0: 0xed3ffffb5dfb00000001aaaf,
-        limb1: 0xabc9802928bfc912627c4fd7,
-        limb2: 0x845e1033efa3bf761f6622e9,
-        limb3: 0x1a0111ea397fe6998ce8d956,
-    },
-    u384 {
-        limb0: 0x4aff0e653631f5d3000f022c,
-        limb1: 0x17d5be9b1d380acd8c747cdc,
-        limb2: 0x9163c08be7302c4818171fdd,
-        limb3: 0xb659fb20274bfb1be8ff4d6,
-    },
-    u384 {
-        limb0: 0xb153ffffb9feffffffffaaaa,
-        limb1: 0x6730d2a0f6b0f6241eabfffe,
-        limb2: 0x434bacd764774b84f38512bf,
-        limb3: 0x1a0111ea397fe69a4b1ba7b6,
-    },
-    u384 {
-        limb0: 0x4d6c7ec22cf78a126ddc4af3,
-        limb1: 0xec0c8ec971f63c5f282d5ac1,
-        limb2: 0x231f9fb854a14787b6c7b36f,
-        limb3: 0xfc3e2b36c4e03288e9e902,
-    },
-    u384 {
-        limb0: 0x9ad8fd8459ef1424dbb895e6,
-        limb1: 0xd8191d92e3ec78be505ab582,
-        limb2: 0x463f3f70a9428f0f6d8f66df,
-        limb3: 0x1f87c566d89c06511d3d204,
-    },
-    u384 {
-        limb0: 0x4f49fffd8bfd00000000aaac,
-        limb1: 0x897d29650fb85f9b409427eb,
-        limb2: 0x63d4de85aa0d857d89759ad4,
-        limb3: 0x1a0111ea397fe699ec024086,
-    },
-    u384 {
-        limb0: 0x72ec05f4c81084fbede3cc09,
-        limb1: 0x77f76e17009241c5ee67992f,
-        limb2: 0x6bd17ffe48395dabc2d3435e,
-        limb3: 0x6af0e0437ff400b6831e36d,
-    },
-    u384 {
-        limb0: 0x620a00022e01fffffffefffe,
-        limb1: 0xddb3a93be6f89688de17d813,
-        limb2: 0xdf76ce51ba69c6076a0f77ea,
-        limb3: 0x5f19672f,
-    },
-    u384 {
-        limb0: 0x8bd478cd1ee605167ff82995,
-        limb1: 0xdb45f3536814f0bd5871c190,
-        limb2: 0xfa99cc9170df3560e77982d0,
-        limb3: 0x144e4211384586c16bd3ad4a,
-    },
-    u384 {
-        limb0: 0x6654f19a83cd0a2cfff0a87f,
-        limb1: 0x4f5b1405d978eb5692378322,
-        limb2: 0xb1e7ec4b7d471f3cdb6df2e2,
-        limb3: 0xe9b7238370b26e88c8bb2df,
-    },
-];
-#[inline(always)]
 pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_1P_circuit(p_0: G1Point) -> (BLSProcessedPair,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
@@ -2418,6 +2418,651 @@ pub fn run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit(
     };
     return (p_0, p_1, p_2);
 }
+#[inline(always)]
+pub fn run_BN254_INITIALIZE_MPCHECK_circuit(
+    lambda_root: E12D<u288>,
+    z: u384,
+    scaling_factor: MillerLoopResultScalingFactor<u288>,
+    c_inv: E12D<u288>,
+    c_0: u384,
+) -> (u384, u384, u384, u384, u384, u384, u384) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x1
+    let in1 = CE::<CI<1>> {}; // 0x12
+    let in2 = CE::<CI<2>> {}; // 0x1d8c8daef3eee1e81b2522ec5eb28ded6895e1cdfde6a43f5daa971f3fa65955
+    let in3 = CE::<CI<3>> {}; // 0x217e400dc9351e774e34e2ac06ead4000d14d1e242b29c567e9c385ce480a71a
+    let in4 = CE::<CI<4>> {}; // 0x242b719062f6737b8481d22c6934ce844d72f250fd28d102c0d147b2f4d521a7
+    let in5 = CE::<CI<5>> {}; // 0x359809094bd5c8e1b9c22d81246ffc2e794e17643ac198484b8d9094aa82536
+    let in6 = CE::<CI<6>> {}; // 0x21436d48fcb50cc60dd4ef1e69a0c1f0dd2949fa6df7b44cbb259ef7cb58d5ed
+    let in7 = CE::<CI<7>> {}; // 0x18857a58f3b5bb3038a4311a86919d9c7c6c15f88a4f4f0831364cf35f78f771
+    let in8 = CE::<CI<8>> {}; // 0x2c84bbad27c3671562b7adefd44038ab3c0bbad96fc008e7d6998c82f7fc048b
+    let in9 = CE::<CI<9>> {}; // 0xc33b1c70e4fd11b6d1eab6fcd18b99ad4afd096a8697e0c9c36d8ca3339a7b5
+    let in10 = CE::<
+        CI<10>,
+    > {}; // 0x1b007294a55accce13fe08bea73305ff6bdac77c5371c546d428780a6e3dcfa8
+    let in11 = CE::<
+        CI<11>,
+    > {}; // 0x215d42e7ac7bd17cefe88dd8e6965b3adae92c974f501fe811493d72543a3977
+    let in12 = CE::<CI<12>> {}; // -0x1 % p
+    let in13 = CE::<
+        CI<13>,
+    > {}; // 0x246996f3b4fae7e6a6327cfe12150b8e747992778eeec7e5ca5cf05f80f362ac
+    let in14 = CE::<
+        CI<14>,
+    > {}; // 0x12d7c0c3ed42be419d2b22ca22ceca702eeb88c36a8b264dde75f4f798d6a3f2
+    let in15 = CE::<
+        CI<15>,
+    > {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
+    let in16 = CE::<CI<16>> {}; // 0xc38dce27e3b2cae33ce738a184c89d94a0e78406b48f98a7b4f4463e3a7dba0
+    let in17 = CE::<CI<17>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
+    let in18 = CE::<CI<18>> {}; // 0xf20e129e47c9363aa7b569817e0966cba582096fa7a164080faed1f0d24275a
+    let in19 = CE::<
+        CI<19>,
+    > {}; // 0x2c145edbe7fd8aee9f3a80b03b0b1c923685d2ea1bdec763c13b4711cd2b8126
+    let in20 = CE::<CI<20>> {}; // 0x3df92c5b96e3914559897c6ad411fb25b75afb7f8b1c1a56586ff93e080f8bc
+    let in21 = CE::<
+        CI<21>,
+    > {}; // 0x12acf2ca76fd0675a27fb246c7729f7db080cb99678e2ac024c6b8ee6e0c2c4b
+    let in22 = CE::<
+        CI<22>,
+    > {}; // 0x1563dbde3bd6d35ba4523cf7da4e525e2ba6a3151500054667f8140c6a3f2d9f
+    let in23 = CE::<
+        CI<23>,
+    > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd49
+    let in24 = CE::<
+        CI<24>,
+    > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
+    let in25 = CE::<CI<25>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe
+    let in26 = CE::<CI<26>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177ffffff
+    let in27 = CE::<
+        CI<27>,
+    > {}; // 0x13d0c369615f7bb0b2bdfa8fef85fa07122bde8d67dfc8fabd3581ad840ddd76
+    let in28 = CE::<
+        CI<28>,
+    > {}; // 0x18a0f4219f4fdff6fc2bf531eb331a053a35744cac285af5685d3f90eacf7a66
+    let in29 = CE::<CI<29>> {}; // 0xc3a5e9c462a654779c3e050c9ca2a428908a81264e2b5a5bf22f67654883ae6
+    let in30 = CE::<
+        CI<30>,
+    > {}; // 0x2ce02aa5f9bf8cd65bdd2055c255cf9d9e08c1d9345582cc92fd973c74bd77f4
+    let in31 = CE::<
+        CI<31>,
+    > {}; // 0x17ded419ed7be4f97fac149bfaefbac11b155498de227b850aea3f23790405d6
+    let in32 = CE::<
+        CI<32>,
+    > {}; // 0x1bfe7b214c0294242fb81a8dccd8a9b4441d64f34150a79753fb0cd31cc99cc0
+    let in33 = CE::<CI<33>> {}; // 0x697b9c523e0390ed15da0ec97a9b8346513297b9efaf0f0f1a228f0d5662fbd
+    let in34 = CE::<CI<34>> {}; // 0x7a0e052f2b1c443b5186d6ac4c723b85d3f78a3182d2db0c413901c32b0c6fe
+    let in35 = CE::<
+        CI<35>,
+    > {}; // 0x1b76a37fba85f3cd5dc79824a3792597356c892c39c0d06b220500933945267f
+    let in36 = CE::<CI<36>> {}; // 0xabf8b60be77d7306cbeee33576139d7f03a5e397d439ec7694aa2bf4c0c101
+    let in37 = CE::<
+        CI<37>,
+    > {}; // 0x1c938b097fd2247905924b2691fb5e5685558c04009201927eeb0a69546f1fd1
+    let in38 = CE::<CI<38>> {}; // 0x4f1de41b3d1766fa9f30e6dec26094f0fdf31bf98ff2631380cab2baaa586de
+    let in39 = CE::<
+        CI<39>,
+    > {}; // 0x2429efd69b073ae23e8c6565b7b72e1b0e78c27f038f14e77cfd95a083f4c261
+    let in40 = CE::<
+        CI<40>,
+    > {}; // 0x28a411b634f09b8fb14b900e9507e9327600ecc7d8cf6ebab94d0cb3b2594c64
+    let in41 = CE::<
+        CI<41>,
+    > {}; // 0x23d5e999e1910a12feb0f6ef0cd21d04a44a9e08737f96e55fe3ed9d730c239f
+    let in42 = CE::<
+        CI<42>,
+    > {}; // 0x1465d351952f0c0588982b28b4a8aea95364059e272122f5e8257f43bbb36087
+    let in43 = CE::<
+        CI<43>,
+    > {}; // 0x16db366a59b1dd0b9fb1b2282a48633d3e2ddaea200280211f25041384282499
+    let in44 = CE::<
+        CI<44>,
+    > {}; // 0x28c36e1fee7fdbe60337d84bbcba34a53a41f1ee50449cdc780cfbfaa5cc3649
+
+    // INPUT stack
+    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
+    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
+    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
+    let (in54, in55, in56) = (CE::<CI<54>> {}, CE::<CI<55>> {}, CE::<CI<56>> {});
+    let (in57, in58, in59) = (CE::<CI<57>> {}, CE::<CI<58>> {}, CE::<CI<59>> {});
+    let (in60, in61, in62) = (CE::<CI<60>> {}, CE::<CI<61>> {}, CE::<CI<62>> {});
+    let (in63, in64, in65) = (CE::<CI<63>> {}, CE::<CI<64>> {}, CE::<CI<65>> {});
+    let (in66, in67, in68) = (CE::<CI<66>> {}, CE::<CI<67>> {}, CE::<CI<68>> {});
+    let (in69, in70, in71) = (CE::<CI<69>> {}, CE::<CI<70>> {}, CE::<CI<71>> {});
+    let (in72, in73, in74) = (CE::<CI<72>> {}, CE::<CI<73>> {}, CE::<CI<74>> {});
+    let (in75, in76) = (CE::<CI<75>> {}, CE::<CI<76>> {});
+    let t0 = circuit_mul(in57, in57); // Compute z^2
+    let t1 = circuit_mul(t0, in57); // Compute z^3
+    let t2 = circuit_mul(t1, in57); // Compute z^4
+    let t3 = circuit_mul(t2, in57); // Compute z^5
+    let t4 = circuit_mul(t3, in57); // Compute z^6
+    let t5 = circuit_mul(t4, in57); // Compute z^7
+    let t6 = circuit_mul(t5, in57); // Compute z^8
+    let t7 = circuit_mul(t6, in57); // Compute z^9
+    let t8 = circuit_mul(t7, in57); // Compute z^10
+    let t9 = circuit_mul(t8, in57); // Compute z^11
+    let t10 = circuit_mul(in46, in57); // Eval C step coeff_1 * z^1
+    let t11 = circuit_add(in45, t10); // Eval C step + (coeff_1 * z^1)
+    let t12 = circuit_mul(in47, t0); // Eval C step coeff_2 * z^2
+    let t13 = circuit_add(t11, t12); // Eval C step + (coeff_2 * z^2)
+    let t14 = circuit_mul(in48, t1); // Eval C step coeff_3 * z^3
+    let t15 = circuit_add(t13, t14); // Eval C step + (coeff_3 * z^3)
+    let t16 = circuit_mul(in49, t2); // Eval C step coeff_4 * z^4
+    let t17 = circuit_add(t15, t16); // Eval C step + (coeff_4 * z^4)
+    let t18 = circuit_mul(in50, t3); // Eval C step coeff_5 * z^5
+    let t19 = circuit_add(t17, t18); // Eval C step + (coeff_5 * z^5)
+    let t20 = circuit_mul(in51, t4); // Eval C step coeff_6 * z^6
+    let t21 = circuit_add(t19, t20); // Eval C step + (coeff_6 * z^6)
+    let t22 = circuit_mul(in52, t5); // Eval C step coeff_7 * z^7
+    let t23 = circuit_add(t21, t22); // Eval C step + (coeff_7 * z^7)
+    let t24 = circuit_mul(in53, t6); // Eval C step coeff_8 * z^8
+    let t25 = circuit_add(t23, t24); // Eval C step + (coeff_8 * z^8)
+    let t26 = circuit_mul(in54, t7); // Eval C step coeff_9 * z^9
+    let t27 = circuit_add(t25, t26); // Eval C step + (coeff_9 * z^9)
+    let t28 = circuit_mul(in55, t8); // Eval C step coeff_10 * z^10
+    let t29 = circuit_add(t27, t28); // Eval C step + (coeff_10 * z^10)
+    let t30 = circuit_mul(in56, t9); // Eval C step coeff_11 * z^11
+    let t31 = circuit_add(t29, t30); // Eval C step + (coeff_11 * z^11)
+    let t32 = circuit_mul(in59, t0); // Eval sparse poly W step coeff_2 * z^2
+    let t33 = circuit_add(in58, t32); // Eval sparse poly W step + coeff_2 * z^2
+    let t34 = circuit_mul(in60, t2); // Eval sparse poly W step coeff_4 * z^4
+    let t35 = circuit_add(t33, t34); // Eval sparse poly W step + coeff_4 * z^4
+    let t36 = circuit_mul(in61, t4); // Eval sparse poly W step coeff_6 * z^6
+    let t37 = circuit_add(t35, t36); // Eval sparse poly W step + coeff_6 * z^6
+    let t38 = circuit_mul(in62, t6); // Eval sparse poly W step coeff_8 * z^8
+    let t39 = circuit_add(t37, t38); // Eval sparse poly W step + coeff_8 * z^8
+    let t40 = circuit_mul(in63, t8); // Eval sparse poly W step coeff_10 * z^10
+    let t41 = circuit_add(t39, t40); // Eval sparse poly W step + coeff_10 * z^10
+    let t42 = circuit_mul(in65, in57); // Eval C_inv step coeff_1 * z^1
+    let t43 = circuit_add(in64, t42); // Eval C_inv step + (coeff_1 * z^1)
+    let t44 = circuit_mul(in66, t0); // Eval C_inv step coeff_2 * z^2
+    let t45 = circuit_add(t43, t44); // Eval C_inv step + (coeff_2 * z^2)
+    let t46 = circuit_mul(in67, t1); // Eval C_inv step coeff_3 * z^3
+    let t47 = circuit_add(t45, t46); // Eval C_inv step + (coeff_3 * z^3)
+    let t48 = circuit_mul(in68, t2); // Eval C_inv step coeff_4 * z^4
+    let t49 = circuit_add(t47, t48); // Eval C_inv step + (coeff_4 * z^4)
+    let t50 = circuit_mul(in69, t3); // Eval C_inv step coeff_5 * z^5
+    let t51 = circuit_add(t49, t50); // Eval C_inv step + (coeff_5 * z^5)
+    let t52 = circuit_mul(in70, t4); // Eval C_inv step coeff_6 * z^6
+    let t53 = circuit_add(t51, t52); // Eval C_inv step + (coeff_6 * z^6)
+    let t54 = circuit_mul(in71, t5); // Eval C_inv step coeff_7 * z^7
+    let t55 = circuit_add(t53, t54); // Eval C_inv step + (coeff_7 * z^7)
+    let t56 = circuit_mul(in72, t6); // Eval C_inv step coeff_8 * z^8
+    let t57 = circuit_add(t55, t56); // Eval C_inv step + (coeff_8 * z^8)
+    let t58 = circuit_mul(in73, t7); // Eval C_inv step coeff_9 * z^9
+    let t59 = circuit_add(t57, t58); // Eval C_inv step + (coeff_9 * z^9)
+    let t60 = circuit_mul(in74, t8); // Eval C_inv step coeff_10 * z^10
+    let t61 = circuit_add(t59, t60); // Eval C_inv step + (coeff_10 * z^10)
+    let t62 = circuit_mul(in75, t9); // Eval C_inv step coeff_11 * z^11
+    let t63 = circuit_add(t61, t62); // Eval C_inv step + (coeff_11 * z^11)
+    let t64 = circuit_mul(t31, t63);
+    let t65 = circuit_sub(t64, in0); // c_of_z * c_inv_of_z - 1
+    let t66 = circuit_mul(t65, in76); // c_0 * (c_of_z * c_inv_of_z - 1)
+    let t67 = circuit_mul(in70, in1);
+    let t68 = circuit_add(in64, t67);
+    let t69 = circuit_mul(in65, in2);
+    let t70 = circuit_mul(in71, in3);
+    let t71 = circuit_add(t69, t70);
+    let t72 = circuit_mul(in66, in4);
+    let t73 = circuit_mul(in72, in5);
+    let t74 = circuit_add(t72, t73);
+    let t75 = circuit_mul(in67, in6);
+    let t76 = circuit_mul(in73, in7);
+    let t77 = circuit_add(t75, t76);
+    let t78 = circuit_mul(in68, in8);
+    let t79 = circuit_mul(in74, in9);
+    let t80 = circuit_add(t78, t79);
+    let t81 = circuit_mul(in69, in10);
+    let t82 = circuit_mul(in75, in11);
+    let t83 = circuit_add(t81, t82);
+    let t84 = circuit_mul(in70, in12);
+    let t85 = circuit_mul(in65, in13);
+    let t86 = circuit_mul(in71, in14);
+    let t87 = circuit_add(t85, t86);
+    let t88 = circuit_mul(in66, in15);
+    let t89 = circuit_mul(in72, in16);
+    let t90 = circuit_add(t88, t89);
+    let t91 = circuit_mul(in67, in17);
+    let t92 = circuit_mul(in73, in18);
+    let t93 = circuit_add(t91, t92);
+    let t94 = circuit_mul(in68, in19);
+    let t95 = circuit_mul(in74, in20);
+    let t96 = circuit_add(t94, t95);
+    let t97 = circuit_mul(in69, in21);
+    let t98 = circuit_mul(in75, in22);
+    let t99 = circuit_add(t97, t98);
+    let t100 = circuit_mul(in46, in23);
+    let t101 = circuit_mul(in47, in24);
+    let t102 = circuit_mul(in48, in12);
+    let t103 = circuit_mul(in49, in25);
+    let t104 = circuit_mul(in50, in26);
+    let t105 = circuit_mul(in52, in23);
+    let t106 = circuit_mul(in53, in24);
+    let t107 = circuit_mul(in54, in12);
+    let t108 = circuit_mul(in55, in25);
+    let t109 = circuit_mul(in56, in26);
+    let t110 = circuit_mul(in70, in1);
+    let t111 = circuit_add(in64, t110);
+    let t112 = circuit_mul(in65, in27);
+    let t113 = circuit_mul(in71, in28);
+    let t114 = circuit_add(t112, t113);
+    let t115 = circuit_mul(in66, in29);
+    let t116 = circuit_mul(in72, in30);
+    let t117 = circuit_add(t115, t116);
+    let t118 = circuit_mul(in67, in18);
+    let t119 = circuit_mul(in73, in31);
+    let t120 = circuit_add(t118, t119);
+    let t121 = circuit_mul(in68, in32);
+    let t122 = circuit_mul(in74, in33);
+    let t123 = circuit_add(t121, t122);
+    let t124 = circuit_mul(in69, in34);
+    let t125 = circuit_mul(in75, in35);
+    let t126 = circuit_add(t124, t125);
+    let t127 = circuit_mul(in70, in12);
+    let t128 = circuit_mul(in65, in36);
+    let t129 = circuit_mul(in71, in37);
+    let t130 = circuit_add(t128, t129);
+    let t131 = circuit_mul(in66, in38);
+    let t132 = circuit_mul(in72, in39);
+    let t133 = circuit_add(t131, t132);
+    let t134 = circuit_mul(in67, in40);
+    let t135 = circuit_mul(in73, in6);
+    let t136 = circuit_add(t134, t135);
+    let t137 = circuit_mul(in68, in41);
+    let t138 = circuit_mul(in74, in42);
+    let t139 = circuit_add(t137, t138);
+    let t140 = circuit_mul(in69, in43);
+    let t141 = circuit_mul(in75, in44);
+    let t142 = circuit_add(t140, t141);
+    let t143 = circuit_mul(t71, in57); // Eval C_inv_frob_1 step coeff_1 * z^1
+    let t144 = circuit_add(t68, t143); // Eval C_inv_frob_1 step + (coeff_1 * z^1)
+    let t145 = circuit_mul(t74, t0); // Eval C_inv_frob_1 step coeff_2 * z^2
+    let t146 = circuit_add(t144, t145); // Eval C_inv_frob_1 step + (coeff_2 * z^2)
+    let t147 = circuit_mul(t77, t1); // Eval C_inv_frob_1 step coeff_3 * z^3
+    let t148 = circuit_add(t146, t147); // Eval C_inv_frob_1 step + (coeff_3 * z^3)
+    let t149 = circuit_mul(t80, t2); // Eval C_inv_frob_1 step coeff_4 * z^4
+    let t150 = circuit_add(t148, t149); // Eval C_inv_frob_1 step + (coeff_4 * z^4)
+    let t151 = circuit_mul(t83, t3); // Eval C_inv_frob_1 step coeff_5 * z^5
+    let t152 = circuit_add(t150, t151); // Eval C_inv_frob_1 step + (coeff_5 * z^5)
+    let t153 = circuit_mul(t84, t4); // Eval C_inv_frob_1 step coeff_6 * z^6
+    let t154 = circuit_add(t152, t153); // Eval C_inv_frob_1 step + (coeff_6 * z^6)
+    let t155 = circuit_mul(t87, t5); // Eval C_inv_frob_1 step coeff_7 * z^7
+    let t156 = circuit_add(t154, t155); // Eval C_inv_frob_1 step + (coeff_7 * z^7)
+    let t157 = circuit_mul(t90, t6); // Eval C_inv_frob_1 step coeff_8 * z^8
+    let t158 = circuit_add(t156, t157); // Eval C_inv_frob_1 step + (coeff_8 * z^8)
+    let t159 = circuit_mul(t93, t7); // Eval C_inv_frob_1 step coeff_9 * z^9
+    let t160 = circuit_add(t158, t159); // Eval C_inv_frob_1 step + (coeff_9 * z^9)
+    let t161 = circuit_mul(t96, t8); // Eval C_inv_frob_1 step coeff_10 * z^10
+    let t162 = circuit_add(t160, t161); // Eval C_inv_frob_1 step + (coeff_10 * z^10)
+    let t163 = circuit_mul(t99, t9); // Eval C_inv_frob_1 step coeff_11 * z^11
+    let t164 = circuit_add(t162, t163); // Eval C_inv_frob_1 step + (coeff_11 * z^11)
+    let t165 = circuit_mul(t100, in57); // Eval C_frob_2 step coeff_1 * z^1
+    let t166 = circuit_add(in45, t165); // Eval C_frob_2 step + (coeff_1 * z^1)
+    let t167 = circuit_mul(t101, t0); // Eval C_frob_2 step coeff_2 * z^2
+    let t168 = circuit_add(t166, t167); // Eval C_frob_2 step + (coeff_2 * z^2)
+    let t169 = circuit_mul(t102, t1); // Eval C_frob_2 step coeff_3 * z^3
+    let t170 = circuit_add(t168, t169); // Eval C_frob_2 step + (coeff_3 * z^3)
+    let t171 = circuit_mul(t103, t2); // Eval C_frob_2 step coeff_4 * z^4
+    let t172 = circuit_add(t170, t171); // Eval C_frob_2 step + (coeff_4 * z^4)
+    let t173 = circuit_mul(t104, t3); // Eval C_frob_2 step coeff_5 * z^5
+    let t174 = circuit_add(t172, t173); // Eval C_frob_2 step + (coeff_5 * z^5)
+    let t175 = circuit_mul(in51, t4); // Eval C_frob_2 step coeff_6 * z^6
+    let t176 = circuit_add(t174, t175); // Eval C_frob_2 step + (coeff_6 * z^6)
+    let t177 = circuit_mul(t105, t5); // Eval C_frob_2 step coeff_7 * z^7
+    let t178 = circuit_add(t176, t177); // Eval C_frob_2 step + (coeff_7 * z^7)
+    let t179 = circuit_mul(t106, t6); // Eval C_frob_2 step coeff_8 * z^8
+    let t180 = circuit_add(t178, t179); // Eval C_frob_2 step + (coeff_8 * z^8)
+    let t181 = circuit_mul(t107, t7); // Eval C_frob_2 step coeff_9 * z^9
+    let t182 = circuit_add(t180, t181); // Eval C_frob_2 step + (coeff_9 * z^9)
+    let t183 = circuit_mul(t108, t8); // Eval C_frob_2 step coeff_10 * z^10
+    let t184 = circuit_add(t182, t183); // Eval C_frob_2 step + (coeff_10 * z^10)
+    let t185 = circuit_mul(t109, t9); // Eval C_frob_2 step coeff_11 * z^11
+    let t186 = circuit_add(t184, t185); // Eval C_frob_2 step + (coeff_11 * z^11)
+    let t187 = circuit_mul(t114, in57); // Eval C_inv_frob_3 step coeff_1 * z^1
+    let t188 = circuit_add(t111, t187); // Eval C_inv_frob_3 step + (coeff_1 * z^1)
+    let t189 = circuit_mul(t117, t0); // Eval C_inv_frob_3 step coeff_2 * z^2
+    let t190 = circuit_add(t188, t189); // Eval C_inv_frob_3 step + (coeff_2 * z^2)
+    let t191 = circuit_mul(t120, t1); // Eval C_inv_frob_3 step coeff_3 * z^3
+    let t192 = circuit_add(t190, t191); // Eval C_inv_frob_3 step + (coeff_3 * z^3)
+    let t193 = circuit_mul(t123, t2); // Eval C_inv_frob_3 step coeff_4 * z^4
+    let t194 = circuit_add(t192, t193); // Eval C_inv_frob_3 step + (coeff_4 * z^4)
+    let t195 = circuit_mul(t126, t3); // Eval C_inv_frob_3 step coeff_5 * z^5
+    let t196 = circuit_add(t194, t195); // Eval C_inv_frob_3 step + (coeff_5 * z^5)
+    let t197 = circuit_mul(t127, t4); // Eval C_inv_frob_3 step coeff_6 * z^6
+    let t198 = circuit_add(t196, t197); // Eval C_inv_frob_3 step + (coeff_6 * z^6)
+    let t199 = circuit_mul(t130, t5); // Eval C_inv_frob_3 step coeff_7 * z^7
+    let t200 = circuit_add(t198, t199); // Eval C_inv_frob_3 step + (coeff_7 * z^7)
+    let t201 = circuit_mul(t133, t6); // Eval C_inv_frob_3 step coeff_8 * z^8
+    let t202 = circuit_add(t200, t201); // Eval C_inv_frob_3 step + (coeff_8 * z^8)
+    let t203 = circuit_mul(t136, t7); // Eval C_inv_frob_3 step coeff_9 * z^9
+    let t204 = circuit_add(t202, t203); // Eval C_inv_frob_3 step + (coeff_9 * z^9)
+    let t205 = circuit_mul(t139, t8); // Eval C_inv_frob_3 step coeff_10 * z^10
+    let t206 = circuit_add(t204, t205); // Eval C_inv_frob_3 step + (coeff_10 * z^10)
+    let t207 = circuit_mul(t142, t9); // Eval C_inv_frob_3 step coeff_11 * z^11
+    let t208 = circuit_add(t206, t207); // Eval C_inv_frob_3 step + (coeff_11 * z^11)
+
+    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
+
+    let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208).new_inputs();
+    // Prefill constants:
+
+    circuit_inputs = circuit_inputs
+        .next_span(INITIALIZE_MPCHECK_BN254_CONSTANTS.span()); // in0 - in44
+
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w0); // in45
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w1); // in46
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w2); // in47
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w3); // in48
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w4); // in49
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w5); // in50
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w6); // in51
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w7); // in52
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w8); // in53
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w9); // in54
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w10); // in55
+    circuit_inputs = circuit_inputs.next_2(lambda_root.w11); // in56
+    circuit_inputs = circuit_inputs.next_2(z); // in57
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w0); // in58
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w2); // in59
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w4); // in60
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w6); // in61
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in62
+    circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in63
+    circuit_inputs = circuit_inputs.next_2(c_inv.w0); // in64
+    circuit_inputs = circuit_inputs.next_2(c_inv.w1); // in65
+    circuit_inputs = circuit_inputs.next_2(c_inv.w2); // in66
+    circuit_inputs = circuit_inputs.next_2(c_inv.w3); // in67
+    circuit_inputs = circuit_inputs.next_2(c_inv.w4); // in68
+    circuit_inputs = circuit_inputs.next_2(c_inv.w5); // in69
+    circuit_inputs = circuit_inputs.next_2(c_inv.w6); // in70
+    circuit_inputs = circuit_inputs.next_2(c_inv.w7); // in71
+    circuit_inputs = circuit_inputs.next_2(c_inv.w8); // in72
+    circuit_inputs = circuit_inputs.next_2(c_inv.w9); // in73
+    circuit_inputs = circuit_inputs.next_2(c_inv.w10); // in74
+    circuit_inputs = circuit_inputs.next_2(c_inv.w11); // in75
+    circuit_inputs = circuit_inputs.next_2(c_0); // in76
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let c_of_z: u384 = outputs.get_output(t31);
+    let scaling_factor_of_z: u384 = outputs.get_output(t41);
+    let c_inv_of_z: u384 = outputs.get_output(t63);
+    let lhs: u384 = outputs.get_output(t66);
+    let c_inv_frob_1_of_z: u384 = outputs.get_output(t164);
+    let c_frob_2_of_z: u384 = outputs.get_output(t186);
+    let c_inv_frob_3_of_z: u384 = outputs.get_output(t208);
+    return (
+        c_of_z,
+        scaling_factor_of_z,
+        c_inv_of_z,
+        lhs,
+        c_inv_frob_1_of_z,
+        c_frob_2_of_z,
+        c_inv_frob_3_of_z,
+    );
+}
+const INITIALIZE_MPCHECK_BN254_CONSTANTS: [u384; 45] = [
+    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x12, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 {
+        limb0: 0xfde6a43f5daa971f3fa65955,
+        limb1: 0x1b2522ec5eb28ded6895e1cd,
+        limb2: 0x1d8c8daef3eee1e8,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x42b29c567e9c385ce480a71a,
+        limb1: 0x4e34e2ac06ead4000d14d1e2,
+        limb2: 0x217e400dc9351e77,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xfd28d102c0d147b2f4d521a7,
+        limb1: 0x8481d22c6934ce844d72f250,
+        limb2: 0x242b719062f6737b,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x43ac198484b8d9094aa82536,
+        limb1: 0x1b9c22d81246ffc2e794e176,
+        limb2: 0x359809094bd5c8e,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x6df7b44cbb259ef7cb58d5ed,
+        limb1: 0xdd4ef1e69a0c1f0dd2949fa,
+        limb2: 0x21436d48fcb50cc6,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x8a4f4f0831364cf35f78f771,
+        limb1: 0x38a4311a86919d9c7c6c15f8,
+        limb2: 0x18857a58f3b5bb30,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x6fc008e7d6998c82f7fc048b,
+        limb1: 0x62b7adefd44038ab3c0bbad9,
+        limb2: 0x2c84bbad27c36715,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xa8697e0c9c36d8ca3339a7b5,
+        limb1: 0x6d1eab6fcd18b99ad4afd096,
+        limb2: 0xc33b1c70e4fd11b,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x5371c546d428780a6e3dcfa8,
+        limb1: 0x13fe08bea73305ff6bdac77c,
+        limb2: 0x1b007294a55accce,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x4f501fe811493d72543a3977,
+        limb1: 0xefe88dd8e6965b3adae92c97,
+        limb2: 0x215d42e7ac7bd17c,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x6871ca8d3c208c16d87cfd46,
+        limb1: 0xb85045b68181585d97816a91,
+        limb2: 0x30644e72e131a029,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x8eeec7e5ca5cf05f80f362ac,
+        limb1: 0xa6327cfe12150b8e74799277,
+        limb2: 0x246996f3b4fae7e6,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x6a8b264dde75f4f798d6a3f2,
+        limb1: 0x9d2b22ca22ceca702eeb88c3,
+        limb2: 0x12d7c0c3ed42be41,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xb7c9dce1665d51c640fcba2,
+        limb1: 0x4ba4cc8bd75a079432ae2a1d,
+        limb2: 0x16c9e55061ebae20,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x6b48f98a7b4f4463e3a7dba0,
+        limb1: 0x33ce738a184c89d94a0e7840,
+        limb2: 0xc38dce27e3b2cae,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x8fa25bd282d37f632623b0e3,
+        limb1: 0x704b5a7ec796f2b21807dc9,
+        limb2: 0x7c03cbcac41049a,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xfa7a164080faed1f0d24275a,
+        limb1: 0xaa7b569817e0966cba582096,
+        limb2: 0xf20e129e47c9363,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x1bdec763c13b4711cd2b8126,
+        limb1: 0x9f3a80b03b0b1c923685d2ea,
+        limb2: 0x2c145edbe7fd8aee,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xf8b1c1a56586ff93e080f8bc,
+        limb1: 0x559897c6ad411fb25b75afb7,
+        limb2: 0x3df92c5b96e3914,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x678e2ac024c6b8ee6e0c2c4b,
+        limb1: 0xa27fb246c7729f7db080cb99,
+        limb2: 0x12acf2ca76fd0675,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x1500054667f8140c6a3f2d9f,
+        limb1: 0xa4523cf7da4e525e2ba6a315,
+        limb2: 0x1563dbde3bd6d35b,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xbb966e3de4bd44e5607cfd49,
+        limb1: 0x5e6dd9e7e0acccb0c28f069f,
+        limb2: 0x30644e72e131a029,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xbb966e3de4bd44e5607cfd48,
+        limb1: 0x5e6dd9e7e0acccb0c28f069f,
+        limb2: 0x30644e72e131a029,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xacdb5c4f5763473177fffffe,
+        limb1: 0x59e26bcea0d48bacd4f263f1,
+        limb2: 0x0,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xacdb5c4f5763473177ffffff,
+        limb1: 0x59e26bcea0d48bacd4f263f1,
+        limb2: 0x0,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x67dfc8fabd3581ad840ddd76,
+        limb1: 0xb2bdfa8fef85fa07122bde8d,
+        limb2: 0x13d0c369615f7bb0,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xac285af5685d3f90eacf7a66,
+        limb1: 0xfc2bf531eb331a053a35744c,
+        limb2: 0x18a0f4219f4fdff6,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x64e2b5a5bf22f67654883ae6,
+        limb1: 0x79c3e050c9ca2a428908a812,
+        limb2: 0xc3a5e9c462a6547,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x345582cc92fd973c74bd77f4,
+        limb1: 0x5bdd2055c255cf9d9e08c1d9,
+        limb2: 0x2ce02aa5f9bf8cd6,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xde227b850aea3f23790405d6,
+        limb1: 0x7fac149bfaefbac11b155498,
+        limb2: 0x17ded419ed7be4f9,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x4150a79753fb0cd31cc99cc0,
+        limb1: 0x2fb81a8dccd8a9b4441d64f3,
+        limb2: 0x1bfe7b214c029424,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x9efaf0f0f1a228f0d5662fbd,
+        limb1: 0xd15da0ec97a9b8346513297b,
+        limb2: 0x697b9c523e0390e,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x182d2db0c413901c32b0c6fe,
+        limb1: 0xb5186d6ac4c723b85d3f78a3,
+        limb2: 0x7a0e052f2b1c443,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x39c0d06b220500933945267f,
+        limb1: 0x5dc79824a3792597356c892c,
+        limb2: 0x1b76a37fba85f3cd,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x97d439ec7694aa2bf4c0c101,
+        limb1: 0x6cbeee33576139d7f03a5e3,
+        limb2: 0xabf8b60be77d73,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x9201927eeb0a69546f1fd1,
+        limb1: 0x5924b2691fb5e5685558c04,
+        limb2: 0x1c938b097fd22479,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x98ff2631380cab2baaa586de,
+        limb1: 0xa9f30e6dec26094f0fdf31bf,
+        limb2: 0x4f1de41b3d1766f,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x38f14e77cfd95a083f4c261,
+        limb1: 0x3e8c6565b7b72e1b0e78c27f,
+        limb2: 0x2429efd69b073ae2,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0xd8cf6ebab94d0cb3b2594c64,
+        limb1: 0xb14b900e9507e9327600ecc7,
+        limb2: 0x28a411b634f09b8f,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x737f96e55fe3ed9d730c239f,
+        limb1: 0xfeb0f6ef0cd21d04a44a9e08,
+        limb2: 0x23d5e999e1910a12,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x272122f5e8257f43bbb36087,
+        limb1: 0x88982b28b4a8aea95364059e,
+        limb2: 0x1465d351952f0c05,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x200280211f25041384282499,
+        limb1: 0x9fb1b2282a48633d3e2ddaea,
+        limb2: 0x16db366a59b1dd0b,
+        limb3: 0x0,
+    },
+    u384 {
+        limb0: 0x50449cdc780cfbfaa5cc3649,
+        limb1: 0x337d84bbcba34a53a41f1ee,
+        limb2: 0x28c36e1fee7fdbe6,
+        limb3: 0x0,
+    },
+];
 #[inline(always)]
 pub fn run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
     yInv_0: u384,
@@ -5739,651 +6384,6 @@ pub fn run_BN254_MP_CHECK_INIT_BIT_3P_2F_circuit(
     let c_i: u384 = outputs.get_output(t6);
     return (Q0, new_lhs, c_i);
 }
-#[inline(always)]
-pub fn run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
-    lambda_root: E12D<u288>,
-    z: u384,
-    scaling_factor: MillerLoopResultScalingFactor<u288>,
-    c_inv: E12D<u288>,
-    c_0: u384,
-) -> (u384, u384, u384, u384, u384, u384, u384) {
-    // CONSTANT stack
-    let in0 = CE::<CI<0>> {}; // 0x1
-    let in1 = CE::<CI<1>> {}; // 0x12
-    let in2 = CE::<CI<2>> {}; // 0x1d8c8daef3eee1e81b2522ec5eb28ded6895e1cdfde6a43f5daa971f3fa65955
-    let in3 = CE::<CI<3>> {}; // 0x217e400dc9351e774e34e2ac06ead4000d14d1e242b29c567e9c385ce480a71a
-    let in4 = CE::<CI<4>> {}; // 0x242b719062f6737b8481d22c6934ce844d72f250fd28d102c0d147b2f4d521a7
-    let in5 = CE::<CI<5>> {}; // 0x359809094bd5c8e1b9c22d81246ffc2e794e17643ac198484b8d9094aa82536
-    let in6 = CE::<CI<6>> {}; // 0x21436d48fcb50cc60dd4ef1e69a0c1f0dd2949fa6df7b44cbb259ef7cb58d5ed
-    let in7 = CE::<CI<7>> {}; // 0x18857a58f3b5bb3038a4311a86919d9c7c6c15f88a4f4f0831364cf35f78f771
-    let in8 = CE::<CI<8>> {}; // 0x2c84bbad27c3671562b7adefd44038ab3c0bbad96fc008e7d6998c82f7fc048b
-    let in9 = CE::<CI<9>> {}; // 0xc33b1c70e4fd11b6d1eab6fcd18b99ad4afd096a8697e0c9c36d8ca3339a7b5
-    let in10 = CE::<
-        CI<10>,
-    > {}; // 0x1b007294a55accce13fe08bea73305ff6bdac77c5371c546d428780a6e3dcfa8
-    let in11 = CE::<
-        CI<11>,
-    > {}; // 0x215d42e7ac7bd17cefe88dd8e6965b3adae92c974f501fe811493d72543a3977
-    let in12 = CE::<CI<12>> {}; // -0x1 % p
-    let in13 = CE::<
-        CI<13>,
-    > {}; // 0x246996f3b4fae7e6a6327cfe12150b8e747992778eeec7e5ca5cf05f80f362ac
-    let in14 = CE::<
-        CI<14>,
-    > {}; // 0x12d7c0c3ed42be419d2b22ca22ceca702eeb88c36a8b264dde75f4f798d6a3f2
-    let in15 = CE::<
-        CI<15>,
-    > {}; // 0x16c9e55061ebae204ba4cc8bd75a079432ae2a1d0b7c9dce1665d51c640fcba2
-    let in16 = CE::<CI<16>> {}; // 0xc38dce27e3b2cae33ce738a184c89d94a0e78406b48f98a7b4f4463e3a7dba0
-    let in17 = CE::<CI<17>> {}; // 0x7c03cbcac41049a0704b5a7ec796f2b21807dc98fa25bd282d37f632623b0e3
-    let in18 = CE::<CI<18>> {}; // 0xf20e129e47c9363aa7b569817e0966cba582096fa7a164080faed1f0d24275a
-    let in19 = CE::<
-        CI<19>,
-    > {}; // 0x2c145edbe7fd8aee9f3a80b03b0b1c923685d2ea1bdec763c13b4711cd2b8126
-    let in20 = CE::<CI<20>> {}; // 0x3df92c5b96e3914559897c6ad411fb25b75afb7f8b1c1a56586ff93e080f8bc
-    let in21 = CE::<
-        CI<21>,
-    > {}; // 0x12acf2ca76fd0675a27fb246c7729f7db080cb99678e2ac024c6b8ee6e0c2c4b
-    let in22 = CE::<
-        CI<22>,
-    > {}; // 0x1563dbde3bd6d35ba4523cf7da4e525e2ba6a3151500054667f8140c6a3f2d9f
-    let in23 = CE::<
-        CI<23>,
-    > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd49
-    let in24 = CE::<
-        CI<24>,
-    > {}; // 0x30644e72e131a0295e6dd9e7e0acccb0c28f069fbb966e3de4bd44e5607cfd48
-    let in25 = CE::<CI<25>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177fffffe
-    let in26 = CE::<CI<26>> {}; // 0x59e26bcea0d48bacd4f263f1acdb5c4f5763473177ffffff
-    let in27 = CE::<
-        CI<27>,
-    > {}; // 0x13d0c369615f7bb0b2bdfa8fef85fa07122bde8d67dfc8fabd3581ad840ddd76
-    let in28 = CE::<
-        CI<28>,
-    > {}; // 0x18a0f4219f4fdff6fc2bf531eb331a053a35744cac285af5685d3f90eacf7a66
-    let in29 = CE::<CI<29>> {}; // 0xc3a5e9c462a654779c3e050c9ca2a428908a81264e2b5a5bf22f67654883ae6
-    let in30 = CE::<
-        CI<30>,
-    > {}; // 0x2ce02aa5f9bf8cd65bdd2055c255cf9d9e08c1d9345582cc92fd973c74bd77f4
-    let in31 = CE::<
-        CI<31>,
-    > {}; // 0x17ded419ed7be4f97fac149bfaefbac11b155498de227b850aea3f23790405d6
-    let in32 = CE::<
-        CI<32>,
-    > {}; // 0x1bfe7b214c0294242fb81a8dccd8a9b4441d64f34150a79753fb0cd31cc99cc0
-    let in33 = CE::<CI<33>> {}; // 0x697b9c523e0390ed15da0ec97a9b8346513297b9efaf0f0f1a228f0d5662fbd
-    let in34 = CE::<CI<34>> {}; // 0x7a0e052f2b1c443b5186d6ac4c723b85d3f78a3182d2db0c413901c32b0c6fe
-    let in35 = CE::<
-        CI<35>,
-    > {}; // 0x1b76a37fba85f3cd5dc79824a3792597356c892c39c0d06b220500933945267f
-    let in36 = CE::<CI<36>> {}; // 0xabf8b60be77d7306cbeee33576139d7f03a5e397d439ec7694aa2bf4c0c101
-    let in37 = CE::<
-        CI<37>,
-    > {}; // 0x1c938b097fd2247905924b2691fb5e5685558c04009201927eeb0a69546f1fd1
-    let in38 = CE::<CI<38>> {}; // 0x4f1de41b3d1766fa9f30e6dec26094f0fdf31bf98ff2631380cab2baaa586de
-    let in39 = CE::<
-        CI<39>,
-    > {}; // 0x2429efd69b073ae23e8c6565b7b72e1b0e78c27f038f14e77cfd95a083f4c261
-    let in40 = CE::<
-        CI<40>,
-    > {}; // 0x28a411b634f09b8fb14b900e9507e9327600ecc7d8cf6ebab94d0cb3b2594c64
-    let in41 = CE::<
-        CI<41>,
-    > {}; // 0x23d5e999e1910a12feb0f6ef0cd21d04a44a9e08737f96e55fe3ed9d730c239f
-    let in42 = CE::<
-        CI<42>,
-    > {}; // 0x1465d351952f0c0588982b28b4a8aea95364059e272122f5e8257f43bbb36087
-    let in43 = CE::<
-        CI<43>,
-    > {}; // 0x16db366a59b1dd0b9fb1b2282a48633d3e2ddaea200280211f25041384282499
-    let in44 = CE::<
-        CI<44>,
-    > {}; // 0x28c36e1fee7fdbe60337d84bbcba34a53a41f1ee50449cdc780cfbfaa5cc3649
-
-    // INPUT stack
-    let (in45, in46, in47) = (CE::<CI<45>> {}, CE::<CI<46>> {}, CE::<CI<47>> {});
-    let (in48, in49, in50) = (CE::<CI<48>> {}, CE::<CI<49>> {}, CE::<CI<50>> {});
-    let (in51, in52, in53) = (CE::<CI<51>> {}, CE::<CI<52>> {}, CE::<CI<53>> {});
-    let (in54, in55, in56) = (CE::<CI<54>> {}, CE::<CI<55>> {}, CE::<CI<56>> {});
-    let (in57, in58, in59) = (CE::<CI<57>> {}, CE::<CI<58>> {}, CE::<CI<59>> {});
-    let (in60, in61, in62) = (CE::<CI<60>> {}, CE::<CI<61>> {}, CE::<CI<62>> {});
-    let (in63, in64, in65) = (CE::<CI<63>> {}, CE::<CI<64>> {}, CE::<CI<65>> {});
-    let (in66, in67, in68) = (CE::<CI<66>> {}, CE::<CI<67>> {}, CE::<CI<68>> {});
-    let (in69, in70, in71) = (CE::<CI<69>> {}, CE::<CI<70>> {}, CE::<CI<71>> {});
-    let (in72, in73, in74) = (CE::<CI<72>> {}, CE::<CI<73>> {}, CE::<CI<74>> {});
-    let (in75, in76) = (CE::<CI<75>> {}, CE::<CI<76>> {});
-    let t0 = circuit_mul(in57, in57); // Compute z^2
-    let t1 = circuit_mul(t0, in57); // Compute z^3
-    let t2 = circuit_mul(t1, in57); // Compute z^4
-    let t3 = circuit_mul(t2, in57); // Compute z^5
-    let t4 = circuit_mul(t3, in57); // Compute z^6
-    let t5 = circuit_mul(t4, in57); // Compute z^7
-    let t6 = circuit_mul(t5, in57); // Compute z^8
-    let t7 = circuit_mul(t6, in57); // Compute z^9
-    let t8 = circuit_mul(t7, in57); // Compute z^10
-    let t9 = circuit_mul(t8, in57); // Compute z^11
-    let t10 = circuit_mul(in46, in57); // Eval C step coeff_1 * z^1
-    let t11 = circuit_add(in45, t10); // Eval C step + (coeff_1 * z^1)
-    let t12 = circuit_mul(in47, t0); // Eval C step coeff_2 * z^2
-    let t13 = circuit_add(t11, t12); // Eval C step + (coeff_2 * z^2)
-    let t14 = circuit_mul(in48, t1); // Eval C step coeff_3 * z^3
-    let t15 = circuit_add(t13, t14); // Eval C step + (coeff_3 * z^3)
-    let t16 = circuit_mul(in49, t2); // Eval C step coeff_4 * z^4
-    let t17 = circuit_add(t15, t16); // Eval C step + (coeff_4 * z^4)
-    let t18 = circuit_mul(in50, t3); // Eval C step coeff_5 * z^5
-    let t19 = circuit_add(t17, t18); // Eval C step + (coeff_5 * z^5)
-    let t20 = circuit_mul(in51, t4); // Eval C step coeff_6 * z^6
-    let t21 = circuit_add(t19, t20); // Eval C step + (coeff_6 * z^6)
-    let t22 = circuit_mul(in52, t5); // Eval C step coeff_7 * z^7
-    let t23 = circuit_add(t21, t22); // Eval C step + (coeff_7 * z^7)
-    let t24 = circuit_mul(in53, t6); // Eval C step coeff_8 * z^8
-    let t25 = circuit_add(t23, t24); // Eval C step + (coeff_8 * z^8)
-    let t26 = circuit_mul(in54, t7); // Eval C step coeff_9 * z^9
-    let t27 = circuit_add(t25, t26); // Eval C step + (coeff_9 * z^9)
-    let t28 = circuit_mul(in55, t8); // Eval C step coeff_10 * z^10
-    let t29 = circuit_add(t27, t28); // Eval C step + (coeff_10 * z^10)
-    let t30 = circuit_mul(in56, t9); // Eval C step coeff_11 * z^11
-    let t31 = circuit_add(t29, t30); // Eval C step + (coeff_11 * z^11)
-    let t32 = circuit_mul(in59, t0); // Eval sparse poly W step coeff_2 * z^2
-    let t33 = circuit_add(in58, t32); // Eval sparse poly W step + coeff_2 * z^2
-    let t34 = circuit_mul(in60, t2); // Eval sparse poly W step coeff_4 * z^4
-    let t35 = circuit_add(t33, t34); // Eval sparse poly W step + coeff_4 * z^4
-    let t36 = circuit_mul(in61, t4); // Eval sparse poly W step coeff_6 * z^6
-    let t37 = circuit_add(t35, t36); // Eval sparse poly W step + coeff_6 * z^6
-    let t38 = circuit_mul(in62, t6); // Eval sparse poly W step coeff_8 * z^8
-    let t39 = circuit_add(t37, t38); // Eval sparse poly W step + coeff_8 * z^8
-    let t40 = circuit_mul(in63, t8); // Eval sparse poly W step coeff_10 * z^10
-    let t41 = circuit_add(t39, t40); // Eval sparse poly W step + coeff_10 * z^10
-    let t42 = circuit_mul(in65, in57); // Eval C_inv step coeff_1 * z^1
-    let t43 = circuit_add(in64, t42); // Eval C_inv step + (coeff_1 * z^1)
-    let t44 = circuit_mul(in66, t0); // Eval C_inv step coeff_2 * z^2
-    let t45 = circuit_add(t43, t44); // Eval C_inv step + (coeff_2 * z^2)
-    let t46 = circuit_mul(in67, t1); // Eval C_inv step coeff_3 * z^3
-    let t47 = circuit_add(t45, t46); // Eval C_inv step + (coeff_3 * z^3)
-    let t48 = circuit_mul(in68, t2); // Eval C_inv step coeff_4 * z^4
-    let t49 = circuit_add(t47, t48); // Eval C_inv step + (coeff_4 * z^4)
-    let t50 = circuit_mul(in69, t3); // Eval C_inv step coeff_5 * z^5
-    let t51 = circuit_add(t49, t50); // Eval C_inv step + (coeff_5 * z^5)
-    let t52 = circuit_mul(in70, t4); // Eval C_inv step coeff_6 * z^6
-    let t53 = circuit_add(t51, t52); // Eval C_inv step + (coeff_6 * z^6)
-    let t54 = circuit_mul(in71, t5); // Eval C_inv step coeff_7 * z^7
-    let t55 = circuit_add(t53, t54); // Eval C_inv step + (coeff_7 * z^7)
-    let t56 = circuit_mul(in72, t6); // Eval C_inv step coeff_8 * z^8
-    let t57 = circuit_add(t55, t56); // Eval C_inv step + (coeff_8 * z^8)
-    let t58 = circuit_mul(in73, t7); // Eval C_inv step coeff_9 * z^9
-    let t59 = circuit_add(t57, t58); // Eval C_inv step + (coeff_9 * z^9)
-    let t60 = circuit_mul(in74, t8); // Eval C_inv step coeff_10 * z^10
-    let t61 = circuit_add(t59, t60); // Eval C_inv step + (coeff_10 * z^10)
-    let t62 = circuit_mul(in75, t9); // Eval C_inv step coeff_11 * z^11
-    let t63 = circuit_add(t61, t62); // Eval C_inv step + (coeff_11 * z^11)
-    let t64 = circuit_mul(t31, t63);
-    let t65 = circuit_sub(t64, in0); // c_of_z * c_inv_of_z - 1
-    let t66 = circuit_mul(t65, in76); // c_0 * (c_of_z * c_inv_of_z - 1)
-    let t67 = circuit_mul(in70, in1);
-    let t68 = circuit_add(in64, t67);
-    let t69 = circuit_mul(in65, in2);
-    let t70 = circuit_mul(in71, in3);
-    let t71 = circuit_add(t69, t70);
-    let t72 = circuit_mul(in66, in4);
-    let t73 = circuit_mul(in72, in5);
-    let t74 = circuit_add(t72, t73);
-    let t75 = circuit_mul(in67, in6);
-    let t76 = circuit_mul(in73, in7);
-    let t77 = circuit_add(t75, t76);
-    let t78 = circuit_mul(in68, in8);
-    let t79 = circuit_mul(in74, in9);
-    let t80 = circuit_add(t78, t79);
-    let t81 = circuit_mul(in69, in10);
-    let t82 = circuit_mul(in75, in11);
-    let t83 = circuit_add(t81, t82);
-    let t84 = circuit_mul(in70, in12);
-    let t85 = circuit_mul(in65, in13);
-    let t86 = circuit_mul(in71, in14);
-    let t87 = circuit_add(t85, t86);
-    let t88 = circuit_mul(in66, in15);
-    let t89 = circuit_mul(in72, in16);
-    let t90 = circuit_add(t88, t89);
-    let t91 = circuit_mul(in67, in17);
-    let t92 = circuit_mul(in73, in18);
-    let t93 = circuit_add(t91, t92);
-    let t94 = circuit_mul(in68, in19);
-    let t95 = circuit_mul(in74, in20);
-    let t96 = circuit_add(t94, t95);
-    let t97 = circuit_mul(in69, in21);
-    let t98 = circuit_mul(in75, in22);
-    let t99 = circuit_add(t97, t98);
-    let t100 = circuit_mul(in46, in23);
-    let t101 = circuit_mul(in47, in24);
-    let t102 = circuit_mul(in48, in12);
-    let t103 = circuit_mul(in49, in25);
-    let t104 = circuit_mul(in50, in26);
-    let t105 = circuit_mul(in52, in23);
-    let t106 = circuit_mul(in53, in24);
-    let t107 = circuit_mul(in54, in12);
-    let t108 = circuit_mul(in55, in25);
-    let t109 = circuit_mul(in56, in26);
-    let t110 = circuit_mul(in70, in1);
-    let t111 = circuit_add(in64, t110);
-    let t112 = circuit_mul(in65, in27);
-    let t113 = circuit_mul(in71, in28);
-    let t114 = circuit_add(t112, t113);
-    let t115 = circuit_mul(in66, in29);
-    let t116 = circuit_mul(in72, in30);
-    let t117 = circuit_add(t115, t116);
-    let t118 = circuit_mul(in67, in18);
-    let t119 = circuit_mul(in73, in31);
-    let t120 = circuit_add(t118, t119);
-    let t121 = circuit_mul(in68, in32);
-    let t122 = circuit_mul(in74, in33);
-    let t123 = circuit_add(t121, t122);
-    let t124 = circuit_mul(in69, in34);
-    let t125 = circuit_mul(in75, in35);
-    let t126 = circuit_add(t124, t125);
-    let t127 = circuit_mul(in70, in12);
-    let t128 = circuit_mul(in65, in36);
-    let t129 = circuit_mul(in71, in37);
-    let t130 = circuit_add(t128, t129);
-    let t131 = circuit_mul(in66, in38);
-    let t132 = circuit_mul(in72, in39);
-    let t133 = circuit_add(t131, t132);
-    let t134 = circuit_mul(in67, in40);
-    let t135 = circuit_mul(in73, in6);
-    let t136 = circuit_add(t134, t135);
-    let t137 = circuit_mul(in68, in41);
-    let t138 = circuit_mul(in74, in42);
-    let t139 = circuit_add(t137, t138);
-    let t140 = circuit_mul(in69, in43);
-    let t141 = circuit_mul(in75, in44);
-    let t142 = circuit_add(t140, t141);
-    let t143 = circuit_mul(t71, in57); // Eval C_inv_frob_1 step coeff_1 * z^1
-    let t144 = circuit_add(t68, t143); // Eval C_inv_frob_1 step + (coeff_1 * z^1)
-    let t145 = circuit_mul(t74, t0); // Eval C_inv_frob_1 step coeff_2 * z^2
-    let t146 = circuit_add(t144, t145); // Eval C_inv_frob_1 step + (coeff_2 * z^2)
-    let t147 = circuit_mul(t77, t1); // Eval C_inv_frob_1 step coeff_3 * z^3
-    let t148 = circuit_add(t146, t147); // Eval C_inv_frob_1 step + (coeff_3 * z^3)
-    let t149 = circuit_mul(t80, t2); // Eval C_inv_frob_1 step coeff_4 * z^4
-    let t150 = circuit_add(t148, t149); // Eval C_inv_frob_1 step + (coeff_4 * z^4)
-    let t151 = circuit_mul(t83, t3); // Eval C_inv_frob_1 step coeff_5 * z^5
-    let t152 = circuit_add(t150, t151); // Eval C_inv_frob_1 step + (coeff_5 * z^5)
-    let t153 = circuit_mul(t84, t4); // Eval C_inv_frob_1 step coeff_6 * z^6
-    let t154 = circuit_add(t152, t153); // Eval C_inv_frob_1 step + (coeff_6 * z^6)
-    let t155 = circuit_mul(t87, t5); // Eval C_inv_frob_1 step coeff_7 * z^7
-    let t156 = circuit_add(t154, t155); // Eval C_inv_frob_1 step + (coeff_7 * z^7)
-    let t157 = circuit_mul(t90, t6); // Eval C_inv_frob_1 step coeff_8 * z^8
-    let t158 = circuit_add(t156, t157); // Eval C_inv_frob_1 step + (coeff_8 * z^8)
-    let t159 = circuit_mul(t93, t7); // Eval C_inv_frob_1 step coeff_9 * z^9
-    let t160 = circuit_add(t158, t159); // Eval C_inv_frob_1 step + (coeff_9 * z^9)
-    let t161 = circuit_mul(t96, t8); // Eval C_inv_frob_1 step coeff_10 * z^10
-    let t162 = circuit_add(t160, t161); // Eval C_inv_frob_1 step + (coeff_10 * z^10)
-    let t163 = circuit_mul(t99, t9); // Eval C_inv_frob_1 step coeff_11 * z^11
-    let t164 = circuit_add(t162, t163); // Eval C_inv_frob_1 step + (coeff_11 * z^11)
-    let t165 = circuit_mul(t100, in57); // Eval C_frob_2 step coeff_1 * z^1
-    let t166 = circuit_add(in45, t165); // Eval C_frob_2 step + (coeff_1 * z^1)
-    let t167 = circuit_mul(t101, t0); // Eval C_frob_2 step coeff_2 * z^2
-    let t168 = circuit_add(t166, t167); // Eval C_frob_2 step + (coeff_2 * z^2)
-    let t169 = circuit_mul(t102, t1); // Eval C_frob_2 step coeff_3 * z^3
-    let t170 = circuit_add(t168, t169); // Eval C_frob_2 step + (coeff_3 * z^3)
-    let t171 = circuit_mul(t103, t2); // Eval C_frob_2 step coeff_4 * z^4
-    let t172 = circuit_add(t170, t171); // Eval C_frob_2 step + (coeff_4 * z^4)
-    let t173 = circuit_mul(t104, t3); // Eval C_frob_2 step coeff_5 * z^5
-    let t174 = circuit_add(t172, t173); // Eval C_frob_2 step + (coeff_5 * z^5)
-    let t175 = circuit_mul(in51, t4); // Eval C_frob_2 step coeff_6 * z^6
-    let t176 = circuit_add(t174, t175); // Eval C_frob_2 step + (coeff_6 * z^6)
-    let t177 = circuit_mul(t105, t5); // Eval C_frob_2 step coeff_7 * z^7
-    let t178 = circuit_add(t176, t177); // Eval C_frob_2 step + (coeff_7 * z^7)
-    let t179 = circuit_mul(t106, t6); // Eval C_frob_2 step coeff_8 * z^8
-    let t180 = circuit_add(t178, t179); // Eval C_frob_2 step + (coeff_8 * z^8)
-    let t181 = circuit_mul(t107, t7); // Eval C_frob_2 step coeff_9 * z^9
-    let t182 = circuit_add(t180, t181); // Eval C_frob_2 step + (coeff_9 * z^9)
-    let t183 = circuit_mul(t108, t8); // Eval C_frob_2 step coeff_10 * z^10
-    let t184 = circuit_add(t182, t183); // Eval C_frob_2 step + (coeff_10 * z^10)
-    let t185 = circuit_mul(t109, t9); // Eval C_frob_2 step coeff_11 * z^11
-    let t186 = circuit_add(t184, t185); // Eval C_frob_2 step + (coeff_11 * z^11)
-    let t187 = circuit_mul(t114, in57); // Eval C_inv_frob_3 step coeff_1 * z^1
-    let t188 = circuit_add(t111, t187); // Eval C_inv_frob_3 step + (coeff_1 * z^1)
-    let t189 = circuit_mul(t117, t0); // Eval C_inv_frob_3 step coeff_2 * z^2
-    let t190 = circuit_add(t188, t189); // Eval C_inv_frob_3 step + (coeff_2 * z^2)
-    let t191 = circuit_mul(t120, t1); // Eval C_inv_frob_3 step coeff_3 * z^3
-    let t192 = circuit_add(t190, t191); // Eval C_inv_frob_3 step + (coeff_3 * z^3)
-    let t193 = circuit_mul(t123, t2); // Eval C_inv_frob_3 step coeff_4 * z^4
-    let t194 = circuit_add(t192, t193); // Eval C_inv_frob_3 step + (coeff_4 * z^4)
-    let t195 = circuit_mul(t126, t3); // Eval C_inv_frob_3 step coeff_5 * z^5
-    let t196 = circuit_add(t194, t195); // Eval C_inv_frob_3 step + (coeff_5 * z^5)
-    let t197 = circuit_mul(t127, t4); // Eval C_inv_frob_3 step coeff_6 * z^6
-    let t198 = circuit_add(t196, t197); // Eval C_inv_frob_3 step + (coeff_6 * z^6)
-    let t199 = circuit_mul(t130, t5); // Eval C_inv_frob_3 step coeff_7 * z^7
-    let t200 = circuit_add(t198, t199); // Eval C_inv_frob_3 step + (coeff_7 * z^7)
-    let t201 = circuit_mul(t133, t6); // Eval C_inv_frob_3 step coeff_8 * z^8
-    let t202 = circuit_add(t200, t201); // Eval C_inv_frob_3 step + (coeff_8 * z^8)
-    let t203 = circuit_mul(t136, t7); // Eval C_inv_frob_3 step coeff_9 * z^9
-    let t204 = circuit_add(t202, t203); // Eval C_inv_frob_3 step + (coeff_9 * z^9)
-    let t205 = circuit_mul(t139, t8); // Eval C_inv_frob_3 step coeff_10 * z^10
-    let t206 = circuit_add(t204, t205); // Eval C_inv_frob_3 step + (coeff_10 * z^10)
-    let t207 = circuit_mul(t142, t9); // Eval C_inv_frob_3 step coeff_11 * z^11
-    let t208 = circuit_add(t206, t207); // Eval C_inv_frob_3 step + (coeff_11 * z^11)
-
-    let modulus = crate::definitions::get_BN254_modulus(); // BN254 prime field modulus
-
-    let mut circuit_inputs = (t31, t41, t63, t66, t164, t186, t208).new_inputs();
-    // Prefill constants:
-
-    circuit_inputs = circuit_inputs
-        .next_span(MP_CHECK_PREPARE_LAMBDA_ROOT_BN254_CONSTANTS.span()); // in0 - in44
-
-    // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w0); // in45
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w1); // in46
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w2); // in47
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w3); // in48
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w4); // in49
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w5); // in50
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w6); // in51
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w7); // in52
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w8); // in53
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w9); // in54
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w10); // in55
-    circuit_inputs = circuit_inputs.next_2(lambda_root.w11); // in56
-    circuit_inputs = circuit_inputs.next_2(z); // in57
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w0); // in58
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w2); // in59
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w4); // in60
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w6); // in61
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w8); // in62
-    circuit_inputs = circuit_inputs.next_2(scaling_factor.w10); // in63
-    circuit_inputs = circuit_inputs.next_2(c_inv.w0); // in64
-    circuit_inputs = circuit_inputs.next_2(c_inv.w1); // in65
-    circuit_inputs = circuit_inputs.next_2(c_inv.w2); // in66
-    circuit_inputs = circuit_inputs.next_2(c_inv.w3); // in67
-    circuit_inputs = circuit_inputs.next_2(c_inv.w4); // in68
-    circuit_inputs = circuit_inputs.next_2(c_inv.w5); // in69
-    circuit_inputs = circuit_inputs.next_2(c_inv.w6); // in70
-    circuit_inputs = circuit_inputs.next_2(c_inv.w7); // in71
-    circuit_inputs = circuit_inputs.next_2(c_inv.w8); // in72
-    circuit_inputs = circuit_inputs.next_2(c_inv.w9); // in73
-    circuit_inputs = circuit_inputs.next_2(c_inv.w10); // in74
-    circuit_inputs = circuit_inputs.next_2(c_inv.w11); // in75
-    circuit_inputs = circuit_inputs.next_2(c_0); // in76
-
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
-    let c_of_z: u384 = outputs.get_output(t31);
-    let scaling_factor_of_z: u384 = outputs.get_output(t41);
-    let c_inv_of_z: u384 = outputs.get_output(t63);
-    let lhs: u384 = outputs.get_output(t66);
-    let c_inv_frob_1_of_z: u384 = outputs.get_output(t164);
-    let c_frob_2_of_z: u384 = outputs.get_output(t186);
-    let c_inv_frob_3_of_z: u384 = outputs.get_output(t208);
-    return (
-        c_of_z,
-        scaling_factor_of_z,
-        c_inv_of_z,
-        lhs,
-        c_inv_frob_1_of_z,
-        c_frob_2_of_z,
-        c_inv_frob_3_of_z,
-    );
-}
-const MP_CHECK_PREPARE_LAMBDA_ROOT_BN254_CONSTANTS: [u384; 45] = [
-    u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x12, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 {
-        limb0: 0xfde6a43f5daa971f3fa65955,
-        limb1: 0x1b2522ec5eb28ded6895e1cd,
-        limb2: 0x1d8c8daef3eee1e8,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x42b29c567e9c385ce480a71a,
-        limb1: 0x4e34e2ac06ead4000d14d1e2,
-        limb2: 0x217e400dc9351e77,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xfd28d102c0d147b2f4d521a7,
-        limb1: 0x8481d22c6934ce844d72f250,
-        limb2: 0x242b719062f6737b,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x43ac198484b8d9094aa82536,
-        limb1: 0x1b9c22d81246ffc2e794e176,
-        limb2: 0x359809094bd5c8e,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x6df7b44cbb259ef7cb58d5ed,
-        limb1: 0xdd4ef1e69a0c1f0dd2949fa,
-        limb2: 0x21436d48fcb50cc6,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x8a4f4f0831364cf35f78f771,
-        limb1: 0x38a4311a86919d9c7c6c15f8,
-        limb2: 0x18857a58f3b5bb30,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x6fc008e7d6998c82f7fc048b,
-        limb1: 0x62b7adefd44038ab3c0bbad9,
-        limb2: 0x2c84bbad27c36715,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xa8697e0c9c36d8ca3339a7b5,
-        limb1: 0x6d1eab6fcd18b99ad4afd096,
-        limb2: 0xc33b1c70e4fd11b,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x5371c546d428780a6e3dcfa8,
-        limb1: 0x13fe08bea73305ff6bdac77c,
-        limb2: 0x1b007294a55accce,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x4f501fe811493d72543a3977,
-        limb1: 0xefe88dd8e6965b3adae92c97,
-        limb2: 0x215d42e7ac7bd17c,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x6871ca8d3c208c16d87cfd46,
-        limb1: 0xb85045b68181585d97816a91,
-        limb2: 0x30644e72e131a029,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x8eeec7e5ca5cf05f80f362ac,
-        limb1: 0xa6327cfe12150b8e74799277,
-        limb2: 0x246996f3b4fae7e6,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x6a8b264dde75f4f798d6a3f2,
-        limb1: 0x9d2b22ca22ceca702eeb88c3,
-        limb2: 0x12d7c0c3ed42be41,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xb7c9dce1665d51c640fcba2,
-        limb1: 0x4ba4cc8bd75a079432ae2a1d,
-        limb2: 0x16c9e55061ebae20,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x6b48f98a7b4f4463e3a7dba0,
-        limb1: 0x33ce738a184c89d94a0e7840,
-        limb2: 0xc38dce27e3b2cae,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x8fa25bd282d37f632623b0e3,
-        limb1: 0x704b5a7ec796f2b21807dc9,
-        limb2: 0x7c03cbcac41049a,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xfa7a164080faed1f0d24275a,
-        limb1: 0xaa7b569817e0966cba582096,
-        limb2: 0xf20e129e47c9363,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x1bdec763c13b4711cd2b8126,
-        limb1: 0x9f3a80b03b0b1c923685d2ea,
-        limb2: 0x2c145edbe7fd8aee,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xf8b1c1a56586ff93e080f8bc,
-        limb1: 0x559897c6ad411fb25b75afb7,
-        limb2: 0x3df92c5b96e3914,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x678e2ac024c6b8ee6e0c2c4b,
-        limb1: 0xa27fb246c7729f7db080cb99,
-        limb2: 0x12acf2ca76fd0675,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x1500054667f8140c6a3f2d9f,
-        limb1: 0xa4523cf7da4e525e2ba6a315,
-        limb2: 0x1563dbde3bd6d35b,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xbb966e3de4bd44e5607cfd49,
-        limb1: 0x5e6dd9e7e0acccb0c28f069f,
-        limb2: 0x30644e72e131a029,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xbb966e3de4bd44e5607cfd48,
-        limb1: 0x5e6dd9e7e0acccb0c28f069f,
-        limb2: 0x30644e72e131a029,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xacdb5c4f5763473177fffffe,
-        limb1: 0x59e26bcea0d48bacd4f263f1,
-        limb2: 0x0,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xacdb5c4f5763473177ffffff,
-        limb1: 0x59e26bcea0d48bacd4f263f1,
-        limb2: 0x0,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x67dfc8fabd3581ad840ddd76,
-        limb1: 0xb2bdfa8fef85fa07122bde8d,
-        limb2: 0x13d0c369615f7bb0,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xac285af5685d3f90eacf7a66,
-        limb1: 0xfc2bf531eb331a053a35744c,
-        limb2: 0x18a0f4219f4fdff6,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x64e2b5a5bf22f67654883ae6,
-        limb1: 0x79c3e050c9ca2a428908a812,
-        limb2: 0xc3a5e9c462a6547,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x345582cc92fd973c74bd77f4,
-        limb1: 0x5bdd2055c255cf9d9e08c1d9,
-        limb2: 0x2ce02aa5f9bf8cd6,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xde227b850aea3f23790405d6,
-        limb1: 0x7fac149bfaefbac11b155498,
-        limb2: 0x17ded419ed7be4f9,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x4150a79753fb0cd31cc99cc0,
-        limb1: 0x2fb81a8dccd8a9b4441d64f3,
-        limb2: 0x1bfe7b214c029424,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x9efaf0f0f1a228f0d5662fbd,
-        limb1: 0xd15da0ec97a9b8346513297b,
-        limb2: 0x697b9c523e0390e,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x182d2db0c413901c32b0c6fe,
-        limb1: 0xb5186d6ac4c723b85d3f78a3,
-        limb2: 0x7a0e052f2b1c443,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x39c0d06b220500933945267f,
-        limb1: 0x5dc79824a3792597356c892c,
-        limb2: 0x1b76a37fba85f3cd,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x97d439ec7694aa2bf4c0c101,
-        limb1: 0x6cbeee33576139d7f03a5e3,
-        limb2: 0xabf8b60be77d73,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x9201927eeb0a69546f1fd1,
-        limb1: 0x5924b2691fb5e5685558c04,
-        limb2: 0x1c938b097fd22479,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x98ff2631380cab2baaa586de,
-        limb1: 0xa9f30e6dec26094f0fdf31bf,
-        limb2: 0x4f1de41b3d1766f,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x38f14e77cfd95a083f4c261,
-        limb1: 0x3e8c6565b7b72e1b0e78c27f,
-        limb2: 0x2429efd69b073ae2,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0xd8cf6ebab94d0cb3b2594c64,
-        limb1: 0xb14b900e9507e9327600ecc7,
-        limb2: 0x28a411b634f09b8f,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x737f96e55fe3ed9d730c239f,
-        limb1: 0xfeb0f6ef0cd21d04a44a9e08,
-        limb2: 0x23d5e999e1910a12,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x272122f5e8257f43bbb36087,
-        limb1: 0x88982b28b4a8aea95364059e,
-        limb2: 0x1465d351952f0c05,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x200280211f25041384282499,
-        limb1: 0x9fb1b2282a48633d3e2ddaea,
-        limb2: 0x16db366a59b1dd0b,
-        limb3: 0x0,
-    },
-    u384 {
-        limb0: 0x50449cdc780cfbfaa5cc3649,
-        limb1: 0x337d84bbcba34a53a41f1ee,
-        limb2: 0x28c36e1fee7fdbe6,
-        limb3: 0x0,
-    },
-];
 #[inline(always)]
 pub fn run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
     p_0: G1Point, Qy0_0: u384, Qy1_0: u384,

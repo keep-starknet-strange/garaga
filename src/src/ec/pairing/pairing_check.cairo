@@ -21,10 +21,10 @@ use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
     run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
     run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BLS12_381_INITIALIZE_MPCHECK_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
     run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
     run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BN254_INITIALIZE_MPCHECK_circuit,
 };
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
@@ -134,7 +134,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
     let (
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
     ): (u384, u384, u384, u384, u384, u384, u384) =
-        run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
+        run_BN254_INITIALIZE_MPCHECK_circuit(
         hint.lambda_root, z, hint.w, hint.lambda_root_inverse, c_i,
     );
 
@@ -302,7 +302,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
 
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1): (u384, u384, u384) =
-        run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
+        run_BLS12_381_INITIALIZE_MPCHECK_circuit(
         hint.lambda_root_inverse, z, hint.w,
     );
 

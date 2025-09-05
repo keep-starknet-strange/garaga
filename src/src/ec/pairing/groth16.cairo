@@ -18,7 +18,6 @@
 /// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
 use core::circuit::u384;
 use core::option::Option;
-use core::poseidon::hades_permutation;
 use garaga::basic_field_ops;
 use garaga::basic_field_ops::neg_mod_p;
 use garaga::circuits::extf_mul::{
@@ -26,8 +25,8 @@ use garaga::circuits::extf_mul::{
 };
 use garaga::circuits::multi_pairing_check as mpc;
 use garaga::circuits::multi_pairing_check::{
-    run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
-    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit,
+    run_BLS12_381_INITIALIZE_MPCHECK_circuit,
+    run_BLS12_381_MP_CHECK_PREPARE_PAIRS_3P_circuit, run_BN254_INITIALIZE_MPCHECK_circuit,
     run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit,
 };
 use garaga::definitions::{
@@ -254,7 +253,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
     ): (u384, u384, u384, u384, u384, u384, u384) =
-        run_BN254_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
+        run_BN254_INITIALIZE_MPCHECK_circuit(
         mpcheck_hint.lambda_root, z, mpcheck_hint.w, mpcheck_hint.lambda_root_inverse, c_i,
     );
 
@@ -537,7 +536,7 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
 
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1): (u384, u384, u384) =
-        run_BLS12_381_MP_CHECK_PREPARE_LAMBDA_ROOT_circuit(
+        run_BLS12_381_INITIALIZE_MPCHECK_circuit(
         hint.lambda_root_inverse, z, hint.w,
     );
 

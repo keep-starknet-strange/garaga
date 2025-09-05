@@ -891,11 +891,11 @@ class MPCheckPreparePairs(BaseFixedG2PointsMPCheck):
         return circuit
 
 
-class MPCheckPrepareLambdaRootEvaluations(BaseFixedG2PointsMPCheck):
+class InitializeMPCheck(BaseFixedG2PointsMPCheck):
     def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 1):
         assert compilation_mode == 1, "Compilation mode 1 is required for this circuit"
         super().__init__(
-            name="mp_check_prepare_lambda_root",
+            name="initialize_mpcheck",
             curve_id=curve_id,
             n_pairs=2,  # Mocked value, not used in practice.
             n_fixed_g2=None,
