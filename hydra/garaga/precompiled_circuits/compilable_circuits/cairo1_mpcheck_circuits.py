@@ -924,25 +924,54 @@ class InitializeMPCheck(BaseFixedG2PointsMPCheck):
     ):
         circuit.create_powers_of_Z(Z=vars["z"], max_degree=11)
 
-        c_or_c_inv = vars[
-            "lambda_root" if self.curve_id == BN254_ID else "lambda_root_inverse"
-        ]
-
         if self.curve_id == BLS12_381_ID:
-            # Conjugate c_inverse for BLS.
-            c_or_c_inv = circuit.conjugate_e12d(c_or_c_inv)
+            self._execute_bls12_381_logic(circuit, vars)
+        elif self.curve_id == BN254_ID:
+            self._execute_bn254_logic(circuit, vars)
 
-        c_or_c_inv_of_z = circuit.eval_poly_in_precomputed_Z(
-            c_or_c_inv, poly_name="C_inv" if self.curve_id == BLS12_381_ID else "C"
-        )
+        # Handle shared scaling factor computation (always executed after curve-specific c/c_inv logic)
+        self._execute_shared_scaling_factor_logic(circuit, vars)
 
-        circuit.extend_struct_output(
-            u384(
-                name="c_inv_of_z" if self.curve_id == BLS12_381_ID else "c_of_z",
-                elmts=[c_or_c_inv_of_z],
-            )
-        )
+        # Continue with curve-specific frobenius operations
+        if self.curve_id == BLS12_381_ID:
+            self._execute_bls12_381_frobenius_logic(circuit, vars)
+        elif self.curve_id == BN254_ID:
+            self._execute_bn254_frobenius_logic(circuit, vars)
 
+        return circuit
+
+    def _execute_bls12_381_logic(
+        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, vars
+    ):
+        """Handle BLS12-381 specific logic with c_inverse - first part."""
+        # Get lambda_root_inverse (c_inverse for BLS12-381)
+        lambda_root_inverse = vars["lambda_root_inverse"]
+
+        # Conjugate c_inverse for BLS12-381
+        self.c_inv = circuit.conjugate_e12d(lambda_root_inverse)
+
+        # Evaluate c_inverse polynomial at z
+        c_inv_of_z = circuit.eval_poly_in_precomputed_Z(self.c_inv, poly_name="C_inv")
+
+        circuit.extend_struct_output(u384(name="c_inv_of_z", elmts=[c_inv_of_z]))
+
+    def _execute_bn254_logic(
+        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, vars
+    ):
+        """Handle BN254 specific logic with c (lambda_root) - first part."""
+        # Get lambda_root (c for BN254)
+        lambda_root = vars["lambda_root"]
+        self.c = lambda_root
+
+        # Evaluate c polynomial at z
+        self.c_of_z = circuit.eval_poly_in_precomputed_Z(self.c, poly_name="C")
+
+        circuit.extend_struct_output(u384(name="c_of_z", elmts=[self.c_of_z]))
+
+    def _execute_shared_scaling_factor_logic(
+        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, vars
+    ):
+        """Handle shared scaling factor computation for both curves."""
         scaling_factor_sparsity = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0]
         scaling_factor_compressed = vars["scaling_factor"]
         scaling_factor = [
@@ -968,53 +997,62 @@ class InitializeMPCheck(BaseFixedG2PointsMPCheck):
             u384("scaling_factor_of_z", elmts=[scaling_factor_of_z])
         )
 
-        if self.curve_id == BLS12_381_ID:
-            c_inv = c_or_c_inv
-            c_inv_frob_1 = circuit.frobenius(c_inv, 1)
-            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(
-                c_inv_frob_1, poly_name="C_inv_frob_1"
-            )
-            circuit.extend_struct_output(
-                u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
-            )
-        elif self.curve_id == BN254_ID:
-            c = c_or_c_inv
-            c_of_z = c_or_c_inv_of_z
-            c_inv = vars["c_inv"]
-            c_0 = vars["c_0"]
-            c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_inv, poly_name="C_inv")
-            circuit.extend_struct_output(u384(name="c_inv_of_z", elmts=[c_inv_of_z]))
-            lhs = circuit.sub(
-                circuit.mul(c_of_z, c_inv_of_z),
-                circuit.set_or_get_constant(1),
-                comment="c_of_z * c_inv_of_z - 1",
-            )
-            lhs = circuit.mul(lhs, c_0, comment="c_0 * (c_of_z * c_inv_of_z - 1)")
-            circuit.extend_struct_output(u384("lhs", elmts=[lhs]))
+    def _execute_bls12_381_frobenius_logic(
+        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, vars
+    ):
+        """Handle BLS12-381 specific frobenius logic - second part."""
+        # Compute frobenius of c_inverse
+        c_inv_frob_1 = circuit.frobenius(self.c_inv, 1)
+        c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(
+            c_inv_frob_1, poly_name="C_inv_frob_1"
+        )
+        circuit.extend_struct_output(
+            u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
+        )
 
-            c_inv_frob_1 = circuit.frobenius(c_inv, 1)
-            c_frob_2 = circuit.frobenius(c, 2)
-            c_inv_frob_3 = circuit.frobenius(c_inv, 3)
+    def _execute_bn254_frobenius_logic(
+        self, circuit: multi_pairing_check.MultiPairingCheckCircuit, vars
+    ):
+        """Handle BN254 specific frobenius logic - second part."""
+        # Additional BN254-specific variables
+        c_inv = vars["c_inv"]
+        c_0 = vars["c_0"]
 
-            c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(
-                c_inv_frob_1, poly_name="C_inv_frob_1"
-            )
-            c_frob_2_of_z = circuit.eval_poly_in_precomputed_Z(
-                c_frob_2, poly_name="C_frob_2"
-            )
-            c_inv_frob_3_of_z = circuit.eval_poly_in_precomputed_Z(
-                c_inv_frob_3, poly_name="C_inv_frob_3"
-            )
+        # Evaluate c_inverse polynomial at z
+        c_inv_of_z = circuit.eval_poly_in_precomputed_Z(c_inv, poly_name="C_inv")
+        circuit.extend_struct_output(u384(name="c_inv_of_z", elmts=[c_inv_of_z]))
 
-            circuit.extend_struct_output(
-                u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
-            )
-            circuit.extend_struct_output(u384("c_frob_2_of_z", elmts=[c_frob_2_of_z]))
-            circuit.extend_struct_output(
-                u384("c_inv_frob_3_of_z", elmts=[c_inv_frob_3_of_z])
-            )
+        # Compute lhs = c_0 * (c_of_z * c_inv_of_z - 1)
+        lhs = circuit.sub(
+            circuit.mul(self.c_of_z, c_inv_of_z),
+            circuit.set_or_get_constant(1),
+            comment="c_of_z * c_inv_of_z - 1",
+        )
+        lhs = circuit.mul(lhs, c_0, comment="c_0 * (c_of_z * c_inv_of_z - 1)")
+        circuit.extend_struct_output(u384("lhs", elmts=[lhs]))
 
-        return circuit
+        # Compute frobenius operations for BN254
+        c_inv_frob_1 = circuit.frobenius(c_inv, 1)
+        c_frob_2 = circuit.frobenius(self.c, 2)
+        c_inv_frob_3 = circuit.frobenius(c_inv, 3)
+
+        c_inv_frob_1_of_z = circuit.eval_poly_in_precomputed_Z(
+            c_inv_frob_1, poly_name="C_inv_frob_1"
+        )
+        c_frob_2_of_z = circuit.eval_poly_in_precomputed_Z(
+            c_frob_2, poly_name="C_frob_2"
+        )
+        c_inv_frob_3_of_z = circuit.eval_poly_in_precomputed_Z(
+            c_inv_frob_3, poly_name="C_inv_frob_3"
+        )
+
+        circuit.extend_struct_output(
+            u384("c_inv_frob_1_of_z", elmts=[c_inv_frob_1_of_z])
+        )
+        circuit.extend_struct_output(u384("c_frob_2_of_z", elmts=[c_frob_2_of_z]))
+        circuit.extend_struct_output(
+            u384("c_inv_frob_3_of_z", elmts=[c_inv_frob_3_of_z])
+        )
 
 
 class FP12MulAssertOne(BaseEXTFCircuit):
