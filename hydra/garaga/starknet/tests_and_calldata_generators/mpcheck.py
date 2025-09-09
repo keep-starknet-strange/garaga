@@ -6,6 +6,7 @@ from garaga import garaga_rs
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import Polynomial, PyFelt
 from garaga.definitions import CurveID, G1G2Pair, get_base_field, get_irreducible_poly
+from garaga.hints import io
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.precompiled_circuits.multi_pairing_check import (
@@ -137,7 +138,7 @@ class MPCheckCalldataBuilder:
         scaling_factor: list[PyFelt],
         scaling_factor_sparsity: list[PyFelt],
         Ris: list[list[PyFelt]],
-    ):
+    ) -> PyFelt:
         if self.curve_id == CurveID.BN254:
             transcript.hash_limbs_multi(lambda_root)
 
@@ -159,19 +160,41 @@ class MPCheckCalldataBuilder:
     def _sanity_check_verify_rlc_equation(
         self,
         z: PyFelt,
-        cis: list[PyFelt],
+        c1: PyFelt,
+        n_relations_with_ci: int,
         Pis: list[list[PyFelt]],
         big_Q: Polynomial,
         Ris: list[list[PyFelt]],
     ):
         lhs = self.field.zero()
-        for i, ci in enumerate(cis):
+        ci = self.field.one()
+        k = 0
+        for i in range(n_relations_with_ci - 1, -1, -1):
+            # if self.public_pair is None:
+            #     print(f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs, False)}")
+            k += 1
             Prod_Pis_of_z = functools.reduce(
                 lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
             )
             Ri_of_z = Polynomial(Ris[i]).evaluate(z)
             lhs += ci * (Prod_Pis_of_z - Ri_of_z)
+            ci *= c1
             # print(f"lhs_{i} : {io.int_to_u384(lhs)}")
+
+        lhs_print = self.field.zero()
+        k = 0
+        for i in range(n_relations_with_ci):
+            if self.public_pair is None:
+                print(
+                    f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs_print, False)}"
+                )
+            k += 1
+            Prod_Pis_of_z = functools.reduce(
+                lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
+            )
+            Ri_of_z = Polynomial(Ris[i]).evaluate(z)
+            __lhs = Prod_Pis_of_z - Ri_of_z
+            lhs_print = lhs_print * c1 + __lhs
 
         P_irr = get_irreducible_poly(curve_id=self.curve_id, extension_degree=12)
         big_Q_of_z = big_Q.evaluate(z)
@@ -200,7 +223,7 @@ class MPCheckCalldataBuilder:
         Pis, Qis, Ris = self._retrieve_Pis_Qis_and_Ris_from_circuit(mpcheck_circuit)
         passed_Ris = self._get_passed_Ris_from_Ris(Ris)
 
-        c0 = self._hash_hints_and_get_base_random_rlc_coeff(
+        c1 = self._hash_hints_and_get_base_random_rlc_coeff(
             transcript,
             lambda_root,
             lambda_root_inverse,
@@ -213,12 +236,14 @@ class MPCheckCalldataBuilder:
             1 if self.curve_id == CurveID.BN254 else 0
         )
 
-        ci, cis, big_Q = c0, [], Polynomial.zero(self.field.p)
-        for i in range(n_relations_with_ci):
+        ci, big_Q = self.field.one(), Polynomial.zero(self.field.p)
+        print(f"c1 : {io.int_to_u384(c1, False)}")
+        for i in range(n_relations_with_ci - 1, -1, -1):
             # print(f"c_{i} : {io.int_to_u384(ci)}")
-            cis.append(ci)
             big_Q += Qis[i] * ci
-            ci *= ci
+            ci *= c1
+            # print(f"{i=}, {n_relations_with_ci=}")
+            assert ci == c1 ** (n_relations_with_ci - i)
 
         big_Q_coeffs = big_Q.get_coeffs()
         big_Q_coeffs.extend(
@@ -226,7 +251,9 @@ class MPCheckCalldataBuilder:
         )
 
         z = self._hash_big_Q_and_get_z(transcript, big_Q_coeffs)
-        self._sanity_check_verify_rlc_equation(z, cis, Pis, big_Q, Ris)
+        self._sanity_check_verify_rlc_equation(
+            z, c1, n_relations_with_ci, Pis, big_Q, Ris
+        )
 
         if self.public_pair is None:
             assert [x.value for x in passed_Ris[-1]] == [

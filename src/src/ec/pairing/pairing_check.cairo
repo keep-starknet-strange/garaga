@@ -15,16 +15,14 @@ use core::option::Option;
 /// To generate the lines functions, you can use garaga's python backend.
 
 use core::option::OptionTrait;
-use core::poseidon::hades_permutation;
 use garaga::basic_field_ops;
 use garaga::circuits::multi_pairing_check::{
-    run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit, run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit,
-    run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BLS12_381_INITIALIZE_MPCHECK_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BLS12_381_INITIALIZE_MPCHECK_circuit, run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit, run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BN254_INITIALIZE_MPCHECK_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
     run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
     run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
-    run_BN254_INITIALIZE_MPCHECK_circuit,
 };
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
@@ -124,7 +122,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
     let (s0, s1, s2) = hashing::hash_E12D_one(s0, s1, s2);
 
     let mut evals = evals.span();
-    let mut c_i: u384 = s1.into();
+    let c_1: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let (z_felt252, _, _) = hashing::hash_u288_transcript(hint.big_Q.span(), s0, s1, s2);
@@ -135,18 +133,17 @@ pub fn multi_pairing_check_bn254_2P_2F(
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
     ): (u384, u384, u384, u384, u384, u384, u384) =
         run_BN254_INITIALIZE_MPCHECK_circuit(
-        hint.lambda_root, z, hint.w, hint.lambda_root_inverse, c_i,
+        hint.lambda_root, z, hint.w, hint.lambda_root_inverse,
     );
 
     let R_0_of_Z = *evals.pop_front().unwrap();
     let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
-    let (_lhs, _c_i) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
-        yInv_0, xNegOverY_0, l0, yInv_1, xNegOverY_1, l1, R_0_of_Z, c_i, z, c_inv_of_z, LHS,
+    let (_lhs) = run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit(
+        yInv_0, xNegOverY_0, l0, yInv_1, xNegOverY_1, l1, R_0_of_Z, z, c_inv_of_z, c_1, LHS,
     );
 
     let mut LHS = _lhs;
     let mut f_i_of_z = R_0_of_Z;
-    c_i = _c_i;
 
     // rest of miller loop
     let mut bits = BN254_SEED_BITS_JY00_COMPRESSED.span();
@@ -154,7 +151,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
     while let Option::Some(bit) = bits.pop_front() {
         // println!("bit {}", *bit);
         let R_i_of_z = *evals.pop_front().unwrap();
-        let (_LHS, _c_i): (u384, u384) = match *bit {
+        let (_LHS): (u384,) = match *bit {
             0 => {
                 let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
                 run_BN254_MP_CHECK_BIT00_2P_2F_circuit(
@@ -170,7 +167,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_i,
+                    c_1,
                 )
             },
             1 |
@@ -196,7 +193,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
                     R_i_of_z,
                     c_or_c_inv_of_z,
                     z,
-                    c_i,
+                    c_1,
                 )
             },
             _ => {
@@ -222,15 +219,13 @@ pub fn multi_pairing_check_bn254_2P_2F(
                     R_i_of_z,
                     c_or_c_inv_of_z,
                     z,
-                    c_i,
+                    c_1,
                 )
             },
         };
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
-        c_i = _c_i;
     }
-
     let R_n_minus_2_of_z = *evals.pop_front().unwrap();
     let R_n_minus_1_of_z: u384 = One::one();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
@@ -245,7 +240,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
         l3,
         R_n_minus_2_of_z,
         R_n_minus_1_of_z,
-        c_i,
+        c_1,
         w_of_z,
         z,
         c_inv_frob_1_of_z,
@@ -294,7 +289,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
 
     let mut evals = evals.span();
 
-    let mut c_i: u384 = s1.into();
+    let c_1: u384 = s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let (z_felt252, _, _) = hashing::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
@@ -319,7 +314,6 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
         l2,
         l3,
         R_0_of_Z,
-        c_i,
         z,
         conjugate_c_inv_of_z,
     );
@@ -336,7 +330,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
 
     while let Option::Some(bit) = bits.pop_front() {
         let R_i_of_z = *evals.pop_front().unwrap();
-        let (_LHS, _c_i): (u384, u384) = match *bit {
+        let (_LHS): (u384,) = match *bit {
             0 => {
                 let [l0, l1] = (*lines.multi_pop_front::<2>().unwrap()).unbox();
                 run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit(
@@ -350,7 +344,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_i,
+                    c_1,
                 )
             },
             1 => {
@@ -369,7 +363,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
                     R_i_of_z,
                     conjugate_c_inv_of_z,
                     z,
-                    c_i,
+                    c_1,
                 )
             },
             _ => {
@@ -387,18 +381,17 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_i,
+                    c_1,
                 )
             },
         };
         LHS = _LHS;
         f_i_of_z = R_i_of_z;
-        c_i = _c_i;
     }
 
     let R_last_of_z: u384 = One::one();
     let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
-        R_last_of_z, c_i, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
+        R_last_of_z, c_1, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
     );
 
     return check.is_zero();
