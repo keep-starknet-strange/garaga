@@ -98,7 +98,6 @@ where
 
 fn multi_pairing_check_result<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
-    public_pair: &Option<G1G2Pair<F, E2>>,
     m: &Option<Polynomial<F>>,
 ) -> (
     Polynomial<F>,
@@ -130,11 +129,7 @@ where
         CurveID::BLS12_381 => ris,
         _ => unimplemented!(),
     };
-    let ris = if public_pair.is_none() {
-        ris
-    } else {
-        ris[..ris.len() - 1].to_vec()
-    };
+
     (
         f,
         lambda_root,
@@ -152,6 +147,7 @@ fn hash_hints_and_get_base_random_rlc_coeff<F, E2>(
     lambda_root_inverse: &Polynomial<F>,
     scaling_factor: &[FieldElement<F>],
     ris: &[Polynomial<F>],
+    m: Option<Polynomial<F>>,
 ) -> (FieldElement<F>, CairoPoseidonTranscript)
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -194,6 +190,9 @@ where
     for ri in ris {
         transcript.hash_emulated_field_elements(&ri.get_coefficients_ext_degree(12), None);
     }
+    if let Some(m) = m {
+        transcript.hash_emulated_field_elements(&m.get_coefficients_ext_degree(12), None);
+    }
     (
         element_from_bytes_be(&transcript.state[1].to_bytes_be()),
         transcript,
@@ -204,7 +203,7 @@ fn compute_big_q_coeffs<F>(
     n_pairs: usize,
     qis: &[Polynomial<F>],
     ris_len: usize,
-    c0: &FieldElement<F>,
+    c1: &FieldElement<F>,
 ) -> Vec<FieldElement<F>>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
@@ -217,10 +216,10 @@ where
         _ => unimplemented!(),
     };
     let n_relations_with_ci = ris_len + extra_n;
-    let (mut ci, mut big_q) = (c0.clone(), Polynomial::<F>::zero());
-    for qi in qis.iter().take(n_relations_with_ci) {
-        big_q = big_q + (qi * &Polynomial::new(vec![ci.clone()]));
-        ci *= ci.clone();
+    let (mut ci, mut big_q) = (FieldElement::one(), Polynomial::<F>::zero());
+    for i in (0..n_relations_with_ci).rev() {
+        big_q = big_q + (&qis[i] * &Polynomial::new(vec![ci.clone()]));
+        ci *= c1;
     }
     let big_q_expected_len = get_max_q_degree(curve_id, n_pairs) + 1;
     let mut big_q_coeffs = big_q.coefficients;
@@ -229,12 +228,6 @@ where
     }
     big_q_coeffs
 }
-
-// def _hash_big_Q_and_get_z(
-//     self, transcript: CairoPoseidonTranscript, big_Q: list[PyFelt]
-// ):
-//     transcript.hash_limbs_multi(big_Q)
-//     return self.field(transcript.s0)
 
 fn hash_big_q_and_get_z<F, E2>(
     transcript: &mut CairoPoseidonTranscript,
@@ -261,7 +254,6 @@ fn build_mpcheck_hint<F, E2, E6, E12>(
     Vec<Polynomial<F>>,
     Vec<FieldElement<F>>,
     FieldElement<Stark252PrimeField>,
-    Option<Vec<FieldElement<F>>>,
 )
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
@@ -278,33 +270,23 @@ where
         .as_ref()
         .map(|public_pair| extra_miller_loop_result(public_pair));
     let (f, lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
-        multi_pairing_check_result(pairs, public_pair, &m);
-    let (c0, mut transcript) = hash_hints_and_get_base_random_rlc_coeff(
+        multi_pairing_check_result(pairs, &m);
+    let (c1, mut transcript) = hash_hints_and_get_base_random_rlc_coeff(
         pairs,
         n_fixed_g2,
         &lambda_root,
         &lambda_root_inverse,
         &scaling_factor,
         &ris,
+        m,
     );
-    let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, ris.len(), &c0);
+    let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, ris.len(), &c1);
     let z = hash_big_q_and_get_z(&mut transcript, &big_q_coeffs);
 
-    let small_q = if public_pair.is_none() {
-        None
-    } else {
-        let mut coeffs = qis[qis.len() - 1].coefficients.clone();
-        while coeffs.len() < 11 {
-            coeffs.push(FieldElement::from(0));
-        }
-        Some(coeffs)
-    };
-
-    let ris = if public_pair.is_none() {
-        ris[..ris.len() - 1].to_vec() // Do not skip last Ri in calldata as it is known to be 1
-    } else {
-        ris
-    };
+    // Assert last Ri is 1
+    assert_eq!(ris[ris.len() - 1], Polynomial::one());
+    // Skip last Ri as it is known to be 1 for pairing checks
+    let ris = ris[..ris.len() - 1].to_vec();
 
     (
         f,
@@ -314,7 +296,6 @@ where
         ris,
         big_q_coeffs,
         z,
-        small_q,
     )
 }
 
@@ -330,7 +311,7 @@ where
     E12: IsField<BaseType = [FieldElement<E6>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    let (f, lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, z, small_q) =
+    let (f, lambda_root, lambda_root_inverse, scaling_factor, ris, big_q_coeffs, z) =
         build_mpcheck_hint(pairs, n_fixed_g2, public_pair);
 
     if f != Polynomial::one() {
@@ -403,10 +384,6 @@ where
     push_elements::<USE_288, F>(call_data_ref, &big_q_coeffs, true);
 
     push(call_data_ref, BigUint::from_bytes_be(&z.to_bytes_be()));
-
-    if let Some(small_q) = small_q {
-        push_elements::<USE_288, F>(call_data_ref, &small_q, false);
-    }
 
     Ok(call_data)
 }

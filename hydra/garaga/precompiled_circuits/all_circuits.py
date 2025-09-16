@@ -20,11 +20,11 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     FixedG2MPCheckBit1,
     FixedG2MPCheckBit01,
     FixedG2MPCheckBit10,
-    FixedG2MPCheckFinalizeBN,
     FixedG2MPCheckInitBit,
     FP12MulAssertOne,
     InitializeMPCheck,
     MPCheckFinalizeBLS,
+    MPCheckFinalizeBN,
     MPCheckPreparePairs,
 )
 from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import (
@@ -236,7 +236,10 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.MP_CHECK_INITIALIZE: {
         "class": InitializeMPCheck,
-        "params": None,
+        "params": [
+            {"extra_miller_loop_result": False},
+            {"extra_miller_loop_result": True},
+        ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
@@ -250,17 +253,28 @@ ALL_CAIRO_CIRCUITS = {
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_FINALIZE_BN: {
-        "class": FixedG2MPCheckFinalizeBN,
+        "class": MPCheckFinalizeBN,
         "params": [
-            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
-            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+            {
+                "n_pairs": 2,
+                "n_fixed_g2": 2,
+                "extra_miller_loop_result": False,
+            },  # BLS SIG / KZG Verif
+            {
+                "n_pairs": 3,
+                "n_fixed_g2": 2,
+                "extra_miller_loop_result": True,
+            },  # Groth16
         ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254],
     },
     CircuitID.MP_CHECK_FINALIZE_BLS: {
         "class": MPCheckFinalizeBLS,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [
+            {"n_pairs": 2, "extra_miller_loop_result": False},
+            {"n_pairs": 3, "extra_miller_loop_result": True},
+        ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BLS12_381],
     },

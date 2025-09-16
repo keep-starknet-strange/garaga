@@ -82,7 +82,6 @@ mod SP1Groth16Verifier{curve_id.name} {{
             let vkey = fph.vkey;
             let public_inputs_sp1 = fph.public_inputs_sp1;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
             groth16_proof.a.assert_on_curve_excluding_infinity({curve_id.value});
@@ -134,7 +133,6 @@ mod SP1Groth16Verifier{curve_id.name} {{
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
             );
             if check == true {{
                 return Option::Some((vkey, pub_inputs_256));

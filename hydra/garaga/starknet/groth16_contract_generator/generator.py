@@ -15,7 +15,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
 )
 
-ECIP_OPS_CLASS_HASH = 0x4168B1252F2D7656B8286F079D23CF943BF4113E618EC1E6ACB712CAEAE8160
+ECIP_OPS_CLASS_HASH = 0x396CA104D7BE7C61CEB02D4DC795ED6A12F1B66E1C01FE2C6BBA9612BA99090
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -373,7 +373,6 @@ mod {contract_cairo_name} {{
             let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
             groth16_proof.a.assert_on_curve_excluding_infinity({curve_id.value});
@@ -420,7 +419,6 @@ mod {contract_cairo_name} {{
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
             );
             if check == true {{
                 return Option::Some(groth16_proof.public_inputs);

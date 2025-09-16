@@ -18,7 +18,7 @@ mod Groth16VerifierBN254 {
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x4168b1252f2d7656b8286f079d23cf943bf4113e618ec1e6acb712caeae8160;
+        0x396ca104d7be7c61ceb02d4dc795ed6a12f1b66e1c01fe2c6bba9612ba99090;
 
     #[storage]
     struct Storage {}
@@ -36,7 +36,6 @@ mod Groth16VerifierBN254 {
             let fph = deserialize_full_proof_with_hints_bn254(full_proof_with_hints);
             let groth16_proof = fph.groth16_proof;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
             groth16_proof.a.assert_on_curve_excluding_infinity(0);
@@ -83,7 +82,6 @@ mod Groth16VerifierBN254 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q,
             );
             if check == true {
                 return Option::Some(groth16_proof.public_inputs);

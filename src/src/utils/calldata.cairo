@@ -1,8 +1,6 @@
 use core::circuit::u384;
 use corelib_imports::bounded_int::downcast;
-pub use garaga::definitions::{
-    E12D, E12DMulQuotient, G1Point, G2Point, MillerLoopResultScalingFactor, u288,
-};
+pub use garaga::definitions::{E12D, G1Point, G2Point, MillerLoopResultScalingFactor, u288};
 pub use garaga::groth16::{Groth16Proof, Groth16ProofRaw};
 pub use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 
@@ -10,7 +8,6 @@ pub use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 pub struct FullProofWithHintsBN254 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBN254,
-    pub small_Q: E12DMulQuotient<u288>,
     pub msm_hint: Span<felt252>,
 }
 
@@ -18,7 +15,6 @@ pub struct FullProofWithHintsBN254 {
 pub struct FullProofWithHintsBLS12_381 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBLS12_381,
-    pub small_Q: E12DMulQuotient<u384>,
     pub msm_hint: Span<felt252>,
 }
 
@@ -28,7 +24,6 @@ pub struct FullProofWithHintsRisc0 {
     pub image_id: Span<u32>,
     pub journal: Span<u8>,
     pub mpcheck_hint: MPCheckHintBN254,
-    pub small_Q: E12DMulQuotient<u288>,
     pub msm_hint: Span<felt252>,
 }
 
@@ -38,7 +33,6 @@ pub struct FullProofWithHintsSP1 {
     pub vkey: u256,
     pub public_inputs_sp1: Array<u32>,
     pub mpcheck_hint: MPCheckHintBN254,
-    pub small_Q: E12DMulQuotient<u288>,
     pub msm_hint: Span<felt252>,
 }
 
@@ -185,63 +179,6 @@ pub fn _deserialize_E12D_u288(ref serialized: Span<felt252>) -> E12D<u288> {
 }
 
 #[inline(always)]
-pub fn _deserialize_E12DMulQuotient_u288(ref serialized: Span<felt252>) -> E12DMulQuotient<u288> {
-    let [
-        w0l0,
-        w0l1,
-        w0l2,
-        w1l0,
-        w1l1,
-        w1l2,
-        w2l0,
-        w2l1,
-        w2l2,
-        w3l0,
-        w3l1,
-        w3l2,
-        w4l0,
-        w4l1,
-        w4l2,
-        w5l0,
-        w5l1,
-        w5l2,
-        w6l0,
-        w6l1,
-        w6l2,
-        w7l0,
-        w7l1,
-        w7l2,
-        w8l0,
-        w8l1,
-        w8l2,
-        w9l0,
-        w9l1,
-        w9l2,
-        w10l0,
-        w10l1,
-        w10l2,
-    ] =
-        (*serialized
-        .multi_pop_front::<33>()
-        .unwrap())
-        .unbox();
-
-    E12DMulQuotient {
-        w0: downcast_u288(w0l0, w0l1, w0l2),
-        w1: downcast_u288(w1l0, w1l1, w1l2),
-        w2: downcast_u288(w2l0, w2l1, w2l2),
-        w3: downcast_u288(w3l0, w3l1, w3l2),
-        w4: downcast_u288(w4l0, w4l1, w4l2),
-        w5: downcast_u288(w5l0, w5l1, w5l2),
-        w6: downcast_u288(w6l0, w6l1, w6l2),
-        w7: downcast_u288(w7l0, w7l1, w7l2),
-        w8: downcast_u288(w8l0, w8l1, w8l2),
-        w9: downcast_u288(w9l0, w9l1, w9l2),
-        w10: downcast_u288(w10l0, w10l1, w10l2),
-    }
-}
-
-#[inline(always)]
 pub fn deserialize_full_proof_with_hints_bn254(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBN254 {
@@ -263,10 +200,8 @@ pub fn deserialize_full_proof_with_hints_bn254(
 
     let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
 
-    let small_Q = _deserialize_E12DMulQuotient_u288(ref serialized);
-
     let msm_hint = serialized;
-    return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
+    return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, msm_hint };
 }
 
 pub fn deserialize_full_proof_with_hints_risc0(
@@ -290,15 +225,12 @@ pub fn deserialize_full_proof_with_hints_risc0(
 
     let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
 
-    let small_Q = _deserialize_E12DMulQuotient_u288(ref serialized);
-
     let msm_hint = serialized;
     return FullProofWithHintsRisc0 {
         groth16_proof: groth16_proof,
         image_id: image_id.span(),
         journal: journal.span(),
         mpcheck_hint: mpcheck_hint,
-        small_Q: small_Q,
         msm_hint: msm_hint,
     };
 }
@@ -331,15 +263,12 @@ pub fn deserialize_full_proof_with_hints_sp1(
 
     let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
 
-    let small_Q = _deserialize_E12DMulQuotient_u288(ref serialized);
-
     let msm_hint = serialized;
     return FullProofWithHintsSP1 {
         groth16_proof: groth16_proof,
         vkey: vkey,
         public_inputs_sp1: public_inputs_sp1,
         mpcheck_hint: mpcheck_hint,
-        small_Q: small_Q,
         msm_hint: msm_hint,
     };
 }
@@ -386,13 +315,13 @@ pub fn _deserialize_mpcheck_hint_bn254(ref serialized: Span<felt252>) -> MPCheck
         w8: downcast_u288(w8_l0, w8_l1, w8_l2),
         w10: downcast_u288(w10_l0, w10_l1, w10_l2),
     };
-    // usize_assert_eq(mpcheck_hint.Ris.len(), 35);
-    // 35 * 12 * 3 = 1260
-    let mut ris_slice = serialized.slice(1, 1260);
+    // usize_assert_eq(mpcheck_hint.Ris.len(), 34);
+    // 34 * 12 * 3 = 1224
+    let mut ris_slice = serialized.slice(1, 1224);
     // println!("ris_slice.len(): {}", ris_slice.len());
 
     let end = serialized.len();
-    serialized = serialized.slice(1261, end - 1260 - 1);
+    serialized = serialized.slice(1225, end - 1224 - 1);
     // println!("serialized.len(): {}", serialized.len());
     let mut Ris = array![];
     while let Option::Some(ri) = ris_slice.multi_pop_front::<36>() {
@@ -478,9 +407,7 @@ pub fn _deserialize_mpcheck_hint_bn254(ref serialized: Span<felt252>) -> MPCheck
 }
 
 
-pub fn deserialize_mpcheck_hint_bls12_381(
-    ref serialized: Span<felt252>, two_pairs: bool,
-) -> MPCheckHintBLS12_381 {
+pub fn deserialize_mpcheck_hint_bls12_381(ref serialized: Span<felt252>) -> MPCheckHintBLS12_381 {
     let [
         w0l0,
         w0l1,
@@ -590,12 +517,9 @@ pub fn deserialize_mpcheck_hint_bls12_381(
         w8: downcast_u384(w8_l0, w8_l1, w8_l2, w8_l3),
         w10: downcast_u384(w10_l0, w10_l1, w10_l2, w10_l3),
     };
-    // assert!(hint.Ris.len() == 36, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
-    // 36 * 12 * 4 = 1728
-    let end_ris = match two_pairs {
-        false => 1728,
-        true => 1680,
-    };
+    // assert!(hint.Ris.len() == 35, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
+    // 35 * 12 * 4 = 1680
+    let end_ris = 1680;
     let mut ris_slice = serialized.slice(1, end_ris);
 
     let end = serialized.len();
@@ -694,6 +618,7 @@ pub fn deserialize_mpcheck_hint_bls12_381(
 pub fn deserialize_full_proof_with_hints_bls12_381(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBLS12_381 {
+    println!("Hello0");
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
@@ -713,74 +638,10 @@ pub fn deserialize_full_proof_with_hints_bls12_381(
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
     // Deserialize mpcheck_hint
-    let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized, false);
-
-    let [
-        w0l0,
-        w0l1,
-        w0l2,
-        w0l3,
-        w1l0,
-        w1l1,
-        w1l2,
-        w1l3,
-        w2l0,
-        w2l1,
-        w2l2,
-        w2l3,
-        w3l0,
-        w3l1,
-        w3l2,
-        w3l3,
-        w4l0,
-        w4l1,
-        w4l2,
-        w4l3,
-        w5l0,
-        w5l1,
-        w5l2,
-        w5l3,
-        w6l0,
-        w6l1,
-        w6l2,
-        w6l3,
-        w7l0,
-        w7l1,
-        w7l2,
-        w7l3,
-        w8l0,
-        w8l1,
-        w8l2,
-        w8l3,
-        w9l0,
-        w9l1,
-        w9l2,
-        w9l3,
-        w10l0,
-        w10l1,
-        w10l2,
-        w10l3,
-    ] =
-        (*serialized
-        .multi_pop_front::<44>()
-        .unwrap())
-        .unbox();
-
-    let small_Q = E12DMulQuotient {
-        w0: downcast_u384(w0l0, w0l1, w0l2, w0l3),
-        w1: downcast_u384(w1l0, w1l1, w1l2, w1l3),
-        w2: downcast_u384(w2l0, w2l1, w2l2, w2l3),
-        w3: downcast_u384(w3l0, w3l1, w3l2, w3l3),
-        w4: downcast_u384(w4l0, w4l1, w4l2, w4l3),
-        w5: downcast_u384(w5l0, w5l1, w5l2, w5l3),
-        w6: downcast_u384(w6l0, w6l1, w6l2, w6l3),
-        w7: downcast_u384(w7l0, w7l1, w7l2, w7l3),
-        w8: downcast_u384(w8l0, w8l1, w8l2, w8l3),
-        w9: downcast_u384(w9l0, w9l1, w9l2, w9l3),
-        w10: downcast_u384(w10l0, w10l1, w10l2, w10l3),
-    };
-
+    println!("Hello");
+    let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);
+    println!("Hello2");
     let msm_hint = serialized;
 
-    return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, small_Q, msm_hint };
+    return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, msm_hint };
 }

@@ -236,7 +236,7 @@ def get_pairing_config():
             MPCheckHintBN254,
             MPCheckHintBLS12_381,
         };
-        use garaga::definitions::{u288, u384, G1Point, G2Point, G2Line, E12D, E12DMulQuotient,G1G2Pair, MillerLoopResultScalingFactor};
+        use garaga::definitions::{u288, u384, G1Point, G2Point, G2Line, E12D,G1G2Pair, MillerLoopResultScalingFactor};
         use garaga::groth16::{
             multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
             multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,

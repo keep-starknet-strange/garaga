@@ -19,7 +19,7 @@ mod SP1Groth16VerifierBN254 {
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x4168b1252f2d7656b8286f079d23cf943bf4113e618ec1e6acb712caeae8160;
+        0x396ca104d7be7c61ceb02d4dc795ed6a12f1b66e1c01fe2c6bba9612ba99090;
 
     #[storage]
     struct Storage {}
@@ -41,7 +41,6 @@ mod SP1Groth16VerifierBN254 {
             let vkey = fph.vkey;
             let public_inputs_sp1 = fph.public_inputs_sp1;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
             groth16_proof.a.assert_on_curve_excluding_infinity(0);
@@ -94,7 +93,6 @@ mod SP1Groth16VerifierBN254 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q,
             );
             if check == true {
                 return Option::Some((vkey, pub_inputs_256));

@@ -6,7 +6,6 @@ from garaga import garaga_rs
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import Polynomial, PyFelt
 from garaga.definitions import CurveID, G1G2Pair, get_base_field, get_irreducible_poly
-from garaga.hints import io
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.precompiled_circuits.multi_pairing_check import (
@@ -111,11 +110,6 @@ class MPCheckCalldataBuilder:
             Ris if self.curve_id == CurveID.BLS12_381 else Ris[1:]
         )  # Skip first Ri for BN254 as it known to be one (lambda_root*lambda_root_inverse) result
 
-        if self.public_pair is not None:
-            passed_Ris = passed_Ris[
-                :-1
-            ]  # Skip last Ri as it is known to be 1 and we use FP12Mul_AssertOne circuit
-
         return passed_Ris
 
     def _init_transcript(self) -> CairoPoseidonTranscript:
@@ -148,6 +142,9 @@ class MPCheckCalldataBuilder:
         for Ri in Ris:
             assert len(Ri) == 12
             transcript.hash_limbs_multi(Ri)
+
+        if self.include_miller_loop_result:
+            transcript.hash_limbs_multi(self.extra_miller_loop_result())
 
         return self.field(transcript.s1)
 
@@ -184,10 +181,10 @@ class MPCheckCalldataBuilder:
         lhs_print = self.field.zero()
         k = 0
         for i in range(n_relations_with_ci):
-            if self.public_pair is None:
-                print(
-                    f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs_print, False)}"
-                )
+            # if self.public_pair is None:
+            #     print(
+            #         f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs_print, False)}"
+            #     )
             k += 1
             Prod_Pis_of_z = functools.reduce(
                 lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
@@ -210,7 +207,7 @@ class MPCheckCalldataBuilder:
         structs.Cairo1SerializableStruct, structs.Cairo1SerializableStruct | None
     ]:
         """
-        Return MPCheckHint struct and small_Q struct if extra_miller_loop_result is True
+        Return MPCheckHint struct
         """
         mpcheck_circuit = self._init_circuit()
         transcript = self._init_transcript()
@@ -220,6 +217,7 @@ class MPCheckCalldataBuilder:
                 len(self.pairs), self.extra_miller_loop_result()
             )
         )
+
         Pis, Qis, Ris = self._retrieve_Pis_Qis_and_Ris_from_circuit(mpcheck_circuit)
         passed_Ris = self._get_passed_Ris_from_Ris(Ris)
 
@@ -237,7 +235,7 @@ class MPCheckCalldataBuilder:
         )
 
         ci, big_Q = self.field.one(), Polynomial.zero(self.field.p)
-        print(f"c1 : {io.int_to_u384(c1, False)}")
+
         for i in range(n_relations_with_ci - 1, -1, -1):
             # print(f"c_{i} : {io.int_to_u384(ci)}")
             big_Q += Qis[i] * ci
@@ -255,22 +253,23 @@ class MPCheckCalldataBuilder:
             z, c1, n_relations_with_ci, Pis, big_Q, Ris
         )
 
-        if self.public_pair is None:
-            assert [x.value for x in passed_Ris[-1]] == [
-                1,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ], f"Last Ri must be 1_Fp12, got {[x.value for x in passed_Ris[-1]]}"
-            passed_Ris = passed_Ris[:-1]  # Skip last Ri as it is known to be 1
+        # Skip last Ri as it is known to be 1 for pairing checks
+        assert [x.value for x in passed_Ris[-1]] == [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ], f"Last Ri must be 1_Fp12, got {[x.value for x in passed_Ris[-1]]}"
+
+        passed_Ris = passed_Ris[:-1]
 
         if self.curve_id == CurveID.BN254:
             hint_struct_list_init = [
@@ -279,40 +278,30 @@ class MPCheckCalldataBuilder:
         else:
             hint_struct_list_init = []
 
-        if self.include_miller_loop_result:
-            small_Q = Qis[-1].get_coeffs()
-            small_Q = small_Q + [self.field.zero()] * (11 - len(small_Q))
-            small_Q_struct = structs.E12DMulQuotient(name="small_Q", elmts=small_Q)
-        else:
-            small_Q_struct = None
-
-        return (
-            structs.Struct(
-                struct_name=f"MPCheckHint{self.curve_id.name}",
-                name="hint",
-                elmts=hint_struct_list_init
-                + [
-                    structs.E12D(name="lambda_root_inverse", elmts=lambda_root_inverse),
-                    structs.MillerLoopResultScalingFactor(
-                        name="w",
-                        elmts=[
-                            wi
-                            for wi, si in zip(scaling_factor, scaling_factor_sparsity)
-                            if si != 0
-                        ],
-                    ),
-                    structs.StructSpan(
-                        name="Ris",
-                        elmts=[
-                            structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
-                            for i, Ri in enumerate(passed_Ris)
-                        ],
-                    ),
-                    structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
-                ]
-                + [structs.felt252(name="z", elmts=[z])],
-            ),
-            small_Q_struct,
+        return structs.Struct(
+            struct_name=f"MPCheckHint{self.curve_id.name}",
+            name="hint",
+            elmts=hint_struct_list_init
+            + [
+                structs.E12D(name="lambda_root_inverse", elmts=lambda_root_inverse),
+                structs.MillerLoopResultScalingFactor(
+                    name="w",
+                    elmts=[
+                        wi
+                        for wi, si in zip(scaling_factor, scaling_factor_sparsity)
+                        if si != 0
+                    ],
+                ),
+                structs.StructSpan(
+                    name="Ris",
+                    elmts=[
+                        structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
+                        for i, Ri in enumerate(passed_Ris)
+                    ],
+                ),
+                structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
+            ]
+            + [structs.felt252(name="z", elmts=[z])],
         )
 
     def _get_input_structs(self) -> list[structs.Cairo1SerializableStruct]:
@@ -339,10 +328,8 @@ class MPCheckCalldataBuilder:
                     ],
                 )
             )
-        mpcheck_hint, small_Q = self.build_mpcheck_hint()
+        mpcheck_hint = self.build_mpcheck_hint()
         inputs.append(mpcheck_hint)
-        if small_Q is not None:
-            inputs.append(small_Q)
         return inputs
 
     def to_cairo_1_test(self):
@@ -390,11 +377,26 @@ class MPCheckCalldataBuilder:
         if use_rust:
             return self._serialize_to_calldata_rust()
 
-        mpcheck_hint, small_Q = self.build_mpcheck_hint()
+        mpcheck_hint = self.build_mpcheck_hint()
 
         call_data: list[int] = []
         call_data.extend(mpcheck_hint.serialize_to_calldata())
-        if small_Q is not None:
-            call_data.extend(small_Q.serialize_to_calldata())
-
         return call_data
+
+
+if __name__ == "__main__":
+    from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
+
+    pairs, public_pair = get_pairing_check_input(
+        curve_id=CurveID.BLS12_381,
+        n_pairs=3,
+        include_m=True,
+        return_pairs=True,
+    )
+    mpc = MPCheckCalldataBuilder(
+        curve_id=CurveID.BLS12_381,
+        pairs=pairs,
+        n_fixed_g2=2,
+        public_pair=public_pair,
+    )
+    print(mpc.serialize_to_calldata(use_rust=True))

@@ -173,7 +173,6 @@ trait IGroth16VerifierBLS12_381<TContractState> {
         ref self: TContractState,
         groth16_proof: Groth16Proof,
         mpcheck_hint: MPCheckHintBLS12_381,
-        small_Q: E12DMulQuotient,
         msm_hint: Array<felt252>,
     ) -> bool;
 }
@@ -202,7 +201,6 @@ mod Groth16VerifierBLS12_381 {
             ref self: ContractState,
             groth16_proof: Groth16Proof,
             mpcheck_hint: MPCheckHintBLS12_381,
-            small_Q: E12DMulQuotient,
             msm_hint: Array<felt252>,
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
@@ -247,8 +245,7 @@ mod Groth16VerifierBLS12_381 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
-            );
+);
             if check == true {
                 self
                     .process_public_inputs(

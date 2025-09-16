@@ -105,7 +105,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
             let image_id = fph.image_id;
             let journal = fph.journal;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
             groth16_proof.a.assert_on_curve_excluding_infinity({curve_id.value});
@@ -156,7 +155,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
             );
             if check == true {{
                 return Option::Some(journal);

@@ -175,11 +175,11 @@ mod tests {
         for value in values {
             transcript.hash_u256(&(value % (BigUint::from(1usize) << 256)));
         }
-        let expected_res = transcript.continuable_hash();
+        let expected_res: lambdaworks_math::field::element::FieldElement<lambdaworks_math::field::fields::montgomery_backed_prime_fields::MontgomeryBackendPrimeField<lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::MontgomeryConfigStark252PrimeField, 4>> = transcript.continuable_hash();
         assert_eq!(
             expected_res,
             FieldElement::from_hex(
-                "208cbc82b04dc4b1d48ccc53b1d756493ea79b1f0a836bc0f3163ea249dfb13"
+                "2a4b9382c92e77909659d0406c152da22c176cc4d7109e3fc32aff80da50bf9"
             )
             .unwrap()
         );

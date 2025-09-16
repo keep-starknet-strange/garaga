@@ -19,10 +19,10 @@ use garaga::basic_field_ops;
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_INITIALIZE_MPCHECK_circuit, run_BLS12_381_MP_CHECK_BIT00_2P_2F_circuit,
     run_BLS12_381_MP_CHECK_BIT0_2P_2F_circuit, run_BLS12_381_MP_CHECK_BIT1_2P_2F_circuit,
-    run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit, run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BLS12_381_MP_CHECK_FINALIZE_2P_circuit, run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit,
     run_BN254_INITIALIZE_MPCHECK_circuit, run_BN254_MP_CHECK_BIT00_2P_2F_circuit,
     run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
-    run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
+    run_BN254_MP_CHECK_FINALIZE_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
 };
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
@@ -229,7 +229,7 @@ pub fn multi_pairing_check_bn254_2P_2F(
     let R_n_minus_2_of_z = *evals.pop_front().unwrap();
     let R_n_minus_1_of_z: u384 = One::one();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
-    let (check) = run_BN254_MP_CHECK_FINALIZE_BN_2P_2F_circuit(
+    let (check) = run_BN254_MP_CHECK_FINALIZE_2P_2F_circuit(
         yInv_0,
         xNegOverY_0,
         l0,
@@ -305,17 +305,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
     let R_0_of_Z = *evals.pop_front().unwrap();
     let [l0, l1, l2, l3] = (*lines.multi_pop_front::<4>().unwrap()).unbox();
     let (_lhs) = run_BLS12_381_MP_CHECK_INIT_BIT_2P_2F_circuit(
-        yInv_0,
-        xNegOverY_0,
-        l0,
-        l1,
-        yInv_1,
-        xNegOverY_1,
-        l2,
-        l3,
-        R_0_of_Z,
-        z,
-        conjugate_c_inv_of_z,
+        yInv_0, xNegOverY_0, l0, l1, yInv_1, xNegOverY_1, l2, l3, R_0_of_Z, z, conjugate_c_inv_of_z,
     );
 
     let mut LHS = _lhs;
@@ -390,8 +380,8 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
     }
 
     let R_last_of_z: u384 = One::one();
-    let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_BLS_2P_circuit(
-        R_last_of_z, c_1, w_of_z, z, c_inv_of_z_frob_1, LHS, f_i_of_z, hint.big_Q,
+    let (check,) = run_BLS12_381_MP_CHECK_FINALIZE_2P_circuit(
+        R_last_of_z, c_1, w_of_z, z, c_inv_of_z_frob_1, LHS, *hint.Ris.at(34), hint.big_Q,
     );
 
     return check.is_zero();

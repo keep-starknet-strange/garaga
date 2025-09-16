@@ -472,14 +472,9 @@ where
         i -= 1;
     }
 
-    let final_r_sparsity = if m.is_some() {
-        None
-    } else {
-        let sparsity = vec![
-            true, false, false, false, false, false, false, false, false, false, false, false,
-        ];
-        Some(sparsity)
-    };
+    let final_r_sparsity = Some(vec![
+        true, false, false, false, false, false, false, false, false, false, false, false,
+    ]);
 
     let frobenius_maps = get_frobenius_maps_ext_degree_12(curve_id);
 
@@ -491,38 +486,24 @@ where
             let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
             let c_frob_2 = frobenius(&frobenius_maps, c.as_ref().unwrap(), 2, 12);
             let c_inv_frob_3 = frobenius(&frobenius_maps, &c_inv, 3, 12);
-            f = extf_mul(
-                vec![f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3],
-                final_r_sparsity,
-                Some(&mut qis),
-                Some(&mut ris),
-            );
+            let mut ps = vec![f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3];
+            if m.is_some() {
+                ps.push(m.clone().unwrap());
+            }
+            f = extf_mul(ps, final_r_sparsity, Some(&mut qis), Some(&mut ris));
         }
         CurveID::BLS12_381 => {
             let c_inv_frob_1 = frobenius(&frobenius_maps, &c_inv, 1, 12);
-            f = extf_mul(
-                vec![f, w, c_inv_frob_1],
-                final_r_sparsity,
-                Some(&mut qis),
-                Some(&mut ris),
-            );
+            f = conjugate_e12d(f);
+            let w = conjugate_e12d(w);
+            let c_inv_frob_1 = conjugate_e12d(c_inv_frob_1);
+            let mut ps = vec![f, w, c_inv_frob_1];
             if m.is_some() {
-                f = conjugate_e12d(f);
+                ps.push(m.clone().unwrap());
             }
+            f = extf_mul(ps, final_r_sparsity, Some(&mut qis), Some(&mut ris));
         }
         _ => unimplemented!(),
-    }
-
-    if let Some(m) = m {
-        let sparsity = vec![
-            true, false, false, false, false, false, false, false, false, false, false, false,
-        ];
-        f = extf_mul(
-            vec![f, m.clone()],
-            Some(sparsity),
-            Some(&mut qis),
-            Some(&mut ris),
-        );
     }
 
     (
