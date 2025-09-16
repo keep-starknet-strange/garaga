@@ -110,7 +110,7 @@ pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usi
         R_prime.x, u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, modulus,
     );
 
-    if R_prime.x.is_zero() || r_prime_x_mod_n != rx || R_prime.y.is_zero() || ry_prime_parity == v {
+    if R_prime.is_zero() || r_prime_x_mod_n != rx || ry_prime_parity == v {
         return false;
     }
 

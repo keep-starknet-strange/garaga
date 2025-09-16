@@ -117,7 +117,7 @@ pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id:
     let ry_l0_f252: felt252 = res.y.limb0.into();
     let ry_l0_u128: u128 = ry_l0_f252.try_into().unwrap();
 
-    if res.x.is_zero() || res.x != rx || res.y.is_zero() || (ry_l0_u128 % 2) != 0 {
+    if res.is_zero() || res.x != rx || (ry_l0_u128 % 2) != 0 {
         return false;
     }
 
