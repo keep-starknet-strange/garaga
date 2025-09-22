@@ -46,15 +46,7 @@ pub struct E12T {
     pub c1b2a1: u384,
 }
 
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-pub struct MillerLoopResultScalingFactor<T> {
-    pub w0: T,
-    pub w2: T,
-    pub w4: T,
-    pub w6: T,
-    pub w8: T,
-    pub w10: T,
-}
+
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 pub struct E12DMulQuotient<T> {
     pub w0: T,

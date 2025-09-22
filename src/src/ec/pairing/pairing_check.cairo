@@ -32,6 +32,16 @@ use garaga::utils::{hashing, usize_assert_eq};
 use crate::core::circuit::AddInputResultTrait2;
 
 
+#[derive(Copy, Drop, Debug, PartialEq, Serde)]
+pub struct MillerLoopResultScalingFactor<T> {
+    pub w0: T,
+    pub w2: T,
+    pub w4: T,
+    pub w6: T,
+    pub w8: T,
+    pub w10: T,
+}
+
 #[derive(Drop, Serde, Debug)]
 pub struct MPCheckHintBN254 {
     pub lambda_root: E12D<u288>,
