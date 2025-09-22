@@ -21,7 +21,6 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     FixedG2MPCheckBit01,
     FixedG2MPCheckBit10,
     FixedG2MPCheckInitBit,
-    FP12MulAssertOne,
     InitializeMPCheck,
     MPCheckFinalizeBLS,
     MPCheckFinalizeBN,
@@ -277,12 +276,6 @@ ALL_CAIRO_CIRCUITS = {
         ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BLS12_381],
-    },
-    CircuitID.FP12_MUL_ASSERT_ONE: {
-        "class": FP12MulAssertOne,
-        "params": None,
-        "filename": "extf_mul",
-        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.EVAL_E12D: {
         "class": EvalE12D,

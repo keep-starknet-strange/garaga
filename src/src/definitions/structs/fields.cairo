@@ -47,22 +47,6 @@ pub struct E12T {
 }
 
 
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-pub struct E12DMulQuotient<T> {
-    pub w0: T,
-    pub w1: T,
-    pub w2: T,
-    pub w3: T,
-    pub w4: T,
-    pub w5: T,
-    pub w6: T,
-    pub w7: T,
-    pub w8: T,
-    pub w9: T,
-    pub w10: T,
-}
-
-
 pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
     output.append((*self.limb0).into());
     output.append((*self.limb1).into());

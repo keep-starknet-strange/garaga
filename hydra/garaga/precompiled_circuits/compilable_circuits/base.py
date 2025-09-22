@@ -155,7 +155,6 @@ from definitions import bn, bls
             "G2Point",
             "E12D",
             "u288",
-            "E12DMulQuotient",
             "G1G2Pair",
             "BNProcessedPair",
             "BLSProcessedPair",
@@ -202,7 +201,7 @@ mod tests {
         circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
         CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
     };
-    use garaga::definitions::{G1Point, G2Point, E12D, E12DMulQuotient, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
+    use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
 
 """
 

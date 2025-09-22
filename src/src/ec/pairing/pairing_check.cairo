@@ -26,7 +26,7 @@ use garaga::circuits::multi_pairing_check::{
 };
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
-    MillerLoopResultScalingFactor, get_BLS12_381_modulus, get_BN254_modulus, u288,
+    get_BLS12_381_modulus, get_BN254_modulus, u288,
 };
 use garaga::utils::{hashing, usize_assert_eq};
 use crate::core::circuit::AddInputResultTrait2;

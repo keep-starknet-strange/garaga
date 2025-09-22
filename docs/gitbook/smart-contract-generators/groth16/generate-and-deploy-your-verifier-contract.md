@@ -163,7 +163,6 @@ This function is the starting point of your dapp logic.&#x20;
 
 {% code title="groth16_verifier.cairo" %}
 ```rust
-use garaga::definitions::E12DMulQuotient;
 use garaga::groth16::{Groth16Proof, MPCheckHintBLS12_381};
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
@@ -180,7 +179,7 @@ trait IGroth16VerifierBLS12_381<TContractState> {
 #[starknet::contract]
 mod Groth16VerifierBLS12_381 {
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair, E12DMulQuotient};
+    use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::groth16::{
         multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result, Groth16Proof,
         MPCheckHintBLS12_381
