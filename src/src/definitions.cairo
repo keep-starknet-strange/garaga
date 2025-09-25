@@ -20,11 +20,13 @@ pub use curves::{
     get_third_root_of_unity, has_endomorphism_available,
 };
 pub use structs::fields::{
-    E12D, E12T, deserialize_u384,
-    deserialize_u384_array, serialize_u384, serialize_u384_array, u288, u288Serde,
+    E12D, E12T, deserialize_u384, deserialize_u384_array, serialize_u384, serialize_u384_array,
+    u288, u288Serde,
 };
 pub use structs::points::{
     G1G2Pair, G1Point, G1PointSerde, G1PointZero, G2Line, G2Point, G2PointSerde, G2PointZero,
 };
-pub use crate::ec::pairing::pairing_check::{BLSProcessedPair, BNProcessedPair, MillerLoopResultScalingFactor};
+pub use crate::ec::pairing::pairing_check::{
+    BLSProcessedPair, BNProcessedPair, MillerLoopResultScalingFactor,
+};
 

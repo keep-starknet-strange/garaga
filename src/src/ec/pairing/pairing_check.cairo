@@ -28,6 +28,7 @@ use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
     get_BLS12_381_modulus, get_BN254_modulus, u288,
 };
+use garaga::utils::hashing::PoseidonState;
 use garaga::utils::{hashing, usize_assert_eq};
 use crate::core::circuit::AddInputResultTrait2;
 
@@ -111,31 +112,31 @@ pub fn multi_pairing_check_bn254_2P_2F(
     // Init sponge state
     // >>> hades_permutation(0, 0, int.from_bytes(b"MPCHECK_BN254_2P_2F", "big"))
 
-    let (s0, s1, s2) = (
-        0x1a0eeac356472db3074d1ca6bb7bbb60fa9f0d53b34ef38a4eddde21b332b28,
-        0x2783a4227674921675bfa12e30fda0dad992bb9be9785908ac1338b14018182,
-        0x5d4b7659197d4e54258057765dd5e6dbf106bb3bd5a559fe1951303901e2e81,
-    );
+    let hash_state = PoseidonState {
+        s0: 0x1a0eeac356472db3074d1ca6bb7bbb60fa9f0d53b34ef38a4eddde21b332b28,
+        s1: 0x2783a4227674921675bfa12e30fda0dad992bb9be9785908ac1338b14018182,
+        s2: 0x5d4b7659197d4e54258057765dd5e6dbf106bb3bd5a559fe1951303901e2e81,
+    };
     // Hash Inputs
-    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_E12D_u288(hint.lambda_root, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_E12D_u288(hint.lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u288(hint.w, s0, s1, s2);
+    let hash_state = hashing::hash_G1G2Pair(pair0, hash_state);
+    let hash_state = hashing::hash_G1G2Pair(pair1, hash_state);
+    let hash_state = hashing::hash_E12D_u288(hint.lambda_root, hash_state);
+    let hash_state = hashing::hash_E12D_u288(hint.lambda_root_inverse, hash_state);
+    let hash_state = hashing::hash_MillerLoopResultScalingFactor_u288(hint.w, hash_state);
     // Hash Ris to obtain base random coefficient c0 and evals
     let z: u384 = hint.z.into();
 
-    let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
-        hint.Ris, s0, s1, s2, z,
+    let (hash_state, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
+        hint.Ris, hash_state, z,
     );
     // Last Ri is known to be 1:
-    let (s0, s1, s2) = hashing::hash_E12D_one(s0, s1, s2);
+    let hash_state = hashing::hash_E12D_one(hash_state);
 
     let mut evals = evals.span();
-    let c_1: u384 = s1.into();
+    let c_1: u384 = hash_state.s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, _, _) = hashing::hash_u288_transcript(hint.big_Q.span(), s0, s1, s2);
+    let z_felt252 = hashing::hash_u288_transcript(hint.big_Q.span(), hash_state).s0;
 
     assert!(z_felt252 == hint.z);
 
@@ -277,32 +278,32 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
 
     // Init sponge state
     // >>> hades_permutation(0, 0, int.from_bytes(b"MPCHECK_BLS12_381_2P_2F", "big"))
-    let (s0, s1, s2) = (
-        0x38fc487c6a5413cb099f102857912e93570c7a3628b34722ec1fff8cefa6f5f,
-        0x3cec4f7f551bccf7cbfbfd86cde672f2104b89d5443707c7ca7aca8196f4d0f,
-        0x5ff52024b20f5cd082b347b5455a15a265874a39983c38ed544090b750ee718,
-    );
+    let hash_state = PoseidonState {
+        s0: 0x38fc487c6a5413cb099f102857912e93570c7a3628b34722ec1fff8cefa6f5f,
+        s1: 0x3cec4f7f551bccf7cbfbfd86cde672f2104b89d5443707c7ca7aca8196f4d0f,
+        s2: 0x5ff52024b20f5cd082b347b5455a15a265874a39983c38ed544090b750ee718,
+    };
 
     // Hash Inputs
 
-    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair0, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_G1G2Pair(pair1, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_E12D_u384(hint.lambda_root_inverse, s0, s1, s2);
-    let (s0, s1, s2) = hashing::hash_MillerLoopResultScalingFactor_u384(hint.w, s0, s1, s2);
+    let hash_state = hashing::hash_G1G2Pair(pair0, hash_state);
+    let hash_state = hashing::hash_G1G2Pair(pair1, hash_state);
+    let hash_state = hashing::hash_E12D_u384(hint.lambda_root_inverse, hash_state);
+    let hash_state = hashing::hash_MillerLoopResultScalingFactor_u384(hint.w, hash_state);
     // Hash Ris to obtain base random coefficient c0 & evaluate all Ris at z (given in advance).
     let z: u384 = hint.z.into();
-    let (s0, s1, s2, mut evals) = basic_field_ops::eval_and_hash_E12D_u384_transcript(
-        hint.Ris, s0, s1, s2, z,
+    let (hash_state, mut evals) = basic_field_ops::eval_and_hash_E12D_u384_transcript(
+        hint.Ris, hash_state, z,
     );
     // Last Ri is known to be 1:
-    let (s0, s1, s2) = hashing::hash_E12D_one(s0, s1, s2);
+    let hash_state = hashing::hash_E12D_one(hash_state);
 
     let mut evals = evals.span();
 
-    let c_1: u384 = s1.into();
+    let c_1: u384 = hash_state.s1.into();
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
-    let (z_felt252, _, _) = hashing::hash_u384_transcript(hint.big_Q.span(), s0, s1, s2);
+    let z_felt252 = hashing::hash_u384_transcript(hint.big_Q.span(), hash_state).s0;
     assert(z_felt252 == hint.z, 'z mismatch');
 
     // Precompute lambda root evaluated in Z:
