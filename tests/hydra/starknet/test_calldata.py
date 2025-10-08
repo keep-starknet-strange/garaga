@@ -2,7 +2,8 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID, G1Point
+from garaga.curves import CURVES, CurveID
+from garaga.points import G1Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
     drand_round_to_calldata,

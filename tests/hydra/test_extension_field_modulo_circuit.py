@@ -3,7 +3,7 @@ import random
 import pytest
 
 from garaga.algebra import PyFelt
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit
 from garaga.modulo_circuit import ModuloCircuitElement, WriteOps
 

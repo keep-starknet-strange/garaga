@@ -1,6 +1,6 @@
 import pytest
 
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.hints.frobenius import generate_frobenius_maps, get_frobenius_maps
 
 

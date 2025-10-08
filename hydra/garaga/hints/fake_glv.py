@@ -5,7 +5,8 @@ from dataclasses import dataclass
 from typing import List, Tuple
 
 import garaga.hints.eisenstein as eisenstein
-from garaga.definitions import CURVES, CurveID, G1Point
+from garaga.curves import CURVES, CurveID
+from garaga.points import G1Point
 
 
 @dataclass
@@ -837,7 +838,7 @@ if __name__ == "__main__":
     # # print(g.to_cairo_1())
     # # print(res.to_cairo_1())
 
-    # from garaga.definitions import *
+    # from garaga.curves import *
 
     # for curve_id in CURVES:
     #     curve: WeierstrassCurve = CURVES[curve_id]

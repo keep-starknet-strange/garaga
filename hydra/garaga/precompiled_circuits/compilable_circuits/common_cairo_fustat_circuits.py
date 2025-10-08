@@ -1,7 +1,7 @@
 from random import randint
 
 import garaga.modulo_circuit_structs as structs
-from garaga.definitions import CURVES, CurveID, G1Point, G2Point
+from garaga.curves import CURVES, CurveID
 from garaga.hints import neg_3
 from garaga.hints.ecip import (
     n_coeffs_from_n_points,
@@ -10,6 +10,7 @@ from garaga.hints.ecip import (
 )
 from garaga.modulo_circuit import WriteOps
 from garaga.modulo_circuit_structs import G1PointCircuit, G2PointCircuit, u384
+from garaga.points import G1Point, G2Point
 from garaga.precompiled_circuits.cofactor_clearing import G1CofactorClearing
 from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseModuloCircuit,

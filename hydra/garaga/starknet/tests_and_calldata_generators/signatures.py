@@ -4,15 +4,9 @@ from functools import lru_cache
 from hashlib import sha512
 
 from garaga import garaga_rs
-from garaga.definitions import (
-    BASE,
-    CURVES,
-    N_LIMBS,
-    CurveID,
-    G1Point,
-    TwistedEdwardsCurve,
-)
+from garaga.curves import BASE, CURVES, N_LIMBS, CurveID, TwistedEdwardsCurve
 from garaga.hints.io import bigint_split, split_128
+from garaga.points import G1Point
 
 
 @dataclass(slots=True)

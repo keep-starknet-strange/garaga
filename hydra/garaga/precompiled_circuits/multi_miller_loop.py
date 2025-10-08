@@ -1,20 +1,13 @@
 from typing import Iterator, Tuple
 
-from garaga.definitions import (
-    BLS12_381_ID,
-    BN254_ID,
-    CURVES,
-    CurveID,
-    G1Point,
-    G2Point,
-    precompute_lineline_sparsity,
-)
+from garaga.curves import BLS12_381_ID, BN254_ID, CURVES, CurveID
 from garaga.extension_field_modulo_circuit import (
     ExtensionFieldModuloCircuit,
     ModuloCircuitElement,
     PyFelt,
 )
 from garaga.hints.io import flatten
+from garaga.points import G1Point, G2Point, precompute_lineline_sparsity
 
 
 class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):

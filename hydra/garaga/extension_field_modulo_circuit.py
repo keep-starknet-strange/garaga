@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 
 from garaga.algebra import Polynomial, PyFelt
-from garaga.definitions import N_LIMBS, get_irreducible_poly
+from garaga.curves import N_LIMBS, get_irreducible_poly
 from garaga.hints.extf_mul import (
     nondeterministic_extension_field_div,
     nondeterministic_extension_field_mul_divmod,

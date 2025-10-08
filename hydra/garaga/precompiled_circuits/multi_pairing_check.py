@@ -1,16 +1,10 @@
-from garaga.definitions import (
-    CURVES,
-    CurveID,
-    G1G2Pair,
-    G1Point,
-    G2Point,
-    get_base_field,
-    get_sparsity,
-)
+from garaga.algebra import get_sparsity
+from garaga.curves import CURVES, CurveID, get_base_field
 from garaga.hints.frobenius import get_frobenius_maps
 from garaga.hints.multi_miller_witness import get_final_exp_witness
 from garaga.hints.tower_backup import E6, E12
 from garaga.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
+from garaga.points import G1G2Pair, G1Point, G2Point
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 

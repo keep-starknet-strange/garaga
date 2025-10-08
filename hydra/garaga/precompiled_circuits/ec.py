@@ -1,6 +1,6 @@
 import sympy
 
-from garaga.definitions import CURVES
+from garaga.curves import CURVES
 from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement, PyFelt, WriteOps
 from garaga.precompiled_circuits.fp2 import Fp2Circuits
 

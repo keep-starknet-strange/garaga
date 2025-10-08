@@ -1,7 +1,7 @@
 import pytest
 
 from garaga.algebra import BaseField, Polynomial
-from garaga.definitions import CURVES, CurveID
+from garaga.curves import CURVES, CurveID
 
 # List of curve IDs to test
 p = CURVES[CurveID.SECP256K1.value].p

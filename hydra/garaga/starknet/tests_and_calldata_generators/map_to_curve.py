@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 
 from garaga.algebra import PyFelt
-from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
+from garaga.curves import CURVES, CurveID, get_base_field
 from garaga.hints.io import bigint_split, int_to_u384
+from garaga.points import G1Point
 from garaga.signature import apply_isogeny, hash_to_field
 
 

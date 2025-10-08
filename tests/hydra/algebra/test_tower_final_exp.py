@@ -2,7 +2,7 @@ import time
 
 import pytest
 
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.hints.tower_backup import E12, get_base_field
 
 

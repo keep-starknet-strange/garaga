@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 from garaga.algebra import FunctionFelt, ModuloCircuitElement, PyFelt
-from garaga.definitions import STARK, G1Point, G2Point, get_base_field
+from garaga.curves import STARK, get_base_field
 from garaga.hints import io
 from garaga.hints.io import (
     int_array_to_u384_array,
@@ -13,6 +13,7 @@ from garaga.hints.io import (
     int_to_u256,
     int_to_u384,
 )
+from garaga.points import G1Point, G2Point
 
 T = TypeVar("T", bound="Cairo1SerializableStruct")
 

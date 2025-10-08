@@ -1,6 +1,6 @@
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, PyFelt
-from garaga.definitions import BASE, N_LIMBS, STARK
+from garaga.curves import BASE, N_LIMBS, STARK
 from garaga.hints.io import bigint_split
 
 

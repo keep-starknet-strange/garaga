@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.precompiled_circuits.compilable_circuits.apply_isogeny import (
     ApplyIsogenyCircuit,
 )

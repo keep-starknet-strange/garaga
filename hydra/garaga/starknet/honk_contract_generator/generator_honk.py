@@ -2,7 +2,7 @@ import argparse
 import os
 from pathlib import Path
 
-from garaga.definitions import CurveID, ProofSystem
+from garaga.curves import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.compilable_circuits.base import (
     get_circuit_definition_impl_template,

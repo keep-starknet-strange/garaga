@@ -9,8 +9,9 @@ from typing import List, Optional, Union
 import requests
 from requests.exceptions import RequestException
 
-from garaga.definitions import CurveID, Fp2, G1Point, G2Point, get_base_field
+from garaga.curves import CurveID, Fp2, get_base_field
 from garaga.hints import io
+from garaga.points import G1Point, G2Point
 
 
 class DrandNetwork(Enum):
@@ -285,8 +286,8 @@ if __name__ == "__main__":
     )
     print("message", msg_point)
 
-    from garaga.definitions import G1G2Pair
     from garaga.modulo_circuit_structs import G2Line, StructArray
+    from garaga.points import G1G2Pair
     from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 
     print(

@@ -5,14 +5,8 @@ import subprocess
 import time
 
 import garaga.modulo_circuit_structs as structs
-from garaga.definitions import (
-    CURVES,
-    CurveID,
-    G1G2Pair,
-    G1Point,
-    G2Point,
-    get_base_field,
-)
+from garaga.curves import CURVES, CurveID, get_base_field
+from garaga.points import G1G2Pair, G1Point, G2Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder

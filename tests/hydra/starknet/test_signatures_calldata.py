@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.starknet.tests_and_calldata_generators.signatures import (
     ECDSASignature,
     EdDSA25519Signature,
