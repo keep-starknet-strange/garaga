@@ -152,7 +152,16 @@ class G1Point:
             return self.is_on_curve() or self.is_infinity()
         else:
             if self.curve_id == CurveID.BLS12_381:
-                return self.scalar_mul(CURVES[self.curve_id.value].n).is_infinity()
+                # we check that p+x²ϕ(p)
+                # is the infinity.
+                third_root_of_unity = 0x1A0111EA397FE699EC02408663D4DE85AA0D857D89759AD4897D29650FB85F9B409427EB4F49FFFD8BFD00000000AAAC
+                phi_p = G1Point(
+                    self.x * third_root_of_unity % CURVES[self.curve_id.value].p,
+                    self.y,
+                    self.curve_id,
+                )
+                x_seed_sq = (CURVES[self.curve_id.value].x) ** 2
+                return phi_p.scalar_mul(x_seed_sq).add(self).is_infinity()
             else:
                 return self.is_in_prime_order_subgroup_generic()
 
