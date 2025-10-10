@@ -38,9 +38,9 @@ mod Groth16VerifierBLS12_381 {
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve_excluding_infinity(1);
-            groth16_proof.b.assert_on_curve_excluding_infinity(1);
-            groth16_proof.c.assert_on_curve_excluding_infinity(1);
+            groth16_proof.a.assert_in_subgroup_excluding_infinity(1);
+            groth16_proof.b.assert_in_subgroup_excluding_infinity(1);
+            groth16_proof.c.assert_in_subgroup_excluding_infinity(1);
 
             let ic = ic.span();
 

@@ -257,6 +257,96 @@ class DoubleECPointG2AEq0Circuit(BaseModuloCircuit):
         return circuit
 
 
+class DoubleAndAddECPointsG2Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="double_and_add_ec_points_g2",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        P = G2Point.gen_random_point(CurveID(self.curve_id))
+        Q = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(P.x[0]))
+        input.append(self.field(P.x[1]))
+        input.append(self.field(P.y[0]))
+        input.append(self.field(P.y[1]))
+        input.append(self.field(Q.x[0]))
+        input.append(self.field(Q.x[1]))
+        input.append(self.field(Q.y[0]))
+        input.append(self.field(Q.y[1]))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicECG2(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        px0, px1, py0, py1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+        qx0, qx1, qy0, qy1 = circuit.write_struct(
+            G2PointCircuit("q", input[4:8]), WriteOps.INPUT
+        )
+
+        (nx0, nx1), (ny0, ny1) = circuit.double_and_add(
+            ((px0, px1), (py0, py1)), ((qx0, qx1), (qy0, qy1))
+        )
+        circuit.extend_struct_output(G2PointCircuit("result", [nx0, nx1, ny0, ny1]))
+
+        return circuit
+
+
+class PsiG2BLS12_381Circuit(BaseModuloCircuit):
+    def __init__(self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0):
+        super().__init__(
+            name="psi_g2_bls12_381",
+            curve_id=curve_id,
+            auto_run=auto_run,
+            compilation_mode=compilation_mode,
+        )
+
+    def build_input(self) -> list[PyFelt]:
+        input = []
+        P = G2Point.gen_random_point(CurveID(self.curve_id))
+        input.append(self.field(P.x[0]))
+        input.append(self.field(P.x[1]))
+        input.append(self.field(P.y[0]))
+        input.append(self.field(P.y[1]))
+        return input
+
+    def _run_circuit_inner(self, input: list[PyFelt]) -> ModuloCircuit:
+        circuit = BasicECG2(
+            self.name, self.curve_id, compilation_mode=self.compilation_mode
+        )
+        circuit.generic_modulus = True
+        px0, px1, py0, py1 = circuit.write_struct(
+            G2PointCircuit("p", input[0:4]), WriteOps.INPUT
+        )
+        # https://github.com/Consensys/gnark/blob/9ed0eab21e8935cb180d1f75713cd2c29c91a3c9/std/algebra/emulated/sw_bls12381/g2.go
+        u1 = circuit.set_or_get_constant(
+            0x1A0111EA397FE699EC02408663D4DE85AA0D857D89759AD4897D29650FB85F9B409427EB4F49FFFD8BFD00000000AAAD
+        )
+        v0 = circuit.set_or_get_constant(
+            0x135203E60180A68EE2E9C448D77A2CD91C3DEDD930B1CF60EF396489F61EB45E304466CF3E67FA0AF1EE7B04121BDEA2
+        )
+        v1 = circuit.set_or_get_constant(
+            0x6AF0E0437FF400B6831E36D6BD17FFE48395DABC2D3435E77F76E17009241C5EE67992F72EC05F4C81084FBEDE3CC09
+        )
+
+        psi_Qx = (circuit.mul(px1, u1), circuit.mul(px0, u1))
+        psi_Qy = circuit.fp2_mul([py0, circuit.neg(py1)], [v0, v1])
+
+        circuit.extend_struct_output(
+            G2PointCircuit("result", [psi_Qx[0], psi_Qx[1], psi_Qy[0], psi_Qy[1]])
+        )
+
+        return circuit
+
+
 class SlopeInterceptSamePointCircuit(BaseModuloCircuit):
     def __init__(
         self, curve_id: int, auto_run: bool = True, compilation_mode: int = 0

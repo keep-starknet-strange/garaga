@@ -4,13 +4,6 @@ use garaga::definitions::{G1Point, G1PointZero, G2Point};
 pub const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
 
 
-pub const THIRD_ROOT_OF_UNITY_BLS12_381_G1: u384 = u384 {
-    limb0: 0x4f49fffd8bfd00000000aaac,
-    limb1: 0x897d29650fb85f9b409427eb,
-    limb2: 0x63d4de85aa0d857d89759ad4,
-    limb3: 0x1a0111ea397fe699ec024086,
-};
-
 // curve_index 0: BN254
 // curve_index 1: BLS12_381
 // curve_index 2: SECP256K1

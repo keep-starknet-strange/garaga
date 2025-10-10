@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from fastecdsa import curvemath
 
-from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt, get_sparsity
+from garaga.algebra import Fp2, ModuloCircuitElement, Polynomial, PyFelt, get_sparsity
 from garaga.curves import (
     CURVES,
     GARAGA_RS_SUPPORTED_CURVES,
@@ -421,7 +421,35 @@ class G2Point:
             return self.is_on_curve() or self.is_infinity()
         else:
             if self.curve_id == CurveID.BLS12_381:
-                return self.scalar_mul(CURVES[self.curve_id.value].n).is_infinity()
+                # https://github.com/Consensys/gnark/blob/9ed0eab21e8935cb180d1f75713cd2c29c91a3c9/std/algebra/emulated/sw_bls12381/g2.go
+                field = get_base_field(self.curve_id.value)
+                seed_Q = self.scalar_mul(
+                    -CURVES[self.curve_id.value].x
+                )  # Note the negative sign.
+                u1 = 0x1A0111EA397FE699EC02408663D4DE85AA0D857D89759AD4897D29650FB85F9B409427EB4F49FFFD8BFD00000000AAAD
+                v = Fp2(
+                    field(
+                        0x135203E60180A68EE2E9C448D77A2CD91C3DEDD930B1CF60EF396489F61EB45E304466CF3E67FA0AF1EE7B04121BDEA2
+                    ),
+                    field(
+                        0x6AF0E0437FF400B6831E36D6BD17FFE48395DABC2D3435E77F76E17009241C5EE67992F72EC05F4C81084FBEDE3CC09
+                    ),
+                )
+
+                psi_Qx = (
+                    (field(self.x[1]) * u1).value,
+                    (field(self.x[0]) * u1).value,
+                )  # Note the reversal of x and y
+
+                psi_Qy = Fp2(field(self.y[0]), -field(self.y[1])) * v
+
+                psi_Qy = (psi_Qy.a0.value, psi_Qy.a1.value)
+
+                psi_Q = G2Point(psi_Qx, psi_Qy, self.curve_id)
+
+                # [r]Q == 0 <==>  ψ(Q) == [x₀]Q <=> ψ(Q) + [-x₀]Q = 0
+
+                return psi_Q.add(seed_Q).is_infinity()
             else:
                 return self.is_in_prime_order_subgroup_generic()
 

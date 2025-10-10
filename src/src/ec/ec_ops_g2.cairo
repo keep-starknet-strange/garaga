@@ -40,6 +40,21 @@ pub impl G2PointImpl of G2PointTrait {
             y1: neg_mod_p(*self.y1, modulus),
         }
     }
+    fn assert_in_subgroup_excluding_infinity(self: @G2Point, curve_index: usize) {
+        self.assert_on_curve_excluding_infinity(curve_index);
+        match curve_index {
+            0 => {}, // BN254 (cofactor 1, nothing to do)
+            1 => {
+                let modulus = get_modulus(curve_index);
+                let (psi_Q) = ec::run_PSI_G2_BLS12_381_circuit(*self, modulus);
+                let seed_Q = scalar_mul_by_bls12_381_seed(*self);
+                if psi_Q != seed_Q {
+                    core::panic_with_felt252('bls12-381 pt not in subgroup');
+                }
+            },
+            _ => { core::panic_with_felt252('invalid curve index') },
+        }
+    }
 }
 
 /// G2 Ops for BLS12-381.
@@ -134,7 +149,6 @@ pub fn get_bits_little(s: u256) -> Array<felt252> {
 
 
 // Should not be called outside of ec_mul.
-// Returns Option::None in case of point at infinity.
 // The size of bits array must be at minimum 2 and the point must be strictly on the curve.
 fn ec_mul_inner(pt: G2Point, mut bits: Array<felt252>, curve_index: usize) -> G2Point {
     let mut temp = pt; // 2^0 * pt
@@ -241,6 +255,64 @@ pub fn eq_neg_mod_p(a0: u384, a1: u384, b0: u384, b1: u384, modulus: CircuitModu
 }
 
 
+// Computes [x]Q where x is the BLS12-381 seed parameter.
+//
+// # Assumptions
+// - Q lies on the BLS12-381 G2 twist curve
+// - Q is not the point at infinity
+//
+// # Completeness
+// During the fixed addition chain an intermediate point may become
+// P = (x, 0). Such a point is a 2-torsion element (order 2) and doubling it
+// yields the point at infinity, causing the doubling circuit to fail.
+//
+// The BLS12-381 G2 twist contains exactly three finite 2-torsion points
+// (all with y = (0,0)) plus the point at infinity.
+//
+// • If the input Q is already in the prime-order subgroup r,
+//   no 2-torsion point can ever be reached; the probability is exactly 0.
+// • For a uniformly random point of E(Fₚ²) the probability of hitting such an
+//   intermediate is 3 / |E(Fₚ²)| ≈ 2⁻⁷⁶¹, which is cryptographically
+//   negligible.
+//
+// Hence the routine is complete for all subgroup inputs and may only fail on
+// an astronomically small fraction of out-of-subgroup points.
+// This is acceptable because the function is invoked precisely for subgroup testing.
+pub fn scalar_mul_by_bls12_381_seed(q: G2Point) -> G2Point {
+    let modulus = get_modulus(1);
+    // Triple.
+    let (z) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(q, modulus);
+    let (z) = ec::run_ADD_EC_POINTS_G2_circuit(z, q, modulus);
+    // Double.
+    let (z) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(z, modulus);
+    // Double and add.
+    let (z) = ec::run_DOUBLE_AND_ADD_EC_POINTS_G2_circuit(z, q, modulus);
+    // Double 2 times.
+    let (z) = double_n_times(z, 2, modulus);
+    // Double and add.
+    let (z) = ec::run_DOUBLE_AND_ADD_EC_POINTS_G2_circuit(z, q, modulus);
+    // Double 8 times.
+    let (z) = double_n_times(z, 8, modulus);
+    // Double and add.
+    let (z) = ec::run_DOUBLE_AND_ADD_EC_POINTS_G2_circuit(z, q, modulus);
+    // Double 31 times.
+    let (z) = double_n_times(z, 31, modulus);
+    // Double and add.
+    let (z) = ec::run_DOUBLE_AND_ADD_EC_POINTS_G2_circuit(z, q, modulus);
+    // Double 16 times.
+    let (z) = double_n_times(z, 16, modulus);
+    return z.negate(1); // Negative seed parameter.
+}
+
+
+fn double_n_times(p: G2Point, n: usize, modulus: CircuitModulus) -> (G2Point,) {
+    let mut res = p;
+    for _ in 0..n {
+        let (tmp) = ec::run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(res, modulus);
+        res = tmp;
+    }
+    return (res,);
+}
 #[cfg(test)]
 mod tests {
     use garaga::definitions::BLS_G2_GENERATOR;

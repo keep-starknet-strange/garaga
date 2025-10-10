@@ -618,7 +618,6 @@ pub fn deserialize_mpcheck_hint_bls12_381(ref serialized: Span<felt252>) -> MPCh
 pub fn deserialize_full_proof_with_hints_bls12_381(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBLS12_381 {
-    println!("Hello0");
     let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
@@ -638,9 +637,7 @@ pub fn deserialize_full_proof_with_hints_bls12_381(
 
     let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
     // Deserialize mpcheck_hint
-    println!("Hello");
     let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);
-    println!("Hello2");
     let msm_hint = serialized;
 
     return FullProofWithHintsBLS12_381 { groth16_proof, mpcheck_hint, msm_hint };

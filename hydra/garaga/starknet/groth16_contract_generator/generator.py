@@ -2,7 +2,7 @@ import os
 import subprocess
 from pathlib import Path
 
-from garaga.definitions import CurveID, ProofSystem
+from garaga.curves import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.starknet.cli.utils import create_directory, get_package_version
@@ -375,9 +375,9 @@ mod {contract_cairo_name} {{
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve_excluding_infinity({curve_id.value});
-            groth16_proof.b.assert_on_curve_excluding_infinity({curve_id.value});
-            groth16_proof.c.assert_on_curve_excluding_infinity({curve_id.value});
+            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
 
             let ic = ic.span();
 

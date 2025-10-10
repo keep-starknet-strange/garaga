@@ -1,6 +1,6 @@
 import os
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.modulo_circuit_structs import G1PointCircuit
 from garaga.starknet.constants import RISC0_RELEASE_VERSION
 from garaga.starknet.groth16_contract_generator.generator import (
@@ -107,9 +107,9 @@ mod Risc0Groth16Verifier{curve_id.name} {{
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve_excluding_infinity({curve_id.value});
-            groth16_proof.b.assert_on_curve_excluding_infinity({curve_id.value});
-            groth16_proof.c.assert_on_curve_excluding_infinity({curve_id.value});
+            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
 
             let ic = ic.span();
 

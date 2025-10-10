@@ -839,7 +839,7 @@ mod tests {
 
     #[test]
     fn test_drand_quicknet_public_key() {
-        DRAND_QUICKNET_PUBLIC_KEY.assert_on_curve_excluding_infinity(1);
+        DRAND_QUICKNET_PUBLIC_KEY.assert_in_subgroup_excluding_infinity(1);
     }
     #[test]
     fn test_hash_to_two_bls_felts() {

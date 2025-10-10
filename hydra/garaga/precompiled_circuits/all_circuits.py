@@ -47,6 +47,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     AddECPointCircuit,
     AddECPointsG2Circuit,
     ClearCofactorBLS12_381Circuit,
+    DoubleAndAddECPointsG2Circuit,
     DoubleECPointCircuit,
     DoubleECPointG2AEq0Circuit,
     DummyCircuit,
@@ -55,6 +56,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     IsOnCurveG2Circuit,
     PrepareFakeGLVPtsCircuit,
     PrepareGLVFakeGLVPtsCircuit,
+    PsiG2BLS12_381Circuit,
     QuadrupleAndAdd9Circuit,
 )
 from garaga.starknet.cli.utils import create_directory
@@ -121,6 +123,8 @@ class CircuitID(Enum):
     )
     ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
     DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
+    DOUBLE_AND_ADD_EC_POINT_G2 = int.from_bytes(b"double_and_add_ec_point_g2", "big")
+    PSI_G2_BLS12_381 = int.from_bytes(b"psi_g2_bls12_381", "big")
     FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
 
 
@@ -181,6 +185,17 @@ ALL_CAIRO_CIRCUITS = {
         "class": DoubleECPointG2AEq0Circuit,
         "params": None,
         "filename": "ec",
+    },
+    CircuitID.DOUBLE_AND_ADD_EC_POINT_G2: {
+        "class": DoubleAndAddECPointsG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.PSI_G2_BLS12_381: {
+        "class": PsiG2BLS12_381Circuit,
+        "params": None,
+        "filename": "ec",
+        "curve_ids": [CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_BIT0_LOOP: {
         "class": FixedG2MPCheckBit0,
