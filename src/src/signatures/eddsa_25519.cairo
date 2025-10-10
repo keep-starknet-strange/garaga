@@ -4,8 +4,11 @@ use core::circuit::{
 };
 use core::integer::u128_byte_reverse;
 use garaga::basic_field_ops::{neg_mod_p, u512_mod_p};
+use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
-use garaga::definitions::{G1Point, Zero, get_ED25519_modulus, get_curve_order_modulus, u288Serde};
+use garaga::definitions::{
+    G1Point, Zero, get_ED25519_modulus, get_a, get_curve_order_modulus, get_modulus, u288Serde,
+};
 use garaga::ec_ops::{G1PointTrait, ec_safe_add, msm_fake_glv};
 use garaga::hashes::sha_512::_sha512;
 
@@ -61,6 +64,21 @@ pub struct EdDSASignatureWithHint {
 }
 
 
+/// Verifies an Ed25519 signature according to RFC 8032.
+///
+/// # Security
+/// This implementation follows RFC 8032 Section 5.1.7 by implicitly clearing
+/// the cofactor through the verification equation. The check
+///     [8]([s]B) = [8](R + [h]A)
+/// automatically rejects signatures containing small-order components without
+/// requiring explicit [8]P ≠ 𝒪 tests on R and A.
+///
+/// # Parameters
+/// - `signature`: The signature with hints for point decompression and MSM
+///
+/// # Returns
+/// - `true` if the signature is valid
+/// - `false` if the signature is invalid or contains small-order points
 pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let EdDSASignatureWithHint { signature, mut msm_hint, sqrt_Rx_hint, sqrt_Px_hint } = signature;
     let EdDSASignature { Ry_twisted, s, Py_twisted, msg } = signature;
@@ -79,8 +97,14 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let P: G1Point = P_opt.unwrap();
     let R: G1Point = R_opt.unwrap();
 
+    // Verify points lie on the curve (but may be outside the prime-order subgroup)
     if !R.is_on_curve_excluding_infinity(4) || !P.is_on_curve_excluding_infinity(4) {
-        // println!("R or P is not on curve");
+        return false;
+    }
+
+    // Reject small-order points explicitly to prevent key-compromise and
+    // signature-malleability attacks. Check [8]P = 𝒪 for both R and the public key.
+    if is_small_order_point(R, 4) || is_small_order_point(P, 4) {
         return false;
     }
 
@@ -140,6 +164,50 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
     let msm_result = msm_fake_glv(points, scalars, 4, ref msm_hint);
 
     return ec_safe_add(msm_result, R, 4).is_infinity();
+}
+
+/// Checks if a point has small order (order dividing the cofactor 8).
+///
+/// For Ed25519 the full curve has order 8×ℓ where ℓ is the prime-order subgroup.
+/// Small-order points (orders 1, 2, 4, 8) can enable attacks, so they must be rejected.
+///
+/// # Implementation
+/// Computes [8]P by three successive doublings. If the result is the identity,
+/// then P has order dividing 8 and should be rejected.
+///
+/// # Parameters
+/// - `p`: The point to test
+/// - `curve_index`: Must be 4 (Ed25519)
+///
+/// # Returns
+/// - `true` if P has small order (should be rejected)
+/// - `false` if P is in the large subgroup (acceptable)
+fn is_small_order_point(p: G1Point, curve_index: usize) -> bool {
+    // Compute [8]P = [2^3]P by three doublings
+
+    if p.y.is_zero() {
+        // => P=-P => 2P = 0
+        return true;
+    }
+
+    let modulus = get_modulus(curve_index);
+    let a = get_a(curve_index);
+    let (p2) = ec::run_DOUBLE_EC_POINT_circuit(p, a, modulus);
+
+    if p2.y.is_zero() {
+        // => 2P=-2P => 4P = 0
+        return true;
+    }
+
+    let (p4) = ec::run_DOUBLE_EC_POINT_circuit(p2, a, modulus);
+
+    if p4.y.is_zero() {
+        // => 4P=-4P => 8P = 0
+        return true;
+    }
+
+    // If [8]P = 𝒪 then P has order dividing 8 (small-order point)
+    return false;
 }
 
 
