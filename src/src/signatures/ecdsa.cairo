@@ -1,4 +1,4 @@
-use garaga::basic_field_ops::{add_mod_p, inv_mod_p, is_even_u384, mul_mod_p};
+use garaga::basic_field_ops::{inv_mod_p, is_even_u384, mul_mod_p, reduce_mod_p};
 use garaga::definitions::{
     G1Point, Zero, deserialize_u384, get_G, get_curve_order_modulus, get_n, serialize_u384, u384,
 };
@@ -112,9 +112,7 @@ pub fn is_valid_ecdsa_signature_assuming_hash(
     // Check R'.x mod n equals r and R'.y parity matches v
     // Note : if cofactor is 1, no need to reduce r_prime.x mod n
     let ry_prime_parity = is_even_u384(R_prime.y);
-    let r_prime_x_mod_n = add_mod_p(
-        R_prime.x, u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, modulus,
-    );
+    let r_prime_x_mod_n = reduce_mod_p(R_prime.x, modulus);
 
     if R_prime.is_zero() || r_prime_x_mod_n != rx || ry_prime_parity == v {
         return false;
