@@ -56,12 +56,12 @@ pub struct ECDSASignatureWithHint {
 ///
 /// # Algorithm
 /// The ECDSA signature verification checks if the signature (r,s) is valid for message hash z:
-/// 1. Verify that r, s, z are non-zero and less than the curve order n
+/// 1. Verify that r is non-zero and s ∈ {1, ..., n-1}
 /// 2. Verify that the public key P is on the curve
 /// 3. Compute w = s⁻¹ mod n
 /// 4. Compute u₁ = zw mod n and u₂ = rw mod n
 /// 5. Compute R' = u₁G + u₂P
-/// 6. Verify that R'.x mod n equals r and R'.y's parity does NOT match v
+/// 6. Verify that R'.x mod n equals r (implicitly checks r < n) and R'.y's parity does NOT match v
 /// /!\ Note: Behaviour for cofactor > 1 only tested on curves with cofactor 1
 /// (BN254, SECP256K1/R1, GRUMPKIN).
 pub fn is_valid_ecdsa_signature(
@@ -73,8 +73,9 @@ pub fn is_valid_ecdsa_signature(
     let n: u256 = get_n(curve_id);
     let modulus = get_curve_order_modulus(curve_id);
 
-    // Check that r, s are non-zero and less than n
-    if u384_eq_zero(rx) || s >= n || s == 0 || z >= n || z == 0 {
+    // Check that r is non-zero and s is in range {1, ..., n-1}
+    // Note: r < n is implicitly checked later when comparing r_prime.x mod n == r
+    if u384_eq_zero(rx) || s >= n || s == 0 {
         return false;
     }
 
