@@ -1,16 +1,36 @@
 pub use core::circuit::{CircuitModulus, u384, u96};
 use garaga::definitions::{G1Point, G1PointZero, G2Point};
 
+/// Square of the BLS12-381 x seed parameter used in curve generation
 pub const BLS_X_SEED_SQ: u128 = 0xac45a4010001a4020000000100000000;
 
 
+// Curve indices used throughout Garaga:
 // curve_index 0: BN254
 // curve_index 1: BLS12_381
 // curve_index 2: SECP256K1
 // curve_index 3: SECP256R1
-// curve_index 4: ED25519
+// curve_index 4: ED25519 (stored in Weierstrass form)
 // curve_index 5: GRUMPKIN
 
+/// Complete curve parameters for elliptic curves in Weierstrass form: y² = x³ + ax + b
+///
+/// # Fields
+/// * `p`: Prime modulus of the base field Fp
+/// * `n`: Order of the curve (number of points in the prime-order subgroup)
+/// * `a`: Weierstrass a parameter
+/// * `b`: Weierstrass b parameter
+/// * `g`: Generator of the multiplicative group Fp* (for field operations)
+/// * `min_one`: (-1) mod p, precomputed for efficiency
+/// * `min_one_order`: (-1) mod n, precomputed for efficiency
+/// * `G`: Generator point of the curve's prime-order subgroup
+/// * `b_twist`: Twist curve b parameter (b₀, b₁) where b = b₀ + i·b₁ in Fp2 (for pairing
+/// curves only)
+/// * `modulus`: Prime modulus p as 4 limbs of u96 for CircuitModulus operations
+/// * `order_modulus`: Curve order n as 4 limbs of u96 for CircuitModulus operations
+/// * `eigenvalue`: GLV endomorphism eigenvalue λ (for curves with efficient endomorphism)
+/// * `nG_glv_fake_glv`: Precomputed point 2^(nbits-1)·G for GLV decomposition
+/// * `third_root_of_unity`: Cubic root of unity in Fp (for curves supporting GLV/fake-GLV)
 pub struct Curve {
     pub p: u384, // Prime modulus
     pub n: u256, // Order of the curve
@@ -413,6 +433,8 @@ pub const GRUMPKIN: Curve = Curve {
     third_root_of_unity: None,
 };
 
+/// Generator point for the G2 subgroup of BLS12-381's twisted curve E'(Fp2)
+/// Coordinates are in Fp2 represented as (x₀ + i·x₁, y₀ + i·y₁)
 pub const BLS_G2_GENERATOR: G2Point = G2Point {
     x0: u384 {
         limb0: 0xa805bbefd48056c8c121bdb8,
@@ -441,41 +463,56 @@ pub const BLS_G2_GENERATOR: G2Point = G2Point {
 };
 
 
-// recode_naf_bits(jy00(6 * 0x44E992B44A6909F1 + 2)[2:]) (see definitions.py)
-// Using the following replacements:
-// "00" -> 0
-// "10" -> 1
-// "-10" -> 2
-// "01" -> 3
-// "0-1" -> 4
+/// Compressed NAF (Non-Adjacent Form) representation of BN254 seed parameter
+/// for efficient Miller loop computation in pairing operations.
+///
+/// Computed as: recode_naf_bits(jy00(6·x + 2)[2:]) where x = 0x44E992B44A6909F1
+/// Encoding: "00"→0, "10"→1, "-10"→2, "01"→3, "0-1"→4
+/// See hydra/garaga/definitions.py for the encoding algorithm
 pub const BN254_SEED_BITS_JY00_COMPRESSED: [felt252; 32] = [
     2, 1, 0, 2, 2, 0, 2, 3, 1, 4, 0, 0, 3, 0, 2, 1, 4, 0, 0, 2, 1, 0, 2, 2, 3, 0, 4, 0, 4, 4, 2, 0,
 ];
 
-// [int(x) for x in bin(0xD201000000010000)[2:]][2:] with two-consecutive zeros replaced by 3
+/// Compressed binary representation of BLS12-381 seed parameter x = 0xD201000000010000
+/// for efficient Miller loop computation.
+///
+/// Binary digits with consecutive zeros replaced by 3 for compression
+/// Format: bin(x)[2:][2:] with "00" → 3
 pub const BLS12_381_SEED_BITS_COMPRESSED: [felt252; 34] = [
     0, 1, 3, 1, 3, 3, 3, 3, 1, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 0, 1, 3, 3, 3, 3, 3, 3,
     3, 3,
 ];
 
-// NAF(6 * 0x44E992B44A6909F1 + 2)[1:] with "-1" replaced by "2"
-// See definitions.py for the NAF (Non-Adjacent Form) function.
+/// NAF (Non-Adjacent Form) representation of BN254 seed parameter
+/// for Miller loop computation in pairing operations.
+///
+/// Computed as: NAF(6·x + 2)[1:] where x = 0x44E992B44A6909F1
+/// Encoding: -1 is replaced by 2 (values are 0, 1, or 2)
+/// See hydra/garaga/definitions.py for the NAF algorithm
 pub const BN254_SEED_BITS_NAF: [usize; 65] = [
     0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 1,
     0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 0, 0,
     0,
 ];
 
-// [int(x) for x in bin(0xD201000000010000)[2:]][2:]
+/// Standard binary representation of BLS12-381 seed parameter x = 0xD201000000010000
+/// Used for basic Miller loop operations
+/// Format: bin(x)[2:][2:] (binary digits after "0b" prefix, skipping first two)
 pub const BLS12_381_SEED_BITS: [usize; 62] = [
     0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 ];
 
 
-/// GETTERS FUNCTIONS ///
+/// GETTER FUNCTIONS ///
 
-// Returns the prime modulus for a given curve index
+/// Returns the prime modulus p of the base field Fp for a given curve.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5, see curve index mapping above)
+///
+/// # Returns
+/// * The prime modulus p as u384, or zero for invalid indices
 pub fn get_p(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.p,
@@ -488,13 +525,37 @@ pub fn get_p(curve_index: usize) -> u384 {
     }
 }
 
+/// Checks if a curve has an efficient endomorphism available for GLV decomposition.
+///
+/// GLV (Gallant-Lambert-Vanstone) decomposition accelerates scalar multiplication
+/// by utilizing the curve's endomorphism structure.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve
+///
+/// # Returns
+/// * `true` for BN254, BLS12_381, and SECP256K1 (curves 0, 1, 2)
+/// * `false` for all other curves
 pub fn has_endomorphism_available(curve_index: usize) -> bool {
     match curve_index {
         0 | 1 | 2 => true,
         _ => false,
     }
 }
-// Returns the Weierstrass 'a' parameter for a given curve index
+
+/// Returns the Weierstrass 'a' parameter for a given curve.
+///
+/// For Weierstrass curves: y² = x³ + ax + b
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The 'a' parameter as u384, or zero for invalid indices
+///
+/// # Note
+/// For ED25519 (index 4), this returns the 'a' parameter of the birationally
+/// equivalent Weierstrass curve, not the Edwards curve parameter.
 pub fn get_a(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.a,
@@ -507,7 +568,19 @@ pub fn get_a(curve_index: usize) -> u384 {
     }
 }
 
-// Returns the Weierstrass 'b' parameter for a given curve index
+/// Returns the Weierstrass 'b' parameter for a given curve.
+///
+/// For Weierstrass curves: y² = x³ + ax + b
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The 'b' parameter as u384, or zero for invalid indices
+///
+/// # Note
+/// For ED25519 (index 4), this returns the 'b' parameter of the birationally
+/// equivalent Weierstrass curve, not the Edwards curve parameter.
 pub fn get_b(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.b,
@@ -520,8 +593,18 @@ pub fn get_b(curve_index: usize) -> u384 {
     }
 }
 
-// Returns the b parameter for the twisted curve equation of BN254/BLS12_381.
-// Result is given as (b0, b1) such that b = b0 + i*b1 (in Fp2)
+/// Returns the b parameter for the twisted curve E'(Fp2) used in pairing operations.
+///
+/// The twisted curve has equation: y² = x³ + b' where b' is in Fp2.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (must be 0 for BN254 or 1 for BLS12_381)
+///
+/// # Returns
+/// * Tuple (b₀, b₁) where b' = b₀ + i·b₁ in Fp2 = Fp[i]/(i² + 1)
+///
+/// # Panics
+/// * Panics for curves without pairing support (not BN254 or BLS12_381)
 pub fn get_b_twist(curve_index: usize) -> (u384, u384) {
     match curve_index {
         0 => BN254.b_twist.unwrap(),
@@ -530,7 +613,18 @@ pub fn get_b_twist(curve_index: usize) -> (u384, u384) {
     }
 }
 
-// Returns a generator of the curve base field for a given curve index
+/// Returns a generator g of the multiplicative group Fp* for a given curve.
+///
+/// This generator is used for various field operations and exponentiations.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * A generator element g ∈ Fp* as u384
+///
+/// # Panics
+/// * Panics for invalid curve indices
 pub fn get_g(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.g,
@@ -543,7 +637,19 @@ pub fn get_g(curve_index: usize) -> u384 {
     }
 }
 
-
+/// Returns the order n of the curve's prime-order subgroup.
+///
+/// This is the number of points in the main cryptographic subgroup.
+/// For most curves, this equals #E(Fp)/cofactor.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The subgroup order n as u256
+///
+/// # Panics
+/// * Panics for invalid curve indices
 pub fn get_n(curve_index: usize) -> u256 {
     match curve_index {
         0 => BN254.n,
@@ -556,7 +662,18 @@ pub fn get_n(curve_index: usize) -> u256 {
     }
 }
 
-// Returns (-1) % p for a given curve index
+/// Returns (-1) mod p precomputed for the base field Fp.
+///
+/// This is equivalent to (p - 1) and is frequently used in field arithmetic.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The value (-1) mod p as u384
+///
+/// # Panics
+/// * Panics for invalid curve indices
 pub fn get_min_one(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.min_one,
@@ -569,7 +686,18 @@ pub fn get_min_one(curve_index: usize) -> u384 {
     }
 }
 
-// Returns (-1) % n for a given curve index
+/// Returns (-1) mod n precomputed for the scalar field (curve order).
+///
+/// This is equivalent to (n - 1) and is used for scalar arithmetic operations.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The value (-1) mod n as u384
+///
+/// # Panics
+/// * Panics for invalid curve indices
 pub fn get_min_one_order(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.min_one_order,
@@ -582,7 +710,18 @@ pub fn get_min_one_order(curve_index: usize) -> u384 {
     }
 }
 
-
+/// Returns the base field modulus p as a CircuitModulus for circuit operations.
+///
+/// CircuitModulus is used by Cairo's circuit builtins for modular arithmetic.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The prime modulus p as CircuitModulus
+///
+/// # Panics
+/// * Panics for invalid curve indices
 pub fn get_modulus(curve_index: usize) -> CircuitModulus {
     match curve_index {
         0 => get_BN254_modulus(),
@@ -595,7 +734,19 @@ pub fn get_modulus(curve_index: usize) -> CircuitModulus {
     }
 }
 
-// Returns the order of a given curve index as CircuitModulus
+/// Returns the curve order n as a CircuitModulus for circuit operations.
+///
+/// CircuitModulus is used by Cairo's circuit builtins for modular arithmetic
+/// in the scalar field.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The curve order n as CircuitModulus
+///
+/// # Panics
+/// * Panics for invalid curve indices
 pub fn get_curve_order_modulus(curve_index: usize) -> CircuitModulus {
     match curve_index {
         0 => get_BN254_order_modulus(),
@@ -608,7 +759,21 @@ pub fn get_curve_order_modulus(curve_index: usize) -> CircuitModulus {
     }
 }
 
-
+/// Returns the standard generator point G of the curve's prime-order subgroup.
+///
+/// This is the base point used for scalar multiplication and key generation.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (0-5)
+///
+/// # Returns
+/// * The generator point G as G1Point
+///
+/// # Panics
+/// * Panics for invalid curve indices
+///
+/// # Note
+/// For ED25519 (index 4), returns the generator in Weierstrass form.
 pub fn get_G(curve_index: usize) -> G1Point {
     match curve_index {
         0 => BN254.G,
@@ -621,6 +786,19 @@ pub fn get_G(curve_index: usize) -> G1Point {
     }
 }
 
+/// Returns the eigenvalue λ for the curve's efficiently computable endomorphism.
+///
+/// The endomorphism φ satisfies φ(P) = λ·P for points P on the curve.
+/// This eigenvalue is used in GLV decomposition to accelerate scalar multiplication.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (must be 0, 1, or 2)
+///
+/// # Returns
+/// * The eigenvalue λ as u384
+///
+/// # Panics
+/// * Panics for curves without efficient endomorphism (not BN254, BLS12_381, or SECP256K1)
 pub fn get_eigenvalue(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.eigenvalue.unwrap(),
@@ -630,17 +808,25 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
     }
 }
 
-// from garaga.defintions import *
-// def print_nbits_and_nG_glv_fake_glv():
-// for curve_id in CURVES:
-//     curve: WeierstrassCurve = CURVES[curve_id]
-//     if curve.is_endomorphism_available():
-//         nbits = curve.n.bit_length() // 4 + 9
-//         print(f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits -
-//         1)).to_cairo_1()}")
-// returns :
-// G1Point: 2^(73-1)*G (generator of the curve)
-// Panics if curve does not have efficient endomorphism
+/// Returns the precomputed point 2^(nbits-1)·G for GLV/fake-GLV decomposition.
+///
+/// This precomputed value is used to accelerate scalar multiplication via
+/// GLV (Gallant-Lambert-Vanstone) or fake-GLV decomposition techniques.
+///
+/// The nbits parameter is computed as: nbits = n.bit_length() // 4 + 9
+/// where n is the curve order.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (must be 0, 1, or 2)
+///
+/// # Returns
+/// * The point 2^(nbits-1)·G as G1Point
+///   - For BN254: 2^72·G (nbits=73)
+///   - For BLS12_381: 2^72·G (nbits=73)
+///   - For SECP256K1: 2^72·G (nbits=73)
+///
+/// # Panics
+/// * Panics for curves without efficient endomorphism (not BN254, BLS12_381, or SECP256K1)
 pub fn get_nG_glv_fake_glv(curve_index: usize) -> G1Point {
     match curve_index {
         0 => BN254.nG_glv_fake_glv.unwrap(),
@@ -650,7 +836,19 @@ pub fn get_nG_glv_fake_glv(curve_index: usize) -> G1Point {
     }
 }
 
-
+/// Returns a primitive cube root of unity ω in the base field Fp.
+///
+/// This element satisfies ω³ = 1 and ω ≠ 1, and is used in GLV endomorphism
+/// computations for accelerating scalar multiplication.
+///
+/// # Arguments
+/// * `curve_index` - Index of the curve (must be 0, 1, or 2)
+///
+/// # Returns
+/// * A third root of unity ω ∈ Fp as u384
+///
+/// # Panics
+/// * Panics for curves without efficient endomorphism (not BN254, BLS12_381, or SECP256K1)
 pub fn get_third_root_of_unity(curve_index: usize) -> u384 {
     match curve_index {
         0 => BN254.third_root_of_unity.unwrap(),
@@ -660,61 +858,74 @@ pub fn get_third_root_of_unity(curve_index: usize) -> u384 {
     }
 }
 
+/// Returns the BLS12-381 base field modulus as CircuitModulus.
 #[inline(always)]
 pub fn get_BLS12_381_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(BLS12_381.modulus).unwrap()
 }
 
+/// Returns the BN254 base field modulus as CircuitModulus.
 #[inline(always)]
 pub fn get_BN254_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(BN254.modulus).unwrap()
 }
 
+/// Returns the SECP256K1 base field modulus as CircuitModulus.
 #[inline(always)]
 pub fn get_SECP256K1_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(SECP256K1.modulus).unwrap()
 }
 
+/// Returns the SECP256R1 (P-256) base field modulus as CircuitModulus.
 #[inline(always)]
 pub fn get_SECP256R1_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(SECP256R1.modulus).unwrap()
 }
 
+/// Returns the ED25519 base field modulus as CircuitModulus.
+/// (Modulus of the birationally equivalent Weierstrass curve)
 #[inline(always)]
 pub fn get_ED25519_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(ED25519.modulus).unwrap()
 }
 
+/// Returns the GRUMPKIN base field modulus as CircuitModulus.
 #[inline(always)]
 pub fn get_GRUMPKIN_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(GRUMPKIN.modulus).unwrap()
 }
 
+/// Returns the BN254 curve order as CircuitModulus.
 #[inline(always)]
 pub fn get_BN254_order_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(BN254.order_modulus).unwrap()
 }
 
+/// Returns the BLS12-381 curve order as CircuitModulus.
 #[inline(always)]
 pub fn get_BLS12_381_order_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(BLS12_381.order_modulus).unwrap()
 }
 
+/// Returns the SECP256K1 curve order as CircuitModulus.
 #[inline(always)]
 pub fn get_SECP256K1_order_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(SECP256K1.order_modulus).unwrap()
 }
 
+/// Returns the SECP256R1 (P-256) curve order as CircuitModulus.
 #[inline(always)]
 pub fn get_SECP256R1_order_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(SECP256R1.order_modulus).unwrap()
 }
 
+/// Returns the ED25519 curve order as CircuitModulus.
 #[inline(always)]
 pub fn get_ED25519_order_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(ED25519.order_modulus).unwrap()
 }
 
+/// Returns the GRUMPKIN curve order as CircuitModulus.
 #[inline(always)]
 pub fn get_GRUMPKIN_order_modulus() -> CircuitModulus {
     TryInto::<_, CircuitModulus>::try_into(GRUMPKIN.order_modulus).unwrap()
