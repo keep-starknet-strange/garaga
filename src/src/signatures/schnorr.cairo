@@ -43,22 +43,28 @@ pub struct SchnorrSignatureWithHint {
     msm_hint: Span<felt252>,
 }
 
-/// Verifies a Schnorr signature with associated hints for a hash challenge.
+/// Verifies a Schnorr signature with associated hints, assuming the hash challenge is correct.
+///
+/// # Important Assumption
+/// **This function assumes that the hash `e` has been correctly derived from `x_R` and the message
+/// by the caller.** It does not compute or verify the hash derivation itself. The caller is
+/// responsible for ensuring that `e = H(x_R || message)` (or the appropriate hash construction for
+/// their protocol) before calling this function.
 ///
 /// # Arguments
 /// * `signature`: `SchnorrSignatureWithHint` - The signature and verification data bundle
 /// containing:
 ///     - rx: The x-coordinate of the R point
 ///     - s: The s component of the signature
-///     - e: The challenge hash
+///     - e: The challenge hash (assumed to be correctly computed by the caller)
 ///     - msm_hint: Hint for multi-scalar multiplication
 /// * `public_key`: `G1Point` - The public key to verify against.
 /// * `curve_id`: `usize` - The id of the curve. (0 for BN254, 1 for BLS12_381, 2 for SECP256K1, 3
 /// for SECP256R1, 4 for ED25519, 5 for GRUMPKIN)
 ///
 /// # Algorithm
-/// The Schnorr signature verification checks if the signature (R, s) is valid for a message hash e
-/// and public key P:
+/// The Schnorr signature verification checks if the signature (R, s) is valid for a given challenge
+/// hash e and public key P:
 /// 1. Verify that all inputs (rx, s, e) are non-zero and less than the curve order n
 /// 2. Verify that the public key P is on the curve and has even y-coordinate (BIP340 requirement,
 /// see
@@ -68,9 +74,9 @@ pub struct SchnorrSignatureWithHint {
 /// 5. The signature is valid if all checks pass
 ///
 /// This implements the verification equation: sG - eP = R
-/// Which proves the signer knew the private key x where P = xG
+/// Which proves the signer knew the private key x where P = xG, given that e was correctly derived.
 /// Returns false if the signature is invalid.
-pub fn is_valid_schnorr_signature(
+pub fn is_valid_schnorr_signature_assuming_hash(
     signature: SchnorrSignatureWithHint, public_key: G1Point, curve_id: usize,
 ) -> bool {
     let SchnorrSignatureWithHint { signature, msm_hint } = signature;

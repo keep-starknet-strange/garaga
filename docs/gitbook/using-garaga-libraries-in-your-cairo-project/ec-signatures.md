@@ -11,9 +11,11 @@ All signature verification schemes work with all [#supported-elliptic-curves](./
 ## Cairo Verification Functions
 
 Verification functions take the public key as a separate parameter:
-- `is_valid_ecdsa_signature(signature, public_key, curve_id)`
-- `is_valid_schnorr_signature(signature, public_key, curve_id)`
+- `is_valid_ecdsa_signature_assuming_hash(signature, public_key, curve_id)`
+- `is_valid_schnorr_signature_assuming_hash(signature, public_key, curve_id)`
 - `is_valid_eddsa_signature(signature, Py_twisted)`
+
+**Important:** The ECDSA and Schnorr verification functions assume that the message hash has been correctly computed by the caller. They verify the signature equation but do not hash the message themselves.
 
 All calldata builders support an optional `prepend_public_key` / `prependPublickey` parameter (default: `true`) to include the public key in the calldata, or set to `false` if you're providing it separately.
 
@@ -24,7 +26,7 @@ All calldata builders support an optional `prepend_public_key` / `prependPublick
 
 The ECDSA verification function now takes the public key as a separate parameter:
 
-<pre class="language-rust"><code class="lang-rust"><strong>use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature}
+<pre class="language-rust"><code class="lang-rust"><strong>use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature_assuming_hash}
 </strong><strong>use garaga::definitions::{G1Point, u384};
 </strong><strong>
 </strong><strong>fn test_ecdsa_SECP256R1() {
@@ -207,7 +209,7 @@ The ECDSA verification function now takes the public key as a separate parameter
         .unwrap();
 
     // Verify the signature with the public key as a separate parameter
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 3);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 3);
     assert!(is_valid);
 }
 </code></pre>
@@ -260,7 +262,7 @@ The Schnorr verification function now takes the public key as a separate paramet
 
 ```rust
 use garaga::signatures::schnorr::{
-    SchnorrSignatureWithHint, is_valid_schnorr_signature,
+    SchnorrSignatureWithHint, is_valid_schnorr_signature_assuming_hash,
 };
 use garaga::definitions::{G1Point, u384};
 
@@ -321,7 +323,7 @@ fn test_schnorr_BN254() {
         .unwrap();
 
     // Verify the signature with the public key as a separate parameter
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 0);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 0);
     assert!(is_valid);
 }
 ```

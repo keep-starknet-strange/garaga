@@ -1,6 +1,8 @@
 use garaga::core::circuit::u288IntoCircuitInputValue;
 use garaga::definitions::G1Point;
-use garaga::signatures::schnorr::{SchnorrSignatureWithHint, is_valid_schnorr_signature};
+use garaga::signatures::schnorr::{
+    SchnorrSignatureWithHint, is_valid_schnorr_signature_assuming_hash,
+};
 
 #[test]
 #[ignore] // Ignored for auto-benchmarks
@@ -26,7 +28,7 @@ fn test_schnorr_BN254() {
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 0);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 0);
     assert!(is_valid);
 }
 
@@ -58,7 +60,7 @@ fn test_schnorr_BLS12_381() {
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 1);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 1);
     assert!(is_valid);
 }
 
@@ -86,7 +88,7 @@ fn test_schnorr_SECP256R1() {
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 3);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 3);
     assert!(is_valid);
 }
 
@@ -115,7 +117,7 @@ fn test_schnorr_SECP256K1() {
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 2);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 2);
     assert!(is_valid);
 }
 
@@ -143,7 +145,7 @@ fn test_schnorr_ED25519() {
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 4);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 4);
     assert!(is_valid);
 }
 
@@ -171,7 +173,7 @@ fn test_schnorr_GRUMPKIN() {
         SchnorrSignatureWithHint,
     >::deserialize(ref sch_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, 5);
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 5);
     assert!(is_valid);
 }
 

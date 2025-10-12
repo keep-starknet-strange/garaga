@@ -1,6 +1,6 @@
 use garaga::core::circuit::u288IntoCircuitInputValue;
 use garaga::definitions::G1Point;
-use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature};
+use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature_assuming_hash};
 
 #[test]
 #[ignore] // Ignored for auto-benchmarks
@@ -26,7 +26,7 @@ fn test_ecdsa_BN254() {
         ECDSASignatureWithHint,
     >::deserialize(ref ecdsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 0);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 0);
     assert!(is_valid);
 }
 
@@ -57,7 +57,7 @@ fn test_ecdsa_BLS12_381() {
         ECDSASignatureWithHint,
     >::deserialize(ref ecdsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 1);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 1);
     assert!(is_valid);
 }
 
@@ -84,7 +84,7 @@ fn test_ecdsa_SECP256R1() {
         ECDSASignatureWithHint,
     >::deserialize(ref ecdsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 3);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 3);
     assert!(is_valid);
 }
 
@@ -112,7 +112,7 @@ fn test_ecdsa_SECP256K1() {
         ECDSASignatureWithHint,
     >::deserialize(ref ecdsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 2);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 2);
     assert!(is_valid);
 }
 
@@ -140,7 +140,7 @@ fn test_ecdsa_ED25519() {
         ECDSASignatureWithHint,
     >::deserialize(ref ecdsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 4);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 4);
     assert!(is_valid);
 }
 
@@ -168,7 +168,7 @@ fn test_ecdsa_GRUMPKIN() {
         ECDSASignatureWithHint,
     >::deserialize(ref ecdsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, 5);
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, 5);
     assert!(is_valid);
 }
 

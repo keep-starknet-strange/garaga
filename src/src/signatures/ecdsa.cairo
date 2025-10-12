@@ -47,15 +47,27 @@ pub struct ECDSASignatureWithHint {
     msm_hint: Span<felt252>,
 }
 
-/// Verifies an ECDSA signature with associated hints.
+/// Verifies an ECDSA signature with associated hints, assuming the message hash is correct.
+///
+/// # Important Assumption
+/// **This function assumes that the message hash `z` has been correctly computed from the message
+/// by the caller.** It does not compute or verify the hash derivation itself. The caller is
+/// responsible for ensuring that `z = H(message)` (or the appropriate hash function for their
+/// protocol) before calling this function.
 ///
 /// # Arguments
-/// * `signature`: `ECDSASignatureWithHint` - The signature and verification data bundle
+/// * `signature`: `ECDSASignatureWithHint` - The signature and verification data bundle containing:
+///     - rx: The r component (R.x mod n) of the signature
+///     - s: The s component of the signature
+///     - v: The parity of R.y
+///     - z: The message hash (assumed to be correctly computed by the caller)
+///     - msm_hint: Hint for multi-scalar multiplication
 /// * `public_key`: `G1Point` - The public key to verify against.
 /// * `curve_id`: `usize` - The curve identifier
 ///
 /// # Algorithm
-/// The ECDSA signature verification checks if the signature (r,s) is valid for message hash z:
+/// The ECDSA signature verification checks if the signature (r,s) is valid for a given message hash
+/// z:
 /// 1. Verify that r is non-zero and s ∈ {1, ..., n-1}
 /// 2. Verify that the public key P is on the curve
 /// 3. Compute w = s⁻¹ mod n
@@ -64,7 +76,7 @@ pub struct ECDSASignatureWithHint {
 /// 6. Verify that R'.x mod n equals r (implicitly checks r < n) and R'.y's parity does NOT match v
 /// /!\ Note: Behaviour for cofactor > 1 only tested on curves with cofactor 1
 /// (BN254, SECP256K1/R1, GRUMPKIN).
-pub fn is_valid_ecdsa_signature(
+pub fn is_valid_ecdsa_signature_assuming_hash(
     signature: ECDSASignatureWithHint, public_key: G1Point, curve_id: usize,
 ) -> bool {
     let ECDSASignatureWithHint { signature, msm_hint } = signature;

@@ -142,7 +142,7 @@ fn test_schnorr_{curve_id.name}() {{
     let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserializePk');
     let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserializeSig');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, {curve_id.value});
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, {curve_id.value});
     assert!(is_valid);
 }}
 """
@@ -160,7 +160,7 @@ fn test_ecdsa_{curve_id.name}() {{
     let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
     let public_key = Serde::<G1Point>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserializePk');
     let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserializeSig');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, {curve_id.value});
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, {curve_id.value});
     assert!(is_valid);
 }}
 """
@@ -277,7 +277,7 @@ def get_schnorr_config():
     header = """
         use garaga::definitions::G1Point;
         use garaga::signatures::schnorr::{
-            SchnorrSignatureWithHint, is_valid_schnorr_signature,
+            SchnorrSignatureWithHint, is_valid_schnorr_signature_assuming_hash,
         };
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
@@ -299,7 +299,7 @@ def get_ecdsa_config():
     header = """
         use garaga::definitions::G1Point;
         use garaga::signatures::ecdsa::{
-            ECDSASignatureWithHint, is_valid_ecdsa_signature,
+            ECDSASignatureWithHint, is_valid_ecdsa_signature_assuming_hash,
         };
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
