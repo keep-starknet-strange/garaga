@@ -34,6 +34,7 @@ pub fn get_curve_order(curve_id: CurveID) -> BigUint {
 /// * `e` - challenge hash
 /// * `px` - public key x-coordinate
 /// * `py` - public key y-coordinate
+/// * `prepend_public_key` - whether to prepend the public key to the calldata
 /// * `curve_id` - curve identifier
 pub fn schnorr_calldata_builder(
     rx: BigUint,
@@ -41,16 +42,19 @@ pub fn schnorr_calldata_builder(
     e: BigUint,
     px: BigUint,
     py: BigUint,
+    prepend_public_key: bool,
     curve_id: usize,
 ) -> Result<Vec<BigUint>, String> {
     let mut cd = Vec::new();
 
+    if prepend_public_key {
+        cd.extend(biguint_split::<4, 96>(&px).map(BigUint::from));
+        cd.extend(biguint_split::<4, 96>(&py).map(BigUint::from));
+    }
     // Add base signature components
     cd.extend(biguint_split::<4, 96>(&rx).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&s).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&e).map(BigUint::from));
-    cd.extend(biguint_split::<4, 96>(&px).map(BigUint::from));
-    cd.extend(biguint_split::<4, 96>(&py).map(BigUint::from));
 
     // Calculate e_neg = -e mod n
     let curve_id = CurveID::try_from(curve_id)?;
@@ -114,6 +118,7 @@ pub fn schnorr_calldata_builder(
 /// * `px` - public key x-coordinate
 /// * `py` - public key y-coordinate
 /// * `z` - message hash
+/// * `prepend_public_key` - whether to prepend the public key to the calldata
 /// * `curve_id` - curve identifier
 pub fn ecdsa_calldata_builder(
     r: BigUint,
@@ -122,16 +127,19 @@ pub fn ecdsa_calldata_builder(
     px: BigUint,
     py: BigUint,
     z: BigUint,
+    prepend_public_key: bool,
     curve_id: usize,
 ) -> Result<Vec<BigUint>, String> {
     let mut cd = Vec::new();
 
+    if prepend_public_key {
+        cd.extend(biguint_split::<4, 96>(&px).map(BigUint::from));
+        cd.extend(biguint_split::<4, 96>(&py).map(BigUint::from));
+    }
     // Add base signature components
     cd.extend(biguint_split::<4, 96>(&r).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&s).map(BigUint::from));
     cd.push(BigUint::from(v));
-    cd.extend(biguint_split::<4, 96>(&px).map(BigUint::from));
-    cd.extend(biguint_split::<4, 96>(&py).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&z).map(BigUint::from));
 
     // Calculate s_inv, u1, u2
@@ -195,6 +203,7 @@ pub fn eddsa_calldata_builder(
     s: BigUint,
     py_twisted: BigUint,
     msg: Vec<u8>,
+    prepend_public_key: bool,
 ) -> Result<Vec<BigUint>, String> {
     let mut cd = Vec::new();
 
@@ -209,9 +218,12 @@ pub fn eddsa_calldata_builder(
         return Err("Invalid s value".to_string());
     }
 
+    if prepend_public_key {
+        cd.extend(biguint_split::<2, 128>(&py_twisted).map(BigUint::from));
+    }
+
     cd.extend(biguint_split::<2, 128>(&ry_twisted).map(BigUint::from));
     cd.extend(biguint_split::<2, 128>(&s).map(BigUint::from));
-    cd.extend(biguint_split::<2, 128>(&py_twisted).map(BigUint::from));
     cd.push(BigUint::from(msg.len() as u64));
     for byte in msg.clone() {
         cd.push(BigUint::from(byte as u64));

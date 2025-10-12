@@ -19,8 +19,6 @@ pub struct ECDSASignature {
     rx: u384,
     s: u256,
     v: bool,
-    px: u384,
-    py: u384,
     z: u256,
 }
 
@@ -29,18 +27,14 @@ pub impl SerdeECDSASignature of Serde<ECDSASignature> {
         serialize_u384(self.rx, ref output);
         Serde::<u256>::serialize(self.s, ref output);
         Serde::<bool>::serialize(self.v, ref output);
-        serialize_u384(self.px, ref output);
-        serialize_u384(self.py, ref output);
         Serde::<u256>::serialize(self.z, ref output);
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<ECDSASignature> {
         let rx = deserialize_u384(ref serialized);
         let s = Serde::<u256>::deserialize(ref serialized).unwrap();
         let v = Serde::<bool>::deserialize(ref serialized).unwrap();
-        let px = deserialize_u384(ref serialized);
-        let py = deserialize_u384(ref serialized);
         let z = Serde::<u256>::deserialize(ref serialized).unwrap();
-        return Option::Some(ECDSASignature { rx, s, v, px, py, z });
+        return Option::Some(ECDSASignature { rx, s, v, z });
     }
 }
 
@@ -72,9 +66,11 @@ pub struct ECDSASignatureWithHint {
 /// 6. Verify that R'.x mod n equals r and R'.y's parity matches v
 /// /!\ Behaviour unclear for cofactor > 1.
 /// (BN254, SECP256K1/R1, GRUMPKIN) A.
-pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usize) -> bool {
+pub fn is_valid_ecdsa_signature(
+    signature: ECDSASignatureWithHint, public_key: G1Point, curve_id: usize,
+) -> bool {
     let ECDSASignatureWithHint { signature, msm_hint } = signature;
-    let ECDSASignature { rx, s, v, px, py, z } = signature;
+    let ECDSASignature { rx, s, v, z } = signature;
 
     let n: u256 = get_n(curve_id);
     let modulus = get_curve_order_modulus(curve_id);
@@ -85,8 +81,7 @@ pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usi
     }
 
     // Verify public key is on curve
-    let pk_point = G1Point { x: px, y: py };
-    if !pk_point.is_on_curve_excluding_infinity(curve_id) {
+    if !public_key.is_on_curve_excluding_infinity(curve_id) {
         return false;
     }
 
@@ -99,7 +94,7 @@ pub fn is_valid_ecdsa_signature(signature: ECDSASignatureWithHint, curve_id: usi
     let u2: u256 = mul_mod_p(rx, s_inv, modulus).try_into().unwrap();
 
     // Compute R' = u₁G + u₂P using MSM
-    let points = array![get_G(curve_id), pk_point].span();
+    let points = array![get_G(curve_id), public_key].span();
     let scalars = array![u1, u2].span();
     let R_prime = msm_g1(points, scalars, curve_id, msm_hint);
 

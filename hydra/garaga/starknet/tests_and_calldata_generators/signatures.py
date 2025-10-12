@@ -90,26 +90,36 @@ class SchnorrSignature:
         res = G.scalar_mul(self.s).add(Pk.scalar_mul(-self.e % n))
         return res.x == self.rx
 
-    def serialize(self) -> list[int]:
+    def serialize(self, prepend_public_key: bool = True) -> list[int]:
         cd = []
+        if prepend_public_key:
+            cd.extend(bigint_split(self.px, N_LIMBS, BASE))
+            cd.extend(bigint_split(self.py, N_LIMBS, BASE))
         cd.extend(bigint_split(self.rx, N_LIMBS, BASE))
         cd.extend(split_128(self.s))
         cd.extend(split_128(self.e))
-        cd.extend(bigint_split(self.px, N_LIMBS, BASE))
-        cd.extend(bigint_split(self.py, N_LIMBS, BASE))
+
         return cd
 
-    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
+    def serialize_with_hints(
+        self, use_rust=False, as_str=False, prepend_public_key: bool = True
+    ) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
             cd = garaga_rs.schnorr_calldata_builder(
-                self.rx, self.s, self.e, self.px, self.py, self.curve_id.value
+                self.rx,
+                self.s,
+                self.e,
+                self.px,
+                self.py,
+                prepend_public_key,
+                self.curve_id.value,
             )
             if as_str:
                 return "[{}]".format(", ".join(map(hex, cd)))
             return cd
 
-        cd = self.serialize()
+        cd = self.serialize(prepend_public_key)
         e_neg = -self.e % CURVES[self.curve_id.value].n
         msm_calldata = garaga_rs.msm_calldata_builder(
             [
@@ -241,27 +251,38 @@ class ECDSASignature:
         return (R_prime.x % n) == self.r
         # return (R_prime.x) == self.r
 
-    def serialize(self) -> list[int]:
+    def serialize(self, prepend_public_key: bool = True) -> list[int]:
         cd = []
+        if prepend_public_key:
+            cd.extend(bigint_split(self.px, N_LIMBS, BASE))
+            cd.extend(bigint_split(self.py, N_LIMBS, BASE))
         cd.extend(bigint_split(self.r, N_LIMBS, BASE))
         cd.extend(split_128(self.s))
         cd.append(self.v)
-        cd.extend(bigint_split(self.px, N_LIMBS, BASE))
-        cd.extend(bigint_split(self.py, N_LIMBS, BASE))
         cd.extend(split_128(self.z))
+
         return cd
 
-    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
+    def serialize_with_hints(
+        self, use_rust=False, as_str=False, prepend_public_key: bool = True
+    ) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
             cd = garaga_rs.ecdsa_calldata_builder(
-                self.r, self.s, self.v, self.px, self.py, self.z, self.curve_id.value
+                self.r,
+                self.s,
+                self.v,
+                self.px,
+                self.py,
+                self.z,
+                prepend_public_key,
+                self.curve_id.value,
             )
             if as_str:
                 return "[{}]".format(", ".join(map(hex, cd)))
             return cd
 
-        cd = self.serialize()
+        cd = self.serialize(prepend_public_key)
         n = CURVES[self.curve_id.value].n
         s_inv = pow(self.s, -1, n)
         u1 = (self.z * s_inv) % n
@@ -338,11 +359,13 @@ class EdDSA25519Signature:
             msg=message_bytes,
         )
 
-    def serialize(self) -> list[int]:
+    def serialize(self, prepend_public_key: bool = True) -> list[int]:
         cd = []
+        if prepend_public_key:
+            cd.extend(split_128(self.Py_twisted))
+
         cd.extend(split_128(self.Ry_twisted))
         cd.extend(split_128(self.s))
-        cd.extend(split_128(self.Py_twisted))
         cd.append(len(self.msg))
         cd.extend(list(self.msg))
 
@@ -399,7 +422,9 @@ class EdDSA25519Signature:
 
         return should_be_inf.is_infinity()
 
-    def serialize_with_hints(self, use_rust=False, as_str=False) -> list[int] | str:
+    def serialize_with_hints(
+        self, use_rust=False, as_str=False, prepend_public_key: bool = True
+    ) -> list[int] | str:
         """Serialize the signature with hints for verification"""
         if use_rust:
             return garaga_rs.eddsa_calldata_builder(
@@ -407,9 +432,10 @@ class EdDSA25519Signature:
                 self.s,
                 self.Py_twisted,
                 self.msg,
+                prepend_public_key,
             )
 
-        cd = self.serialize()
+        cd = self.serialize(prepend_public_key)
         R, A, h = self.deserialize_R_A_h()
         msm_calldata = garaga_rs.msm_calldata_builder(
             [

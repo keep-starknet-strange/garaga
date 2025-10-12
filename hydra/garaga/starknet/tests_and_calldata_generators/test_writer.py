@@ -140,8 +140,9 @@ def generate_schnorr_test(curve_id, seed):
 #[test]{ignored_str}
 fn test_schnorr_{curve_id.name}() {{
     let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
-    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, {curve_id.value});
+    let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserializePk');
+    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserializeSig');
+    let is_valid = is_valid_schnorr_signature(sch_with_hints, public_key, {curve_id.value});
     assert!(is_valid);
 }}
 """
@@ -157,8 +158,9 @@ def generate_ecdsa_test(curve_id, seed):
 #[test]{ignored_str}
 fn test_ecdsa_{curve_id.name}() {{
     let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
-    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, {curve_id.value});
+    let public_key = Serde::<G1Point>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserializePk');
+    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserializeSig');
+    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, public_key, {curve_id.value});
     assert!(is_valid);
 }}
 """
@@ -273,6 +275,7 @@ def get_msm_config():
 def get_schnorr_config():
     """Configuration for Schnorr signature tests"""
     header = """
+        use garaga::definitions::G1Point;
         use garaga::signatures::schnorr::{
             SchnorrSignatureWithHint, is_valid_schnorr_signature,
         };
@@ -294,6 +297,7 @@ def get_schnorr_config():
 def get_ecdsa_config():
     """Configuration for ECDSA signature tests"""
     header = """
+        use garaga::definitions::G1Point;
         use garaga::signatures::ecdsa::{
             ECDSASignatureWithHint, is_valid_ecdsa_signature,
         };
@@ -321,8 +325,9 @@ def generate_eddsa_test(sig: EdDSA25519Signature, test_index: int) -> str:
 #[test]{ignored_str}
 fn test_eddsa_{test_index}_{msg_bytes_len}B() {{
     let mut eddsa_sig_with_hints_serialized = array!{sig.serialize_with_hints(as_str=True)}.span();
-    let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserializePk');
+    let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }}
 """
@@ -338,7 +343,7 @@ def generate_eddsa_test_file() -> str:
     """Configuration for EDDSA signature tests"""
     code = """
     use garaga::signatures::eddsa_25519::{
-        EdDSASignatureWithHint, is_valid_eddsa_signature
+        EdDSASignatureWithHint, is_valid_eddsa_signature,
     };
     """
 

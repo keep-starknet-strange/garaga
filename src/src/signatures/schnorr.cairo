@@ -11,15 +11,11 @@ use garaga::utils::u384_eq_zero;
 /// * `rx`: `u256` - The x-coordinate of the R point from the signature.
 /// * `s`: `u256` - The s-coordinate of the signature.
 /// * `e`: `u256` - The challenge hash.
-/// * `px`: `u256` - The x-coordinate of the public key.
-/// * `py`: `u256` - The y-coordinate of the public key.
 #[derive(Drop, Debug, PartialEq)]
 pub struct SchnorrSignature {
     rx: u384,
     s: u256,
     e: u256,
-    px: u384,
-    py: u384,
 }
 
 pub impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
@@ -27,16 +23,12 @@ pub impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
         serialize_u384(self.rx, ref output);
         Serde::<u256>::serialize(self.s, ref output);
         Serde::<u256>::serialize(self.e, ref output);
-        serialize_u384(self.px, ref output);
-        serialize_u384(self.py, ref output);
     }
     fn deserialize(ref serialized: Span<felt252>) -> Option<SchnorrSignature> {
         let rx = deserialize_u384(ref serialized);
         let s = Serde::<u256>::deserialize(ref serialized).unwrap();
         let e = Serde::<u256>::deserialize(ref serialized).unwrap();
-        let px = deserialize_u384(ref serialized);
-        let py = deserialize_u384(ref serialized);
-        return Option::Some(SchnorrSignature { rx: rx, s: s, e: e, px: px, py: py });
+        return Option::Some(SchnorrSignature { rx: rx, s: s, e: e });
     }
 }
 
@@ -81,24 +73,24 @@ pub struct SchnorrSignatureWithHint {
 /// This implements the verification equation: sG - eP = R
 /// Which proves the signer knew the private key x where P = xG
 /// Returns false if the signature is invalid.
-pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id: usize) -> bool {
+pub fn is_valid_schnorr_signature(
+    signature: SchnorrSignatureWithHint, public_key: G1Point, curve_id: usize,
+) -> bool {
     let SchnorrSignatureWithHint { signature, msm_hint } = signature;
-    let SchnorrSignature { rx, s, e, px, py } = signature;
-    // println!("rx: {rx}");
-    // println!("s: {s}");
-    // println!("e: {e}");
-    // println!("px: {px}");
-    // println!("py: {py}");
+    let SchnorrSignature { rx, s, e } = signature;
 
     let n: u256 = get_n(curve_id);
 
-    if u384_eq_zero(rx) || s >= n || s == 0 || e >= n || e == 0 || is_even_u384(py) == false {
+    if u384_eq_zero(rx)
+        || s >= n
+        || s == 0
+        || e >= n
+        || e == 0
+        || is_even_u384(public_key.y) == false {
         return false;
     }
 
-    let pk_point = G1Point { x: px, y: py };
-
-    let pk_on_curve = pk_point.is_on_curve_excluding_infinity(curve_id);
+    let pk_on_curve = public_key.is_on_curve_excluding_infinity(curve_id);
 
     if pk_on_curve == false {
         return false;
@@ -109,7 +101,7 @@ pub fn is_valid_schnorr_signature(signature: SchnorrSignatureWithHint, curve_id:
     let e_neg: u256 = neg_mod_p(e.into(), n_modulus).try_into().unwrap();
     let rx: u384 = rx.into();
 
-    let points = array![get_G(curve_id), pk_point].span();
+    let points = array![get_G(curve_id), public_key].span();
     let scalars = array![s, e_neg].span();
 
     let res = msm_g1(points, scalars, curve_id, msm_hint);

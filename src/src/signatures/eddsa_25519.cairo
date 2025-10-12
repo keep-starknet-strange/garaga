@@ -51,7 +51,6 @@ const G_neg: G1Point = G1Point {
 pub struct EdDSASignature {
     Ry_twisted: u256, // Compressed form of Ry (converted to integer from little endian bytes)
     s: u256,
-    Py_twisted: u256, // Compressed form of Public Key y (converted to integer from little endian bytes)
     msg: Span<u8>,
 }
 
@@ -75,13 +74,15 @@ pub struct EdDSASignatureWithHint {
 ///
 /// # Parameters
 /// - `signature`: The signature with hints for point decompression and MSM
+/// - `Py_twisted`: Compressed form of Public Key y-coordinate (converted to integer from little
+/// endian bytes)
 ///
 /// # Returns
 /// - `true` if the signature is valid
 /// - `false` if the signature is invalid or contains small-order points
-pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint) -> bool {
+pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint, Py_twisted: u256) -> bool {
     let EdDSASignatureWithHint { signature, mut msm_hint, sqrt_Rx_hint, sqrt_Px_hint } = signature;
-    let EdDSASignature { Ry_twisted, s, Py_twisted, msg } = signature;
+    let EdDSASignature { Ry_twisted, s, msg } = signature;
 
     let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         Ry_twisted, sqrt_Rx_hint,
