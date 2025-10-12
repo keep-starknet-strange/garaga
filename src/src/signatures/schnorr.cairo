@@ -5,11 +5,11 @@ use garaga::definitions::{
 use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::utils::u384_eq_zero;
 
-/// A Schnorr signature with associated public key and challenge.
+/// A Schnorr signature.
 ///
 /// # Fields
-/// * `rx`: `u256` - The x-coordinate of the R point from the signature.
-/// * `s`: `u256` - The s-coordinate of the signature.
+/// * `rx`: `u384` - The x-coordinate of the R point from the signature.
+/// * `s`: `u256` - The s component of the signature.
 /// * `e`: `u256` - The challenge hash.
 #[derive(Drop, Debug, PartialEq)]
 pub struct SchnorrSignature {
@@ -36,9 +36,7 @@ pub impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
 ///
 /// # Fields
 /// * `signature`: `SchnorrSignature` - The core signature data.
-/// * `msm_hint`: `MSMHint` - Hint for multi-scalar multiplication computation.
-/// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving the full point from
-/// x-coordinate (part of MSM algo).
+/// * `msm_hint`: `Span<felt252>` - Hint for multi-scalar multiplication computation.
 #[derive(Drop, Debug, PartialEq, Serde)]
 pub struct SchnorrSignatureWithHint {
     signature: SchnorrSignature,
@@ -51,11 +49,10 @@ pub struct SchnorrSignatureWithHint {
 /// * `signature`: `SchnorrSignatureWithHint` - The signature and verification data bundle
 /// containing:
 ///     - rx: The x-coordinate of the R point
-///     - s: The s-coordinate of the signature
+///     - s: The s component of the signature
 ///     - e: The challenge hash
-///     - px, py: The public key coordinates
 ///     - msm_hint: Hint for multi-scalar multiplication
-///     - msm_derive_hint: Hint for point derivation
+/// * `public_key`: `G1Point` - The public key to verify against.
 /// * `curve_id`: `usize` - The id of the curve. (0 for BN254, 1 for BLS12_381, 2 for SECP256K1, 3
 /// for SECP256R1, 4 for ED25519, 5 for GRUMPKIN)
 ///

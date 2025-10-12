@@ -5,14 +5,12 @@ use garaga::definitions::{
 use garaga::ec_ops::{G1PointTrait, msm_g1};
 use garaga::utils::u384_eq_zero;
 
-/// An ECDSA signature with associated public key and message hash.
+/// An ECDSA signature with message hash.
 ///
 /// # Fields
 /// * `rx`: `u384` - The r component (R.x mod n) of the signature.
 /// * `s`: `u256` - The s component of the signature.
-/// * `v`: `u256` - The recovery parameter (0 if R.y is even, 1 if odd).
-/// * `px`: `u384` - The x-coordinate of the public key.
-/// * `py`: `u384` - The y-coordinate of the public key.
+/// * `v`: `bool` - The parity of R.y (false if R.y is even, true if odd).
 /// * `z`: `u256` - The message hash.
 #[derive(Drop, Debug, PartialEq)]
 pub struct ECDSASignature {
@@ -42,8 +40,7 @@ pub impl SerdeECDSASignature of Serde<ECDSASignature> {
 ///
 /// # Fields
 /// * `signature`: `ECDSASignature` - The core signature data.
-/// * `msm_hint`: `MSMHint` - Hint for multi-scalar multiplication computation.
-/// * `msm_derive_hint`: `DerivePointFromXHint` - Hint for deriving point from x-coordinate.
+/// * `msm_hint`: `Span<felt252>` - Hint for multi-scalar multiplication computation.
 #[derive(Drop, Debug, PartialEq, Serde)]
 pub struct ECDSASignatureWithHint {
     signature: ECDSASignature,
@@ -54,18 +51,19 @@ pub struct ECDSASignatureWithHint {
 ///
 /// # Arguments
 /// * `signature`: `ECDSASignatureWithHint` - The signature and verification data bundle
+/// * `public_key`: `G1Point` - The public key to verify against.
 /// * `curve_id`: `usize` - The curve identifier
 ///
 /// # Algorithm
 /// The ECDSA signature verification checks if the signature (r,s) is valid for message hash z:
-/// 1. Verify that r, s are non-zero and less than the curve order n
+/// 1. Verify that r, s, z are non-zero and less than the curve order n
 /// 2. Verify that the public key P is on the curve
 /// 3. Compute w = s⁻¹ mod n
 /// 4. Compute u₁ = zw mod n and u₂ = rw mod n
 /// 5. Compute R' = u₁G + u₂P
-/// 6. Verify that R'.x mod n equals r and R'.y's parity matches v
-/// /!\ Behaviour unclear for cofactor > 1.
-/// (BN254, SECP256K1/R1, GRUMPKIN) A.
+/// 6. Verify that R'.x mod n equals r and R'.y's parity does NOT match v
+/// /!\ Note: Behaviour for cofactor > 1 only tested on curves with cofactor 1
+/// (BN254, SECP256K1/R1, GRUMPKIN).
 pub fn is_valid_ecdsa_signature(
     signature: ECDSASignatureWithHint, public_key: G1Point, curve_id: usize,
 ) -> bool {

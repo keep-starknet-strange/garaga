@@ -66,11 +66,10 @@ pub struct EdDSASignatureWithHint {
 /// Verifies an Ed25519 signature according to RFC 8032.
 ///
 /// # Security
-/// This implementation follows RFC 8032 Section 5.1.7 by implicitly clearing
-/// the cofactor through the verification equation. The check
-///     [8]([s]B) = [8](R + [h]A)
-/// automatically rejects signatures containing small-order components without
-/// requiring explicit [8]P ≠ 𝒪 tests on R and A.
+/// This implementation follows RFC 8032 Section 5.1.7 by explicitly rejecting
+/// small-order points. Both the signature point R and public key A are tested
+/// to ensure [8]P ≠ 𝒪, preventing key-compromise and signature-malleability
+/// attacks that could arise from small-order components.
 ///
 /// # Parameters
 /// - `signature`: The signature with hints for point decompression and MSM
@@ -173,8 +172,9 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint, Py_twisted: u
 /// Small-order points (orders 1, 2, 4, 8) can enable attacks, so they must be rejected.
 ///
 /// # Implementation
-/// Computes [8]P by three successive doublings. If the result is the identity,
-/// then P has order dividing 8 and should be rejected.
+/// Tests for small-order by checking if [2^k]P = 𝒪 for k = 1, 2, or 3 (i.e., orders 2, 4, or 8).
+/// Uses the fact that on Weierstrass curves, a point equals its negation (hence has order 2)
+/// iff its y-coordinate is zero. Returns true if P has order dividing 8.
 ///
 /// # Parameters
 /// - `p`: The point to test
