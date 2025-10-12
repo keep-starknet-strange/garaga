@@ -96,7 +96,6 @@ pub fn is_valid_schnorr_signature(
     let n_modulus = get_curve_order_modulus(curve_id);
 
     let e_neg: u256 = neg_mod_p(e.into(), n_modulus).try_into().unwrap();
-    let rx: u384 = rx.into();
 
     let points = array![get_G(curve_id), public_key].span();
     let scalars = array![s, e_neg].span();
