@@ -233,7 +233,7 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
     }
 }
 
-// from garaga.defintions import *
+// from garaga.definitions import *
 // def print_nbits_and_nG_glv_fake_glv():
 // for curve_id in CURVES:
 //     curve: WeierstrassCurve = CURVES[curve_id]
