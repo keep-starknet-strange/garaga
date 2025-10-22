@@ -124,13 +124,15 @@ pub fn multi_pairing_check_bn254_2P_2F(
     let hash_state = hashing::hash_E12D_u288(hint.lambda_root_inverse, hash_state);
     let hash_state = hashing::hash_MillerLoopResultScalingFactor_u288(hint.w, hash_state);
     // Hash Ris to obtain base random coefficient c0 and evals
+
     let z: u384 = hint.z.into();
 
     let (hash_state, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
         hint.Ris, hash_state, z,
     );
+
     // Last Ri is known to be 1:
-    let hash_state = hashing::hash_E12D_one(hash_state);
+    let hash_state = hashing::hash_E12D_one_u288(hash_state);
 
     let mut evals = evals.span();
     let c_1: u384 = hash_state.s1.into();
@@ -296,7 +298,7 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
         hint.Ris, hash_state, z,
     );
     // Last Ri is known to be 1:
-    let hash_state = hashing::hash_E12D_one(hash_state);
+    let hash_state = hashing::hash_E12D_one_u384(hash_state);
 
     let mut evals = evals.span();
 

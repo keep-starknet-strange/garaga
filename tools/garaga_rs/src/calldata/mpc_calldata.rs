@@ -143,6 +143,8 @@ where
 fn hash_hints_and_get_base_random_rlc_coeff<F, E2>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
+    curve_id: CurveID,
+    three_limbs_only: bool,
     lambda_root: &Option<Polynomial<F>>,
     lambda_root_inverse: &Polynomial<F>,
     scaling_factor: &[FieldElement<F>],
@@ -154,7 +156,6 @@ where
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    let curve_id = F::get_curve_params().curve_id;
     let curve_name = match curve_id {
         CurveID::BN254 => "BN254",
         CurveID::BLS12_381 => "BLS12_381",
@@ -173,25 +174,42 @@ where
     let init_hash = FieldElement::from_hex(&init_hash_hex).unwrap();
     let mut transcript = CairoPoseidonTranscript::new(init_hash);
     for pair in pairs {
-        let (x, y) = pair.g1.get_coords();
-        transcript.hash_emulated_field_elements(&x, None);
-        transcript.hash_emulated_field_elements(&y, None);
-        let (x, y) = pair.g2.get_coords();
-        transcript.hash_emulated_field_elements(&x, None);
-        transcript.hash_emulated_field_elements(&y, None);
+        let pairs_elements_flat = pair.flatten();
+        transcript.hash_emulated_field_elements(&pairs_elements_flat, None, false);
     }
+
+    // println!(
+    //     "RS transcript.state1: {:?}",
+    //     transcript.state[0].representative().to_string()
+    // );
+
     if let Some(lambda_root) = lambda_root {
         assert_eq!(curve_id, CurveID::BN254);
-        transcript.hash_emulated_field_elements(&lambda_root.get_coefficients_ext_degree(12), None);
+        transcript.hash_emulated_field_elements(
+            &lambda_root.get_coefficients_ext_degree(12),
+            None,
+            three_limbs_only,
+        );
     }
-    transcript
-        .hash_emulated_field_elements(&lambda_root_inverse.get_coefficients_ext_degree(12), None);
-    transcript.hash_emulated_field_elements(scaling_factor, None);
+    transcript.hash_emulated_field_elements(
+        &lambda_root_inverse.get_coefficients_ext_degree(12),
+        None,
+        three_limbs_only,
+    );
+    transcript.hash_emulated_field_elements(scaling_factor, None, three_limbs_only);
     for ri in ris {
-        transcript.hash_emulated_field_elements(&ri.get_coefficients_ext_degree(12), None);
+        transcript.hash_emulated_field_elements(
+            &ri.get_coefficients_ext_degree(12),
+            None,
+            three_limbs_only,
+        );
     }
     if let Some(m) = m {
-        transcript.hash_emulated_field_elements(&m.get_coefficients_ext_degree(12), None);
+        transcript.hash_emulated_field_elements(
+            &m.get_coefficients_ext_degree(12),
+            None,
+            three_limbs_only,
+        );
     }
     (
         element_from_bytes_be(&transcript.state[1].to_bytes_be()),
@@ -232,13 +250,14 @@ where
 fn hash_big_q_and_get_z<F, E2>(
     transcript: &mut CairoPoseidonTranscript,
     big_q: &[FieldElement<F>],
+    three_limbs_only: bool,
 ) -> FieldElement<Stark252PrimeField>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    transcript.hash_emulated_field_elements(big_q, None);
+    transcript.hash_emulated_field_elements(big_q, None, three_limbs_only);
     transcript.state[0]
 }
 
@@ -266,6 +285,12 @@ where
     assert!(n_pairs >= 2);
     assert!(n_fixed_g2 <= n_pairs);
 
+    let curve_id = F::get_curve_params().curve_id;
+    let three_limbs_only: bool = match curve_id {
+        CurveID::BLS12_381 => false,
+        _ => true,
+    };
+
     let m = public_pair
         .as_ref()
         .map(|public_pair| extra_miller_loop_result(public_pair));
@@ -274,6 +299,8 @@ where
     let (c1, mut transcript) = hash_hints_and_get_base_random_rlc_coeff(
         pairs,
         n_fixed_g2,
+        curve_id,
+        three_limbs_only,
         &lambda_root,
         &lambda_root_inverse,
         &scaling_factor,
@@ -281,7 +308,7 @@ where
         m,
     );
     let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, ris.len(), &c1);
-    let z = hash_big_q_and_get_z(&mut transcript, &big_q_coeffs);
+    let z = hash_big_q_and_get_z(&mut transcript, &big_q_coeffs, three_limbs_only);
 
     // Assert last Ri is 1
     assert_eq!(ris[ris.len() - 1], Polynomial::one());

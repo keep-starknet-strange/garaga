@@ -7,7 +7,7 @@ use core::num::traits::Zero;
 use corelib_imports::bounded_int::upcast;
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
-use garaga::utils::hashing::{PoseidonState, hades_permutation};
+use garaga::utils::hashing::{PoseidonState, hades_permutation, hash_quadruple_u288};
 
 const POW_2_32_252: felt252 = 0x100000000;
 const POW_2_64_252: felt252 = 0x10000000000000000;
@@ -186,44 +186,10 @@ pub fn eval_and_hash_E12D_u288_transcript(
 
     for elmt in transcript {
         let elmt = *elmt;
-        let in_1 = s.s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
-        let in_2 = s.s1 + elmt.w0.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s.s2);
-        let in_1 = _s0 + elmt.w1.limb0.into() + base * elmt.w1.limb1.into();
-        let in_2 = _s1 + elmt.w1.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w2.limb0.into() + base * elmt.w2.limb1.into();
-        let in_2 = _s1 + elmt.w2.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w3.limb0.into() + base * elmt.w3.limb1.into();
-        let in_2 = _s1 + elmt.w3.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w4.limb0.into() + base * elmt.w4.limb1.into();
-        let in_2 = _s1 + elmt.w4.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w5.limb0.into() + base * elmt.w5.limb1.into();
-        let in_2 = _s1 + elmt.w5.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w6.limb0.into() + base * elmt.w6.limb1.into();
-        let in_2 = _s1 + elmt.w6.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w7.limb0.into() + base * elmt.w7.limb1.into();
-        let in_2 = _s1 + elmt.w7.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w8.limb0.into() + base * elmt.w8.limb1.into();
-        let in_2 = _s1 + elmt.w8.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w9.limb0.into() + base * elmt.w9.limb1.into();
-        let in_2 = _s1 + elmt.w9.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w10.limb0.into() + base * elmt.w10.limb1.into();
-        let in_2 = _s1 + elmt.w10.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w11.limb0.into() + base * elmt.w11.limb1.into();
-        let in_2 = _s1 + elmt.w11.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-
-        s = PoseidonState { s0: _s0, s1: _s1, s2: _s2 };
+        let _s = hash_quadruple_u288(elmt.w0, elmt.w1, elmt.w2, elmt.w3, base, s);
+        let _s = hash_quadruple_u288(elmt.w4, elmt.w5, elmt.w6, elmt.w7, base, _s);
+        let _s = hash_quadruple_u288(elmt.w8, elmt.w9, elmt.w10, elmt.w11, base, _s);
+        s = _s;
 
         let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
         let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});

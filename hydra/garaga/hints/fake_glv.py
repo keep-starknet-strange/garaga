@@ -313,7 +313,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # %{ Hint :
     u1, u2, v1, v2 = half_gcd_eisenstein_hint(curve.n, scalar, eigen_value)
     Q = point.scalar_mul(scalar)
-    print(f"Q: {Q}")
+    # print(f"Q: {Q}")
     # %} #
     if scalar % curve.n == curve.n - 1:
         _scalar = 1
@@ -321,10 +321,10 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     else:
         _scalar = scalar
 
-    print(f"Q: {split(Q.x)}, {split(Q.y)}")
-    print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
+    # print(f"Q: {split(Q.x)}, {split(Q.y)}")
+    # print(f"u1: {u1}, u2: {u2}, v1: {v1}, v2: {v2}")
 
-    print(f"encoded hint: {encode_glv_fake_glv_hint(u1, u2, v1, v2)}")
+    # print(f"encoded hint: {encode_glv_fake_glv_hint(u1, u2, v1, v2)}")
     # Verifier :
     # We need to check that:
     # 		s*(v1 + λ*v2) + u1 + λ*u2 = 0
@@ -376,11 +376,11 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     table_S[2] = table_P[1].add(table_Q[0])  # P-Q
     table_S[3] = -table_S[2]  # -P+Q
 
-    for i in range(4):
-        print(f"\nS{i}: {table_S[i].to_cairo_1(as_hex=False)}\n")
+    # for i in range(4):
+    #     print(f"\nS{i}: {table_S[i].to_cairo_1(as_hex=False)}\n")
 
-    print(f"table_Phi_P[0]: {split(table_Phi_P[0].x)}, {split(table_Phi_P[0].y)}")
-    print(f"table_Phi_Q[0]: {split(table_Phi_Q[0].x)}, {split(table_Phi_Q[0].y)}")
+    # print(f"table_Phi_P[0]: {split(table_Phi_P[0].x)}, {split(table_Phi_P[0].y)}")
+    # print(f"table_Phi_Q[0]: {split(table_Phi_Q[0].x)}, {split(table_Phi_Q[0].y)}")
     table_Phi_S[0] = table_Phi_P[0].add(table_Phi_Q[0])  # -Φ(P)-Φ(Q)
     table_Phi_S[1] = -table_Phi_S[0]  # Φ(P)+Φ(Q)
     table_Phi_S[2] = table_Phi_P[1].add(table_Phi_Q[0])  # Φ(P)-Φ(Q)
@@ -390,7 +390,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # 		Acc = P + Q + Φ(P) + Φ(Q)
     Acc = table_S[1].add(table_Phi_S[1])
     B1 = Acc
-    print(f"B1: {B1.to_cairo_1(as_hex=False)}")
+    # print(f"B1: {B1.to_cairo_1(as_hex=False)}")
     # print(f"B1: {split(B1.x)}, {split(B1.y)}")
 
     # then we add G (the base point) to Acc to avoid incomplete additions in
@@ -487,7 +487,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
     Bs = [B16, B8, B14, B6, B12, B4, B10, B2, B15, B7, B13, B5, B11, B3, B9, B1]
     # for i := nbits - 1; i > 0; i-- {
-    print(f"Acc; {Acc.to_cairo_1(as_hex=False)}")
+    # print(f"Acc; {Acc.to_cairo_1(as_hex=False)}")
     for i in range(n_bits - 1, 0, -1):
         # // selectorY takes values in [0,15]
 
@@ -509,7 +509,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
         Acc = Acc.add(Acc)
         Acc = Acc.add(Bi)
 
-    print("Acc final: ", Acc.to_cairo_1(as_hex=False))
+    # print("Acc final: ", Acc.to_cairo_1(as_hex=False))
     # i = 0
     #
     # // i = 0
@@ -700,8 +700,8 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
         T1,  # 15
     ]
 
-    for i, pt in enumerate(T_mux_candidates):
-        print(f"{i} {T_mux_candidates_new[i]}: {pt.to_cairo_1(as_hex=False)}")
+    # for i, pt in enumerate(T_mux_candidates):
+    #     print(f"{i} {T_mux_candidates_new[i]}: {pt.to_cairo_1(as_hex=False)}")
 
     # === Step 9: Main Verification Loop ===
 
@@ -711,7 +711,7 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # Inline the logic of _lookup2_point based on top two bits (MSB)
     b0 = s1_bits[nbits - 1]
     b1 = s2_bits[nbits - 1]
-    print(f"b0: {b0}, b1: {b1}")
+    # print(f"b0: {b0}, b1: {b1}")
     if not b0 and not b1:  # 00
         _T_current = T5
     elif b0 and not b1:  # 10
@@ -723,11 +723,11 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
     # assert _T_current == T12, f"_T_current: {_T_current.to_cairo_1(as_hex=False)} != T2: {T2.to_cairo_1(as_hex=False)}"
     # Acc = 2*Acc + _T_current
-    print(f"Acc before first iteration: {Acc.to_cairo_1(as_hex=False)}")
-    print(f"_T_current: {_T_current.to_cairo_1(as_hex=False)}")
+    # print(f"Acc before first iteration: {Acc.to_cairo_1(as_hex=False)}")
+    # print(f"_T_current: {_T_current.to_cairo_1(as_hex=False)}")
     Acc = Acc.add(Acc)  # Double Acc
     Acc = Acc.add(_T_current)
-    print(f"Acc before loop: {Acc.to_cairo_1(as_hex=False)}")
+    # print(f"Acc before loop: {Acc.to_cairo_1(as_hex=False)}")
     _loop_start_idx = nbits - 2  # Start main loop from next lower index pair
 
     # Main loop: process bits in pairs using merged additions (4*Acc + T)
@@ -747,7 +747,7 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
             s1_bits[i - 1] + 2 * s1_bits[i] + 4 * (s2_bits[i - 1] + 2 * s2_bits[i])
         )
 
-        print(f"selector_{iteration-1}: {selector_y}")
+        # print(f"selector_{iteration-1}: {selector_y}")
 
         selector_new = T_mux_candidates_new[selector_y]
 
@@ -762,9 +762,9 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
         Acc = Acc.add(Acc)  # Double Acc
         Acc = Acc.add(Acc)  # Double Acc again
         Acc = Acc.add(_T_current)
-        print(f"i: {i}")
-        if iteration % 9 == 0:
-            print(f"Acc after iteration {iteration//9}: {Acc.to_cairo_1(as_hex=False)}")
+        # print(f"i: {i}")
+        # if iteration % 9 == 0:
+        #     print(f"Acc after iteration {iteration//9}: {Acc.to_cairo_1(as_hex=False)}")
         iteration += 1
 
     # === Step 10: Last Merged Iteration ===
@@ -779,13 +779,13 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
 
         # Add the final adjustment term from table_R
         _T_current = _T_current.add(table_R_verify[2])
-        print(f"last_selector_pt_corrected: {_T_current.to_cairo_1(as_hex=False)}")
+        # print(f"last_selector_pt_corrected: {_T_current.to_cairo_1(as_hex=False)}")
         # Acc = 4*Acc + _T_current_adjusted
         Acc = Acc.add(Acc)  # Double Acc
         Acc = Acc.add(Acc)  # Double Acc again
         Acc = Acc.add(_T_current)
 
-    print(f"Acc after loop: {Acc.to_cairo_1(as_hex=False)}")
+    # print(f"Acc after loop: {Acc.to_cairo_1(as_hex=False)}")
     # === Step 11: Final Additions Based on Bit 0 ===
     # Adjust Acc based on the least significant bits s1[0] and s2[0].
     if nbits >= 1:
@@ -798,8 +798,8 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # The final accumulator value should equal table_R_verify[2] (which is [3]R_signed_verify).
     AccToAssert = Acc
 
-    print(f"AccToAssert: {AccToAssert.to_cairo_1(as_hex=False)}")
-    print(f"R[2]: {table_R_verify[2].to_cairo_1(as_hex=False)}")
+    # print(f"AccToAssert: {AccToAssert.to_cairo_1(as_hex=False)}")
+    # print(f"R[2]: {table_R_verify[2].to_cairo_1(as_hex=False)}")
     assert (
         AccToAssert == table_R_verify[2]
     ), f"Verification failed: {AccToAssert} != {table_R_verify[2]}. Scalar: {scalar}, Point Inf: {point.is_infinity()}"

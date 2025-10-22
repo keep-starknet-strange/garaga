@@ -235,7 +235,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let (hash_state, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
         mpcheck_hint.Ris, hash_state, z,
     );
-    let hash_state = hashing::hash_E12D_one(hash_state);
+    let hash_state = hashing::hash_E12D_one_u288(hash_state);
 
     let hash_state = hashing::hash_E12D_u288(precomputed_miller_loop_result, hash_state);
 
@@ -524,7 +524,7 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     let (hash_state, mut evals) = basic_field_ops::eval_and_hash_E12D_u384_transcript(
         hint.Ris, hash_state, z,
     );
-    let hash_state = hashing::hash_E12D_one(hash_state);
+    let hash_state = hashing::hash_E12D_one_u384(hash_state);
 
     let hash_state = hashing::hash_E12D_u384(precomputed_miller_loop_result, hash_state);
 

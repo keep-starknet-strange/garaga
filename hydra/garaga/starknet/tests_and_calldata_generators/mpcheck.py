@@ -57,6 +57,10 @@ class MPCheckCalldataBuilder:
     def big_Q_expected_len(self):
         return get_max_Q_degree(self.curve_id.value, len(self.pairs)) + 1
 
+    @property
+    def three_limbs_only(self):
+        return self.curve_id != CurveID.BLS12_381
+
     @lru_cache(maxsize=1)
     def extra_miller_loop_result(self) -> list[PyFelt] | None:
         if self.include_miller_loop_result:
@@ -118,11 +122,14 @@ class MPCheckCalldataBuilder:
             f"MPCHECK_{self.curve_id.name}_{len(self.pairs)}P_{self.n_fixed_g2}F"
         )
         transcript = CairoPoseidonTranscript(
-            init_hash=int.from_bytes(init_hash.encode(), byteorder="big")
+            init_hash=int.from_bytes(init_hash.encode(), byteorder="big"),
+            three_limbs_only=self.three_limbs_only,
         )
         # Hash inputs.
         for pair in self.pairs:
-            transcript.hash_limbs_multi(pair.to_pyfelt_list())
+            transcript.hash_limbs_multi(
+                pair.to_pyfelt_list(), three_limbs_only=False
+            )  # False because G1Point is holding u384 only.
         return transcript
 
     def _hash_hints_and_get_base_random_rlc_coeff(
