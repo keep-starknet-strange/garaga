@@ -1,7 +1,7 @@
 use core::circuit::u384;
 use corelib_imports::bounded_int::downcast;
 pub use garaga::definitions::{E12D, G1Point, G2Point, MillerLoopResultScalingFactor, u288};
-pub use garaga::groth16::{Groth16Proof, Groth16ProofRaw};
+pub use garaga::groth16::Groth16Proof;
 pub use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 
 #[derive(Drop)]
@@ -16,6 +16,13 @@ pub struct FullProofWithHintsBLS12_381 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBLS12_381,
     pub msm_hint: Span<felt252>,
+}
+
+#[derive(Drop, Serde, Debug)]
+pub struct Groth16ProofRaw {
+    pub a: G1Point,
+    pub b: G2Point,
+    pub c: G1Point,
 }
 
 #[derive(Drop)]
