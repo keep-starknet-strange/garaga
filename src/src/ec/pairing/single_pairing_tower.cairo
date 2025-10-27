@@ -7,31 +7,6 @@ use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point};
 use garaga::ec::pairing::pairing_check::compute_yInvXnegOverY;
 
 
-pub impl E12TOne of One<E12T> {
-    fn one() -> E12T {
-        E12T {
-            c0b0a0: One::one(),
-            c0b0a1: Zero::zero(),
-            c0b1a0: Zero::zero(),
-            c0b1a1: Zero::zero(),
-            c0b2a0: Zero::zero(),
-            c0b2a1: Zero::zero(),
-            c1b0a0: Zero::zero(),
-            c1b0a1: Zero::zero(),
-            c1b1a0: Zero::zero(),
-            c1b1a1: Zero::zero(),
-            c1b2a0: Zero::zero(),
-            c1b2a1: Zero::zero(),
-        }
-    }
-    fn is_one(self: @E12T) -> bool {
-        *self == Self::one()
-    }
-    fn is_non_one(self: @E12T) -> bool {
-        !Self::is_one(self)
-    }
-}
-
 pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
     let bits = BN254_SEED_BITS_NAF.span();
 
@@ -39,7 +14,7 @@ pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
         P, Q.y0, Q.y1,
     );
 
-    let mut Mi: E12T = E12TOne::one();
+    let mut Mi: E12T = One::one();
     let mut Qi = Q;
 
     for bit in bits {

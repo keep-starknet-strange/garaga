@@ -93,7 +93,7 @@ def generate_tower_pairing_test(curve_id, n_pairs, seed):
     code = f"""
 #[test]
 fn test_tower_pairing_{curve_id.name}_{n_pairs}P() {{
-    let mut res:E12T = E12TOne::one();
+    let mut res:E12T = One::one();
 """
     for i, pair in enumerate(pairs):
         code += f"""
@@ -203,9 +203,10 @@ def get_tower_pairing_config():
     """Configuration for tower pairing tests"""
     header = """
     use garaga::single_pairing_tower::{
-        E12TOne, miller_loop_bls12_381_tower,
+        miller_loop_bls12_381_tower,
         miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
     };
+    use core::num::traits::One;
     use garaga::definitions::{u384, G1Point, G2Point, E12T};
     use garaga::ec_ops::{G1PointImpl};
     use garaga::ec_ops_g2::{G2PointImpl};

@@ -1,15 +1,16 @@
+use core::num::traits::One;
 use garaga::circuits::tower_circuits::{run_BLS12_381_E12T_MUL_circuit, run_BN254_E12T_MUL_circuit};
 use garaga::definitions::{E12T, G1Point, G2Point, u384};
 use garaga::ec_ops::G1PointImpl;
 use garaga::ec_ops_g2::G2PointImpl;
 use garaga::single_pairing_tower::{
-    E12TOne, final_exp_bls12_381_tower, final_exp_bn254_tower, miller_loop_bls12_381_tower,
+    final_exp_bls12_381_tower, final_exp_bn254_tower, miller_loop_bls12_381_tower,
     miller_loop_bn254_tower,
 };
 
 #[test]
 fn test_tower_pairing_BN254_1P() {
-    let mut res: E12T = E12TOne::one();
+    let mut res: E12T = One::one();
 
     let p0: G1Point = G1Point {
         x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -130,7 +131,7 @@ fn test_tower_pairing_BN254_1P() {
 
 #[test]
 fn test_tower_pairing_BN254_2P() {
-    let mut res: E12T = E12TOne::one();
+    let mut res: E12T = One::one();
 
     let p0: G1Point = G1Point {
         x: u384 {
@@ -247,7 +248,7 @@ fn test_tower_pairing_BN254_2P() {
 
 #[test]
 fn test_tower_pairing_BN254_3P() {
-    let mut res: E12T = E12TOne::one();
+    let mut res: E12T = One::one();
 
     let p0: G1Point = G1Point {
         x: u384 {
@@ -410,7 +411,7 @@ fn test_tower_pairing_BN254_3P() {
 
 #[test]
 fn test_tower_pairing_BLS12_381_1P() {
-    let mut res: E12T = E12TOne::one();
+    let mut res: E12T = One::one();
 
     let p0: G1Point = G1Point {
         x: u384 {
@@ -541,7 +542,7 @@ fn test_tower_pairing_BLS12_381_1P() {
 
 #[test]
 fn test_tower_pairing_BLS12_381_2P() {
-    let mut res: E12T = E12TOne::one();
+    let mut res: E12T = One::one();
 
     let p0: G1Point = G1Point {
         x: u384 {
@@ -658,7 +659,7 @@ fn test_tower_pairing_BLS12_381_2P() {
 
 #[test]
 fn test_tower_pairing_BLS12_381_3P() {
-    let mut res: E12T = E12TOne::one();
+    let mut res: E12T = One::one();
 
     let p0: G1Point = G1Point {
         x: u384 {

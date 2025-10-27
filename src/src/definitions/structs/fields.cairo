@@ -260,6 +260,31 @@ impl E12DOneU288 of num::traits::One<E12D<u288>> {
     }
 }
 
+pub impl E12TOne of One<E12T> {
+    fn one() -> E12T {
+        E12T {
+            c0b0a0: One::one(),
+            c0b0a1: Zero::zero(),
+            c0b1a0: Zero::zero(),
+            c0b1a1: Zero::zero(),
+            c0b2a0: Zero::zero(),
+            c0b2a1: Zero::zero(),
+            c1b0a0: Zero::zero(),
+            c1b0a1: Zero::zero(),
+            c1b1a0: Zero::zero(),
+            c1b1a1: Zero::zero(),
+            c1b2a0: Zero::zero(),
+            c1b2a1: Zero::zero(),
+        }
+    }
+    fn is_one(self: @E12T) -> bool {
+        *self == Self::one()
+    }
+    fn is_non_one(self: @E12T) -> bool {
+        !Self::is_one(self)
+    }
+}
+
 impl E12DSerde384 of Serde<E12D<u384>> {
     fn serialize(self: @E12D<u384>, ref output: Array<felt252>) {
         let val = *self;
