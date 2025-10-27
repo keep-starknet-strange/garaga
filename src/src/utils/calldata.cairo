@@ -25,24 +25,6 @@ pub struct Groth16ProofRaw {
     pub c: G1Point,
 }
 
-#[derive(Drop)]
-pub struct FullProofWithHintsRisc0 {
-    pub groth16_proof: Groth16ProofRaw,
-    pub image_id: Span<u32>,
-    pub journal: Span<u8>,
-    pub mpcheck_hint: MPCheckHintBN254,
-    pub msm_hint: Span<felt252>,
-}
-
-#[derive(Drop)]
-pub struct FullProofWithHintsSP1 {
-    pub groth16_proof: Groth16ProofRaw,
-    pub vkey: u256,
-    pub public_inputs_sp1: Array<u32>,
-    pub mpcheck_hint: MPCheckHintBN254,
-    pub msm_hint: Span<felt252>,
-}
-
 const U288_N_LIMBS: usize = 3;
 const U384_N_LIMBS: usize = 4;
 
@@ -64,9 +46,7 @@ fn downcast_u384(l0: felt252, l1: felt252, l2: felt252, l3: felt252) -> u384 {
 }
 
 #[inline(always)]
-pub fn _deserialize_groth16_proof_points(
-    ref serialized: Span<felt252>,
-) -> (G1Point, G2Point, G1Point) {
+pub fn _deserialize_groth16_proof_points(ref serialized: Span<felt252>) -> Groth16ProofRaw {
     let [
         a_x_l0,
         a_x_l1,
@@ -121,7 +101,7 @@ pub fn _deserialize_groth16_proof_points(
         x: downcast_u384(c_x_l0, c_x_l1, c_x_l2, c_x_l3),
         y: downcast_u384(c_y_l0, c_y_l1, c_y_l2, c_y_l3),
     };
-    return (a, b, c);
+    return Groth16ProofRaw { a: a, b: b, c: c };
 }
 
 #[inline(always)]
@@ -189,7 +169,7 @@ pub fn _deserialize_E12D_u288(ref serialized: Span<felt252>) -> E12D<u288> {
 pub fn deserialize_full_proof_with_hints_bn254(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBN254 {
-    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
+    let groth16_proof_raw = _deserialize_groth16_proof_points(ref serialized);
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
@@ -203,81 +183,17 @@ pub fn deserialize_full_proof_with_hints_bn254(
             );
     }
 
-    let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
+    let groth16_proof = Groth16Proof {
+        a: groth16_proof_raw.a,
+        b: groth16_proof_raw.b,
+        c: groth16_proof_raw.c,
+        public_inputs: public_inputs.span(),
+    };
 
     let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
 
     let msm_hint = serialized;
     return FullProofWithHintsBN254 { groth16_proof, mpcheck_hint, msm_hint };
-}
-
-pub fn deserialize_full_proof_with_hints_risc0(
-    mut serialized: Span<felt252>,
-) -> FullProofWithHintsRisc0 {
-    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
-
-    let n_image_id: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
-    let mut image_id: Array<u32> = array![];
-    for _ in 0..n_image_id {
-        image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-    }
-
-    let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
-    let mut journal: Array<u8> = array![];
-    for _ in 0..n_journal {
-        journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
-    }
-
-    let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
-
-    let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
-
-    let msm_hint = serialized;
-    return FullProofWithHintsRisc0 {
-        groth16_proof: groth16_proof,
-        image_id: image_id.span(),
-        journal: journal.span(),
-        mpcheck_hint: mpcheck_hint,
-        msm_hint: msm_hint,
-    };
-}
-
-
-pub fn deserialize_full_proof_with_hints_sp1(
-    mut serialized: Span<felt252>,
-) -> FullProofWithHintsSP1 {
-    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
-    let groth16_proof = Groth16ProofRaw { a: a, b: b, c: c };
-    let vkey = u256 {
-        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-        high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
-    };
-    let n_words: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
-    let mut public_inputs_sp1: Array<u32> = array![];
-
-    for _ in 0..n_words {
-        let [w7, w6, w5, w4, w3, w2, w1, w0] = (*serialized.multi_pop_front::<8>().unwrap())
-            .unbox();
-        public_inputs_sp1.append(w7.try_into().unwrap());
-        public_inputs_sp1.append(w6.try_into().unwrap());
-        public_inputs_sp1.append(w5.try_into().unwrap());
-        public_inputs_sp1.append(w4.try_into().unwrap());
-        public_inputs_sp1.append(w3.try_into().unwrap());
-        public_inputs_sp1.append(w2.try_into().unwrap());
-        public_inputs_sp1.append(w1.try_into().unwrap());
-        public_inputs_sp1.append(w0.try_into().unwrap());
-    }
-
-    let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
-
-    let msm_hint = serialized;
-    return FullProofWithHintsSP1 {
-        groth16_proof: groth16_proof,
-        vkey: vkey,
-        public_inputs_sp1: public_inputs_sp1,
-        mpcheck_hint: mpcheck_hint,
-        msm_hint: msm_hint,
-    };
 }
 
 
@@ -625,7 +541,7 @@ pub fn deserialize_mpcheck_hint_bls12_381(ref serialized: Span<felt252>) -> MPCh
 pub fn deserialize_full_proof_with_hints_bls12_381(
     mut serialized: Span<felt252>,
 ) -> FullProofWithHintsBLS12_381 {
-    let (a, b, c) = _deserialize_groth16_proof_points(ref serialized);
+    let groth16_proof_raw = _deserialize_groth16_proof_points(ref serialized);
 
     let n_public_inputs: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs = array![];
@@ -642,7 +558,12 @@ pub fn deserialize_full_proof_with_hints_bls12_381(
     // full_len -= (1 + 2 * n_public_inputs);
     // assert(full_len == serialized.len(), 'C');
 
-    let groth16_proof = Groth16Proof { a: a, b: b, c: c, public_inputs: public_inputs.span() };
+    let groth16_proof = Groth16Proof {
+        a: groth16_proof_raw.a,
+        b: groth16_proof_raw.b,
+        c: groth16_proof_raw.c,
+        public_inputs: public_inputs.span(),
+    };
     // Deserialize mpcheck_hint
     let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);
     let msm_hint = serialized;

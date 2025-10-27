@@ -1,11 +1,11 @@
 use core::poseidon::hades_permutation;
 use corelib_imports::array::array_slice;
-use garaga::utils::noir::honk_transcript::{
+use garaga::apps::noir::honk_transcript::{
     CONST_PROOF_SIZE_LOG_N, IHasher, Point256IntoProofPoint, append_proof_point,
     generate_alpha_challenges, generate_gate_challenges, generate_gemini_r_challenge,
     generate_shplonk_z_challenge, get_beta_gamma_challenges, get_eta_challenges,
 };
-use garaga::utils::noir::{G1Point256, G1PointProof, ZKHonkProof};
+use garaga::apps::noir::{G1Point256, G1PointProof, ZKHonkProof};
 
 pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 
@@ -208,8 +208,8 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
 
 #[cfg(test)]
 mod tests {
-    use garaga::utils::noir::honk_transcript::{KeccakHasherState, StarknetHasherState};
-    use garaga::utils::noir::{get_vk, get_zk_proof_keccak, get_zk_proof_starknet};
+    use garaga::apps::noir::honk_transcript::{KeccakHasherState, StarknetHasherState};
+    use garaga::apps::noir::{get_vk, get_zk_proof_keccak, get_zk_proof_starknet};
     use super::{ZKHonkTranscript, ZKHonkTranscriptTrait};
     #[test]
     fn test_zk_transcript_keccak() {

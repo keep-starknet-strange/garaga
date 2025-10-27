@@ -14,6 +14,11 @@ pub trait IUltraStarknetHonkVerifier<TContractState> {
 #[starknet::contract]
 mod UltraStarknetHonkVerifier {
     use core::num::traits::Zero;
+    use garaga::apps::noir::honk_transcript::{
+        BATCHED_RELATION_PARTIAL_LENGTH, HonkTranscriptTrait, Point256IntoCircuitPoint,
+        StarknetHasherState,
+    };
+    use garaga::apps::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, u288IntoCircuitInputValue};
     use garaga::definitions::{
         BN254, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, get_eigenvalue,
@@ -21,11 +26,6 @@ mod UltraStarknetHonkVerifier {
     };
     use garaga::ec_ops::{G1PointTrait, GlvFakeGlvHint, _ec_safe_add, _scalar_mul_glv_and_fake_glv};
     use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
-    use garaga::utils::noir::honk_transcript::{
-        BATCHED_RELATION_PARTIAL_LENGTH, HonkTranscriptTrait, Point256IntoCircuitPoint,
-        StarknetHasherState,
-    };
-    use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, HonkProof};
     use super::{
         is_on_curve_excluding_infinity_bn254, precomputed_lines,
         run_GRUMPKIN_HONK_PREP_MSM_SCALARS_SIZE_12_circuit,

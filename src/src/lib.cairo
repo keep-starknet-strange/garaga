@@ -1,3 +1,10 @@
+pub mod apps {
+    pub mod drand;
+    pub mod noir;
+    pub mod risc0;
+    pub mod sp1;
+}
+
 pub mod basic_field_ops;
 pub mod core {
     pub mod circuit;
@@ -63,12 +70,8 @@ mod tests {
 
 pub mod utils {
     pub mod calldata;
-    pub mod drand;
     pub mod hashing;
     pub mod neg_3;
-    pub mod noir;
-    pub mod risc0;
-    pub mod sp1;
     use core::circuit::u384;
     use core::panic_with_felt252;
 

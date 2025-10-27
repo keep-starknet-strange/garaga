@@ -1,4 +1,4 @@
-use garaga::utils::drand::DrandResult;
+use garaga::apps::drand::DrandResult;
 use super::drand_verifier_constants::{G2_GEN, precomputed_lines};
 
 
@@ -12,13 +12,13 @@ trait IDrandQuicknet<TContractState> {
 #[starknet::contract]
 mod DrandQuicknet {
     // use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1G2Pair, G1Point};
-    use garaga::pairing_check::{MPCheckHintBLS12_381, multi_pairing_check_bls12_381_2P_2F};
-    use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
-    use garaga::utils::drand::{
+    use garaga::apps::drand::{
         CipherText, DRAND_QUICKNET_GENESIS_TIME, DRAND_QUICKNET_PERIOD, DRAND_QUICKNET_PUBLIC_KEY,
         DrandResult, HashToCurveHint, round_to_curve_bls12_381,
     };
+    use garaga::definitions::{G1G2Pair, G1Point};
+    use garaga::pairing_check::{MPCheckHintBLS12_381, multi_pairing_check_bls12_381_2P_2F};
+    use garaga::utils::calldata::deserialize_mpcheck_hint_bls12_381;
     use garaga::utils::hashing::hash_G1Point;
     use starknet::storage::Map;
     use super::{G2_GEN, precomputed_lines};

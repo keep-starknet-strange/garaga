@@ -2,8 +2,8 @@ use core::poseidon::hades_permutation;
 use core::traits::Into;
 use corelib_imports::array::array_slice;
 use corelib_imports::keccak;
+use garaga::apps::noir::{G1Point256, G1PointProof, HonkProof};
 use garaga::definitions::G1Point;
-use garaga::utils::noir::{G1Point256, G1PointProof, HonkProof};
 
 pub const POW2_136: u256 = 0x10000000000000000000000000000000000;
 pub const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
@@ -519,7 +519,7 @@ pub fn generate_shplonk_z_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<
 
 #[cfg(test)]
 mod tests {
-    use garaga::utils::noir::{get_proof_keccak, get_proof_starknet, get_vk};
+    use garaga::apps::noir::{get_proof_keccak, get_proof_starknet, get_vk};
     use super::{HonkTranscript, HonkTranscriptTrait, KeccakHasherState, StarknetHasherState};
     #[test]
     fn test_transcript_keccak() {

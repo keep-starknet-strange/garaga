@@ -310,9 +310,9 @@ mod {contract_name} {{
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
     use super::{{vk, precomputed_lines, {imports_str}}};
-    use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
-    use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
+    use garaga::apps::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
+    use garaga::apps::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
+    use garaga::apps::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}}};
     use core::num::traits::Zero;
 
@@ -357,7 +357,7 @@ def _gen_constants_code(vk: HonkVk) -> str:
     )
     return f"""
 use garaga::definitions::{{G1Point, G2Line, u384, u288}};
-use garaga::utils::noir::HonkVk;
+use garaga::apps::noir::HonkVk;
 
 // _vk_hash = keccak256(vk_bytes)
 // vk_hash = hades_permutation(_vk_hash.low, _vk_hash.high, 2)
