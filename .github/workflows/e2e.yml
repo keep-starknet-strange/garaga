@@ -39,7 +39,7 @@ jobs:
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.12.0"
+          scarb-version: "2.12.2"
       - name: Install dependencies
         run: make setup
 

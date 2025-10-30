@@ -11,10 +11,10 @@
         "verifier_hash": "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913"
     },
     "release_info": {
-        "garaga_version": "0.18.2",
+        "garaga_version": "1.0.0",
         "risc0_release": "v2.2.2",
-        "cairo_version": "2.12.0",
-        "starknet_foundry_version": "0.48.0"
+        "cairo_version": "2.12.2",
+        "starknet_foundry_version": "0.51.1"
     },
     "noir": {
         "bb_version": "0.87.4",

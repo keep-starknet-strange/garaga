@@ -6,7 +6,7 @@ icon: octopus
 
 ## Requirements (read carefully to avoid 99% of issues!)
 
-* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 0.18.2 (install with `pip install garaga==0.18.2`
+* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 1.0.0 (install with `pip install garaga==1.0.0`
 * Noir 1.0.0-beta.5 (install with `noirup --version 1.0.0-beta.5`  or `npm i @noir-lang/noir_js@1.0.0-beta.5` )
 * Barretenberg 0.87.4-starknet.1 (install with `bbup --version 0.87.4-starknet.1` or `npm i @aztec/bb.js@0.87.4-starknet.1` )
 
@@ -42,7 +42,7 @@ Use `bb prove --help` and `garaga calldata --help` to see the available options.
 **4. BB.js Integration**
 
 {% hint style="info" %}
-See [bb.js backend.ts](https://github.com/AztecProtocol/aztec-packages/blob/v0.87.4-starknet.1/barretenberg/ts/src/barretenberg/backend.ts) and [garaga_ts/src/node/api.ts](https://github.com/keep-starknet-strange/garaga/blob/v0.18.1/tools/npm/garaga_ts/src/node/api.ts) for reference.
+See [bb.js backend.ts](https://github.com/AztecProtocol/aztec-packages/blob/v0.87.4-starknet.1/barretenberg/ts/src/barretenberg/backend.ts) and [garaga_ts/src/node/api.ts](https://github.com/keep-starknet-strange/garaga/blob/v1.0.0/tools/npm/garaga_ts/src/node/api.ts) for reference.
 {% endhint %}
 
 <table><thead><tr><th width="200">UltraHonkBackendOptions</th><th width="200">Garaga NPM Function</th><th width="200">HonkFlavor</th><th width="150">System</th></tr></thead><tbody><tr><td><code>{ keccak: true }</code></td><td><code>getHonkCallData()</code></td><td><code>HonkFlavor.KECCAK</code></td><td><code>ultra_keccak_honk</code></td></tr><tr><td><code>{ keccakZK: true }</code></td><td><code>getZKHonkCallData()</code></td><td><code>HonkFlavor.KECCAK</code></td><td><code>ultra_keccak_zk_honk</code></td></tr><tr><td><code>{ starknet: true }</code></td><td><code>getHonkCallData()</code></td><td><code>HonkFlavor.STARKNET</code></td><td><code>ultra_starknet_honk</code></td></tr><tr><td><code>{ starknetZK: true }</code></td><td><code>getZKHonkCallData()</code></td><td><code>HonkFlavor.STARKNET</code></td><td><code>ultra_starknet_zk_honk</code></td></tr></tbody></table>

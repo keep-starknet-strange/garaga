@@ -1,6 +1,6 @@
 [package]
 name = "garaga"
-version = "0.18.2"
+version = "1.0.0"
 edition = "2024_07"
 licence = "MIT"
 keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]
@@ -18,9 +18,9 @@ full = []
 corelib_imports = { path = "corelib_imports", version = "0.1.2" }
 
 [dev-dependencies]
-snforge_std = "0.48.0"
-assert_macros = "2.12.0"
-#cairo_test = "2.12.0"
+snforge_std = "0.51.1"
+assert_macros = "2.12.2"
+#cairo_test = "2.12.2"
 
 [scripts]
 test = "snforge test -p garaga --include-ignored"

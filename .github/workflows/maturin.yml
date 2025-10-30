@@ -183,7 +183,7 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.12.0"
+          scarb-version: "2.12.2"
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
@@ -191,6 +191,9 @@ jobs:
       - name: Install dependencies
         run: make setup
       - name: Verify Contract Declaration
+        env:
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+          MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
         run: source venv/bin/activate && python .github/scripts/verify_contracts.py
       - uses: actions/download-artifact@v4
       - name: Publish to PyPI
