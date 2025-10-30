@@ -8,7 +8,8 @@ import hashlib
 from typing import Protocol, TypeVar
 
 from garaga.algebra import Polynomial, PyFelt, RationalFunction
-from garaga.definitions import CURVES, CurveID, G1Point, get_base_field
+from garaga.curves import CURVES, CurveID, get_base_field
+from garaga.points import G1Point
 
 T = TypeVar("T", bound="HashProtocol")
 

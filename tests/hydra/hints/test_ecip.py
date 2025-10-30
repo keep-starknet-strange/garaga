@@ -2,8 +2,9 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID, G1Point, G2Point, PairingCurve
+from garaga.curves import CURVES, CurveID, PairingCurve
 from garaga.hints.ecip import verify_ecip, zk_ecip_hint
+from garaga.points import G1Point, G2Point
 
 # Define the curves to be tested
 curves = list(CurveID)

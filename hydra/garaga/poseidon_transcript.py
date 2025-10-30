@@ -1,6 +1,8 @@
+from typing import Iterable
+
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, PyFelt
-from garaga.definitions import BASE, N_LIMBS, STARK
+from garaga.curves import BASE, N_LIMBS, STARK
 from garaga.hints.io import bigint_split
 
 
@@ -23,16 +25,17 @@ class CairoPoseidonTranscript:
     an array of u384 elements.
     """
 
-    def __init__(self, init_hash: int) -> None:
+    def __init__(self, init_hash: int, three_limbs_only: bool = False) -> None:
         self.init_hash = init_hash
         self.s0, self.s1, self.s2 = hades_permutation(
-            init_hash,
             0,
-            1,
+            0,
+            init_hash,
         )
         self.permutations_count = 1
         self.poseidon_ptr_indexes = []
         self.z = None
+        self.three_limbs_only = three_limbs_only
 
     @property
     def continuable_hash(self) -> int:
@@ -62,6 +65,31 @@ class CairoPoseidonTranscript:
         )
         self.permutations_count += 1
 
+        return self.s0, self.s1
+
+    def hash_quadruple_u288(
+        self, x: Iterable[PyFelt | ModuloCircuitElement], debug: bool = False
+    ):
+        assert len(x) == 4
+        x = [bigint_split(xi, 3, BASE) for xi in x]
+        self.s0, self.s1, self.s2 = hades_permutation(
+            self.s0 + x[0][0] + (BASE) * x[0][1],
+            self.s1 + x[0][2] + (BASE) * x[1][0],
+            self.s2,
+        )
+        self.s0, self.s1, self.s2 = hades_permutation(
+            self.s0 + x[1][1] + (BASE) * x[1][2],
+            self.s1 + x[2][0] + (BASE) * x[2][1],
+            self.s2,
+        )
+
+        self.s0, self.s1, self.s2 = hades_permutation(
+            self.s0 + x[2][2] + (BASE) * x[3][0],
+            self.s1 + x[3][1] + (BASE) * x[3][2],
+            self.s2,
+        )
+
+        self.permutations_count += 3
         return self.s0, self.s1
 
     def hash_u256(self, x: PyFelt | int):
@@ -95,13 +123,25 @@ class CairoPoseidonTranscript:
         X: list[PyFelt | ModuloCircuitElement],
         sparsity: list[int] | None = None,
         debug: bool = False,
+        three_limbs_only: bool = None,
     ):
+        if three_limbs_only in [True, False]:
+            three_limbs_only = three_limbs_only
+        else:
+            three_limbs_only = self.three_limbs_only
         if sparsity:
             X = [x for i, x in enumerate(X) if sparsity[i] != 0]
-        for X_elem in X:
-            if debug:
-                print(f"\t s0 : {self.s0}")
-            self.hash_element(X_elem, debug=debug)
+        if not three_limbs_only:
+            for X_elem in X:
+                if debug:
+                    print(f"\t s0 : {self.s0}")
+                self.hash_element(X_elem, debug=debug)
+        else:
+            n_quadruples, rest = divmod(len(X), 4)
+            for i in range(n_quadruples):
+                self.hash_quadruple_u288(X[i * 4 : (i + 1) * 4], debug=debug)
+            for i in range(rest):
+                self.hash_element(X[n_quadruples * 4 + i], debug=debug)
         return None
 
 

@@ -1,7 +1,7 @@
 from enum import Enum
 from pathlib import Path
 
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.precompiled_circuits.compilable_circuits.apply_isogeny import (
     ApplyIsogenyCircuit,
 )
@@ -20,11 +20,10 @@ from garaga.precompiled_circuits.compilable_circuits.cairo1_mpcheck_circuits imp
     FixedG2MPCheckBit1,
     FixedG2MPCheckBit01,
     FixedG2MPCheckBit10,
-    FixedG2MPCheckFinalizeBN,
     FixedG2MPCheckInitBit,
-    FP12MulAssertOne,
+    InitializeMPCheck,
     MPCheckFinalizeBLS,
-    MPCheckPrepareLambdaRootEvaluations,
+    MPCheckFinalizeBN,
     MPCheckPreparePairs,
 )
 from garaga.precompiled_circuits.compilable_circuits.cairo1_tower_pairing import (
@@ -48,6 +47,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     AddECPointCircuit,
     AddECPointsG2Circuit,
     ClearCofactorBLS12_381Circuit,
+    DoubleAndAddECPointsG2Circuit,
     DoubleECPointCircuit,
     DoubleECPointG2AEq0Circuit,
     DummyCircuit,
@@ -56,6 +56,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     IsOnCurveG2Circuit,
     PrepareFakeGLVPtsCircuit,
     PrepareGLVFakeGLVPtsCircuit,
+    PsiG2BLS12_381Circuit,
     QuadrupleAndAdd9Circuit,
 )
 from garaga.starknet.cli.utils import create_directory
@@ -86,9 +87,7 @@ class CircuitID(Enum):
     MP_CHECK_BIT01_LOOP = int.from_bytes(b"mp_check_bit01_loop", "big")
     MP_CHECK_BIT10_LOOP = int.from_bytes(b"mp_check_bit10_loop", "big")
     MP_CHECK_PREPARE_PAIRS = int.from_bytes(b"mp_check_prepare_pairs", "big")
-    MP_CHECK_PREPARE_LAMBDA_ROOT = int.from_bytes(
-        b"mp_check_prepare_lambda_root", "big"
-    )
+    MP_CHECK_INITIALIZE = int.from_bytes(b"mp_check_initialize", "big")
     MP_CHECK_INIT_BIT = int.from_bytes(b"mp_check_init_bit", "big")
     MP_CHECK_FINALIZE_BN = int.from_bytes(b"mp_check_finalize_bn", "big")
     MP_CHECK_FINALIZE_BLS = int.from_bytes(b"mp_check_finalize_bls", "big")
@@ -124,6 +123,8 @@ class CircuitID(Enum):
     )
     ADD_EC_POINT_G2 = int.from_bytes(b"add_ec_point_g2", "big")
     DOUBLE_EC_POINT_G2 = int.from_bytes(b"double_ec_point_g2", "big")
+    DOUBLE_AND_ADD_EC_POINT_G2 = int.from_bytes(b"double_and_add_ec_point_g2", "big")
+    PSI_G2_BLS12_381 = int.from_bytes(b"psi_g2_bls12_381", "big")
     FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
 
 
@@ -185,6 +186,17 @@ ALL_CAIRO_CIRCUITS = {
         "params": None,
         "filename": "ec",
     },
+    CircuitID.DOUBLE_AND_ADD_EC_POINT_G2: {
+        "class": DoubleAndAddECPointsG2Circuit,
+        "params": None,
+        "filename": "ec",
+    },
+    CircuitID.PSI_G2_BLS12_381: {
+        "class": PsiG2BLS12_381Circuit,
+        "params": None,
+        "filename": "ec",
+        "curve_ids": [CurveID.BLS12_381],
+    },
     CircuitID.MP_CHECK_BIT0_LOOP: {
         "class": FixedG2MPCheckBit0,
         "params": [
@@ -236,9 +248,12 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
-    CircuitID.MP_CHECK_PREPARE_LAMBDA_ROOT: {
-        "class": MPCheckPrepareLambdaRootEvaluations,
-        "params": None,
+    CircuitID.MP_CHECK_INITIALIZE: {
+        "class": InitializeMPCheck,
+        "params": [
+            {"extra_miller_loop_result": False},
+            {"extra_miller_loop_result": True},
+        ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
@@ -252,25 +267,30 @@ ALL_CAIRO_CIRCUITS = {
         "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_FINALIZE_BN: {
-        "class": FixedG2MPCheckFinalizeBN,
+        "class": MPCheckFinalizeBN,
         "params": [
-            {"n_pairs": 2, "n_fixed_g2": 2},  # BLS SIG / KZG Verif
-            {"n_pairs": 3, "n_fixed_g2": 2},  # Groth16
+            {
+                "n_pairs": 2,
+                "n_fixed_g2": 2,
+                "extra_miller_loop_result": False,
+            },  # BLS SIG / KZG Verif
+            {
+                "n_pairs": 3,
+                "n_fixed_g2": 2,
+                "extra_miller_loop_result": True,
+            },  # Groth16
         ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BN254],
     },
     CircuitID.MP_CHECK_FINALIZE_BLS: {
         "class": MPCheckFinalizeBLS,
-        "params": [{"n_pairs": k} for k in [2, 3]],
+        "params": [
+            {"n_pairs": 2, "extra_miller_loop_result": False},
+            {"n_pairs": 3, "extra_miller_loop_result": True},
+        ],
         "filename": "multi_pairing_check",
         "curve_ids": [CurveID.BLS12_381],
-    },
-    CircuitID.FP12_MUL_ASSERT_ONE: {
-        "class": FP12MulAssertOne,
-        "params": None,
-        "filename": "extf_mul",
-        "curve_ids": [CurveID.BN254, CurveID.BLS12_381],
     },
     CircuitID.EVAL_E12D: {
         "class": EvalE12D,

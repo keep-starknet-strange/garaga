@@ -1,12 +1,12 @@
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
-from garaga.definitions import (
+from garaga.hints.tower_backup import E6, get_tower_object
+from garaga.points import (
     direct_to_tower,
     get_base_field,
     get_irreducible_poly,
     tower_to_direct,
 )
-from garaga.hints.tower_backup import E6, get_tower_object
 
 
 def nondeterministic_extension_field_mul_divmod(
@@ -70,7 +70,7 @@ def nondeterministic_extension_field_div(
 if __name__ == "__main__":
     from random import randint as rint
 
-    from garaga.definitions import (
+    from garaga.curves import (
         BLS12_381_ID,
         BN254_ID,
         get_base_field,

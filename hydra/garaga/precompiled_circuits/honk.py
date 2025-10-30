@@ -7,9 +7,10 @@ from typing import Union
 import garaga.hints.io as io
 import garaga.modulo_circuit_structs as structs
 from garaga.algebra import ModuloCircuitElement
-from garaga.definitions import CURVES, CurveID, G1Point, G2Point, ProofSystem
+from garaga.curves import CURVES, CurveID, ProofSystem
 from garaga.hints.keccak256 import keccak_256
 from garaga.modulo_circuit import ModuloCircuit
+from garaga.points import G1Point, G2Point
 from garaga.poseidon_transcript import hades_permutation
 
 PROOF_SIZE = 456

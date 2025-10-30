@@ -6,7 +6,8 @@ Kept for reference/in case we need it in the future.
 import copy
 from random import randint
 
-from garaga.definitions import BLS12_381_ID, BN254_ID, CURVES, CurveID, get_sparsity
+from garaga.algebra import get_sparsity
+from garaga.curves import BLS12_381_ID, BN254_ID, CURVES, CurveID
 from garaga.extension_field_modulo_circuit import (
     AccPolyInstructionType,
     ExtensionFieldModuloCircuit,
@@ -395,7 +396,7 @@ GaragaFinalExp = {
 
 
 def test_final_exp(curve_id: CurveID):
-    from garaga.definitions import G1G2Pair, G1Point, G2Point, tower_to_direct
+    from garaga.points import G1G2Pair, G1Point, G2Point, tower_to_direct
 
     order = CURVES[curve_id.value].n
     pairs = []
@@ -461,7 +462,7 @@ def test_final_exp(curve_id: CurveID):
 if __name__ == "__main__":
     pass
 
-    from garaga.definitions import CurveID, Polynomial
+    from garaga.curves import CurveID, Polynomial
 
     # def test_frobenius_torus():
     #     from archive_tmp.bn254.pairing_final_exp import frobenius_torus

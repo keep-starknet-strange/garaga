@@ -1,16 +1,10 @@
-from garaga.definitions import (
-    CURVES,
-    CurveID,
-    G1G2Pair,
-    G1Point,
-    G2Point,
-    get_base_field,
-    get_sparsity,
-)
+from garaga.algebra import get_sparsity
+from garaga.curves import CURVES, CurveID, get_base_field
 from garaga.hints.frobenius import get_frobenius_maps
 from garaga.hints.multi_miller_witness import get_final_exp_witness
 from garaga.hints.tower_backup import E6, E12
 from garaga.modulo_circuit import ModuloCircuitElement, PyFelt, WriteOps
+from garaga.points import G1G2Pair, G1Point, G2Point
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 
@@ -464,10 +458,7 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                 raise NotImplementedError(f"Bit {self.loop_counter[i]} not implemented")
             i -= 1
 
-        if m is not None and len(m) == 12:
-            final_r_sparsity = None
-        else:
-            final_r_sparsity = [1] + [0] * 11
+        final_r_sparsity = [1] + [0] * 11
 
         if self.curve_id == CurveID.BN254.value:
             lines = self.bn254_finalize_step(Qs)
@@ -482,29 +473,36 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
             c_inv_frob_3 = self.frobenius(c_inv, 3)
 
             f = self.extf_mul(
-                ([f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]),
+                (
+                    [f, w, c_inv_frob_1, c_frob_2, c_inv_frob_3]
+                    + ([m] if m is not None else [])
+                ),
                 12,
-                Ps_sparsities=([None, scaling_factor_sparsity, None, None, None]),
+                Ps_sparsities=(
+                    [None, scaling_factor_sparsity, None, None, None]
+                    + ([None] if m is not None else [])
+                ),
                 r_sparsity=final_r_sparsity,
             )
 
         elif self.curve_id == CurveID.BLS12_381.value:
             # λ = -x + q for BLS
             c_inv_frob_1 = self.frobenius(c_inv, 1)
+
+            f = self.conjugate_e12d(f)
+            w = self.conjugate_e12d(w)
+            c_inv_frob_1 = self.conjugate_e12d(c_inv_frob_1)
+
             f = self.extf_mul(
-                Ps=[f, w, c_inv_frob_1],
+                Ps=[f, w, c_inv_frob_1] + ([m] if m is not None else []),
                 extension_degree=12,
-                Ps_sparsities=[None, scaling_factor_sparsity, None],
+                Ps_sparsities=[None, scaling_factor_sparsity, None]
+                + ([None] if m is not None else []),
                 r_sparsity=final_r_sparsity,
             )
-            if m is not None and len(m) == 12:
-                f = self.conjugate_e12d(f)
 
         else:
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")
-
-        if m is not None and len(m) == 12:
-            f = self.extf_mul([f, m], 12, r_sparsity=[1] + [0] * 11)
 
         assert [fi.value for fi in f] == [1] + [
             0
@@ -522,7 +520,20 @@ def get_pairing_check_input(
     curve_id: CurveID, n_pairs: int, include_m: bool = False, return_pairs: bool = False
 ) -> tuple[list[PyFelt | G1G2Pair], list[PyFelt] | G1G2Pair | None]:
     """
-    Returns a list of G1G2Pairs and the extra public pair if include_m is True
+    Generates test input data for pairing check circuits that satisfy e(P1,Q1) * ... * e(Pn,Qn) = 1.
+
+    For n_pairs=2: Creates BLS signature verification scenario with (signature, message_hash) and (generator, -public_key).
+    For n_pairs>2: Generates random points where the last pair is adjusted to make the product equal 1.
+
+    Args:
+        curve_id: The elliptic curve to generate points on
+        n_pairs: Number of pairing pairs (minimum 2)
+        include_m: If True, treats last pair separately and computes its Miller loop result
+        return_pairs: If True, returns G1G2Pair objects; if False, returns flattened field elements
+
+    Returns:
+        - If return_pairs=True: (list of G1G2Pair objects, optional extra pair)
+        - If return_pairs=False: (flattened field elements, optional Miller loop result)
     """
     n_pairs = n_pairs + include_m
 

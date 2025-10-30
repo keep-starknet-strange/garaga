@@ -4,15 +4,9 @@ from functools import lru_cache
 from garaga import garaga_rs
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import PyFelt
-from garaga.definitions import (
-    CURVES,
-    STARK,
-    CurveID,
-    G1Point,
-    WeierstrassCurve,
-    get_base_field,
-)
+from garaga.curves import CURVES, STARK, CurveID, WeierstrassCurve, get_base_field
 from garaga.hints import fake_glv
+from garaga.points import G1Point
 
 
 @dataclass(slots=True)

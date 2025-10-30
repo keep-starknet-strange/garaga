@@ -4,7 +4,7 @@ import random
 import pytest
 import requests
 
-from garaga.definitions import CurveID, G1G2Pair, G2Point
+from garaga.curves import CurveID
 from garaga.drand.client import (
     BASE_URLS,
     DrandNetwork,
@@ -13,6 +13,7 @@ from garaga.drand.client import (
     print_all_chain_info,
 )
 from garaga.drand.tlock import decrypt_at_round, encrypt_for_round
+from garaga.points import G1G2Pair, G2Point
 from garaga.signature import hash_to_curve
 
 

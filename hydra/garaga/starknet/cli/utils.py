@@ -18,7 +18,7 @@ from starknet_py.net.full_node_client import FullNodeClient
 from starknet_py.net.models import StarknetChainId
 from starknet_py.net.signer.stark_curve_signer import KeyPair
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.hints.io import to_int
 
 

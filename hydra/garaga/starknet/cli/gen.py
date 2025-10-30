@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.tree import Tree
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.starknet.cli.utils import complete_proof_system, get_package_version
 from garaga.starknet.constants import BB_VERSION, BBUP_VERSION, NARGO_VERSION
 from garaga.starknet.groth16_contract_generator.generator import (

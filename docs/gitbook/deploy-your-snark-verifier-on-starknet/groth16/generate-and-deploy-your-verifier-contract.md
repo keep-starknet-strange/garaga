@@ -163,7 +163,6 @@ This function is the starting point of your dapp logic.&#x20;
 
 {% code title="groth16_verifier.cairo" %}
 ```rust
-use garaga::definitions::E12DMulQuotient;
 use garaga::groth16::{Groth16Proof, MPCheckHintBLS12_381};
 use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, vk, ic, precomputed_lines};
 
@@ -173,7 +172,6 @@ trait IGroth16VerifierBLS12_381<TContractState> {
         ref self: TContractState,
         groth16_proof: Groth16Proof,
         mpcheck_hint: MPCheckHintBLS12_381,
-        small_Q: E12DMulQuotient,
         msm_hint: Array<felt252>,
     ) -> bool;
 }
@@ -181,7 +179,7 @@ trait IGroth16VerifierBLS12_381<TContractState> {
 #[starknet::contract]
 mod Groth16VerifierBLS12_381 {
     use starknet::SyscallResultTrait;
-    use garaga::definitions::{G1Point, G1G2Pair, E12DMulQuotient};
+    use garaga::definitions::{G1Point, G1G2Pair};
     use garaga::groth16::{
         multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result, Groth16Proof,
         MPCheckHintBLS12_381
@@ -202,7 +200,6 @@ mod Groth16VerifierBLS12_381 {
             ref self: ContractState,
             groth16_proof: Groth16Proof,
             mpcheck_hint: MPCheckHintBLS12_381,
-            small_Q: E12DMulQuotient,
             msm_hint: Array<felt252>,
         ) -> bool {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
@@ -247,7 +244,6 @@ mod Groth16VerifierBLS12_381 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
             );
             if check == true {
                 self

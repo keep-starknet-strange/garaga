@@ -1,5 +1,5 @@
 import garaga.modulo_circuit_structs as structs
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseModuloCircuit,
     ModuloCircuit,

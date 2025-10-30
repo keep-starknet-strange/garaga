@@ -9,17 +9,16 @@ pub trait ISP1Groth16VerifierBN254<TContractState> {
 
 #[starknet::contract]
 mod SP1Groth16VerifierBN254 {
+    use garaga::apps::sp1::{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1};
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
     use garaga::ec_ops_g2::G2PointTrait;
     use garaga::groth16::multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result;
-    use garaga::utils::calldata::deserialize_full_proof_with_hints_sp1;
-    use garaga::utils::sp1::process_public_inputs_sp1;
     use starknet::SyscallResultTrait;
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x5acc3c8de7d487d8894ec58eccd097158abdb564ce54651abba266616018baa;
+        0x396ca104d7be7c61ceb02d4dc795ed6a12f1b66e1c01fe2c6bba9612ba99090;
 
     #[storage]
     struct Storage {}
@@ -41,12 +40,11 @@ mod SP1Groth16VerifierBN254 {
             let vkey = fph.vkey;
             let public_inputs_sp1 = fph.public_inputs_sp1;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve(0);
-            groth16_proof.b.assert_on_curve(0);
-            groth16_proof.c.assert_on_curve(0);
+            groth16_proof.a.assert_in_subgroup_excluding_infinity(0);
+            groth16_proof.b.assert_in_subgroup_excluding_infinity(0);
+            groth16_proof.c.assert_in_subgroup_excluding_infinity(0);
 
             let ic = ic.span();
 
@@ -94,7 +92,6 @@ mod SP1Groth16VerifierBN254 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q,
             );
             if check == true {
                 return Option::Some((vkey, pub_inputs_256));

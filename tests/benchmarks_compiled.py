@@ -3,7 +3,7 @@ import inspect
 import pandas as pd
 from tabulate import tabulate
 
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from hydra.garaga.precompiled_circuits.all_circuits import ALL_CAIRO_CIRCUITS
 
 

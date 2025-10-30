@@ -109,23 +109,41 @@ export function mpcCalldataBuilder(curveId: CurveId, pairs: G1G2Pair[], nFixedG2
  * @param e - Challenge hash value
  * @param px - X-coordinate of the public key point
  * @param py - Y-coordinate of the public key point
+ * @param prependPublickey - Whether to include the public key in the calldata.
+ *                           When true, prepends (px, py) coordinates to the output.
+ *                           When false, only includes signature data (rx, s, e).
+ *                           Set to false when the public key is provided separately to the Cairo contract,
+ *                           useful for verifying multiple signatures with the same public key.
  * @param curveId - Identifier for the elliptic curve
  * @returns Array of bigint values representing the Schnorr verification calldata
  *
  * @example
  * ```typescript
+ * // With public key included (default behavior for single verification)
  * const calldata = schnorrCalldataBuilder(
  *   0x123n, // rx
  *   0x456n, // s
  *   0x789n, // e
  *   0xabcn, // px
  *   0xdefn, // py
+ *   true,   // prependPublickey
+ *   CurveId.BN254
+ * );
+ *
+ * // Without public key (when provided separately to contract)
+ * const calldataNoKey = schnorrCalldataBuilder(
+ *   0x123n, // rx
+ *   0x456n, // s
+ *   0x789n, // e
+ *   0xabcn, // px
+ *   0xdefn, // py
+ *   false,  // prependPublickey
  *   CurveId.BN254
  * );
  * ```
  */
-export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: bigint, py: bigint, curveId: CurveId): bigint[] {
-  return schnorr_calldata_builder(rx, s, e, px, py, curveId);
+export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: bigint, py: bigint, prependPublickey: boolean, curveId: CurveId): bigint[] {
+  return schnorr_calldata_builder(rx, s, e, px, py, prependPublickey, curveId);
 }
 
 /**
@@ -138,11 +156,17 @@ export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: big
  * @param px - X-coordinate of the public key point
  * @param py - Y-coordinate of the public key point
  * @param z - Hash of the signed message
+ * @param prependPublickey - Whether to include the public key in the calldata.
+ *                           When true, prepends (px, py) coordinates to the output.
+ *                           When false, only includes signature data (r, s, v, z).
+ *                           Set to false when the public key is provided separately to the Cairo contract,
+ *                           useful for verifying multiple signatures with the same public key.
  * @param curveId - Identifier for the elliptic curve
  * @returns Array of bigint values representing the ECDSA verification calldata
  *
  * @example
  * ```typescript
+ * // With public key included (default behavior for single verification)
  * const calldata = ecdsaCalldataBuilder(
  *   0x123n, // r
  *   0x456n, // s
@@ -150,12 +174,25 @@ export function schnorrCalldataBuilder(rx: bigint, s: bigint, e: bigint, px: big
  *   0x789n, // px
  *   0xabcn, // py
  *   0xdefn, // z (message hash)
+ *   true,   // prependPublickey
+ *   CurveId.SECP256K1
+ * );
+ *
+ * // Without public key (when provided separately to contract)
+ * const calldataNoKey = ecdsaCalldataBuilder(
+ *   0x123n, // r
+ *   0x456n, // s
+ *   0,      // v
+ *   0x789n, // px
+ *   0xabcn, // py
+ *   0xdefn, // z (message hash)
+ *   false,  // prependPublickey
  *   CurveId.SECP256K1
  * );
  * ```
  */
-export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint, py: bigint, z: bigint, curveId: CurveId): bigint[] {
-  return ecdsa_calldata_builder(r, s, v, px, py, z, curveId);
+export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint, py: bigint, z: bigint, prependPublickey: boolean, curveId: CurveId): bigint[] {
+  return ecdsa_calldata_builder(r, s, v, px, py, z, prependPublickey, curveId);
 }
 
 /**
@@ -166,21 +203,38 @@ export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint
  * @param s - Signature scalar value
  * @param py_twisted_le - Y-coordinate of public key in twisted Edwards form (little-endian)
  * @param msg - Raw message bytes that were signed
+ * @param prependPublickey - Whether to include the public key in the calldata.
+ *                           When true, prepends py_twisted_le to the output.
+ *                           When false, only includes signature data (ry_twisted_le, s, msg).
+ *                           Set to false when the public key is provided separately to the Cairo contract,
+ *                           useful for verifying multiple signatures with the same public key.
  * @returns Array of bigint values representing the EdDSA verification calldata
  *
  * @example
  * ```typescript
  * const message = new Uint8Array([1, 2, 3, 4]);
+ *
+ * // With public key included (default behavior for single verification)
  * const calldata = eddsaCalldataBuilder(
  *   0x123n, // ry_twisted_le
  *   0x456n, // s
  *   0x789n, // py_twisted_le
- *   message
+ *   message,
+ *   true    // prependPublickey
+ * );
+ *
+ * // Without public key (when provided separately to contract)
+ * const calldataNoKey = eddsaCalldataBuilder(
+ *   0x123n, // ry_twisted_le
+ *   0x456n, // s
+ *   0x789n, // py_twisted_le
+ *   message,
+ *   false   // prependPublickey
  * );
  * ```
  */
-export function eddsaCalldataBuilder(ry_twisted_le: bigint, s: bigint, py_twisted_le: bigint, msg: Uint8Array): bigint[] {
-  return eddsa_calldata_builder(ry_twisted_le, s, py_twisted_le, msg);
+export function eddsaCalldataBuilder(ry_twisted_le: bigint, s: bigint, py_twisted_le: bigint, msg: Uint8Array, prependPublickey: boolean): bigint[] {
+  return eddsa_calldata_builder(ry_twisted_le, s, py_twisted_le, msg, prependPublickey);
 }
 
 /**

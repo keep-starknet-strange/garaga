@@ -1,6 +1,6 @@
 import os
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.modulo_circuit_structs import G1PointCircuit
 from garaga.starknet.constants import RISC0_RELEASE_VERSION
 from garaga.starknet.groth16_contract_generator.generator import (
@@ -79,8 +79,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
-    use garaga::utils::risc0::{{compute_receipt_claim, journal_sha256}};
-    use garaga::utils::calldata::deserialize_full_proof_with_hints_risc0;
+    use garaga::apps::risc0::{{compute_receipt_claim, journal_sha256, deserialize_full_proof_with_hints_risc0}};
     use super::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -105,12 +104,11 @@ mod Risc0Groth16Verifier{curve_id.name} {{
             let image_id = fph.image_id;
             let journal = fph.journal;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve({curve_id.value});
-            groth16_proof.b.assert_on_curve({curve_id.value});
-            groth16_proof.c.assert_on_curve({curve_id.value});
+            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
 
             let ic = ic.span();
 
@@ -156,7 +154,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
             );
             if check == true {{
                 return Option::Some(journal);

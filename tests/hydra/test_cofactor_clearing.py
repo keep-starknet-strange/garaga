@@ -1,5 +1,5 @@
 import garaga.modulo_circuit_structs as structs
-from garaga.definitions import CURVES, PyFelt
+from garaga.curves import CURVES, PyFelt
 from garaga.modulo_circuit import WriteOps
 from hydra.garaga.precompiled_circuits.cofactor_clearing import (
     FastG2CofactorClearing,

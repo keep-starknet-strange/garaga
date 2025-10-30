@@ -24,7 +24,7 @@ fn biguint_split_2_128(x: &BigUint) -> [FieldElement<Stark252PrimeField>; 2] {
 
 impl CairoPoseidonTranscript {
     pub fn new(init_hash: FieldElement<Stark252PrimeField>) -> Self {
-        let mut state = [init_hash, FieldElement::zero(), FieldElement::one()];
+        let mut state = [FieldElement::zero(), FieldElement::zero(), init_hash];
         PoseidonCairoStark252::hades_permutation(&mut state);
         Self { init_hash, state }
     }
@@ -73,22 +73,77 @@ impl CairoPoseidonTranscript {
         &mut self,
         xs: &[FieldElement<F>],
         sparsity: Option<&[bool]>,
+        three_limbs_only: bool,
     ) where
         F: IsPrimeField,
         FieldElement<F>: ByteConversion,
     {
+        let mut xs_filtered: Vec<FieldElement<F>> = vec![];
+
         if let Some(sparsity) = sparsity {
             assert_eq!(xs.len(), sparsity.len());
             for i in 0..xs.len() {
                 if sparsity[i] {
-                    self.hash_emulated_field_element(&xs[i]);
+                    xs_filtered.push(xs[i].clone());
                 }
             }
         } else {
-            for x in xs {
-                self.hash_emulated_field_element(x);
+            xs_filtered = xs.to_vec();
+        }
+
+        if three_limbs_only {
+            let (n_quadruples, rest) = (xs_filtered.len() / 4, xs_filtered.len() % 4);
+            for i in 0..n_quadruples {
+                self.hash_quadruple_u288(&xs_filtered[i * 4..(i + 1) * 4]);
+            }
+            for i in 0..rest {
+                self.hash_emulated_field_element(&xs_filtered[n_quadruples * 4 + i]);
+            }
+        } else {
+            for x in xs_filtered {
+                self.hash_emulated_field_element(&x);
             }
         }
+    }
+
+    pub fn hash_quadruple_u288<F>(&mut self, xs: &[FieldElement<F>])
+    where
+        F: IsPrimeField,
+        FieldElement<F>: ByteConversion,
+    {
+        assert_eq!(
+            xs.len(),
+            4,
+            "hash_quadruple_u288 requires exactly 4 elements"
+        );
+
+        // Split each element into 3 limbs of 96 bits and convert to FieldElements
+        let mut elems: Vec<[FieldElement<Stark252PrimeField>; 3]> = Vec::with_capacity(4);
+        for x in xs {
+            let x_bytes = x.to_bytes_be();
+            let x_biguint = BigUint::from_bytes_be(&x_bytes);
+            let x_limbs = biguint_split::<3, 96>(&x_biguint);
+            elems.push([
+                element_from_u128::<Stark252PrimeField>(x_limbs[0]),
+                element_from_u128::<Stark252PrimeField>(x_limbs[1]),
+                element_from_u128::<Stark252PrimeField>(x_limbs[2]),
+            ]);
+        }
+
+        // First permutation: s0 + x[0][0] + BASE*x[0][1], s1 + x[0][2] + BASE*x[1][0], s2
+        self.state[0] += elems[0][0] + BASE_96_FELT252 * elems[0][1];
+        self.state[1] += elems[0][2] + BASE_96_FELT252 * elems[1][0];
+        PoseidonCairoStark252::hades_permutation(&mut self.state);
+
+        // Second permutation: s0 + x[1][1] + BASE*x[1][2], s1 + x[2][0] + BASE*x[2][1], s2
+        self.state[0] += elems[1][1] + BASE_96_FELT252 * elems[1][2];
+        self.state[1] += elems[2][0] + BASE_96_FELT252 * elems[2][1];
+        PoseidonCairoStark252::hades_permutation(&mut self.state);
+
+        // Third permutation: s0 + x[2][2] + BASE*x[3][0], s1 + x[3][1] + BASE*x[3][2], s2
+        self.state[0] += elems[2][2] + BASE_96_FELT252 * elems[3][0];
+        self.state[1] += elems[3][1] + BASE_96_FELT252 * elems[3][2];
+        PoseidonCairoStark252::hades_permutation(&mut self.state);
     }
 
     pub fn hash_u128(&mut self, x: &BigUint) -> FieldElement<Stark252PrimeField> {
@@ -175,11 +230,11 @@ mod tests {
         for value in values {
             transcript.hash_u256(&(value % (BigUint::from(1usize) << 256)));
         }
-        let expected_res = transcript.continuable_hash();
+        let expected_res: lambdaworks_math::field::element::FieldElement<lambdaworks_math::field::fields::montgomery_backed_prime_fields::MontgomeryBackendPrimeField<lambdaworks_math::field::fields::fft_friendly::stark_252_prime_field::MontgomeryConfigStark252PrimeField, 4>> = transcript.continuable_hash();
         assert_eq!(
             expected_res,
             FieldElement::from_hex(
-                "208cbc82b04dc4b1d48ccc53b1d756493ea79b1f0a836bc0f3163ea249dfb13"
+                "2a4b9382c92e77909659d0406c152da22c176cc4d7109e3fc32aff80da50bf9"
             )
             .unwrap()
         );

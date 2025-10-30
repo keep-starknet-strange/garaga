@@ -12,7 +12,7 @@ from starknet_py.hash.utils import pedersen_hash
 from starknet_py.net.account.account import Account, BaseAccount
 from starknet_py.net.client_errors import ContractNotFoundError
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.hints.io import to_int
 from garaga.precompiled_circuits.honk import honk_proof_from_bytes
 from garaga.starknet.cli.smart_contract_project import (

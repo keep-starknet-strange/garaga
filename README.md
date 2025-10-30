@@ -105,7 +105,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps   | Range Check   | Range Check 96   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|---------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_groth16_proof_bls12_381](docs/benchmarks/test_verify_groth16_proof_bls12_381.png) | 245,251 | 12,083        | 61,344           |        597 | 5,325     | 7,504     | 34,856,467   |
+| [test_verify_groth16_proof_bls12_381](docs/benchmarks/test_verify_groth16_proof_bls12_381.png) | 353,527 | 10,972        | 90,280           |        586 | 7,506     | 10,868    | 49,754,798   |
 
 </details>
 
@@ -114,7 +114,7 @@ Check the profile file for more details.
 
 | Test Name                                                                              | Steps   | Range Check   | Range Check 96   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------|---------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_groth16_proof_bn254](docs/benchmarks/test_verify_groth16_proof_bn254.png) | 251,542 | 11,215        | 75,704           |        681 | 6,341     | 9,662     | 37,807,323   |
+| [test_verify_groth16_proof_bn254](docs/benchmarks/test_verify_groth16_proof_bn254.png) | 228,557 | 9,785         | 67,149           |        509 | 5,401     | 8,754     | 34,080,559   |
 
 </details>
 
@@ -123,7 +123,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_honk_proof](docs/benchmarks/test_verify_ultra_keccak_honk_proof.png) | 1,300,439 | 68,874        | 412,841          | 3,180     |        608 | 45,756    | 43,622    | 197,008,212  |
+| [test_verify_ultra_keccak_honk_proof](docs/benchmarks/test_verify_ultra_keccak_honk_proof.png) | 1,213,031 | 65,539        | 412,656          | 3,180     |        461 | 45,756    | 43,585    | 187,929,077  |
 
 </details>
 
@@ -132,16 +132,16 @@ Check the profile file for more details.
 
 | Test Name                                                                                            | Steps     | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,399,701 | 73,900        | 451,836          | 3,476     |        608 | 49,914    | 48,030    | 213,261,292  |
+| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/test_verify_ultra_keccak_zk_honk_proof.png) | 1,306,049 | 70,398        | 451,651          | 3,476     |        461 | 49,914    | 47,993    | 203,546,067  |
 
 </details>
 
 <details>
 <summary><strong>└── noir_ultra_starknet_honk_example_integrationtest::test_contract</strong></summary>
 
-| Test Name                                                                                          | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
+| Test Name                                                                                          | Steps     | Range Check   | Range Check 96   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_honk_proof](docs/benchmarks/test_verify_ultra_starknet_honk_proof.png) | 1,166,626 | 61,827        | 412,707          | 1,139      | 45,742    | 43,606    | 181,520,015  |
+| [test_verify_ultra_starknet_honk_proof](docs/benchmarks/test_verify_ultra_starknet_honk_proof.png) | 1,127,871 | 61,433        | 412,522          |        992 | 45,742    | 43,569    | 177,512,050  |
 
 </details>
 
@@ -150,7 +150,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                                | Steps     | Range Check   | Range Check 96   | Poseidon   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,262,593 | 66,624        | 451,761          | 1,191      | 49,911    | 48,024    | 197,292,403  |
+| [test_verify_ultra_starknet_zk_honk_proof](docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png) | 1,221,360 | 66,173        | 451,576          | 1,044      | 49,911    | 47,987    | 193,032,648  |
 
 </details>
 
@@ -159,7 +159,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                    | Steps   | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 290,849 | 14,593        | 91,204           | 6,698     |        681 | 8,151     | 11,240    | 48,116,829   |
+| [test_verify_r0_groth16_proof_bn254](docs/benchmarks/test_verify_r0_groth16_proof_bn254.png) | 264,545 | 12,069        | 74,896           | 6,698     |        509 | 6,303     | 9,541     | 42,860,813   |
 
 </details>
 
@@ -168,7 +168,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                      | Steps   | Range Check   | Range Check 96   | Bitwise   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_sp1_groth16_proof_bn254](docs/benchmarks/test_verify_sp1_groth16_proof_bn254.png) | 269,236 | 13,584        | 91,460           | 2,230     |        681 | 8,167     | 11,264    | 43,312,567   |
+| [test_verify_sp1_groth16_proof_bn254](docs/benchmarks/test_verify_sp1_groth16_proof_bn254.png) | 244,680 | 11,127        | 75,027           | 2,230     |        509 | 6,314     | 9,555     | 38,221,851   |
 
 </details>
 
@@ -178,12 +178,77 @@ Check the profile file for more details.
 <details>
 <summary><strong>garaga</strong></summary>
 
+<details open>
+<summary><strong>└── apps</strong></summary>
+
+<details>
+<summary><strong>│   └── drand::tests</strong></summary>
+
+| Test Name                                                                            | Steps   | Range Check   | Range Check 96   | Bitwise   | Add Mod   | Mul Mod   | Sierra Gas   |
+|--------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|-----------|--------------|
+| [test_decrypt_at_round](docs/benchmarks/test_decrypt_at_round.png)                   | 289,447 | 3,919         | 385,790          | 14,506    | 57,320    | 28,871    | 89,901,952   |
+| [test_hash_to_curve](docs/benchmarks/test_hash_to_curve.png)                         | 26,526  | 971           | 4,559            | 12,289    | 422       | 602       | 10,601,029   |
+| [test_hash_to_two_bls_felts](docs/benchmarks/test_hash_to_two_bls_felts.png)         | 23,557  | 900           | 74               | 12,289    | 2         | 8         | 9,592,623    |
+| [test_drand_quicknet_public_key](docs/benchmarks/test_drand_quicknet_public_key.png) | 12,861  | 68            | 14,864           | 0         | 1,490     | 1,674     | 3,477,040    |
+| [test_isogeny](docs/benchmarks/test_isogeny.png)                                     | 1,844   | 58            | 878              | 0         | 51        | 111       | 316,402      |
+| [test_map_to_curve](docs/benchmarks/test_map_to_curve.png)                           | 647     | 11            | 264              | 0         | 6         | 39        | 105,190      |
+
+</details>
+
+<details open>
+<summary><strong>│   └── noir</strong></summary>
+
+<details>
+<summary><strong>│   │   └── honk_transcript::tests</strong></summary>
+
+| Test Name                                                                | Steps   | Range Check   | Bitwise   |   Poseidon | Sierra Gas   |
+|--------------------------------------------------------------------------|---------|---------------|-----------|------------|--------------|
+| [test_transcript_keccak](docs/benchmarks/test_transcript_keccak.png)     | 71,084  | 5,035         | 3,180     |          1 | 9,315,281    |
+| [test_transcript_starknet](docs/benchmarks/test_transcript_starknet.png) | 19,758  | 1,103         | 0         |        532 | 2,314,222    |
+
+</details>
+
+<details>
+<summary><strong>│   │   └── zk_honk_transcript::tests</strong></summary>
+
+| Test Name                                                                      | Steps   | Range Check   | Bitwise   |   Poseidon | Sierra Gas   |
+|--------------------------------------------------------------------------------|---------|---------------|-----------|------------|--------------|
+| [test_zk_transcript_keccak](docs/benchmarks/test_zk_transcript_keccak.png)     | 73,392  | 5,241         | 3,476     |          1 | 9,733,069    |
+| [test_zk_transcript_starknet](docs/benchmarks/test_zk_transcript_starknet.png) | 21,173  | 1,185         | 0         |        584 | 2,486,994    |
+
+</details>
+
+
+</details>
+
+<details>
+<summary><strong>│   └── risc0::risc0_utils_tests</strong></summary>
+
+| Test Name                                                    | Steps   |   Range Check | Bitwise   | Sierra Gas   |
+|--------------------------------------------------------------|---------|---------------|-----------|--------------|
+| [test_receipt_claim](docs/benchmarks/test_receipt_claim.png) | 11,117  |           433 | 5,591     | 4,401,563    |
+| [test_output_digest](docs/benchmarks/test_output_digest.png) | 4,424   |           171 | 2,230     | 1,754,460    |
+
+</details>
+
+<details>
+<summary><strong>│   └── sp1::tests</strong></summary>
+
+| Test Name                                                                |   Steps |   Range Check | Sierra Gas   |
+|--------------------------------------------------------------------------|---------|---------------|--------------|
+| [test_convert_u32_to_u128](docs/benchmarks/test_convert_u32_to_u128.png) |      58 |             3 | 6,010        |
+
+</details>
+
+
+</details>
+
 <details>
 <summary><strong>└── crypto::mmr::tests</strong></summary>
 
 | Test Name                                                    |   Steps |   Range Check | Sierra Gas   |
 |--------------------------------------------------------------|---------|---------------|--------------|
-| [test_trailing_ones](docs/benchmarks/test_trailing_ones.png) |     549 |            62 | 59,240       |
+| [test_trailing_ones](docs/benchmarks/test_trailing_ones.png) |     441 |            51 | 47,670       |
 
 </details>
 
@@ -192,7 +257,7 @@ Check the profile file for more details.
 
 | Test Name                                            | Steps   | Range Check   | Range Check 96   | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------|---------|---------------|------------------|-----------|-----------|--------------|
-| [test_ec_mul_g2](docs/benchmarks/test_ec_mul_g2.png) | 122,500 | 1,075         | 93,069           | 8,793     | 10,239    | 25,743,860   |
+| [test_ec_mul_g2](docs/benchmarks/test_ec_mul_g2.png) | 105,060 | 1,074         | 87,664           | 8,551     | 9,755     | 23,349,114   |
 
 </details>
 
@@ -201,7 +266,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                        | Steps   |   Range Check | Range Check 96   |   Add Mod |   Mul Mod | Sierra Gas   |
 |--------------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|--------------|
-| [test_run_poseidon_grumpkin_circuit_1](docs/benchmarks/test_run_poseidon_grumpkin_circuit_1.png) | 16,108  |           328 | 6,393            |       353 |       919 | 2,628,034    |
+| [test_run_poseidon_grumpkin_circuit_1](docs/benchmarks/test_run_poseidon_grumpkin_circuit_1.png) | 9,913   |           327 | 6,393            |       353 |       919 | 2,008,464    |
 
 </details>
 
@@ -216,8 +281,8 @@ Check the profile file for more details.
 
 | Test Name                                                        | Steps   | Range Check   | Range Check 96   | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|--------------|
-| [test_ecdsa_SECP256R1](docs/benchmarks/test_ecdsa_SECP256R1.png) | 16,574  | 1,074         | 20,022           | 2,367     | 2,184     | 4,717,358    |
-| [test_ecdsa_SECP256K1](docs/benchmarks/test_ecdsa_SECP256K1.png) | 21,452  | 2,084         | 15,629           | 1,810     | 1,592     | 4,544,172    |
+| [test_ecdsa_SECP256R1](docs/benchmarks/test_ecdsa_SECP256R1.png) | 14,099  | 1,072         | 20,022           | 2,367     | 2,184     | 4,469,718    |
+| [test_ecdsa_SECP256K1](docs/benchmarks/test_ecdsa_SECP256K1.png) | 18,723  | 2,082         | 15,629           | 1,810     | 1,592     | 4,271,132    |
 
 </details>
 
@@ -226,9 +291,9 @@ Check the profile file for more details.
 
 | Test Name                                                  | Steps   | Range Check   | Range Check 96   | Bitwise   | Add Mod   | Mul Mod   | Sierra Gas   |
 |------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|-----------|--------------|
-| [test_eddsa_32_64B](docs/benchmarks/test_eddsa_32_64B.png) | 100,238 | 14,068        | 20,418           | 3,288     | 2,388     | 2,236     | 15,968,656   |
-| [test_eddsa_16_32B](docs/benchmarks/test_eddsa_16_32B.png) | 59,460  | 7,748         | 20,496           | 1,656     | 2,394     | 2,244     | 10,507,580   |
-| [test_eddsa_0_0B](docs/benchmarks/test_eddsa_0_0B.png)     | 58,375  | 7,686         | 20,521           | 1,656     | 2,395     | 2,246     | 10,397,578   |
+| [test_eddsa_32_64B](docs/benchmarks/test_eddsa_32_64B.png) | 88,025  | 13,786        | 20,762           | 3,288     | 2,412     | 2,276     | 14,776,560   |
+| [test_eddsa_16_32B](docs/benchmarks/test_eddsa_16_32B.png) | 52,391  | 7,643         | 20,840           | 1,656     | 2,418     | 2,284     | 9,842,274    |
+| [test_eddsa_0_0B](docs/benchmarks/test_eddsa_0_0B.png)     | 51,814  | 7,549         | 20,865           | 1,656     | 2,419     | 2,286     | 9,780,832    |
 
 </details>
 
@@ -237,12 +302,12 @@ Check the profile file for more details.
 
 | Test Name                                                          | Steps   | Range Check   | Range Check 96   | Add Mod   | Mul Mod   | Sierra Gas   |
 |--------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|--------------|
-| [test_msm_SECP256R1_3P](docs/benchmarks/test_msm_SECP256R1_3P.png) | 23,742  | 1,577         | 29,835           | 3,546     | 3,252     | 6,935,138    |
-| [test_msm_SECP256K1_3P](docs/benchmarks/test_msm_SECP256K1_3P.png) | 30,945  | 3,088         | 23,194           | 2,707     | 2,359     | 6,656,970    |
-| [test_msm_SECP256R1_2P](docs/benchmarks/test_msm_SECP256R1_2P.png) | 15,910  | 1,054         | 19,865           | 2,363     | 2,166     | 4,628,974    |
-| [test_msm_SECP256K1_2P](docs/benchmarks/test_msm_SECP256K1_2P.png) | 20,601  | 2,062         | 15,369           | 1,799     | 1,564     | 4,423,530    |
-| [test_msm_SECP256R1_1P](docs/benchmarks/test_msm_SECP256R1_1P.png) | 8,262   | 531           | 9,945            | 1,182     | 1,084     | 2,346,886    |
-| [test_msm_SECP256K1_1P](docs/benchmarks/test_msm_SECP256K1_1P.png) | 10,621  | 1,038         | 7,697            | 900       | 783       | 2,245,724    |
+| [test_msm_SECP256R1_3P](docs/benchmarks/test_msm_SECP256R1_3P.png) | 20,115  | 1,576         | 29,835           | 3,546     | 3,252     | 6,572,368    |
+| [test_msm_SECP256K1_3P](docs/benchmarks/test_msm_SECP256K1_3P.png) | 26,954  | 3,087         | 23,194           | 2,707     | 2,359     | 6,257,800    |
+| [test_msm_SECP256R1_2P](docs/benchmarks/test_msm_SECP256R1_2P.png) | 13,465  | 1,053         | 19,865           | 2,363     | 2,166     | 4,384,404    |
+| [test_msm_SECP256K1_2P](docs/benchmarks/test_msm_SECP256K1_2P.png) | 17,919  | 2,061         | 15,369           | 1,799     | 1,564     | 4,155,260    |
+| [test_msm_SECP256R1_1P](docs/benchmarks/test_msm_SECP256R1_1P.png) | 6,991   | 530           | 9,945            | 1,182     | 1,084     | 2,219,716    |
+| [test_msm_SECP256K1_1P](docs/benchmarks/test_msm_SECP256K1_1P.png) | 9,221   | 1,037         | 7,697            | 900       | 783       | 2,105,654    |
 
 </details>
 
@@ -251,10 +316,10 @@ Check the profile file for more details.
 
 | Test Name                                                                                                                                    | Steps   |   Range Check | Range Check 96   |   Poseidon | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------------------------------------------------------------|---------|---------------|------------------|------------|-----------|-----------|--------------|
-| [test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result](docs/benchmarks/test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result.png)         | 77,448  |           574 | 59,838           |        681 | 4,505     | 8,043     | 17,364,401   |
-| [test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result](docs/benchmarks/test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result.png) | 65,720  |           368 | 45,634           |        597 | 3,501     | 5,901     | 13,815,825   |
-| [test_BN254_mpcheck_2P_2F](docs/benchmarks/test_BN254_mpcheck_2P_2F.png)                                                                     | 61,456  |           462 | 33,232           |        607 | 1,731     | 4,702     | 11,575,107   |
-| [test_BLS12_381_mpcheck_2P_2F](docs/benchmarks/test_BLS12_381_mpcheck_2P_2F.png)                                                             | 53,498  |           309 | 25,204           |        544 | 1,397     | 3,354     | 9,397,084    |
+| [test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result](docs/benchmarks/test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result.png)         | 59,916  |           472 | 59,008           |        509 | 4,469     | 7,922     | 15,391,765   |
+| [test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result](docs/benchmarks/test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result.png) | 54,316  |           356 | 44,885           |        586 | 3,482     | 5,791     | 12,556,430   |
+| [test_BN254_mpcheck_2P_2F](docs/benchmarks/test_BN254_mpcheck_2P_2F.png)                                                                     | 47,930  |           393 | 33,047           |        460 | 1,731     | 4,665     | 10,112,792   |
+| [test_BLS12_381_mpcheck_2P_2F](docs/benchmarks/test_BLS12_381_mpcheck_2P_2F.png)                                                             | 45,132  |           308 | 25,250           |        544 | 1,420     | 3,340     | 8,559,824    |
 
 </details>
 
@@ -263,7 +328,7 @@ Check the profile file for more details.
 
 | Test Name                                                            | Steps   | Range Check   | Range Check 96   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|--------------|
-| [test_schnorr_SECP256K1](docs/benchmarks/test_schnorr_SECP256K1.png) | 21,009  | 2,083         | 15,512           | 1,808     | 1,580     | 4,485,542    |
+| [test_schnorr_SECP256K1](docs/benchmarks/test_schnorr_SECP256K1.png) | 18,321  | 2,082         | 15,512           | 1,808     | 1,580     | 4,216,672    |
 
 </details>
 
@@ -272,14 +337,14 @@ Check the profile file for more details.
 
 | Test Name                                                                              | Steps   |   Range Check | Range Check 96   | Add Mod   | Mul Mod   | Sierra Gas   |
 |----------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|--------------|
-| [test_tower_pairing_BN254_3P](docs/benchmarks/test_tower_pairing_BN254_3P.png)         | 298,906 |           622 | 626,255          | 94,555    | 50,514    | 117,262,526  |
-| [test_tower_pairing_BLS12_381_3P](docs/benchmarks/test_tower_pairing_BLS12_381_3P.png) | 268,002 |           812 | 544,901          | 87,847    | 37,874    | 100,452,202  |
-| [test_tower_pairing_BN254_2P](docs/benchmarks/test_tower_pairing_BN254_2P.png)         | 244,049 |           546 | 486,548          | 73,494    | 38,661    | 91,944,672   |
-| [test_tower_pairing_BLS12_381_2P](docs/benchmarks/test_tower_pairing_BLS12_381_2P.png) | 222,511 |           749 | 429,096          | 69,571    | 28,951    | 79,820,640   |
-| [test_tower_pairing_BN254_1P](docs/benchmarks/test_tower_pairing_BN254_1P.png)         | 189,192 |           470 | 346,841          | 52,433    | 26,808    | 66,626,818   |
-| [test_tower_pairing_BLS12_381_1P](docs/benchmarks/test_tower_pairing_BLS12_381_1P.png) | 177,020 |           686 | 313,291          | 51,295    | 20,028    | 59,189,078   |
-| [test_tower_final_exp_BN254](docs/benchmarks/test_tower_final_exp_BN254.png)           | 134,382 |           394 | 207,134          | 31,372    | 14,955    | 41,313,664   |
-| [test_tower_final_exp_BLS12_381](docs/benchmarks/test_tower_final_exp_BLS12_381.png)   | 131,576 |           623 | 197,486          | 33,019    | 11,105    | 38,562,216   |
+| [test_tower_pairing_BN254_3P](docs/benchmarks/test_tower_pairing_BN254_3P.png)         | 268,869 |           474 | 626,255          | 94,555    | 50,514    | 114,248,466  |
+| [test_tower_pairing_BLS12_381_3P](docs/benchmarks/test_tower_pairing_BLS12_381_3P.png) | 248,951 |           556 | 538,321          | 86,187    | 37,849    | 97,763,802   |
+| [test_tower_pairing_BN254_2P](docs/benchmarks/test_tower_pairing_BN254_2P.png)         | 219,367 |           398 | 486,548          | 73,494    | 38,661    | 89,466,112   |
+| [test_tower_pairing_BLS12_381_2P](docs/benchmarks/test_tower_pairing_BLS12_381_2P.png) | 207,121 |           493 | 422,516          | 67,911    | 28,926    | 77,498,340   |
+| [test_tower_pairing_BN254_1P](docs/benchmarks/test_tower_pairing_BN254_1P.png)         | 169,865 |           322 | 346,841          | 52,433    | 26,808    | 64,683,758   |
+| [test_tower_pairing_BLS12_381_1P](docs/benchmarks/test_tower_pairing_BLS12_381_1P.png) | 165,291 |           430 | 306,711          | 49,635    | 20,003    | 57,232,878   |
+| [test_tower_final_exp_BN254](docs/benchmarks/test_tower_final_exp_BN254.png)           | 120,363 |           246 | 207,134          | 31,372    | 14,955    | 39,901,404   |
+| [test_tower_final_exp_BLS12_381](docs/benchmarks/test_tower_final_exp_BLS12_381.png)   | 123,509 |           367 | 190,906          | 31,359    | 11,080    | 36,972,216   |
 
 </details>
 
@@ -291,7 +356,7 @@ Check the profile file for more details.
 
 | Test Name                                                                                                                | Steps   | Range Check   | Sierra Gas   |
 |--------------------------------------------------------------------------------------------------------------------------|---------|---------------|--------------|
-| [test_deserialize_full_proof_with_hints_bls12_381](docs/benchmarks/test_deserialize_full_proof_with_hints_bls12_381.png) | 63,341  | 5,339         | 6,707,830    |
+| [test_deserialize_full_proof_with_hints_bls12_381](docs/benchmarks/test_deserialize_full_proof_with_hints_bls12_381.png) | 22,272  | 4,714         | 2,557,180    |
 
 </details>
 
@@ -300,87 +365,22 @@ Check the profile file for more details.
 
 | Test Name                                                              | Steps   | Range Check   | Bitwise   | Sierra Gas   |
 |------------------------------------------------------------------------|---------|---------------|-----------|--------------|
-| [test_sha512_lorem_ipsum](docs/benchmarks/test_sha512_lorem_ipsum.png) | 115,350 | 18,467        | 4,904     | 15,686,722   |
-| [test_size_zero](docs/benchmarks/test_size_zero.png)                   | 43,353  | 6,605         | 1,640     | 5,753,770    |
-| [test_sha512_size_one](docs/benchmarks/test_sha512_size_one.png)       | 43,330  | 6,603         | 1,640     | 5,751,330    |
+| [test_sha512_lorem_ipsum](docs/benchmarks/test_sha512_lorem_ipsum.png) | 102,856 | 18,169        | 4,904     | 14,416,462   |
+| [test_size_zero](docs/benchmarks/test_size_zero.png)                   | 37,579  | 6,404         | 1,640     | 5,162,300    |
+| [test_sha512_size_one](docs/benchmarks/test_sha512_size_one.png)       | 37,564  | 6,403         | 1,640     | 5,160,730    |
 
 </details>
 
-
-</details>
-
-<details open>
-<summary><strong>└── utils</strong></summary>
-
-<details>
-<summary><strong>│   └── drand::tests</strong></summary>
-
-| Test Name                                                                            | Steps   | Range Check   | Range Check 96   | Bitwise   | Add Mod   | Mul Mod   | Sierra Gas   |
-|--------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|-----------|-----------|--------------|
-| [test_decrypt_at_round](docs/benchmarks/test_decrypt_at_round.png)                   | 317,522 | 4,183         | 397,265          | 14,506    | 59,198    | 29,332    | 94,080,916   |
-| [test_hash_to_curve](docs/benchmarks/test_hash_to_curve.png)                         | 29,589  | 1,007         | 4,559            | 12,289    | 422       | 602       | 10,909,849   |
-| [test_hash_to_two_bls_felts](docs/benchmarks/test_hash_to_two_bls_felts.png)         | 25,468  | 936           | 74               | 12,289    | 2         | 8         | 9,786,243    |
-| [test_isogeny](docs/benchmarks/test_isogeny.png)                                     | 2,938   | 59            | 878              | 0         | 51        | 111       | 425,872      |
-| [test_map_to_curve](docs/benchmarks/test_map_to_curve.png)                           | 729     | 12            | 264              | 0         | 6         | 39        | 113,460      |
-| [test_drand_quicknet_public_key](docs/benchmarks/test_drand_quicknet_public_key.png) | 307     | 4             | 158              | 0         | 14        | 17        | 53,316       |
 
 </details>
 
 <details>
-<summary><strong>│   └── neg_3::tests</strong></summary>
+<summary><strong>└── utils::neg_3::tests</strong></summary>
 
 | Test Name                                                                    | Steps   |   Range Check | Sierra Gas   |
 |------------------------------------------------------------------------------|---------|---------------|--------------|
-| [test_scalar_to_epns](docs/benchmarks/test_scalar_to_epns.png)               | 6,904   |           929 | 755,430      |
-| [test_scalar_to_epns_single](docs/benchmarks/test_scalar_to_epns_single.png) | 2,215   |           298 | 242,360      |
-
-</details>
-
-<details open>
-<summary><strong>│   └── noir</strong></summary>
-
-<details>
-<summary><strong>│   │   └── honk_transcript::tests</strong></summary>
-
-| Test Name                                                                | Steps   | Range Check   | Bitwise   |   Poseidon | Sierra Gas   |
-|--------------------------------------------------------------------------|---------|---------------|-----------|------------|--------------|
-| [test_transcript_keccak](docs/benchmarks/test_transcript_keccak.png)     | 91,992  | 8,282         | 3,180     |          1 | 11,633,371   |
-| [test_transcript_starknet](docs/benchmarks/test_transcript_starknet.png) | 24,448  | 1,397         | 0         |        532 | 2,803,802    |
-
-</details>
-
-<details>
-<summary><strong>│   │   └── zk_honk_transcript::tests</strong></summary>
-
-| Test Name                                                                      | Steps   | Range Check   | Bitwise   |   Poseidon | Sierra Gas   |
-|--------------------------------------------------------------------------------|---------|---------------|-----------|------------|--------------|
-| [test_zk_transcript_keccak](docs/benchmarks/test_zk_transcript_keccak.png)     | 94,677  | 8,626         | 3,476     |          1 | 12,098,519   |
-| [test_zk_transcript_starknet](docs/benchmarks/test_zk_transcript_starknet.png) | 26,179  | 1,507         | 0         |        584 | 3,010,134    |
-
-</details>
-
-
-</details>
-
-<details>
-<summary><strong>│   └── risc0::risc0_utils_tests</strong></summary>
-
-| Test Name                                                    | Steps   |   Range Check | Bitwise   | Sierra Gas   |
-|--------------------------------------------------------------|---------|---------------|-----------|--------------|
-| [test_receipt_claim](docs/benchmarks/test_receipt_claim.png) | 12,239  |           448 | 5,591     | 4,514,813    |
-| [test_output_digest](docs/benchmarks/test_output_digest.png) | 4,896   |           179 | 2,230     | 1,802,220    |
-
-</details>
-
-<details>
-<summary><strong>│   └── sp1::tests</strong></summary>
-
-| Test Name                                                                |   Steps |   Range Check | Sierra Gas   |
-|--------------------------------------------------------------------------|---------|---------------|--------------|
-| [test_convert_u32_to_u128](docs/benchmarks/test_convert_u32_to_u128.png) |      80 |             4 | 8,280        |
-
-</details>
-
+| [test_scalar_to_epns](docs/benchmarks/test_scalar_to_epns.png)               | 6,103   |           928 | 675,260      |
+| [test_scalar_to_epns_single](docs/benchmarks/test_scalar_to_epns_single.png) | 1,940   |           297 | 214,790      |
 
 </details>
 
@@ -389,6 +389,7 @@ Check the profile file for more details.
 
 ---
 🔄 **To regenerate these benchmarks:** Run `make profile-test` from the project root.
+
 ## Support & How to Contribute
 
 We warmly welcome contributions and support from the community! Here's how you can help Garaga grow and improve:

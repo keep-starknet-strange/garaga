@@ -1,6 +1,6 @@
 from math import gcd
 
-from garaga.definitions import CURVES, CurveID
+from garaga.curves import CURVES, CurveID
 from garaga.hints.tower_backup import E12
 
 """

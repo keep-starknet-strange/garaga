@@ -1,6 +1,6 @@
 import os
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     precompute_lines_from_vk,
@@ -56,8 +56,7 @@ mod SP1Groth16Verifier{curve_id.name} {{
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
-    use garaga::utils::calldata::deserialize_full_proof_with_hints_sp1;
-    use garaga::utils::sp1::process_public_inputs_sp1;
+    use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1}};
     use super::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
 
     const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -82,12 +81,11 @@ mod SP1Groth16Verifier{curve_id.name} {{
             let vkey = fph.vkey;
             let public_inputs_sp1 = fph.public_inputs_sp1;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve({curve_id.value});
-            groth16_proof.b.assert_on_curve({curve_id.value});
-            groth16_proof.c.assert_on_curve({curve_id.value});
+            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
 
             let ic = ic.span();
 
@@ -134,7 +132,6 @@ mod SP1Groth16Verifier{curve_id.name} {{
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q
             );
             if check == true {{
                 return Option::Some((vkey, pub_inputs_256));

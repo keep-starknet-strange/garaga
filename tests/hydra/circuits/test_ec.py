@@ -1,8 +1,9 @@
 import pytest
 
-from garaga.definitions import CURVES, CurveID, G1Point, G2Point, get_base_field
+from garaga.curves import CURVES, CurveID, get_base_field
 from garaga.modulo_circuit import WriteOps
-from hydra.garaga.precompiled_circuits.ec import BasicEC, BasicECG2
+from garaga.points import G1Point, G2Point
+from garaga.precompiled_circuits.ec import BasicEC, BasicECG2
 
 
 @pytest.mark.parametrize("curve_id", [CurveID.BLS12_381])
