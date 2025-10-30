@@ -24,7 +24,7 @@ pub fn run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_17_PUB_19_circuit(
     tp_base_rlc: u384,
     tp_alphas: Span<u128>,
     tp_libra_challenge: u384,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -2074,7 +2074,7 @@ pub fn run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit(
     tp_shplonk_z: u384,
     tp_shplonk_nu: u384,
     tp_sum_check_u_challenges: Span<u128>,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (
     u384,
     u384,
@@ -3037,7 +3037,7 @@ pub fn run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit(
 }
 #[inline(always)]
 pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit(
-    tp_gemini_r: u384, modulus: CircuitModulus,
+    tp_gemini_r: u384, modulus: core::circuit::CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -3071,7 +3071,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_17_circuit(
     challenge_poly_eval: u384,
     root_power_times_tp_gemini_r: u384,
     tp_sumcheck_u_challenge: u384,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x1
@@ -3159,7 +3159,7 @@ pub fn run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_17_circuit(
     tp_gemini_r: u384,
     challenge_poly_eval: u384,
     root_power_times_tp_gemini_r: u384,
-    modulus: CircuitModulus,
+    modulus: core::circuit::CircuitModulus,
 ) -> (u384, u384) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x204bd3277422fad364751ad938e2b5e6a54cf8c68712848a692c553d0329f5d6
@@ -3530,7 +3530,7 @@ impl MyDrp_56<
 >;
 
 #[inline(never)]
-pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
+pub fn is_on_curve_excluding_infinity_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
     // INPUT stack
     // y^2 = x^3 + 3
     let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});

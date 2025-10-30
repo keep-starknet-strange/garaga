@@ -1,9 +1,15 @@
+//! Field structures for degree-12 extension fields used by the circuits.
+//!
+//! - [`E12D`] models a polynomial representation with 12 coefficients.
+//! - [`E12T`] models a 2-3-2 tower representation with named coefficients.
+//!
+//! Documentation follows Scarb's doc conventions (`///` and `//!` comments), so it can be
+//! rendered with `scarb doc`.
 use core::circuit::{u384, u96};
+use core::num;
 use core::num::traits::{One, Zero};
 use core::serde::Serde;
-use core::{RangeCheck, num};
-
-extern fn downcast<felt252, u96>(x: felt252) -> Option<u96> implicits(RangeCheck) nopanic;
+use corelib_imports::bounded_int::downcast;
 
 
 #[derive(Copy, Drop, Debug, PartialEq)]
@@ -13,7 +19,43 @@ pub struct u288 {
     pub limb2: u96,
 }
 
-
+/// Degree-12 extension field element (generic coefficients).
+///
+/// Represents an element of the extension field F_{q^12} modeled as the
+/// quotient ring F_q[w]/p(w), where p(w) is an irreducible polynomial of
+/// degree 12. Canonical polynomial form:
+///
+/// ```text
+/// w0 + w1*w + w2*w^2 + w3*w^3 + w4*w^4 + w5*w^5
+/// + w6*w^6 + w7*w^7 + w8*w^8 + w9*w^9 + w10*w^10 + w11*w^11
+/// ```
+///
+/// Coefficients w0 ... w11 are of type `T`.
+///
+/// When `T` is a limb-based integer type used in this codebase:
+/// - `T = [u384]` (4 x u96 limbs) or `T = [u288]` (3 x u96 limbs). Helpers
+///   below serialize/deserialize to a flat `Array<felt252>` (12x4 for `u384`,
+///   12x3 for `u288`).
+/// - [`num::traits::One`] is implemented for `E12D<u384>` and `E12D<u288>`; the
+///   multiplicative identity is `w0 = 1` and all other coefficients are zero.
+///
+/// Example: create the multiplicative identity for `u288` coefficients. HOHO
+/// ```text
+/// let one: E12D<u288> = E12D {
+///     w0: U288One::one(),
+///     w1: U288Zero::zero(),
+///     w2: U288Zero::zero(),
+///     w3: U288Zero::zero(),
+///     w4: U288Zero::zero(),
+///     w5: U288Zero::zero(),
+///     w6: U288Zero::zero(),
+///     w7: U288Zero::zero(),
+///     w8: U288Zero::zero(),
+///     w9: U288Zero::zero(),
+///     w10: U288Zero::zero(),
+///     w11: U288Zero::zero(),
+/// };
+/// ```
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct E12D<T> {
     pub w0: T,
@@ -30,7 +72,40 @@ pub struct E12D<T> {
     pub w11: T,
 }
 
-// Fp12 tower struct.
+/// Degree-12 extension field element using a 2-3-2 tower construction.
+///
+/// The field F_{q^12} is built in three steps:
+/// - F_{q^2} ~= F_q[u]/p1(u)
+/// - F_{q^6} ~= F_{q^2}[v]/p2(v)
+/// - F_{q^12} ~= F_{q^6}[w]/p3(w)
+///
+/// Any element has the form:
+///
+/// ```text
+/// [ (c1b2a1*u + c1b2a0)*v^2 + (c1b1a1*u + c1b1a0)*v + (c1b0a1*u + c1b0a0) ]*w
+/// + [ (c0b2a1*u + c0b2a0)*v^2 + (c0b1a1*u + c0b1a0)*v + (c0b0a1*u + c0b0a0) ]
+/// ```
+///
+/// This yields 12 base-field coefficients. Field names follow `c{c}b{b}a{a}`:
+/// - `c` in {0,1} selects the coefficient of 1 (c=0) or of w (c=1)
+/// - `b` in {0,1,2} selects the power of v (0, 1, or 2)
+/// - `a` in {0,1} selects the component in the quadratic basis over u
+///
+/// All twelve attributes are [`u384`] values (unsigned 384-bit integers) used by
+/// the surrounding circuits and serializers.
+///
+/// Example: zero element (schematic — any `u384` zero can be reused across fields).
+/// ```cairo
+/// let z: u384 = Zero::zero();
+/// let e = E12T {
+///     c0b0a0: z, c0b0a1: z,
+///     c0b1a0: z, c0b1a1: z,
+///     c0b2a0: z, c0b2a1: z,
+///     c1b0a0: z, c1b0a1: z,
+///     c1b1a0: z, c1b1a1: z,
+///     c1b2a0: z, c1b2a1: z,
+/// };
+/// ```
 #[derive(Drop, Copy, Debug, PartialEq)]
 pub struct E12T {
     pub c0b0a0: u384,
@@ -47,6 +122,49 @@ pub struct E12T {
     pub c1b2a1: u384,
 }
 
+
+pub fn serialize_u384(self: @u384, ref output: Array<felt252>) {
+    output.append((*self.limb0).into());
+    output.append((*self.limb1).into());
+    output.append((*self.limb2).into());
+    output.append((*self.limb3).into());
+}
+pub fn deserialize_u384(ref serialized: Span<felt252>) -> u384 {
+    let [l0, l1, l2, l3] = (*serialized.multi_pop_front::<4>().unwrap()).unbox();
+    let limb0: u96 = downcast(l0).unwrap();
+    let limb1: u96 = downcast(l1).unwrap();
+    let limb2: u96 = downcast(l2).unwrap();
+    let limb3: u96 = downcast(l3).unwrap();
+    return u384 { limb0: limb0, limb1: limb1, limb2: limb2, limb3: limb3 };
+}
+
+pub fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
+    self.len().serialize(ref output);
+    serialize_u384_array_helper(self.span(), ref output);
+}
+
+pub fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
+    if let Option::Some(value) = input.pop_front() {
+        serialize_u384(value, ref output);
+        serialize_u384_array_helper(input, ref output);
+    }
+}
+
+pub fn deserialize_u384_array(ref serialized: Span<felt252>) -> Array<u384> {
+    let length = *serialized.pop_front().unwrap();
+    let mut arr = array![];
+    deserialize_u384_array_helper(ref serialized, arr, length)
+}
+
+pub fn deserialize_u384_array_helper(
+    ref serialized: Span<felt252>, mut curr_output: Array<u384>, remaining: felt252,
+) -> Array<u384> {
+    if remaining == 0 {
+        return curr_output;
+    }
+    curr_output.append(deserialize_u384(ref serialized));
+    deserialize_u384_array_helper(ref serialized, curr_output, remaining - 1)
+}
 
 pub impl u288Serde of Serde<u288> {
     fn serialize(self: @u288, ref output: Array<felt252>) {
@@ -139,6 +257,31 @@ impl E12DOneU288 of num::traits::One<E12D<u288>> {
 
     fn is_non_one(self: @E12D<u288>) -> bool {
         !self.is_one()
+    }
+}
+
+pub impl E12TOne of One<E12T> {
+    fn one() -> E12T {
+        E12T {
+            c0b0a0: One::one(),
+            c0b0a1: Zero::zero(),
+            c0b1a0: Zero::zero(),
+            c0b1a1: Zero::zero(),
+            c0b2a0: Zero::zero(),
+            c0b2a1: Zero::zero(),
+            c1b0a0: Zero::zero(),
+            c1b0a1: Zero::zero(),
+            c1b1a0: Zero::zero(),
+            c1b1a1: Zero::zero(),
+            c1b2a0: Zero::zero(),
+            c1b2a1: Zero::zero(),
+        }
+    }
+    fn is_one(self: @E12T) -> bool {
+        *self == Self::one()
+    }
+    fn is_non_one(self: @E12T) -> bool {
+        !Self::is_one(self)
     }
 }
 
@@ -499,28 +642,4 @@ impl E12DSerde288 of Serde<E12D<u288>> {
             },
         )
     }
-}
-
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-pub struct MillerLoopResultScalingFactor<T> {
-    pub w0: T,
-    pub w2: T,
-    pub w4: T,
-    pub w6: T,
-    pub w8: T,
-    pub w10: T,
-}
-#[derive(Copy, Drop, Debug, PartialEq, Serde)]
-pub struct E12DMulQuotient<T> {
-    pub w0: T,
-    pub w1: T,
-    pub w2: T,
-    pub w3: T,
-    pub w4: T,
-    pub w5: T,
-    pub w6: T,
-    pub w7: T,
-    pub w8: T,
-    pub w9: T,
-    pub w10: T,
 }

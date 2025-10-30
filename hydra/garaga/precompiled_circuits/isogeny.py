@@ -1,4 +1,4 @@
-from garaga.definitions import CURVES, CurveID
+from garaga.curves import CURVES, CurveID
 from garaga.extension_field_modulo_circuit import ModuloCircuitElement
 from garaga.modulo_circuit import ModuloCircuit
 from garaga.precompiled_circuits.fp2 import Fp2Circuits

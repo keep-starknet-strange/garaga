@@ -1,6 +1,6 @@
 from typing import Iterator
 
-from garaga.definitions import BLS12_381_ID, BN254_ID, CURVES
+from garaga.curves import BLS12_381_ID, BN254_ID, CURVES
 from garaga.extension_field_modulo_circuit import ModuloCircuitElement
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 

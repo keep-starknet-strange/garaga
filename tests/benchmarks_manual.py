@@ -2,23 +2,13 @@ import random
 from random import randint
 
 from garaga.algebra import ModuloCircuitElement
-from garaga.definitions import (
-    CURVES,
-    STARK,
-    Curve,
-    CurveID,
-    G1G2Pair,
-    G1Point,
-    G2Point,
-    PyFelt,
-    direct_to_tower,
-    get_base_field,
-)
+from garaga.curves import CURVES, STARK, Curve, CurveID, PyFelt, get_base_field
 from garaga.extension_field_modulo_circuit import ExtensionFieldModuloCircuit, WriteOps
 from garaga.hints import neg_3
 from garaga.hints.ecip import zk_ecip_hint
 from garaga.hints.io import padd_function_felt, split_128
 from garaga.hints.tower_backup import E12
+from garaga.points import G1G2Pair, G1Point, G2Point, direct_to_tower
 from garaga.precompiled_circuits.ec import BasicEC, DerivePointFromX, ECIPCircuits
 from garaga.precompiled_circuits.final_exp import FinalExpTorusCircuit, test_final_exp
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit

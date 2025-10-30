@@ -300,13 +300,14 @@ export function mpc_calldata_builder(curve_id, values1, n_fixed_g2, values2) {
  * @param {any} e
  * @param {any} px
  * @param {any} py
+ * @param {boolean} prepend_public_key
  * @param {number} curve_id
  * @returns {any[]}
  */
-export function schnorr_calldata_builder(rx, s, e, px, py, curve_id) {
+export function schnorr_calldata_builder(rx, s, e, px, py, prepend_public_key, curve_id) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.schnorr_calldata_builder(retptr, addHeapObject(rx), addHeapObject(s), addHeapObject(e), addHeapObject(px), addHeapObject(py), curve_id);
+        wasm.schnorr_calldata_builder(retptr, addHeapObject(rx), addHeapObject(s), addHeapObject(e), addHeapObject(px), addHeapObject(py), prepend_public_key, curve_id);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -329,13 +330,14 @@ export function schnorr_calldata_builder(rx, s, e, px, py, curve_id) {
  * @param {any} px
  * @param {any} py
  * @param {any} z
+ * @param {boolean} prepend_public_key
  * @param {number} curve_id
  * @returns {any[]}
  */
-export function ecdsa_calldata_builder(r, s, v, px, py, z, curve_id) {
+export function ecdsa_calldata_builder(r, s, v, px, py, z, prepend_public_key, curve_id) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.ecdsa_calldata_builder(retptr, addHeapObject(r), addHeapObject(s), v, addHeapObject(px), addHeapObject(py), addHeapObject(z), curve_id);
+        wasm.ecdsa_calldata_builder(retptr, addHeapObject(r), addHeapObject(s), v, addHeapObject(px), addHeapObject(py), addHeapObject(z), prepend_public_key, curve_id);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -356,12 +358,13 @@ export function ecdsa_calldata_builder(r, s, v, px, py, z, curve_id) {
  * @param {any} s
  * @param {any} py_twisted
  * @param {any} msg
+ * @param {boolean} prepend_public_key
  * @returns {any[]}
  */
-export function eddsa_calldata_builder(ry_twisted, s, py_twisted, msg) {
+export function eddsa_calldata_builder(ry_twisted, s, py_twisted, msg, prepend_public_key) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.eddsa_calldata_builder(retptr, addHeapObject(ry_twisted), addHeapObject(s), addHeapObject(py_twisted), addHeapObject(msg));
+        wasm.eddsa_calldata_builder(retptr, addHeapObject(ry_twisted), addHeapObject(s), addHeapObject(py_twisted), addHeapObject(msg), prepend_public_key);
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);

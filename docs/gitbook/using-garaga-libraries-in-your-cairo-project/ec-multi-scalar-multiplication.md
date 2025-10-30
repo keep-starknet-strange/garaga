@@ -96,7 +96,6 @@ impl IGroth16VerifierBN254 of super::IGroth16VerifierBN254<ContractState> {
         ref self: ContractState,
         groth16_proof: Groth16Proof,
         mpcheck_hint: MPCheckHintBN254,
-        small_Q: E12DMulQuotient,
         msm_hint: Array<felt252>,
     ) -> bool {
         groth16_proof.a.assert_on_curve(0);

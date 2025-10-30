@@ -1,7 +1,7 @@
 from functools import lru_cache
 
 from garaga.algebra import BaseField, Polynomial, PyFelt
-from garaga.definitions import CURVES, CurveID, get_irreducible_poly
+from garaga.curves import CURVES, CurveID, get_irreducible_poly
 from garaga.hints.tower_backup import E6, E12
 
 # Cache directory path

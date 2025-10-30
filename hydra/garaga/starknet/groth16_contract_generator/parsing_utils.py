@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any, List
 
-from garaga.definitions import CURVES, CurveID, G1Point, G2Point
+from garaga.curves import CURVES, CurveID
 from garaga.hints import io
 from garaga.hints.io import split_128
 from garaga.modulo_circuit_structs import (
@@ -15,6 +15,7 @@ from garaga.modulo_circuit_structs import (
     G2PointCircuit,
     StructArray,
 )
+from garaga.points import G1Point, G2Point
 from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 
 # Import constants from generated file

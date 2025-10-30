@@ -2,12 +2,13 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID, G1Point
+from garaga.curves import CURVES, CurveID
 from garaga.hints.fake_glv import (
     half_gcd_eisenstein_hint,
     scalar_mul_fake_glv,
     scalar_mul_glv_and_fake_glv,
 )
+from garaga.points import G1Point
 
 GLV_FAKE_GLV_CURVES = [
     CurveID(k) for k, v in CURVES.items() if v.is_endomorphism_available()
@@ -69,7 +70,7 @@ def test_glv_fake_glv_bls12_381_2():
     print(f"n_failed: {n_failed}, n_passed: {n_passed}")
 
     # _ = scalar_mul_glv_and_fake_glv(point, scalar)
-    assert not point.is_in_prime_order_subgroup()
+    assert not point.is_in_prime_order_subgroup_generic()
     print(f"point nisg: {point}")
 
 

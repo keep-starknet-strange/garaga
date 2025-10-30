@@ -2,8 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List, Union
 
-from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt
-from garaga.definitions import BASE, CURVES, N_LIMBS, STARK, CurveID, get_sparsity
+from garaga.algebra import BaseField, ModuloCircuitElement, PyFelt, get_sparsity
+from garaga.curves import BASE, CURVES, N_LIMBS, STARK, CurveID
 from garaga.hints.io import bigint_split
 from garaga.modulo_circuit_structs import (
     Cairo1SerializableStruct,

@@ -9,17 +9,18 @@ pub trait IRisc0Groth16VerifierBN254<TContractState> {
 
 #[starknet::contract]
 mod Risc0Groth16VerifierBN254 {
+    use garaga::apps::risc0::{
+        compute_receipt_claim, deserialize_full_proof_with_hints_risc0, journal_sha256,
+    };
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
     use garaga::ec_ops_g2::G2PointTrait;
     use garaga::groth16::multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result;
-    use garaga::utils::calldata::deserialize_full_proof_with_hints_risc0;
-    use garaga::utils::risc0::{compute_receipt_claim, journal_sha256};
     use starknet::SyscallResultTrait;
     use super::{N_FREE_PUBLIC_INPUTS, T, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
-        0x5acc3c8de7d487d8894ec58eccd097158abdb564ce54651abba266616018baa;
+        0x396ca104d7be7c61ceb02d4dc795ed6a12f1b66e1c01fe2c6bba9612ba99090;
 
     #[storage]
     struct Storage {}
@@ -41,12 +42,11 @@ mod Risc0Groth16VerifierBN254 {
             let image_id = fph.image_id;
             let journal = fph.journal;
             let mpcheck_hint = fph.mpcheck_hint;
-            let small_Q = fph.small_Q;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_on_curve(0);
-            groth16_proof.b.assert_on_curve(0);
-            groth16_proof.c.assert_on_curve(0);
+            groth16_proof.a.assert_in_subgroup_excluding_infinity(0);
+            groth16_proof.b.assert_in_subgroup_excluding_infinity(0);
+            groth16_proof.c.assert_in_subgroup_excluding_infinity(0);
 
             let ic = ic.span();
 
@@ -90,7 +90,6 @@ mod Risc0Groth16VerifierBN254 {
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,
-                small_Q,
             );
             if check == true {
                 return Option::Some(journal);

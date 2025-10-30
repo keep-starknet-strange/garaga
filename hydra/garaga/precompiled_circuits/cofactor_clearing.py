@@ -1,5 +1,5 @@
 from garaga.algebra import ModuloCircuitElement
-from garaga.definitions import CurveID
+from garaga.curves import CurveID
 from garaga.precompiled_circuits.ec import BasicEC, BasicECG2
 
 

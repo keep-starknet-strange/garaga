@@ -2,9 +2,10 @@ import hashlib
 import secrets
 from dataclasses import dataclass
 
-from garaga.definitions import CURVES, CurveID, G1G2Pair, G1Point, G2Point
+from garaga.curves import CURVES, CurveID
 from garaga.drand.client import DrandNetwork, digest_func
 from garaga.hints.tower_backup import E12
+from garaga.points import G1G2Pair, G1Point, G2Point
 from garaga.signature import hash_to_curve
 
 

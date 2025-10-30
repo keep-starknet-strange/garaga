@@ -1,43 +1,20 @@
+use core::circuit::u384;
 use core::num::traits::{One, Zero};
-use garaga::basic_field_ops::compute_yInvXnegOverY_BLS12_381;
 use garaga::circuits::multi_pairing_check::run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit;
 use garaga::circuits::tower_circuits as tw;
+use garaga::definitions::curves::{BLS12_381_SEED_BITS, BN254_SEED_BITS_NAF, get_BLS12_381_modulus};
 use garaga::definitions::{BNProcessedPair, E12T, G1Point, G2Point};
+use garaga::ec::pairing::pairing_check::compute_yInvXnegOverY;
 
-
-pub impl E12TOne of One<E12T> {
-    fn one() -> E12T {
-        E12T {
-            c0b0a0: One::one(),
-            c0b0a1: Zero::zero(),
-            c0b1a0: Zero::zero(),
-            c0b1a1: Zero::zero(),
-            c0b2a0: Zero::zero(),
-            c0b2a1: Zero::zero(),
-            c1b0a0: Zero::zero(),
-            c1b0a1: Zero::zero(),
-            c1b1a0: Zero::zero(),
-            c1b1a1: Zero::zero(),
-            c1b2a0: Zero::zero(),
-            c1b2a1: Zero::zero(),
-        }
-    }
-    fn is_one(self: @E12T) -> bool {
-        *self == Self::one()
-    }
-    fn is_non_one(self: @E12T) -> bool {
-        !Self::is_one(self)
-    }
-}
 
 pub fn miller_loop_bn254_tower(P: G1Point, Q: G2Point) -> (E12T,) {
-    let bits = bn_bits.span();
+    let bits = BN254_SEED_BITS_NAF.span();
 
     let (processed_pair): (BNProcessedPair,) = run_BN254_MP_CHECK_PREPARE_PAIRS_1P_circuit(
         P, Q.y0, Q.y1,
     );
 
-    let mut Mi: E12T = E12TOne::one();
+    let mut Mi: E12T = One::one();
     let mut Qi = Q;
 
     for bit in bits {
@@ -253,7 +230,73 @@ pub fn final_exp_bls12_381_tower(M: E12T) -> E12T {
     result
 }
 
-pub fn decompress_karabina_bls12_381(X: E12T) -> (E12T,) {
+/// Dedicated structure for compressed elements in the cyclotomic subgroup G_phi ⊂ Fq^12
+///
+/// Background and intent (Observation 47):
+/// - Elements in the cyclotomic subgroup admit the Karabina compression where two of the
+///   Fp6 components (c0.b0 and c1.b1 in our tower representation) can be recovered from the
+///   remaining ones. Squaring in this form is cheaper and is implemented by the circuit
+///   `run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit` that takes eight Fp limbs.
+/// - We represent such compressed elements explicitly instead of overloading `E12T`.
+///   This avoids confusing unused fields and makes the intent of “compressed cyclotomic
+///   value” explicit at the type level.
+///
+/// Representation details:
+/// - `E12T` is modeled as Fp12 via the tower (Fp2 → Fp6 → Fp12) with coordinates
+///   `c{i}.b{j}.a{k}`. The compressed form stores exactly the eight limbs required by the
+///   Karabina formulas: c0.b1, c0.b2, c1.b0 and c1.b2 (each over Fp2 → a0,a1).
+/// - The fields `c0.b0` and `c1.b1` are intentionally absent; they are reconstructed during
+///   decompression using `DECOMP_KARABINA_*` circuits.
+/// - Validity invariant: values of this type must come from the cyclotomic subgroup; using
+///   arbitrary Fp12 elements here is undefined.
+///
+/// Usage:
+/// - Squaring: feed the eight limbs directly to
+///   `run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit`.
+/// - Multiplication or any generic operation: first call
+///   `decompress_karabina_bls12_381_compressed` to recover a full `E12T`.
+/// - Zero-branch: when `c1b2 == 0`, decompression uses the cheaper "I_Z" path.
+///
+/// Security/correctness notes:
+/// - Decompression returns `One` when the Karabina t1 component is zero, matching the
+///   standard algorithmic edge case.
+/// - The helper `to_compressed(E12T)` merely copies the eight required limbs; it does not
+///   check subgroup membership.
+#[derive(Copy, Drop, Debug, PartialEq)]
+pub struct CompressedE12T {
+    pub c0b1a0: u384,
+    pub c0b1a1: u384,
+    pub c0b2a0: u384,
+    pub c0b2a1: u384,
+    pub c1b0a0: u384,
+    pub c1b0a1: u384,
+    pub c1b2a0: u384,
+    pub c1b2a1: u384,
+}
+
+/// Convert a full `E12T` (assumed in G_phi) into its Karabina compressed form by
+/// extracting the eight required limbs (c0.b1, c0.b2, c1.b0, c1.b2).
+#[inline]
+fn to_compressed(X: E12T) -> (CompressedE12T,) {
+    (
+        CompressedE12T {
+            c0b1a0: X.c0b1a0,
+            c0b1a1: X.c0b1a1,
+            c0b2a0: X.c0b2a0,
+            c0b2a1: X.c0b2a1,
+            c1b0a0: X.c1b0a0,
+            c1b0a1: X.c1b0a1,
+            c1b2a0: X.c1b2a0,
+            c1b2a1: X.c1b2a1,
+        },
+    )
+}
+
+/// Decompress a Karabina-compressed cyclotomic element back to `E12T`.
+///
+/// The implementation mirrors the two-step Karabina decompression and branches between
+/// the “I_Z” and “I_NZ” circuits depending on whether `c1b2 == 0`.
+pub fn decompress_karabina_bls12_381_compressed(X: CompressedE12T) -> (E12T,) {
     let (t0a0, t0a1, t1a0, t1a1) = match (X.c1b2a0.is_zero() && X.c1b2a1.is_zero()) {
         true => {
             let (t0a0, t0a1) = tw::run_BLS12_381_E12T_DECOMP_KARABINA_I_Z_circuit(
@@ -304,121 +347,45 @@ pub fn decompress_karabina_bls12_381(X: E12T) -> (E12T,) {
         },
     )
 }
+
+/// Apply `times` Karabina cyclotomic squarings on a value in the compressed domain and
+/// return the decompressed `E12T`.
+///
+/// This keeps the element compressed between squarings (cheap), and only performs the
+/// final decompression once at the end when a full `E12T` is needed for multiplication or
+/// other generic operations.
+fn cyclo_square_compressed_then_decompress_k(X: E12T, times: u32) -> (E12T,) {
+    let (mut C) = to_compressed(X);
+    for _ in 0..times {
+        let (_c0b1a0, _c0b1a1, _c0b2a0, _c0b2a1, _c1b0a0, _c1b0a1, _c1b2a0, _c1b2a1) =
+            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
+            C.c0b1a0, C.c0b1a1, C.c0b2a0, C.c0b2a1, C.c1b0a0, C.c1b0a1, C.c1b2a0, C.c1b2a1,
+        );
+        C =
+            CompressedE12T {
+                c0b1a0: _c0b1a0,
+                c0b1a1: _c0b1a1,
+                c0b2a0: _c0b2a0,
+                c0b2a1: _c0b2a1,
+                c1b0a0: _c1b0a0,
+                c1b0a1: _c1b0a1,
+                c1b2a0: _c1b2a0,
+                c1b2a1: _c1b2a1,
+            };
+    }
+    decompress_karabina_bls12_381_compressed(C)
+}
 pub fn expt_half_bls12_381_tower(M: E12T) -> (E12T,) {
-    let (
-        mut xc0b1a0,
-        mut xc0b1a1,
-        mut xc0b2a0,
-        mut xc0b2a1,
-        mut xc1b0a0,
-        mut xc1b0a1,
-        mut xc1b2a0,
-        mut xc1b2a1,
-    ) =
-        (
-        M.c0b1a0, M.c0b1a1, M.c0b2a0, M.c0b2a1, M.c1b0a0, M.c1b0a1, M.c1b2a0, M.c1b2a1,
-    );
-    for _ in 0..15_u32 {
-        let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
-            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
-            xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1,
-        );
-        xc0b1a0 = _xc0b1a0;
-        xc0b1a1 = _xc0b1a1;
-        xc0b2a0 = _xc0b2a0;
-        xc0b2a1 = _xc0b2a1;
-        xc1b0a0 = _xc1b0a0;
-        xc1b0a1 = _xc1b0a1;
-        xc1b2a0 = _xc1b2a0;
-        xc1b2a1 = _xc1b2a1;
-    }
-
-    let t0c0b1a0 = xc0b1a0;
-    let t0c0b1a1 = xc0b1a1;
-    let t0c0b2a0 = xc0b2a0;
-    let t0c0b2a1 = xc0b2a1;
-    let t0c1b0a0 = xc1b0a0;
-    let t0c1b0a1 = xc1b0a1;
-    let t0c1b2a0 = xc1b2a0;
-    let t0c1b2a1 = xc1b2a1;
-
-    let (
-        mut xc0b1a0,
-        mut xc0b1a1,
-        mut xc0b2a0,
-        mut xc0b2a1,
-        mut xc1b0a0,
-        mut xc1b0a1,
-        mut xc1b2a0,
-        mut xc1b2a1,
-    ) =
-        (
-        xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1,
-    );
-    for _ in 0..32_u32 {
-        let (_xc0b1a0, _xc0b1a1, _xc0b2a0, _xc0b2a1, _xc1b0a0, _xc1b0a1, _xc1b2a0, _xc1b2a1) =
-            tw::run_BLS12_381_E12T_CYCLO_SQUARE_COMPRESSED_circuit(
-            xc0b1a0, xc0b1a1, xc0b2a0, xc0b2a1, xc1b0a0, xc1b0a1, xc1b2a0, xc1b2a1,
-        );
-        xc0b1a0 = _xc0b1a0;
-        xc0b1a1 = _xc0b1a1;
-        xc0b2a0 = _xc0b2a0;
-        xc0b2a1 = _xc0b2a1;
-        xc1b0a0 = _xc1b0a0;
-        xc1b0a1 = _xc1b0a1;
-        xc1b2a0 = _xc1b2a0;
-        xc1b2a1 = _xc1b2a1;
-    }
-
-    let (t0) = decompress_karabina_bls12_381(
-        E12T {
-            c0b0a0: M.c0b0a0,
-            c0b0a1: M.c0b0a1,
-            c0b1a0: t0c0b1a0,
-            c0b1a1: t0c0b1a1,
-            c0b2a0: t0c0b2a0,
-            c0b2a1: t0c0b2a1,
-            c1b0a0: t0c1b0a0,
-            c1b0a1: t0c1b0a1,
-            c1b1a0: M.c1b1a0,
-            c1b1a1: M.c1b1a1,
-            c1b2a0: t0c1b2a0,
-            c1b2a1: t0c1b2a1,
-        },
-    );
-
-    let (mut t1) = decompress_karabina_bls12_381(
-        E12T {
-            c0b0a0: M.c0b0a0,
-            c0b0a1: M.c0b0a1,
-            c0b1a0: xc0b1a0,
-            c0b1a1: xc0b1a1,
-            c0b2a0: xc0b2a0,
-            c0b2a1: xc0b2a1,
-            c1b0a0: xc1b0a0,
-            c1b0a1: xc1b0a1,
-            c1b1a0: M.c1b1a0,
-            c1b1a1: M.c1b1a1,
-            c1b2a0: xc1b2a0,
-            c1b2a1: xc1b2a1,
-        },
-    );
+    let (t0) = cyclo_square_compressed_then_decompress_k(M, 15_u32);
+    let (t1) = cyclo_square_compressed_then_decompress_k(t0, 32_u32);
 
     let (mut result) = tw::run_BLS12_381_E12T_MUL_circuit(t0, t1);
 
-    for _ in 0..9_u32 {
-        let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-        t1 = _t1;
-    }
+    let (t1) = cyclo_square_compressed_then_decompress_k(t1, 9_u32);
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
-    for _ in 0..3_u32 {
-        let (_t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-        t1 = _t1;
-    }
+    let (t1) = cyclo_square_compressed_then_decompress_k(t1, 3_u32);
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
-    // 2 sq
-    let (t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
-    let (t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
+    let (t1) = cyclo_square_compressed_then_decompress_k(t1, 2_u32);
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
     let (t1) = tw::run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(t1);
     let (result) = tw::run_BLS12_381_E12T_MUL_circuit(result, t1);
@@ -432,9 +399,9 @@ pub fn expt_bls12_381_tower(M: E12T) -> (E12T,) {
 }
 
 pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
-    let bits = bls_bits.span();
-
-    let (yInv, xNegOverY) = compute_yInvXnegOverY_BLS12_381(P.x, P.y);
+    let bits = BLS12_381_SEED_BITS.span();
+    let modulus = get_BLS12_381_modulus();
+    let (yInv, xNegOverY) = compute_yInvXnegOverY(P.x, P.y, modulus);
 
     let (TripleQ, c0b0a0, c0b0a1, c0b1a0, c0b1a1, c0b2a0, c0b2a1, c1b1a0, c1b1a1, c1b2a0, c1b2a1) =
         tw::run_BLS12_381_TOWER_MILLER_INIT_BIT_1P_circuit(
@@ -468,15 +435,3 @@ pub fn miller_loop_bls12_381_tower(P: G1Point, Q: G2Point) -> (E12T,) {
 
     return fp12_conjugate(Mi, 1);
 }
-
-
-pub const bn_bits: [usize; 65] = [
-    0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 0, 2, 0, 0, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 1, 0, 0, 2, 0, 1,
-    0, 0, 2, 0, 0, 0, 0, 2, 0, 1, 0, 0, 0, 2, 0, 2, 0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 2, 0, 2, 2, 0, 0,
-    0,
-];
-
-pub const bls_bits: [usize; 62] = [
-    0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-];

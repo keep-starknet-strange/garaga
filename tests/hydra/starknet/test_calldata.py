@@ -2,7 +2,8 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID, G1Point
+from garaga.curves import CURVES, CurveID
+from garaga.points import G1Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
     drand_round_to_calldata,
@@ -38,12 +39,12 @@ def test_mpc_calldata_builder(
         public_pair=public_pair,
     )
 
-    calldata1 = mpc.serialize_to_calldata(use_rust=False)
+    calldata_py = mpc.serialize_to_calldata(use_rust=False)
 
-    calldata2 = mpc.serialize_to_calldata(use_rust=True)
+    calldata_rs = mpc.serialize_to_calldata(use_rust=True)
 
-    assert len(calldata1) == len(calldata2)
-    assert calldata1 == calldata2
+    assert len(calldata_py) == len(calldata_rs)
+    assert calldata_py == calldata_rs
 
 
 @pytest.mark.parametrize("curve_id", curves)

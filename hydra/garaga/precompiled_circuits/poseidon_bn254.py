@@ -1,4 +1,4 @@
-from garaga.definitions import CurveID, get_base_field
+from garaga.curves import CurveID, get_base_field
 from garaga.modulo_circuit import ModuloCircuit, ModuloCircuitElement
 from garaga.modulo_circuit_structs import u384
 

@@ -1,6 +1,6 @@
 import pytest
 
-from garaga.definitions import ProofSystem
+from garaga.curves import ProofSystem
 from garaga.precompiled_circuits.honk import HonkVk, honk_proof_from_bytes
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,

@@ -9,25 +9,23 @@ use core::poseidon::hades_permutation;
 use core::result::ResultTrait;
 use corelib_imports::bounded_int::{downcast, upcast};
 use corelib_imports::integer::{U128sFromFelt252Result, u128s_from_felt252};
-use garaga::basic_field_ops::{is_opposite_mod_p, neg_mod_p, sub_mod_p};
+use garaga::basic_field_ops::{is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p};
 use garaga::circuits::ec;
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{
     G1Point, G1PointZero, get_G, get_a, get_b, get_curve_order_modulus, get_eigenvalue, get_min_one,
-    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity, u384Serde,
+    get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity,
 };
 use garaga::ec::selectors;
-use garaga::utils::u384_assert_zero;
 
 #[generate_trait]
 pub impl G1PointImpl of G1PointTrait {
-    fn assert_on_curve(self: @G1Point, curve_index: usize) {
-        let (check) = ec::run_IS_ON_CURVE_G1_circuit(
-            *self, get_a(curve_index), get_b(curve_index), curve_index,
-        );
-        u384_assert_zero(check);
+    fn assert_on_curve_excluding_infinity(self: @G1Point, curve_index: usize) {
+        if self.is_on_curve_excluding_infinity(curve_index) == false {
+            panic_with_felt252('point not on curve');
+        }
     }
-    fn is_on_curve(self: @G1Point, curve_index: usize) -> bool {
+    fn is_on_curve_excluding_infinity(self: @G1Point, curve_index: usize) -> bool {
         let (check) = ec::run_IS_ON_CURVE_G1_circuit(
             *self, get_a(curve_index), get_b(curve_index), curve_index,
         );
@@ -37,36 +35,29 @@ pub impl G1PointImpl of G1PointTrait {
         let modulus = get_modulus(curve_index);
         G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
     }
-    fn assert_in_subgroup(
-        self: @G1Point,
-        curve_index: usize,
-        hint: Span<felt252> // msm_hint: Option<MSMHintSmallScalar<T>>,
-        // derive_point_from_x_hint: Option<DerivePointFromXHint>,
-    ) { // TODO
-    // match curve_index {
-    //     0 => { self.assert_on_curve(curve_index) }, // BN254 (cofactor 1)
-    //     1 => {
-    //         //
-    //         https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
-    //         let modulus = get_modulus(curve_index);
-    //         let x_sq_phi_P = scalar_mul_g1_fixed_small_scalar(
-    //             G1Point {
-    //                 x: mul_mod_p(THIRD_ROOT_OF_UNITY_BLS12_381_G1, *self.x, modulus),
-    //                 y: *self.y,
-    //             },
-    //             BLS_X_SEED_SQ_EPNS,
-    //             BLS_X_SEED_SQ,
-    //             msm_hint.unwrap(),
-    //             derive_point_from_x_hint.unwrap(),
-    //             curve_index,
-    //         );
-    //         if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
-    //             panic_with_felt252('g1 pt not in subgroup');
-    //         }
-    //     }, // BLS12-381
-    //     _ => { panic_with_felt252('invalid curve index') },
-    // }
+    fn assert_in_subgroup_excluding_infinity(self: @G1Point, curve_index: usize) {
+        self.assert_on_curve_excluding_infinity(curve_index);
+        match curve_index {
+            0 => {}, // BN254 (cofactor 1)
+            1 => {
+                // https://github.com/Consensys/gnark-crypto/blob/ff4c0ddbe1ef37d1c1c6bec8c36fc43a84c86be5/ecc/bls12-381/g1.go#L492
+                let modulus = get_modulus(curve_index);
+                let phi_p = G1Point {
+                    x: mul_mod_p(get_third_root_of_unity(curve_index), *self.x, modulus),
+                    y: *self.y,
+                };
 
+                let x_sq_phi_P = scalar_mul_by_bls12_381_seed_square(phi_p);
+                if !ec_safe_add(*self, x_sq_phi_P, curve_index).is_infinity() {
+                    panic_with_felt252('bls12-381 pt not in subgroup');
+                }
+            }, // BLS12-381
+            2 => {}, // SECP256K1 (cofactor 1)
+            3 => {}, // SECP256R1 (cofactor 1)
+            4 => { panic_with_felt252('ED25519 not implemented'); },
+            5 => {}, // GRUMPKIN (cofactor 1)
+            _ => { panic_with_felt252('invalid curve index') },
+        }
     }
     fn is_infinity(self: @G1Point) -> bool {
         return self.is_zero();
@@ -217,7 +208,7 @@ pub fn _scalar_mul_fake_glv(
     if scalar.is_zero() || point.is_infinity() {
         return G1PointZero::zero();
     }
-    point.assert_on_curve(curve_index);
+    point.assert_on_curve_excluding_infinity(curve_index);
 
     if scalar.is_one() {
         return point;
@@ -226,7 +217,7 @@ pub fn _scalar_mul_fake_glv(
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
     }
 
-    hint.Q.assert_on_curve(curve_index);
+    hint.Q.assert_on_curve_excluding_infinity(curve_index);
 
     let (_s2_sign_order, _s2_sign_base, _s2_abs): (u384, u384, u128) =
         match u128s_from_felt252(hint.s2) {
@@ -380,7 +371,7 @@ fn msm_glv_fake_glv(
         match pt.is_infinity() {
             true => { acc = acc; },
             false => {
-                pt.assert_on_curve(curve_index);
+                pt.assert_on_curve_excluding_infinity(curve_index);
                 let temp = _scalar_mul_glv_and_fake_glv(
                     pt,
                     scalar_u384,
@@ -423,7 +414,7 @@ pub fn _scalar_mul_glv_and_fake_glv(
         return point;
     }
 
-    hint.Q.assert_on_curve(curve_index);
+    hint.Q.assert_on_curve_excluding_infinity(curve_index);
 
     if scalar == minus_one {
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
@@ -631,6 +622,88 @@ pub fn _scalar_mul_glv_and_fake_glv(
     assert(Acc == n_bits_G, 'Wrong Glv&FakeGLV result');
 
     return hint.Q;
+}
+
+fn scalar_mul_by_bls12_381_seed_square(q: G1Point) -> G1Point {
+    let a = get_a(1);
+    let modulus = get_modulus(1);
+    let (z) = ec::run_DOUBLE_EC_POINT_circuit(q, a, modulus); // z := g1.double(q)
+    let (z) = ec::run_ADD_EC_POINT_circuit(q, z, modulus); // z = g1.add(q, z)
+    let (z) = ec::run_DOUBLE_EC_POINT_circuit(z, a, modulus); // z = g1.double(z)
+    let z = double_and_add(z, q, modulus); // z = g1.doubleAndAdd(z, q)
+    let z = double_n_times(z, 2, modulus, a); // z = g1.doubleN(z, 2)
+    let z = double_and_add(z, q, modulus); // z = g1.doubleAndAdd(z, q)
+    let z = double_n_times(z, 8, modulus, a); // z = g1.doubleN(z, 8)
+    let z = double_and_add(z, q, modulus); // z = g1.doubleAndAdd(z, q)
+    let (t0) = ec::run_DOUBLE_EC_POINT_circuit(z, a, modulus); // t0 := g1.double(z)
+    let (t0) = ec::run_ADD_EC_POINT_circuit(z, t0, modulus); // t0 = g1.add(z, t0)
+    let (t0) = ec::run_DOUBLE_EC_POINT_circuit(t0, a, modulus); // t0 = g1.double(t0)
+    let t0 = double_and_add(t0, z, modulus); // t0 = g1.doubleAndAdd(t0, z)
+    let t0 = double_n_times(t0, 2, modulus, a); // t0 = g1.doubleN(t0, 2)
+    let t0 = double_and_add(t0, z, modulus); // t0 = g1.doubleAndAdd(t0, z)
+    let t0 = double_n_times(t0, 8, modulus, a); // t0 = g1.doubleN(t0, 8)
+    let t0 = double_and_add(t0, z, modulus); // t0 = g1.doubleAndAdd(t0, z)
+    let t0 = double_n_times(t0, 31, modulus, a); // t0 = g1.doubleN(t0, 31)
+    let (z) = ec::run_ADD_EC_POINT_circuit(t0, z, modulus); // z = g1.add(t0, z)
+    let z = double_n_times(z, 32, modulus, a); // z = g1.doubleN(z, 32)
+    let z = double_and_add(z, q, modulus); // z = g1.doubleAndAdd(z, q)
+    let z = double_n_times(z, 32, modulus, a); // z = g1.doubleN(z, 32)
+    return z;
+}
+
+pub fn double_n_times(p: G1Point, n: usize, modulus: CircuitModulus, a: u384) -> G1Point {
+    let mut res = p;
+    for _ in 0..n {
+        let (tmp) = ec::run_DOUBLE_EC_POINT_circuit(res, a, modulus);
+        res = tmp;
+    }
+    return res;
+}
+
+
+// Computes 2*P + Q
+pub fn double_and_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Point {
+    let px = CircuitElement::<CircuitInput<0>> {};
+    let py = CircuitElement::<CircuitInput<1>> {};
+    let qx = CircuitElement::<CircuitInput<2>> {};
+    let qy = CircuitElement::<CircuitInput<3>> {};
+
+    // Compute lambda1 for P + Q
+    let num_lambda1 = circuit_sub(qy, py);
+    let den_lambda1 = circuit_sub(qx, px);
+    let lambda1 = circuit_mul(num_lambda1, circuit_inverse(den_lambda1));
+
+    // Compute x-coordinate of P + Q
+    let lambda1_sq = circuit_mul(lambda1, lambda1);
+    let x2 = circuit_sub(lambda1_sq, px);
+    let x2 = circuit_sub(x2, qx);
+
+    // Compute lambda2 for 2*P
+    let den_lambda2 = circuit_sub(x2, px);
+    let num_lambda2 = circuit_add(py, py);
+    let term2_lambda2 = circuit_mul(num_lambda2, circuit_inverse(den_lambda2));
+    let lambda2 = circuit_add(lambda1, term2_lambda2);
+
+    // Compute final coordinates of 2*P + Q
+    let lambda2_sq = circuit_mul(lambda2, lambda2);
+    let tx_temp = circuit_sub(lambda2_sq, px);
+    let result_x = circuit_sub(tx_temp, x2);
+
+    let tx_sub_px = circuit_sub(result_x, px);
+    let term1_ty = circuit_mul(lambda2, tx_sub_px);
+    let result_y = circuit_sub(term1_ty, py);
+
+    let outputs = (result_x, result_y)
+        .new_inputs()
+        .next_2(p.x)
+        .next_2(p.y)
+        .next_2(q.x)
+        .next_2(q.y)
+        .done_2()
+        .eval(modulus)
+        .expect('double_and_add failed');
+
+    return G1Point { x: outputs.get_output(result_x), y: outputs.get_output(result_y) };
 }
 
 
