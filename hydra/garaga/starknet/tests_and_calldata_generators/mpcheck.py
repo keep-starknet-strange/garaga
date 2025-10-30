@@ -118,13 +118,7 @@ class MPCheckCalldataBuilder:
         return passed_Ris
 
     def _init_transcript(self) -> CairoPoseidonTranscript:
-        init_hash = (
-            f"MPCHECK_{self.curve_id.name}_{len(self.pairs)}P_{self.n_fixed_g2}F"
-        )
-        transcript = CairoPoseidonTranscript(
-            init_hash=int.from_bytes(init_hash.encode(), byteorder="big"),
-            three_limbs_only=self.three_limbs_only,
-        )
+        transcript = self._new_transcript()
         # Hash inputs.
         for pair in self.pairs:
             transcript.hash_limbs_multi(
@@ -159,8 +153,26 @@ class MPCheckCalldataBuilder:
     def _hash_big_Q_and_get_z(
         self, transcript: CairoPoseidonTranscript, big_Q: list[PyFelt]
     ):
-        transcript.hash_limbs_multi(big_Q)
-        return self.field(transcript.s0)
+        # Start a fresh transcript for the second stage and seed it with the base RLC coefficient
+        seeded_transcript = self._seed_transcript_with_base_rlc(
+            self._new_transcript("_II"), transcript.s1
+        )
+        seeded_transcript.hash_limbs_multi(big_Q)
+        return self.field(seeded_transcript.s0)
+
+    def _new_transcript(self, stage_suffix: str = "") -> CairoPoseidonTranscript:
+        init_hash = f"MPCHECK_{self.curve_id.name}_{len(self.pairs)}P_{self.n_fixed_g2}F{stage_suffix}"
+        return CairoPoseidonTranscript(
+            init_hash=int.from_bytes(init_hash.encode(), byteorder="big"),
+            three_limbs_only=self.three_limbs_only,
+        )
+
+    def _seed_transcript_with_base_rlc(
+        self, transcript: CairoPoseidonTranscript, base_rlc: PyFelt
+    ) -> CairoPoseidonTranscript:
+        # Hash the base RLC coefficient from _hash_hints_and_get_base_random_rlc_coeff
+        transcript.hash_element(base_rlc)
+        return transcript
 
     def _sanity_check_verify_rlc_equation(
         self,

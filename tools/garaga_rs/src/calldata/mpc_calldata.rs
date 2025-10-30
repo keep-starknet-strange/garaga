@@ -248,17 +248,22 @@ where
 }
 
 fn hash_big_q_and_get_z<F, E2>(
-    transcript: &mut CairoPoseidonTranscript,
     big_q: &[FieldElement<F>],
+    n_pairs: usize,
+    n_fixed_g2: usize,
     three_limbs_only: bool,
+    c1: &FieldElement<F>,
 ) -> FieldElement<Stark252PrimeField>
 where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
     FieldElement<F>: ByteConversion,
 {
-    transcript.hash_emulated_field_elements(big_q, None, three_limbs_only);
-    transcript.state[0]
+    let init_hash_text = init_hash_label::<F>(n_pairs, n_fixed_g2, true);
+    let mut new_transcript = new_transcript_from_text(init_hash_text);
+    seed_transcript_with_base_rlc::<F>(&mut new_transcript, c1, three_limbs_only);
+    new_transcript.hash_emulated_field_elements(big_q, None, three_limbs_only);
+    new_transcript.state[0]
 }
 
 fn build_mpcheck_hint<F, E2, E6, E12>(
@@ -296,7 +301,7 @@ where
         .map(|public_pair| extra_miller_loop_result(public_pair));
     let (f, lambda_root, lambda_root_inverse, scaling_factor, qis, ris) =
         multi_pairing_check_result(pairs, &m);
-    let (c1, mut transcript) = hash_hints_and_get_base_random_rlc_coeff(
+    let (c1, _transcript) = hash_hints_and_get_base_random_rlc_coeff(
         pairs,
         n_fixed_g2,
         curve_id,
@@ -308,13 +313,12 @@ where
         m,
     );
     let big_q_coeffs = compute_big_q_coeffs(n_pairs, &qis, ris.len(), &c1);
-    let z = hash_big_q_and_get_z(&mut transcript, &big_q_coeffs, three_limbs_only);
-
+    let z =
+        hash_big_q_and_get_z::<F, E2>(&big_q_coeffs, n_pairs, n_fixed_g2, three_limbs_only, &c1);
     // Assert last Ri is 1
     assert_eq!(ris[ris.len() - 1], Polynomial::one());
     // Skip last Ri as it is known to be 1 for pairing checks
     let ris = ris[..ris.len() - 1].to_vec();
-
     (
         f,
         lambda_root,
@@ -324,6 +328,48 @@ where
         big_q_coeffs,
         z,
     )
+}
+
+fn init_hash_label<F: IsPrimeField + CurveParamsProvider<F>>(
+    n_pairs: usize,
+    n_fixed_g2: usize,
+    second_stage: bool,
+) -> String {
+    let curve_name = match F::get_curve_params().curve_id {
+        CurveID::BN254 => "BN254",
+        CurveID::BLS12_381 => "BLS12_381",
+        _ => unreachable!(),
+    };
+    if second_stage {
+        format!("MPCHECK_{}_{}P_{}F_II", curve_name, n_pairs, n_fixed_g2)
+    } else {
+        format!("MPCHECK_{}_{}P_{}F", curve_name, n_pairs, n_fixed_g2)
+    }
+}
+
+fn seed_transcript_with_base_rlc<F>(
+    transcript: &mut CairoPoseidonTranscript,
+    c1: &FieldElement<F>,
+    three_limbs_only: bool,
+) where
+    F: IsPrimeField + CurveParamsProvider<F>,
+    FieldElement<F>: ByteConversion,
+{
+    transcript.hash_emulated_field_elements(&[c1.clone()], None, three_limbs_only);
+}
+
+fn new_transcript_from_text(init_hash_text: String) -> CairoPoseidonTranscript {
+    let init_hash_hex = "0x".to_owned()
+        + &init_hash_text
+            .as_bytes()
+            .iter()
+            .fold(String::new(), |mut acc, byte| {
+                use std::fmt::Write;
+                write!(&mut acc, "{:02X}", byte).unwrap();
+                acc
+            });
+    let init_hash = FieldElement::from_hex(&init_hash_hex).unwrap();
+    CairoPoseidonTranscript::new(init_hash)
 }
 
 pub fn calldata_builder<const USE_288: bool, F, E2, E6, E12>(

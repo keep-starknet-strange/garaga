@@ -6942,7 +6942,7 @@ fn test_BN254_mpcheck_2P_2F() {
                 limb2: 0xa54c2f08056d9a0,
             },
         ],
-        z: 0x94bbee11a17b4dfe8089afb3317cdfad87928e99dc4f88fe8893ed4e3b3462,
+        z: 0x7f997c7ceaaa93d340bc143f505f6d8423271960d6604ea8bf9d8c50dc40977,
     };
     let res = multi_pairing_check_bn254_2P_2F(pair0, pair1, lines, hint);
     assert!(res);
@@ -14210,7 +14210,7 @@ fn test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result() {
                 limb2: 0x6214986f36bba06,
             },
         ],
-        z: 0x6078e6bfe95611488059f480376219b0ca738aabb00f1f38d4afa3584805244,
+        z: 0x690450caee78b3590fe0ce78a9df9ca1987c494b5ca8e9629f81245f1099f16,
     };
     let res = multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         pair0, pair1, pair2, precomputed_miller_loop_result, lines, hint,
@@ -21013,7 +21013,7 @@ fn test_BLS12_381_mpcheck_2P_2F() {
                 limb3: 0xe142bddd0e6505216e1da4,
             },
         ],
-        z: 0x1c2dd9f551e7893167015b69fffe279b90ce7cb1e39cc71db1a6a2d6e4113ad,
+        z: 0x73e890d1574ee2b2f3ca3ceae9c940462f46109b37cd53e4f1b245027a6ccfa,
     };
     let res = multi_pairing_check_bls12_381_2P_2F(pair0, pair1, lines, hint);
     assert!(res);
@@ -28074,7 +28074,7 @@ fn test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result() {
                 limb3: 0xca4c79a420395c8919f51ab,
             },
         ],
-        z: 0x4b7f1cf962ada42f1a1bbe7b92e5715a11151aaae9978c2329d0d78fed97af1,
+        z: 0x52ef92c6fb1c4777cdbad00b49ca5611928c145e716dfccbc705fdd4a0b02f9,
     };
     let res = multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         pair0, pair1, pair2, precomputed_miller_loop_result, lines, hint,

@@ -39,12 +39,12 @@ def test_mpc_calldata_builder(
         public_pair=public_pair,
     )
 
-    calldata1 = mpc.serialize_to_calldata(use_rust=False)
+    calldata_py = mpc.serialize_to_calldata(use_rust=False)
 
-    calldata2 = mpc.serialize_to_calldata(use_rust=True)
+    calldata_rs = mpc.serialize_to_calldata(use_rust=True)
 
-    assert len(calldata1) == len(calldata2)
-    assert calldata1 == calldata2
+    assert len(calldata_py) == len(calldata_rs)
+    assert calldata_py == calldata_rs
 
 
 @pytest.mark.parametrize("curve_id", curves)

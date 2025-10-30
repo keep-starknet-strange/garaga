@@ -37,7 +37,7 @@ use garaga::pairing_check::{
     BLSProcessedPair, BNProcessedPair, MPCheckHintBLS12_381, MPCheckHintBN254,
     compute_yInvXnegOverY,
 };
-use garaga::utils::hashing::PoseidonState;
+use garaga::utils::hashing::{PoseidonState, TWO_POW_96};
 use garaga::utils::{hashing, usize_assert_eq};
 
 // Groth16 proof structure, genric for both BN254 and BLS12-381.
@@ -233,7 +233,14 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let hash_state = hashing::hash_E12D_u288(precomputed_miller_loop_result, hash_state);
 
     let mut evals = evals.span();
-    let c_0: u384 = hash_state.s1.into();
+    let c_1: u384 = hash_state.s1.into();
+    // hades_permutation(0,0,int.from_bytes(b"MPCHECK_BN254_3P_2F_II", "big"))
+    let part_II_state = PoseidonState {
+        s0: 0xe973a7c87240c35289f5fdac2ea94f1848022f9499f37b4ab94172b6742649,
+        s1: 0x30d584d4a24b6615090c37103916bac45ed17401b63596cd0c29167e5fe1267,
+        s2: 0x2073c3846b613a00ccc615a8ac460c372105a979ddde4ef9d484c15aca2b874,
+    };
+    let hash_state = hashing::hash_u384(c_1, TWO_POW_96, part_II_state);
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u288_transcript(mpcheck_hint.big_Q.span(), hash_state).s0;
@@ -276,7 +283,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         R_0_of_Z,
         z,
         c_inv_of_z,
-        c_0,
+        c_1,
         LHS,
     );
 
@@ -307,7 +314,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     f_i_of_z,
                     R_i_of_z,
                     z,
-                    c_0,
+                    c_1,
                 )
             },
             1 |
@@ -347,7 +354,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     R_i_of_z,
                     c_or_c_inv_of_z,
                     z,
-                    c_0,
+                    c_1,
                 )
             },
             _ => {
@@ -385,7 +392,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
                     R_i_of_z,
                     c_or_c_inv_of_z,
                     z,
-                    c_0,
+                    c_1,
                 )
             },
         };
@@ -412,7 +419,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         Q2,
         R_n_minus_2_of_z,
         R_n_minus_1_of_z,
-        c_0,
+        c_1,
         w_of_z,
         z,
         c_inv_frob_1_of_z,
@@ -524,6 +531,14 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     let mut evals = evals.span();
 
     let c_1: u384 = hash_state.s1.into();
+
+    // hades_permutation(0,0,int.from_bytes(b"MPCHECK_BLS12_381_3P_2F_II", "big"))
+    let part_II_state = PoseidonState {
+        s0: 0x145195a6df395d777bf1be74601510cbf888ca638394385ade2f0bd91396a34,
+        s1: 0x1f144143bab9bbc63c8376ae067c0b15ae4611b1aa725dd654cd41c25e0c20f,
+        s2: 0x25df9ac859e9e9db19383887d5c27d94b619b6c8d1de37b8e713cb653f7b55f,
+    };
+    let hash_state = hashing::hash_u384(c_1, TWO_POW_96, part_II_state);
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u384_transcript(hint.big_Q.span(), hash_state).s0;

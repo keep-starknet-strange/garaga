@@ -2,6 +2,8 @@ use core::circuit::u384;
 pub use core::poseidon::hades_permutation;
 use garaga::definitions::{E12D, G1G2Pair, G1Point, MillerLoopResultScalingFactor, u288};
 
+pub const TWO_POW_96: felt252 = 79228162514264337593543950336;
+
 #[derive(Copy, Drop)]
 pub struct PoseidonState {
     pub s0: felt252,
@@ -43,7 +45,7 @@ pub fn hash_quadruple_u288(
 // Apply sponge construction to a transcript of u384 elements
 #[inline(always)]
 pub fn hash_u384_transcript(transcript: Span<u384>, mut s: PoseidonState) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     for elmt in transcript {
         s = hash_u384(*elmt, base, s);
     }
@@ -52,7 +54,7 @@ pub fn hash_u384_transcript(transcript: Span<u384>, mut s: PoseidonState) -> Pos
 
 #[inline(always)]
 pub fn hash_u288_transcript(transcript: Span<u288>, mut s: PoseidonState) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let (n_quadruples, rest) = DivRem::div_rem(transcript.len(), 4);
     let n_quadruples_index = n_quadruples * 4;
     let mut transcript_quadruples = transcript.slice(0, n_quadruples_index);
@@ -71,7 +73,7 @@ pub fn hash_u288_transcript(transcript: Span<u288>, mut s: PoseidonState) -> Pos
 
 // Apply sponge construction to a E12D element from an initial state (s0, s1, s2)
 pub fn hash_E12D_u384(elmt: E12D<u384>, mut s: PoseidonState) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let _s = hash_u384(elmt.w0, base, s);
     let _s = hash_u384(elmt.w1, base, _s);
     let _s = hash_u384(elmt.w2, base, _s);
@@ -88,7 +90,7 @@ pub fn hash_E12D_u384(elmt: E12D<u384>, mut s: PoseidonState) -> PoseidonState {
 }
 
 pub fn hash_E12D_u288(elmt: E12D<u288>, mut s: PoseidonState) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let _s = hash_quadruple_u288(elmt.w0, elmt.w1, elmt.w2, elmt.w3, base, s);
     let _s = hash_quadruple_u288(elmt.w4, elmt.w5, elmt.w6, elmt.w7, base, _s);
     let _s = hash_quadruple_u288(elmt.w8, elmt.w9, elmt.w10, elmt.w11, base, _s);
@@ -136,7 +138,7 @@ pub fn hash_E12D_one_u288(s: PoseidonState) -> PoseidonState {
 pub fn hash_MillerLoopResultScalingFactor_u384(
     elmt: MillerLoopResultScalingFactor<u384>, s: PoseidonState,
 ) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let _s = hash_u384(elmt.w0, base, s);
     let _s = hash_u384(elmt.w2, base, _s);
     let _s = hash_u384(elmt.w4, base, _s);
@@ -150,7 +152,7 @@ pub fn hash_MillerLoopResultScalingFactor_u384(
 pub fn hash_MillerLoopResultScalingFactor_u288(
     elmt: MillerLoopResultScalingFactor<u288>, s: PoseidonState,
 ) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let _s = hash_quadruple_u288(elmt.w0, elmt.w2, elmt.w4, elmt.w6, base, s);
     let _s = hash_u288(elmt.w8, base, _s);
     let _s = hash_u288(elmt.w10, base, _s);
@@ -162,7 +164,7 @@ pub fn hash_MillerLoopResultScalingFactor_u288(
 pub fn hash_E12D_u384_transcript(
     transcript: Span<E12D<u384>>, mut s: PoseidonState,
 ) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
 
     for elmt in transcript {
         let elmt = *elmt;
@@ -187,7 +189,7 @@ pub fn hash_E12D_u384_transcript(
 pub fn hash_E12D_u288_transcript(
     transcript: Span<E12D<u288>>, mut s: PoseidonState,
 ) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     for elmt in transcript {
         let elmt = *elmt;
         let _s = hash_quadruple_u288(elmt.w0, elmt.w1, elmt.w2, elmt.w3, base, s);
@@ -202,7 +204,7 @@ pub fn hash_E12D_u288_transcript(
 // Apply sponge construction to a pair of G1 and G2 points from an initial state (s0, s1, s2)
 // #[inline(always)]
 pub fn hash_G1G2Pair(pair: G1G2Pair, s: PoseidonState) -> PoseidonState {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let _s = hash_u384(pair.p.x, base, s);
     let _s = hash_u384(pair.p.y, base, _s);
     let _s = hash_u384(pair.q.x0, base, _s);
@@ -213,7 +215,7 @@ pub fn hash_G1G2Pair(pair: G1G2Pair, s: PoseidonState) -> PoseidonState {
 }
 
 pub fn hash_G1Point(point: G1Point) -> felt252 {
-    let base: felt252 = 79228162514264337593543950336; // 2**96
+    let base: felt252 = TWO_POW_96; // 2**96
     let in_1: felt252 = point.x.limb0.into() + base * point.x.limb1.into();
     let in_2: felt252 = point.x.limb2.into() + base * point.x.limb3.into();
     let (s0, s1, s2) = hades_permutation(in_1, in_2, 2);

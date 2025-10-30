@@ -28,7 +28,7 @@ use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
     get_BLS12_381_modulus, get_BN254_modulus, u288,
 };
-use garaga::utils::hashing::PoseidonState;
+use garaga::utils::hashing::{PoseidonState, TWO_POW_96};
 use garaga::utils::{hashing, usize_assert_eq};
 use crate::core::circuit::AddInputResultTrait2;
 
@@ -136,6 +136,15 @@ pub fn multi_pairing_check_bn254_2P_2F(
 
     let mut evals = evals.span();
     let c_1: u384 = hash_state.s1.into();
+
+    // hades_permutation(0,0,int.from_bytes(b"MPCHECK_BN254_2P_2F_II", "big"))
+    let part_II_state = PoseidonState {
+        s0: 0x61306dbf52f13cce66776e642d58f27a1dc58ae7172565dd1d1555ac3bfbede,
+        s1: 0x5895a3e8e579ff7c9a9bda84916ace794bc48e009dc6c76104a127111aef035,
+        s2: 0x5ff2c406897ea02acecbbc03b4718c8e4a42cc5bb60d738ad60a58918aaa868,
+    };
+
+    let hash_state = hashing::hash_u384(c_1, TWO_POW_96, part_II_state);
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u288_transcript(hint.big_Q.span(), hash_state).s0;
@@ -303,6 +312,14 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
     let mut evals = evals.span();
 
     let c_1: u384 = hash_state.s1.into();
+
+    // hades_permutation(0,0,int.from_bytes(b"MPCHECK_BLS12_381_2P_2F_II", "big"))
+    let part_II_state = PoseidonState {
+        s0: 0x68148a435d9f7b0d7bfa42c9fa6b8c0441fd8a741fc024c547445b689d294b9,
+        s1: 0x3076763e35be672b2cc79293b3d9c3899d8b4f083b484ae6d591b8d582e3471,
+        s2: 0x29153e786b3c7f75891c98d853cf2db3125f434b25f2b38fb8be850009713d0,
+    };
+    let hash_state = hashing::hash_u384(c_1, TWO_POW_96, part_II_state);
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u384_transcript(hint.big_Q.span(), hash_state).s0;
