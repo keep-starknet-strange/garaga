@@ -295,9 +295,9 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         new_points = []
         if bit_type == "00":
             for k in range(self.n_pairs):
-                T1, l1 = circuit.double_step(current_points[k], k)
+                T1, line_poly_1 = circuit.double_step(current_points[k], k)
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1], k
+                    circuit, sum_i_prod_k_P, [line_poly_1], k
                 )
                 new_points.append(T1)
 
@@ -309,17 +309,17 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
             new_new_points = []
             for k in range(self.n_pairs):
-                T, l2 = circuit.double_step(new_points[k], k)
+                T, line_poly_2 = circuit.double_step(new_points[k], k)
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l2], k
+                    circuit, sum_i_prod_k_P, [line_poly_2], k
                 )
                 new_new_points.append(T)
             return new_new_points, sum_i_prod_k_P
         elif bit_type == "01":
             for k in range(self.n_pairs):
-                T, l1 = circuit.double_step(current_points[k], k)
+                T, line_poly_1 = circuit.double_step(current_points[k], k)
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1], k
+                    circuit, sum_i_prod_k_P, [line_poly_1], k
                 )
                 new_points.append(T)
 
@@ -331,11 +331,11 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
             new_new_points = []
             for k in range(self.n_pairs):
-                T, l1, l2 = circuit.double_and_add_step(
+                T, line_poly_1, line_poly_2 = circuit.double_and_add_step(
                     new_points[k], q_or_q_neg_points[k], k
                 )
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1, l2], k
+                    circuit, sum_i_prod_k_P, [line_poly_1, line_poly_2], k
                 )
                 new_new_points.append(T)
 
@@ -343,11 +343,11 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
 
         elif bit_type == "10":
             for k in range(self.n_pairs):
-                T, l1, l2 = circuit.double_and_add_step(
+                T, line_poly_1, line_poly_2 = circuit.double_and_add_step(
                     current_points[k], q_or_q_neg_points[k], k
                 )
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1, l2], k
+                    circuit, sum_i_prod_k_P, [line_poly_1, line_poly_2], k
                 )
                 new_points.append(T)
 
@@ -358,26 +358,26 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
             )
             new_new_points = []
             for k in range(self.n_pairs):
-                T, l1 = circuit.double_step(new_points[k], k)
+                T, line_poly_1 = circuit.double_step(new_points[k], k)
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1], k
+                    circuit, sum_i_prod_k_P, [line_poly_1], k
                 )
                 new_new_points.append(T)
             return new_new_points, sum_i_prod_k_P
         elif bit_type == "0":
             for k in range(self.n_pairs):
-                T, l1 = circuit.double_step(current_points[k], k)
+                T, line_poly_1 = circuit.double_step(current_points[k], k)
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1], k
+                    circuit, sum_i_prod_k_P, [line_poly_1], k
                 )
                 new_points.append(T)
         elif bit_type == "1":
             for k in range(self.n_pairs):
-                T, l1, l2 = circuit.double_and_add_step(
+                T, line_poly_1, line_poly_2 = circuit.double_and_add_step(
                     current_points[k], q_or_q_neg_points[k], k
                 )
                 sum_i_prod_k_P = self._multiply_line_evaluations(
-                    circuit, sum_i_prod_k_P, [l1, l2], k
+                    circuit, sum_i_prod_k_P, [line_poly_1, line_poly_2], k
                 )
                 new_points.append(T)
 
@@ -389,14 +389,14 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         self,
         circuit: multi_pairing_check.MultiPairingCheckCircuit,
         sum_i_prod_k_P,
-        lines,
+        line_polynomials,
         k,
     ):
-        for i, l in enumerate(lines):
+        for i, line_poly in enumerate(line_polynomials):
             sum_i_prod_k_P = circuit.mul(
                 sum_i_prod_k_P,
                 circuit.eval_poly_in_precomputed_Z(
-                    l, circuit.line_sparsity, f"line_{k}p_{i+1}"
+                    line_poly, circuit.line_sparsity, f"line_{k}p_{i+1}"
                 ),
                 f"Mul (f(z)^2 * Π_0_k-1(line_k(z))) * line_i_{k}(z)",
             )
@@ -549,11 +549,11 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
             #     c0, c0
             # )  # Second relation for BN at init bit, need to update c_i.
             for k in range(n_pairs):
-                T, l1 = circuit.double_step(current_points[k], k)
+                T, line_poly_1 = circuit.double_step(current_points[k], k)
                 sum_i_prod_k_P_of_z = circuit.mul(
                     sum_i_prod_k_P_of_z,
                     circuit.eval_poly_in_precomputed_Z(
-                        l1, circuit.line_sparsity, f"line_{k}p_1"
+                        line_poly_1, circuit.line_sparsity, f"line_{k}p_1"
                     ),
                 )
                 new_points.append(T)
@@ -561,17 +561,17 @@ class FixedG2MPCheckInitBit(BaseFixedG2PointsMPCheck):
             # bit +1:  multiply f^2 by 1/c
             sum_i_prod_k_P_of_z = circuit.mul(c_inv_of_z, sum_i_prod_k_P_of_z)
             for k in range(n_pairs):
-                T, l1, l2 = circuit.triple_step(current_points[k], k)
+                T, line_poly_1, line_poly_2 = circuit.triple_step(current_points[k], k)
                 sum_i_prod_k_P_of_z = circuit.mul(
                     sum_i_prod_k_P_of_z,
                     circuit.eval_poly_in_precomputed_Z(
-                        l1, circuit.line_sparsity, f"line_{k}p_1"
+                        line_poly_1, circuit.line_sparsity, f"line_{k}p_1"
                     ),
                 )
                 sum_i_prod_k_P_of_z = circuit.mul(
                     sum_i_prod_k_P_of_z,
                     circuit.eval_poly_in_precomputed_Z(
-                        l2, circuit.line_sparsity, f"line_{k}p_2"
+                        line_poly_2, circuit.line_sparsity, f"line_{k}p_2"
                     ),
                 )
                 new_points.append(T)
@@ -699,15 +699,15 @@ class MPCheckFinalizeBN(BaseFixedG2PointsMPCheck):
         R_n_minus_2_of_z = vars["R_n_minus_2_of_z"]
         R_n_minus_1_of_z = vars["R_n_minus_1_of_z"]
 
-        # Relation n-2 : f * lines
+        # Relation n-2 : f * line polynomials
         prod_k_P_of_z_n_minus_2 = vars["R_n_minus_3_of_z"]  # Init
 
-        lines = circuit.bn254_finalize_step(current_points)
-        for l in lines:
+        line_polynomials = circuit.bn254_finalize_step(current_points)
+        for idx, line_poly in enumerate(line_polynomials):
             prod_k_P_of_z_n_minus_2 = circuit.mul(
                 prod_k_P_of_z_n_minus_2,
                 circuit.eval_poly_in_precomputed_Z(
-                    l, circuit.line_sparsity, f"line_{k}"
+                    line_poly, circuit.line_sparsity, f"line_{idx}"
                 ),
             )
 
