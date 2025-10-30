@@ -314,7 +314,9 @@ impl MyDrp_28<
     ),
 >;
 #[inline(always)]
-pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) -> (G2Point,) {
+pub fn run_ADD_EC_POINTS_G2_circuit(
+    p: G2Point, q: G2Point, modulus: core::circuit::CircuitModulus,
+) -> (G2Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -359,7 +361,7 @@ pub fn run_ADD_EC_POINTS_G2_circuit(p: G2Point, q: G2Point, curve_index: usize) 
     let t34 = circuit_sub(t30, in3); // Fp2 sub coeff 0/1
     let t35 = circuit_sub(t33, in4); // Fp2 sub coeff 1/1
 
-    let modulus = crate::definitions::get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t24, t25, t34, t35).new_inputs();
     // Prefill constants:
@@ -1193,7 +1195,109 @@ pub fn run_CLEAR_COFACTOR_BLS12_381_circuit(
     return (res,);
 }
 #[inline(always)]
-pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> (G2Point,) {
+pub fn run_DOUBLE_AND_ADD_EC_POINTS_G2_circuit(
+    p: G2Point, q: G2Point, modulus: core::circuit::CircuitModulus,
+) -> (G2Point,) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+
+    // INPUT stack
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
+    let (in7, in8) = (CE::<CI<7>> {}, CE::<CI<8>> {});
+    let t0 = circuit_sub(in7, in3); // Fp2 sub coeff 0/1
+    let t1 = circuit_sub(in8, in4); // Fp2 sub coeff 1/1
+    let t2 = circuit_sub(in5, in1); // Fp2 sub coeff 0/1
+    let t3 = circuit_sub(in6, in2); // Fp2 sub coeff 1/1
+    let t4 = circuit_mul(t2, t2); // Fp2 Inv start
+    let t5 = circuit_mul(t3, t3);
+    let t6 = circuit_add(t4, t5);
+    let t7 = circuit_inverse(t6);
+    let t8 = circuit_mul(t2, t7); // Fp2 Inv real part end
+    let t9 = circuit_mul(t3, t7);
+    let t10 = circuit_sub(in0, t9); // Fp2 Inv imag part end
+    let t11 = circuit_mul(t0, t8); // Fp2 mul start
+    let t12 = circuit_mul(t1, t10);
+    let t13 = circuit_sub(t11, t12); // Fp2 mul real part end
+    let t14 = circuit_mul(t0, t10);
+    let t15 = circuit_mul(t1, t8);
+    let t16 = circuit_add(t14, t15); // Fp2 mul imag part end
+    let t17 = circuit_add(t13, t16);
+    let t18 = circuit_sub(t13, t16);
+    let t19 = circuit_mul(t17, t18);
+    let t20 = circuit_mul(t13, t16);
+    let t21 = circuit_add(t20, t20);
+    let t22 = circuit_add(in1, in5); // Fp2 add coeff 0/1
+    let t23 = circuit_add(in2, in6); // Fp2 add coeff 1/1
+    let t24 = circuit_sub(t19, t22); // Fp2 sub coeff 0/1
+    let t25 = circuit_sub(t21, t23); // Fp2 sub coeff 1/1
+    let t26 = circuit_add(in3, in3); // Fp2 add coeff 0/1
+    let t27 = circuit_add(in4, in4); // Fp2 add coeff 1/1
+    let t28 = circuit_sub(t24, in1); // Fp2 sub coeff 0/1
+    let t29 = circuit_sub(t25, in2); // Fp2 sub coeff 1/1
+    let t30 = circuit_mul(t28, t28); // Fp2 Inv start
+    let t31 = circuit_mul(t29, t29);
+    let t32 = circuit_add(t30, t31);
+    let t33 = circuit_inverse(t32);
+    let t34 = circuit_mul(t28, t33); // Fp2 Inv real part end
+    let t35 = circuit_mul(t29, t33);
+    let t36 = circuit_sub(in0, t35); // Fp2 Inv imag part end
+    let t37 = circuit_mul(t26, t34); // Fp2 mul start
+    let t38 = circuit_mul(t27, t36);
+    let t39 = circuit_sub(t37, t38); // Fp2 mul real part end
+    let t40 = circuit_mul(t26, t36);
+    let t41 = circuit_mul(t27, t34);
+    let t42 = circuit_add(t40, t41); // Fp2 mul imag part end
+    let t43 = circuit_add(t13, t39); // Fp2 add coeff 0/1
+    let t44 = circuit_add(t16, t42); // Fp2 add coeff 1/1
+    let t45 = circuit_add(t43, t44);
+    let t46 = circuit_sub(t43, t44);
+    let t47 = circuit_mul(t45, t46);
+    let t48 = circuit_mul(t43, t44);
+    let t49 = circuit_add(t48, t48);
+    let t50 = circuit_add(in1, t24); // Fp2 add coeff 0/1
+    let t51 = circuit_add(in2, t25); // Fp2 add coeff 1/1
+    let t52 = circuit_sub(t47, t50); // Fp2 sub coeff 0/1
+    let t53 = circuit_sub(t49, t51); // Fp2 sub coeff 1/1
+    let t54 = circuit_sub(t52, in1); // Fp2 sub coeff 0/1
+    let t55 = circuit_sub(t53, in2); // Fp2 sub coeff 1/1
+    let t56 = circuit_mul(t43, t54); // Fp2 mul start
+    let t57 = circuit_mul(t44, t55);
+    let t58 = circuit_sub(t56, t57); // Fp2 mul real part end
+    let t59 = circuit_mul(t43, t55);
+    let t60 = circuit_mul(t44, t54);
+    let t61 = circuit_add(t59, t60); // Fp2 mul imag part end
+    let t62 = circuit_sub(t58, in3); // Fp2 sub coeff 0/1
+    let t63 = circuit_sub(t61, in4); // Fp2 sub coeff 1/1
+
+    let modulus = modulus;
+
+    let mut circuit_inputs = (t52, t53, t62, t63).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x0); // in1
+    circuit_inputs = circuit_inputs.next_2(p.x1); // in2
+    circuit_inputs = circuit_inputs.next_2(p.y0); // in3
+    circuit_inputs = circuit_inputs.next_2(p.y1); // in4
+    circuit_inputs = circuit_inputs.next_2(q.x0); // in5
+    circuit_inputs = circuit_inputs.next_2(q.x1); // in6
+    circuit_inputs = circuit_inputs.next_2(q.y0); // in7
+    circuit_inputs = circuit_inputs.next_2(q.y1); // in8
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let result: G2Point = G2Point {
+        x0: outputs.get_output(t52),
+        x1: outputs.get_output(t53),
+        y0: outputs.get_output(t62),
+        y1: outputs.get_output(t63),
+    };
+    return (result,);
+}
+#[inline(always)]
+pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(
+    p: G2Point, modulus: core::circuit::CircuitModulus,
+) -> (G2Point,) {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
     let in1 = CE::<CI<1>> {}; // 0x0
@@ -1243,7 +1347,7 @@ pub fn run_DOUBLE_EC_POINT_G2_A_EQ_0_circuit(p: G2Point, curve_index: usize) -> 
     let t39 = circuit_sub(t35, in4); // Fp2 sub coeff 0/1
     let t40 = circuit_sub(t38, in5); // Fp2 sub coeff 1/1
 
-    let modulus = crate::definitions::get_modulus(curve_index);
+    let modulus = modulus;
 
     let mut circuit_inputs = (t29, t30, t39, t40).new_inputs();
     // Prefill constants:
@@ -1947,6 +2051,76 @@ pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
         Phi_Q0x,
         Acc,
     );
+}
+#[inline(always)]
+pub fn run_PSI_G2_BLS12_381_circuit(
+    p: G2Point, modulus: core::circuit::CircuitModulus,
+) -> (G2Point,) {
+    // CONSTANT stack
+    let in0 = CE::<
+        CI<0>,
+    > {}; // 0x1a0111ea397fe699ec02408663d4de85aa0d857d89759ad4897d29650fb85f9b409427eb4f49fffd8bfd00000000aaad
+    let in1 = CE::<
+        CI<1>,
+    > {}; // 0x135203e60180a68ee2e9c448d77a2cd91c3dedd930b1cf60ef396489f61eb45e304466cf3e67fa0af1ee7b04121bdea2
+    let in2 = CE::<
+        CI<2>,
+    > {}; // 0x6af0e0437ff400b6831e36d6bd17ffe48395dabc2d3435e77f76e17009241c5ee67992f72ec05f4c81084fbede3cc09
+    let in3 = CE::<CI<3>> {}; // 0x0
+
+    // INPUT stack
+    let (in4, in5, in6) = (CE::<CI<4>> {}, CE::<CI<5>> {}, CE::<CI<6>> {});
+    let in7 = CE::<CI<7>> {};
+    let t0 = circuit_mul(in5, in0);
+    let t1 = circuit_mul(in4, in0);
+    let t2 = circuit_sub(in3, in7);
+    let t3 = circuit_mul(in6, in1); // Fp2 mul start
+    let t4 = circuit_mul(t2, in2);
+    let t5 = circuit_sub(t3, t4); // Fp2 mul real part end
+    let t6 = circuit_mul(in6, in2);
+    let t7 = circuit_mul(t2, in1);
+    let t8 = circuit_add(t6, t7); // Fp2 mul imag part end
+
+    let modulus = modulus;
+
+    let mut circuit_inputs = (t0, t1, t5, t8).new_inputs();
+    // Prefill constants:
+    circuit_inputs = circuit_inputs
+        .next_2(
+            [
+                0x4f49fffd8bfd00000000aaad, 0x897d29650fb85f9b409427eb, 0x63d4de85aa0d857d89759ad4,
+                0x1a0111ea397fe699ec024086,
+            ],
+        ); // in0
+    circuit_inputs = circuit_inputs
+        .next_2(
+            [
+                0x3e67fa0af1ee7b04121bdea2, 0xef396489f61eb45e304466cf, 0xd77a2cd91c3dedd930b1cf60,
+                0x135203e60180a68ee2e9c448,
+            ],
+        ); // in1
+    circuit_inputs = circuit_inputs
+        .next_2(
+            [
+                0x72ec05f4c81084fbede3cc09, 0x77f76e17009241c5ee67992f, 0x6bd17ffe48395dabc2d3435e,
+                0x6af0e0437ff400b6831e36d,
+            ],
+        ); // in2
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in3
+    // Fill inputs:
+    circuit_inputs = circuit_inputs.next_2(p.x0); // in4
+    circuit_inputs = circuit_inputs.next_2(p.x1); // in5
+    circuit_inputs = circuit_inputs.next_2(p.y0); // in6
+    circuit_inputs = circuit_inputs.next_2(p.y1); // in7
+
+    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let result: G2Point = G2Point {
+        x0: outputs.get_output(t0),
+        x1: outputs.get_output(t1),
+        y0: outputs.get_output(t5),
+        y1: outputs.get_output(t8),
+    };
+    return (result,);
 }
 #[inline(always)]
 pub fn run_QUADRUPLE_AND_ADD_9_circuit(

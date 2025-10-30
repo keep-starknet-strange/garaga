@@ -7,13 +7,30 @@ use core::num::traits::Zero;
 use corelib_imports::bounded_int::upcast;
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
-use garaga::utils::hashing::hades_permutation;
+use garaga::utils::hashing::{PoseidonState, hades_permutation, hash_quadruple_u288};
 
 const POW_2_32_252: felt252 = 0x100000000;
 const POW_2_64_252: felt252 = 0x10000000000000000;
 
 const POW_2_256_384: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x10000000000000000, limb3: 0x0 };
 
+// Reduces a u384 given a circuit modulus by computing (a + 0) mod p.
+// Circuits outputs are reduced mod p.
+pub fn reduce_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
+    let in1 = CircuitElement::<CircuitInput<0>> {};
+    let in2 = CircuitElement::<CircuitInput<1>> {};
+    let reduce = circuit_add(in1, in2);
+
+    let outputs = (reduce,)
+        .new_inputs()
+        .next_2(a)
+        .next_2([0, 0, 0, 0])
+        .done_2()
+        .eval(modulus)
+        .unwrap();
+
+    return outputs.get_output(reduce);
+}
 
 pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
     let in1 = CircuitElement::<CircuitInput<0>> {};
@@ -30,7 +47,6 @@ pub fn neg_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 
     return outputs.get_output(neg);
 }
-
 
 // Returns true if a == -b mod p (a + b = 0 mod p)
 pub fn is_opposite_mod_p(a: u384, b: u384, modulus: CircuitModulus) -> bool {
@@ -53,52 +69,6 @@ pub fn is_zero_mod_p(a: u384, modulus: CircuitModulus) -> bool {
 pub fn is_even_u384(a: u384) -> bool {
     let limb0_u128: u128 = upcast(a.limb0);
     limb0_u128 % 2 == 0
-}
-
-
-pub fn compute_yInvXnegOverY_BN254(x: u384, y: u384) -> (u384, u384) {
-    let in1 = CircuitElement::<CircuitInput<0>> {};
-    let in2 = CircuitElement::<CircuitInput<1>> {};
-    let in3 = CircuitElement::<CircuitInput<2>> {};
-    let yInv = circuit_inverse(in3);
-    let xNeg = circuit_sub(in1, in2);
-    let xNegOverY = circuit_mul(xNeg, yInv);
-
-    let modulus = get_BN254_modulus(); // BN254 prime field modulus
-
-    let outputs = (yInv, xNegOverY)
-        .new_inputs()
-        .next_2([0, 0, 0, 0])
-        .next_2(x)
-        .next_2(y)
-        .done_2()
-        .eval(modulus)
-        .unwrap();
-
-    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
-}
-
-#[inline(always)]
-pub fn compute_yInvXnegOverY_BLS12_381(x: u384, y: u384) -> (u384, u384) {
-    let in1 = CircuitElement::<CircuitInput<0>> {};
-    let in2 = CircuitElement::<CircuitInput<1>> {};
-    let in3 = CircuitElement::<CircuitInput<2>> {};
-    let yInv = circuit_inverse(in3);
-    let xNeg = circuit_sub(in1, in2);
-    let xNegOverY = circuit_mul(xNeg, yInv);
-
-    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
-
-    let outputs = (yInv, xNegOverY)
-        .new_inputs()
-        .next_2([0, 0, 0, 0])
-        .next_2(x)
-        .next_2(y)
-        .done_2()
-        .eval(modulus)
-        .unwrap();
-
-    return (outputs.get_output(yInv), outputs.get_output(xNegOverY));
 }
 
 
@@ -208,53 +178,18 @@ pub fn inv_mod_p(a: u384, modulus: CircuitModulus) -> u384 {
 
 #[inline(always)]
 pub fn eval_and_hash_E12D_u288_transcript(
-    transcript: Span<E12D<u288>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Array<u384>) {
+    transcript: Span<E12D<u288>>, mut s: PoseidonState, z: u384,
+) -> (PoseidonState, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
 
     for elmt in transcript {
         let elmt = *elmt;
-        let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
-        let in_2 = s1 + elmt.w0.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
-        let in_1 = _s0 + elmt.w1.limb0.into() + base * elmt.w1.limb1.into();
-        let in_2 = _s1 + elmt.w1.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w2.limb0.into() + base * elmt.w2.limb1.into();
-        let in_2 = _s1 + elmt.w2.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w3.limb0.into() + base * elmt.w3.limb1.into();
-        let in_2 = _s1 + elmt.w3.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w4.limb0.into() + base * elmt.w4.limb1.into();
-        let in_2 = _s1 + elmt.w4.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w5.limb0.into() + base * elmt.w5.limb1.into();
-        let in_2 = _s1 + elmt.w5.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w6.limb0.into() + base * elmt.w6.limb1.into();
-        let in_2 = _s1 + elmt.w6.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w7.limb0.into() + base * elmt.w7.limb1.into();
-        let in_2 = _s1 + elmt.w7.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w8.limb0.into() + base * elmt.w8.limb1.into();
-        let in_2 = _s1 + elmt.w8.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w9.limb0.into() + base * elmt.w9.limb1.into();
-        let in_2 = _s1 + elmt.w9.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w10.limb0.into() + base * elmt.w10.limb1.into();
-        let in_2 = _s1 + elmt.w10.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        let in_1 = _s0 + elmt.w11.limb0.into() + base * elmt.w11.limb1.into();
-        let in_2 = _s1 + elmt.w11.limb2.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
+        let _s = hash_quadruple_u288(elmt.w0, elmt.w1, elmt.w2, elmt.w3, base, s);
+        let _s = hash_quadruple_u288(elmt.w4, elmt.w5, elmt.w6, elmt.w7, base, _s);
+        let _s = hash_quadruple_u288(elmt.w8, elmt.w9, elmt.w10, elmt.w11, base, _s);
+        s = _s;
 
         let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
         let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -306,23 +241,23 @@ pub fn eval_and_hash_E12D_u288_transcript(
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals);
+    return (s, evals);
 }
 
 
 #[inline(always)]
 pub fn eval_and_hash_E12D_u384_transcript(
-    transcript: Span<E12D<u384>>, mut s0: felt252, mut s1: felt252, mut s2: felt252, z: u384,
-) -> (felt252, felt252, felt252, Array<u384>) {
+    transcript: Span<E12D<u384>>, mut s: PoseidonState, z: u384,
+) -> (PoseidonState, Array<u384>) {
     let base: felt252 = 79228162514264337593543950336; // 2**96
     let mut evals: Array<u384> = array![];
-    let modulus = get_BLS12_381_modulus(); // BN254 prime field modulus
+    let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
 
     for elmt in transcript {
         let elmt = *elmt;
-        let in_1 = s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
-        let in_2 = s1 + elmt.w0.limb2.into() + base * elmt.w0.limb3.into();
-        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s2);
+        let in_1 = s.s0 + elmt.w0.limb0.into() + base * elmt.w0.limb1.into();
+        let in_2 = s.s1 + elmt.w0.limb2.into() + base * elmt.w0.limb3.into();
+        let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, s.s2);
         let in_1 = _s0 + elmt.w1.limb0.into() + base * elmt.w1.limb1.into();
         let in_2 = _s1 + elmt.w1.limb2.into() + base * elmt.w1.limb3.into();
         let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
@@ -356,9 +291,8 @@ pub fn eval_and_hash_E12D_u384_transcript(
         let in_1 = _s0 + elmt.w11.limb0.into() + base * elmt.w11.limb1.into();
         let in_2 = _s1 + elmt.w11.limb2.into() + base * elmt.w11.limb3.into();
         let (_s0, _s1, _s2) = hades_permutation(in_1, in_2, _s2);
-        s0 = _s0;
-        s1 = _s1;
-        s2 = _s2;
+
+        s = PoseidonState { s0: _s0, s1: _s1, s2: _s2 };
 
         let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
         let (in3, in4, in5) = (CE::<CI<3>> {}, CE::<CI<4>> {}, CE::<CI<5>> {});
@@ -410,5 +344,5 @@ pub fn eval_and_hash_E12D_u384_transcript(
         let f_of_z: u384 = outputs.get_output(t21);
         evals.append(f_of_z);
     }
-    return (s0, s1, s2, evals);
+    return (s, evals);
 }

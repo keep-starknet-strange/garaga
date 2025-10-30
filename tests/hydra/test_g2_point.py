@@ -2,7 +2,8 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID, G2Point
+from garaga.curves import CURVES, CurveID
+from garaga.points import G2Point
 
 # List of curve IDs to test
 curve_ids = [CurveID.BN254, CurveID.BLS12_381]
@@ -147,3 +148,16 @@ def test_g2point_scalar_mul_larger_than_order_random_points(curve_id):
     for p in random_points:
         result = p.scalar_mul(CURVES[curve_id.value].n + 1)
         assert result == p
+
+
+@pytest.mark.parametrize("curve_id", curve_ids)
+def test_is_in_subgroup(curve_id):
+    for _ in range(10):
+        p = G2Point.gen_random_point(curve_id)
+        assert p.is_in_prime_order_subgroup()
+        assert p.is_in_prime_order_subgroup_generic()
+
+        if CURVES[curve_id.value].h != 1:
+            p = G2Point.gen_random_point_not_in_subgroup(curve_id)
+            assert not p.is_in_prime_order_subgroup()
+            assert not p.is_in_prime_order_subgroup_generic()

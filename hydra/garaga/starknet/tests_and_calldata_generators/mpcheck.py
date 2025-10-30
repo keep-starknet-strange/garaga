@@ -5,7 +5,8 @@ from functools import lru_cache
 from garaga import garaga_rs
 from garaga import modulo_circuit_structs as structs
 from garaga.algebra import Polynomial, PyFelt
-from garaga.definitions import CurveID, G1G2Pair, get_base_field, get_irreducible_poly
+from garaga.curves import CurveID, get_base_field, get_irreducible_poly
+from garaga.points import G1G2Pair
 from garaga.poseidon_transcript import CairoPoseidonTranscript
 from garaga.precompiled_circuits.multi_miller_loop import precompute_lines
 from garaga.precompiled_circuits.multi_pairing_check import (
@@ -55,6 +56,10 @@ class MPCheckCalldataBuilder:
     @property
     def big_Q_expected_len(self):
         return get_max_Q_degree(self.curve_id.value, len(self.pairs)) + 1
+
+    @property
+    def three_limbs_only(self):
+        return self.curve_id != CurveID.BLS12_381
 
     @lru_cache(maxsize=1)
     def extra_miller_loop_result(self) -> list[PyFelt] | None:
@@ -110,23 +115,15 @@ class MPCheckCalldataBuilder:
             Ris if self.curve_id == CurveID.BLS12_381 else Ris[1:]
         )  # Skip first Ri for BN254 as it known to be one (lambda_root*lambda_root_inverse) result
 
-        if self.public_pair is not None:
-            passed_Ris = passed_Ris[
-                :-1
-            ]  # Skip last Ri as it is known to be 1 and we use FP12Mul_AssertOne circuit
-
         return passed_Ris
 
     def _init_transcript(self) -> CairoPoseidonTranscript:
-        init_hash = (
-            f"MPCHECK_{self.curve_id.name}_{len(self.pairs)}P_{self.n_fixed_g2}F"
-        )
-        transcript = CairoPoseidonTranscript(
-            init_hash=int.from_bytes(init_hash.encode(), byteorder="big")
-        )
+        transcript = self._new_transcript()
         # Hash inputs.
         for pair in self.pairs:
-            transcript.hash_limbs_multi(pair.to_pyfelt_list())
+            transcript.hash_limbs_multi(
+                pair.to_pyfelt_list(), three_limbs_only=False
+            )  # False because G1Point is holding u384 only.
         return transcript
 
     def _hash_hints_and_get_base_random_rlc_coeff(
@@ -137,7 +134,7 @@ class MPCheckCalldataBuilder:
         scaling_factor: list[PyFelt],
         scaling_factor_sparsity: list[PyFelt],
         Ris: list[list[PyFelt]],
-    ):
+    ) -> PyFelt:
         if self.curve_id == CurveID.BN254:
             transcript.hash_limbs_multi(lambda_root)
 
@@ -148,30 +145,73 @@ class MPCheckCalldataBuilder:
             assert len(Ri) == 12
             transcript.hash_limbs_multi(Ri)
 
+        if self.include_miller_loop_result:
+            transcript.hash_limbs_multi(self.extra_miller_loop_result())
+
         return self.field(transcript.s1)
 
     def _hash_big_Q_and_get_z(
         self, transcript: CairoPoseidonTranscript, big_Q: list[PyFelt]
     ):
-        transcript.hash_limbs_multi(big_Q)
-        return self.field(transcript.s0)
+        # Start a fresh transcript for the second stage and seed it with the base RLC coefficient
+        seeded_transcript = self._seed_transcript_with_base_rlc(
+            self._new_transcript("_II"), transcript.s1
+        )
+        seeded_transcript.hash_limbs_multi(big_Q)
+        return self.field(seeded_transcript.s0)
+
+    def _new_transcript(self, stage_suffix: str = "") -> CairoPoseidonTranscript:
+        init_hash = f"MPCHECK_{self.curve_id.name}_{len(self.pairs)}P_{self.n_fixed_g2}F{stage_suffix}"
+        return CairoPoseidonTranscript(
+            init_hash=int.from_bytes(init_hash.encode(), byteorder="big"),
+            three_limbs_only=self.three_limbs_only,
+        )
+
+    def _seed_transcript_with_base_rlc(
+        self, transcript: CairoPoseidonTranscript, base_rlc: PyFelt
+    ) -> CairoPoseidonTranscript:
+        # Hash the base RLC coefficient from _hash_hints_and_get_base_random_rlc_coeff
+        transcript.hash_element(base_rlc)
+        return transcript
 
     def _sanity_check_verify_rlc_equation(
         self,
         z: PyFelt,
-        cis: list[PyFelt],
+        c1: PyFelt,
+        n_relations_with_ci: int,
         Pis: list[list[PyFelt]],
         big_Q: Polynomial,
         Ris: list[list[PyFelt]],
     ):
         lhs = self.field.zero()
-        for i, ci in enumerate(cis):
+        ci = self.field.one()
+        k = 0
+        for i in range(n_relations_with_ci - 1, -1, -1):
+            # if self.public_pair is None:
+            #     print(f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs, False)}")
+            k += 1
             Prod_Pis_of_z = functools.reduce(
                 lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
             )
             Ri_of_z = Polynomial(Ris[i]).evaluate(z)
             lhs += ci * (Prod_Pis_of_z - Ri_of_z)
+            ci *= c1
             # print(f"lhs_{i} : {io.int_to_u384(lhs)}")
+
+        lhs_print = self.field.zero()
+        k = 0
+        for i in range(n_relations_with_ci):
+            # if self.public_pair is None:
+            #     print(
+            #         f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs_print, False)}"
+            #     )
+            k += 1
+            Prod_Pis_of_z = functools.reduce(
+                lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
+            )
+            Ri_of_z = Polynomial(Ris[i]).evaluate(z)
+            __lhs = Prod_Pis_of_z - Ri_of_z
+            lhs_print = lhs_print * c1 + __lhs
 
         P_irr = get_irreducible_poly(curve_id=self.curve_id, extension_degree=12)
         big_Q_of_z = big_Q.evaluate(z)
@@ -187,7 +227,7 @@ class MPCheckCalldataBuilder:
         structs.Cairo1SerializableStruct, structs.Cairo1SerializableStruct | None
     ]:
         """
-        Return MPCheckHint struct and small_Q struct if extra_miller_loop_result is True
+        Return MPCheckHint struct
         """
         mpcheck_circuit = self._init_circuit()
         transcript = self._init_transcript()
@@ -197,10 +237,11 @@ class MPCheckCalldataBuilder:
                 len(self.pairs), self.extra_miller_loop_result()
             )
         )
+
         Pis, Qis, Ris = self._retrieve_Pis_Qis_and_Ris_from_circuit(mpcheck_circuit)
         passed_Ris = self._get_passed_Ris_from_Ris(Ris)
 
-        c0 = self._hash_hints_and_get_base_random_rlc_coeff(
+        c1 = self._hash_hints_and_get_base_random_rlc_coeff(
             transcript,
             lambda_root,
             lambda_root_inverse,
@@ -213,12 +254,14 @@ class MPCheckCalldataBuilder:
             1 if self.curve_id == CurveID.BN254 else 0
         )
 
-        ci, cis, big_Q = c0, [], Polynomial.zero(self.field.p)
-        for i in range(n_relations_with_ci):
+        ci, big_Q = self.field.one(), Polynomial.zero(self.field.p)
+
+        for i in range(n_relations_with_ci - 1, -1, -1):
             # print(f"c_{i} : {io.int_to_u384(ci)}")
-            cis.append(ci)
             big_Q += Qis[i] * ci
-            ci *= ci
+            ci *= c1
+            # print(f"{i=}, {n_relations_with_ci=}")
+            assert ci == c1 ** (n_relations_with_ci - i)
 
         big_Q_coeffs = big_Q.get_coeffs()
         big_Q_coeffs.extend(
@@ -226,24 +269,27 @@ class MPCheckCalldataBuilder:
         )
 
         z = self._hash_big_Q_and_get_z(transcript, big_Q_coeffs)
-        self._sanity_check_verify_rlc_equation(z, cis, Pis, big_Q, Ris)
+        self._sanity_check_verify_rlc_equation(
+            z, c1, n_relations_with_ci, Pis, big_Q, Ris
+        )
 
-        if self.public_pair is None:
-            assert [x.value for x in passed_Ris[-1]] == [
-                1,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-            ], f"Last Ri must be 1_Fp12, got {[x.value for x in passed_Ris[-1]]}"
-            passed_Ris = passed_Ris[:-1]  # Skip last Ri as it is known to be 1
+        # Skip last Ri as it is known to be 1 for pairing checks
+        assert [x.value for x in passed_Ris[-1]] == [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+        ], f"Last Ri must be 1_Fp12, got {[x.value for x in passed_Ris[-1]]}"
+
+        passed_Ris = passed_Ris[:-1]
 
         if self.curve_id == CurveID.BN254:
             hint_struct_list_init = [
@@ -252,40 +298,30 @@ class MPCheckCalldataBuilder:
         else:
             hint_struct_list_init = []
 
-        if self.include_miller_loop_result:
-            small_Q = Qis[-1].get_coeffs()
-            small_Q = small_Q + [self.field.zero()] * (11 - len(small_Q))
-            small_Q_struct = structs.E12DMulQuotient(name="small_Q", elmts=small_Q)
-        else:
-            small_Q_struct = None
-
-        return (
-            structs.Struct(
-                struct_name=f"MPCheckHint{self.curve_id.name}",
-                name="hint",
-                elmts=hint_struct_list_init
-                + [
-                    structs.E12D(name="lambda_root_inverse", elmts=lambda_root_inverse),
-                    structs.MillerLoopResultScalingFactor(
-                        name="w",
-                        elmts=[
-                            wi
-                            for wi, si in zip(scaling_factor, scaling_factor_sparsity)
-                            if si != 0
-                        ],
-                    ),
-                    structs.StructSpan(
-                        name="Ris",
-                        elmts=[
-                            structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
-                            for i, Ri in enumerate(passed_Ris)
-                        ],
-                    ),
-                    structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
-                ]
-                + [structs.felt252(name="z", elmts=[z])],
-            ),
-            small_Q_struct,
+        return structs.Struct(
+            struct_name=f"MPCheckHint{self.curve_id.name}",
+            name="hint",
+            elmts=hint_struct_list_init
+            + [
+                structs.E12D(name="lambda_root_inverse", elmts=lambda_root_inverse),
+                structs.MillerLoopResultScalingFactor(
+                    name="w",
+                    elmts=[
+                        wi
+                        for wi, si in zip(scaling_factor, scaling_factor_sparsity)
+                        if si != 0
+                    ],
+                ),
+                structs.StructSpan(
+                    name="Ris",
+                    elmts=[
+                        structs.E12D(name=f"R{i}", elmts=[ri.felt for ri in Ri])
+                        for i, Ri in enumerate(passed_Ris)
+                    ],
+                ),
+                structs.u384Array(name="big_Q", elmts=big_Q_coeffs),
+            ]
+            + [structs.felt252(name="z", elmts=[z])],
         )
 
     def _get_input_structs(self) -> list[structs.Cairo1SerializableStruct]:
@@ -312,10 +348,8 @@ class MPCheckCalldataBuilder:
                     ],
                 )
             )
-        mpcheck_hint, small_Q = self.build_mpcheck_hint()
+        mpcheck_hint = self.build_mpcheck_hint()
         inputs.append(mpcheck_hint)
-        if small_Q is not None:
-            inputs.append(small_Q)
         return inputs
 
     def to_cairo_1_test(self):
@@ -363,11 +397,26 @@ class MPCheckCalldataBuilder:
         if use_rust:
             return self._serialize_to_calldata_rust()
 
-        mpcheck_hint, small_Q = self.build_mpcheck_hint()
+        mpcheck_hint = self.build_mpcheck_hint()
 
         call_data: list[int] = []
         call_data.extend(mpcheck_hint.serialize_to_calldata())
-        if small_Q is not None:
-            call_data.extend(small_Q.serialize_to_calldata())
-
         return call_data
+
+
+if __name__ == "__main__":
+    from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
+
+    pairs, public_pair = get_pairing_check_input(
+        curve_id=CurveID.BLS12_381,
+        n_pairs=3,
+        include_m=True,
+        return_pairs=True,
+    )
+    mpc = MPCheckCalldataBuilder(
+        curve_id=CurveID.BLS12_381,
+        pairs=pairs,
+        n_fixed_g2=2,
+        public_pair=public_pair,
+    )
+    print(mpc.serialize_to_calldata(use_rust=True))

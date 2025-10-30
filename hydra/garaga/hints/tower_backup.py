@@ -7,7 +7,8 @@ from dataclasses import dataclass
 
 from garaga import garaga_rs
 from garaga.algebra import ModuloCircuitElement, Polynomial, PyFelt
-from garaga.definitions import CURVES, direct_to_tower, get_base_field, tower_to_direct
+from garaga.curves import CURVES, get_base_field
+from garaga.points import direct_to_tower, tower_to_direct
 
 
 @dataclass(slots=True)

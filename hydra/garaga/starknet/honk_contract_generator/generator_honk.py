@@ -2,7 +2,7 @@ import argparse
 import os
 from pathlib import Path
 
-from garaga.definitions import CurveID, ProofSystem
+from garaga.curves import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
 from garaga.precompiled_circuits.compilable_circuits.base import (
     get_circuit_definition_impl_template,
@@ -250,7 +250,7 @@ def _gen_circuits_code(
 
     is_on_curve_code = """
 #[inline(never)]
-pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
+pub fn is_on_curve_excluding_infinity_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
     // INPUT stack
     // y^2 = x^3 + 3
     let (in0, in1) = (CE::<CI<0>> {}, CE::<CI<1>> {});
@@ -272,7 +272,7 @@ pub fn is_on_curve_bn254(p: G1Point, modulus: CircuitModulus) -> bool {
 }
     """
     code += is_on_curve_code
-    is_on_curve_function_name = f"is_on_curve_bn254"
+    is_on_curve_function_name = f"is_on_curve_excluding_infinity_bn254"
 
     return (
         code,
@@ -306,13 +306,13 @@ pub trait {trait_name}<TContractState> {{
 
 #[starknet::contract]
 mod {contract_name} {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254_G1_GENERATOR, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
     use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
     use super::{{vk, precomputed_lines, {imports_str}}};
-    use garaga::utils::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
-    use garaga::utils::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
-    use garaga::utils::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
+    use garaga::apps::noir::{{{proof_struct_name}, G2_POINT_KZG_1, G2_POINT_KZG_2}};
+    use garaga::apps::noir::honk_transcript::{{Point256IntoCircuitPoint, {flavor}HasherState}};
+    use garaga::apps::noir::{'zk_' if is_zk else ''}honk_transcript::{{{('ZK' if is_zk else '') + 'HonkTranscriptTrait'}, {'ZK_' if is_zk else ''}BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, {'u256_to_u384, ' if is_zk else ''}}};
     use core::num::traits::Zero;
 
@@ -357,7 +357,7 @@ def _gen_constants_code(vk: HonkVk) -> str:
     )
     return f"""
 use garaga::definitions::{{G1Point, G2Line, u384, u288}};
-use garaga::utils::noir::HonkVk;
+use garaga::apps::noir::HonkVk;
 
 // _vk_hash = keccak256(vk_bytes)
 // vk_hash = hades_permutation(_vk_hash.low, _vk_hash.high, 2)
@@ -442,7 +442,7 @@ def _get_msm_points_array_code(zk: bool, log_n: int) -> tuple[str, (int, int)]:
     # Add common final points
     code += f"""
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point {next_proof_point_counter}
-            _points.append(BN254_G1_GENERATOR);
+            _points.append(BN254.G);
 
             let mut points = _points.span();"""
 

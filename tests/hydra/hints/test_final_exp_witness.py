@@ -2,7 +2,8 @@ import random
 
 import pytest
 
-from garaga.definitions import CURVES, CurveID, get_sparsity
+from garaga.algebra import get_sparsity
+from garaga.curves import CURVES, CurveID
 from garaga.hints.multi_miller_witness import (
     get_final_exp_witness,
     get_lambda,

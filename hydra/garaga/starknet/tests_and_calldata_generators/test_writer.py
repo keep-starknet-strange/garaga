@@ -5,14 +5,8 @@ import subprocess
 import time
 
 import garaga.modulo_circuit_structs as structs
-from garaga.definitions import (
-    CURVES,
-    CurveID,
-    G1G2Pair,
-    G1Point,
-    G2Point,
-    get_base_field,
-)
+from garaga.curves import CURVES, CurveID, get_base_field
+from garaga.points import G1G2Pair, G1Point, G2Point
 from garaga.precompiled_circuits.multi_pairing_check import get_pairing_check_input
 from garaga.starknet.cli.utils import create_directory
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
@@ -99,14 +93,14 @@ def generate_tower_pairing_test(curve_id, n_pairs, seed):
     code = f"""
 #[test]
 fn test_tower_pairing_{curve_id.name}_{n_pairs}P() {{
-    let mut res:E12T = E12TOne::one();
+    let mut res:E12T = One::one();
 """
     for i, pair in enumerate(pairs):
         code += f"""
     {structs.G1PointCircuit.from_G1Point(f"p{i}", pair.p).serialize()}
-    p{i}.assert_on_curve({curve_id.value});
+    p{i}.assert_on_curve_excluding_infinity({curve_id.value});
     {structs.G2PointCircuit.from_G2Point(f"q{i}", pair.q).serialize()}
-    q{i}.assert_on_curve({curve_id.value});
+    q{i}.assert_on_curve_excluding_infinity({curve_id.value});
     let (tmp{i}) = miller_loop_{pair.p.curve_id.name.lower()}_tower(p{i}, q{i});
     let (res) = run_{pair.p.curve_id.name.upper()}_E12T_MUL_circuit(tmp{i}, res);"""
     code += f"""
@@ -146,8 +140,9 @@ def generate_schnorr_test(curve_id, seed):
 #[test]{ignored_str}
 fn test_schnorr_{curve_id.name}() {{
     let mut sch_sig_with_hints_serialized = array!{schnorr_sig.serialize_with_hints(as_str=True)}.span();
-    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserialize');
-    let is_valid = is_valid_schnorr_signature(sch_with_hints, {curve_id.value});
+    let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserializePk');
+    let sch_with_hints = Serde::<SchnorrSignatureWithHint>::deserialize(ref sch_sig_with_hints_serialized).expect('FailToDeserializeSig');
+    let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, {curve_id.value});
     assert!(is_valid);
 }}
 """
@@ -163,8 +158,9 @@ def generate_ecdsa_test(curve_id, seed):
 #[test]{ignored_str}
 fn test_ecdsa_{curve_id.name}() {{
     let mut ecdsa_sig_with_hints_serialized = array!{ecdsa_sig.serialize_with_hints(as_str=True)}.span();
-    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserialize');
-    let is_valid = is_valid_ecdsa_signature(ecdsa_with_hints, {curve_id.value});
+    let public_key = Serde::<G1Point>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserializePk');
+    let ecdsa_with_hints = Serde::<ECDSASignatureWithHint>::deserialize(ref ecdsa_sig_with_hints_serialized).expect('FailToDeserializeSig');
+    let is_valid = is_valid_ecdsa_signature_assuming_hash(ecdsa_with_hints, public_key, {curve_id.value});
     assert!(is_valid);
 }}
 """
@@ -207,9 +203,10 @@ def get_tower_pairing_config():
     """Configuration for tower pairing tests"""
     header = """
     use garaga::single_pairing_tower::{
-        E12TOne, miller_loop_bls12_381_tower,
+        miller_loop_bls12_381_tower,
         miller_loop_bn254_tower, final_exp_bls12_381_tower, final_exp_bn254_tower,
     };
+    use core::num::traits::One;
     use garaga::definitions::{u384, G1Point, G2Point, E12T};
     use garaga::ec_ops::{G1PointImpl};
     use garaga::ec_ops_g2::{G2PointImpl};
@@ -236,7 +233,7 @@ def get_pairing_config():
             MPCheckHintBN254,
             MPCheckHintBLS12_381,
         };
-        use garaga::definitions::{u288, u384, G1Point, G2Point, G2Line, E12D, E12DMulQuotient,G1G2Pair, MillerLoopResultScalingFactor};
+        use garaga::definitions::{u288, u384, G1Point, G2Point, G2Line, E12D,G1G2Pair, MillerLoopResultScalingFactor};
         use garaga::groth16::{
             multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
             multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
@@ -279,8 +276,9 @@ def get_msm_config():
 def get_schnorr_config():
     """Configuration for Schnorr signature tests"""
     header = """
+        use garaga::definitions::G1Point;
         use garaga::signatures::schnorr::{
-            SchnorrSignatureWithHint, is_valid_schnorr_signature,
+            SchnorrSignatureWithHint, is_valid_schnorr_signature_assuming_hash,
         };
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
@@ -300,8 +298,9 @@ def get_schnorr_config():
 def get_ecdsa_config():
     """Configuration for ECDSA signature tests"""
     header = """
+        use garaga::definitions::G1Point;
         use garaga::signatures::ecdsa::{
-            ECDSASignatureWithHint, is_valid_ecdsa_signature,
+            ECDSASignatureWithHint, is_valid_ecdsa_signature_assuming_hash,
         };
         use garaga::core::circuit::u288IntoCircuitInputValue;
     """
@@ -327,8 +326,9 @@ def generate_eddsa_test(sig: EdDSA25519Signature, test_index: int) -> str:
 #[test]{ignored_str}
 fn test_eddsa_{test_index}_{msg_bytes_len}B() {{
     let mut eddsa_sig_with_hints_serialized = array!{sig.serialize_with_hints(as_str=True)}.span();
-    let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserializePk');
+    let eddsa_with_hints = Serde::<EdDSASignatureWithHint>::deserialize(ref eddsa_sig_with_hints_serialized).expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }}
 """
@@ -344,7 +344,7 @@ def generate_eddsa_test_file() -> str:
     """Configuration for EDDSA signature tests"""
     code = """
     use garaga::signatures::eddsa_25519::{
-        EdDSASignatureWithHint, is_valid_eddsa_signature
+        EdDSASignatureWithHint, is_valid_eddsa_signature,
     };
     """
 

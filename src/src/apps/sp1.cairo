@@ -1,5 +1,18 @@
 use core::sha256::compute_sha256_u32_array;
 use corelib_imports::bounded_int::{AddHelper, BoundedInt, MulHelper, UnitInt, bounded_int, upcast};
+use garaga::pairing_check::MPCheckHintBN254;
+use garaga::utils::calldata::{
+    Groth16ProofRaw, _deserialize_groth16_proof_points, _deserialize_mpcheck_hint_bn254,
+};
+
+#[derive(Drop)]
+pub struct FullProofWithHintsSP1 {
+    pub groth16_proof: Groth16ProofRaw,
+    pub vkey: u256,
+    pub public_inputs_sp1: Array<u32>,
+    pub mpcheck_hint: MPCheckHintBN254,
+    pub msm_hint: Span<felt252>,
+}
 
 const POW_32: felt252 = 0x100000000;
 const POW_64: felt252 = 0x10000000000000000;
@@ -87,6 +100,42 @@ pub fn process_public_inputs_sp1(public_inputs: Array<u32>) -> (Span<u256>, u256
     return (pub_inputs_256.span(), hash_mod);
 }
 
+
+pub fn deserialize_full_proof_with_hints_sp1(
+    mut serialized: Span<felt252>,
+) -> FullProofWithHintsSP1 {
+    let groth16_proof_raw = _deserialize_groth16_proof_points(ref serialized);
+    let vkey = u256 {
+        low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+        high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
+    };
+    let n_words: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let mut public_inputs_sp1: Array<u32> = array![];
+
+    for _ in 0..n_words {
+        let [w7, w6, w5, w4, w3, w2, w1, w0] = (*serialized.multi_pop_front::<8>().unwrap())
+            .unbox();
+        public_inputs_sp1.append(w7.try_into().unwrap());
+        public_inputs_sp1.append(w6.try_into().unwrap());
+        public_inputs_sp1.append(w5.try_into().unwrap());
+        public_inputs_sp1.append(w4.try_into().unwrap());
+        public_inputs_sp1.append(w3.try_into().unwrap());
+        public_inputs_sp1.append(w2.try_into().unwrap());
+        public_inputs_sp1.append(w1.try_into().unwrap());
+        public_inputs_sp1.append(w0.try_into().unwrap());
+    }
+
+    let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
+
+    let msm_hint = serialized;
+    return FullProofWithHintsSP1 {
+        groth16_proof: groth16_proof_raw,
+        vkey: vkey,
+        public_inputs_sp1: public_inputs_sp1,
+        mpcheck_hint: mpcheck_hint,
+        msm_hint: msm_hint,
+    };
+}
 
 #[cfg(test)]
 mod tests {

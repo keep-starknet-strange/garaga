@@ -949,6 +949,27 @@ class Polynomial(Generic[T]):
             acc = acc + prod
         return acc
 
+    def sparsity(self) -> list[int]:
+        return get_sparsity(self.coefficients)
+
+
+def get_sparsity(X: list[PyFelt | ModuloCircuitElement]) -> list[int]:
+    """
+    Determines the sparsity of polynomial coefficients.
+
+    This function evaluates a list of polynomial coefficients (`X`) and categorizes each based on its value:
+    - 2: The coefficient is 1, indicating a direct representation of a polynomial power.
+    - 1: The coefficient is non-zero but not 1, indicating a contributing non-zero coefficient.
+    - 0: The coefficient is 0, indicating no contribution to the polynomial.
+
+    Parameters:
+    - X (list[PyFelt | ModuloCircuitElement]): Coefficients to evaluate.
+
+    Returns:
+    - list[int]: Sparsity categories for each coefficient in `X`.
+    """
+    return [2 if x.value == 1 else 1 if x.value != 0 else 0 for x in X]
+
 
 @dataclass(slots=True)
 class RationalFunction(Generic[T]):

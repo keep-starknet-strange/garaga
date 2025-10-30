@@ -3,9 +3,9 @@ use garaga::signatures::eddsa_25519::{EdDSASignatureWithHint, is_valid_eddsa_sig
 #[test]
 fn test_eddsa_0_0B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x3a0764c9d3fe4bd5b70ab18201985ad7, 0x1a5107f7681a02af2523a6daf372e10e,
         0x8a826e80cce2869072ac60c3004356e5, 0x5501492265e073d874d9e5b81e7f8784,
-        0x6bb4f91c70391ec6ac3ba3901582b85f, 0xb107a8e4341516524be5b59f0f55bd2,
-        0x3a0764c9d3fe4bd5b70ab18201985ad7, 0x1a5107f7681a02af2523a6daf372e10e, 0x0, 0x14,
+        0x6bb4f91c70391ec6ac3ba3901582b85f, 0xb107a8e4341516524be5b59f0f55bd2, 0x0, 0x14,
         0xea59f1a1b369842eaf693886, 0xf9224e07ed11424e3ec1fa70, 0x4a92acec2f8e1cbe, 0x0,
         0xe590d7d2c7256a3e0ead52f, 0xd86b5e53124f1f969c189730, 0x537563cb5552be8d, 0x0,
         0x138c5052d6a27a4e4c9560fdd264cfd3, 0x11a2728b581551e5fb75531f987dd1989,
@@ -16,11 +16,13 @@ fn test_eddsa_0_0B() {
         0xc513d47253187c24b12786bd777645ce, 0x55d0e09a2b9d34292297e08d60d0f620,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -28,9 +30,9 @@ fn test_eddsa_0_0B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_1_2B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x58f03002d07ea48da3a118628ecd51fc, 0x258090481591eb5dac0333ba13ed1608,
         0xa301be3a9ce627480224ecde57d69162, 0xacc35adbd780365e443a7484a248e50c,
-        0x59c64d9860f767ae90f2168d539bff18, 0xac41eeacebe27c08dd26e71e9157c4a,
-        0x58f03002d07ea48da3a118628ecd51fc, 0x258090481591eb5dac0333ba13ed1608, 0x2, 0xaf, 0x82,
+        0x59c64d9860f767ae90f2168d539bff18, 0xac41eeacebe27c08dd26e71e9157c4a, 0x2, 0xaf, 0x82,
         0x14, 0x6dcaf738b22009c93c0bdb87, 0x3bf824e64854c39e4f4b4d71, 0x2ba562c0a5855870, 0x0,
         0xd156c934e0630b6b1cade37c, 0xf9592c2a8d4525621a66ff9e, 0x6ea3c2799dcb0791, 0x0,
         0x2b7d8065ce28f598d400cb3247955529, 0x11805a2d4008709e8bf8df99ecd21a9c8,
@@ -41,11 +43,13 @@ fn test_eddsa_1_2B() {
         0x18236f1734e3e9b945a9ff5486cdbd02, 0x61213aa2dc9d68833f65d1b48dcf8598,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -53,9 +57,9 @@ fn test_eddsa_1_2B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_2_4B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x5323472831c45de2863153c402c1dac0, 0xa73302d9921f008eeb2a158b87dbabea,
         0x4d6630d51be769278400d1b0c66f4f12, 0x1634b9ae09b5fded6dc5f67d50f88d88,
-        0x2a8bc1975609f35d3006aa388d916be2, 0x70c155ea8e5ba9fe40adc2ea5ea32a8,
-        0x5323472831c45de2863153c402c1dac0, 0xa73302d9921f008eeb2a158b87dbabea, 0x4, 0x5f, 0x4c,
+        0x2a8bc1975609f35d3006aa388d916be2, 0x70c155ea8e5ba9fe40adc2ea5ea32a8, 0x4, 0x5f, 0x4c,
         0x89, 0x89, 0x14, 0xfc2e795891abcdefc79c39ab, 0xc39ec060c9acab62d783f744,
         0x7edd959fdf5944aa, 0x0, 0xb9af3f53cf443ce8258ce9d8, 0x25a93844e779d9acf1a76582,
         0x6044e088dd26d914, 0x0, 0x367ea01340ed3f4eb35fc0b5d6909880,
@@ -67,11 +71,13 @@ fn test_eddsa_2_4B() {
         0x15daf15d98e9a7cec9a0d949aa8a1010,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -79,9 +85,9 @@ fn test_eddsa_2_4B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_3_6B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x54cc85d1334a44bef2d70505a4bfcffb, 0x3d64e33eb887502b0b64e16052616de1,
         0x3f5a6d63ff558746e1e99c1dfc29d66e, 0x29fae5f73018249db793fd1ac9d9a540,
-        0x994ed1168dbd8d24bbec6ecc208f4b85, 0x239d831895634dc7094d90e4942175,
-        0x54cc85d1334a44bef2d70505a4bfcffb, 0x3d64e33eb887502b0b64e16052616de1, 0x6, 0x89, 0x1, 0xd,
+        0x994ed1168dbd8d24bbec6ecc208f4b85, 0x239d831895634dc7094d90e4942175, 0x6, 0x89, 0x1, 0xd,
         0x85, 0x59, 0x72, 0x14, 0x80741b4318d18819882bb551, 0xb2779f18fc7fb12feb65a53,
         0x142ca3875044978f, 0x0, 0xa93609d4fc6719102719e96b, 0x6d8f72df2fdf0661b61a1139,
         0x2a9bc38a67fdf1af, 0x0, 0xeba21cc2b39436195b0b53a4dd3d7e5,
@@ -93,11 +99,13 @@ fn test_eddsa_3_6B() {
         0x28ea2ab7b73169d1eb053770cc4c90cc,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -105,9 +113,9 @@ fn test_eddsa_3_6B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_4_8B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x403164cdaf33b05ed9ce5f824ab51ff8, 0x63b8346f4303258970a920bd0afbab75,
         0x88f2e7d378b17bc18a52b0afc5deadd6, 0x23def957bcf35e5410e116adb1db9a7f,
-        0x59620cc93a0fbe07893b728f38c8a514, 0x8fa05f888d4b73ddf4576c1ec85e8bb,
-        0x403164cdaf33b05ed9ce5f824ab51ff8, 0x63b8346f4303258970a920bd0afbab75, 0x8, 0x42, 0x84,
+        0x59620cc93a0fbe07893b728f38c8a514, 0x8fa05f888d4b73ddf4576c1ec85e8bb, 0x8, 0x42, 0x84,
         0xab, 0xc5, 0x1b, 0xb6, 0x72, 0x35, 0x14, 0x62920ccda7a4a43580c16a97,
         0xbc42ab1a6625ff1e10cf6704, 0xddd34ffe3defba, 0x0, 0x21bd69a53ef0e957f99488cf,
         0x951d5e6a7d167e2c8b9c8ee8, 0x27d72985e7a6135f, 0x0, 0x3af1a7897e95058b0a1f9e6f8c89504a,
@@ -119,11 +127,13 @@ fn test_eddsa_4_8B() {
         0x54c40a9283a8e6206a15e02b64b46288,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -131,9 +141,9 @@ fn test_eddsa_4_8B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_5_10B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xe938c55c67fafa1dabf748834b52b231, 0xff4d6ea3c1bbd82ac1279e81e53f4ea8,
         0x914eab3f9f3ff001dee95a418c59e428, 0x9949c55e6b9796edf0c2bdd37f58b9e,
-        0x258894367c6237391983f0404c1a15d9, 0x8ced65d6a69a67f49870a9f5ada999e,
-        0xe938c55c67fafa1dabf748834b52b231, 0xff4d6ea3c1bbd82ac1279e81e53f4ea8, 0xa, 0x33, 0xd7,
+        0x258894367c6237391983f0404c1a15d9, 0x8ced65d6a69a67f49870a9f5ada999e, 0xa, 0x33, 0xd7,
         0xa7, 0x86, 0xad, 0xed, 0x8c, 0x1b, 0xf6, 0x91, 0x14, 0x38c8023c9fb41d7b6939d204,
         0x6c47c9dcf6dd08f0027d26cb, 0x7643328979691ed8, 0x0, 0xf539d2a0878555c6a28113ce,
         0xd28009225c7af9f44698b284, 0x748c3d43195e54b8, 0x0, 0x37fb348b196c8215fbfea725d82bec57,
@@ -145,11 +155,13 @@ fn test_eddsa_5_10B() {
         0x4cd530baaf96cfce24c4baf37493d3cc,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -157,9 +169,9 @@ fn test_eddsa_5_10B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_6_12B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xa940aaba3f4f1c1311d111d09336e86f, 0x5782b17ac29ee3b03bf72f01306bd7d3,
         0x1e38377d274b6106faa2333079d99a0f, 0x582292ced69ed05845a9a5c25af6946d,
-        0xddc8d0c0c3ae9742c93a862e9567a5c1, 0xec4ad559b4427bab60b8604e58410f7,
-        0xa940aaba3f4f1c1311d111d09336e86f, 0x5782b17ac29ee3b03bf72f01306bd7d3, 0xc, 0x5a, 0x8d,
+        0xddc8d0c0c3ae9742c93a862e9567a5c1, 0xec4ad559b4427bab60b8604e58410f7, 0xc, 0x5a, 0x8d,
         0x9d, 0xa, 0x22, 0x35, 0x7e, 0x66, 0x55, 0xf9, 0xc7, 0x85, 0x14, 0x9b1776a1824355ed0f31d4b6,
         0x9ba13aeac727ec1c4c3989d7, 0x1c20c27b1b41836f, 0x0, 0xad7ca35f9f1a595260a64136,
         0x9b28c807d04f47f3e7ba89ae, 0x76a7aad88686c4cd, 0x0, 0x360399ddbc65be2e628e3fae9ee6d55c,
@@ -171,11 +183,13 @@ fn test_eddsa_6_12B() {
         0xb2e763e5c5d8d490ad567a99d254c52,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -183,9 +197,9 @@ fn test_eddsa_6_12B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_7_14B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x267e03bc533dd3527a5b7a4698f83acf, 0x91f2e233c0e9172225fc036999daa842,
         0xe6253b6b00b21223eb603ce281fee36e, 0xb06ad6af8ddb4ec444f8236610028e83,
-        0x9042af526e1d8af5b8f55d19fd871067, 0x6cf94ef95877492000121735cd55380,
-        0x267e03bc533dd3527a5b7a4698f83acf, 0x91f2e233c0e9172225fc036999daa842, 0xe, 0x55, 0xc7,
+        0x9042af526e1d8af5b8f55d19fd871067, 0x6cf94ef95877492000121735cd55380, 0xe, 0x55, 0xc7,
         0xfa, 0x43, 0x4f, 0x5e, 0xd8, 0xcd, 0xec, 0x2b, 0x7a, 0xea, 0xc1, 0x73, 0x14,
         0xc1e32736d15729299aaa09e7, 0x8e424562b0b2d4e10849f3f7, 0x4638985f6c4eecb8, 0x0,
         0xf6f8582e11475ecce6e33473, 0x602deb6eefe4e4c17c82e744, 0x3abfa51751dcd4a0, 0x0,
@@ -197,11 +211,13 @@ fn test_eddsa_7_14B() {
         0x1750714406fc2d2876ff75bc2cad8e11, 0x100e3069d5815a94db87c734f43b368b,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -209,9 +225,9 @@ fn test_eddsa_7_14B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_8_16B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xa2debae466c062697443478c50a8e534, 0x5b954321cd6c47944f5cde84b48a1b20,
         0x68b308f9b7a3497912a8d040dc273d2a, 0x87ae2db0b9415d7ac1a654ff1b7638f,
-        0x53ce87ba90a44fe4e1b07af442c1aa09, 0xc5054ae7c364ceff1ca3915893af392,
-        0xa2debae466c062697443478c50a8e534, 0x5b954321cd6c47944f5cde84b48a1b20, 0x10, 0xc9, 0x42,
+        0x53ce87ba90a44fe4e1b07af442c1aa09, 0xc5054ae7c364ceff1ca3915893af392, 0x10, 0xc9, 0x42,
         0xfa, 0x7a, 0xc6, 0xb2, 0x3a, 0xb7, 0xff, 0x61, 0x2f, 0xdc, 0x8e, 0x68, 0xef, 0x39, 0x14,
         0x2ccc5c7cac2eee8b2e47375, 0xbe3457718bcbd53b10b92cf9, 0x47d2b530179b9892, 0x0,
         0xa0d5148d627eff7de3695066, 0xfbbf54cf338c905e6d373cd9, 0x51a1142c5de46d49, 0x0,
@@ -223,11 +239,13 @@ fn test_eddsa_8_16B() {
         0x6fe7a48b2b9e4c036d80526005e9e3aa, 0x64599205bcb26f328e09b76cea8e9f6,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -235,9 +253,9 @@ fn test_eddsa_8_16B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_9_18B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xf2e34c3bc3ae76866ad899f12791d274, 0x6b3a2165ca8c1ecd1c192cf591b1cc25,
         0xee92302f49750591173ca043d729e9fb, 0xf5134738ca574ecacfca3604af12b2a,
-        0x80db0a70f1418c6c2d32912758db62c2, 0xa3e62e73eae4434700b2714bcca7e02,
-        0xf2e34c3bc3ae76866ad899f12791d274, 0x6b3a2165ca8c1ecd1c192cf591b1cc25, 0x12, 0xbd, 0x8e,
+        0x80db0a70f1418c6c2d32912758db62c2, 0xa3e62e73eae4434700b2714bcca7e02, 0x12, 0xbd, 0x8e,
         0x5, 0x3, 0x3f, 0x3a, 0x8b, 0xcd, 0xcb, 0xf4, 0xbe, 0xce, 0xb7, 0x9, 0x1, 0xc8, 0x2e, 0x31,
         0x14, 0xfa1252aa123e86ee87f8c8c7, 0xa2218cc84ca64ab31a5bdbf9, 0x760ea6e91bcff0fd, 0x0,
         0xbc93a87ac4c455717816c9d1, 0x88c7777545d6c5afdfd4387a, 0x4dd7be231e07a6b8, 0x0,
@@ -249,11 +267,13 @@ fn test_eddsa_9_18B() {
         0xbb608ba1755964b8a7e626f14eb5a33c, 0x46e151b817dfa0805ffc863f3ba6a850,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -261,9 +281,9 @@ fn test_eddsa_9_18B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_10_20B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x5b0884354e71a735658929859381a21c, 0x7f81008c5dddc89f81423f72ec9fef86,
         0x4d42f6df7f7e676206982d6abcc2ada1, 0x85326f256ee9f3fd90ca95570fa5dbe7,
-        0xc44c74eba94023d992e4860331dc7ca, 0x5f193db373926046e3ee85ff3fdaf61,
-        0x5b0884354e71a735658929859381a21c, 0x7f81008c5dddc89f81423f72ec9fef86, 0x14, 0x8b, 0xa6,
+        0xc44c74eba94023d992e4860331dc7ca, 0x5f193db373926046e3ee85ff3fdaf61, 0x14, 0x8b, 0xa6,
         0xa4, 0xc9, 0xa1, 0x5a, 0x24, 0x4a, 0x9c, 0x26, 0xbb, 0x2a, 0x59, 0xb1, 0x2, 0x6f, 0x21,
         0x34, 0x8b, 0x49, 0x14, 0x937d82291b7f8dc2781d4e5f, 0xa937d9ca11ae15eff034e737,
         0x34b1848dd33cc4bc, 0x0, 0x1aa605be8f31fb5fa2f72f6d, 0x2b625f928529ba42e9970fea,
@@ -276,11 +296,13 @@ fn test_eddsa_10_20B() {
         0x37a3fb1811a6325320bf08033e450a8f,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -288,11 +310,11 @@ fn test_eddsa_10_20B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_11_22B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x147e5eb78bbb945d71f0230d859b3548, 0x85fc02a0bd3f4005a8286ff014af2e32,
         0x1d6e8787cea32243c5badf8999d0dcb6, 0x6ad897a7a6d70bb5249dc798a94d1362,
-        0x9fecfb2c653c674ac1d691749ddc140e, 0x13928ab6d079082f3bda45c9382a96,
-        0x147e5eb78bbb945d71f0230d859b3548, 0x85fc02a0bd3f4005a8286ff014af2e32, 0x16, 0x1b, 0xa,
-        0xfb, 0xa, 0xc4, 0xba, 0x9a, 0xb7, 0xb7, 0x17, 0x2c, 0xdd, 0xc9, 0xeb, 0x42, 0xbb, 0xa1,
-        0xa6, 0x4b, 0xce, 0x47, 0xd4, 0x14, 0x95156f4654352c47d318d763, 0x60bbfcd2afac5410c4e71df8,
+        0x9fecfb2c653c674ac1d691749ddc140e, 0x13928ab6d079082f3bda45c9382a96, 0x16, 0x1b, 0xa, 0xfb,
+        0xa, 0xc4, 0xba, 0x9a, 0xb7, 0xb7, 0x17, 0x2c, 0xdd, 0xc9, 0xeb, 0x42, 0xbb, 0xa1, 0xa6,
+        0x4b, 0xce, 0x47, 0xd4, 0x14, 0x95156f4654352c47d318d763, 0x60bbfcd2afac5410c4e71df8,
         0x15b6c8789497160a, 0x0, 0x8b5ca313032ef0415a347710, 0x5804f93938239c9afbc99e9e,
         0x7c65c4735c4ffbd8, 0x0, 0x28a74c9dce2b2e4a842e33e399863e1f,
         0x11da7a8750a2ce61ed28c38c0d512155d, 0x189e561188bc49a918bafffe, 0xfc6b5aae2395e9e47a2ba2a2,
@@ -303,11 +325,13 @@ fn test_eddsa_11_22B() {
         0x5c7c637a089f1adb6ead8f3bf7b7eddf,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -315,9 +339,9 @@ fn test_eddsa_11_22B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_12_24B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x5819635133648c8ad52720890198d3b1, 0x71137301f7e496032cabe1db6c1bf93,
         0x974e658b38a47047aa489c4d76fa6a83, 0x24d9df7dc42f7fa2bcfe6729086fc1b3,
-        0x230bb64643700951cf8a6929c7cf034b, 0xae72d12d199239156dc9d083054250f,
-        0x5819635133648c8ad52720890198d3b1, 0x71137301f7e496032cabe1db6c1bf93, 0x18, 0xd3, 0xd6,
+        0x230bb64643700951cf8a6929c7cf034b, 0xae72d12d199239156dc9d083054250f, 0x18, 0xd3, 0xd6,
         0x15, 0xa8, 0x47, 0x2d, 0x99, 0x62, 0xbb, 0x70, 0xc5, 0xb5, 0x46, 0x6a, 0x3d, 0x98, 0x3a,
         0x48, 0x11, 0x4, 0x6e, 0x2a, 0xe, 0xf5, 0x14, 0x93365d4deeadd32cb6bef2eb,
         0xb1e8c7218c86075e32aee0, 0x1d7d22ed34f1149, 0x0, 0xe0f56ac073d697677a6fe5e5,
@@ -330,11 +354,13 @@ fn test_eddsa_12_24B() {
         0x71631f2614a7d8451b8e92b94431e353,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -342,9 +368,9 @@ fn test_eddsa_12_24B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_13_26B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xa0ee85cd9ee2f3d82246ba42a12bf32b, 0x238b21dd270b519b2c41649dbe479c7b,
         0x27dd70b034665bf7f00d035a8c5b1f88, 0xf9bb6964eeb3389334ae3887c0e31ebd,
-        0x2831212de5e5382517d238a57130b76, 0xf9a04447ba0dc37653ad665f8b5907a,
-        0xa0ee85cd9ee2f3d82246ba42a12bf32b, 0x238b21dd270b519b2c41649dbe479c7b, 0x1a, 0x82, 0xcb,
+        0x2831212de5e5382517d238a57130b76, 0xf9a04447ba0dc37653ad665f8b5907a, 0x1a, 0x82, 0xcb,
         0x53, 0xc4, 0xd5, 0xa0, 0x13, 0xba, 0xe5, 0x7, 0x7, 0x59, 0xec, 0x6, 0xc3, 0xc6, 0x95, 0x5a,
         0xb7, 0xa4, 0x5, 0x9, 0x58, 0xec, 0x32, 0x8c, 0x14, 0xdc02485645b64ce43298b09c,
         0xc5b33942074cdd7280920b92, 0x6ab46e3a2ba409d6, 0x0, 0x41ba3f26848b6a909d587a94,
@@ -357,11 +383,13 @@ fn test_eddsa_13_26B() {
         0x7287797999af616511d3b1c69188181c,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -369,9 +397,9 @@ fn test_eddsa_13_26B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_14_28B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x336ff7c6db96a4af9b6b7ab9a84a089d, 0x7e426943910f0a5281e617d9c916a106,
         0xffd9e58d99e8b56c21661b78235487f5, 0x81efc3a9034537e3ac547010671d9dc2,
-        0xca78c41a6f70bd44672981de69f27715, 0x191cba6f957bd02f8b371f8cd549bf0,
-        0x336ff7c6db96a4af9b6b7ab9a84a089d, 0x7e426943910f0a5281e617d9c916a106, 0x1c, 0x5c, 0xb6,
+        0xca78c41a6f70bd44672981de69f27715, 0x191cba6f957bd02f8b371f8cd549bf0, 0x1c, 0x5c, 0xb6,
         0xf9, 0xaa, 0x59, 0xb8, 0xe, 0xca, 0x14, 0xf6, 0xa6, 0x8f, 0xb4, 0xc, 0xf0, 0x7b, 0x79,
         0x4e, 0x75, 0x17, 0x1f, 0xba, 0x96, 0x26, 0x2c, 0x1c, 0x6a, 0xdc, 0x14,
         0xc64d7b617fdd5e1dbfba3d1c, 0xdfc0e53f0dc3699f5e6cc2c6, 0x144281755c7dcb1f, 0x0,
@@ -384,11 +412,13 @@ fn test_eddsa_14_28B() {
         0xac5166adc37dd52a5364e38f13cd26e0, 0x2eca1086c3bd55727b33c81bb9a08aa2,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -396,9 +426,9 @@ fn test_eddsa_14_28B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_15_30B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xa3746aa5bbf565ce71fd2d563c32be23, 0x5b5afdb4f9c735f6942f3d576bc3dfa6,
         0x8b375cc7ea20544f1b77de6b1ead8f0f, 0x482b433b82c110c22bcd5066acb56dae,
-        0xce93b289897a2fb9fa8f459505b116e0, 0x26ff1aa2a6506fc38203a246ceddfb8,
-        0xa3746aa5bbf565ce71fd2d563c32be23, 0x5b5afdb4f9c735f6942f3d576bc3dfa6, 0x1e, 0xbb, 0x31,
+        0xce93b289897a2fb9fa8f459505b116e0, 0x26ff1aa2a6506fc38203a246ceddfb8, 0x1e, 0xbb, 0x31,
         0x72, 0x79, 0x57, 0x10, 0xfe, 0x0, 0x5, 0x4d, 0x3b, 0x5d, 0xfe, 0xf8, 0xa1, 0x16, 0x23,
         0x58, 0x2d, 0xa6, 0x8b, 0xf8, 0xe4, 0x6d, 0x72, 0xd2, 0x7c, 0xec, 0xe2, 0xaa, 0x14,
         0x695dff34554d1a4dc482d768, 0xd80b6ba6d7fa574d4d3290e7, 0x2a7ec089be1f9cbc, 0x0,
@@ -411,20 +441,22 @@ fn test_eddsa_15_30B() {
         0x9b9a4ef694420c49e77e74c2e8d4b572, 0x2a0ac0449362354f213d5b96a050528c,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
 #[test]
 fn test_eddsa_16_32B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x920ebc336f46f3a8fca7c6b1783a9fb4, 0xd9169375c3465f46a7c20643a0fb019f,
         0xcfff01c94634eb2c32c1913b036c2604, 0xb33a73b89a17c59c987e834400cc43c,
-        0xf96da651bac612c035ef4281b4d8bbec, 0xb79952410703eb0e4b1d68a26b68c30,
-        0x920ebc336f46f3a8fca7c6b1783a9fb4, 0xd9169375c3465f46a7c20643a0fb019f, 0x20, 0xa7, 0x50,
+        0xf96da651bac612c035ef4281b4d8bbec, 0xb79952410703eb0e4b1d68a26b68c30, 0x20, 0xa7, 0x50,
         0xc2, 0x32, 0x93, 0x3d, 0xc1, 0x4b, 0x11, 0x84, 0xd8, 0x6d, 0x8b, 0x4c, 0xe7, 0x2e, 0x16,
         0xd6, 0x97, 0x44, 0xba, 0x69, 0x81, 0x8b, 0x6a, 0xc3, 0x3b, 0x1d, 0x82, 0x3b, 0xb2, 0xc3,
         0x14, 0x662dc9a0c76e92de64ec1a88, 0xd2d804748dd9b3bca82dd8bd, 0x457a1c7d45c2e9a7, 0x0,
@@ -437,11 +469,13 @@ fn test_eddsa_16_32B() {
         0x454ef0b5785b42c24de91294328ace85, 0x7dc110abca7f279ee8797a0fbd3d1bc0,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -449,9 +483,9 @@ fn test_eddsa_16_32B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_17_34B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x4434db9c3af99a4b95c94d4745716baf, 0xc059ce3300b930e2244d821c657c5b9d,
         0x7e2eb16ba77c2fdee09a99f2b1edc16, 0x3cc381f6897a04c578de3c14915edab8,
-        0x522d00ec11a803590928c9d528344e4e, 0x43eabb9d06d0c202719feb3f8d79ea3,
-        0x4434db9c3af99a4b95c94d4745716baf, 0xc059ce3300b930e2244d821c657c5b9d, 0x22, 0x8b, 0xc4,
+        0x522d00ec11a803590928c9d528344e4e, 0x43eabb9d06d0c202719feb3f8d79ea3, 0x22, 0x8b, 0xc4,
         0x18, 0x5e, 0x50, 0xe5, 0x7d, 0x5f, 0x87, 0xf4, 0x75, 0x15, 0xfe, 0x2b, 0x18, 0x37, 0xd5,
         0x85, 0xf0, 0xaa, 0xe9, 0xe1, 0xca, 0x38, 0x3b, 0x3e, 0xc9, 0x8, 0x88, 0x4b, 0xb9, 0x0,
         0xff, 0x27, 0x14, 0x8574ce95d05ba104575918c8, 0x478f99955bb34eafda2c4ef3,
@@ -465,11 +499,13 @@ fn test_eddsa_17_34B() {
         0x6d275cfcf946e02027096f961f1121f2,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -477,9 +513,9 @@ fn test_eddsa_17_34B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_18_36B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xaae380fcc272f2c7810a0979c8707301, 0x265b74ab60116998fc9a37cb3f60bcc2,
         0xeecce3639db5961e14a75a33827f95ac, 0xfdd53395dc42afc24065027dc4a2c395,
-        0xb1755e913478f3ea7a18ad79167d8281, 0xc5e1a05dd43ba167501c8066828a947,
-        0xaae380fcc272f2c7810a0979c8707301, 0x265b74ab60116998fc9a37cb3f60bcc2, 0x24, 0xe0, 0x5f,
+        0xb1755e913478f3ea7a18ad79167d8281, 0xc5e1a05dd43ba167501c8066828a947, 0x24, 0xe0, 0x5f,
         0x71, 0xe4, 0xe4, 0x9a, 0x72, 0xec, 0x55, 0xc, 0x44, 0xa3, 0xb8, 0x5a, 0xca, 0x8f, 0x20,
         0xff, 0x26, 0xc3, 0xee, 0x94, 0xa8, 0xf, 0x1b, 0x43, 0x1c, 0x7d, 0x15, 0x4e, 0xc9, 0x60,
         0x3e, 0xe0, 0x25, 0x31, 0x14, 0xae93b41734e620cdee334fa0, 0xd352ee5d019527eb8c98e8f1,
@@ -493,11 +529,13 @@ fn test_eddsa_18_36B() {
         0x3f318627b427cd4f04c4bcb332869caf,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -505,9 +543,9 @@ fn test_eddsa_18_36B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_19_38B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x3df5a88a1f2b1ca8076556b2bd0fad34, 0x30e9ee070d903e901ba9ad87cc64aacc,
         0x4973c8372e2332c7549c489c1655b22a, 0xfd08ef29d3fee7abdb0905a2ebb186d4,
-        0x43b3ca51ccb56ca22e7be645d11cba75, 0x5f979b9d9fc6a4cecb0d71ffe85b0ee,
-        0x3df5a88a1f2b1ca8076556b2bd0fad34, 0x30e9ee070d903e901ba9ad87cc64aacc, 0x26, 0x83, 0x83,
+        0x43b3ca51ccb56ca22e7be645d11cba75, 0x5f979b9d9fc6a4cecb0d71ffe85b0ee, 0x26, 0x83, 0x83,
         0x67, 0x47, 0x11, 0x83, 0xc7, 0x1f, 0x7e, 0x71, 0x77, 0x24, 0xf8, 0x9d, 0x40, 0x1c, 0x3a,
         0xd9, 0x86, 0x3f, 0xd9, 0xcc, 0x7a, 0xa3, 0xcf, 0x33, 0xd3, 0xc5, 0x29, 0x86, 0xc, 0xb5,
         0x81, 0xf3, 0x9, 0x3d, 0x87, 0xda, 0x14, 0xa6292f8e5d044b22c5c63f84,
@@ -521,11 +559,13 @@ fn test_eddsa_19_38B() {
         0x5fd235e9d5bdd1630c10d1de12b63e15,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -533,9 +573,9 @@ fn test_eddsa_19_38B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_20_40B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x3cbce77b25c3d1f9d23fd2c2abc57217, 0xb864f9d243773a9b744b8440ee9cd71c,
         0x5b972a3c6db9cea4b893e72476cd2868, 0x5283581e6258406153f34566ffe573f7,
-        0x321e5144266f736dafe6df421ff3e789, 0x8cbe8d30e73188d77792a5898a60f0c,
-        0x3cbce77b25c3d1f9d23fd2c2abc57217, 0xb864f9d243773a9b744b8440ee9cd71c, 0x28, 0xda, 0x9c,
+        0x321e5144266f736dafe6df421ff3e789, 0x8cbe8d30e73188d77792a5898a60f0c, 0x28, 0xda, 0x9c,
         0x55, 0x59, 0xd0, 0xea, 0x51, 0xd2, 0x55, 0xb6, 0xbd, 0x9d, 0x76, 0x38, 0xb8, 0x76, 0x47,
         0x2f, 0x94, 0x2b, 0x33, 0xf, 0xc0, 0xe2, 0xb3, 0xa, 0xea, 0x68, 0xd7, 0x73, 0x68, 0xfc,
         0xe4, 0x94, 0x82, 0x72, 0x99, 0x1d, 0x25, 0x7e, 0x14, 0x5fa522a4fef55e8e23ddadc9,
@@ -549,11 +589,13 @@ fn test_eddsa_20_40B() {
         0x39711965fa2e49141a67dce0499f9413,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -561,9 +603,9 @@ fn test_eddsa_20_40B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_21_42B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xa3ff77a0b64bf8a53add37c4208b76da, 0x8d39c2e67fcefdc35c2b35c50185b64a,
         0x6e7ca9c4d5e470a6262477c6203a721c, 0x2203296e40441e6315a4b01bf74791be,
-        0x5fe90f5d23dc8e6a85e78f347d97cae4, 0xa2f558ffddbc7e2778af2ddef1ad97e,
-        0xa3ff77a0b64bf8a53add37c4208b76da, 0x8d39c2e67fcefdc35c2b35c50185b64a, 0x2a, 0x56, 0xf1,
+        0x5fe90f5d23dc8e6a85e78f347d97cae4, 0xa2f558ffddbc7e2778af2ddef1ad97e, 0x2a, 0x56, 0xf1,
         0x32, 0x9d, 0x9a, 0x6b, 0xe2, 0x5a, 0x61, 0x59, 0xc7, 0x2f, 0x12, 0x68, 0x8d, 0xc8, 0x31,
         0x4e, 0x85, 0xdd, 0x9e, 0x7e, 0x4d, 0xc0, 0x5b, 0xbe, 0xcb, 0x77, 0x29, 0xe0, 0x23, 0xc8,
         0x6f, 0x8e, 0x9, 0x37, 0x35, 0x3f, 0x27, 0xc7, 0xed, 0xe9, 0x14, 0x6b84c39c4ad9cb2e9fa5c149,
@@ -577,11 +619,13 @@ fn test_eddsa_21_42B() {
         0x3b5e09022b3317db3e3908788aa7e0f8,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -589,9 +633,9 @@ fn test_eddsa_21_42B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_22_44B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x476be4e75dba5012b6312fd42b6afbec, 0x37be3a0a7bdfd17b1ab70d66bcdfaf19,
         0xb801bc80df12f7989423c74c3485f89a, 0xf6e2727a014555aa8bd2a1d41e293806,
-        0xa46c3a54f5b9fa5beba63d60f9cc4956, 0xcb015f6de95bf66bf763c156638afa7,
-        0x476be4e75dba5012b6312fd42b6afbec, 0x37be3a0a7bdfd17b1ab70d66bcdfaf19, 0x2c, 0x63, 0xb8,
+        0xa46c3a54f5b9fa5beba63d60f9cc4956, 0xcb015f6de95bf66bf763c156638afa7, 0x2c, 0x63, 0xb8,
         0xb, 0x79, 0x56, 0xac, 0xbe, 0xcf, 0xc, 0x35, 0xe9, 0xab, 0x6, 0xb9, 0x14, 0xb0, 0xc7, 0x1,
         0x4f, 0xe1, 0xa4, 0xbb, 0xc0, 0x21, 0x72, 0x40, 0xc1, 0xa3, 0x30, 0x95, 0xd7, 0x7, 0x95,
         0x3e, 0xd7, 0x7b, 0x15, 0xd2, 0x11, 0xad, 0xaf, 0x9b, 0x97, 0xdc, 0x14,
@@ -605,11 +649,13 @@ fn test_eddsa_22_44B() {
         0x396285d427e7e9697dd65ae4a51141ba, 0x257ce91e91c41dabaf781533a67e1b9e,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -617,9 +663,9 @@ fn test_eddsa_22_44B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_23_46B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xeedad93b7bddeacc2a01b2aa95e7a3ab, 0x32386e83a3c29936c9d7dc8b25f56fed,
         0xe016915541fad2d520ce87d4a81f692c, 0xf76cd64135185625150e24f57c39f4bb,
-        0x4347384defdb3903398d38a401245853, 0xb6e8a1a13b9a78ba6ab8d5ff546a3ca,
-        0xeedad93b7bddeacc2a01b2aa95e7a3ab, 0x32386e83a3c29936c9d7dc8b25f56fed, 0x2e, 0x4f, 0x18,
+        0x4347384defdb3903398d38a401245853, 0xb6e8a1a13b9a78ba6ab8d5ff546a3ca, 0x2e, 0x4f, 0x18,
         0x46, 0xdd, 0x7a, 0xd5, 0xe, 0x54, 0x5d, 0x4c, 0xfb, 0xff, 0xbb, 0x1d, 0xc2, 0xff, 0x14,
         0x5d, 0xc1, 0x23, 0x75, 0x4d, 0x8, 0xaf, 0x4e, 0x44, 0xec, 0xc0, 0xbc, 0x8c, 0x91, 0x41,
         0x13, 0x88, 0xbc, 0x76, 0x53, 0xe2, 0xd8, 0x93, 0xd1, 0xea, 0xc2, 0x10, 0x7d, 0x5, 0x14,
@@ -633,11 +679,13 @@ fn test_eddsa_23_46B() {
         0xc3aee7a86e08b3325330143719401486, 0x6faf8d956cf70dd2ebc8a45c3391c21,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -645,9 +693,9 @@ fn test_eddsa_23_46B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_24_48B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xcfdb8360a12c992b6b3ed4a4bbefd290, 0x7fc4d34558e9f375eeb007393822b3a2,
         0xd2cb053d81746685d5f1ae2144992efa, 0x60fec2bdfdc60dcd6eaf24b45eef84cf,
-        0x9e14c9f1b2bf594ff3ec12338885e95f, 0xbaedd28edf3301173b205daecc99c5b,
-        0xcfdb8360a12c992b6b3ed4a4bbefd290, 0x7fc4d34558e9f375eeb007393822b3a2, 0x30, 0x78, 0x3e,
+        0x9e14c9f1b2bf594ff3ec12338885e95f, 0xbaedd28edf3301173b205daecc99c5b, 0x30, 0x78, 0x3e,
         0x33, 0xc3, 0xac, 0xbd, 0xbb, 0x36, 0xe8, 0x19, 0xf5, 0x44, 0xa7, 0x78, 0x1d, 0x83, 0xfc,
         0x28, 0x3d, 0x33, 0x9, 0xf5, 0xd3, 0xd1, 0x2c, 0x8d, 0xcd, 0x6b, 0xb, 0x3d, 0xe, 0x89, 0xe3,
         0x8c, 0xfd, 0x3b, 0x4d, 0x8, 0x85, 0x66, 0x1c, 0xa5, 0x47, 0xfb, 0x97, 0x64, 0xab, 0xff,
@@ -661,11 +709,13 @@ fn test_eddsa_24_48B() {
         0x69b771d216a328ed57ed6b4ec1cad004, 0x75fe7470f00d84132c4a40f8d601283c,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -673,9 +723,9 @@ fn test_eddsa_24_48B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_25_50B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x9fb36f3a5f8c20a6bb348ee70f8502c, 0xea3e15166e0a2078e025ccdb5030110b,
         0xdcda74b5f6ae8167383631a49a4e669, 0x82d3d8fdbe897cc664a2d0f158cc1e73,
-        0x579680c715179313f50bcc333be18d9d, 0xe593607433d771c964c7e560b9bfe2,
-        0x9fb36f3a5f8c20a6bb348ee70f8502c, 0xea3e15166e0a2078e025ccdb5030110b, 0x32, 0xf3, 0x99,
+        0x579680c715179313f50bcc333be18d9d, 0xe593607433d771c964c7e560b9bfe2, 0x32, 0xf3, 0x99,
         0x2c, 0xde, 0x64, 0x93, 0xe6, 0x71, 0xf1, 0xe1, 0x29, 0xdd, 0xca, 0x80, 0x38, 0xb0, 0xab,
         0xdb, 0x77, 0xbb, 0x90, 0x35, 0xf9, 0xf8, 0xbe, 0x54, 0xbd, 0x5d, 0x68, 0xc1, 0xae, 0xff,
         0x72, 0x4f, 0xf4, 0x7d, 0x29, 0x34, 0x43, 0x91, 0xdc, 0x53, 0x61, 0x66, 0xb8, 0x67, 0x1c,
@@ -690,11 +740,13 @@ fn test_eddsa_25_50B() {
         0x49509ad5e9d477ad6c36d0b0d515bdb4,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -702,9 +754,9 @@ fn test_eddsa_25_50B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_26_52B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xe1405cbd4e9a829f72cf5a41f2193c5e, 0x1ae53709ed876037a90357a9bc9fbca6,
         0xcc2c3c13dd3b0b36d4f91e81a1c3d427, 0x139b7f17e47eb06c771582242f2cd030,
-        0x2e187f3c66c725f2d8fec2a670dd42fc, 0x1eab1c54e83d5e1b0c70df2cfece87e,
-        0xe1405cbd4e9a829f72cf5a41f2193c5e, 0x1ae53709ed876037a90357a9bc9fbca6, 0x34, 0xf8, 0xb2,
+        0x2e187f3c66c725f2d8fec2a670dd42fc, 0x1eab1c54e83d5e1b0c70df2cfece87e, 0x34, 0xf8, 0xb2,
         0x19, 0x62, 0x44, 0x7b, 0xa, 0x8f, 0x2e, 0x42, 0x79, 0xde, 0x41, 0x1b, 0xea, 0x12, 0x8e,
         0xb, 0xe4, 0x4b, 0x69, 0x15, 0xe6, 0xcd, 0xa8, 0x83, 0x41, 0xa6, 0x8a, 0xd, 0x81, 0x83,
         0x57, 0xdb, 0x93, 0x8e, 0xac, 0x73, 0xe0, 0xaf, 0x6d, 0x31, 0x20, 0x6b, 0x39, 0x48, 0xf8,
@@ -719,11 +771,13 @@ fn test_eddsa_26_52B() {
         0x238e9c2dd40f5ec92dd14281c6e86509,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -731,9 +785,9 @@ fn test_eddsa_26_52B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_27_54B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xe205910db2c633ec94a8fe163e9ca965, 0x2e4aabfeac8b4dbd9b9d76a464274ea0,
         0xa27b806af44a61d382b6b8831d90bb01, 0x75a50aff49f523345d3275b7fe581369,
-        0xf4d419b354f3d821970fc7e9741a4e7e, 0xd736446d6fe94fb0ffd70c84514d9a1,
-        0xe205910db2c633ec94a8fe163e9ca965, 0x2e4aabfeac8b4dbd9b9d76a464274ea0, 0x36, 0xe0, 0x72,
+        0xf4d419b354f3d821970fc7e9741a4e7e, 0xd736446d6fe94fb0ffd70c84514d9a1, 0x36, 0xe0, 0x72,
         0x41, 0xdb, 0xd3, 0xad, 0xbe, 0x61, 0xb, 0xbe, 0x4d, 0x0, 0x5d, 0xd4, 0x67, 0x32, 0xa4,
         0xc2, 0x50, 0x86, 0xec, 0xb8, 0xec, 0x29, 0xcd, 0x7b, 0xca, 0x11, 0x6e, 0x1b, 0xf9, 0xf5,
         0x3b, 0xfb, 0xf3, 0xe1, 0x1f, 0xa4, 0x90, 0x18, 0xd3, 0x9f, 0xf1, 0x15, 0x4a, 0x6, 0x66,
@@ -748,11 +802,13 @@ fn test_eddsa_27_54B() {
         0x6286fc75f531a5a68b22af0e38eb4903,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -760,9 +816,9 @@ fn test_eddsa_27_54B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_28_56B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x6cd49146124c9ae4dfcd13517a4ca057, 0xda1fa7ec0a33a172cb9d3f348fdc9c1f,
         0x90c02885701acf55147dc8f947c9cba6, 0xfa55dea45474f4adba1d5d85e4ce1ef1,
-        0x2d9921cf8c29598f5f5b3ad7364be84c, 0xb66c3f2329d7e3b75873d1634ef92f4,
-        0x6cd49146124c9ae4dfcd13517a4ca057, 0xda1fa7ec0a33a172cb9d3f348fdc9c1f, 0x38, 0x7f, 0x31,
+        0x2d9921cf8c29598f5f5b3ad7364be84c, 0xb66c3f2329d7e3b75873d1634ef92f4, 0x38, 0x7f, 0x31,
         0x8d, 0xbd, 0x12, 0x1c, 0x8, 0xbf, 0xdd, 0xfe, 0xff, 0x4f, 0x6a, 0xff, 0x4e, 0x45, 0x79,
         0x32, 0x51, 0xf8, 0xab, 0xf6, 0x58, 0x40, 0x33, 0x58, 0x23, 0x89, 0x84, 0x36, 0x0, 0x54,
         0xf2, 0xa8, 0x62, 0xc5, 0xbb, 0x83, 0xed, 0x89, 0x2, 0x5d, 0x20, 0x14, 0xa7, 0xa0, 0xce,
@@ -777,11 +833,13 @@ fn test_eddsa_28_56B() {
         0x90ad7fad39fa85be8e39c6bed340cbb,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -789,9 +847,9 @@ fn test_eddsa_28_56B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_29_58B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xa5cd35ea3685ae2b5e62991409da7e0f, 0x123634832c6f1d346b417e9c6ad13b48,
         0xe074ecb682f8165568625d6af241bdef, 0x78659c9ae9268f2431c203d23018a7d5,
-        0x9fbcecf9240dad1672fab8cd680d90ec, 0x4a71fa395536426f6826566515365fa,
-        0xa5cd35ea3685ae2b5e62991409da7e0f, 0x123634832c6f1d346b417e9c6ad13b48, 0x3a, 0x8d, 0xdc,
+        0x9fbcecf9240dad1672fab8cd680d90ec, 0x4a71fa395536426f6826566515365fa, 0x3a, 0x8d, 0xdc,
         0xd6, 0x30, 0x43, 0xf5, 0x5e, 0xc3, 0xbf, 0xc8, 0x3d, 0xce, 0xae, 0x69, 0xd8, 0xf8, 0xb3,
         0x2f, 0x4c, 0xdb, 0x6e, 0x2a, 0xeb, 0xd9, 0x4b, 0x43, 0x14, 0xf8, 0xfe, 0x72, 0x87, 0xdc,
         0xb6, 0x27, 0x32, 0xc9, 0x5, 0x2e, 0x75, 0x57, 0xfe, 0x63, 0x53, 0x43, 0x38, 0xef, 0xb5,
@@ -806,11 +864,13 @@ fn test_eddsa_29_58B() {
         0xe2358f86e3017a6600ec864c9b562c80, 0x4252d8aff604e746087ad8b8c79e7bd5,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -818,9 +878,9 @@ fn test_eddsa_29_58B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_30_60B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x9b7290b34092910ceb3f4d5440e58d78, 0x135f2ec69465bb63e97ad644be987e4,
         0x409078c3a7fa07258520e79127e0fdd2, 0x42154902407f55ac13f321636486efd9,
-        0x88515dbc1f5095d4b0cd90695cd067dd, 0xf69c27fa40306ee8b09f61bdc84bbbf,
-        0x9b7290b34092910ceb3f4d5440e58d78, 0x135f2ec69465bb63e97ad644be987e4, 0x3c, 0x3a, 0x53,
+        0x88515dbc1f5095d4b0cd90695cd067dd, 0xf69c27fa40306ee8b09f61bdc84bbbf, 0x3c, 0x3a, 0x53,
         0x59, 0x4f, 0x3f, 0xba, 0x3, 0x2, 0x93, 0x18, 0xf5, 0x12, 0xb0, 0x84, 0xa0, 0x71, 0xeb,
         0xd6, 0xb, 0xae, 0xc7, 0xf5, 0x5b, 0x2, 0x8d, 0xc7, 0x3b, 0xfc, 0x9c, 0x74, 0xe0, 0xca,
         0x49, 0x6b, 0xf8, 0x19, 0xdd, 0x92, 0xab, 0x61, 0xcd, 0x8b, 0x74, 0xbe, 0x3c, 0xd, 0x6d,
@@ -835,11 +895,13 @@ fn test_eddsa_30_60B() {
         0x25b049f36336d365154fee2d92f7209a, 0x7afa60ee9713dfea9945e105904bb927,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
@@ -847,9 +909,9 @@ fn test_eddsa_30_60B() {
 #[ignore] // Ignored for auto-benchmarks
 fn test_eddsa_31_62B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0xe2c6f49b0327d5e1b001737df5ea1005, 0xb15103103c20f3345476b4613a0a3092,
         0xec38dd1c63f1903a5b70c76a43d8e506, 0xad60d5e7a4be5efaf2b9a97897a43f1a,
-        0xca1a7642373220a48bfafa42ff26dda7, 0xb435db4aa2df73ff6be1bc20d940469,
-        0xe2c6f49b0327d5e1b001737df5ea1005, 0xb15103103c20f3345476b4613a0a3092, 0x3e, 0x54, 0xe0,
+        0xca1a7642373220a48bfafa42ff26dda7, 0xb435db4aa2df73ff6be1bc20d940469, 0x3e, 0x54, 0xe0,
         0xca, 0xa8, 0xe6, 0x39, 0x19, 0xca, 0x61, 0x4b, 0x2b, 0xfd, 0x30, 0x8c, 0xcf, 0xe5, 0xc,
         0x9e, 0xa8, 0x88, 0xe1, 0xee, 0x44, 0x46, 0xd6, 0x82, 0xcb, 0x50, 0x34, 0x62, 0x7f, 0x97,
         0xb0, 0x53, 0x92, 0xc0, 0x4e, 0x83, 0x55, 0x56, 0xc3, 0x1c, 0x52, 0x81, 0x6a, 0x48, 0xe4,
@@ -864,20 +926,22 @@ fn test_eddsa_31_62B() {
         0x8c9bf6a015c76f19883037c34ca77b45, 0x566af0d91aa86827627d0323bd33fdb9,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }
 
 #[test]
 fn test_eddsa_32_64B() {
     let mut eddsa_sig_with_hints_serialized = array![
+        0x51e367ada5fda575b66d4bf876a03ff7, 0xccc6e9870301ca0968d1ad297f8e1ea4,
         0xa1ea48dde7ba2174837f2011a7d2b957, 0x3a8f457be1fe065830f1a0709a1aab8e,
-        0x770b006f49e8c90a3e4d83d102b36409, 0x66aee0e84c7fb32e657a9f8413b08f0,
-        0x51e367ada5fda575b66d4bf876a03ff7, 0xccc6e9870301ca0968d1ad297f8e1ea4, 0x40, 0x4b, 0xaf,
+        0x770b006f49e8c90a3e4d83d102b36409, 0x66aee0e84c7fb32e657a9f8413b08f0, 0x40, 0x4b, 0xaf,
         0xda, 0xc9, 0x9, 0x9d, 0x40, 0x57, 0xed, 0x6d, 0xd0, 0x8b, 0xca, 0xee, 0x87, 0x56, 0xe9,
         0xa4, 0xf, 0x2c, 0xb9, 0x59, 0x80, 0x20, 0xeb, 0x95, 0x1, 0x95, 0x28, 0x40, 0x9b, 0xbe,
         0xa3, 0x8b, 0x38, 0x4a, 0x59, 0xf1, 0x19, 0xf5, 0x72, 0x97, 0xbf, 0xb2, 0xfa, 0x14, 0x2f,
@@ -892,10 +956,12 @@ fn test_eddsa_32_64B() {
         0xdb32bb362e6f4e4ab652852ea150f205, 0x745397cfb61e599ed42508c8e6169142,
     ]
         .span();
+    let public_key_y = Serde::<u256>::deserialize(ref eddsa_sig_with_hints_serialized)
+        .expect('FailToDeserializePk');
     let eddsa_with_hints = Serde::<
         EdDSASignatureWithHint,
     >::deserialize(ref eddsa_sig_with_hints_serialized)
-        .expect('FailToDeserialize');
-    let is_valid = is_valid_eddsa_signature(eddsa_with_hints);
+        .expect('FailToDeserializeSig');
+    let is_valid = is_valid_eddsa_signature(eddsa_with_hints, public_key_y);
     assert!(is_valid);
 }

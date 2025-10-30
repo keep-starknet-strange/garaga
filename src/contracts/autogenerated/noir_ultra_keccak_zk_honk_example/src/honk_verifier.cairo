@@ -1,5 +1,5 @@
 use super::honk_verifier_circuits::{
-    is_on_curve_bn254, run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+    is_on_curve_excluding_infinity_bn254, run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_12_circuit,
     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_12_circuit,
@@ -17,20 +17,21 @@ pub trait IUltraKeccakZKHonkVerifier<TContractState> {
 #[starknet::contract]
 mod UltraKeccakZKHonkVerifier {
     use core::num::traits::Zero;
+    use garaga::apps::noir::honk_transcript::{KeccakHasherState, Point256IntoCircuitPoint};
+    use garaga::apps::noir::zk_honk_transcript::{
+        ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
+    };
+    use garaga::apps::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, u256_to_u384, u288IntoCircuitInputValue};
     use garaga::definitions::{
-        BN254_G1_GENERATOR, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus,
-        get_eigenvalue, get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u384,
+        BN254, G1G2Pair, G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, get_eigenvalue,
+        get_min_one_order, get_nG_glv_fake_glv, get_third_root_of_unity, u384,
     };
     use garaga::ec_ops::{G1PointTrait, GlvFakeGlvHint, _ec_safe_add, _scalar_mul_glv_and_fake_glv};
     use garaga::pairing_check::{MPCheckHintBN254, multi_pairing_check_bn254_2P_2F};
-    use garaga::utils::noir::honk_transcript::{KeccakHasherState, Point256IntoCircuitPoint};
-    use garaga::utils::noir::zk_honk_transcript::{
-        ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
-    };
-    use garaga::utils::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use super::{
-        is_on_curve_bn254, precomputed_lines, run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
+        is_on_curve_excluding_infinity_bn254, precomputed_lines,
+        run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_12_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_DONE_SIZE_12_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_12_circuit,
         run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_12_circuit,
@@ -207,7 +208,7 @@ mod UltraKeccakZKHonkVerifier {
                 _points.append((*lib_comm).into());
             } // 3 points || Proof points 21-23
             _points.append(full_proof.proof.kzg_quotient.into()); // Proof point 24
-            _points.append(BN254_G1_GENERATOR);
+            _points.append(BN254.G);
 
             let mut points = _points.span();
             let mut scalars: Span<u384> = array![
@@ -225,12 +226,18 @@ mod UltraKeccakZKHonkVerifier {
             // Check input points are on curve.
             // Skip the first 27 points as they are from VK and keep the last 24 proof points
             for point in points.slice(27, 24) {
-                assert(is_on_curve_bn254(*point, mod_bn), 'proof point not on curve');
+                assert(
+                    is_on_curve_excluding_infinity_bn254(*point, mod_bn),
+                    'proof point not on curve',
+                );
             }
 
             // Assert shplonk_q is on curve
             let shplonk_q_pt: G1Point = full_proof.proof.shplonk_q.into();
-            assert(is_on_curve_bn254(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
+            assert(
+                is_on_curve_excluding_infinity_bn254(shplonk_q_pt, mod_bn),
+                'shplonk_q not on curve',
+            );
 
             let mut msm_hint = full_proof.msm_hint;
             assert(msm_hint.len() == 52 * 12, 'wrong glv&fakeglv hint size');

@@ -10,7 +10,6 @@ use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
 use garaga::core::circuit::AddInputResultTrait2;
 use garaga::definitions::{
     BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, get_BLS12_381_modulus, serialize_u384,
-    u384Serde,
 };
 use garaga::ec_ops_g2;
 use garaga::single_pairing_tower::{final_exp_bls12_381_tower, miller_loop_bls12_381_tower};
@@ -840,7 +839,7 @@ mod tests {
 
     #[test]
     fn test_drand_quicknet_public_key() {
-        DRAND_QUICKNET_PUBLIC_KEY.assert_on_curve(1);
+        DRAND_QUICKNET_PUBLIC_KEY.assert_in_subgroup_excluding_infinity(1);
     }
     #[test]
     fn test_hash_to_two_bls_felts() {

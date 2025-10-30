@@ -14,7 +14,7 @@ describe('Signatures Getting calldata', () => {
     const py = 11788876621134198315085358602693659440838178818373737092676489706543309378340n;
     const curveId = CurveId.BN254;
 
-    const schnorrCalldata = garaga.schnorrCalldataBuilder(rx, s, e, px, py, curveId);
+    const schnorrCalldata = garaga.schnorrCalldataBuilder(rx, s, e, px, py, true, curveId);
 
     console.log("schnorrCalldata", schnorrCalldata);
 
@@ -32,7 +32,7 @@ describe('Signatures Getting calldata', () => {
     const z = 7590902656267229106356493910512635750747848737569325419577764035270226305644n;
     const curveId = CurveId.BN254;
 
-    const ecdsaCalldata = garaga.ecdsaCalldataBuilder(r, s, v, px, py, z, curveId);
+    const ecdsaCalldata = garaga.ecdsaCalldataBuilder(r, s, v, px, py, z, true, curveId);
 
     console.log("ecdsaCalldata", ecdsaCalldata);
 

@@ -97,6 +97,7 @@ pub fn schnorr_calldata_builder(
     e: JsValue,
     px: JsValue,
     py: JsValue,
+    prepend_public_key: bool,
     curve_id: usize,
 ) -> Result<Vec<JsValue>, JsValue> {
     let rx: BigUint = jsvalue_to_biguint(rx)?;
@@ -105,8 +106,16 @@ pub fn schnorr_calldata_builder(
     let px: BigUint = jsvalue_to_biguint(px)?;
     let py: BigUint = jsvalue_to_biguint(py)?;
 
-    let result = crate::calldata::signatures::schnorr_calldata_builder(rx, s, e, px, py, curve_id)
-        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+    let result = crate::calldata::signatures::schnorr_calldata_builder(
+        rx,
+        s,
+        e,
+        px,
+        py,
+        prepend_public_key,
+        curve_id,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
     let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
 
@@ -121,6 +130,7 @@ pub fn ecdsa_calldata_builder(
     px: JsValue,
     py: JsValue,
     z: JsValue,
+    prepend_public_key: bool,
     curve_id: usize,
 ) -> Result<Vec<JsValue>, JsValue> {
     let r: BigUint = jsvalue_to_biguint(r)?;
@@ -132,8 +142,17 @@ pub fn ecdsa_calldata_builder(
     let py: BigUint = jsvalue_to_biguint(py)?;
     let z: BigUint = jsvalue_to_biguint(z)?;
 
-    let result = crate::calldata::signatures::ecdsa_calldata_builder(r, s, v, px, py, z, curve_id)
-        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+    let result = crate::calldata::signatures::ecdsa_calldata_builder(
+        r,
+        s,
+        v,
+        px,
+        py,
+        z,
+        prepend_public_key,
+        curve_id,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
     let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
 
@@ -146,14 +165,16 @@ pub fn eddsa_calldata_builder(
     s: JsValue,
     py_twisted: JsValue,
     msg: JsValue,
+    prepend_public_key: bool,
 ) -> Result<Vec<JsValue>, JsValue> {
     let r: BigUint = jsvalue_to_biguint(ry_twisted)?;
     let s: BigUint = jsvalue_to_biguint(s)?;
     let py: BigUint = jsvalue_to_biguint(py_twisted)?;
     let msg: Vec<u8> = msg.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
 
-    let result = crate::calldata::signatures::eddsa_calldata_builder(r, s, py, msg)
-        .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
+    let result =
+        crate::calldata::signatures::eddsa_calldata_builder(r, s, py, msg, prepend_public_key)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?; // Handle error here
 
     let result: Vec<BigUint> = result; // Ensure result is of type Vec<BigUint>
 

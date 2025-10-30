@@ -1,6 +1,20 @@
 use core::integer;
 use core::sha256::{compute_sha256_byte_array, compute_sha256_u32_array};
+use garaga::pairing_check::MPCheckHintBN254;
+use garaga::utils::calldata::{
+    Groth16ProofRaw, _deserialize_groth16_proof_points, _deserialize_mpcheck_hint_bn254,
+};
 use garaga::utils::usize_assert_eq;
+
+
+#[derive(Drop)]
+pub struct FullProofWithHintsRisc0 {
+    pub groth16_proof: Groth16ProofRaw,
+    pub image_id: Span<u32>,
+    pub journal: Span<u8>,
+    pub mpcheck_hint: MPCheckHintBN254,
+    pub msm_hint: Span<felt252>,
+}
 
 // sha256(b"risc0.ReceiptClaim") =
 // 0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af
@@ -120,6 +134,34 @@ fn output_digest(journal_digest: Span<u32>) -> [u32; 8] {
     compute_sha256_u32_array(input: array, last_input_word: 512, last_input_num_bytes: 2)
 }
 
+pub fn deserialize_full_proof_with_hints_risc0(
+    mut serialized: Span<felt252>,
+) -> FullProofWithHintsRisc0 {
+    let groth16_proof_raw = _deserialize_groth16_proof_points(ref serialized);
+
+    let n_image_id: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let mut image_id: Array<u32> = array![];
+    for _ in 0..n_image_id {
+        image_id.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+    }
+
+    let n_journal: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
+    let mut journal: Array<u8> = array![];
+    for _ in 0..n_journal {
+        journal.append((*serialized.pop_front().unwrap()).try_into().unwrap());
+    }
+
+    let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
+
+    let msm_hint = serialized;
+    return FullProofWithHintsRisc0 {
+        groth16_proof: groth16_proof_raw,
+        image_id: image_id.span(),
+        journal: journal.span(),
+        mpcheck_hint: mpcheck_hint,
+        msm_hint: msm_hint,
+    };
+}
 #[cfg(test)]
 mod risc0_utils_tests {
     use super::{compute_receipt_claim, output_digest, uint256_byte_reverse};

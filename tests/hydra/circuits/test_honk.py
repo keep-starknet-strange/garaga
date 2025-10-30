@@ -1,7 +1,8 @@
 import pytest
 
 import garaga.hints.io as io
-from garaga.definitions import G1G2Pair, ProofSystem
+from garaga.curves import ProofSystem
+from garaga.points import G1G2Pair
 from garaga.precompiled_circuits.honk import (
     CONST_PROOF_SIZE_LOG_N,
     G2_POINT_KZG_1,

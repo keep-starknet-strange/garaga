@@ -1651,7 +1651,7 @@ pub fn get_zk_proof_starknet() -> ZKHonkProof {
 //     use core::num::traits::{Zero, One};
 
 //     use core::circuit::u384;
-//     use garaga::utils::noir::keccak_transcript::{HonkTranscriptTrait};
+//     use garaga::apps::noir::keccak_transcript::{HonkTranscriptTrait};
 //     use garaga::circuits::honk_circuits::{
 //         run_GRUMPKIN_HONK_SUMCHECK_SIZE_5_PUB_1_circuit,
 //         run_GRUMPKIN_HONK_PREPARE_MSM_SCALARS_SIZE_5_circuit,

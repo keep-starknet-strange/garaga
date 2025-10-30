@@ -1,5 +1,5 @@
+use garaga::apps::noir::HonkVk;
 use garaga::definitions::{G1Point, G2Line, u288, u384};
-use garaga::utils::noir::HonkVk;
 
 // _vk_hash = keccak256(vk_bytes)
 // vk_hash = hades_permutation(_vk_hash.low, _vk_hash.high, 2)
