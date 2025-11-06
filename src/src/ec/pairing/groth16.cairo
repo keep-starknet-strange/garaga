@@ -21,6 +21,7 @@ use core::num::traits::One;
 use core::option::Option;
 use garaga::basic_field_ops;
 use garaga::basic_field_ops::neg_mod_p;
+use garaga::ec_ops::ec_safe_add;
 use garaga::circuits::multi_pairing_check as mpc;
 use garaga::circuits::multi_pairing_check::{
     run_BLS12_381_INITIALIZE_MPCHECK_EXT_MLR_circuit,
@@ -85,9 +86,8 @@ pub fn verify_groth16_bn254(
     public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBN254,
 ) -> bool {
-    let vk_x: G1Point = msm_g1(
-        ic.slice(1, ic.len() - 1), proof.public_inputs, 0, public_inputs_msm_hint,
-    );
+    let vk_x_x: G1Point = msm_g1(ic.slice(1, ic.len() - 1), proof.public_inputs, 0, public_inputs_msm_hint);
+    let vk_x = ec_safe_add(vk_x_x, *ic.at(0), 0);
 
     proof.a.assert_in_subgroup_excluding_infinity(0);
     proof.b.assert_in_subgroup_excluding_infinity(0);
@@ -96,7 +96,7 @@ pub fn verify_groth16_bn254(
     return multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
         G1G2Pair { p: proof.c, q: verification_key.delta_g2 },
-        G1G2Pair { p: proof.a, q: proof.b },
+        G1G2Pair { p: proof.a.negate(0), q: proof.b },
         verification_key.alpha_beta_miller_loop_result,
         lines,
         mpcheck_hint,
