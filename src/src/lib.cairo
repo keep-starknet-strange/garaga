@@ -66,6 +66,8 @@ mod tests {
     mod calldata_tests;
     #[cfg(test)]
     mod sha512_tests;
+    #[cfg(test)]
+    mod sp1_groth_16_tests;
 }
 
 pub mod utils {
