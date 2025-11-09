@@ -1,9 +1,22 @@
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
+use crate::calldata::full_proof_with_hints::honk_common::array_to_field_element;
+use crate::calldata::full_proof_with_hints::honk_common::biguint_slice_to_field_element;
+use crate::calldata::full_proof_with_hints::honk_common::element_on_curve;
+use crate::calldata::full_proof_with_hints::honk_common::extract_msm_scalars;
+use crate::calldata::full_proof_with_hints::honk_common::g1_point_on_curve;
+use crate::calldata::full_proof_with_hints::honk_common::g1_slice_to_curve;
+use crate::calldata::full_proof_with_hints::honk_common::honk_proof_from_bytes_internal;
+use crate::calldata::full_proof_with_hints::honk_common::push;
+use crate::calldata::full_proof_with_hints::honk_common::push_elements;
+use crate::calldata::full_proof_with_hints::honk_common::push_point;
+use crate::calldata::full_proof_with_hints::honk_common::ProofBuilder;
+use crate::calldata::full_proof_with_hints::honk_common::ProofParser;
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
 use crate::calldata::G1PointBigUint;
+use crate::declare_element_on_curve;
 use crate::definitions::BN254PrimeField;
 use crate::definitions::CurveID;
 use crate::definitions::FieldElement;
@@ -13,6 +26,7 @@ use crate::io::{
     biguint_split, element_from_biguint, element_from_bytes_be, element_from_u128,
     element_to_biguint, field_element_to_u256_limbs,
 };
+use crate::transform_fields;
 use lambdaworks_crypto::hash::poseidon::starknet::PoseidonCairoStark252;
 use lambdaworks_crypto::hash::poseidon::Poseidon;
 use lambdaworks_math::field::errors::FieldError;
@@ -225,113 +239,40 @@ pub struct HonkProof {
 
 impl HonkProof {
     pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
-        if proof_bytes.len() != 32 * PROOF_SIZE {
-            return Err(format!("Invalid proof bytes length: {}", proof_bytes.len()));
-        }
-
-        let mut values = vec![];
-
-        for i in (0..).step_by(32).take(PROOF_SIZE) {
-            values.push(BigUint::from_bytes_be(&proof_bytes[i..i + 32]));
-        }
-
-        if public_inputs_bytes.len() % 32 != 0 {
-            return Err(format!(
-                "Invalid public input bytes length: {}",
-                public_inputs_bytes.len()
-            ));
-        }
-
-        let public_inputs_size = public_inputs_bytes.len() / 32;
-
-        let mut public_inputs = vec![];
-
-        for i in (0..).step_by(32).take(public_inputs_size) {
-            public_inputs.push(BigUint::from_bytes_be(&public_inputs_bytes[i..i + 32]));
-        }
-
+        let (values, public_inputs) =
+            honk_proof_from_bytes_internal(proof_bytes, public_inputs_bytes, PROOF_SIZE)?;
         Self::from(values, public_inputs)
     }
+
     pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
         if values.len() != PROOF_SIZE {
             return Err(format!("Invalid proof length: {}", values.len()));
         }
 
-        let mut offset = 0;
-        let mut pairing_point_object = vec![];
-        for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
-            pairing_point_object.push(values[i].clone());
-        }
-        let pairing_point_object = pairing_point_object.try_into().unwrap();
-        offset += PAIRING_POINT_OBJECT_LENGTH;
+        let mut parser = ProofParser::new(values);
 
-        fn parse_g1_proof_point(values: [BigUint; 4]) -> G1PointBigUint {
-            let [x0, x1, y0, y1] = values;
-            let x = (x1 << 136) | x0;
-            let y = (y1 << 136) | y0;
-            G1PointBigUint::from(vec![x, y])
-        }
+        let pairing_point_object = parser.extract_array::<PAIRING_POINT_OBJECT_LENGTH>();
 
-        let mut points = vec![];
-        for i in (offset..).step_by(4).take(8) {
-            points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
-            ));
-        }
-        offset += 8 * 4;
         let [w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm] =
-            points.try_into().unwrap();
+            parser.extract_g1_points_array::<8>();
 
-        let mut sumcheck_univariates = vec![];
-        for i in (offset..)
-            .step_by(BATCHED_RELATION_PARTIAL_LENGTH)
-            .take(CONST_PROOF_SIZE_LOG_N)
-        {
-            let mut sumcheck_univariate = vec![];
-            for j in (i..).step_by(1).take(BATCHED_RELATION_PARTIAL_LENGTH) {
-                sumcheck_univariate.push(values[j].clone());
-            }
-            let sumcheck_univariate = sumcheck_univariate.try_into().unwrap();
-            sumcheck_univariates.push(sumcheck_univariate);
-        }
-        let sumcheck_univariates = sumcheck_univariates.try_into().unwrap();
-        offset += CONST_PROOF_SIZE_LOG_N * BATCHED_RELATION_PARTIAL_LENGTH;
+        let sumcheck_univariates =
+            parser.extract_sumcheck_univariates::<BATCHED_RELATION_PARTIAL_LENGTH>();
 
-        let mut sumcheck_evaluations = vec![];
-        for i in (offset..).step_by(1).take(NUMBER_OF_ENTITIES) {
-            sumcheck_evaluations.push(values[i].clone());
-        }
-        let sumcheck_evaluations = sumcheck_evaluations.try_into().unwrap();
-        offset += NUMBER_OF_ENTITIES;
+        let sumcheck_evaluations = parser.extract_array::<NUMBER_OF_ENTITIES>();
 
-        let mut gemini_fold_comms = vec![];
-        for i in (offset..).step_by(4).take(CONST_PROOF_SIZE_LOG_N - 1) {
-            gemini_fold_comms.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
-            ));
-        }
-        let gemini_fold_comms = gemini_fold_comms.try_into().unwrap();
-        offset += (CONST_PROOF_SIZE_LOG_N - 1) * 4;
+        let gemini_fold_comms = parser
+            .extract_g1_points(CONST_PROOF_SIZE_LOG_N - 1)
+            .try_into()
+            .unwrap();
 
-        let mut gemini_a_evaluations = vec![];
-        for i in (offset..).step_by(1).take(CONST_PROOF_SIZE_LOG_N) {
-            gemini_a_evaluations.push(values[i].clone());
-        }
-        let gemini_a_evaluations = gemini_a_evaluations.try_into().unwrap();
-        offset += CONST_PROOF_SIZE_LOG_N;
+        let gemini_a_evaluations = parser.extract_array::<CONST_PROOF_SIZE_LOG_N>();
 
-        let mut points = vec![];
-        for i in (offset..).step_by(4).take(2) {
-            points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
-            ));
-        }
-        let [shplonk_q, kzg_quotient] = points.try_into().unwrap();
-        offset += 4 * 2;
+        let [shplonk_q, kzg_quotient] = parser.extract_g1_points_array::<2>();
 
-        assert_eq!(offset, PROOF_SIZE);
+        assert_eq!(parser.current_offset(), PROOF_SIZE);
 
-        let proof = Self {
+        Ok(Self {
             public_inputs,
             pairing_point_object,
             w1,
@@ -348,9 +289,7 @@ impl HonkProof {
             gemini_a_evaluations,
             shplonk_q,
             kzg_quotient,
-        };
-
-        Ok(proof)
+        })
     }
 }
 
@@ -403,102 +342,74 @@ pub fn get_honk_calldata(
 ) -> Result<Vec<BigUint>, String> {
     let (transcript, transcript_state, _) = HonkTranscript::from_proof(vk, proof, flavor)?;
 
-    fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
-        element_from_biguint(element)
-    }
-
-    fn g1_point_on_curve(point: &G1PointBigUint) -> Result<G1Point<BN254PrimeField>, String> {
-        G1Point::new(
-            element_from_biguint(&point.x),
-            element_from_biguint(&point.y),
-            false,
-        )
-    }
-
-    let public_inputs = proof
-        .public_inputs
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>();
-    let pairing_point_object = proof
-        .pairing_point_object
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>();
-    let w1 = g1_point_on_curve(&proof.w1)?;
-    let w2 = g1_point_on_curve(&proof.w2)?;
-    let w3 = g1_point_on_curve(&proof.w3)?;
-    let w4 = g1_point_on_curve(&proof.w4)?;
-    let z_perm = g1_point_on_curve(&proof.z_perm)?;
-    let lookup_read_counts = g1_point_on_curve(&proof.lookup_read_counts)?;
-    let lookup_read_tags = g1_point_on_curve(&proof.lookup_read_tags)?;
-    let lookup_inverses = g1_point_on_curve(&proof.lookup_inverses)?;
+    let public_inputs = biguint_slice_to_field_element(&proof.public_inputs);
+    let pairing_point_object = biguint_slice_to_field_element(&proof.pairing_point_object);
     let sumcheck_univariates = proof
         .sumcheck_univariates
         .iter()
-        .map(|v| v.iter().map(element_on_curve).collect::<Vec<_>>())
+        .map(|row| biguint_slice_to_field_element(row))
         .collect::<Vec<_>>();
-    let sumcheck_evaluations = proof
-        .sumcheck_evaluations
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-    let gemini_fold_comms = proof
-        .gemini_fold_comms
-        .iter()
-        .map(g1_point_on_curve)
-        .collect::<Result<Vec<_>, _>>()?;
-    let gemini_a_evaluations = proof
-        .gemini_a_evaluations
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-    let shplonk_q = g1_point_on_curve(&proof.shplonk_q)?;
-    let kzg_quotient = g1_point_on_curve(&proof.kzg_quotient)?;
+    let sumcheck_evaluations = array_to_field_element(&proof.sumcheck_evaluations);
+    let gemini_a_evaluations = array_to_field_element(&proof.gemini_a_evaluations);
+    let gemini_fold_comms = g1_slice_to_curve(&proof.gemini_fold_comms)?;
+    // Transform fields for HonkProof
+    transform_fields!(
+        proof,
+        g1_point_on_curve,
+        w1,
+        w2,
+        w3,
+        w4,
+        z_perm,
+        lookup_read_counts,
+        lookup_read_tags,
+        lookup_inverses,
+        shplonk_q,
+        kzg_quotient
+    );
 
-    let qm = g1_point_on_curve(&vk.qm)?;
-    let qc = g1_point_on_curve(&vk.qc)?;
-    let ql = g1_point_on_curve(&vk.ql)?;
-    let qr = g1_point_on_curve(&vk.qr)?;
-    let qo = g1_point_on_curve(&vk.qo)?;
-    let q4 = g1_point_on_curve(&vk.q4)?;
-    let q_lookup = g1_point_on_curve(&vk.q_lookup)?;
-    let q_arith = g1_point_on_curve(&vk.q_arith)?;
-    let q_delta_range = g1_point_on_curve(&vk.q_delta_range)?;
-    let q_elliptic = g1_point_on_curve(&vk.q_elliptic)?;
-    let q_aux = g1_point_on_curve(&vk.q_aux)?;
-    let q_poseidon2_external = g1_point_on_curve(&vk.q_poseidon2_external)?;
-    let q_poseidon2_internal = g1_point_on_curve(&vk.q_poseidon2_internal)?;
-    let s1 = g1_point_on_curve(&vk.s1)?;
-    let s2 = g1_point_on_curve(&vk.s2)?;
-    let s3 = g1_point_on_curve(&vk.s3)?;
-    let s4 = g1_point_on_curve(&vk.s4)?;
-    let id1 = g1_point_on_curve(&vk.id1)?;
-    let id2 = g1_point_on_curve(&vk.id2)?;
-    let id3 = g1_point_on_curve(&vk.id3)?;
-    let id4 = g1_point_on_curve(&vk.id4)?;
-    let t1 = g1_point_on_curve(&vk.t1)?;
-    let t2 = g1_point_on_curve(&vk.t2)?;
-    let t3 = g1_point_on_curve(&vk.t3)?;
-    let t4 = g1_point_on_curve(&vk.t4)?;
-    let lagrange_first = g1_point_on_curve(&vk.lagrange_first)?;
-    let lagrange_last = g1_point_on_curve(&vk.lagrange_last)?;
+    // Transform fields for HonkVerificationKey
+    transform_fields!(
+        vk,
+        g1_point_on_curve,
+        qm,
+        qc,
+        ql,
+        qr,
+        qo,
+        q4,
+        q_lookup,
+        q_arith,
+        q_delta_range,
+        q_elliptic,
+        q_aux,
+        q_poseidon2_external,
+        q_poseidon2_internal,
+        s1,
+        s2,
+        s3,
+        s4,
+        id1,
+        id2,
+        id3,
+        id4,
+        t1,
+        t2,
+        t3,
+        t4,
+        lagrange_first,
+        lagrange_last
+    );
 
-    let sumcheck_u_challenges = transcript
-        .sumcheck_u_challenges
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
-    let rho = element_on_curve(&transcript.rho);
-    let gemini_r = element_on_curve(&transcript.gemini_r);
-    let shplonk_nu = element_on_curve(&transcript.shplonk_nu);
-    let shplonk_z = element_on_curve(&transcript.shplonk_z);
+    let sumcheck_u_challenges = array_to_field_element(&transcript.sumcheck_u_challenges);
+    declare_element_on_curve!(
+        transcript,
+        element_on_curve,
+        rho,
+        gemini_r,
+        shplonk_nu,
+        shplonk_z
+    );
 
     let scalars = extract_msm_scalars(
         vk.log_circuit_size,
@@ -525,42 +436,6 @@ pub fn get_honk_calldata(
     let proof_data = {
         let mut call_data = vec![];
         let call_data_ref = &mut call_data;
-
-        fn push<T>(call_data_ref: &mut Vec<BigUint>, value: T)
-        where
-            BigUint: From<T>,
-        {
-            call_data_ref.push(value.into());
-        }
-
-        fn push_element<F>(call_data_ref: &mut Vec<BigUint>, element: &FieldElement<F>)
-        where
-            F: IsPrimeField,
-            FieldElement<F>: ByteConversion,
-        {
-            let limbs = field_element_to_u256_limbs(element);
-            for limb in limbs {
-                push(call_data_ref, limb);
-            }
-        }
-
-        fn push_elements(
-            call_data_ref: &mut Vec<BigUint>,
-            elements: &[FieldElement<GrumpkinPrimeField>],
-            prepend_length: bool,
-        ) {
-            if prepend_length {
-                push(call_data_ref, elements.len());
-            }
-            for element in elements {
-                push_element(call_data_ref, element);
-            }
-        }
-
-        fn push_point(call_data_ref: &mut Vec<BigUint>, point: &G1Point<BN254PrimeField>) {
-            push_element(call_data_ref, &point.x);
-            push_element(call_data_ref, &point.y);
-        }
 
         push_elements(call_data_ref, &public_inputs, true);
         push_elements(call_data_ref, &pairing_point_object, true);
@@ -1091,19 +966,6 @@ fn compute_shplemini_msm_scalars(
         .collect::<Vec<_>>()
         .try_into()
         .unwrap())
-}
-
-fn extract_msm_scalars(
-    log_circuit_size: usize,
-    scalars: [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2],
-) -> Vec<BigUint> {
-    let i = NUMBER_OF_ENTITIES + log_circuit_size;
-    let j = NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N;
-    [&scalars[1..i], &scalars[j..]]
-        .concat()
-        .into_iter()
-        .flatten()
-        .collect()
 }
 
 #[cfg(test)]
