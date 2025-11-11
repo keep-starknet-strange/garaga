@@ -20,7 +20,7 @@ corelib_imports = { path = "corelib_imports", version = "0.1.2" }
 [dev-dependencies]
 snforge_std = "0.48.0"
 assert_macros = "2.12.0"
-#cairo_test = "2.12.0"
+cairo_execute = "2.13.1"
 
 [scripts]
 test = "snforge test -p garaga --include-ignored"
