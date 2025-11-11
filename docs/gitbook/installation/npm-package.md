@@ -37,7 +37,7 @@ If you need to build the package from source (e.g., for development or custom mo
 
 - [Rust](https://www.rust-lang.org/tools/install)
 - [Node.js](https://nodejs.org/en/learn/getting-started/how-to-install-nodejs)
-- [wasm-pack](https://rustwasm.github.io/wasm-pack/installer/)
+- [wasm-pack](https://drager.github.io/wasm-pack/installer/)
 
 ### Manual Build
 

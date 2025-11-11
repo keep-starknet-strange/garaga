@@ -220,18 +220,19 @@ def write_lib_cairo_file(src_dir: str, modules: list[str] = None) -> None:
 def write_verifier_files(
     output_folder_path: str,
     package_name: str,
-    constants_code: str,
+    constants_code: str | None,
     contract_code: str,
     contract_cairo_name: str,
     verification_function_name: str,
     system: ProofSystem,
     cli_mode: bool = False,
-    circuits_code: str = None,
+    circuits_code: str | None = None,
     modules: list[str] = None,
     constants_filename: str = "groth16_verifier_constants.cairo",
     contract_filename: str = "groth16_verifier.cairo",
-    circuits_filename: str = None,
+    circuits_filename: str | None = None,
     include_test_sample: bool = True,
+    constants_output_path: str | None = None,
 ) -> None:
     """Write all the standard verifier files (directories, constants, contract, scarb.toml, lib.cairo, test files)."""
 
@@ -243,9 +244,16 @@ def write_verifier_files(
     # Write tool versions
     write_tool_versions_file(output_folder_path)
 
-    # Write constants file
-    with open(os.path.join(src_dir, constants_filename), "w") as f:
-        f.write(constants_code)
+    # Write constants file (if requested)
+    if constants_code is not None:
+        target_constants_path = constants_output_path or os.path.join(
+            src_dir, constants_filename
+        )
+        os.makedirs(os.path.dirname(target_constants_path), exist_ok=True)
+        with open(target_constants_path, "w") as f:
+            f.write(constants_code)
+
+        subprocess.run(["scarb", "fmt", target_constants_path], check=True)
 
     # Write contract file
     with open(os.path.join(src_dir, contract_filename), "w") as f:
@@ -349,7 +357,7 @@ pub trait I{contract_cairo_name}<TContractState> {{
 mod {contract_cairo_name} {{
     use starknet::SyscallResultTrait;
     use garaga::definitions::{{G1Point, G1G2Pair}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
+    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
     use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
@@ -375,9 +383,7 @@ mod {contract_cairo_name} {{
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
-            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
-            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.raw.check_proof_points({curve_id.value});
 
             let ic = ic.span();
 
@@ -414,8 +420,8 @@ mod {contract_cairo_name} {{
             // Perform the pairing check.
             let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
                 G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
-                G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
-                G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
+                G1G2Pair {{ p: groth16_proof.raw.c, q: vk.delta_g2 }},
+                G1G2Pair {{ p: groth16_proof.raw.a.negate({curve_id.value}), q: groth16_proof.raw.b }},
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,

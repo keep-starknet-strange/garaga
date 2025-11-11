@@ -1,5 +1,3 @@
-use super::groth16_verifier_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
-
 #[starknet::interface]
 pub trait ISP1Groth16VerifierBN254<TContractState> {
     fn verify_sp1_groth16_proof_bn254(
@@ -10,12 +8,14 @@ pub trait ISP1Groth16VerifierBN254<TContractState> {
 #[starknet::contract]
 mod SP1Groth16VerifierBN254 {
     use garaga::apps::sp1::{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1};
+    use garaga::apps::sp1_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
     use garaga::ec_ops_g2::G2PointTrait;
-    use garaga::groth16::multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result;
+    use garaga::groth16::{
+        Groth16ProofRawTrait, multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
+    };
     use starknet::SyscallResultTrait;
-    use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
 
     const ECIP_OPS_CLASS_HASH: felt252 =
         0x7401ed2afc09c21b394184c59b6862a60fd74f6781793599651ccfa0a9b100d;
@@ -42,9 +42,7 @@ mod SP1Groth16VerifierBN254 {
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_in_subgroup_excluding_infinity(0);
-            groth16_proof.b.assert_in_subgroup_excluding_infinity(0);
-            groth16_proof.c.assert_in_subgroup_excluding_infinity(0);
+            groth16_proof.check_proof_points(0);
 
             let ic = ic.span();
 
@@ -101,4 +99,3 @@ mod SP1Groth16VerifierBN254 {
         }
     }
 }
-

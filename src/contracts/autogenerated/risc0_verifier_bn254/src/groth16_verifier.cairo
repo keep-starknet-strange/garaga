@@ -15,7 +15,9 @@ mod Risc0Groth16VerifierBN254 {
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
     use garaga::ec_ops_g2::G2PointTrait;
-    use garaga::groth16::multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result;
+    use garaga::groth16::{
+        Groth16ProofRawTrait, multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
+    };
     use starknet::SyscallResultTrait;
     use super::{N_FREE_PUBLIC_INPUTS, T, ic, precomputed_lines, vk};
 
@@ -44,9 +46,7 @@ mod Risc0Groth16VerifierBN254 {
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_in_subgroup_excluding_infinity(0);
-            groth16_proof.b.assert_in_subgroup_excluding_infinity(0);
-            groth16_proof.c.assert_in_subgroup_excluding_infinity(0);
+            groth16_proof.check_proof_points(0);
 
             let ic = ic.span();
 

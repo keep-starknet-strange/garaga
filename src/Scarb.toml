@@ -21,6 +21,7 @@ corelib_imports = { path = "corelib_imports", version = "0.1.2" }
 snforge_std = "0.51.1"
 assert_macros = "2.12.2"
 #cairo_test = "2.12.2"
+cairo_execute = "2.12.2"
 
 [scripts]
 test = "snforge test -p garaga --include-ignored"
