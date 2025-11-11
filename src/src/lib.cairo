@@ -3,6 +3,7 @@ pub mod apps {
     pub mod noir;
     pub mod risc0;
     pub mod sp1;
+    pub mod sp1_constants;
 }
 
 pub mod basic_field_ops;
