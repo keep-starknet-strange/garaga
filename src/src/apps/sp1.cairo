@@ -1,9 +1,11 @@
 use core::sha256::compute_sha256_u32_array;
 use corelib_imports::bounded_int::{AddHelper, BoundedInt, MulHelper, UnitInt, bounded_int, upcast};
+use garaga::ec::pairing::groth16::{Groth16Proof, verify_groth16_bn254};
 use garaga::pairing_check::MPCheckHintBN254;
 use garaga::utils::calldata::{
     Groth16ProofRaw, _deserialize_groth16_proof_points, _deserialize_mpcheck_hint_bn254,
 };
+use super::sp1_constants::{ic, precomputed_lines, vk};
 
 #[derive(Drop)]
 pub struct FullProofWithHintsSP1 {
@@ -77,9 +79,7 @@ const POW_253: u256 = 0x20000000000000000000000000000000000000000000000000000000
 
 pub fn process_public_inputs_sp1(public_inputs: Array<u32>) -> (Span<u256>, u256) {
     let mut pi = public_inputs.span();
-
     let mut pub_inputs_256: Array<u256> = array![];
-
     assert(public_inputs.len() % 8 == 0, 'wrong sp1 pub inputs size');
 
     while let Option::Some(word) = pi.multi_pop_front::<8>() {
@@ -136,7 +136,26 @@ pub fn deserialize_full_proof_with_hints_sp1(
         msm_hint: msm_hint,
     };
 }
+pub fn verify_groth16_sp1(proof: FullProofWithHintsSP1) -> Option<Span<u256>> {
+    let groth16_proof_raw = proof.groth16_proof;
+    let vkey = proof.vkey;
+    let public_inputs_sp1 = proof.public_inputs_sp1;
+    let mpcheck_hint = proof.mpcheck_hint;
+    let mut msm_hint = proof.msm_hint;
+    let _ = msm_hint.pop_front().unwrap();
 
+    let (_pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(
+        public_inputs_sp1,
+    );
+
+    let proof_pub_input = array![vkey, pub_input_hash];
+
+    let proof = Groth16Proof { raw: groth16_proof_raw, public_inputs: proof_pub_input.span() };
+
+    return verify_groth16_bn254(
+        vk, precomputed_lines.span(), ic.span(), proof, msm_hint, mpcheck_hint,
+    );
+}
 #[cfg(test)]
 mod tests {
     use super::convert_u32_to_u128;

@@ -76,7 +76,7 @@ pub trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
 mod Risc0Groth16Verifier{curve_id.name} {{
     use starknet::SyscallResultTrait;
     use garaga::definitions::{{G1Point, G1G2Pair}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
+    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
     use garaga::ec_ops_g2::{{G2PointTrait}};
     use garaga::apps::risc0::{{compute_receipt_claim, journal_sha256, deserialize_full_proof_with_hints_risc0}};
@@ -106,9 +106,7 @@ mod Risc0Groth16Verifier{curve_id.name} {{
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
-            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
-            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
+            groth16_proof.check_proof_points({curve_id.value});
 
             let ic = ic.span();
 

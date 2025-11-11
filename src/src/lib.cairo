@@ -3,6 +3,7 @@ pub mod apps {
     pub mod noir;
     pub mod risc0;
     pub mod sp1;
+    pub mod sp1_constants;
 }
 
 pub mod basic_field_ops;
@@ -66,6 +67,8 @@ mod tests {
     mod calldata_tests;
     #[cfg(test)]
     mod sha512_tests;
+    #[cfg(test)]
+    mod sp1_groth_16_tests;
 }
 
 pub mod utils {
