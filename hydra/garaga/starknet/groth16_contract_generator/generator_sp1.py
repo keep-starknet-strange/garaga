@@ -1,4 +1,5 @@
 import os
+from textwrap import dedent
 
 from garaga.curves import ProofSystem
 from garaga.starknet.groth16_contract_generator.generator import (
@@ -28,120 +29,124 @@ def gen_sp1_groth16_verifier(
     precomputed_lines = precompute_lines_from_vk(vk)
 
     contract_cairo_name = f"SP1Groth16Verifier{curve_id.name}"
-    constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
-    use garaga::groth16::Groth16VerifyingKey;
+    constants_code = (
+        dedent(
+            f"""
+            use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
+            use garaga::groth16::Groth16VerifyingKey;
 
-    pub const N_PUBLIC_INPUTS:usize = {len(vk.ic)-1};
-    {vk.serialize_to_cairo()}
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
-    """
+            pub const N_PUBLIC_INPUTS: usize = {len(vk.ic) - 1};
+            {vk.serialize_to_cairo()}
+            pub const precomputed_lines: [G2Line; {len(precomputed_lines) // 4}] = {precomputed_lines.serialize(raw=True, const=True)};
+            """
+        ).strip()
+        + "\n"
+    )
     verification_function_name = f"verify_sp1_groth16_proof_{curve_id.name.lower()}"
 
-    contract_code = f"""
-use super::groth16_verifier_constants::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
-
-#[starknet::interface]
-pub trait ISP1Groth16Verifier{curve_id.name}<TContractState> {{
-    fn {verification_function_name}(
-        self: @TContractState,
-        full_proof_with_hints: Span<felt252>,
-    ) -> Option<(u256, Span<u256>)>;
-}}
-
-#[starknet::contract]
-mod SP1Groth16Verifier{curve_id.name} {{
-    use starknet::SyscallResultTrait;
-    use garaga::definitions::{{G1Point, G1G2Pair}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
-    use garaga::ec_ops_g2::{{G2PointTrait}};
-    use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1}};
-    use super::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
-
-    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-
-    #[storage]
-    struct Storage {{}}
-
-    #[abi(embed_v0)]
-    impl ISP1Groth16Verifier{curve_id.name} of super::ISP1Groth16Verifier{curve_id.name}<ContractState> {{
-        fn {verification_function_name}(
-            self: @ContractState,
-            full_proof_with_hints: Span<felt252>,
-        ) -> Option<(u256, Span<u256>)> {{
-            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns an Option for the SP1 verifying key and public inputs if the proof is valid.
-            // If the proof is invalid, the execution will either fail or return None.
-            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
-
-
-            let fph = deserialize_full_proof_with_hints_sp1(full_proof_with_hints);
-            let groth16_proof = fph.groth16_proof;
-            let vkey = fph.vkey;
-            let public_inputs_sp1 = fph.public_inputs_sp1;
-            let mpcheck_hint = fph.mpcheck_hint;
-            let msm_hint = fph.msm_hint;
-
-            groth16_proof.a.assert_in_subgroup_excluding_infinity({curve_id.value});
-            groth16_proof.b.assert_in_subgroup_excluding_infinity({curve_id.value});
-            groth16_proof.c.assert_in_subgroup_excluding_infinity({curve_id.value});
-
-            let ic = ic.span();
-
-            let (pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(public_inputs_sp1);
-
-
-            let vk_x: G1Point = match ic.len() {{
-                0 => panic!("Malformed VK"),
-                1 => *ic.at(0),
-                _ => {{
-                    let mut msm_calldata: Array<felt252> = array![];
-                    // Add the points from VK and public inputs to the proof.
-                    Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
-                    // Serialize public inputs as u256 array.
-                    Serde::serialize(@N_PUBLIC_INPUTS, ref msm_calldata);
-                    Serde::serialize(@vkey, ref msm_calldata);
-                    Serde::serialize(@pub_input_hash, ref msm_calldata);
-                    // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
-                    msm_calldata.append({curve_id.value});
-                    // Add the hint array.
-                    for x in msm_hint {{
-                        msm_calldata.append(*x);
-                    }}
-
-                    // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
-                    // to obtain vk_x.
-                    let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
-                        ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                        selector!("msm_g1"),
-                        msm_calldata.span()
-                    )
-                        .unwrap_syscall();
-
-                    ec_safe_add(
-                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), {curve_id.value}
-                    )
-                }}
-            }};
-            // Perform the pairing check.
-            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
-                G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
-                G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
-                G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
-                vk.alpha_beta_miller_loop_result,
-                precomputed_lines.span(),
-                mpcheck_hint,
-            );
-            if check == true {{
-                return Option::Some((vkey, pub_inputs_256));
-            }} else {{
-                return Option::None;
+    contract_code = (
+        dedent(
+            f"""
+            #[starknet::interface]
+            pub trait ISP1Groth16Verifier{curve_id.name}<TContractState> {{
+                fn {verification_function_name}(
+                    self: @TContractState,
+                    full_proof_with_hints: Span<felt252>,
+                ) -> Option<(u256, Span<u256>)>;
             }}
-        }}
-    }}
-}}
-    """
+
+            #[starknet::contract]
+            mod SP1Groth16Verifier{curve_id.name} {{
+                use starknet::SyscallResultTrait;
+                use garaga::definitions::{{G1Point, G1G2Pair}};
+                use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
+                use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
+                use garaga::ec_ops_g2::{{G2PointTrait}};
+                use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1}};
+                use garaga::apps::sp1_constants::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
+
+                const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
+
+                #[storage]
+                struct Storage {{}}
+
+                #[abi(embed_v0)]
+                impl ISP1Groth16Verifier{curve_id.name} of super::ISP1Groth16Verifier{curve_id.name}<ContractState> {{
+                    fn {verification_function_name}(
+                        self: @ContractState,
+                        full_proof_with_hints: Span<felt252>,
+                    ) -> Option<(u256, Span<u256>)> {{
+                        // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+                        // This function returns an Option for the SP1 verifying key and public inputs if the proof is valid.
+                        // If the proof is invalid, the execution will either fail or return None.
+                        // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
+
+                        let fph = deserialize_full_proof_with_hints_sp1(full_proof_with_hints);
+                        let groth16_proof = fph.groth16_proof;
+                        let vkey = fph.vkey;
+                        let public_inputs_sp1 = fph.public_inputs_sp1;
+                        let mpcheck_hint = fph.mpcheck_hint;
+                        let msm_hint = fph.msm_hint;
+
+                        groth16_proof.check_proof_points({curve_id.value});
+
+                        let ic = ic.span();
+
+                        let (pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(public_inputs_sp1);
+
+                        let vk_x: G1Point = match ic.len() {{
+                            0 => panic!("Malformed VK"),
+                            1 => *ic.at(0),
+                            _ => {{
+                                let mut msm_calldata: Array<felt252> = array![];
+                                // Add the points from VK and public inputs to the proof.
+                                Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
+                                // Serialize public inputs as u256 array.
+                                Serde::serialize(@N_PUBLIC_INPUTS, ref msm_calldata);
+                                Serde::serialize(@vkey, ref msm_calldata);
+                                Serde::serialize(@pub_input_hash, ref msm_calldata);
+                                // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
+                                msm_calldata.append({curve_id.value});
+                                // Add the hint array.
+                                for x in msm_hint {{
+                                    msm_calldata.append(*x);
+                                }}
+
+                                // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
+                                // to obtain vk_x.
+                                let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
+                                    ECIP_OPS_CLASS_HASH.try_into().unwrap(),
+                                    selector!("msm_g1"),
+                                    msm_calldata.span()
+                                )
+                                    .unwrap_syscall();
+
+                                ec_safe_add(
+                                    Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), {curve_id.value}
+                                )
+                            }}
+                        }};
+                        // Perform the pairing check.
+                        let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
+                            G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
+                            G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
+                            G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
+                            vk.alpha_beta_miller_loop_result,
+                            precomputed_lines.span(),
+                            mpcheck_hint,
+                        );
+                        if check == true {{
+                            return Option::Some((vkey, pub_inputs_256));
+                        }} else {{
+                            return Option::None;
+                        }}
+                    }}
+                }}
+            }}
+            """
+        ).strip()
+        + "\n"
+    )
 
     # Use the reusable function to write all files
     write_verifier_files(
@@ -153,6 +158,8 @@ mod SP1Groth16Verifier{curve_id.name} {{
         verification_function_name,
         ProofSystem.Groth16,
         cli_mode,
+        modules=["groth16_verifier"],
+        constants_output_path=os.path.join("src", "src", "apps", "sp1_constants.cairo"),
     )
 
     return constants_code

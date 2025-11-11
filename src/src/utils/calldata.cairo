@@ -1,7 +1,7 @@
 use core::circuit::u384;
 use corelib_imports::bounded_int::downcast;
 pub use garaga::definitions::{E12D, G1Point, G2Point, MillerLoopResultScalingFactor, u288};
-pub use garaga::groth16::Groth16Proof;
+pub use garaga::groth16::{Groth16Proof, Groth16ProofRaw};
 pub use garaga::pairing_check::{MPCheckHintBLS12_381, MPCheckHintBN254};
 
 #[derive(Drop)]
@@ -16,13 +16,6 @@ pub struct FullProofWithHintsBLS12_381 {
     pub groth16_proof: Groth16Proof,
     pub mpcheck_hint: MPCheckHintBLS12_381,
     pub msm_hint: Span<felt252>,
-}
-
-#[derive(Drop, Serde, Debug)]
-pub struct Groth16ProofRaw {
-    pub a: G1Point,
-    pub b: G2Point,
-    pub c: G1Point,
 }
 
 const U288_N_LIMBS: usize = 3;
@@ -184,10 +177,7 @@ pub fn deserialize_full_proof_with_hints_bn254(
     }
 
     let groth16_proof = Groth16Proof {
-        a: groth16_proof_raw.a,
-        b: groth16_proof_raw.b,
-        c: groth16_proof_raw.c,
-        public_inputs: public_inputs.span(),
+        raw: groth16_proof_raw, public_inputs: public_inputs.span(),
     };
 
     let mpcheck_hint = _deserialize_mpcheck_hint_bn254(ref serialized);
@@ -559,10 +549,7 @@ pub fn deserialize_full_proof_with_hints_bls12_381(
     // assert(full_len == serialized.len(), 'C');
 
     let groth16_proof = Groth16Proof {
-        a: groth16_proof_raw.a,
-        b: groth16_proof_raw.b,
-        c: groth16_proof_raw.c,
-        public_inputs: public_inputs.span(),
+        raw: groth16_proof_raw, public_inputs: public_inputs.span(),
     };
     // Deserialize mpcheck_hint
     let mpcheck_hint = deserialize_mpcheck_hint_bls12_381(ref serialized);

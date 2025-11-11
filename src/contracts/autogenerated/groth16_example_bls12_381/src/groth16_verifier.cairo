@@ -12,7 +12,9 @@ mod Groth16VerifierBLS12_381 {
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
     use garaga::ec_ops_g2::G2PointTrait;
-    use garaga::groth16::multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result;
+    use garaga::groth16::{
+        Groth16ProofRawTrait, multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result,
+    };
     use garaga::utils::calldata::deserialize_full_proof_with_hints_bls12_381;
     use starknet::SyscallResultTrait;
     use super::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
@@ -38,9 +40,7 @@ mod Groth16VerifierBLS12_381 {
             let mpcheck_hint = fph.mpcheck_hint;
             let msm_hint = fph.msm_hint;
 
-            groth16_proof.a.assert_in_subgroup_excluding_infinity(1);
-            groth16_proof.b.assert_in_subgroup_excluding_infinity(1);
-            groth16_proof.c.assert_in_subgroup_excluding_infinity(1);
+            groth16_proof.raw.check_proof_points(1);
 
             let ic = ic.span();
 
@@ -77,8 +77,8 @@ mod Groth16VerifierBLS12_381 {
             // Perform the pairing check.
             let check = multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
                 G1G2Pair { p: vk_x, q: vk.gamma_g2 },
-                G1G2Pair { p: groth16_proof.c, q: vk.delta_g2 },
-                G1G2Pair { p: groth16_proof.a.negate(1), q: groth16_proof.b },
+                G1G2Pair { p: groth16_proof.raw.c, q: vk.delta_g2 },
+                G1G2Pair { p: groth16_proof.raw.a.negate(1), q: groth16_proof.raw.b },
                 vk.alpha_beta_miller_loop_result,
                 precomputed_lines.span(),
                 mpcheck_hint,

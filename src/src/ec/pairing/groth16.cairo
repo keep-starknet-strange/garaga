@@ -31,7 +31,7 @@ use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G1Point,
     G2Line, G2Point, get_BN254_modulus, get_modulus, u288,
 };
-use garaga::ec_ops::{G1PointTrait, msm_g1};
+use garaga::ec_ops::{G1PointTrait, ec_safe_add, msm_g1};
 use garaga::ec_ops_g2::G2PointTrait;
 use garaga::pairing_check::{
     BLSProcessedPair, BNProcessedPair, MPCheckHintBLS12_381, MPCheckHintBN254,
@@ -40,12 +40,18 @@ use garaga::pairing_check::{
 use garaga::utils::hashing::{PoseidonState, TWO_POW_96};
 use garaga::utils::{hashing, usize_assert_eq};
 
-// Groth16 proof structure, genric for both BN254 and BLS12-381.
-#[derive(Drop, Serde, Debug, PartialEq)]
-pub struct Groth16Proof {
+
+#[derive(Copy, Drop, Serde, Debug, PartialEq)]
+pub struct Groth16ProofRaw {
     pub a: G1Point,
     pub b: G2Point,
     pub c: G1Point,
+}
+
+// Groth16 proof structure, generic for both BN254 and BLS12-381.
+#[derive(Copy, Drop, Serde, Debug, PartialEq)]
+pub struct Groth16Proof {
+    pub raw: Groth16ProofRaw,
     pub public_inputs: Span<u256>,
 }
 
@@ -61,6 +67,26 @@ pub struct Groth16VerifyingKey<T> {
     pub delta_g2: G2Point,
 }
 
+#[generate_trait]
+pub impl Groth16RawProofImpl of Groth16ProofRawTrait {
+    fn check_proof_points(self: @Groth16ProofRaw, curve_id: u32) {
+        self.a.assert_in_subgroup_excluding_infinity(curve_id);
+        self.b.assert_in_subgroup_excluding_infinity(curve_id);
+        self.c.assert_in_subgroup_excluding_infinity(curve_id);
+    }
+}
+
+#[inline]
+fn _groth16_get_vk_x(
+    proof: Groth16Proof, ic: Span<G1Point>, public_inputs_msm_hint: Span<felt252>, curve_id: u32,
+) -> G1Point {
+    let vk_x_x: G1Point = msm_g1(
+        ic.slice(1, ic.len() - 1), proof.public_inputs, curve_id, public_inputs_msm_hint,
+    );
+    let vk_x = ec_safe_add(vk_x_x, *ic.at(0), curve_id);
+    return vk_x;
+}
+
 
 // Verify a groth16 proof for BN254.
 // Parameters:
@@ -70,37 +96,31 @@ pub struct Groth16VerifyingKey<T> {
 // delta.
 // - ic: the points in the VK corresponding to the public inputs. The length must correspond to the
 // number of public inputs in the proof.
-// - public_inputs_digits_decompositions: the digits decompositions of the public inputs in base
-// (-3) for each of the low and high part of the u256.
-//      - If provided, or partially provided (as hint), each provided decomposition is verified in
-//      Cairo.
-//      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
 // - public_inputs_msm_hint: the MSM hint of the public inputs
 // - mpcheck_hint: the MPCheck hint of the proof
 pub fn verify_groth16_bn254(
-    proof: Groth16Proof,
     verification_key: Groth16VerifyingKey<u288>,
     mut lines: Span<G2Line<u288>>,
     ic: Span<G1Point>,
+    proof: Groth16Proof,
     public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBN254,
-) -> bool {
-    let vk_x: G1Point = msm_g1(
-        ic.slice(1, ic.len() - 1), proof.public_inputs, 0, public_inputs_msm_hint,
-    );
-
-    proof.a.assert_in_subgroup_excluding_infinity(0);
-    proof.b.assert_in_subgroup_excluding_infinity(0);
-    proof.c.assert_in_subgroup_excluding_infinity(0);
-
-    return multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
+) -> Option<Span<u256>> {
+    proof.raw.check_proof_points(0);
+    let vk_x = _groth16_get_vk_x(proof, ic, public_inputs_msm_hint, 0);
+    let check = multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
-        G1G2Pair { p: proof.c, q: verification_key.delta_g2 },
-        G1G2Pair { p: proof.a, q: proof.b },
+        G1G2Pair { p: proof.raw.c, q: verification_key.delta_g2 },
+        G1G2Pair { p: proof.raw.a.negate(0), q: proof.raw.b },
         verification_key.alpha_beta_miller_loop_result,
         lines,
         mpcheck_hint,
     );
+
+    match check {
+        true => Option::Some(proof.public_inputs),
+        false => Option::None,
+    }
 }
 
 // Verify a groth16 proof for BN254.
@@ -111,11 +131,6 @@ pub fn verify_groth16_bn254(
 // delta.
 // - ic: the points in the VK corresponding to the public inputs. The length must correspond to the
 // number of public inputs in the proof.
-// - public_inputs_digits_decompositions: the digits decompositions of the public inputs in base
-// (-3) for each of the low and high part of the u256.
-//      - If provided, or partially provided (as hint), each provided decomposition is verified in
-//      Cairo.
-//      - If None, or partially provided, the missing decompositions are computed in pure Cairo.
 // - public_inputs_msm_hint: the MSM hint of the public inputs
 // - mpcheck_hint: the MPCheck hint of the proof
 pub fn verify_groth16_bls12_381(
@@ -125,23 +140,22 @@ pub fn verify_groth16_bls12_381(
     ic: Span<G1Point>,
     public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBLS12_381,
-) -> bool {
-    let vk_x: G1Point = msm_g1(
-        ic.slice(1, ic.len() - 1), proof.public_inputs, 1, public_inputs_msm_hint,
-    );
+) -> Option<Span<u256>> {
+    proof.raw.check_proof_points(1);
+    let vk_x = _groth16_get_vk_x(proof, ic, public_inputs_msm_hint, 1);
 
-    proof.a.assert_in_subgroup_excluding_infinity(1);
-    proof.b.assert_in_subgroup_excluding_infinity(1);
-    proof.c.assert_in_subgroup_excluding_infinity(1);
-
-    return multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
+    let check = multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         G1G2Pair { p: vk_x, q: verification_key.gamma_g2 },
-        G1G2Pair { p: proof.c, q: verification_key.delta_g2 },
-        G1G2Pair { p: proof.a, q: proof.b },
+        G1G2Pair { p: proof.raw.c, q: verification_key.delta_g2 },
+        G1G2Pair { p: proof.raw.a.negate(1), q: proof.raw.b },
         verification_key.alpha_beta_miller_loop_result,
         lines,
         mpcheck_hint,
     );
+    match check {
+        true => Option::Some(proof.public_inputs),
+        false => Option::None,
+    }
 }
 
 
