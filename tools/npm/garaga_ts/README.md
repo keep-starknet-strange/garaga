@@ -48,7 +48,7 @@ const groth16Calldata = getGroth16CallData(proof, verifyingKey, CurveId.BN254);
 
 ## Available Functions
 
-📋 **For complete API documentation with examples, see:** [API Reference](https://github.com/keep-starknet-strange/garaga/blob/v0.18.2/tools/npm/garaga_ts/src/node/api.ts)
+📋 **For complete API documentation with examples, see:** [API Reference](https://github.com/keep-starknet-strange/garaga/blob/v1.0.0/tools/npm/garaga_ts/src/node/api.ts)
 
 - `msmCalldataBuilder()` - Multi-scalar multiplication calldata generation
 - `mpcCalldataBuilder()` - Multi-pairing check calldata generation

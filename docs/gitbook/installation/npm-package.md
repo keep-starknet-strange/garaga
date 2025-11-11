@@ -22,7 +22,7 @@ yarn add garaga
 
 ## Available Functions
 
-The package exports several functions that you can use in your project. For a complete list of available functions and their usage, check out the [API Reference](https://github.com/keep-starknet-strange/garaga/blob/main/tools/npm/garaga_ts/src/node/api.ts). This file contains all the exported functions and their TypeScript definitions.
+The package exports several functions that you can use in your project. For a complete list of available functions and their usage, check out the [API Reference](https://github.com/keep-starknet-strange/garaga/blob/v1.0.0/tools/npm/garaga_ts/src/node/api.ts). This file contains all the exported functions and their TypeScript definitions.
 
 ## Package Details
 

@@ -1,18 +1,25 @@
 import ast
 import asyncio
+import os
 import sys
 from enum import Enum
 from pathlib import Path
 
+import dotenv
 from starknet_py.net.full_node_client import FullNodeClient
 
 import garaga.hints.io as io
 from garaga.starknet.cli.smart_contract_project import SmartContractProject
 
+dotenv.load_dotenv(".secrets")
+
 
 class Network(Enum):
     SEPOLIA = "sepolia"
     MAINNET = "mainnet"
+
+    def get_rpc_url(self):
+        return os.getenv(f"{self.value.upper()}_RPC_URL")
 
 
 def get_class_hash_from_generator():
@@ -34,7 +41,7 @@ def get_class_hash_from_generator():
 async def verify_network(network: Network, class_hash: str):
     class_hash = io.to_hex_str(class_hash)
     print(f"\nVerifying class hash {class_hash} on {network.value}...")
-    rpc_url = f"https://starknet-{network.value}.public.blastapi.io/rpc/v0_8"
+    rpc_url = network.get_rpc_url()
 
     print(f"Using RPC URL: {rpc_url}")
     client = FullNodeClient(rpc_url)

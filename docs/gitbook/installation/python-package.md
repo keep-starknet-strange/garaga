@@ -42,7 +42,7 @@ If your Python 3.10 installation is not supported by one of the pre-built binary
 To install a specific version, use :
 
 ```bash
-pip install --force-reinstall garaga==0.15.5
+pip install --force-reinstall garaga==1.0.0
 
 ```
 
@@ -61,4 +61,3 @@ Make sure the dependency on the Garaga Cairo library in `Scarb.toml` is at the s
 You might have some dependencies issues on Linux or MacOs related to some packages that uses C code.&#x20;
 
 Refer to the installations notes of Starknet.py [https://starknetpy.readthedocs.io/en/latest/installation.html](https://starknetpy.readthedocs.io/en/latest/installation.html)  to fix those issues.&#x20;
-

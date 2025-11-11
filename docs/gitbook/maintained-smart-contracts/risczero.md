@@ -94,7 +94,7 @@ hex = "0.4"
 Optionally, if you intend to explicitly generate and handle the call-data, also add the following dependency to `host/Cargo.toml`. Make sure to use a Garaga version tag that is consistent with your setup.
 
 <pre class="language-toml"><code class="lang-toml">[dependencies]
-<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.18.0" }
+<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
 </strong>...
 </code></pre>
 
