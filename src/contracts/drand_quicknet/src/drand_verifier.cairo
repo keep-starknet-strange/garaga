@@ -74,13 +74,13 @@ mod DrandQuicknet {
             );
 
             match check {
-                true => Option::Some(
+                Result::Ok(_) => Option::Some(
                     DrandResult {
                         round_number: drand_hint.round_number,
                         randomness: hash_G1Point(drand_hint.signature),
                     },
                 ),
-                false => Option::None,
+                Result::Err(error) => Option::None,
             }
         }
     }

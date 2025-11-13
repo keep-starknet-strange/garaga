@@ -301,7 +301,7 @@ pub trait {trait_name}<TContractState> {{
     fn {endpoint_name}(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>;
+    ) -> Result<Span<u256>, felt252>;
 }}
 
 #[starknet::contract]
@@ -331,10 +331,10 @@ mod {contract_name} {{
         fn {endpoint_name}(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> Option<Span<u256>> {{
+        ) -> Result<Span<u256>, felt252> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns an Option for the public inputs if the proof is valid.
-            // If the proof is invalid, the execution will either fail or return None.
+            // This function returns Result::Ok(public_inputs) if the proof is valid.
+            // If the proof is invalid, it returns Result::Err(error).
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
@@ -539,10 +539,10 @@ def _gen_honk_verifier_files(
 
             {get_msm_kzg_template(msm_len, n_vk_points, n_proof_points, is_on_curve_function_name)}
 
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && kzg_check {{
-                return Option::Some(full_proof.proof.public_inputs);
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && kzg_check.is_ok() {{
+                return Result::Ok(full_proof.proof.public_inputs);
             }} else {{
-                return Option::None;
+                return Result::Err('Proof verification failed');
             }}
         }}
     }}
@@ -683,10 +683,10 @@ def _gen_zk_honk_verifier_files(
             let mut scalars: Span<u384> = array![{scalars_tuple_into}].span();
 
             {get_msm_kzg_template(msm_len, n_vk_points, n_proof_points, is_on_curve_function_name)}
-            if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && kzg_check {{
-                return Option::Some(full_proof.proof.public_inputs);
+            if sum_check_rlc.is_zero() && honk_check.is_zero() && !vanishing_check.is_zero() && diff_check.is_zero() && kzg_check.is_ok() {{
+                return Result::Ok(full_proof.proof.public_inputs);
             }} else {{
-                return Option::None;
+                return Result::Err('Proof verification failed');
             }}
         }}
     }}

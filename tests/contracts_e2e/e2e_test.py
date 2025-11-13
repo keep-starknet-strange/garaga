@@ -466,7 +466,6 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
     invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
 
     await invoke_result.wait_for_acceptance()
-
     print(f"Invoke result : {invoke_result.status}")
 
     receipt = await account.client.get_transaction_receipt(invoke_result.hash)
