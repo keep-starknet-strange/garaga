@@ -136,7 +136,7 @@ pub fn deserialize_full_proof_with_hints_sp1(
         msm_hint: msm_hint,
     };
 }
-pub fn verify_groth16_sp1(proof: FullProofWithHintsSP1) -> Option<Span<u256>> {
+pub fn verify_groth16_sp1(proof: FullProofWithHintsSP1) -> Result<Span<u256>, felt252> {
     let groth16_proof_raw = proof.groth16_proof;
     let vkey = proof.vkey;
     let public_inputs_sp1 = proof.public_inputs_sp1;
@@ -152,9 +152,13 @@ pub fn verify_groth16_sp1(proof: FullProofWithHintsSP1) -> Option<Span<u256>> {
 
     let proof = Groth16Proof { raw: groth16_proof_raw, public_inputs: proof_pub_input.span() };
 
-    return verify_groth16_bn254(
+    let result = verify_groth16_bn254(
         vk, precomputed_lines.span(), ic.span(), proof, msm_hint, mpcheck_hint,
     );
+    match result {
+        Result::Ok(_) => Result::Ok(proof.public_inputs),
+        Result::Err(error) => Result::Err(error),
+    }
 }
 #[cfg(test)]
 mod tests {

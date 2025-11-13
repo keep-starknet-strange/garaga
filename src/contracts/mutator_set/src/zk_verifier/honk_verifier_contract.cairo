@@ -289,7 +289,7 @@ mod UltraKeccakZKHonkVerifier {
                 && honk_check.is_zero()
                 && !vanishing_check.is_zero()
                 && diff_check.is_zero()
-                && kzg_check {
+                && kzg_check.is_ok() {
                 return Option::Some(full_proof.proof.public_inputs);
             } else {
                 return Option::None;
