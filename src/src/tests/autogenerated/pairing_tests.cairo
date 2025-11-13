@@ -6945,7 +6945,7 @@ fn test_BN254_mpcheck_2P_2F() {
         z: 0x7f997c7ceaaa93d340bc143f505f6d8423271960d6604ea8bf9d8c50dc40977,
     };
     let res = multi_pairing_check_bn254_2P_2F(pair0, pair1, lines, hint);
-    assert!(res);
+    assert!(res.is_ok());
 }
 
 
@@ -14215,7 +14215,7 @@ fn test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result() {
     let res = multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
         pair0, pair1, pair2, precomputed_miller_loop_result, lines, hint,
     );
-    assert!(res);
+    assert!(res.is_ok());
 }
 
 
@@ -21016,7 +21016,7 @@ fn test_BLS12_381_mpcheck_2P_2F() {
         z: 0x73e890d1574ee2b2f3ca3ceae9c940462f46109b37cd53e4f1b245027a6ccfa,
     };
     let res = multi_pairing_check_bls12_381_2P_2F(pair0, pair1, lines, hint);
-    assert!(res);
+    assert!(res.is_ok());
 }
 
 
@@ -28079,6 +28079,6 @@ fn test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result() {
     let res = multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         pair0, pair1, pair2, precomputed_miller_loop_result, lines, hint,
     );
-    assert!(res);
+    assert!(res.is_ok());
 }
 

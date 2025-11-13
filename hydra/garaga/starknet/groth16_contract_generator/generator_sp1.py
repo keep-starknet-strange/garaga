@@ -52,7 +52,7 @@ def gen_sp1_groth16_verifier(
                 fn {verification_function_name}(
                     self: @TContractState,
                     full_proof_with_hints: Span<felt252>,
-                ) -> Option<(u256, Span<u256>)>;
+                ) -> Result<(u256, Span<u256>), felt252>;
             }}
 
             #[starknet::contract]
@@ -61,7 +61,6 @@ def gen_sp1_groth16_verifier(
                 use garaga::definitions::{{G1Point, G1G2Pair}};
                 use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
                 use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
-                use garaga::ec_ops_g2::{{G2PointTrait}};
                 use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1}};
                 use garaga::apps::sp1_constants::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
 
@@ -75,10 +74,10 @@ def gen_sp1_groth16_verifier(
                     fn {verification_function_name}(
                         self: @ContractState,
                         full_proof_with_hints: Span<felt252>,
-                    ) -> Option<(u256, Span<u256>)> {{
+                    ) -> Result<(u256, Span<u256>), felt252> {{
                         // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-                        // This function returns an Option for the SP1 verifying key and public inputs if the proof is valid.
-                        // If the proof is invalid, the execution will either fail or return None.
+                        // This function returns Result::Ok((vkey, public_inputs)) if the proof is valid.
+                        // If the proof is invalid, it returns Result::Err(error).
                         // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
 
                         let fph = deserialize_full_proof_with_hints_sp1(full_proof_with_hints);
@@ -135,10 +134,9 @@ def gen_sp1_groth16_verifier(
                             precomputed_lines.span(),
                             mpcheck_hint,
                         );
-                        if check == true {{
-                            return Option::Some((vkey, pub_inputs_256));
-                        }} else {{
-                            return Option::None;
+                        match check {{
+                            Result::Ok(_) => Result::Ok((vkey, pub_inputs_256)),
+                            Result::Err(error) => Result::Err(error),
                         }}
                     }}
                 }}

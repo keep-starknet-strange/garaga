@@ -28,8 +28,8 @@ use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
     get_BLS12_381_modulus, get_BN254_modulus, u288,
 };
+use garaga::utils::hashing;
 use garaga::utils::hashing::{PoseidonState, TWO_POW_96};
-use garaga::utils::{hashing, usize_assert_eq};
 use crate::core::circuit::AddInputResultTrait2;
 
 
@@ -101,9 +101,13 @@ pub fn compute_yInvXnegOverY(x: u384, y: u384, modulus: CircuitModulus) -> (u384
 #[inline(always)]
 pub fn multi_pairing_check_bn254_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u288>>, hint: MPCheckHintBN254,
-) -> bool {
-    usize_assert_eq(hint.big_Q.len(), 145);
-    usize_assert_eq(hint.Ris.len(), 34);
+) -> Result<bool, felt252> {
+    if hint.big_Q.len() != 145 {
+        return Result::Err('WRONG_BIG_Q_LEN');
+    }
+    if hint.Ris.len() != 34 {
+        return Result::Err('WRONG_RIS_LEN');
+    }
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY(pair0.p.x, pair0.p.y, modulus);
@@ -149,7 +153,9 @@ pub fn multi_pairing_check_bn254_2P_2F(
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u288_transcript(hint.big_Q.span(), hash_state).s0;
 
-    assert!(z_felt252 == hint.z);
+    if z_felt252 != hint.z {
+        return Result::Err('WRONG_Z');
+    }
 
     let (
         c_of_z, w_of_z, c_inv_of_z, LHS, c_inv_frob_1_of_z, c_frob_2_of_z, c_inv_frob_3_of_z,
@@ -273,15 +279,22 @@ pub fn multi_pairing_check_bn254_2P_2F(
         hint.big_Q,
     );
 
-    return check.is_zero();
+    match check.is_zero() {
+        true => Result::Ok(true),
+        false => Result::Err('FINAL_CHECK_FAILED'),
+    }
 }
 
 #[inline(always)]
 pub fn multi_pairing_check_bls12_381_2P_2F(
     pair0: G1G2Pair, pair1: G1G2Pair, mut lines: Span<G2Line<u384>>, hint: MPCheckHintBLS12_381,
-) -> bool {
-    usize_assert_eq(hint.big_Q.len(), 81);
-    usize_assert_eq(hint.Ris.len(), 35);
+) -> Result<bool, felt252> {
+    if hint.big_Q.len() != 81 {
+        return Result::Err('WRONG_BIG_Q_LEN');
+    }
+    if hint.Ris.len() != 35 {
+        return Result::Err('WRONG_RIS_LEN');
+    }
 
     let modulus = get_BLS12_381_modulus(); // BLS12_381 prime field modulus
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY(pair0.p.x, pair0.p.y, modulus);
@@ -323,7 +336,9 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
 
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u384_transcript(hint.big_Q.span(), hash_state).s0;
-    assert(z_felt252 == hint.z, 'z mismatch');
+    if z_felt252 != hint.z {
+        return Result::Err('WRONG_Z');
+    }
 
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1): (u384, u384, u384) =
@@ -414,5 +429,8 @@ pub fn multi_pairing_check_bls12_381_2P_2F(
         R_last_of_z, c_1, w_of_z, z, c_inv_of_z_frob_1, LHS, *hint.Ris.at(34), hint.big_Q,
     );
 
-    return check.is_zero();
+    match check.is_zero() {
+        true => Result::Ok(true),
+        false => Result::Err('FINAL_CHECK_FAILED'),
+    }
 }
