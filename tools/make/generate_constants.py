@@ -173,16 +173,6 @@ class PathConfig:
         return self.project_root / "tools" / "npm" / "garaga_ts" / "README.md"
 
     @property
-    def noir_docs_path(self) -> Path:
-        return (
-            self.project_root
-            / "docs"
-            / "gitbook"
-            / "deploy-your-snark-verifier-on-starknet"
-            / "noir.md"
-        )
-
-    @property
     def noir_smart_contract_docs_path(self) -> Path:
         return (
             self.project_root
@@ -258,35 +248,25 @@ VERSION_UPDATES = [
         ),
     ),
     (
-        "Noir docs",
-        "noir_docs_path",
-        UpdateConfig(
-            name="Noir docs",
-            pattern=r"(version\s+)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(\s+\(install with `pip install garaga==)[\d]+\.[\d]+\.[\d]+(?:[\w\-\.]*)?(`?)",
-            replacement=r"\g<1>{version}\g<2>{version}\g<3>",
-            description="Garaga CLI version in docs",
-        ),
-    ),
-    (
-        "Noir version in docs",
-        "noir_docs_path",
-        UpdateConfig(
-            name="Noir version in docs",
-            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\)\s+)",
-            replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
-            description="Noir version in documentation",
-            version_key="nargo_version",
-        ),
-    ),
-    (
         "Noir version in smart contract docs",
         "noir_smart_contract_docs_path",
         UpdateConfig(
             name="Noir version in smart contract docs",
-            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\)\s+)",
+            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+\))",
             replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
             description="Noir version in smart contract generator documentation",
             version_key="nargo_version",
+        ),
+    ),
+    (
+        "BB version in smart contract docs",
+        "noir_smart_contract_docs_path",
+        UpdateConfig(
+            name="BB version in smart contract docs",
+            pattern=r"(\* Barretenberg\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `bbup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+or `npm i @aztec/bb\.js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+\))",
+            replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
+            description="Barretenberg version in smart contract generator documentation",
+            version_key="bb_version",
         ),
     ),
 ]
@@ -700,6 +680,8 @@ def update_all_versions(
             # Get the appropriate version based on the version_key
             if config.version_key == "nargo_version":
                 version = constants["noir"]["nargo_version"]
+            elif config.version_key == "bb_version":
+                version = constants["noir"]["bb_version"]
             else:
                 version = constants["release_info"]["garaga_version"]
 
