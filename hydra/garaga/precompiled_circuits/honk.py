@@ -16,7 +16,7 @@ from garaga.poseidon_transcript import hades_permutation
 PROOF_SIZE = 456
 NUMBER_OF_SUBRELATIONS = 26
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
-NUMBER_OF_ENTITIES = 40
+NUMBER_OF_ENTITIES = 41
 BATCHED_RELATION_PARTIAL_LENGTH = 8
 CONST_PROOF_SIZE_LOG_N = 28
 NUMBER_UNSHIFTED = 35
@@ -1980,19 +1980,20 @@ class ZKHonkProof:
     def from_bytes(
         cls, proof_bytes: bytes, public_inputs_bytes: bytes, vk: HonkVk
     ) -> "ZKHonkProof":
-        n_elements = len(proof_bytes) // 32
-        assert len(proof_bytes) % 32 == 0
+        FIELD_ELEMENT_SIZE = 32
+        n_elements = len(proof_bytes) // FIELD_ELEMENT_SIZE
+        assert len(proof_bytes) % FIELD_ELEMENT_SIZE == 0
         elements = [
-            int.from_bytes(proof_bytes[i : i + 32], "big")
-            for i in range(0, len(proof_bytes), 32)
+            int.from_bytes(proof_bytes[i : i + FIELD_ELEMENT_SIZE], "big")
+            for i in range(0, len(proof_bytes), FIELD_ELEMENT_SIZE)
         ]
         assert len(elements) == n_elements == ZK_PROOF_SIZE
 
-        n_public_inputs = len(public_inputs_bytes) // 32
-        assert len(public_inputs_bytes) % 32 == 0
+        n_public_inputs = len(public_inputs_bytes) // FIELD_ELEMENT_SIZE
+        assert len(public_inputs_bytes) % FIELD_ELEMENT_SIZE == 0
         public_inputs = [
-            int.from_bytes(public_inputs_bytes[i : i + 32], "big")
-            for i in range(0, len(public_inputs_bytes), 32)
+            int.from_bytes(public_inputs_bytes[i : i + FIELD_ELEMENT_SIZE], "big")
+            for i in range(0, len(public_inputs_bytes), FIELD_ELEMENT_SIZE)
         ]
         assert (
             len(public_inputs)
@@ -2008,13 +2009,14 @@ class ZKHonkProof:
         cursor += PAIRING_POINT_OBJECT_LENGTH
 
         def parse_g1_proof_point(i: int) -> G1Point:
+            p = CURVES[CurveID.BN254].p
             return G1Point(
-                x=elements[i] + G1_PROOF_POINT_SHIFT * elements[i + 1],
-                y=elements[i + 2] + G1_PROOF_POINT_SHIFT * elements[i + 3],
+                x=elements[i] % p,
+                y=elements[i + 1] % p,
                 curve_id=CurveID.BN254,
             )
 
-        G1_PROOF_POINT_SIZE = 4
+        G1_PROOF_POINT_SIZE = 2
 
         w1 = parse_g1_proof_point(cursor)
         w2 = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
@@ -2037,14 +2039,14 @@ class ZKHonkProof:
 
         # Parse sumcheck univariates.
         sumcheck_univariates = []
-        for i in range(CONST_PROOF_SIZE_LOG_N):
+        for i in range(vk.log_circuit_size):
             sumcheck_univariates.append(
                 [
                     elements[cursor + i * ZK_BATCHED_RELATION_PARTIAL_LENGTH + j]
                     for j in range(ZK_BATCHED_RELATION_PARTIAL_LENGTH)
                 ]
             )
-        cursor += ZK_BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
+        cursor += ZK_BATCHED_RELATION_PARTIAL_LENGTH * vk.log_circuit_size
 
         # Parse sumcheck_evaluations
         sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
