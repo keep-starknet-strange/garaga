@@ -2070,15 +2070,15 @@ class ZKHonkProof:
         # Parse gemini fold comms
         gemini_fold_comms = [
             parse_g1_proof_point(cursor + i * G1_PROOF_POINT_SIZE)
-            for i in range(CONST_PROOF_SIZE_LOG_N - 1)
+            for i in range(vk.log_circuit_size - 1)
         ]
 
-        cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
+        cursor += (vk.log_circuit_size - 1) * G1_PROOF_POINT_SIZE
 
         # Parse gemini a evaluations
-        gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
+        gemini_a_evaluations = elements[cursor : cursor + vk.log_circuit_size]
 
-        cursor += CONST_PROOF_SIZE_LOG_N
+        cursor += vk.log_circuit_size
 
         libra_poly_evals = elements[cursor : cursor + 4]
 

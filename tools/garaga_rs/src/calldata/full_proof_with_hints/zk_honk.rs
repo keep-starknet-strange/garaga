@@ -145,9 +145,9 @@ impl ZKHonkProof {
         offset += 1;
 
         let mut points = vec![];
-        for i in (offset..).step_by(4).take(3) {
+        for i in (offset..).step_by(2).take(3) {
             points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
+                values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
         offset += 3 * 4;
@@ -160,28 +160,28 @@ impl ZKHonkProof {
         offset += 1;
 
         let mut gemini_fold_comms = vec![];
-        for i in (offset..).step_by(4).take(CONST_PROOF_SIZE_LOG_N - 1) {
+        for i in (offset..).step_by(2).take(log_circuit_size - 1) {
             gemini_fold_comms.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
+                values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
         let gemini_fold_comms = gemini_fold_comms.try_into().unwrap();
-        offset += (CONST_PROOF_SIZE_LOG_N - 1) * 4;
+        offset += (log_circuit_size - 1) * 4;
 
         let mut gemini_a_evaluations = vec![];
-        for i in (offset..).step_by(1).take(CONST_PROOF_SIZE_LOG_N) {
+        for i in (offset..).step_by(1).take(log_circuit_size) {
             gemini_a_evaluations.push(values[i].clone());
         }
         let gemini_a_evaluations = gemini_a_evaluations.try_into().unwrap();
-        offset += CONST_PROOF_SIZE_LOG_N;
+        offset += log_circuit_size;
 
         let libra_poly_evals = values[offset..offset + 4].to_vec().try_into().unwrap();
         offset += 4;
 
         let mut points = vec![];
-        for i in (offset..).step_by(4).take(2) {
+        for i in (offset..).step_by(2).take(2) {
             points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
+                values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
         let [shplonk_q, kzg_quotient] = points.try_into().unwrap();
