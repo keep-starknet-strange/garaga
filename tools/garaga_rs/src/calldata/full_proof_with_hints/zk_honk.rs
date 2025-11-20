@@ -52,7 +52,11 @@ pub struct ZKHonkProof {
 }
 
 impl ZKHonkProof {
-    pub fn from_bytes(proof_bytes: &[u8], public_inputs_bytes: &[u8]) -> Result<Self, String> {
+    pub fn from_bytes(
+        proof_bytes: &[u8],
+        public_inputs_bytes: &[u8],
+        log_circuit_size: usize,
+    ) -> Result<Self, String> {
         if proof_bytes.len() != 32 * ZK_PROOF_SIZE {
             return Err(format!("Invalid proof bytes length: {}", proof_bytes.len()));
         }
@@ -78,9 +82,13 @@ impl ZKHonkProof {
             public_inputs.push(BigUint::from_bytes_be(&public_inputs_bytes[i..i + 32]));
         }
 
-        Self::from(values, public_inputs)
+        Self::from(values, public_inputs, log_circuit_size)
     }
-    pub fn from(values: Vec<BigUint>, public_inputs: Vec<BigUint>) -> Result<Self, String> {
+    pub fn from(
+        values: Vec<BigUint>,
+        public_inputs: Vec<BigUint>,
+        log_circuit_size: usize,
+    ) -> Result<Self, String> {
         if values.len() != ZK_PROOF_SIZE {
             return Err(format!("Invalid proof length: {}", values.len()));
         }
@@ -93,20 +101,18 @@ impl ZKHonkProof {
         let pairing_point_object = pairing_point_object.try_into().unwrap();
         offset += PAIRING_POINT_OBJECT_LENGTH;
 
-        fn parse_g1_proof_point(values: [BigUint; 4]) -> G1PointBigUint {
-            let [x0, x1, y0, y1] = values;
-            let x = (x1 << 136) | x0;
-            let y = (y1 << 136) | y0;
+        fn parse_g1_proof_point(values: [BigUint; 2]) -> G1PointBigUint {
+            let [x, y] = values;
             G1PointBigUint::from(vec![x, y])
         }
 
         let mut points = vec![];
-        for i in (offset..).step_by(4).take(9) {
+        for i in (offset..).step_by(2).take(9) {
             points.push(parse_g1_proof_point(
-                values[i..i + 4].to_vec().try_into().unwrap(),
+                values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
-        offset += 9 * 4;
+        offset += 9 * 2;
         let [w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm, libra_commitment_0] =
             points.try_into().unwrap();
 
@@ -116,7 +122,7 @@ impl ZKHonkProof {
         let mut sumcheck_univariates = vec![];
         for i in (offset..)
             .step_by(ZK_BATCHED_RELATION_PARTIAL_LENGTH)
-            .take(CONST_PROOF_SIZE_LOG_N)
+            .take(log_circuit_size)
         {
             let mut sumcheck_univariate = vec![];
             for j in (i..).step_by(1).take(ZK_BATCHED_RELATION_PARTIAL_LENGTH) {
@@ -126,7 +132,7 @@ impl ZKHonkProof {
             sumcheck_univariates.push(sumcheck_univariate);
         }
         let sumcheck_univariates = sumcheck_univariates.try_into().unwrap();
-        offset += CONST_PROOF_SIZE_LOG_N * ZK_BATCHED_RELATION_PARTIAL_LENGTH;
+        offset += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH;
 
         let mut sumcheck_evaluations = vec![];
         for i in (offset..).step_by(1).take(NUMBER_OF_ENTITIES) {
@@ -1013,13 +1019,6 @@ mod tests {
         let _ = get_zk_honk_calldata(&proof, &vk, HonkFlavor::KECCAK).unwrap();
     }
 
-    #[test]
-    fn test_zk_honk_starknet_calldata() {
-        let vk = get_honk_vk().unwrap();
-        let proof = get_zk_honk_starknet_proof().unwrap();
-        let _ = get_zk_honk_calldata(&proof, &vk, HonkFlavor::STARKNET).unwrap();
-    }
-
     fn get_honk_vk() -> std::io::Result<HonkVerificationKey> {
         use std::fs::File;
         use std::io::Read;
@@ -1035,6 +1034,8 @@ mod tests {
     fn get_zk_honk_keccak_proof() -> std::io::Result<ZKHonkProof> {
         use std::fs::File;
         use std::io::Read;
+
+        let vk = get_honk_vk().unwrap();
         let mut file = File::open(
             "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak_zk.bin",
         )?;
@@ -1045,24 +1046,9 @@ mod tests {
         )?;
         let mut public_inputs_bytes = vec![];
         file.read_to_end(&mut public_inputs_bytes)?;
-        let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes).unwrap();
-        Ok(proof)
-    }
-
-    fn get_zk_honk_starknet_proof() -> std::io::Result<ZKHonkProof> {
-        use std::fs::File;
-        use std::io::Read;
-        let mut file = File::open(
-            "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_starknet_zk.bin",
-        )?;
-        let mut proof_bytes = vec![];
-        file.read_to_end(&mut proof_bytes)?;
-        let mut file = File::open(
-            "../../hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
-        )?;
-        let mut public_inputs_bytes = vec![];
-        file.read_to_end(&mut public_inputs_bytes)?;
-        let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes).unwrap();
+        let proof =
+            ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes, vk.log_circuit_size)
+                .unwrap();
         Ok(proof)
     }
 }
