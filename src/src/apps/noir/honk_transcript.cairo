@@ -14,7 +14,7 @@ pub const NUMBER_OF_SUBRELATIONS: usize = 26;
 pub const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
 pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
 pub const BATCHED_RELATION_PARTIAL_LENGTH: usize = 8;
-pub const NUMBER_OF_ENTITIES: usize = 40;
+pub const NUMBER_OF_ENTITIES: usize = 41;
 
 
 pub impl ProofPointIntoPoint256 of Into<G1PointProof, G1Point256> {
