@@ -23,53 +23,16 @@ echo "bb version : $($BB_PATH --version)" # See constants.json for recommended b
 SCRIPT_PATH=$(dirname $(realpath $0))
 HONK_FIXTURES_PATH="$SCRIPT_PATH/../../hydra/garaga/starknet/honk_contract_generator/examples"
 
-run_noir_proof_basic() {
-    cd hello
-    local suffix="_basic"
-
-    mkdir -p target/proof${suffix}/
-    $BB_PATH prove --write_vk -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
-    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
-    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
-    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    rmdir target/proof${suffix}/
-
-    if $BB_PATH verify -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
-        echo "ok $suffix"
-    else
-        echo "Verification failed $suffix"
-    fi
-    cd ../
-}
-
-run_noir_proof_ultra() {
-    cd hello
-    local suffix="_ultra"
-
-    mkdir -p target/proof${suffix}/
-    $BB_PATH prove -s ultra_honk --write_vk -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
-    mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
-    mv -f target/proof${suffix}/proof target/proof${suffix}.bin
-    mv -f target/proof${suffix}/vk target/vk${suffix}.bin
-    rmdir target/proof${suffix}/
-
-    if $BB_PATH verify -s ultra_honk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
-        echo "ok $suffix"
-    else
-        echo "Verification failed $suffix"
-    fi
-    cd ../
-}
-
 run_noir_proof_ultra_keccak() {
     cd hello
     local suffix="_ultra_keccak"
 
     mkdir -p target/proof${suffix}/
-    $BB_PATH prove -s ultra_honk --oracle_hash keccak --disable_zk --write_vk -b target/hello.json -w target/witness.gz -o target/proof${suffix}/
+    $BB_PATH prove -s ultra_honk --oracle_hash keccak --disable_zk --write_vk -b target/hello.json -w target/witness.gz -o target/proof${suffix}/ --verify
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_hash target/vk_hash${suffix}.bin
     # Copy and replace vk.bin to HONK_FIXTURES_PATH/ (no renaming)
     cp target/vk${suffix}.bin $HONK_FIXTURES_PATH/
     # Copy and replace public_inputs.bin to HONK_FIXTURES_PATH/ (no renaming)
@@ -119,6 +82,8 @@ run_noir_proof_ultra_keccak_zk() {
     mv -f target/proof${suffix}/public_inputs target/public_inputs${suffix}.bin
     mv -f target/proof${suffix}/proof target/proof${suffix}.bin
     mv -f target/proof${suffix}/vk target/vk${suffix}.bin
+    mv -f target/proof${suffix}/vk_hash target/vk_hash${suffix}.bin
+
     # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
     cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
     rmdir target/proof${suffix}/

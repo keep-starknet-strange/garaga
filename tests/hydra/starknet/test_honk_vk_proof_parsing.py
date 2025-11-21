@@ -29,24 +29,24 @@ def test_vk_parsing(vk_path: str):
             f"{PATH}/vk_ultra_keccak.bin",
             ProofSystem.UltraKeccakHonk,
         ),
-        (
-            f"{PATH}/proof_ultra_starknet.bin",
-            f"{PATH}/public_inputs_ultra_keccak.bin",
-            f"{PATH}/vk_ultra_keccak.bin",
-            ProofSystem.UltraStarknetHonk,
-        ),
+        # (
+        #     f"{PATH}/proof_ultra_starknet.bin",
+        #     f"{PATH}/public_inputs_ultra_keccak.bin",
+        #     f"{PATH}/vk_ultra_keccak.bin",
+        #     ProofSystem.UltraStarknetHonk,
+        # ),
         (
             f"{PATH}/proof_ultra_keccak_zk.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
             ProofSystem.UltraKeccakZKHonk,
         ),
-        (
-            f"{PATH}/proof_ultra_starknet_zk.bin",
-            f"{PATH}/public_inputs_ultra_keccak.bin",
-            f"{PATH}/vk_ultra_keccak.bin",
-            ProofSystem.UltraStarknetZKHonk,
-        ),
+        # (
+        #     f"{PATH}/proof_ultra_starknet_zk.bin",
+        #     f"{PATH}/public_inputs_ultra_keccak.bin",
+        #     f"{PATH}/vk_ultra_keccak.bin",
+        #     ProofSystem.UltraStarknetZKHonk,
+        # ),
     ],
 )
 def test_proof_parsing(

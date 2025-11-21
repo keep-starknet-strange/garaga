@@ -29,6 +29,9 @@ MAX_CIRCUIT_SIZE = 1 << MAX_LOG_N
 
 
 G1_PROOF_POINT_SHIFT = 2**136
+G1_PROOF_POINT_SIZE = NUM_ELEMENTS_COMM = 2
+NUM_ELEMENTS_FR = 1
+
 
 G2_POINT_KZG_1 = G2Point.get_nG(CurveID.BN254, 1)
 G2_POINT_KZG_2 = G2Point(
@@ -41,6 +44,16 @@ G2_POINT_KZG_2 = G2Point(
         0x04FC6369F7110FE3D25156C1BB9A72859CF2A04641F99BA4EE413C80DA6A5FE4,
     ),
     curve_id=CurveID.BN254,
+)
+
+ZK_PROOF_SIZE = 507
+NUM_WITNESS_ENTITIES = 8
+NUM_LIBRA_EVALUATIONS = 4
+ZK_BATCHED_RELATION_PARTIAL_LENGTH = 9
+SUBGROUP_SIZE = 256
+SUBGROUP_GENERATOR = 0x07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76
+SUBGROUP_GENERATOR_INVERSE = (
+    0x204BD3277422FAD364751AD938E2B5E6A54CF8C68712848A692C553D0329F5D6
 )
 
 
@@ -75,14 +88,11 @@ class HonkProof:
 
     def __post_init__(self):
         assert len(self.pairing_point_object) == PAIRING_POINT_OBJECT_LENGTH
-        assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
             len(univariate) == BATCHED_RELATION_PARTIAL_LENGTH
             for univariate in self.sumcheck_univariates
         )
         assert len(self.sumcheck_evaluations) == NUMBER_OF_ENTITIES
-        assert len(self.gemini_fold_comms) == CONST_PROOF_SIZE_LOG_N - 1
-        assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
 
     @classmethod
     def from_bytes(
@@ -94,7 +104,11 @@ class HonkProof:
             int.from_bytes(proof_bytes[i : i + 32], "big")
             for i in range(0, len(proof_bytes), 32)
         ]
-        assert len(elements) == n_elements == PROOF_SIZE
+        assert (
+            len(elements)
+            == n_elements
+            == HonkProof.calculate_proof_size(vk.log_circuit_size)
+        ), f"{len(elements)} == {n_elements} == {HonkProof.calculate_proof_size(vk.log_circuit_size)}"
 
         n_public_inputs = len(public_inputs_bytes) // 32
         assert len(public_inputs_bytes) % 32 == 0
@@ -116,13 +130,12 @@ class HonkProof:
         cursor += PAIRING_POINT_OBJECT_LENGTH
 
         def parse_g1_proof_point(i: int) -> G1Point:
+            p = CURVES[CurveID.BN254.value].p
             return G1Point(
-                x=elements[i] + G1_PROOF_POINT_SHIFT * elements[i + 1],
-                y=elements[i + 2] + G1_PROOF_POINT_SHIFT * elements[i + 3],
+                x=elements[i] % p,
+                y=elements[i + 1] % p,
                 curve_id=CurveID.BN254,
             )
-
-        G1_PROOF_POINT_SIZE = 4
 
         w1 = parse_g1_proof_point(cursor)
         w2 = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
@@ -138,14 +151,14 @@ class HonkProof:
 
         # Parse sumcheck univariates.
         sumcheck_univariates = []
-        for i in range(CONST_PROOF_SIZE_LOG_N):
+        for i in range(vk.log_circuit_size):
             sumcheck_univariates.append(
                 [
                     elements[cursor + i * BATCHED_RELATION_PARTIAL_LENGTH + j]
                     for j in range(BATCHED_RELATION_PARTIAL_LENGTH)
                 ]
             )
-        cursor += BATCHED_RELATION_PARTIAL_LENGTH * CONST_PROOF_SIZE_LOG_N
+        cursor += BATCHED_RELATION_PARTIAL_LENGTH * vk.log_circuit_size
 
         # Parse sumcheck_evaluations
         sumcheck_evaluations = elements[cursor : cursor + NUMBER_OF_ENTITIES]
@@ -155,15 +168,15 @@ class HonkProof:
         # Parse gemini fold comms
         gemini_fold_comms = [
             parse_g1_proof_point(cursor + i * G1_PROOF_POINT_SIZE)
-            for i in range(CONST_PROOF_SIZE_LOG_N - 1)
+            for i in range(vk.log_circuit_size - 1)
         ]
 
-        cursor += (CONST_PROOF_SIZE_LOG_N - 1) * G1_PROOF_POINT_SIZE
+        cursor += (vk.log_circuit_size - 1) * G1_PROOF_POINT_SIZE
 
         # Parse gemini a evaluations
-        gemini_a_evaluations = elements[cursor : cursor + CONST_PROOF_SIZE_LOG_N]
+        gemini_a_evaluations = elements[cursor : cursor + vk.log_circuit_size]
 
-        cursor += CONST_PROOF_SIZE_LOG_N
+        cursor += vk.log_circuit_size
 
         shplonk_q = parse_g1_proof_point(cursor)
         kzg_quotient = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
@@ -367,14 +380,40 @@ class HonkProof:
         lst.extend(g1_to_g1_proof_point(self.kzg_quotient))
         return lst
 
+    @staticmethod
+    def calculate_proof_size(log_circuit_size: int):
+        # Witness commitments
+
+        proof_size = NUM_WITNESS_ENTITIES * NUM_ELEMENTS_COMM
+        # Sumcheck
+        proof_size += (
+            log_circuit_size * BATCHED_RELATION_PARTIAL_LENGTH * NUM_ELEMENTS_FR
+        )
+        # sumcheck univariates
+        proof_size += NUMBER_OF_ENTITIES * NUM_ELEMENTS_FR
+        # sumcheck evaluations
+
+        # // Gemini
+        proof_size += (log_circuit_size - 1) * NUM_ELEMENTS_COMM
+        # Gemini Fold commitments
+        proof_size += log_circuit_size * NUM_ELEMENTS_FR
+        # Gemini evaluations
+
+        # // Shplonk and KZG commitments
+        proof_size += NUM_ELEMENTS_COMM * 2
+        # Shplonk Q and KZG W commitments
+
+        # // Pairing points
+        proof_size += PAIRING_POINT_OBJECT_LENGTH
+        # pairing inputs carried on public inputs
+        return proof_size
+
 
 @dataclass
 class HonkVk:
     name: str
-    circuit_size: int
     log_circuit_size: int
     public_inputs_size: int
-    public_inputs_offset: int
     qm: G1Point
     qc: G1Point
     ql: G1Point
@@ -385,7 +424,8 @@ class HonkVk:
     qArith: G1Point
     qDeltaRange: G1Point
     qElliptic: G1Point
-    qAux: G1Point
+    qMemory: G1Point
+    qNnf: G1Point
     qPoseidon2External: G1Point
     qPoseidon2Internal: G1Point
     s1: G1Point
@@ -420,21 +460,15 @@ class HonkVk:
         vk_hash = keccak_256(vk_bytes).digest()
         vk_hash_int_low, vk_hash_int_high = io.split_128(int.from_bytes(vk_hash, "big"))
         (vk_hash_int, _, _) = hades_permutation(vk_hash_int_low, vk_hash_int_high, 2)
+        log_circuit_size = int.from_bytes(vk_bytes[0:32], "big")
+        public_inputs_size = int.from_bytes(vk_bytes[32:64], "big")
+        public_inputs_offset = int.from_bytes(vk_bytes[64:96], "big")
 
-        circuit_size = int.from_bytes(vk_bytes[0:8], "big")
-        log_circuit_size = int.from_bytes(vk_bytes[8:16], "big")
-        public_inputs_size = int.from_bytes(vk_bytes[16:24], "big")
-        public_inputs_offset = int.from_bytes(vk_bytes[24:32], "big")
-
-        assert circuit_size <= MAX_CIRCUIT_SIZE, f"invalid circuit size: {circuit_size}"
-        assert (
-            log_circuit_size <= CONST_PROOF_SIZE_LOG_N
-        ), f"invalid log circuit size: {log_circuit_size}"
         assert (
             public_inputs_offset == 1
         ), f"invalid public inputs offset: {public_inputs_offset}"
 
-        cursor = 32
+        cursor = 96
 
         rest = vk_bytes[cursor:]
         assert (
@@ -465,10 +499,8 @@ class HonkVk:
         # Create instance with all parsed values
         return cls(
             name="",
-            circuit_size=circuit_size,
             log_circuit_size=log_circuit_size,
             public_inputs_size=public_inputs_size,
-            public_inputs_offset=public_inputs_offset,
             **points,
             vk_hash=vk_hash_int,
             vk_bytes=vk_bytes,
@@ -1926,15 +1958,6 @@ class HonkVerifierCircuits(ModuloCircuit):
         return scalars
 
 
-ZK_PROOF_SIZE = 507
-ZK_BATCHED_RELATION_PARTIAL_LENGTH = 9
-SUBGROUP_SIZE = 256
-SUBGROUP_GENERATOR = 0x07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76
-SUBGROUP_GENERATOR_INVERSE = (
-    0x204BD3277422FAD364751AD938E2B5E6A54CF8C68712848A692C553D0329F5D6
-)
-
-
 @dataclass
 class ZKHonkProof:
     log_circuit_size: int  # from vk
@@ -1966,14 +1989,11 @@ class ZKHonkProof:
     def __post_init__(self):
         assert len(self.pairing_point_object) == PAIRING_POINT_OBJECT_LENGTH
         assert len(self.libra_commitments) == 3
-        assert len(self.sumcheck_univariates) == CONST_PROOF_SIZE_LOG_N
         assert all(
             len(univariate) == ZK_BATCHED_RELATION_PARTIAL_LENGTH
             for univariate in self.sumcheck_univariates
         )
         assert len(self.sumcheck_evaluations) == NUMBER_OF_ENTITIES
-        assert len(self.gemini_fold_comms) == CONST_PROOF_SIZE_LOG_N - 1
-        assert len(self.gemini_a_evaluations) == CONST_PROOF_SIZE_LOG_N
         assert len(self.libra_poly_evals) == 4
 
     @classmethod
@@ -1987,7 +2007,11 @@ class ZKHonkProof:
             int.from_bytes(proof_bytes[i : i + FIELD_ELEMENT_SIZE], "big")
             for i in range(0, len(proof_bytes), FIELD_ELEMENT_SIZE)
         ]
-        assert len(elements) == n_elements == ZK_PROOF_SIZE
+        assert (
+            len(elements)
+            == n_elements
+            == ZKHonkProof.calculate_proof_size(vk.log_circuit_size)
+        ), f"{len(elements)} == {n_elements} == {ZKHonkProof.calculate_proof_size(vk.log_circuit_size)}"
 
         n_public_inputs = len(public_inputs_bytes) // FIELD_ELEMENT_SIZE
         assert len(public_inputs_bytes) % FIELD_ELEMENT_SIZE == 0
@@ -2009,14 +2033,12 @@ class ZKHonkProof:
         cursor += PAIRING_POINT_OBJECT_LENGTH
 
         def parse_g1_proof_point(i: int) -> G1Point:
-            p = CURVES[CurveID.BN254].p
+            p = CURVES[CurveID.BN254.value].p
             return G1Point(
                 x=elements[i] % p,
                 y=elements[i + 1] % p,
                 curve_id=CurveID.BN254,
             )
-
-        G1_PROOF_POINT_SIZE = 2
 
         w1 = parse_g1_proof_point(cursor)
         w2 = parse_g1_proof_point(cursor + G1_PROOF_POINT_SIZE)
@@ -2343,6 +2365,41 @@ class ZKHonkProof:
         lst.extend(g1_to_g1_proof_point(self.shplonk_q))
         lst.extend(g1_to_g1_proof_point(self.kzg_quotient))
         return lst
+
+    @staticmethod
+    def calculate_proof_size(log_circuit_size: int):
+        # Witness and Libra commitments
+
+        proof_size = NUM_WITNESS_ENTITIES * NUM_ELEMENTS_COMM
+        proof_size += (
+            NUM_ELEMENTS_COMM * 4
+        )  # Libra concat, grand sum, quotient comms + Gemini masking
+        # Sumcheck
+        proof_size += (
+            log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH * NUM_ELEMENTS_FR
+        )
+        # sumcheck univariates
+        proof_size += NUMBER_OF_ENTITIES * NUM_ELEMENTS_FR
+        # sumcheck evaluations
+
+        # Libra and Gemini
+        proof_size += NUM_ELEMENTS_FR * 3
+        # Libra sum, claimed eval, Gemini masking eval
+        proof_size += log_circuit_size * NUM_ELEMENTS_FR
+        # Gemini a evaluations
+        proof_size += NUM_LIBRA_EVALUATIONS * NUM_ELEMENTS_FR
+        # libra evaluations
+
+        # PCS commitments
+        proof_size += (log_circuit_size - 1) * NUM_ELEMENTS_COMM
+        # Gemini Fold commitments
+        proof_size += NUM_ELEMENTS_COMM * 2
+        # Shplonk Q and KZG W commitments
+
+        # Pairing points
+        proof_size += PAIRING_POINT_OBJECT_LENGTH
+        # pairing inputs carried on public inputs
+        return proof_size
 
 
 @dataclass
