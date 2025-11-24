@@ -1,7 +1,7 @@
 import pytest
 
 from garaga.curves import ProofSystem
-from garaga.precompiled_circuits.honk import HonkVk, honk_proof_from_bytes
+from garaga.precompiled_circuits.zk_honk import HonkVk, honk_proof_from_bytes
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
@@ -24,31 +24,12 @@ def test_vk_parsing(vk_path: str, vk_hash_path: str):
     "proof_path, public_inputs_path, vk_path, vk_hash_path, system",
     [
         (
-            f"{PATH}/proof_ultra_keccak.bin",
-            f"{PATH}/public_inputs_ultra_keccak.bin",
-            f"{PATH}/vk_ultra_keccak.bin",
-            f"{PATH}/vk_hash_ultra_keccak.bin",
-            ProofSystem.UltraKeccakHonk,
-        ),
-        # (
-        #     f"{PATH}/proof_ultra_starknet.bin",
-        #     f"{PATH}/public_inputs_ultra_keccak.bin",
-        #     f"{PATH}/vk_ultra_keccak.bin",
-        #     ProofSystem.UltraStarknetHonk,
-        # ),
-        (
             f"{PATH}/proof_ultra_keccak_zk.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
             f"{PATH}/vk_hash_ultra_keccak.bin",
             ProofSystem.UltraKeccakZKHonk,
         ),
-        # (
-        #     f"{PATH}/proof_ultra_starknet_zk.bin",
-        #     f"{PATH}/public_inputs_ultra_keccak.bin",
-        #     f"{PATH}/vk_ultra_keccak.bin",
-        #     ProofSystem.UltraStarknetZKHonk,
-        # ),
     ],
 )
 def test_proof_parsing(

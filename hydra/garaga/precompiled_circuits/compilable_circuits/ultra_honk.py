@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Dict, Tuple, Type, Union
 
 import garaga.modulo_circuit_structs as structs
-import garaga.precompiled_circuits.honk as hk
+import garaga.precompiled_circuits.zk_honk as hk
 from garaga.curves import CurveID
 from garaga.modulo_circuit import ModuloCircuitElement
 from garaga.modulo_circuit_structs import u384
@@ -11,10 +11,9 @@ from garaga.precompiled_circuits.compilable_circuits.base import (
     ModuloCircuit,
     PyFelt,
 )
-from garaga.precompiled_circuits.honk import (
+from garaga.precompiled_circuits.zk_honk import (
     PAIRING_POINT_OBJECT_LENGTH,
     ZK_BATCHED_RELATION_PARTIAL_LENGTH,
-    HonkVerifierCircuits,
     HonkVk,
     Wire,
     ZKHonkVerifierCircuits,
@@ -154,190 +153,6 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
         """
 
 
-class SumCheckCircuit(BaseUltraHonkCircuit):
-    def __init__(
-        self,
-        vk: HonkVk,
-        curve_id: int = CurveID.GRUMPKIN.value,
-        auto_run: bool = True,
-        compilation_mode: int = 1,
-    ) -> None:
-        assert vk.public_inputs_size >= PAIRING_POINT_OBJECT_LENGTH
-        name = f"honk_sumcheck_size_{vk.log_circuit_size}_pub_{vk.public_inputs_size}"
-        self.vk = vk
-
-        super().__init__(
-            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
-        )
-
-    @property
-    def input_map(self) -> dict:
-        imap = {}
-
-        imap["p_public_inputs"] = (
-            structs.u256Span,
-            self.vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH,
-        )
-        imap["p_pairing_point_object"] = (structs.u256Span, PAIRING_POINT_OBJECT_LENGTH)
-        imap["p_public_inputs_offset"] = structs.u384
-
-        imap["sumcheck_univariates_flat"] = (
-            structs.u256Span,
-            self.vk.log_circuit_size * hk.BATCHED_RELATION_PARTIAL_LENGTH,
-        )
-
-        imap["sumcheck_evaluations"] = (
-            structs.u256Span,
-            hk.NUMBER_OF_ENTITIES - len(Wire.unused_indexes()),
-        )
-
-        imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
-            self.vk.log_circuit_size,
-        )
-        imap["tp_gate_challenges"] = (
-            structs.u128Span,
-            self.vk.log_circuit_size,
-        )
-        imap["tp_eta_1"] = structs.u128
-        imap["tp_eta_2"] = structs.u128
-        imap["tp_eta_3"] = structs.u128
-        imap["tp_beta"] = structs.u128
-        imap["tp_gamma"] = structs.u128
-        imap["tp_base_rlc"] = structs.u384
-        imap["tp_alphas"] = (structs.u128Span, hk.NUMBER_OF_ALPHAS)
-        return imap
-
-    def _execute_circuit_logic(
-        self, circuit: HonkVerifierCircuits, vars: dict
-    ) -> ModuloCircuit:
-
-        tp_delta = circuit.compute_public_input_delta(
-            vars["p_public_inputs"],
-            vars["p_pairing_point_object"],
-            vars["tp_beta"],
-            vars["tp_gamma"],
-            self.vk.circuit_size,
-            vars["p_public_inputs_offset"],
-        )
-
-        sumcheck_univariates_flat = vars["sumcheck_univariates_flat"]
-        sumcheck_univariates = []
-        for i in range(self.vk.log_circuit_size):
-            sumcheck_univariates.append(
-                sumcheck_univariates_flat[
-                    i
-                    * hk.BATCHED_RELATION_PARTIAL_LENGTH : (i + 1)
-                    * hk.BATCHED_RELATION_PARTIAL_LENGTH
-                ]
-            )
-
-        assert len(sumcheck_univariates) == self.vk.log_circuit_size
-        assert len(sumcheck_univariates[0]) == hk.BATCHED_RELATION_PARTIAL_LENGTH
-
-        assert len(vars["sumcheck_evaluations"]) == len(Wire)
-
-        check_rlc, check = circuit.verify_sum_check(
-            sumcheck_univariates,
-            vars["sumcheck_evaluations"],
-            vars["tp_beta"],
-            vars["tp_gamma"],
-            tp_delta,
-            vars["tp_eta_1"],
-            vars["tp_eta_2"],
-            vars["tp_eta_3"],
-            vars["tp_sum_check_u_challenges"],
-            vars["tp_gate_challenges"],
-            vars["tp_alphas"],
-            self.vk.log_circuit_size,
-            vars["tp_base_rlc"],
-        )
-
-        assert type(check_rlc) == ModuloCircuitElement
-        assert type(check) == ModuloCircuitElement
-
-        circuit.extend_struct_output(u384("check_rlc", elmts=[check_rlc]))
-        circuit.extend_struct_output(u384("check", elmts=[check]))
-        return circuit
-
-
-class PrepareScalarsCircuit(BaseUltraHonkCircuit):
-    def __init__(
-        self,
-        vk: HonkVk,
-        curve_id: int = CurveID.GRUMPKIN.value,
-        auto_run: bool = True,
-        compilation_mode: int = 1,
-    ) -> None:
-        name = f"honk_prep_msm_scalars_size_{vk.log_circuit_size}"
-        self.vk = vk
-        self.scalar_indexes = []
-        super().__init__(
-            name, vk.log_circuit_size, curve_id, auto_run, compilation_mode
-        )
-
-    @property
-    def input_map(self) -> dict:
-        imap = {}
-
-        imap["p_sumcheck_evaluations"] = (structs.u256Span, hk.NUMBER_OF_ENTITIES)
-        imap["p_gemini_a_evaluations"] = (structs.u256Span, self.vk.log_circuit_size)
-        imap["tp_gemini_r"] = structs.u384
-        imap["tp_rho"] = structs.u384
-        imap["tp_shplonk_z"] = structs.u384
-        imap["tp_shplonk_nu"] = structs.u384
-        imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
-            self.vk.log_circuit_size,
-        )
-
-        return imap
-
-    def _execute_circuit_logic(
-        self, circuit: HonkVerifierCircuits, vars: dict
-    ) -> ModuloCircuit:
-
-        assert len(vars["p_sumcheck_evaluations"]) == len(Wire)
-
-        scalars = circuit.compute_shplemini_msm_scalars(
-            vars["p_sumcheck_evaluations"],
-            vars["p_gemini_a_evaluations"],
-            vars["tp_gemini_r"],
-            vars["tp_rho"],
-            vars["tp_shplonk_z"],
-            vars["tp_shplonk_nu"],
-            vars["tp_sum_check_u_challenges"],
-        )
-
-        scalars_filtered_no_nones = filter_msm_scalars(
-            scalars, self.vk.log_circuit_size, False
-        )
-        # Remove shplonk_z (last scalar) (included in transcript)
-        scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
-
-        # sum_scalars = circuit.sum(scalars_filtered_no_nones)
-
-        # For each filtered scalar, find its original index by matching offset
-        self.scalar_indexes = []
-        for scalar in scalars_filtered_no_nones:
-            original_index = next(
-                i
-                for i, orig_scalar in enumerate(scalars)
-                if orig_scalar is not None and orig_scalar.offset == scalar.offset
-            )
-            self.scalar_indexes.append(original_index)
-            circuit.extend_struct_output(
-                u384(f"scalar_{original_index}", elmts=[scalar])
-            )
-
-        self.msm_len = len(scalars_filtered_no_nones) + 1
-
-        # circuit.extend_struct_output(u384("sum_scalars", elmts=[sum_scalars]))
-        # circuit.exact_output_refs_needed = [sum_scalars]
-
-        return circuit
-
-
 class ZKBaseUltraHonkCircuit(BaseUltraHonkCircuit):
     def __init__(
         self,
@@ -422,7 +237,7 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         imap["tp_beta"] = structs.u384
         imap["tp_gamma"] = structs.u384
         imap["tp_base_rlc"] = structs.u384
-        imap["tp_alphas"] = (structs.u128Span, hk.NUMBER_OF_ALPHAS)
+        imap["tp_alpha"] = structs.u128
         imap["tp_libra_challenge"] = structs.u384
         return imap
 
@@ -469,7 +284,7 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             vars["tp_libra_challenge"],
             vars["tp_sum_check_u_challenges"],
             vars["tp_gate_challenges"],
-            vars["tp_alphas"],
+            vars["tp_alpha"],
             self.vk.log_circuit_size,
             vars["tp_base_rlc"],
         )
