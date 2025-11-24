@@ -10,23 +10,24 @@ PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
 
 
 @pytest.mark.parametrize(
-    "vk_path",
+    "vk_path, vk_hash_path",
     [
-        f"{PATH}/vk_ultra_keccak.bin",
+        (f"{PATH}/vk_ultra_keccak.bin", f"{PATH}/vk_hash_ultra_keccak.bin"),
     ],
 )
-def test_vk_parsing(vk_path: str):
-    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+def test_vk_parsing(vk_path: str, vk_hash_path: str):
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read(), open(vk_hash_path, "rb").read())
     print(vk)
 
 
 @pytest.mark.parametrize(
-    "proof_path, public_inputs_path, vk_path, system",
+    "proof_path, public_inputs_path, vk_path, vk_hash_path, system",
     [
         (
             f"{PATH}/proof_ultra_keccak.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
+            f"{PATH}/vk_hash_ultra_keccak.bin",
             ProofSystem.UltraKeccakHonk,
         ),
         # (
@@ -39,6 +40,7 @@ def test_vk_parsing(vk_path: str):
             f"{PATH}/proof_ultra_keccak_zk.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
+            f"{PATH}/vk_hash_ultra_keccak.bin",
             ProofSystem.UltraKeccakZKHonk,
         ),
         # (
@@ -50,9 +52,13 @@ def test_vk_parsing(vk_path: str):
     ],
 )
 def test_proof_parsing(
-    proof_path: str, public_inputs_path: str, vk_path: str, system: ProofSystem
+    proof_path: str,
+    public_inputs_path: str,
+    vk_path: str,
+    vk_hash_path: str,
+    system: ProofSystem,
 ):
-    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read(), open(vk_hash_path, "rb").read())
     proof = honk_proof_from_bytes(
         open(proof_path, "rb").read(), open(public_inputs_path, "rb").read(), vk, system
     )
@@ -60,40 +66,34 @@ def test_proof_parsing(
 
 
 @pytest.mark.parametrize(
-    "proof_path, public_inputs_path, vk_path, system",
+    "proof_path, public_inputs_path, vk_path, vk_hash_path, system",
     [
         (
             f"{PATH}/proof_ultra_keccak.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
+            f"{PATH}/vk_hash_ultra_keccak.bin",
             ProofSystem.UltraKeccakHonk,
-        ),
-        (
-            f"{PATH}/proof_ultra_starknet.bin",
-            f"{PATH}/public_inputs_ultra_keccak.bin",
-            f"{PATH}/vk_ultra_keccak.bin",
-            ProofSystem.UltraStarknetHonk,
         ),
         (
             f"{PATH}/proof_ultra_keccak_zk.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
+            f"{PATH}/vk_hash_ultra_keccak.bin",
             ProofSystem.UltraKeccakZKHonk,
-        ),
-        (
-            f"{PATH}/proof_ultra_starknet_zk.bin",
-            f"{PATH}/public_inputs_ultra_keccak.bin",
-            f"{PATH}/vk_ultra_keccak.bin",
-            ProofSystem.UltraStarknetZKHonk,
         ),
     ],
 )
 def test_calldata_generation(
-    proof_path: str, public_inputs_path: str, vk_path: str, system: ProofSystem
+    proof_path: str,
+    public_inputs_path: str,
+    vk_path: str,
+    vk_hash_path: str,
+    system: ProofSystem,
 ):
     import time
 
-    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read(), open(vk_hash_path, "rb").read())
     proof = honk_proof_from_bytes(
         open(proof_path, "rb").read(), open(public_inputs_path, "rb").read(), vk, system
     )

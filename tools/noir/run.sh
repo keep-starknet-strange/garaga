@@ -35,10 +35,13 @@ run_noir_proof_ultra_keccak() {
     mv -f target/proof${suffix}/vk_hash target/vk_hash${suffix}.bin
     # Copy and replace vk.bin to HONK_FIXTURES_PATH/ (no renaming)
     cp target/vk${suffix}.bin $HONK_FIXTURES_PATH/
+    # Copy and replace vk_hash.bin to HONK_FIXTURES_PATH/ (no renaming)
+    cp target/vk_hash${suffix}.bin $HONK_FIXTURES_PATH/
     # Copy and replace public_inputs.bin to HONK_FIXTURES_PATH/ (no renaming)
     cp target/public_inputs${suffix}.bin $HONK_FIXTURES_PATH/
     # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
     cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
+
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk --oracle_hash keccak --disable_zk -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then
@@ -86,6 +89,7 @@ run_noir_proof_ultra_keccak_zk() {
 
     # Copy and replace proof.bin to HONK_FIXTURES_PATH/ (no renaming)
     cp target/proof${suffix}.bin $HONK_FIXTURES_PATH/
+
     rmdir target/proof${suffix}/
 
     if $BB_PATH verify -s ultra_honk --oracle_hash keccak -i target/public_inputs${suffix}.bin -p target/proof${suffix}.bin -k target/vk${suffix}.bin; then

@@ -442,7 +442,7 @@ class HonkVk:
     t4: G1Point
     lagrange_first: G1Point
     lagrange_last: G1Point
-    vk_hash: int
+    vk_hash: bytes
     vk_bytes: bytes
 
     def __repr__(self) -> str:
@@ -456,10 +456,7 @@ class HonkVk:
     #     return self.__repr__()
 
     @classmethod
-    def from_bytes(cls, vk_bytes: bytes) -> "HonkVk":
-        vk_hash = keccak_256(vk_bytes).digest()
-        vk_hash_int_low, vk_hash_int_high = io.split_128(int.from_bytes(vk_hash, "big"))
-        (vk_hash_int, _, _) = hades_permutation(vk_hash_int_low, vk_hash_int_high, 2)
+    def from_bytes(cls, vk_bytes: bytes, vk_hash: bytes) -> "HonkVk":
         log_circuit_size = int.from_bytes(vk_bytes[0:32], "big")
         public_inputs_size = int.from_bytes(vk_bytes[32:64], "big")
         public_inputs_offset = int.from_bytes(vk_bytes[64:96], "big")
@@ -502,7 +499,7 @@ class HonkVk:
             log_circuit_size=log_circuit_size,
             public_inputs_size=public_inputs_size,
             **points,
-            vk_hash=vk_hash_int,
+            vk_hash=vk_hash,
             vk_bytes=vk_bytes,
         )
 
