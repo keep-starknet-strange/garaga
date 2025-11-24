@@ -963,7 +963,7 @@ class ZKHonkTranscript:
             etaThree=circuit.write_element(self.etaThree),
             beta=circuit.write_element(self.beta),
             gamma=circuit.write_element(self.gamma),
-            alphas=circuit.write_elements(self.alphas),
+            alpha=circuit.write_element(self.alpha),
             gate_challenges=circuit.write_elements(self.gate_challenges),
             libra_challenge=circuit.write_element(self.libra_challenge),
             sum_check_u_challenges=circuit.write_elements(self.sum_check_u_challenges),
@@ -982,9 +982,7 @@ class ZKHonkTranscript:
         code += f"    eta_three: {hex(self.etaThree)},\n"
         code += f"    beta: {hex(self.beta)},\n"
         code += f"    gamma: {hex(self.gamma)},\n"
-        code += (
-            f"    alphas:array![{', '.join([hex(alpha) for alpha in self.alphas])}],\n"
-        )
+        code += f"    alpha: {hex(self.alpha)},\n"
         code += f"    gate_challenges:array![{', '.join([hex(gate_challenge) for gate_challenge in self.gate_challenges])}],\n"
         code += f"    libra_challenge: {hex(self.libra_challenge)},\n"
         code += f"    sum_check_u_challenges:array![{', '.join([hex(sum_check_u_challenge) for sum_check_u_challenge in self.sum_check_u_challenges])}],\n"
