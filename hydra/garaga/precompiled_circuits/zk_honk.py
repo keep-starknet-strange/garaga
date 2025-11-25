@@ -12,7 +12,7 @@ from garaga.points import G1Point, G2Point
 from garaga.poseidon_transcript import hades_permutation
 
 PROOF_SIZE = 456
-NUMBER_OF_SUBRELATIONS = 26
+NUMBER_OF_SUBRELATIONS = 28
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
 NUMBER_OF_ENTITIES = 41
 BATCHED_RELATION_PARTIAL_LENGTH = 8
@@ -174,10 +174,8 @@ class HonkVk:
     def to_circuit_elements(self, circuit: ModuloCircuit) -> "HonkVk":
         return HonkVk(
             name=self.name,
-            circuit_size=self.circuit_size,
             log_circuit_size=self.log_circuit_size,
             public_inputs_size=self.public_inputs_size,
-            public_inputs_offset=circuit.write_element(self.public_inputs_offset),
             **{
                 field.name: circuit.write_struct(
                     structs.G1PointCircuit.from_G1Point(
@@ -297,8 +295,8 @@ class ZKHonkProof:
         )
         assert len(self.sumcheck_evaluations) == NUMBER_OF_ENTITIES
         assert len(self.libra_poly_evals) == 4
-        assert len(self.gemini_fold_comms) == vk.log_circuit_size - 1
-        assert len(self.gemini_a_evaluations) == vk.log_circuit_size
+        assert len(self.gemini_fold_comms) == self.log_circuit_size - 1
+        assert len(self.gemini_a_evaluations) == self.log_circuit_size
         assert len(self.libra_poly_evals) == 4
 
     @classmethod
@@ -725,10 +723,6 @@ class ZKHonkTranscript:
     last_state: tuple[int, int, int]
     public_inputs_delta: int | None = None  # Derived.
 
-    def __post_init__(self):
-        assert len(self.gate_challenges) == CONST_PROOF_SIZE_LOG_N
-        assert len(self.sum_check_u_challenges) == CONST_PROOF_SIZE_LOG_N
-
     @classmethod
     def from_proof(
         cls,
@@ -826,12 +820,12 @@ class ZKHonkTranscript:
         alpha, _ = split_challenge(ch2)
 
         ## 3. Gate Challenges
-        ch3 = ch2
+        hasher.update(ch2)
+        ch3 = hasher.digest_reset()
         gate_challenges = [None] * vk.log_circuit_size
-        for i in range(vk.log_circuit_size):
-            hasher.update(ch3)
-            ch3 = hasher.digest_reset()
-            gate_challenges[i], _ = split_challenge(ch3)
+        gate_challenges[0], _ = split_challenge(ch3)
+        for i in range(1, vk.log_circuit_size):
+            gate_challenges[i] = (gate_challenges[i - 1] * gate_challenges[i - 1]) % FR
 
         ## 4. Libra Challenge
 
@@ -1013,6 +1007,53 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             compilation_mode=compilation_mode,
         )
         self.log_n = log_n
+
+    def compute_public_input_delta(
+        self,
+        public_inputs: list[ModuloCircuitElement],
+        pairing_point_object: list[ModuloCircuitElement],
+        beta: ModuloCircuitElement,
+        gamma: ModuloCircuitElement,
+    ) -> ModuloCircuitElement:
+        assert len(public_inputs) > 0
+        assert len(pairing_point_object) == PAIRING_POINT_OBJECT_LENGTH
+        offset: ModuloCircuitElement = self.set_or_get_constant(1)
+
+        num = self.set_or_get_constant(1)
+        den = self.set_or_get_constant(1)
+        PERMUTATION_ARGUMENT_VALUE_SEPARATOR = 1 << 28
+        num_acc = self.add(
+            gamma,
+            self.mul(
+                beta,
+                self.add(
+                    self.set_or_get_constant(PERMUTATION_ARGUMENT_VALUE_SEPARATOR),
+                    offset,
+                ),
+            ),
+        )
+        den_acc = self.sub(
+            gamma,
+            self.mul(beta, self.add(offset, self.set_or_get_constant(1))),
+        )
+
+        for i, pub_input in enumerate(public_inputs):
+            num = self.mul(num, self.add(num_acc, pub_input))
+            den = self.mul(den, self.add(den_acc, pub_input))
+
+            num_acc = self.add(num_acc, beta)
+            den_acc = self.sub(den_acc, beta)
+
+        for i, pub_input in enumerate(pairing_point_object):
+            num = self.mul(num, self.add(num_acc, pub_input))
+            den = self.mul(den, self.add(den_acc, pub_input))
+
+            # skip last round (unused otherwise)
+            if i != len(pairing_point_object) - 1:
+                num_acc = self.add(num_acc, beta)
+                den_acc = self.sub(den_acc, beta)
+
+        return self.div(num, den)
 
     def verify_sum_check(
         self,
@@ -2110,10 +2151,10 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         challenge_poly_lagrange = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
         challenge_poly_lagrange[0] = self.set_or_get_constant(1)
-        for r in range(CONST_PROOF_SIZE_LOG_N):
-            curr_idx = 1 + 9 * r
+        for r in range(self.log_n):
+            curr_idx = 1 + LIBRA_UNIVARIATES_LENGTH * r
             challenge_poly_lagrange[curr_idx] = self.set_or_get_constant(1)
-            for idx in range(curr_idx + 1, curr_idx + 9):
+            for idx in range(curr_idx + 1, curr_idx + LIBRA_UNIVARIATES_LENGTH):
                 challenge_poly_lagrange[idx] = self.mul(
                     challenge_poly_lagrange[idx - 1], tp_sumcheck_u_challenges[r]
                 )
@@ -2179,7 +2220,7 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         challenge_poly_eval, root_power_times_tp_gemini_r = (
             self._check_evals_consistency_init(tp_gemini_r)
         )
-        for r in range(CONST_PROOF_SIZE_LOG_N):
+        for r in range(self.log_n):
             challenge_poly_eval, root_power_times_tp_gemini_r = (
                 self._check_evals_consistency_loop(
                     challenge_poly_eval,
@@ -2215,7 +2256,7 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         tp_sumcheck_u_challenge: ModuloCircuitElement,
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
         challenge_poly_lagrange = self.set_or_get_constant(1)
-        for i in range(9):
+        for i in range(LIBRA_UNIVARIATES_LENGTH):
             denominator = self.inv(
                 self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
             )
@@ -2300,8 +2341,12 @@ def honk_proof_from_bytes(
     proof_bytes: bytes,
     public_inputs_bytes: bytes,
     vk: HonkVk,
+    system: ProofSystem,
 ) -> ZKHonkProof:
-    return ZKHonkProof.from_bytes(proof_bytes, public_inputs_bytes, vk)
+    if system == ProofSystem.UltraKeccakZKHonk:
+        return ZKHonkProof.from_bytes(proof_bytes, public_inputs_bytes, vk)
+    else:
+        raise ValueError(f"Invalid system: {system}")
 
 
 def honk_transcript_from_proof(
