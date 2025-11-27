@@ -11,7 +11,6 @@ from garaga.modulo_circuit import ModuloCircuit
 from garaga.points import G1Point, G2Point
 from garaga.poseidon_transcript import hades_permutation
 
-PROOF_SIZE = 456
 NUMBER_OF_SUBRELATIONS = 28
 NUMBER_OF_ALPHAS = NUMBER_OF_SUBRELATIONS - 1
 NUMBER_OF_ENTITIES = 41
@@ -45,7 +44,6 @@ G2_POINT_KZG_2 = G2Point(
     curve_id=CurveID.BN254,
 )
 
-ZK_PROOF_SIZE = 507
 NUM_WITNESS_ENTITIES = 8
 NUM_LIBRA_EVALUATIONS = 4
 ZK_BATCHED_RELATION_PARTIAL_LENGTH = 9
