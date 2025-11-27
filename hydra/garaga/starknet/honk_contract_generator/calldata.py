@@ -43,7 +43,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     use_rust: bool = False,
 ) -> list[int]:
     if use_rust:
-        return _honk_calldata_from_vk_and_proof_rust(vk, proof, system)
+        return _honk_calldata_from_vk_and_proof_rust(vk, proof)
 
     assert isinstance(proof, ZKHonkProof)
     tp = ZKHonkTranscript.from_proof(vk, proof, system)
@@ -190,7 +190,6 @@ def _honk_calldata_from_vk_and_proof_rust(
     vk: HonkVk,
     proof: ZKHonkProof,
 ) -> list[int]:
-
     return garaga_rs.get_zk_honk_calldata(
         proof.proof_bytes, proof.public_inputs_bytes, vk.vk_bytes
     )

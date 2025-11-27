@@ -124,7 +124,7 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
         eta_three=tp.etaThree,
         libra_challenge=tp.libra_challenge,
         sum_check_u_challenges=tp.sum_check_u_challenges,
-        gate_challenges=tp.gate_challenge,
+        gate_challenge=tp.gate_challenge,
         alpha=tp.alpha,
         log_n=vk.log_circuit_size,
         base_rlc=circuit.write_element(1234),
@@ -196,10 +196,7 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
     ],
 )
 def test_check_evals_consistency(proof_path: str, system: ProofSystem):
-    vk_hash: bytes = open(f"{PATH}/vk_hash_ultra_keccak.bin", "rb").read()
-    vk: HonkVk = HonkVk.from_bytes(
-        open(f"{PATH}/vk_ultra_keccak.bin", "rb").read(), vk_hash
-    )
+    vk: HonkVk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
     proof = honk_proof_from_bytes(
         open(proof_path, "rb").read(),
         open(f"{PATH}/public_inputs_ultra_keccak.bin", "rb").read(),

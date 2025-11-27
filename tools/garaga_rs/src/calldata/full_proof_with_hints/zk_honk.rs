@@ -1,10 +1,6 @@
 use crate::algebra::g1g2pair::G1G2Pair;
 use crate::algebra::g1point::G1Point;
 use crate::algebra::g2point::G2Point;
-use crate::calldata::full_proof_with_hints::honk::{
-    Hasher, HonkFlavor, HonkVerificationKey, KeccakHasher, StarknetHasher, CONST_PROOF_SIZE_LOG_N,
-    NUMBER_OF_ALPHAS, NUMBER_OF_ENTITIES, NUMBER_UNSHIFTED, PAIRING_POINT_OBJECT_LENGTH,
-};
 use crate::calldata::mpc_calldata;
 use crate::calldata::msm_calldata;
 use crate::calldata::G1PointBigUint;
@@ -20,10 +16,262 @@ use lambdaworks_math::field::errors::FieldError;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
+use sha3::{Digest, Keccak256};
 
-pub const ZK_PROOF_SIZE: usize = 507;
+pub const NUMBER_OF_SUBRELATIONS: usize = 28;
+pub const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
+pub const NUMBER_OF_ENTITIES: usize = 41;
+pub const NUMBER_UNSHIFTED: usize = 36;
+pub const NUMBER_TO_BE_SHIFTED: usize = 5;
+pub const SHIFTED_COMMITMENTS_START: usize = 30;
+pub const MAX_LOG_N: usize = 23;
+pub const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N;
+pub const PAIRING_POINT_OBJECT_LENGTH: usize = 16;
+pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
+
+pub const NUM_WITNESS_ENTITIES: usize = 8;
+pub const NUM_ELEMENTS_COMM: usize = 2;
+pub const NUM_ELEMENTS_FR: usize = 1;
+
+/// Calculate expected proof size based on log_circuit_size
+pub fn calculate_proof_size(log_circuit_size: usize) -> usize {
+    let mut proof_size = NUM_WITNESS_ENTITIES * NUM_ELEMENTS_COMM; // 16
+    proof_size += NUM_ELEMENTS_COMM * 4; // 8 (Libra concat, grand sum, quotient comms + Gemini masking)
+    proof_size += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH * NUM_ELEMENTS_FR; // sumcheck univariates
+    proof_size += NUMBER_OF_ENTITIES * NUM_ELEMENTS_FR; // 41 (sumcheck evaluations)
+    proof_size += NUM_ELEMENTS_FR * 3; // 3 (Libra sum, claimed eval, Gemini masking eval)
+    proof_size += log_circuit_size * NUM_ELEMENTS_FR; // Gemini a evaluations
+    proof_size += LIBRA_EVALUATIONS * NUM_ELEMENTS_FR; // 4 (libra evaluations)
+    proof_size += (log_circuit_size - 1) * NUM_ELEMENTS_COMM; // Gemini Fold commitments
+    proof_size += NUM_ELEMENTS_COMM * 2; // 4 (Shplonk Q and KZG W)
+    proof_size += PAIRING_POINT_OBJECT_LENGTH; // 16 (pairing inputs)
+    proof_size
+}
 pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 pub const SUBGROUP_SIZE: usize = 256;
+pub const LIBRA_COMMITMENTS: usize = 3;
+pub const LIBRA_EVALUATIONS: usize = 4;
+pub const LIBRA_UNIVARIATES_LENGTH: usize = 9;
+
+// Number of G1 points in the VK
+pub const VK_NUM_POINTS: usize = 28;
+
+pub struct HonkVerificationKey {
+    pub log_circuit_size: usize,
+    pub public_inputs_size: usize,
+    pub public_inputs_offset: usize,
+    pub qm: G1PointBigUint,
+    pub qc: G1PointBigUint,
+    pub ql: G1PointBigUint,
+    pub qr: G1PointBigUint,
+    pub qo: G1PointBigUint,
+    pub q4: G1PointBigUint,
+    pub q_lookup: G1PointBigUint,
+    pub q_arith: G1PointBigUint,
+    pub q_delta_range: G1PointBigUint,
+    pub q_elliptic: G1PointBigUint,
+    pub q_memory: G1PointBigUint,
+    pub q_nnf: G1PointBigUint,
+    pub q_poseidon2_external: G1PointBigUint,
+    pub q_poseidon2_internal: G1PointBigUint,
+    pub s1: G1PointBigUint,
+    pub s2: G1PointBigUint,
+    pub s3: G1PointBigUint,
+    pub s4: G1PointBigUint,
+    pub id1: G1PointBigUint,
+    pub id2: G1PointBigUint,
+    pub id3: G1PointBigUint,
+    pub id4: G1PointBigUint,
+    pub t1: G1PointBigUint,
+    pub t2: G1PointBigUint,
+    pub t3: G1PointBigUint,
+    pub t4: G1PointBigUint,
+    pub lagrange_first: G1PointBigUint,
+    pub lagrange_last: G1PointBigUint,
+    pub vk_hash: BigUint,
+}
+
+impl HonkVerificationKey {
+    pub fn from_bytes(vk_bytes: &[u8]) -> Result<Self, String> {
+        // VK format: 3 * 32 bytes for log_circuit_size, public_inputs_size, public_inputs_offset
+        // then 28 * 64 bytes for G1 points
+        let expected_len = 3 * 32 + VK_NUM_POINTS * 64;
+        if vk_bytes.len() != expected_len {
+            return Err(format!(
+                "Invalid input length: {} (expected {})",
+                vk_bytes.len(),
+                expected_len
+            ));
+        }
+
+        // Compute vk_hash using keccak256, then mod by BN254 curve order
+        let vk_hash_bytes = Keccak256::digest(vk_bytes);
+        let vk_hash_full = BigUint::from_bytes_be(&vk_hash_bytes);
+        // BN254 curve order (n)
+        let bn254_n = BigUint::parse_bytes(
+            b"30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+            16,
+        )
+        .unwrap();
+        let vk_hash = vk_hash_full % bn254_n;
+
+        // Parse header fields (32 bytes each)
+        let log_circuit_size = BigUint::from_bytes_be(&vk_bytes[0..32]);
+        let public_inputs_size = BigUint::from_bytes_be(&vk_bytes[32..64]);
+        let public_inputs_offset = BigUint::from_bytes_be(&vk_bytes[64..96]);
+
+        let log_circuit_size: usize = log_circuit_size
+            .try_into()
+            .map_err(|e: num_bigint::TryFromBigIntError<BigUint>| e.to_string())?;
+        let public_inputs_size: usize = public_inputs_size
+            .try_into()
+            .map_err(|e: num_bigint::TryFromBigIntError<BigUint>| e.to_string())?;
+        let public_inputs_offset: usize = public_inputs_offset
+            .try_into()
+            .map_err(|e: num_bigint::TryFromBigIntError<BigUint>| e.to_string())?;
+
+        if public_inputs_offset != 1 {
+            return Err(format!(
+                "Invalid public inputs offset: {}",
+                public_inputs_offset
+            ));
+        }
+
+        if log_circuit_size > CONST_PROOF_SIZE_LOG_N {
+            return Err(format!("Invalid log circuit size: {}", log_circuit_size));
+        }
+
+        if public_inputs_size < PAIRING_POINT_OBJECT_LENGTH {
+            return Err(format!(
+                "Invalid public inputs size: {}",
+                public_inputs_size
+            ));
+        }
+
+        // Parse G1 points (64 bytes each: 32 for x, 32 for y)
+        let mut cursor = 96;
+        let mut points = vec![];
+        for _ in 0..VK_NUM_POINTS {
+            let x = BigUint::from_bytes_be(&vk_bytes[cursor..cursor + 32]);
+            let y = BigUint::from_bytes_be(&vk_bytes[cursor + 32..cursor + 64]);
+            points.push(G1PointBigUint { x, y });
+            cursor += 64;
+        }
+
+        let [qm, qc, ql, qr, qo, q4, q_lookup, q_arith, q_delta_range, q_elliptic, q_memory, q_nnf, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
+            points.try_into().unwrap();
+
+        Ok(Self {
+            log_circuit_size,
+            public_inputs_size,
+            public_inputs_offset,
+            qm,
+            qc,
+            ql,
+            qr,
+            qo,
+            q4,
+            q_lookup,
+            q_arith,
+            q_delta_range,
+            q_elliptic,
+            q_memory,
+            q_nnf,
+            q_poseidon2_external,
+            q_poseidon2_internal,
+            s1,
+            s2,
+            s3,
+            s4,
+            id1,
+            id2,
+            id3,
+            id4,
+            t1,
+            t2,
+            t3,
+            t4,
+            lagrange_first,
+            lagrange_last,
+            vk_hash,
+        })
+    }
+}
+
+pub trait Hasher {
+    fn reset(&mut self);
+    fn digest_as_bytes(&self) -> Vec<u8>;
+    fn update_bytes(&mut self, data: &[u8]);
+
+    fn digest(&self) -> BigUint {
+        let bytes = self.digest_as_bytes();
+        BigUint::from_bytes_be(&bytes)
+    }
+
+    fn digest_reset(&mut self) -> Vec<u8> {
+        let result = self.digest_as_bytes();
+        self.reset();
+        result
+    }
+
+    fn update(&mut self, value: &BigUint) {
+        // Pad to 32 bytes
+        let mut bytes = value.to_bytes_be();
+        while bytes.len() < 32 {
+            bytes.insert(0, 0);
+        }
+        self.update_bytes(&bytes);
+    }
+
+    fn update_point(&mut self, point: &G1PointBigUint) {
+        self.update(&point.x);
+        self.update(&point.y);
+    }
+}
+
+pub struct KeccakHasher {
+    data: Vec<u8>,
+}
+
+impl Default for KeccakHasher {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl KeccakHasher {
+    pub fn new() -> Self {
+        KeccakHasher { data: vec![] }
+    }
+}
+
+impl Hasher for KeccakHasher {
+    fn reset(&mut self) {
+        self.data = vec![];
+    }
+
+    fn update_bytes(&mut self, data: &[u8]) {
+        self.data.extend_from_slice(data);
+    }
+
+    fn digest_as_bytes(&self) -> Vec<u8> {
+        let hash = Keccak256::digest(&self.data);
+        let hash_int = BigUint::from_bytes_be(&hash);
+        // Reduce modulo Grumpkin field prime (same as BN254 curve order)
+        let grumpkin_p = BigUint::parse_bytes(
+            b"30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001",
+            16,
+        )
+        .unwrap();
+        let reduced = hash_int % grumpkin_p;
+        // Convert back to 32 bytes
+        let mut bytes = reduced.to_bytes_be();
+        while bytes.len() < 32 {
+            bytes.insert(0, 0);
+        }
+        bytes
+    }
+}
 
 pub struct ZKHonkProof {
     pub public_inputs: Vec<BigUint>,
@@ -57,13 +305,17 @@ impl ZKHonkProof {
         public_inputs_bytes: &[u8],
         log_circuit_size: usize,
     ) -> Result<Self, String> {
-        if proof_bytes.len() != 32 * ZK_PROOF_SIZE {
-            return Err(format!("Invalid proof bytes length: {}", proof_bytes.len()));
+        let expected_proof_size = calculate_proof_size(log_circuit_size);
+        if proof_bytes.len() != 32 * expected_proof_size {
+            return Err(format!(
+                "Invalid proof bytes length: {} (expected {})",
+                proof_bytes.len(),
+                32 * expected_proof_size
+            ));
         }
 
         let mut values = vec![];
-
-        for i in (0..).step_by(32).take(ZK_PROOF_SIZE) {
+        for i in (0..).step_by(32).take(expected_proof_size) {
             values.push(BigUint::from_bytes_be(&proof_bytes[i..i + 32]));
         }
 
@@ -75,37 +327,45 @@ impl ZKHonkProof {
         }
 
         let public_inputs_size = public_inputs_bytes.len() / 32;
-
         let mut public_inputs = vec![];
-
         for i in (0..).step_by(32).take(public_inputs_size) {
             public_inputs.push(BigUint::from_bytes_be(&public_inputs_bytes[i..i + 32]));
         }
 
         Self::from(values, public_inputs, log_circuit_size)
     }
+
     pub fn from(
         values: Vec<BigUint>,
         public_inputs: Vec<BigUint>,
         log_circuit_size: usize,
     ) -> Result<Self, String> {
-        if values.len() != ZK_PROOF_SIZE {
-            return Err(format!("Invalid proof length: {}", values.len()));
+        let expected_proof_size = calculate_proof_size(log_circuit_size);
+        if values.len() != expected_proof_size {
+            return Err(format!(
+                "Invalid proof length: {} (expected {})",
+                values.len(),
+                expected_proof_size
+            ));
         }
 
         let mut offset = 0;
+
+        // Parse pairing point object
         let mut pairing_point_object = vec![];
-        for i in (offset..).step_by(1).take(PAIRING_POINT_OBJECT_LENGTH) {
+        for i in offset..offset + PAIRING_POINT_OBJECT_LENGTH {
             pairing_point_object.push(values[i].clone());
         }
-        let pairing_point_object = pairing_point_object.try_into().unwrap();
+        let pairing_point_object: [BigUint; PAIRING_POINT_OBJECT_LENGTH] =
+            pairing_point_object.try_into().unwrap();
         offset += PAIRING_POINT_OBJECT_LENGTH;
 
         fn parse_g1_proof_point(values: [BigUint; 2]) -> G1PointBigUint {
             let [x, y] = values;
-            G1PointBigUint::from(vec![x, y])
+            G1PointBigUint { x, y }
         }
 
+        // Parse 9 G1 points: w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm, libra_commitment_0
         let mut points = vec![];
         for i in (offset..).step_by(2).take(9) {
             points.push(parse_g1_proof_point(
@@ -119,38 +379,46 @@ impl ZKHonkProof {
         let libra_sum = values[offset].clone();
         offset += 1;
 
+        // Parse sumcheck univariates
         let mut sumcheck_univariates = vec![];
         for i in (offset..)
             .step_by(ZK_BATCHED_RELATION_PARTIAL_LENGTH)
             .take(log_circuit_size)
         {
             let mut sumcheck_univariate = vec![];
-            for j in (i..).step_by(1).take(ZK_BATCHED_RELATION_PARTIAL_LENGTH) {
+            for j in i..i + ZK_BATCHED_RELATION_PARTIAL_LENGTH {
                 sumcheck_univariate.push(values[j].clone());
             }
-            let sumcheck_univariate = sumcheck_univariate.try_into().unwrap();
-            sumcheck_univariates.push(sumcheck_univariate);
+            sumcheck_univariates.push(sumcheck_univariate.try_into().unwrap());
         }
-        let sumcheck_univariates = sumcheck_univariates.try_into().unwrap();
+        // Fill rest with zeros
+        while sumcheck_univariates.len() < CONST_PROOF_SIZE_LOG_N {
+            sumcheck_univariates.push([0u8; ZK_BATCHED_RELATION_PARTIAL_LENGTH].map(BigUint::from));
+        }
+        let sumcheck_univariates: [[BigUint; ZK_BATCHED_RELATION_PARTIAL_LENGTH];
+            CONST_PROOF_SIZE_LOG_N] = sumcheck_univariates.try_into().unwrap();
         offset += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH;
 
+        // Parse sumcheck evaluations
         let mut sumcheck_evaluations = vec![];
-        for i in (offset..).step_by(1).take(NUMBER_OF_ENTITIES) {
+        for i in offset..offset + NUMBER_OF_ENTITIES {
             sumcheck_evaluations.push(values[i].clone());
         }
-        let sumcheck_evaluations = sumcheck_evaluations.try_into().unwrap();
+        let sumcheck_evaluations: [BigUint; NUMBER_OF_ENTITIES] =
+            sumcheck_evaluations.try_into().unwrap();
         offset += NUMBER_OF_ENTITIES;
 
         let libra_evaluation = values[offset].clone();
         offset += 1;
 
+        // Parse libra_commitment_1, libra_commitment_2, gemini_masking_poly
         let mut points = vec![];
         for i in (offset..).step_by(2).take(3) {
             points.push(parse_g1_proof_point(
                 values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
-        offset += 3 * 4;
+        offset += 3 * 2;
         let [libra_commitment_1, libra_commitment_2, gemini_masking_poly] =
             points.try_into().unwrap();
 
@@ -159,25 +427,42 @@ impl ZKHonkProof {
         let gemini_masking_eval = values[offset].clone();
         offset += 1;
 
+        // Parse gemini fold comms
         let mut gemini_fold_comms = vec![];
         for i in (offset..).step_by(2).take(log_circuit_size - 1) {
             gemini_fold_comms.push(parse_g1_proof_point(
                 values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
-        let gemini_fold_comms = gemini_fold_comms.try_into().unwrap();
-        offset += (log_circuit_size - 1) * 4;
+        // Fill rest with dummy points
+        while gemini_fold_comms.len() < CONST_PROOF_SIZE_LOG_N - 1 {
+            gemini_fold_comms.push(G1PointBigUint {
+                x: BigUint::from(0u8),
+                y: BigUint::from(0u8),
+            });
+        }
+        let gemini_fold_comms: [G1PointBigUint; CONST_PROOF_SIZE_LOG_N - 1] =
+            gemini_fold_comms.try_into().unwrap();
+        offset += (log_circuit_size - 1) * 2;
 
+        // Parse gemini a evaluations
         let mut gemini_a_evaluations = vec![];
-        for i in (offset..).step_by(1).take(log_circuit_size) {
+        for i in offset..offset + log_circuit_size {
             gemini_a_evaluations.push(values[i].clone());
         }
-        let gemini_a_evaluations = gemini_a_evaluations.try_into().unwrap();
+        // Fill rest with zeros
+        while gemini_a_evaluations.len() < CONST_PROOF_SIZE_LOG_N {
+            gemini_a_evaluations.push(BigUint::from(0u8));
+        }
+        let gemini_a_evaluations: [BigUint; CONST_PROOF_SIZE_LOG_N] =
+            gemini_a_evaluations.try_into().unwrap();
         offset += log_circuit_size;
 
-        let libra_poly_evals = values[offset..offset + 4].to_vec().try_into().unwrap();
+        let libra_poly_evals: [BigUint; 4] =
+            values[offset..offset + 4].to_vec().try_into().unwrap();
         offset += 4;
 
+        // Parse shplonk_q, kzg_quotient
         let mut points = vec![];
         for i in (offset..).step_by(2).take(2) {
             points.push(parse_g1_proof_point(
@@ -185,11 +470,11 @@ impl ZKHonkProof {
             ));
         }
         let [shplonk_q, kzg_quotient] = points.try_into().unwrap();
-        offset += 4 * 2;
+        offset += 2 * 2;
 
-        assert_eq!(offset, ZK_PROOF_SIZE);
+        assert_eq!(offset, expected_proof_size);
 
-        let proof = Self {
+        Ok(Self {
             public_inputs,
             pairing_point_object,
             w1,
@@ -212,9 +497,7 @@ impl ZKHonkProof {
             libra_poly_evals,
             shplonk_q,
             kzg_quotient,
-        };
-
-        Ok(proof)
+        })
     }
 }
 
@@ -224,8 +507,8 @@ pub struct ZKHonkTranscript {
     pub eta_three: BigUint,
     pub beta: BigUint,
     pub gamma: BigUint,
-    pub alphas: [BigUint; NUMBER_OF_ALPHAS],
-    pub gate_challenges: [BigUint; CONST_PROOF_SIZE_LOG_N],
+    pub alpha: BigUint,
+    pub gate_challenge: BigUint,
     pub libra_challenge: BigUint,
     pub sumcheck_u_challenges: [BigUint; CONST_PROOF_SIZE_LOG_N],
     pub rho: BigUint,
@@ -238,7 +521,6 @@ impl ZKHonkTranscript {
     pub fn from_proof(
         vk: &HonkVerificationKey,
         proof: &ZKHonkProof,
-        flavor: HonkFlavor,
     ) -> Result<
         (
             Self,
@@ -254,19 +536,15 @@ impl ZKHonkTranscript {
                 vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH
             ));
         }
-        match flavor {
-            HonkFlavor::KECCAK => Ok(compute_zk_transcript(vk, proof, KeccakHasher::new())),
-            HonkFlavor::STARKNET => Ok(compute_zk_transcript(vk, proof, StarknetHasher::new())),
-        }
+        Ok(compute_zk_transcript(vk, proof, KeccakHasher::new()))
     }
 }
 
 pub fn get_zk_honk_calldata(
     proof: &ZKHonkProof,
     vk: &HonkVerificationKey,
-    flavor: HonkFlavor,
 ) -> Result<Vec<BigUint>, String> {
-    let (transcript, transcript_state, _) = ZKHonkTranscript::from_proof(vk, proof, flavor)?;
+    let (transcript, transcript_state, _) = ZKHonkTranscript::from_proof(vk, proof)?;
 
     fn element_on_curve(element: &BigUint) -> FieldElement<GrumpkinPrimeField> {
         element_from_biguint(element)
@@ -280,16 +558,13 @@ pub fn get_zk_honk_calldata(
         )
     }
 
-    let public_inputs = proof
-        .public_inputs
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>();
-    let pairing_point_object = proof
+    let public_inputs: Vec<FieldElement<GrumpkinPrimeField>> =
+        proof.public_inputs.iter().map(element_on_curve).collect();
+    let pairing_point_object: Vec<FieldElement<GrumpkinPrimeField>> = proof
         .pairing_point_object
         .iter()
         .map(element_on_curve)
-        .collect::<Vec<_>>();
+        .collect();
     let w1 = g1_point_on_curve(&proof.w1)?;
     let w2 = g1_point_on_curve(&proof.w2)?;
     let w3 = g1_point_on_curve(&proof.w3)?;
@@ -298,18 +573,18 @@ pub fn get_zk_honk_calldata(
     let lookup_read_counts = g1_point_on_curve(&proof.lookup_read_counts)?;
     let lookup_read_tags = g1_point_on_curve(&proof.lookup_read_tags)?;
     let lookup_inverses = g1_point_on_curve(&proof.lookup_inverses)?;
-    let libra_commitments = proof
+    let libra_commitments: Vec<G1Point<BN254PrimeField>> = proof
         .libra_commitments
         .iter()
         .map(g1_point_on_curve)
         .collect::<Result<Vec<_>, _>>()?;
     let libra_sum = element_on_curve(&proof.libra_sum);
-    let sumcheck_univariates = proof
+    let sumcheck_univariates: Vec<Vec<FieldElement<GrumpkinPrimeField>>> = proof
         .sumcheck_univariates
         .iter()
-        .map(|v| v.iter().map(element_on_curve).collect::<Vec<_>>())
-        .collect::<Vec<_>>();
-    let sumcheck_evaluations = proof
+        .map(|v| v.iter().map(element_on_curve).collect())
+        .collect();
+    let sumcheck_evaluations: [FieldElement<GrumpkinPrimeField>; NUMBER_OF_ENTITIES] = proof
         .sumcheck_evaluations
         .iter()
         .map(element_on_curve)
@@ -319,19 +594,19 @@ pub fn get_zk_honk_calldata(
     let libra_evaluation = element_on_curve(&proof.libra_evaluation);
     let gemini_masking_poly = g1_point_on_curve(&proof.gemini_masking_poly)?;
     let gemini_masking_eval = element_on_curve(&proof.gemini_masking_eval);
-    let gemini_fold_comms = proof
+    let gemini_fold_comms: Vec<G1Point<BN254PrimeField>> = proof
         .gemini_fold_comms
         .iter()
         .map(g1_point_on_curve)
         .collect::<Result<Vec<_>, _>>()?;
-    let gemini_a_evaluations = proof
+    let gemini_a_evaluations: [FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N] = proof
         .gemini_a_evaluations
         .iter()
         .map(element_on_curve)
         .collect::<Vec<_>>()
         .try_into()
         .unwrap();
-    let libra_poly_evals = proof
+    let libra_poly_evals: [FieldElement<GrumpkinPrimeField>; 4] = proof
         .libra_poly_evals
         .iter()
         .map(element_on_curve)
@@ -351,7 +626,8 @@ pub fn get_zk_honk_calldata(
     let q_arith = g1_point_on_curve(&vk.q_arith)?;
     let q_delta_range = g1_point_on_curve(&vk.q_delta_range)?;
     let q_elliptic = g1_point_on_curve(&vk.q_elliptic)?;
-    let q_aux = g1_point_on_curve(&vk.q_aux)?;
+    let q_memory = g1_point_on_curve(&vk.q_memory)?;
+    let q_nnf = g1_point_on_curve(&vk.q_nnf)?;
     let q_poseidon2_external = g1_point_on_curve(&vk.q_poseidon2_external)?;
     let q_poseidon2_internal = g1_point_on_curve(&vk.q_poseidon2_internal)?;
     let s1 = g1_point_on_curve(&vk.s1)?;
@@ -369,13 +645,14 @@ pub fn get_zk_honk_calldata(
     let lagrange_first = g1_point_on_curve(&vk.lagrange_first)?;
     let lagrange_last = g1_point_on_curve(&vk.lagrange_last)?;
 
-    let sumcheck_u_challenges = transcript
-        .sumcheck_u_challenges
-        .iter()
-        .map(element_on_curve)
-        .collect::<Vec<_>>()
-        .try_into()
-        .unwrap();
+    let sumcheck_u_challenges: [FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N] =
+        transcript
+            .sumcheck_u_challenges
+            .iter()
+            .map(element_on_curve)
+            .collect::<Vec<_>>()
+            .try_into()
+            .unwrap();
     let rho = element_on_curve(&transcript.rho);
     let gemini_r = element_on_curve(&transcript.gemini_r);
     let shplonk_nu = element_on_curve(&transcript.shplonk_nu);
@@ -386,6 +663,7 @@ pub fn get_zk_honk_calldata(
         &libra_poly_evals,
         &gemini_r,
         &sumcheck_u_challenges,
+        vk.log_circuit_size,
     )
     .map_err(|e| format!("Field error: {:?}", e))?;
     if !consistent {
@@ -409,7 +687,7 @@ pub fn get_zk_honk_calldata(
         .map_err(|e| format!("Field error: {:?}", e))?,
     );
 
-    let mut scalars_msm = scalars; // Rename for clarity and make mutable
+    let mut scalars_msm = scalars;
 
     // Swap last two scalars
     let len = scalars_msm.len();
@@ -417,11 +695,10 @@ pub fn get_zk_honk_calldata(
         scalars_msm.swap(len - 1, len - 2);
     }
 
-    // Place first scalar just after the vk_lagrange_last point (index 27)
+    // Place first scalar just after the vk_lagrange_last point (index 28)
     if !scalars_msm.is_empty() {
         let first_scalar = scalars_msm.remove(0);
-        // Assume the vector length is sufficient for insertion at index 27
-        scalars_msm.insert(27, first_scalar);
+        scalars_msm.insert(28, first_scalar);
     }
 
     let proof_data = {
@@ -507,34 +784,35 @@ pub fn get_zk_honk_calldata(
     };
 
     let mut points = vec![
-        qm,                   // 2
-        qc,                   // 3
-        ql,                   // 4
-        qr,                   // 5
-        qo,                   // 6
-        q4,                   // 7
-        q_lookup,             // 8
-        q_arith,              // 9
-        q_delta_range,        // 10
-        q_elliptic,           // 11
-        q_aux,                // 12
-        q_poseidon2_external, // 13
-        q_poseidon2_internal, // 14
-        s1,                   // 15
-        s2,                   // 16
-        s3,                   // 17
-        s4,                   // 18
-        id1,                  // 19
-        id2,                  // 20
-        id3,                  // 21
-        id4,                  // 22
-        t1,                   // 23
-        t2,                   // 24
-        t3,                   // 25
-        t4,                   // 26
-        lagrange_first,       // 27
-        lagrange_last,        // 28
-        gemini_masking_poly,  // 1
+        qm,                   // 0
+        qc,                   // 1
+        ql,                   // 2
+        qr,                   // 3
+        qo,                   // 4
+        q4,                   // 5
+        q_lookup,             // 6
+        q_arith,              // 7
+        q_delta_range,        // 8
+        q_elliptic,           // 9
+        q_memory,             // 10
+        q_nnf,                // 11
+        q_poseidon2_external, // 12
+        q_poseidon2_internal, // 13
+        s1,                   // 14
+        s2,                   // 15
+        s3,                   // 16
+        s4,                   // 17
+        id1,                  // 18
+        id2,                  // 19
+        id3,                  // 20
+        id4,                  // 21
+        t1,                   // 22
+        t2,                   // 23
+        t3,                   // 24
+        t4,                   // 25
+        lagrange_first,       // 26
+        lagrange_last,        // 27
+        gemini_masking_poly,  // 28
         w1,                   // 29
         w2,                   // 30
         w3,                   // 31
@@ -552,7 +830,8 @@ pub fn get_zk_honk_calldata(
 
     let two = FieldElement::<Stark252PrimeField>::one().double();
 
-    let mut state = [vk.vk_hash, transcript_state, two];
+    let vk_hash_element: FieldElement<Stark252PrimeField> = element_from_biguint(&vk.vk_hash);
+    let mut state = [vk_hash_element, transcript_state, two];
     PoseidonCairoStark252::hades_permutation(&mut state);
 
     let msm_data =
@@ -614,128 +893,107 @@ fn compute_zk_transcript<T: Hasher>(
     FieldElement<Stark252PrimeField>,
     FieldElement<Stark252PrimeField>,
 ) {
-    fn split(value: &BigUint) -> [BigUint; 2] {
-        let element: FieldElement<GrumpkinPrimeField> = element_from_biguint(value);
-        let limbs = field_element_to_u256_limbs(&element);
-        limbs.map(BigUint::from)
+    fn split(ch: &[u8]) -> [BigUint; 2] {
+        let ch_int = BigUint::from_bytes_be(ch);
+        let mask = (BigUint::from(1u8) << 128) - 1u8;
+        let low_128 = &ch_int & &mask;
+        let high_128 = &ch_int >> 128;
+        [low_128, high_128]
     }
 
-    // Round 0 : circuit_size, public_inputs_size, public_input_offset, [public_inputs], w1, w2, w3
-    hasher.update(&BigUint::from(vk.circuit_size));
-    hasher.update(&BigUint::from(vk.public_inputs_size));
-    hasher.update(&BigUint::from(vk.public_inputs_offset));
-    for public_input in &proof.public_inputs {
-        hasher.update(public_input);
+    // Round 0: vk_hash, public_inputs, pairing_point_object, w1, w2, w3
+    hasher.update(&vk.vk_hash);
+
+    for pub_input in &proof.public_inputs {
+        hasher.update(pub_input);
     }
-    for public_input in &proof.pairing_point_object {
-        hasher.update(public_input);
+    for pub_input in &proof.pairing_point_object {
+        hasher.update(pub_input);
     }
-    hasher.update_as_point(&proof.w1);
-    hasher.update_as_point(&proof.w2);
-    hasher.update_as_point(&proof.w3);
+
+    hasher.update_point(&proof.w1);
+    hasher.update_point(&proof.w2);
+    hasher.update_point(&proof.w3);
 
     let ch0 = hasher.digest_reset();
     let [eta, eta_two] = split(&ch0);
 
-    hasher.update(&ch0);
-
+    hasher.update_bytes(&ch0);
     let ch0 = hasher.digest_reset();
     let [eta_three, _] = split(&ch0);
 
-    // Round 1 : ch0, lookup_read_counts, lookup_read_tags, w4
-    hasher.update(&ch0);
-    hasher.update_as_point(&proof.lookup_read_counts);
-    hasher.update_as_point(&proof.lookup_read_tags);
-    hasher.update_as_point(&proof.w4);
+    // Round 1: ch0, lookup_read_counts, lookup_read_tags, w4
+    hasher.update_bytes(&ch0);
+    hasher.update_point(&proof.lookup_read_counts);
+    hasher.update_point(&proof.lookup_read_tags);
+    hasher.update_point(&proof.w4);
 
     let ch1 = hasher.digest_reset();
     let [beta, gamma] = split(&ch1);
 
-    // Round 2: ch1, lookup_inverses, z_perm
-    hasher.update(&ch1);
-    hasher.update_as_point(&proof.lookup_inverses);
-    hasher.update_as_point(&proof.z_perm);
+    // Round 2: ch1, lookup_inverses, z_perm -> alpha
+    hasher.update_bytes(&ch1);
+    hasher.update_point(&proof.lookup_inverses);
+    hasher.update_point(&proof.z_perm);
 
-    let mut alphas = [0u8; NUMBER_OF_ALPHAS].map(BigUint::from);
+    let ch2 = hasher.digest_reset();
+    let [alpha, _] = split(&ch2);
 
-    let mut ch2 = hasher.digest_reset();
-    [alphas[0], alphas[1]] = split(&ch2);
+    // Round 3: Gate challenge
+    hasher.update_bytes(&ch2);
+    let ch3 = hasher.digest_reset();
+    let [gate_challenge, _] = split(&ch3);
 
-    for i in 1..NUMBER_OF_ALPHAS / 2 {
-        hasher.update(&ch2);
-
-        ch2 = hasher.digest_reset();
-        [alphas[i * 2], alphas[i * 2 + 1]] = split(&ch2);
-    }
-
-    if NUMBER_OF_ALPHAS % 2 == 1 {
-        hasher.update(&ch2);
-
-        ch2 = hasher.digest_reset();
-        [alphas[NUMBER_OF_ALPHAS - 1], _] = split(&ch2);
-    }
-
-    // Round 3: Gate Challenges :
-    let mut gate_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(BigUint::from);
-
-    let mut ch3 = ch2;
-    for i in 0..CONST_PROOF_SIZE_LOG_N {
-        hasher.update(&ch3);
-
-        ch3 = hasher.digest_reset();
-        [gate_challenges[i], _] = split(&ch3);
-    }
-
-    // Round 3 and 1/2: Libra challenge
-    hasher.update(&ch3);
-
-    hasher.update_as_point(&proof.libra_commitments[0]);
+    // Round 3.5: Libra challenge
+    hasher.update_bytes(&ch3);
+    hasher.update_point(&proof.libra_commitments[0]);
     hasher.update(&proof.libra_sum);
 
-    ch3 = hasher.digest_reset();
+    let ch3 = hasher.digest_reset();
     let [libra_challenge, _] = split(&ch3);
 
     // Round 4: Sumcheck u challenges
     let mut sumcheck_u_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(BigUint::from);
-
     let mut ch4 = ch3;
-    for i in 0..CONST_PROOF_SIZE_LOG_N {
-        hasher.update(&ch4);
+
+    for i in 0..vk.log_circuit_size {
+        hasher.update_bytes(&ch4);
         for j in 0..ZK_BATCHED_RELATION_PARTIAL_LENGTH {
             hasher.update(&proof.sumcheck_univariates[i][j]);
         }
 
         ch4 = hasher.digest_reset();
-        [sumcheck_u_challenges[i], _] = split(&ch4);
+        let [challenge, _] = split(&ch4);
+        sumcheck_u_challenges[i] = challenge;
     }
 
-    // Rho challenge :
-    hasher.update(&ch4);
+    // Rho challenge
+    hasher.update_bytes(&ch4);
     for i in 0..NUMBER_OF_ENTITIES {
         hasher.update(&proof.sumcheck_evaluations[i]);
     }
 
     hasher.update(&proof.libra_evaluation);
-    hasher.update_as_point(&proof.libra_commitments[1]);
-    hasher.update_as_point(&proof.libra_commitments[2]);
-    hasher.update_as_point(&proof.gemini_masking_poly);
+    hasher.update_point(&proof.libra_commitments[1]);
+    hasher.update_point(&proof.libra_commitments[2]);
+    hasher.update_point(&proof.gemini_masking_poly);
     hasher.update(&proof.gemini_masking_eval);
 
     let c5 = hasher.digest_reset();
     let [rho, _] = split(&c5);
 
-    // Gemini R :
-    hasher.update(&c5);
-    for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
-        hasher.update_as_point(&proof.gemini_fold_comms[i]);
+    // Gemini R
+    hasher.update_bytes(&c5);
+    for i in 0..vk.log_circuit_size - 1 {
+        hasher.update_point(&proof.gemini_fold_comms[i]);
     }
 
     let c6 = hasher.digest_reset();
     let [gemini_r, _] = split(&c6);
 
-    // Shplonk Nu :
-    hasher.update(&c6);
-    for i in 0..CONST_PROOF_SIZE_LOG_N {
+    // Shplonk Nu
+    hasher.update_bytes(&c6);
+    for i in 0..vk.log_circuit_size {
         hasher.update(&proof.gemini_a_evaluations[i]);
     }
 
@@ -746,15 +1004,15 @@ fn compute_zk_transcript<T: Hasher>(
     let c7 = hasher.digest_reset();
     let [shplonk_nu, _] = split(&c7);
 
-    // Shplonk Z :
-    hasher.update(&c7);
-    hasher.update_as_point(&proof.shplonk_q);
+    // Shplonk Z
+    hasher.update_bytes(&c7);
+    hasher.update_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
     let [shplonk_z_low, shplonk_z_high] = split(&c8);
 
-    let mut state = [
-        element_from_biguint(&shplonk_z_low), // StarknetHonk
+    let mut state: [FieldElement<Stark252PrimeField>; 3] = [
+        element_from_biguint(&shplonk_z_low),
         element_from_biguint(&shplonk_z_high),
         FieldElement::one().double(),
     ];
@@ -768,8 +1026,8 @@ fn compute_zk_transcript<T: Hasher>(
             eta_three,
             beta,
             gamma,
-            alphas,
-            gate_challenges,
+            alpha,
+            gate_challenge,
             libra_challenge,
             sumcheck_u_challenges,
             rho,
@@ -794,7 +1052,10 @@ fn compute_shplemini_msm_scalars(
     shplonk_z: &FieldElement<GrumpkinPrimeField>,
     shplonk_nu: &FieldElement<GrumpkinPrimeField>,
     sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
-) -> Result<[Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3], FieldError> {
+) -> Result<
+    [Option<BigUint>; NUMBER_UNSHIFTED + CONST_PROOF_SIZE_LOG_N + LIBRA_COMMITMENTS + 3],
+    FieldError,
+> {
     let powers_of_evaluations_challenge = {
         let mut values = vec![];
         let mut value = *gemini_r;
@@ -810,38 +1071,44 @@ fn compute_shplemini_msm_scalars(
 
     let mut scalars = {
         const NONE: Option<FieldElement<GrumpkinPrimeField>> = None;
-        let mut values = [NONE; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3];
+        let mut values = [NONE; NUMBER_UNSHIFTED + CONST_PROOF_SIZE_LOG_N + LIBRA_COMMITMENTS + 3];
         for i in 0..values.len() {
             values[i] = Some(FieldElement::zero());
         }
         values
     };
 
-    let unshifted_scalar = -(pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator));
+    let unshifted_scalar = pos_inverted_denominator + (shplonk_nu * neg_inverted_denominator);
+    let unshifted_scalar_neg = -unshifted_scalar;
 
-    let shifted_scalar =
+    let shifted_scalar_neg =
         -(gemini_r.inv()? * (pos_inverted_denominator - (shplonk_nu * neg_inverted_denominator)));
 
     scalars[0] = Some(FieldElement::one());
 
     let mut batched_evaluation = *gemini_masking_eval;
     let mut batching_challenge = *rho;
-    scalars[1] = Some(unshifted_scalar);
+    scalars[1] = Some(unshifted_scalar_neg);
 
-    for i in 2..NUMBER_UNSHIFTED + 2 {
-        scalars[i] = Some(unshifted_scalar * batching_challenge);
-        batched_evaluation += sumcheck_evaluations[i - 2] * batching_challenge;
+    for i in 0..NUMBER_UNSHIFTED {
+        scalars[i + 2] = Some(unshifted_scalar_neg * batching_challenge);
+        batched_evaluation += sumcheck_evaluations[i] * batching_challenge;
         batching_challenge *= rho;
     }
-    for i in NUMBER_UNSHIFTED + 2..NUMBER_OF_ENTITIES + 2 {
-        scalars[i] = Some(shifted_scalar * batching_challenge);
-        batched_evaluation += sumcheck_evaluations[i - 2] * batching_challenge;
+
+    for i in 0..NUMBER_TO_BE_SHIFTED {
+        let scalar_offset = i + SHIFTED_COMMITMENTS_START;
+        let evaluation_offset = i + NUMBER_UNSHIFTED;
+        scalars[scalar_offset] =
+            Some(scalars[scalar_offset].unwrap() + (shifted_scalar_neg * batching_challenge));
+        batched_evaluation += sumcheck_evaluations[evaluation_offset] * batching_challenge;
         // skip last round:
-        if i < NUMBER_OF_ENTITIES + 1 {
+        if i < NUMBER_TO_BE_SHIFTED - 1 {
             batching_challenge *= rho;
         }
     }
 
+    // computeFoldPosEvaluations
     let fold_pos_evaluations = {
         let mut values = vec![FieldElement::from(0); CONST_PROOF_SIZE_LOG_N];
         let mut batched_eval_accumulator = batched_evaluation;
@@ -866,24 +1133,24 @@ fn compute_shplemini_msm_scalars(
 
     let mut batching_challenge = shplonk_nu * shplonk_nu;
 
-    for i in 0..CONST_PROOF_SIZE_LOG_N - 1 {
-        let dummy_round = i >= (log_circuit_size - 1);
-        if !dummy_round {
-            pos_inverted_denominator =
-                (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
-            neg_inverted_denominator =
-                (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
+    let boundary = NUMBER_UNSHIFTED + 2;
 
-            let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
-            let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
-            scalars[NUMBER_OF_ENTITIES + i + 2] = Some(-(scaling_factor_neg + scaling_factor_pos));
+    for i in 0..log_circuit_size - 1 {
+        pos_inverted_denominator = (shplonk_z - powers_of_evaluations_challenge[i + 1]).inv()?;
+        neg_inverted_denominator = (shplonk_z + powers_of_evaluations_challenge[i + 1]).inv()?;
 
-            let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
-            accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
-            constant_term_accumulator += accum_contribution;
-        }
+        let scaling_factor_pos = batching_challenge * pos_inverted_denominator;
+        let scaling_factor_neg = batching_challenge * shplonk_nu * neg_inverted_denominator;
+        scalars[boundary + i] = Some(-(scaling_factor_neg + scaling_factor_pos));
+
+        let mut accum_contribution = scaling_factor_neg * gemini_a_evaluations[i + 1];
+        accum_contribution += scaling_factor_pos * fold_pos_evaluations[i + 1];
+        constant_term_accumulator += accum_contribution;
+
         batching_challenge *= shplonk_nu * shplonk_nu;
     }
+
+    let boundary = boundary + log_circuit_size - 1;
 
     let subgroup_generator = FieldElement::<GrumpkinPrimeField>::from_hex_unchecked(
         "07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76",
@@ -901,36 +1168,22 @@ fn compute_shplemini_msm_scalars(
 
     let mut batching_scalars = vec![];
     batching_challenge *= shplonk_nu * shplonk_nu;
-    for i in 0..4 {
+    for i in 0..LIBRA_EVALUATIONS {
         let scaling_factor = denominators[i] * batching_challenge;
-        batching_scalars.push(-&scaling_factor);
-        batching_challenge *= shplonk_nu;
+        batching_scalars.push(-scaling_factor);
+        // skip last step:
+        if i < LIBRA_EVALUATIONS - 1 {
+            batching_challenge *= shplonk_nu;
+        }
         constant_term_accumulator += scaling_factor * libra_poly_evals[i];
     }
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 1] = Some(batching_scalars[0]);
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 2] =
-        Some(batching_scalars[1] + batching_scalars[2]);
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3] = Some(batching_scalars[3]);
+    scalars[boundary] = Some(batching_scalars[0]);
+    scalars[boundary + 1] = Some(batching_scalars[1] + batching_scalars[2]);
+    scalars[boundary + 2] = Some(batching_scalars[3]);
 
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 4] = Some(constant_term_accumulator);
-    scalars[NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 5] = Some(*shplonk_z);
+    scalars[boundary + 3] = Some(constant_term_accumulator);
+    scalars[boundary + 4] = Some(*shplonk_z);
 
-    // proof.w1 : 29 + 37
-    // proof.w2 : 30 + 38
-    // proof.w3 : 31 + 39
-    // proof.w4 : 32 + 40
-
-    scalars[29] = Some(scalars[29].unwrap() + scalars[37].unwrap());
-    scalars[30] = Some(scalars[30].unwrap() + scalars[38].unwrap());
-    scalars[31] = Some(scalars[31].unwrap() + scalars[39].unwrap());
-    scalars[32] = Some(scalars[32].unwrap() + scalars[40].unwrap());
-    scalars[33] = Some(scalars[33].unwrap() + scalars[41].unwrap()); // z_perm
-
-    scalars[37] = None;
-    scalars[38] = None;
-    scalars[39] = None;
-    scalars[40] = None;
-    scalars[41] = None;
     Ok(scalars
         .into_iter()
         .map(|v| v.map(|e| element_to_biguint(&e)))
@@ -944,6 +1197,7 @@ fn check_evals_consistency(
     libra_poly_evals: &[FieldElement<GrumpkinPrimeField>; 4],
     gemini_r: &FieldElement<GrumpkinPrimeField>,
     sumcheck_u_challenges: &[FieldElement<GrumpkinPrimeField>; CONST_PROOF_SIZE_LOG_N],
+    log_circuit_size: usize,
 ) -> Result<bool, FieldError> {
     let vanishing_poly_eval =
         gemini_r.pow(SUBGROUP_SIZE) - FieldElement::<GrumpkinPrimeField>::from(1);
@@ -954,10 +1208,10 @@ fn check_evals_consistency(
     let mut challenge_poly_lagrange =
         vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
     challenge_poly_lagrange[0] = FieldElement::<GrumpkinPrimeField>::from(1);
-    for round in 0..CONST_PROOF_SIZE_LOG_N {
-        let curr_idx = 1 + 9 * round;
+    for round in 0..log_circuit_size {
+        let curr_idx = 1 + LIBRA_UNIVARIATES_LENGTH * round;
         challenge_poly_lagrange[curr_idx] = FieldElement::<GrumpkinPrimeField>::from(1);
-        for idx in curr_idx + 1..curr_idx + 9 {
+        for idx in curr_idx + 1..curr_idx + LIBRA_UNIVARIATES_LENGTH {
             challenge_poly_lagrange[idx] =
                 challenge_poly_lagrange[idx - 1] * sumcheck_u_challenges[round];
         }
@@ -974,7 +1228,10 @@ fn check_evals_consistency(
         denominators[idx] = root_power * gemini_r - FieldElement::<GrumpkinPrimeField>::from(1);
         denominators[idx] = denominators[idx].inv()?;
         challenge_poly_eval += challenge_poly_lagrange[idx] * denominators[idx];
-        root_power *= subgroup_generator_inverse;
+        // skip last step:
+        if idx < SUBGROUP_SIZE - 1 {
+            root_power *= subgroup_generator_inverse;
+        }
     }
 
     let numerator = vanishing_poly_eval
@@ -997,58 +1254,19 @@ fn check_evals_consistency(
 
 fn extract_msm_scalars(
     log_circuit_size: usize,
-    scalars: [Option<BigUint>; NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N + 3 + 3],
+    scalars: [Option<BigUint>; NUMBER_UNSHIFTED + CONST_PROOF_SIZE_LOG_N + LIBRA_COMMITMENTS + 3],
 ) -> Vec<BigUint> {
-    let i = 1 + NUMBER_OF_ENTITIES + log_circuit_size;
-    let j = 1 + NUMBER_OF_ENTITIES + CONST_PROOF_SIZE_LOG_N;
-    [&scalars[1..i], &scalars[j..]]
+    // Remove first element (==1)
+    // scalars[1..NUMBER_UNSHIFTED+2] are the unshifted/shifted scalars
+    // scalars[NUMBER_UNSHIFTED+2..NUMBER_UNSHIFTED+2+log_n-1] are gemini fold comm scalars
+    // scalars[NUMBER_UNSHIFTED+2+log_n-1..NUMBER_UNSHIFTED+2+log_n-1+5] are libra + final scalars
+    let gemini_end = NUMBER_UNSHIFTED + 2 + log_circuit_size - 1;
+    let libra_start = gemini_end;
+    let libra_end = libra_start + 5; // 3 libra + constant_term + shplonk_z
+
+    [&scalars[1..gemini_end], &scalars[libra_start..libra_end]]
         .concat()
         .into_iter()
         .flatten()
         .collect()
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_zk_honk_keccak_calldata() {
-        let vk = get_honk_vk().unwrap();
-        let proof = get_zk_honk_keccak_proof().unwrap();
-        let _ = get_zk_honk_calldata(&proof, &vk, HonkFlavor::KECCAK).unwrap();
-    }
-
-    fn get_honk_vk() -> std::io::Result<HonkVerificationKey> {
-        use std::fs::File;
-        use std::io::Read;
-        let mut file = File::open(
-            "../../hydra/garaga/starknet/honk_contract_generator/examples/vk_ultra_keccak.bin",
-        )?;
-        let mut vk_bytes = vec![];
-        file.read_to_end(&mut vk_bytes)?;
-        let vk = HonkVerificationKey::from_bytes(&vk_bytes).unwrap();
-        Ok(vk)
-    }
-
-    fn get_zk_honk_keccak_proof() -> std::io::Result<ZKHonkProof> {
-        use std::fs::File;
-        use std::io::Read;
-
-        let vk = get_honk_vk().unwrap();
-        let mut file = File::open(
-            "../../hydra/garaga/starknet/honk_contract_generator/examples/proof_ultra_keccak_zk.bin",
-        )?;
-        let mut proof_bytes = vec![];
-        file.read_to_end(&mut proof_bytes)?;
-        let mut file = File::open(
-            "../../hydra/garaga/starknet/honk_contract_generator/examples/public_inputs_ultra_keccak.bin",
-        )?;
-        let mut public_inputs_bytes = vec![];
-        file.read_to_end(&mut public_inputs_bytes)?;
-        let proof =
-            ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes, vk.log_circuit_size)
-                .unwrap();
-        Ok(proof)
-    }
 }
