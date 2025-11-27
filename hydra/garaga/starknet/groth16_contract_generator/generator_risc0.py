@@ -69,7 +69,7 @@ pub trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
     fn {verification_function_name}(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u8>>;
+    ) -> Result<Span<u8>, felt252>;
 }}
 
 #[starknet::contract]
@@ -91,10 +91,10 @@ mod Risc0Groth16Verifier{curve_id.name} {{
         fn {verification_function_name}(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
-        ) -> Option<Span<u8>> {{
+        ) -> Result<Span<u8>, felt252> {{
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns an Option for the public inputs if the proof is valid.
-            // If the proof is invalid, the execution will either fail or return None.
+            // This function returns Result::Ok(public_inputs) if the proof is valid.
+            // If the proof is invalid, it returns Result::Err(error).
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
 
             let fph = deserialize_full_proof_with_hints_risc0(full_proof_with_hints);
@@ -152,10 +152,9 @@ mod Risc0Groth16Verifier{curve_id.name} {{
                 precomputed_lines.span(),
                 mpcheck_hint,
             );
-            if check == true {{
-                return Option::Some(journal);
-            }} else {{
-                return Option::None;
+            match check {{
+                Result::Ok(_) => Result::Ok(journal),
+                Result::Err(error) => Result::Err(error),
             }}
         }}
     }}

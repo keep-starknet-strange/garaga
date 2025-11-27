@@ -40,9 +40,9 @@ pub fn leaf_index_to_mt_index_and_peak_index(leaf_index: u64, num_leafs: u64) ->
     let discrepancies = leaf_index ^ num_leafs;
     let local_mt_height = log2(discrepancies);
     let local_mt_num_leafs = 1 << (local_mt_height as u8);
-    let remainder_bitmask = local_mt_num_leafs - 1;
-    let local_leaf_index = leaf_index & remainder_bitmask;
-    let mt_node_index = local_leaf_index + local_mt_num_leafs;
+    let remainder_bitmask = (local_mt_num_leafs - 1) as u64;
+    let local_leaf_index = leaf_index & (remainder_bitmask as u64);
+    let mt_node_index = local_leaf_index + (local_mt_num_leafs as u64);
 
     // Calculate peak index
     let num_peaks = count_ones(num_leafs);
