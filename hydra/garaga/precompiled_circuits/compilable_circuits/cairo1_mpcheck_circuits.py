@@ -22,7 +22,7 @@ from garaga.precompiled_circuits.compilable_circuits.base import BaseEXTFCircuit
 
 
 def split_4_sized_object_into_tuple_of_2_size(
-    input: Union[List[PyFelt], Tuple[PyFelt, PyFelt, PyFelt, PyFelt]]
+    input: Union[List[PyFelt], Tuple[PyFelt, PyFelt, PyFelt, PyFelt]],
 ) -> Optional[Tuple[List[PyFelt], List[PyFelt]]]:
     if input is None:
         return None

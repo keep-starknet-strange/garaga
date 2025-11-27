@@ -20,13 +20,19 @@ venv
 
 tools/garaga_rs/target/
 tools/make/requirements.txt
-
 .prev_tests_failed
 
 src/cairo/target/
 *target*
 Scarb.lock
 tests/contracts_e2e/devnet/*
+
+# Foundry artifacts for Solidity testing
+tools/noir/hello/lib/
+tools/noir/hello/out/
+tools/noir/hello/cache/
+tools/noir/hello/test/
+tools/noir/hello/foundry.toml
 
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json
 !docs/benchmarks/test_summary.json

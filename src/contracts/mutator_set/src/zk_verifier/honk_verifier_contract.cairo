@@ -11,15 +11,15 @@ use super::honk_verifier_constants::{precomputed_lines, vk};
 pub trait IUltraKeccakZKHonkVerifier<TContractState> {
     fn verify_ultra_keccak_zk_honk_proof(
         self: @TContractState, full_proof_with_hints: Span<felt252>,
-    ) -> Option<Span<u256>>;
+    ) -> Result<Span<u256>, felt252>;
 }
 
 #[starknet::contract]
 mod UltraKeccakZKHonkVerifier {
     use core::num::traits::Zero;
-    use garaga::apps::noir::honk_transcript::{KeccakHasherState, Point256IntoCircuitPoint};
     use garaga::apps::noir::zk_honk_transcript::{
-        ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH,
+        KeccakHasherState, Point256IntoCircuitPoint, ZKHonkTranscriptTrait,
+        ZK_BATCHED_RELATION_PARTIAL_LENGTH,
     };
     use garaga::apps::noir::{G2_POINT_KZG_1, G2_POINT_KZG_2, ZKHonkProof};
     use garaga::core::circuit::{U32IntoU384, U64IntoU384, u256_to_u384, u288IntoCircuitInputValue};
@@ -52,10 +52,10 @@ mod UltraKeccakZKHonkVerifier {
     impl IUltraKeccakZKHonkVerifier of super::IUltraKeccakZKHonkVerifier<ContractState> {
         fn verify_ultra_keccak_zk_honk_proof(
             self: @ContractState, full_proof_with_hints: Span<felt252>,
-        ) -> Option<Span<u256>> {
+        ) -> Result<Span<u256>, felt252> {
             // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns an Option for the public inputs if the proof is valid.
-            // If the proof is invalid, the execution will either fail or return None.
+            // This function returns Result::Ok(public_inputs) if the proof is valid.
+            // If the proof is invalid, it returns Result::Err(error).
             // Read the documentation to learn how to generate the full_proof_with_hints array given
             // a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
@@ -66,12 +66,11 @@ mod UltraKeccakZKHonkVerifier {
 
             let (transcript, _, base_rlc) = ZKHonkTranscriptTrait::from_proof::<
                 KeccakHasherState,
-            >(vk.circuit_size, vk.public_inputs_size, vk.public_inputs_offset, full_proof.proof);
+            >(full_proof.proof, vk.vk_hash, vk.log_circuit_size);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = run_GRUMPKIN_ZK_HONK_SUMCHECK_SIZE_17_PUB_19_circuit(
                 p_public_inputs: full_proof.proof.public_inputs,
                 p_pairing_point_object: full_proof.proof.pairing_point_object,
-                p_public_inputs_offset: vk.public_inputs_offset.into(),
                 libra_sum: u256_to_u384(full_proof.proof.libra_sum),
                 sumcheck_univariates_flat: full_proof
                     .proof
@@ -79,25 +78,24 @@ mod UltraKeccakZKHonkVerifier {
                     .slice(0, log_n * ZK_BATCHED_RELATION_PARTIAL_LENGTH),
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
-                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span().slice(0, log_n),
-                tp_gate_challenges: transcript.gate_challenges.span().slice(0, log_n),
+                tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
+                tp_gate_challenge: transcript.gate_challenge,
                 tp_eta_1: transcript.eta.into(),
                 tp_eta_2: transcript.eta_two.into(),
                 tp_eta_3: transcript.eta_three.into(),
                 tp_beta: transcript.beta.into(),
                 tp_gamma: transcript.gamma.into(),
                 tp_base_rlc: base_rlc.into(),
-                tp_alphas: transcript.alphas.span(),
+                tp_alpha: transcript.alpha,
                 tp_libra_challenge: transcript.libra_challenge.into(),
                 modulus: mod_grumpkin,
             );
 
-            const CONST_PROOF_SIZE_LOG_N: usize = 28;
             let (mut challenge_poly_eval, mut root_power_times_tp_gemini_r) =
                 run_GRUMPKIN_ZK_HONK_EVALS_CONS_INIT_SIZE_17_circuit(
                 tp_gemini_r: transcript.gemini_r.into(), modulus: mod_grumpkin,
             );
-            for i in 0..CONST_PROOF_SIZE_LOG_N {
+            for i in 0..vk.log_circuit_size {
                 let (new_challenge_poly_eval, new_root_power_times_tp_gemini_r) =
                     run_GRUMPKIN_ZK_HONK_EVALS_CONS_LOOP_SIZE_17_circuit(
                     challenge_poly_eval: challenge_poly_eval,
@@ -155,6 +153,11 @@ mod UltraKeccakZKHonkVerifier {
                 scalar_34,
                 scalar_35,
                 scalar_36,
+                scalar_37,
+                scalar_38,
+                scalar_39,
+                scalar_40,
+                scalar_41,
                 scalar_42,
                 scalar_43,
                 scalar_44,
@@ -171,10 +174,6 @@ mod UltraKeccakZKHonkVerifier {
                 scalar_55,
                 scalar_56,
                 scalar_57,
-                scalar_69,
-                scalar_70,
-                scalar_71,
-                scalar_72,
             ) =
                 run_GRUMPKIN_ZKHONK_PREP_MSM_SCALARS_SIZE_17_circuit(
                 p_sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
@@ -192,9 +191,9 @@ mod UltraKeccakZKHonkVerifier {
             // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
                 vk.qm, vk.qc, vk.ql, vk.qr, vk.qo, vk.q4, vk.qLookup, vk.qArith, vk.qDeltaRange,
-                vk.qElliptic, vk.qAux, vk.qPoseidon2External, vk.qPoseidon2Internal, vk.s1, vk.s2,
-                vk.s3, vk.s4, vk.id1, vk.id2, vk.id3, vk.id4, vk.t1, vk.t2, vk.t3, vk.t4,
-                vk.lagrange_first, vk.lagrange_last,
+                vk.qElliptic, vk.qMemory, vk.qNnf, vk.qPoseidon2External, vk.qPoseidon2Internal,
+                vk.s1, vk.s2, vk.s3, vk.s4, vk.id1, vk.id2, vk.id3, vk.id4, vk.t1, vk.t2, vk.t3,
+                vk.t4, vk.lagrange_first, vk.lagrange_last,
                 full_proof.proof.gemini_masking_poly.into(), // Proof point 1,
                 full_proof.proof.w1.into(), // Proof point 2,
                 full_proof.proof.w2.into(), // Proof point 3,
@@ -220,18 +219,18 @@ mod UltraKeccakZKHonkVerifier {
                 scalar_2, scalar_3, scalar_4, scalar_5, scalar_6, scalar_7, scalar_8, scalar_9,
                 scalar_10, scalar_11, scalar_12, scalar_13, scalar_14, scalar_15, scalar_16,
                 scalar_17, scalar_18, scalar_19, scalar_20, scalar_21, scalar_22, scalar_23,
-                scalar_24, scalar_25, scalar_26, scalar_27, scalar_28, scalar_1, scalar_29,
+                scalar_24, scalar_25, scalar_26, scalar_27, scalar_28, scalar_29, scalar_1,
                 scalar_30, scalar_31, scalar_32, scalar_33, scalar_34, scalar_35, scalar_36,
-                scalar_42, scalar_43, scalar_44, scalar_45, scalar_46, scalar_47, scalar_48,
-                scalar_49, scalar_50, scalar_51, scalar_52, scalar_53, scalar_54, scalar_55,
-                scalar_56, scalar_57, scalar_69, scalar_70, scalar_71, transcript.shplonk_z.into(),
-                scalar_72,
+                scalar_37, scalar_38, scalar_39, scalar_40, scalar_41, scalar_42, scalar_43,
+                scalar_44, scalar_45, scalar_46, scalar_47, scalar_48, scalar_49, scalar_50,
+                scalar_51, scalar_52, scalar_53, scalar_54, scalar_55, scalar_56,
+                transcript.shplonk_z.into(), scalar_57,
             ]
                 .span();
 
             // Check input points are on curve.
-            // Skip the first 27 points as they are from VK and keep the last 29 proof points
-            for point in points.slice(27, 29) {
+            // Skip the first 28 points as they are from VK and keep the last 29 proof points
+            for point in points.slice(28, 29) {
                 assert(
                     is_on_curve_excluding_infinity_bn254(*point, mod_bn),
                     'proof point not on curve',
@@ -246,14 +245,13 @@ mod UltraKeccakZKHonkVerifier {
             );
 
             let mut msm_hint = full_proof.msm_hint;
-            assert(msm_hint.len() == 57 * 12, 'wrong glv&fakeglv hint size');
+            assert(msm_hint.len() == 58 * 12, 'wrong glv&fakeglv hint size');
             let eigen = get_eigenvalue(0);
             let third_root_of_unity = get_third_root_of_unity(0);
             let min_one = get_min_one_order(0);
             let nG = get_nG_glv_fake_glv(0);
 
             let mut P_1 = shplonk_q_pt;
-
             while msm_hint.len() != 0 {
                 let pt = *points.pop_front().unwrap();
                 let scalar = *scalars.pop_front().unwrap();
@@ -289,10 +287,10 @@ mod UltraKeccakZKHonkVerifier {
                 && honk_check.is_zero()
                 && !vanishing_check.is_zero()
                 && diff_check.is_zero()
-                && kzg_check {
-                return Option::Some(full_proof.proof.public_inputs);
+                && kzg_check.is_ok() {
+                return Result::Ok(full_proof.proof.public_inputs);
             } else {
-                return Option::None;
+                return Result::Err('Proof verification failed');
             }
         }
     }

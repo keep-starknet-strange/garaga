@@ -8,7 +8,7 @@ describe('ZK Honk Getting calldata', () => {
 
   const proofAndVkWithFlavors = [
     [`${PATH}/proof_ultra_keccak_zk.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.KECCAK],
-    [`${PATH}/proof_ultra_starknet_zk.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.STARKNET],
+    // [`${PATH}/proof_ultra_starknet_zk.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.STARKNET],
   ]
 
   test.each(proofAndVkWithFlavors)("should  get zk honk calldata from proof %s, public inputs %s, vk %s and pub inputs %s", async (proofPath, publicInputsPath, vkPath, flavor) => {

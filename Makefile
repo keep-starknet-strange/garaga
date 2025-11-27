@@ -1,4 +1,4 @@
-.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks
+.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash
 
 constants:
 	python tools/make/generate_constants.py
@@ -20,6 +20,9 @@ rewrite-no-tests:
 
 regen:
 	cd src/contracts/mutator_set && make regen
+
+update-risc0-class-hash:
+	./tools/make/update_risc0_class_hash.sh
 
 steps:
 	./tools/make/steps.sh

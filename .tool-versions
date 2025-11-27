@@ -1,3 +1,4 @@
-scarb 2.12.2
-starknet-foundry 0.51.1
+scarb 2.14.0
+starknet-foundry 0.53.0
 starknet-devnet 0.5.1
+cairo-profiler 0.14.0

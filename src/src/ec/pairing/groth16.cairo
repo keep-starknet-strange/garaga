@@ -17,7 +17,7 @@
 ///
 /// Moreover, the file contains the full groth16 verification function for BN254 and BLS12-381.
 use core::circuit::u384;
-use core::num::traits::One;
+use core::num::traits::{One, Zero};
 use core::option::Option;
 use garaga::basic_field_ops;
 use garaga::basic_field_ops::neg_mod_p;
@@ -37,8 +37,8 @@ use garaga::pairing_check::{
     BLSProcessedPair, BNProcessedPair, MPCheckHintBLS12_381, MPCheckHintBN254,
     compute_yInvXnegOverY,
 };
+use garaga::utils::hashing;
 use garaga::utils::hashing::{PoseidonState, TWO_POW_96};
-use garaga::utils::{hashing, usize_assert_eq};
 
 
 #[derive(Copy, Drop, Serde, Debug, PartialEq)]
@@ -105,7 +105,7 @@ pub fn verify_groth16_bn254(
     proof: Groth16Proof,
     public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBN254,
-) -> Option<Span<u256>> {
+) -> Result<Span<u256>, felt252> {
     proof.raw.check_proof_points(0);
     let vk_x = _groth16_get_vk_x(proof, ic, public_inputs_msm_hint, 0);
     let check = multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
@@ -118,8 +118,8 @@ pub fn verify_groth16_bn254(
     );
 
     match check {
-        true => Option::Some(proof.public_inputs),
-        false => Option::None,
+        Result::Ok(_) => Result::Ok(proof.public_inputs),
+        Result::Err(error) => Result::Err(error),
     }
 }
 
@@ -140,7 +140,7 @@ pub fn verify_groth16_bls12_381(
     ic: Span<G1Point>,
     public_inputs_msm_hint: Span<felt252>,
     mpcheck_hint: MPCheckHintBLS12_381,
-) -> Option<Span<u256>> {
+) -> Result<Span<u256>, felt252> {
     proof.raw.check_proof_points(1);
     let vk_x = _groth16_get_vk_x(proof, ic, public_inputs_msm_hint, 1);
 
@@ -153,8 +153,8 @@ pub fn verify_groth16_bls12_381(
         mpcheck_hint,
     );
     match check {
-        true => Option::Some(proof.public_inputs),
-        false => Option::None,
+        Result::Ok(_) => Result::Ok(proof.public_inputs),
+        Result::Err(error) => Result::Err(error),
     }
 }
 
@@ -213,9 +213,13 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     precomputed_miller_loop_result: E12D<u288>,
     mut lines: Span<G2Line<u288>>,
     mpcheck_hint: MPCheckHintBN254,
-) -> bool {
-    usize_assert_eq(mpcheck_hint.big_Q.len(), 190);
-    assert!(mpcheck_hint.Ris.len() == 34, "Wrong Number of Ris for BN254 3-Pairs Paring check");
+) -> Result<bool, felt252> {
+    if mpcheck_hint.big_Q.len() != 190 {
+        return Result::Err('WRONG_BIG_Q_LEN');
+    }
+    if mpcheck_hint.Ris.len() != 34 {
+        return Result::Err('WRONG_RIS_LEN');
+    }
 
     let modulus = get_BN254_modulus(); // BN254 prime field modulus
     let (yInv_0, xNegOverY_0) = compute_yInvXnegOverY(pair0.p.x, pair0.p.y, modulus);
@@ -237,7 +241,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     let hash_state = hashing::hash_E12D_u288(mpcheck_hint.lambda_root, hash_state);
     let hash_state = hashing::hash_E12D_u288(mpcheck_hint.lambda_root_inverse, hash_state);
     let hash_state = hashing::hash_MillerLoopResultScalingFactor_u288(mpcheck_hint.w, hash_state);
-    // Hash Ris to obtain base random coefficient c0
+    // Hash Ris to obtain base random coefficient c1
     let z: u384 = mpcheck_hint.z.into();
     let (hash_state, mut evals) = basic_field_ops::eval_and_hash_E12D_u288_transcript(
         mpcheck_hint.Ris, hash_state, z,
@@ -248,6 +252,7 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
 
     let mut evals = evals.span();
     let c_1: u384 = hash_state.s1.into();
+
     // hades_permutation(0,0,int.from_bytes(b"MPCHECK_BN254_3P_2F_II", "big"))
     let part_II_state = PoseidonState {
         s0: 0xe973a7c87240c35289f5fdac2ea94f1848022f9499f37b4ab94172b6742649,
@@ -259,7 +264,9 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u288_transcript(mpcheck_hint.big_Q.span(), hash_state).s0;
 
-    assert!(z_felt252 == mpcheck_hint.z);
+    if z_felt252 != mpcheck_hint.z {
+        return Result::Err('WRONG_Z');
+    }
 
     let (
         c_of_z,
@@ -446,9 +453,10 @@ pub fn multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result(
     );
 
     // Checks that LHS = Q(z) * P_irr(z)
-    assert(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, 'Final check failed');
-
-    return true;
+    match check.is_zero() {
+        true => Result::Ok(true),
+        false => Result::Err('FINAL_CHECK_FAILED'),
+    }
 }
 
 
@@ -505,12 +513,13 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     precomputed_miller_loop_result: E12D<u384>,
     mut lines: Span<G2Line<u384>>,
     hint: MPCheckHintBLS12_381,
-) -> bool {
-    assert!(
-        hint.big_Q.len() == 105,
-        "Wrong Q degree for BLS12-381 3-Pairs Paring check, should be of degree 104 (105 coefficients)",
-    );
-    assert!(hint.Ris.len() == 35, "Wrong Number of Ris for BLS12-381 3-Pairs Paring check");
+) -> Result<bool, felt252> {
+    if hint.big_Q.len() != 105 {
+        return Result::Err('WRONG_BIG_Q_LEN');
+    }
+    if hint.Ris.len() != 35 {
+        return Result::Err('WRONG_RIS_LEN');
+    }
 
     let (
         processed_pair0, processed_pair1, processed_pair2,
@@ -557,7 +566,9 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
     // Hash Q = (Σ_i c_i*Q_i) to obtain random evaluation point z
     let z_felt252 = hashing::hash_u384_transcript(hint.big_Q.span(), hash_state).s0;
 
-    assert(z_felt252 == hint.z, 'z mismatch');
+    if z_felt252 != hint.z {
+        return Result::Err('WRONG_Z');
+    }
 
     // Precompute lambda root evaluated in Z:
     let (conjugate_c_inv_of_z, w_of_z, c_inv_of_z_frob_1, mlr_of_z): (u384, u384, u384, u384) =
@@ -674,8 +685,10 @@ pub fn multi_pairing_check_bls12_381_3P_2F_with_extra_miller_loop_result(
         R_last_of_z, c_1, w_of_z, z, c_inv_of_z_frob_1, LHS, *hint.Ris.at(34), hint.big_Q, mlr_of_z,
     );
 
-    assert!(check == u384 { limb0: 0, limb1: 0, limb2: 0, limb3: 0 }, "Final check failed");
-    return true;
+    match check.is_zero() {
+        true => Result::Ok(true),
+        false => Result::Err('FINAL_CHECK_FAILED'),
+    }
 }
 
 pub fn conjugate_e12D(self: E12D<u384>, curve_index: usize) -> E12D<u384> {

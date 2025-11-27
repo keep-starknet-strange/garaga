@@ -373,7 +373,7 @@ class MPCheckCalldataBuilder:
         fn {test_name}() {{
             {input_code}
             let res = {fn_name}({', '.join([struct.name for struct in inputs])});
-            assert!(res);
+            assert!(res.is_ok());
         }}
         """
         return code
