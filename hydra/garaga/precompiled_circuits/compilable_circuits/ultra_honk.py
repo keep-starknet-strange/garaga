@@ -38,15 +38,15 @@ class BaseUltraHonkCircuit(BaseModuloCircuit):
             compilation_mode=compilation_mode,
         )
 
-    def _initialize_circuit(self) -> HonkVerifierCircuits:
-        return HonkVerifierCircuits(
+    def _initialize_circuit(self) -> ZKHonkVerifierCircuits:
+        return ZKHonkVerifierCircuits(
             name=self.name,
             log_n=self.log_n,
             curve_id=self.curve_id,
         )
 
     def _process_input(
-        self, circuit: HonkVerifierCircuits, input: list[PyFelt]
+        self, circuit: ZKHonkVerifierCircuits, input: list[PyFelt]
     ) -> dict:
         """
         Method responsible for deserializing the input list of elements into the variables in the input map,
@@ -170,7 +170,7 @@ class ZKBaseUltraHonkCircuit(BaseUltraHonkCircuit):
             compilation_mode=compilation_mode,
         )
 
-    def _initialize_circuit(self) -> HonkVerifierCircuits:
+    def _initialize_circuit(self) -> ZKHonkVerifierCircuits:
         return ZKHonkVerifierCircuits(
             name=self.name,
             log_n=self.log_n,
@@ -207,7 +207,6 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             self.vk.public_inputs_size - PAIRING_POINT_OBJECT_LENGTH,
         )
         imap["p_pairing_point_object"] = (structs.u256Span, PAIRING_POINT_OBJECT_LENGTH)
-        imap["p_public_inputs_offset"] = structs.u384
 
         imap["libra_sum"] = structs.u384
 
@@ -227,10 +226,8 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             structs.u128Span,
             self.vk.log_circuit_size,
         )
-        imap["tp_gate_challenges"] = (
-            structs.u128Span,
-            self.vk.log_circuit_size,
-        )
+        imap["tp_gate_challenge"] = structs.u128
+
         imap["tp_eta_1"] = structs.u384
         imap["tp_eta_2"] = structs.u384
         imap["tp_eta_3"] = structs.u384
@@ -250,8 +247,6 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             vars["p_pairing_point_object"],
             vars["tp_beta"],
             vars["tp_gamma"],
-            self.vk.circuit_size,
-            vars["p_public_inputs_offset"],
         )
 
         sumcheck_univariates_flat = vars["sumcheck_univariates_flat"]
@@ -283,7 +278,7 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             vars["tp_eta_3"],
             vars["tp_libra_challenge"],
             vars["tp_sum_check_u_challenges"],
-            vars["tp_gate_challenges"],
+            vars["tp_gate_challenge"],
             vars["tp_alpha"],
             self.vk.log_circuit_size,
             vars["tp_base_rlc"],
@@ -350,7 +345,7 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         )
 
         scalars_filtered_no_nones = filter_msm_scalars(
-            scalars, self.vk.log_circuit_size, True
+            scalars, self.vk.log_circuit_size
         )
         # Remove shplonk_z (last scalar) (included in transcript)
         scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]

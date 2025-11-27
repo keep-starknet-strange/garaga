@@ -106,7 +106,7 @@ fn declare_contract(name: ByteArray) -> ClassHash {{
 /// - The function should return Some(public_inputs) containing the expected public inputs
 /// - No panics or assertion failures should occur
 #[test]
-#[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_8", block_tag: latest)]
+#[fork(url: "https://rpc.starknet-testnet.lava.build:443", block_tag: latest)]
 fn test_{verification_function_name}() {{
     // Step 1: Declare the verification contract
     let class_hash = declare_contract("{contract_name}");
@@ -359,7 +359,6 @@ mod {contract_cairo_name} {{
     use garaga::definitions::{{G1Point, G1G2Pair}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
-    use garaga::ec_ops_g2::{{G2PointTrait}};
     use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
     use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
 

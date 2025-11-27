@@ -14,7 +14,7 @@ from starknet_py.contract import (
 
 from garaga.curves import ProofSystem
 from garaga.hints.io import to_int
-from garaga.precompiled_circuits.honk import honk_proof_from_bytes
+from garaga.precompiled_circuits.zk_honk import honk_proof_from_bytes
 from garaga.starknet.cli.utils import (
     Network,
     complete_proof_system,

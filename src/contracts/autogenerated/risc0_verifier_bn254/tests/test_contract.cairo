@@ -63,7 +63,7 @@ fn declare_contract(name: ByteArray) -> ClassHash {
 /// - The function should return Some(public_inputs) containing the expected public inputs
 /// - No panics or assertion failures should occur
 #[test]
-#[fork(url: "https://starknet-sepolia.public.blastapi.io/rpc/v0_8", block_tag: latest)]
+#[fork(url: "https://rpc.starknet-testnet.lava.build:443", block_tag: latest)]
 fn test_verify_r0_groth16_proof_bn254() {
     // Step 1: Declare the verification contract
     let class_hash = declare_contract("Risc0Groth16VerifierBN254");

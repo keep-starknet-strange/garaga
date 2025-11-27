@@ -14,7 +14,6 @@ mod Risc0Groth16VerifierBN254 {
     };
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
-    use garaga::ec_ops_g2::G2PointTrait;
     use garaga::groth16::{
         Groth16ProofRawTrait, multi_pairing_check_bn254_3P_2F_with_extra_miller_loop_result,
     };

@@ -2,21 +2,71 @@ import pytest
 
 import garaga.hints.io as io
 from garaga.curves import ProofSystem
+from garaga.hints.keccak256 import keccak_256
 from garaga.points import G1G2Pair
 from garaga.precompiled_circuits.zk_honk import (
+    CURVES,
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,
-    NUMBER_OF_ENTITIES,
     CurveID,
     G1Point,
     HonkVk,
     ZKHonkProof,
     ZKHonkTranscript,
     ZKHonkVerifierCircuits,
+    get_msm_points_from_vk_and_proof,
     honk_proof_from_bytes,
 )
 
 PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
+
+
+def convert_pairing_points_to_g1(
+    pairing_point_object: list[int],
+) -> tuple[G1Point, G1Point]:
+    """Convert the 16 field element pairing point object to two G1 points (lhs, rhs).
+
+    Each point is encoded as 4 68-bit limbs for x and 4 68-bit limbs for y.
+    """
+
+    def decode_coord(limbs):
+        return limbs[0] | (limbs[1] << 68) | (limbs[2] << 136) | (limbs[3] << 204)
+
+    lhs_x = decode_coord(pairing_point_object[0:4])
+    lhs_y = decode_coord(pairing_point_object[4:8])
+    rhs_x = decode_coord(pairing_point_object[8:12])
+    rhs_y = decode_coord(pairing_point_object[12:16])
+
+    lhs = G1Point(x=lhs_x, y=lhs_y, curve_id=CurveID.BN254)
+    rhs = G1Point(x=rhs_x, y=rhs_y, curve_id=CurveID.BN254)
+
+    return lhs, rhs
+
+
+def generate_recursion_separator(
+    pairing_point_object: list[int], acc_lhs: G1Point, acc_rhs: G1Point
+) -> int:
+    """Generate the recursion separator by hashing the proof and accumulator points.
+
+    Matches Solidity's generateRecursionSeparator function.
+    """
+    proof_lhs, proof_rhs = convert_pairing_points_to_g1(pairing_point_object)
+
+    # Hash 8 uint256 values: proofLhs.x, proofLhs.y, proofRhs.x, proofRhs.y, accLhs.x, accLhs.y, accRhs.x, accRhs.y
+    data = b""
+    data += proof_lhs.x.to_bytes(32, "big")
+    data += proof_lhs.y.to_bytes(32, "big")
+    data += proof_rhs.x.to_bytes(32, "big")
+    data += proof_rhs.y.to_bytes(32, "big")
+    data += acc_lhs.x.to_bytes(32, "big")
+    data += acc_lhs.y.to_bytes(32, "big")
+    data += acc_rhs.x.to_bytes(32, "big")
+    data += acc_rhs.y.to_bytes(32, "big")
+
+    hash_result = keccak_256(data).digest()
+    # Convert to field element (mod p)
+    FR = CURVES[CurveID.GRUMPKIN.value].p
+    return int.from_bytes(hash_result, "big") % FR
 
 
 @pytest.mark.parametrize(
@@ -26,11 +76,8 @@ PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
     ],
 )
 def test_verify_honk_proof(proof_path: str, system: ProofSystem):
-    vk_hash: bytes = open(f"{PATH}/vk_hash_ultra_keccak.bin", "rb").read()
 
-    vk: HonkVk = HonkVk.from_bytes(
-        open(f"{PATH}/vk_ultra_keccak.bin", "rb").read(), vk_hash
-    )
+    vk: HonkVk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
 
     proof: ZKHonkProof = honk_proof_from_bytes(
         open(proof_path, "rb").read(),
@@ -77,7 +124,7 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
         eta_three=tp.etaThree,
         libra_challenge=tp.libra_challenge,
         sum_check_u_challenges=tp.sum_check_u_challenges,
-        gate_challenges=tp.gate_challenges,
+        gate_challenges=tp.gate_challenge,
         alpha=tp.alpha,
         log_n=vk.log_circuit_size,
         base_rlc=circuit.write_element(1234),
@@ -103,67 +150,43 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
     print([scalar.value if scalar else scalar for scalar in scalars])
     print(len(scalars))
 
-    points = [
-        proof.shplonk_q,  # 0
-        proof.gemini_masking_poly,  # 1
-        vk.qm,  # 2
-        vk.qc,  # 3
-        vk.ql,  # 4
-        vk.qr,  # 5
-        vk.qo,  # 6
-        vk.q4,  # 7
-        vk.qLookup,  # 8
-        vk.qArith,  # 9
-        vk.qDeltaRange,  # 10
-        vk.qElliptic,  # 11
-        vk.qMemory,  # 12
-        vk.qNnf,  # 13
-        vk.qPoseidon2External,  # 14
-        vk.qPoseidon2Internal,  # 15
-        vk.s1,  # 16
-        vk.s2,  # 17
-        vk.s3,  # 18
-        vk.s4,  # 19
-        vk.id1,  # 20
-        vk.id2,  # 21
-        vk.id3,  # 22
-        vk.id4,  # 23
-        vk.t1,  # 24
-        vk.t2,  # 25
-        vk.t3,  # 26
-        vk.t4,  # 27
-        vk.lagrange_first,  # 28
-        vk.lagrange_last,  # 29
-        proof.w1,  # 30
-        proof.w2,  # 31
-        proof.w3,  # 32
-        proof.w4,  # 33
-        proof.z_perm,  # 34
-        proof.lookup_inverses,  # 35
-        proof.lookup_read_counts,  # 36
-        proof.lookup_read_tags,  # 37
-    ]
-
-    points.extend(proof.gemini_fold_comms)
-    points.extend(proof.libra_commitments)
-    points.append(G1Point.get_nG(CurveID.BN254, 1))
-    points.append(proof.kzg_quotient)
-
-    assert len(points) == NUMBER_OF_ENTITIES + vk.log_circuit_size + 3 + 3
+    points = get_msm_points_from_vk_and_proof(vk, proof)
 
     for i, (p, s) in enumerate(zip(points, scalars)):
         if s:
             print(i, hex(s.value))
 
-    P_0 = G1Point.msm(
-        points=points, scalars=[scalar.value if scalar else 0 for scalar in scalars]
-    )
+    P_0 = G1Point.msm(points=points, scalars=[scalar.value for scalar in scalars])
 
     P_1 = -proof.kzg_quotient
 
-    pairs = [G1G2Pair(P_0, G2_POINT_KZG_1), G1G2Pair(P_1, G2_POINT_KZG_2)]
+    # Extract the points from pairing_point_object
+    P_0_other, P_1_other = convert_pairing_points_to_g1(proof.pairing_point_object)
+    print(f"P_0_other: x={hex(P_0_other.x)}, y={hex(P_0_other.y)}")
+    print(f"P_1_other: x={hex(P_1_other.x)}, y={hex(P_1_other.y)}")
 
-    assert G1G2Pair.pair(pairs).value_coeffs == [1] + [0] * 11
+    # Generate recursion separator
+    recursion_separator = generate_recursion_separator(
+        proof.pairing_point_object, P_0, P_1
+    )
+    print(f"Recursion separator: {hex(recursion_separator)}")
+
+    # Aggregate: P_0_final = recursionSeparator * P_0 + P_0_other
+    #            P_1_final = recursionSeparator * P_1 + P_1_other
+    P_0_final = P_0.scalar_mul(recursion_separator).add(P_0_other)
+    P_1_final = P_1.scalar_mul(recursion_separator).add(P_1_other)
+
+    print(f"P_0_final: x={hex(P_0_final.x)}, y={hex(P_0_final.y)}")
+    print(f"P_1_final: x={hex(P_1_final.x)}, y={hex(P_1_final.y)}")
+
+    # Final pairing check with aggregated points
+    pairs = [G1G2Pair(P_0_final, G2_POINT_KZG_1), G1G2Pair(P_1_final, G2_POINT_KZG_2)]
+    pairing_result = G1G2Pair.pair(pairs).value_coeffs
+    print(f"Pairing result WITH recursion aggregation: {pairing_result[:3]}...")
+
+    assert (
+        pairing_result == [1] + [0] * 11
+    ), "Pairing check failed with recursion aggregation"
 
 
 @pytest.mark.parametrize(

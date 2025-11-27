@@ -78,7 +78,6 @@ mod Risc0Groth16Verifier{curve_id.name} {{
     use garaga::definitions::{{G1Point, G1G2Pair}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
     use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
-    use garaga::ec_ops_g2::{{G2PointTrait}};
     use garaga::apps::risc0::{{compute_receipt_claim, journal_sha256, deserialize_full_proof_with_hints_risc0}};
     use super::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
