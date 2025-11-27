@@ -35,7 +35,8 @@ if [ ! -f "$FIBONACCI_SEQUENCER_FILE" ]; then
 fi
 
 # Replace the class hash value in the Cairo file
-sed -i "s/pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =\s*0x[0-9a-fA-F]*;/pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =\n        $CAIRO_CLASS_HASH;/" "$FIBONACCI_SEQUENCER_FILE"
+# Match a line that contains only whitespace followed by a 64-char hex value and semicolon
+sed -i "s/^\([[:space:]]*\)0x[0-9a-fA-F]\{63,64\};/\1$CAIRO_CLASS_HASH;/" "$FIBONACCI_SEQUENCER_FILE"
 
 echo "Updated RISC_ZERO_VERIFIER_CLASS_HASH in $FIBONACCI_SEQUENCER_FILE"
 

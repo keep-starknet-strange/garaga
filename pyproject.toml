@@ -11,7 +11,7 @@ dependencies = [
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py==0.28.0",
+  "starknet-py-unbroken==0.29.0rc3",
   "requests",
   "filelock",
 ]

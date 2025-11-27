@@ -13,8 +13,8 @@
     "release_info": {
         "garaga_version": "1.0.0",
         "risc0_release": "v2.2.2",
-        "cairo_version": "2.12.2",
-        "starknet_foundry_version": "0.51.1"
+        "cairo_version": "2.14.0",
+        "starknet_foundry_version": "0.53.0"
     },
     "noir": {
         "bb_version": "3.0.0-nightly.20251104",
