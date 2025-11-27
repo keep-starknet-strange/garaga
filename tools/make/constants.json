@@ -11,14 +11,14 @@
         "verifier_hash": "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913"
     },
     "release_info": {
-        "garaga_version": "0.18.2",
+        "garaga_version": "1.0.0",
         "risc0_release": "v2.2.2",
-        "cairo_version": "2.12.0",
-        "starknet_foundry_version": "0.48.0"
+        "cairo_version": "2.14.0",
+        "starknet_foundry_version": "0.53.0"
     },
     "noir": {
-        "bb_version": "0.87.4",
-        "bbup_version": "0.87.4-starknet.1",
-        "nargo_version": "1.0.0-beta.5"
+        "bb_version": "3.0.0-nightly.20251104",
+        "bbup_version": "3.0.0-nightly.20251104",
+        "nargo_version": "1.0.0-beta.15"
     }
 }

@@ -120,7 +120,7 @@ const VERIFIER_CLASS_HASH: felt252 = {class_hash};
                 contract_code,
                 contract_name,
                 verification_function_name,
-            ) = gen_honk_verifier_files(vk, self.config.proof_system)
+            ) = gen_honk_verifier_files(vk)
 
             # Write files
             create_directory(self.paths["verifier_dir"])

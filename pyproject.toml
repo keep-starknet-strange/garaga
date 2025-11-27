@@ -4,14 +4,14 @@ build-backend = "maturin"
 
 [project]
 name = "garaga"
-version = "0.18.2"
+version = "1.0.0"
 requires-python = ">=3.10,<3.11"
 dependencies = [
   "fastecdsa>=3.0.0",
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py==0.28.0",
+  "starknet-py-unbroken==0.29.0rc3",
   "requests",
   "filelock",
 ]
