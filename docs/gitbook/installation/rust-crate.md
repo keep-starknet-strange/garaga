@@ -11,11 +11,11 @@ To use the [`garaga_rs`](https://github.com/keep-starknet-strange/garaga/tree/ma
 garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git"}
 ```
 
-It is recommended to use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) of the form `vX.Y.Z` (example `v0.18.0`) to be in sync with the latest declared [maintained-smart-contracts](../maintained-smart-contracts/ "mention").
+It is recommended to use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) of the form `vX.Y.Z` (example `v1.0.0`) to be in sync with the latest declared [maintained-smart-contracts](../maintained-smart-contracts/ "mention").
 
 ```toml
 [dependencies]
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.18.0" }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
 ```
 
 ## Features
@@ -29,5 +29,5 @@ The `garaga_rs` crate provides optional features for different use cases:
 For example, if you're building a Python extension:
 ```toml
 [dependencies]
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v0.18.0", features = ["python"] }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0", features = ["python"] }
 ```
