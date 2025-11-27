@@ -1,6 +1,5 @@
 use core::poseidon::hades_permutation;
 use core::traits::Into;
-use corelib_imports::array::array_slice;
 use corelib_imports::keccak;
 use garaga::apps::noir::{G1Point256, ZKHonkProof};
 use garaga::definitions::G1Point;
