@@ -636,7 +636,7 @@ def deserialize_ultraproof(proof: bytes) -> list[int]:
 assert deserialize_ultraproof(proof_bytes) == proof
 
 
-from garaga.precompiled_circuits.honk import HonkProof, HonkTranscript, HonkVk
+from garaga.precompiled_circuits.zk_honk import HonkProof, HonkTranscript, HonkVk
 
 for i, elmt in enumerate(proof):
     print(f"element {i}: {hex(elmt)}")

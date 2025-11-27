@@ -25,18 +25,6 @@ function handleError(f, args) {
     }
 }
 
-function dropObject(idx) {
-    if (idx < 132) return;
-    heap[idx] = heap_next;
-    heap_next = idx;
-}
-
-function takeObject(idx) {
-    const ret = getObject(idx);
-    dropObject(idx);
-    return ret;
-}
-
 const cachedTextDecoder = (typeof TextDecoder !== 'undefined' ? new TextDecoder('utf-8', { ignoreBOM: true, fatal: true }) : { decode: () => { throw Error('TextDecoder not available') } } );
 
 if (typeof TextDecoder !== 'undefined') { cachedTextDecoder.decode(); };
@@ -187,6 +175,18 @@ function getDataViewMemory0() {
 
 function isLikeNone(x) {
     return x === undefined || x === null;
+}
+
+function dropObject(idx) {
+    if (idx < 132) return;
+    heap[idx] = heap_next;
+    heap_next = idx;
+}
+
+function takeObject(idx) {
+    const ret = getObject(idx);
+    dropObject(idx);
+    return ret;
 }
 
 function passArrayJsValueToWasm0(array, malloc) {
@@ -456,61 +456,13 @@ export function get_groth16_calldata(proof_js, vk_js, curve_id_js) {
 /**
  * @param {any} proof_js
  * @param {any} public_inputs_js
- * @returns {any}
- */
-export function parse_honk_proof(proof_js, public_inputs_js) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.parse_honk_proof(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js));
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-        if (r2) {
-            throw takeObject(r1);
-        }
-        return takeObject(r0);
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-}
-
-/**
- * @param {any} proof_js
- * @param {any} public_inputs_js
  * @param {any} vk_js
- * @param {any} flavor_js
  * @returns {any[]}
  */
-export function get_honk_calldata(proof_js, public_inputs_js, vk_js, flavor_js) {
+export function get_zk_honk_calldata(proof_js, public_inputs_js, vk_js) {
     try {
         const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js), addHeapObject(flavor_js));
-        var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
-        var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-        var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
-        var r3 = getDataViewMemory0().getInt32(retptr + 4 * 3, true);
-        if (r3) {
-            throw takeObject(r2);
-        }
-        var v1 = getArrayJsValueFromWasm0(r0, r1).slice();
-        wasm.__wbindgen_free(r0, r1 * 4, 4);
-        return v1;
-    } finally {
-        wasm.__wbindgen_add_to_stack_pointer(16);
-    }
-}
-
-/**
- * @param {any} proof_js
- * @param {any} public_inputs_js
- * @param {any} vk_js
- * @param {any} flavor_js
- * @returns {any[]}
- */
-export function get_zk_honk_calldata(proof_js, public_inputs_js, vk_js, flavor_js) {
-    try {
-        const retptr = wasm.__wbindgen_add_to_stack_pointer(-16);
-        wasm.get_zk_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js), addHeapObject(flavor_js));
+        wasm.get_zk_honk_calldata(retptr, addHeapObject(proof_js), addHeapObject(public_inputs_js), addHeapObject(vk_js));
         var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
         var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
         var r2 = getDataViewMemory0().getInt32(retptr + 4 * 2, true);
@@ -625,10 +577,6 @@ function __wbg_get_imports() {
         const ret = getObject(arg0).length;
         return ret;
     };
-    imports.wbg.__wbg_new_405e22f390576ce2 = function() {
-        const ret = new Object();
-        return addHeapObject(ret);
-    };
     imports.wbg.__wbg_new_a12002a7f91c75be = function(arg0) {
         const ret = new Uint8Array(getObject(arg0));
         return addHeapObject(ret);
@@ -636,20 +584,9 @@ function __wbg_get_imports() {
     imports.wbg.__wbg_set_65595bdd868b3009 = function(arg0, arg1, arg2) {
         getObject(arg0).set(getObject(arg1), arg2 >>> 0);
     };
-    imports.wbg.__wbg_set_bb8cecf6a62b9f46 = function() { return handleError(function (arg0, arg1, arg2) {
-        const ret = Reflect.set(getObject(arg0), getObject(arg1), getObject(arg2));
-        return ret;
-    }, arguments) };
     imports.wbg.__wbindgen_add = function(arg0, arg1) {
         const ret = getObject(arg0) + getObject(arg1);
         return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_array_new = function() {
-        const ret = [];
-        return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_array_push = function(arg0, arg1) {
-        getObject(arg0).push(takeObject(arg1));
     };
     imports.wbg.__wbindgen_bigint_from_str = function(arg0, arg1) {
         const ret = BigInt(getStringFromWasm0(arg0, arg1));
@@ -679,10 +616,6 @@ function __wbg_get_imports() {
         const ret = typeof(obj) === 'number' ? obj : undefined;
         getDataViewMemory0().setFloat64(arg0 + 8 * 1, isLikeNone(ret) ? 0 : ret, true);
         getDataViewMemory0().setInt32(arg0 + 4 * 0, !isLikeNone(ret), true);
-    };
-    imports.wbg.__wbindgen_number_new = function(arg0) {
-        const ret = arg0;
-        return addHeapObject(ret);
     };
     imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
         takeObject(arg0);

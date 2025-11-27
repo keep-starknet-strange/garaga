@@ -18,10 +18,8 @@ GRUMPKIN_ID = 5
 
 class ProofSystem(Enum):
     Groth16 = "groth16"  # Works for Generic Groth16 (BN254/BLS12-381), Risc0 Groth16 (BN254), and SP1 Groth16 (BN254)
-    UltraKeccakHonk = "ultra_keccak_honk"
-    UltraStarknetHonk = "ultra_starknet_honk"
     UltraKeccakZKHonk = "ultra_keccak_zk_honk"
-    UltraStarknetZKHonk = "ultra_starknet_zk_honk"
+    # UltraStarknetZKHonk = "ultra_starknet_zk_honk" # Disabled.
 
     @property
     def supported_curves(self) -> set[int]:

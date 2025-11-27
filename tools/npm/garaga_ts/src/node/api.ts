@@ -11,7 +11,6 @@ import {
   to_twistededwards,
   to_weirstrass,
   get_groth16_calldata,
-  get_honk_calldata,
   get_zk_honk_calldata,
   poseidon_hash,
 } from '../wasm/pkg/garaga_rs';
@@ -311,27 +310,6 @@ export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16Ver
   return get_groth16_calldata(proof, verifyingKey, curveId);
 }
 
-/**
- * Generates calldata for Honk zero-knowledge proof verification.
- * Honk is a universal SNARK that supports arbitrary circuits.
- *
- * @param proof - Raw proof bytes from the Honk prover
- * @param publicInputs - Public input bytes for the circuit
- * @param verifyingKey - Verification key bytes for the specific circuit
- * @param flavor - The Honk flavor (variant) being used
- * @returns Array of bigint values representing the complete verification calldata
- *
- * @example
- * ```typescript
- * const proofBytes = new Uint8Array([...]);
- * const publicInputsBytes = new Uint8Array([...]);
- * const vkBytes = new Uint8Array([...]);
- * const calldata = getHonkCallData(proofBytes, publicInputsBytes, vkBytes, HonkFlavor.STARKNET);
- * ```
- */
-export function getHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
-  return get_honk_calldata(proof, publicInputs, verifyingKey, flavor);
-}
 
 /**
  * Generates calldata for ZK-Honk zero-knowledge proof verification.
@@ -340,7 +318,6 @@ export function getHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, ver
  * @param proof - Raw ZK proof bytes from the ZK-Honk prover
  * @param publicInputs - Public input bytes for the circuit
  * @param verifyingKey - Verification key bytes for the specific circuit
- * @param flavor - The Honk flavor (variant) being used with ZK properties
  * @returns Array of bigint values representing the complete verification calldata
  *
  * @example
@@ -352,7 +329,7 @@ export function getHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, ver
  * ```
  */
 export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
-  return get_zk_honk_calldata(proof, publicInputs, verifyingKey, flavor);
+  return get_zk_honk_calldata(proof, publicInputs, verifyingKey);
 }
 
 /**

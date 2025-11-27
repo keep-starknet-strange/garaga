@@ -1,16 +1,16 @@
 """
- -----------------------------------------------------------------------------
- ε – Eisenstein integers in pure Python (fully commented)
- -----------------------------------------------------------------------------
- A **beginner‑friendly walk‑through**
- -----------------------------------------------------------------------------
- This file implements three things:
+-----------------------------------------------------------------------------
+ε – Eisenstein integers in pure Python (fully commented)
+-----------------------------------------------------------------------------
+A **beginner‑friendly walk‑through**
+-----------------------------------------------------------------------------
+This file implements three things:
 
-   • an *Eisenstein integer* class  z = a0 + a1·ω  with  ω = e^{2πi/3}
-   • an *exact* Euclidean division  quo_rem()  in the ring ℤ[ω]
-   • the *Half‑GCD* algorithm, one of the fastest ways to compute a greatest
-     common divisor when the inputs are very large
- """
+  • an *Eisenstein integer* class  z = a0 + a1·ω  with  ω = e^{2πi/3}
+  • an *exact* Euclidean division  quo_rem()  in the ring ℤ[ω]
+  • the *Half‑GCD* algorithm, one of the fastest ways to compute a greatest
+    common divisor when the inputs are very large
+"""
 
 from __future__ import annotations  # ► allow the class to refer to itself in type hints
 

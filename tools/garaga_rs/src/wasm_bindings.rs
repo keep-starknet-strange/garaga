@@ -1,9 +1,7 @@
 use crate::calldata::full_proof_with_hints::groth16;
 use crate::calldata::full_proof_with_hints::groth16::{Groth16Proof, Groth16VerificationKey};
-use crate::calldata::full_proof_with_hints::honk;
-use crate::calldata::full_proof_with_hints::honk::{HonkFlavor, HonkProof, HonkVerificationKey};
 use crate::calldata::full_proof_with_hints::zk_honk;
-use crate::calldata::full_proof_with_hints::zk_honk::ZKHonkProof;
+use crate::calldata::full_proof_with_hints::zk_honk::{HonkVerificationKey, ZKHonkProof};
 use crate::calldata::{G1PointBigUint, G2PointBigUint};
 use crate::crypto::poseidon_bn254::poseidon_hash_bn254;
 use crate::definitions::CurveID;
@@ -461,170 +459,22 @@ pub fn get_groth16_calldata(
 }
 
 #[wasm_bindgen]
-pub fn parse_honk_proof(proof_js: JsValue, public_inputs_js: JsValue) -> Result<JsValue, JsValue> {
-    let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
-    let public_inputs_bytes = public_inputs_js
-        .dyn_into::<Uint8Array>()
-        .map(|arr| arr.to_vec())?;
-
-    let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
-        .map_err(|s| JsValue::from_str(&s))?;
-
-    let curve_id = CurveID::BN254 as usize;
-
-    let proof_obj = js_sys::Object::new();
-    set_property(
-        &proof_obj,
-        "publicInputs",
-        &jsvalue_from_biguint_array(&proof.public_inputs)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "pairingPointObject",
-        &jsvalue_from_biguint_array(&proof.pairing_point_object)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "w1",
-        &jsvalue_from_g1_point(&proof.w1, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "w2",
-        &jsvalue_from_g1_point(&proof.w2, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "w3",
-        &jsvalue_from_g1_point(&proof.w3, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "w4",
-        &jsvalue_from_g1_point(&proof.w4, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "zPerm",
-        &jsvalue_from_g1_point(&proof.z_perm, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "lookupReadCounts",
-        &jsvalue_from_g1_point(&proof.lookup_read_counts, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "lookupReadTags",
-        &jsvalue_from_g1_point(&proof.lookup_read_tags, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "lookupInverses",
-        &jsvalue_from_g1_point(&proof.lookup_inverses, curve_id)?,
-    )?;
-    let sumcheck_univariates = proof
-        .sumcheck_univariates
-        .iter()
-        .flat_map(|v| v.clone())
-        .collect::<Vec<_>>();
-    set_property(
-        &proof_obj,
-        "sumcheckUnivariates",
-        &jsvalue_from_biguint_array(&sumcheck_univariates)?,
-    )?; // flattened
-    set_property(
-        &proof_obj,
-        "sumcheckEvaluations",
-        &jsvalue_from_biguint_array(&proof.sumcheck_evaluations)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "geminiFoldComms",
-        &jsvalue_from_g1_point_array(&proof.gemini_fold_comms, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "geminiAEvaluations",
-        &jsvalue_from_biguint_array(&proof.gemini_a_evaluations)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "shplonkQ",
-        &jsvalue_from_g1_point(&proof.shplonk_q, curve_id)?,
-    )?;
-    set_property(
-        &proof_obj,
-        "kzgQuotient",
-        &jsvalue_from_g1_point(&proof.kzg_quotient, curve_id)?,
-    )?;
-
-    Ok(proof_obj.into())
-}
-
-#[wasm_bindgen]
-pub fn get_honk_calldata(
-    proof_js: JsValue,
-    public_inputs_js: JsValue,
-    vk_js: JsValue,
-    flavor_js: JsValue,
-) -> Result<Vec<JsValue>, JsValue> {
-    let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
-    let public_inputs_bytes = public_inputs_js
-        .dyn_into::<Uint8Array>()
-        .map(|arr| arr.to_vec())?;
-    let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
-
-    let proof = HonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
-        .map_err(|s| JsValue::from_str(&s))?;
-    let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
-
-    //Parse flavor_js into usize
-    let flavor_num = flavor_js
-        .as_f64()
-        .ok_or_else(|| JsValue::from_str("flavor_js is not a number"))?
-        as usize;
-
-    // Convert usize to HonkFlavor using TryFrom
-    let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
-
-    let honk_calldata_biguint = honk::get_honk_calldata(&proof, &vk, flavor);
-
-    let honk_calldata_js = honk_calldata_biguint?
-        .into_iter()
-        .map(biguint_to_jsvalue)
-        .collect::<Vec<_>>();
-
-    Ok(honk_calldata_js)
-}
-
-#[wasm_bindgen]
 pub fn get_zk_honk_calldata(
     proof_js: JsValue,
     public_inputs_js: JsValue,
     vk_js: JsValue,
-    flavor_js: JsValue,
 ) -> Result<Vec<JsValue>, JsValue> {
     let proof_bytes = proof_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
     let public_inputs_bytes = public_inputs_js
         .dyn_into::<Uint8Array>()
         .map(|arr| arr.to_vec())?;
     let vk_bytes = vk_js.dyn_into::<Uint8Array>().map(|arr| arr.to_vec())?;
-
-    let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes)
-        .map_err(|s| JsValue::from_str(&s))?;
     let vk = HonkVerificationKey::from_bytes(&vk_bytes).map_err(|s| JsValue::from_str(&s))?;
 
-    //Parse flavor_js into usize
-    let flavor_num = flavor_js
-        .as_f64()
-        .ok_or_else(|| JsValue::from_str("flavor_js is not a number"))?
-        as usize;
+    let proof = ZKHonkProof::from_bytes(&proof_bytes, &public_inputs_bytes, vk.log_circuit_size)
+        .map_err(|s| JsValue::from_str(&s))?;
 
-    // Convert usize to HonkFlavor using TryFrom
-    let flavor = HonkFlavor::try_from(flavor_num).map_err(|e| JsValue::from_str(&e))?;
-
-    let honk_calldata_biguint = zk_honk::get_zk_honk_calldata(&proof, &vk, flavor);
+    let honk_calldata_biguint = zk_honk::get_zk_honk_calldata(&proof, &vk);
 
     let honk_calldata_js = honk_calldata_biguint?
         .into_iter()

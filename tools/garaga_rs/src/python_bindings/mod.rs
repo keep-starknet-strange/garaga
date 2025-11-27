@@ -5,11 +5,11 @@ pub mod final_exp_witness;
 pub mod g2;
 pub mod groth16_calldata;
 pub mod hades_permutation;
-pub mod honk_calldata;
 pub mod mpc_calldata;
 pub mod msm;
 pub mod pairing;
 pub mod signatures;
+pub mod zk_honk_calldata;
 
 use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
 
@@ -68,7 +68,7 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(msm::msm_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(mpc_calldata::mpc_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(groth16_calldata::get_groth16_calldata, m)?)?;
-    m.add_function(wrap_pyfunction!(honk_calldata::get_honk_calldata, m)?)?;
+    m.add_function(wrap_pyfunction!(zk_honk_calldata::get_zk_honk_calldata, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::schnorr_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::ecdsa_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::eddsa_calldata_builder, m)?)?;
