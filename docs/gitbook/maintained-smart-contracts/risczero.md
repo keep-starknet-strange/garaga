@@ -39,7 +39,7 @@ export PATH="$HOME/.risc0/bin:$PATH"
 rzup install
 ```
 
-_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero 1.2.0 use Garaga 0.15.3. For RiscZero 1.1.3 use Garaga 0.14.0._
+_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero v2.2.2 use Garaga 1.0.0. Check [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json) for the latest supported versions._
 
 3. Install RiscZero additional/custom dependencies
 
@@ -57,14 +57,14 @@ sudo apt install -y python3
 
 In order to implement the Verifier one needs to install the tooling for Cairo development and Garaga:
 
-4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.9.1)
+4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.14.0)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 1.35.1)
+5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.53.0)
 
 ```bash
 curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | bash
@@ -293,7 +293,7 @@ Along with the `verify_and_submit_fibonacci_number` contract method, we need to 
 use core::starknet::ClassHash;
 
 pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-    <GARAGA_RISC_ZERO_VERIFIER_CLASS_ADDRESS>;
+    0x1367d4ed2f58cfaaeda8cb18a8fb108d77c33b847e9beced89351adece9fd5a;
 ```
 
 The contract state which stores the current lower bound which gets updated whenever a new Fibonacci number is submitted

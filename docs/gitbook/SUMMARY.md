@@ -9,7 +9,7 @@
   * [Working with auto-generated Cairo Code](developer-setup-and-guides/working-with-auto-generated-cairo-code.md)
   * [garaga-rs crate](developer-setup-and-guides/garaga-rs-crate/README.md)
     * [Rust -> Python bindings](developer-setup-and-guides/garaga-rs-crate/rust-greater-than-python-bindings.md)
-    * [Rust -> Wasm bidings](developer-setup-and-guides/garaga-rs-crate/rust-greater-than-wasm-bidings.md)
+    * [Rust -> Wasm bindings](developer-setup-and-guides/garaga-rs-crate/rust-greater-than-wasm-bindings.md)
 * [Using garaga libraries in your Cairo project](using-garaga-libraries-in-your-cairo-project/README.md)
   * [EC (Multi)-Scalar Multiplication](using-garaga-libraries-in-your-cairo-project/ec-multi-scalar-multiplication.md)
   * [ECDSA & Schnorr Signatures](using-garaga-libraries-in-your-cairo-project/ec-signatures.md)

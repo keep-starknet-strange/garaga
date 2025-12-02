@@ -25,8 +25,12 @@ The easiest way to install Garaga is via `pip`, which will fetch and install the
     garaga
     ```
 
-{% hint style="info" %}
-**Note that the current Garaga distribution does require Python 3.10.** One can use a Python Version Manager, such as [pyenv](https://github.com/pyenv/pyenv), to conveniently install the proper Python runtime.
+{% hint style="warning" %}
+**Garaga requires Python 3.10.x specifically** (not 3.11 or higher). Use a Python Version Manager like [pyenv](https://github.com/pyenv/pyenv) to install the correct version:
+```bash
+pyenv install 3.10
+pyenv local 3.10
+```
 {% endhint %}
 
 {% hint style="info" %}

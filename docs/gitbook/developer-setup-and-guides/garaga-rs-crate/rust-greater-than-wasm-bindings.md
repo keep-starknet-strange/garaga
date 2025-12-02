@@ -1,4 +1,4 @@
-# Rust -> Wasm bidings
+# Rust -> Wasm bindings
 
 ## Adding bindings
 
