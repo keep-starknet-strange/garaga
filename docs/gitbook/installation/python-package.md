@@ -25,8 +25,12 @@ The easiest way to install Garaga is via `pip`, which will fetch and install the
     garaga
     ```
 
-{% hint style="info" %}
-**Note that the current Garaga distribution does require Python 3.10.** One can use a Python Version Manager, such as [pyenv](https://github.com/pyenv/pyenv), to conveniently install the proper Python runtime.
+{% hint style="warning" %}
+**Garaga requires Python 3.10.x specifically** (not 3.11 or higher). Use a Python Version Manager like [pyenv](https://github.com/pyenv/pyenv) to install the correct version:
+```bash
+pyenv install 3.10
+pyenv local 3.10
+```
 {% endhint %}
 
 {% hint style="info" %}
@@ -52,8 +56,12 @@ To install a version at specific commit, pick a commit hash from the [github his
 pip install git+https://github.com/keep-starknet-strange/garaga.git@COMMIT_HASH
 ```
 
-{% hint style="info" %}
-Make sure the dependency on the Garaga Cairo library in `Scarb.toml` is at the same commit to ensure tooling are in sync.
+{% hint style="warning" %}
+**Version Compatibility:** When installing from a specific commit, ensure all Garaga components match:
+- The `garaga` Cairo dependency in `Scarb.toml` should use the same version (e.g., `garaga = "1.0.0"` or the same git tag)
+- If using Rust/npm SDKs, use the same version for those as well
+
+See the [main documentation](../README.md#version-compatibility) for details on why version matching matters.
 {% endhint %}
 
 ## Installation troubleshooting

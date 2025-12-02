@@ -25,11 +25,15 @@ version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = { git = "https://github.com/keep-starknet-strange/garaga.git" }
+garaga = "1.0.0"
 
 [cairo]
 sierra-replace-ids = false
 ```
+
+{% hint style="info" %}
+You can also add the dependency using `scarb add garaga`. See the [installation guide](README.md#installation) for more options.
+{% endhint %}
 
 The function will be importable using
 
