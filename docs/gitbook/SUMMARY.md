@@ -1,6 +1,8 @@
 # Table of contents
 
-* [Garaga documentation](README.md)
+* [Garaga](README.md)
+* [Building Powerful Applications](building-powerful-applications.md)
+* [Security](security.md)
 * [Installation](installation/README.md)
   * [Python package](installation/python-package.md)
   * [Rust Crate](installation/rust-crate.md)
@@ -12,7 +14,7 @@
     * [Rust -> Wasm bindings](developer-setup-and-guides/garaga-rs-crate/rust-greater-than-wasm-bindings.md)
 * [Using garaga libraries in your Cairo project](using-garaga-libraries-in-your-cairo-project/README.md)
   * [EC (Multi)-Scalar Multiplication](using-garaga-libraries-in-your-cairo-project/ec-multi-scalar-multiplication.md)
-  * [ECDSA & Schnorr Signatures](using-garaga-libraries-in-your-cairo-project/ec-signatures.md)
+  * [ECDSA, Schnorr & EdDSA Signatures](using-garaga-libraries-in-your-cairo-project/ec-signatures.md)
   * [Hashing functions](using-garaga-libraries-in-your-cairo-project/hashing-functions.md)
 * [Smart Contract Generators](smart-contract-generators/README.md)
   * [Groth16 Verifier](smart-contract-generators/groth16/README.md)
