@@ -3,8 +3,9 @@
 Using the `garaga calldata` command from the CLI, you can generate the calldata needed to verify a proof for the `verify_groth16_proof_[curve_name]`.
 
 First, ensure that:
- - Your circuit is compiled and the verification key `verification_key.json` is created
- - The public input file `public.json` and the associated proof `proof.json` are created
+
+* Your circuit is compiled and the verification key `verification_key.json` is created
+* The public input file `public.json` and the associated proof `proof.json` are created
 
 The call the following command by replacing the parameters with your data:
 
@@ -15,7 +16,7 @@ garaga calldata --system groth16 --vk verification_key.json --proof proof.json -
 
 ## `starkli` usage
 
-Using the command option `--format starkli`,
+Using the command option `--format starkli`,\
 you can directly pipe the generated calldata to `starkli` to invoke a transaction on your deployed contract.
 
 The proof must be the last parameter of your contract's method.

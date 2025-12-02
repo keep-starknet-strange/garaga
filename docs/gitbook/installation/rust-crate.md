@@ -11,7 +11,9 @@ To use the [`garaga_rs`](https://github.com/keep-starknet-strange/garaga/tree/ma
 garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git"}
 ```
 
-It is recommended to use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) of the form `vX.Y.Z` (example `v1.0.0`) to be in sync with the latest declared [maintained-smart-contracts](../maintained-smart-contracts/ "mention").
+{% hint style="warning" %}
+**Version Compatibility:** Use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) (e.g., `v1.0.0`) to match the declared [maintained smart contracts](../maintained-smart-contracts/ "mention") and ensure compatibility with the pip package that generated your verifiers.
+{% endhint %}
 
 ```toml
 [dependencies]
