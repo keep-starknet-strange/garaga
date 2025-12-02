@@ -16,7 +16,6 @@ import {
 } from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
-import { HonkFlavor } from './starknet/honkContractGenerator/parsingUtils';
 
 /**
  * Represents a point on an elliptic curve in affine coordinates (x, y)
@@ -325,10 +324,10 @@ export function getGroth16CallData(proof: Groth16Proof, verifyingKey: Groth16Ver
  * const zkProofBytes = new Uint8Array([...]);
  * const publicInputsBytes = new Uint8Array([...]);
  * const vkBytes = new Uint8Array([...]);
- * const calldata = getZKHonkCallData(zkProofBytes, publicInputsBytes, vkBytes, HonkFlavor.KECCAK);
+ * const calldata = getZKHonkCallData(zkProofBytes, publicInputsBytes, vkBytes);
  * ```
  */
-export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array, flavor: HonkFlavor): bigint[] {
+export function getZKHonkCallData(proof: Uint8Array, publicInputs: Uint8Array, verifyingKey: Uint8Array): bigint[] {
   return get_zk_honk_calldata(proof, publicInputs, verifyingKey);
 }
 

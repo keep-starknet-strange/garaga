@@ -19,6 +19,6 @@
     "noir": {
         "bb_version": "3.0.0-nightly.20251104",
         "bbup_version": "3.0.0-nightly.20251104",
-        "nargo_version": "1.0.0-beta.15"
+        "nargo_version": "1.0.0-beta.16"
     }
 }

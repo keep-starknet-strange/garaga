@@ -376,6 +376,10 @@ class TraceProcessor:
             with managed_subprocess() as (run_cmd, pm):
                 profile_file = self._generate_profile(trace_path, run_cmd)
                 if not profile_file or not profile_file.exists():
+                    Logger.log(
+                        f"Profile file not generated for {test_name}: {trace_path}",
+                        level="warning",
+                    )
                     return False, test_name, "", None
 
                 resources = self._extract_resources(profile_file, run_cmd)
@@ -397,40 +401,55 @@ class TraceProcessor:
 
                 return image_success, test_name, test_info.image_path, test_info
         except Exception as e:
-            # Re-raise with more context
-            raise Exception(f"Failed to process {test_name}: {str(e)}") from e
+            import traceback
+
+            # Re-raise with more context including full traceback
+            full_tb = traceback.format_exc()
+            raise Exception(
+                f"Failed to process {test_name}:\nTrace path: {trace_path}\nError: {str(e)}\nTraceback:\n{full_tb}"
+            ) from e
 
     def _generate_profile(self, trace_file: Path, run_cmd) -> Optional[Path]:
         """Generate profile from trace file."""
         profile_file = trace_file.parent / f"{trace_file.stem}.pb.gz"
+        cmd = [
+            "cairo-profiler",
+            "build-profile",
+            str(trace_file),
+            "--output-path",
+            str(profile_file),
+        ]
         result = run_cmd(
-            [
-                "cairo-profiler",
-                "build-profile",
-                str(trace_file),
-                "--output-path",
-                str(profile_file),
-            ],
-            check=True,
+            cmd,
+            check=False,  # Don't raise, we'll handle the error ourselves
             capture_output=True,
             text=True,
         )
         if result.returncode != 0:
-            raise Exception(f"cairo-profiler build-profile failed: {result.stderr}")
+            error_msg = f"cairo-profiler build-profile failed:\nCommand: {' '.join(cmd)}\nReturn code: {result.returncode}"
+            if result.stdout:
+                error_msg += f"\nSTDOUT:\n{result.stdout}"
+            if result.stderr:
+                error_msg += f"\nSTDERR:\n{result.stderr}"
+            raise Exception(error_msg)
         return profile_file
 
     def _extract_resources(self, profile_file: Path, run_cmd) -> dict:
         """Extract resources from profile file."""
+        cmd = ["cairo-profiler", "view", str(profile_file), "--list-samples"]
         result = run_cmd(
-            ["cairo-profiler", "view", str(profile_file), "--list-samples"],
-            check=True,
+            cmd,
+            check=False,  # Don't raise, we'll handle the error ourselves
             capture_output=True,
             text=True,
         )
         if result.returncode != 0:
-            raise Exception(
-                f"cairo-profiler view --list-samples failed: {result.stderr}"
-            )
+            error_msg = f"cairo-profiler view --list-samples failed:\nCommand: {' '.join(cmd)}\nReturn code: {result.returncode}"
+            if result.stdout:
+                error_msg += f"\nSTDOUT:\n{result.stdout}"
+            if result.stderr:
+                error_msg += f"\nSTDERR:\n{result.stderr}"
+            raise Exception(error_msg)
 
         samples = [
             line.strip()
@@ -466,23 +485,29 @@ class TraceProcessor:
 
     def _generate_image(self, profile_file: Path, output_path: Path, run_cmd) -> bool:
         """Generate PNG image using pprof."""
+        cmd = [
+            "go",
+            "tool",
+            "pprof",
+            "-png",
+            "-sample_index=steps",
+            "-output",
+            str(output_path),
+            str(profile_file),
+        ]
         result = run_cmd(
-            [
-                "go",
-                "tool",
-                "pprof",
-                "-png",
-                "-sample_index=steps",
-                "-output",
-                str(output_path),
-                str(profile_file),
-            ],
-            check=True,
+            cmd,
+            check=False,  # Don't raise, we'll handle the error ourselves
             capture_output=True,
             text=True,
         )
         if result.returncode != 0:
-            raise Exception(f"pprof failed: {result.stderr}")
+            error_msg = f"pprof failed:\nCommand: {' '.join(cmd)}\nReturn code: {result.returncode}"
+            if result.stdout:
+                error_msg += f"\nSTDOUT:\n{result.stdout}"
+            if result.stderr:
+                error_msg += f"\nSTDERR:\n{result.stderr}"
+            raise Exception(error_msg)
         return True
 
 
@@ -570,8 +595,15 @@ class RunTestsCommand(Command):
                     progress.update(task, description=current_desc)
 
                     if not test_dir.exists() or not (test_dir / "Scarb.toml").exists():
+                        Logger.log(
+                            f"Skipping {test_dir}: directory or Scarb.toml not found",
+                            level="debug",
+                        )
                         continue
                     os.chdir(test_dir)
+                    Logger.log(
+                        f"Running command: {' '.join(cmd)} in {test_dir}", level="debug"
+                    )
                     result = run_cmd(cmd, capture_output=True, text=True)
 
                     if result.returncode == 0:
@@ -580,8 +612,21 @@ class RunTestsCommand(Command):
                             r"\[PASS\]\s+([^\s]+)\s+\(l1_gas:", result.stdout
                         )
                         self.passed_tests.extend(passed)
+                        Logger.log(
+                            f"Found {len(passed)} passed tests in {test_dir.name}",
+                            level="debug",
+                        )
                     else:
-                        raise Exception(f"Failed to run tests: {result.stderr}")
+                        error_details = []
+                        error_details.append(f"Directory: {test_dir}")
+                        error_details.append(f"Command: {' '.join(cmd)}")
+                        error_details.append(f"Return code: {result.returncode}")
+                        if result.stdout:
+                            error_details.append(f"STDOUT:\n{result.stdout}")
+                        if result.stderr:
+                            error_details.append(f"STDERR:\n{result.stderr}")
+                        full_error = "\n".join(error_details)
+                        raise Exception(f"Failed to run tests:\n{full_error}")
                     # Advance the progress by 1 for each directory processed
                     progress.advance(task, 1)
 
