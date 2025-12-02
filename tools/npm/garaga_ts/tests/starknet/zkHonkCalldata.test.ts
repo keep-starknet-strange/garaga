@@ -26,7 +26,7 @@ describe('ZK Honk Getting calldata', () => {
     console.log("vk", vkBytes);
     console.log("flavor", flavor);
 
-    const honkCalldata = garaga.getZKHonkCallData(proofBytes, publicInputsBytes, vkBytes, flavor as HonkFlavor);
+    const honkCalldata = garaga.getZKHonkCallData(proofBytes, publicInputsBytes, vkBytes);
 
     console.log("honkCalldata", honkCalldata);
 

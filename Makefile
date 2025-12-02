@@ -46,18 +46,18 @@ profile-test:
 	@if [ -z "$(TEST)" ]; then \
 		if [ -z "$(JOBS)" ]; then \
 			echo "Running all tests with profiling..."; \
-			python tools/profile_tests.py --all --parallel-jobs $(DEFAULT_JOBS) --generate-benchmarks; \
+			source venv/bin/activate && python tools/profile_tests.py --all --parallel-jobs $(DEFAULT_JOBS) --generate-benchmarks; \
 		else \
 			echo "Running all tests with profiling using $(JOBS) parallel jobs..."; \
-			python tools/profile_tests.py --all --parallel-jobs $(JOBS) --generate-benchmarks; \
+			source venv/bin/activate && python tools/profile_tests.py --all --parallel-jobs $(JOBS) --generate-benchmarks; \
 		fi \
 	else \
 		if [ -z "$(JOBS)" ]; then \
 			echo "Running tests with filter: $(TEST)"; \
-			python tools/profile_tests.py $(TEST) --parallel-jobs $(DEFAULT_JOBS) --generate-benchmarks; \
+			source venv/bin/activate && python tools/profile_tests.py $(TEST) --parallel-jobs $(DEFAULT_JOBS) --generate-benchmarks; \
 		else \
 			echo "Running tests with filter: $(TEST) using $(JOBS) parallel jobs"; \
-			python tools/profile_tests.py $(TEST) --parallel-jobs $(JOBS) --generate-benchmarks; \
+			source venv/bin/activate && python tools/profile_tests.py $(TEST) --parallel-jobs $(JOBS) --generate-benchmarks; \
 		fi \
 	fi
 
