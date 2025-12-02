@@ -3,7 +3,7 @@
 Using the `garaga` [npm-package.md](../../../installation/npm-package.md "mention")
 
 ```typescript
-// Ensure you use the same garaga npm version as the pip package that generated the verifier.
+// Version must match the pip package that generated the verifier
 import * as garaga from 'garaga';
 import { CurveId } from 'garaga';
 import { readFileSync } from 'fs';

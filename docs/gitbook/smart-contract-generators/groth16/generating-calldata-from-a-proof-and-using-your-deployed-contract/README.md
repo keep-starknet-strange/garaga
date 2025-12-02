@@ -4,8 +4,8 @@ icon: microchip
 
 # Generating calldata from a proof and using your deployed contract
 
-{% hint style="info" %}
-A npm package is under development to call your contract from the browser.
+{% hint style="warning" %}
+**Version Compatibility:** Use the same Garaga SDK version (pip/npm/Rust) that generated your verifier contract. Mismatched versions produce incompatible calldata and cause verification to fail.
 {% endhint %}
 
 

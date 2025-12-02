@@ -96,6 +96,10 @@ ZK mode is enabled by default. Use `--disable_zk` flag if you want to generate a
 
 ## Generating the calldata (`full_proof_with_hints` array)
 
+{% hint style="warning" %}
+**Version Compatibility:** Use the same Garaga SDK version (pip/npm/Rust) that generated your verifier contract. Mismatched versions produce incompatible calldata and cause verification to fail.
+{% endhint %}
+
 {% tabs %}
 {% tab title="CLI" %}
 Finalizing the above CLI example, you can obtain the `full_proof_with_hints` array using the garaga CLI. From within the "hello" directory:
@@ -110,10 +114,10 @@ Using `garaga calldata` with the `--format array` lets you paste this array in c
 {% endtab %}
 
 {% tab title="Rust" %}
-Add the [rust-crate.md](../installation/rust-crate.md "mention") to your project **using the same release tag as the version of pip package that generated the verifier.**
+Add the [rust-crate.md](../installation/rust-crate.md "mention") to your project.
 
 ```rust
-// Ensure you use the same garaga_rs version as the pip package that generated the verifier.
+// Version must match the pip package that generated the verifier
 use garaga_rs::calldata::full_proof_with_hints::zk_honk::{
     get_zk_honk_calldata, HonkVerificationKey, ZKHonkProof,
 };
@@ -146,7 +150,7 @@ fn main() -> Result<(), String> {
 Using the `garaga` [npm-package.md](../installation/npm-package.md "mention")
 
 ```typescript
-// Ensure you use the same garaga npm version as the pip package that generated the verifier.
+// Version must match the pip package that generated the verifier
 import * as garaga from 'garaga';
 import { readFileSync } from 'fs';
 
@@ -169,7 +173,7 @@ console.log('Calldata length:', calldata.length);
 Using the `garaga` [python-package.md](../installation/python-package.md "mention")
 
 ```python
-# Ensure you use the same garaga pip version as the one that generated the verifier.
+# Version must match the pip package that generated the verifier
 from garaga.precompiled_circuits.zk_honk import HonkVk, ZKHonkProof
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof

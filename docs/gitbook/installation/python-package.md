@@ -56,8 +56,12 @@ To install a version at specific commit, pick a commit hash from the [github his
 pip install git+https://github.com/keep-starknet-strange/garaga.git@COMMIT_HASH
 ```
 
-{% hint style="info" %}
-Make sure the dependency on the Garaga Cairo library in `Scarb.toml` is at the same commit to ensure tooling are in sync.
+{% hint style="warning" %}
+**Version Compatibility:** When installing from a specific commit, ensure all Garaga components match:
+- The `garaga` Cairo dependency in `Scarb.toml` should point to the same commit
+- If using Rust/npm SDKs, use the same commit for those as well
+
+See the [main documentation](../README.md#version-compatibility) for details on why version matching matters.
 {% endhint %}
 
 ## Installation troubleshooting

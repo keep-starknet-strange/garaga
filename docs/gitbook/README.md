@@ -99,6 +99,19 @@ Garaga achieves remarkable efficiency through optimized Cairo implementations. S
 
 ---
 
+## Version Compatibility
+
+{% hint style="warning" %}
+**Important:** Garaga SDK versions (Python, Rust, npm) must match across your toolchain to ensure calldata is correctly formatted for on-chain verification.
+
+- **For generated contracts** (Groth16, Noir): Use the same SDK version that generated your verifier contract
+- **For maintained contracts** (RISC Zero, SP1, drand): Use the SDK version matching the Garaga release that declared the contract class hashes
+
+All packages are released together with matching version numbers (e.g., `pip install garaga==1.0.0` + `garaga_rs` tag `v1.0.0` + `npm install garaga@1.0.0`).
+{% endhint %}
+
+---
+
 ## Quick Start
 
 ### 1. Install

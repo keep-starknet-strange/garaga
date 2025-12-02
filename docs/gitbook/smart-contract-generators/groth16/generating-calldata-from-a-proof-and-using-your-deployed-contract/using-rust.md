@@ -1,9 +1,9 @@
 # Using Rust
 
-Add the [rust-crate.md](../../../installation/rust-crate.md "mention") to your project **using the same release tag as the version of pip package that generated the verifier.**
+Add the [rust-crate.md](../../../installation/rust-crate.md "mention") to your project.
 
 ```rust
-// Ensure you use the same garaga_rs version as the pip package that generated the verifier.
+// Version must match the pip package that generated the verifier
 use garaga_rs::calldata::full_proof_with_hints::groth16::{
     get_groth16_calldata, Groth16Proof, Groth16VerifyingKey,
 };

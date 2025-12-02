@@ -14,6 +14,10 @@ The recommended way to install Garaga is through the npm registry:
 npm install garaga
 ```
 
+{% hint style="warning" %}
+**Version Compatibility:** Use the same version as your pip package (`garaga==X.Y.Z` → `garaga@X.Y.Z`) to ensure calldata compatibility with generated verifiers and maintained contracts.
+{% endhint %}
+
 Or if you prefer using Yarn:
 
 ```bash
