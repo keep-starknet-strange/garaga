@@ -8,21 +8,40 @@ Garaga provides a powerful Cairo library for elliptic curve operations, signatur
 
 ## Installation
 
-Add Garaga to your `Scarb.toml`:
+Garaga is available on the [scarbs.xyz registry](https://scarbs.xyz/packages/garaga). Add it to your project using `scarb add`:
+
+```bash
+scarb add garaga
+```
+
+Or add it manually to your `Scarb.toml`:
 
 {% code title="Scarb.toml" %}
 ```toml
 [dependencies]
-garaga = { git = "https://github.com/keep-starknet-strange/garaga.git" }
+garaga = "1.0.0"
 
 [cairo]
 sierra-replace-ids = false # Required to avoid compilation errors
 ```
 {% endcode %}
 
+{% hint style="info" %}
+Using the registry is the recommended approach. For more details on managing dependencies, see the [Scarb documentation](https://docs.swmansion.com/scarb/docs/guides/dependencies.html).
+{% endhint %}
+
 {% hint style="warning" %}
 **Important**: The `sierra-replace-ids = false` setting is required. See [issue #198](https://github.com/keep-starknet-strange/garaga/issues/198) for details about using Garaga with workspaces.
 {% endhint %}
+
+### Installing from Git (alternative)
+
+If you need a specific commit or unreleased version, you can install from Git:
+
+```toml
+[dependencies]
+garaga = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
+```
 
 ---
 

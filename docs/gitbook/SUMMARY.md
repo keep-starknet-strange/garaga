@@ -5,6 +5,7 @@
 * [Security](security.md)
 * [Installation](installation/README.md)
   * [Python package](installation/python-package.md)
+  * [Cairo Library](installation/cairo-library.md)
   * [Rust Crate](installation/rust-crate.md)
   * [Npm package](installation/npm-package.md)
 * [Developer setup & guides](developer-setup-and-guides/README.md)

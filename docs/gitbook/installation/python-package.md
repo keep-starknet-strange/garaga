@@ -58,8 +58,8 @@ pip install git+https://github.com/keep-starknet-strange/garaga.git@COMMIT_HASH
 
 {% hint style="warning" %}
 **Version Compatibility:** When installing from a specific commit, ensure all Garaga components match:
-- The `garaga` Cairo dependency in `Scarb.toml` should point to the same commit
-- If using Rust/npm SDKs, use the same commit for those as well
+- The `garaga` Cairo dependency in `Scarb.toml` should use the same version (e.g., `garaga = "1.0.0"` or the same git tag)
+- If using Rust/npm SDKs, use the same version for those as well
 
 See the [main documentation](../README.md#version-compatibility) for details on why version matching matters.
 {% endhint %}
