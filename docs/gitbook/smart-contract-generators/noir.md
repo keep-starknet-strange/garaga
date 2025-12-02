@@ -113,36 +113,32 @@ Using `garaga calldata` with the `--format array` lets you paste this array in c
 Add the [rust-crate.md](../installation/rust-crate.md "mention") to your project **using the same release tag as the version of pip package that generated the verifier.**
 
 ```rust
+// Ensure you use the same garaga_rs version as the pip package that generated the verifier.
 use garaga_rs::calldata::full_proof_with_hints::zk_honk::{
     get_zk_honk_calldata, HonkVerificationKey, ZKHonkProof,
 };
-use std::fs::File;
-use std::io::Read;
+use std::fs;
 
-// 1. Add the Rust Crate to your project using the same release tag as the version of pip
-// package that generated the verifier.
+fn main() -> Result<(), String> {
+    // 1. Load your verification key
+    let vk_bytes = fs::read("target/vk").map_err(|e| e.to_string())?;
+    let vk = HonkVerificationKey::from_bytes(&vk_bytes)?;
 
-// 2. Load your verification key
-let mut vk_file = File::open("path/to/vk")?;
-let mut vk_bytes = vec![];
-vk_file.read_to_end(&mut vk_bytes)?;
-let vk = HonkVerificationKey::from_bytes(&vk_bytes)?;
+    // 2. Load the proof file
+    let proof_bytes = fs::read("target/proof").map_err(|e| e.to_string())?;
 
-// 3. Load the proof file
-let mut proof_file = File::open("path/to/proof")?;
-let mut proof_bytes = vec![];
-proof_file.read_to_end(&mut proof_bytes)?;
+    // 3. Load public inputs file
+    let pub_inputs_bytes = fs::read("target/public_inputs").map_err(|e| e.to_string())?;
 
-// 4. Load public inputs file
-let mut pub_inputs_file = File::open("path/to/public_inputs")?;
-let mut pub_inputs_bytes = vec![];
-pub_inputs_file.read_to_end(&mut pub_inputs_bytes)?;
+    // 4. Parse the proof (requires log_circuit_size from vk)
+    let proof = ZKHonkProof::from_bytes(&proof_bytes, &pub_inputs_bytes, vk.log_circuit_size)?;
 
-// 5. Parse the proof
-let proof = ZKHonkProof::from_bytes(&proof_bytes, &pub_inputs_bytes, &vk)?;
+    // 5. Generate calldata
+    let calldata = get_zk_honk_calldata(&proof, &vk)?;
 
-// 6. Generate calldata
-let calldata = get_zk_honk_calldata(&proof, &vk)?;
+    println!("Calldata length: {}", calldata.len());
+    Ok(())
+}
 ```
 {% endtab %}
 
@@ -150,25 +146,22 @@ let calldata = get_zk_honk_calldata(&proof, &vk)?;
 Using the `garaga` [npm-package.md](../installation/npm-package.md "mention")
 
 ```typescript
-import { getZKHonkCallData } from 'garaga';
-import { HonkFlavor } from 'garaga/starknet/honkContractGenerator/parsingUtils';
-import { readFile } from 'fs/promises';
+// Ensure you use the same garaga npm version as the pip package that generated the verifier.
+import * as garaga from 'garaga';
+import { readFileSync } from 'fs';
 
-// 1. Add the NPM package to your project using the same release tag as the version of pip
-// package that generated the verifier.
+// 1. Initialize the WASM module (required before using any garaga functions)
+await garaga.init();
 
 // 2. Load your proof, public inputs, and verification key as Uint8Array
-const vk: Uint8Array = await readFile('path/to/vk');
-const proof: Uint8Array = await readFile('path/to/proof');
-const publicInputs: Uint8Array = await readFile('path/to/public_inputs');
+const vk = new Uint8Array(readFileSync('target/vk'));
+const proof = new Uint8Array(readFileSync('target/proof'));
+const publicInputs = new Uint8Array(readFileSync('target/public_inputs'));
 
 // 3. Generate calldata for ZK Honk proofs
-const calldata: bigint[] = getZKHonkCallData(
-    proof,
-    publicInputs,
-    vk,
-    HonkFlavor.KECCAK
-);
+const calldata: bigint[] = garaga.getZKHonkCallData(proof, publicInputs, vk);
+
+console.log('Calldata length:', calldata.length);
 ```
 {% endtab %}
 
@@ -176,43 +169,26 @@ const calldata: bigint[] = getZKHonkCallData(
 Using the `garaga` [python-package.md](../installation/python-package.md "mention")
 
 ```python
-from pathlib import Path
-from garaga.definitions import ProofSystem
+# Ensure you use the same garaga pip version as the one that generated the verifier.
 from garaga.precompiled_circuits.zk_honk import HonkVk, ZKHonkProof
 from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof
 )
 
-# 1. Add the pip package to your project using the same release tag as the version that
-# generated the verifier.
+# 1. Load your verification key
+vk = HonkVk.from_bytes(open('target/vk', 'rb').read())
 
-# 2. Load your verification key
-vk_path = Path('path/to/vk')
-proof_path = Path('path/to/proof')
-public_inputs_path = Path('path/to/public_inputs')
+# 2. Load proof and public inputs
+proof_bytes = open('target/proof', 'rb').read()
+public_inputs_bytes = open('target/public_inputs', 'rb').read()
 
-# Read the verification key
-with open(vk_path, 'rb') as f:
-    vk_bytes = f.read()
-    vk = HonkVk.from_bytes(vk_bytes)
-
-# Read the proof
-with open(proof_path, 'rb') as f:
-    proof_bytes = f.read()
-
-# Read the public inputs
-with open(public_inputs_path, 'rb') as f:
-    public_inputs_bytes = f.read()
-
-# Parse the proof
+# 3. Parse the proof
 proof = ZKHonkProof.from_bytes(proof_bytes, public_inputs_bytes, vk)
 
-# Generate calldata
-calldata: list[int] = get_ultra_flavor_honk_calldata_from_vk_and_proof(
-    vk=vk,
-    proof=proof,
-    system=ProofSystem.UltraKeccakZKHonk,
-)
+# 4. Generate calldata
+calldata: list[int] = get_ultra_flavor_honk_calldata_from_vk_and_proof(vk=vk, proof=proof)
+
+print(f'Calldata length: {len(calldata)}')
 ```
 {% endtab %}
 {% endtabs %}
