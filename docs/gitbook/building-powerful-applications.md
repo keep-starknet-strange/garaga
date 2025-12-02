@@ -6,7 +6,7 @@ icon: rocket
 
 Garaga's cryptographic primitives enable a wide range of powerful applications on Starknet. This page showcases what you can build and links to production-ready implementations.
 
----
+***
 
 ## Validity Rollups & L2 Solutions
 
@@ -20,7 +20,7 @@ Verify SNARK proofs on Starknet to build trustless bridges and rollup solutions.
 
 ### Example: Cross-Chain Bridge
 
-```cairo
+```rust
 use garaga::groth16::{Groth16Proof, verify_groth16_proof};
 
 #[starknet::contract]
@@ -52,7 +52,7 @@ mod Bridge {
 **Real-world usage**: Teams use Garaga to verify proofs from RISC Zero and SP1 zkVMs, enabling trustless verification of arbitrary Rust programs on Starknet.
 {% endhint %}
 
----
+***
 
 ## Privacy-Preserving Applications
 
@@ -60,18 +60,18 @@ Build applications where users can prove statements without revealing underlying
 
 ### Use Cases
 
-| Application | What's Proven | What's Hidden |
-|-------------|---------------|---------------|
-| **Private Voting** | Vote is valid and counted | Who voted for whom |
-| **Anonymous Credentials** | User meets criteria | User's identity |
-| **Confidential Transfers** | Balance is sufficient | Transfer amount |
-| **Private Auctions** | Bid is valid | Bid amount |
+| Application                | What's Proven             | What's Hidden      |
+| -------------------------- | ------------------------- | ------------------ |
+| **Private Voting**         | Vote is valid and counted | Who voted for whom |
+| **Anonymous Credentials**  | User meets criteria       | User's identity    |
+| **Confidential Transfers** | Balance is sufficient     | Transfer amount    |
+| **Private Auctions**       | Bid is valid              | Bid amount         |
 
 ### Implementation with Noir
 
 Noir makes it easy to write privacy-preserving circuits:
 
-```noir
+```rust
 // circuit.nr - Private voting circuit
 fn main(
     // Private inputs (not revealed on-chain)
@@ -98,7 +98,7 @@ fn main(
 
 Then verify on Starknet with a single function call.
 
----
+***
 
 ## Verifiable Randomness (drand)
 
@@ -106,15 +106,15 @@ Generate provably fair random numbers using the [drand](https://drand.love) dist
 
 ### Why drand?
 
-- **Unpredictable**: Random values can't be known before they're generated
-- **Unbiasable**: No single party can influence the output
-- **Publicly verifiable**: Anyone can verify the randomness is legitimate
+* **Unpredictable**: Random values can't be known before they're generated
+* **Unbiasable**: No single party can influence the output
+* **Publicly verifiable**: Anyone can verify the randomness is legitimate
 
 ### Example: On-Chain Lottery
 
 Use the maintained drand verifier contract via library call:
 
-```cairo
+```rust
 use starknet::{SyscallResultTrait, syscalls};
 use garaga::apps::drand::DrandResult;
 
@@ -167,7 +167,7 @@ mod Lottery {
 **Production contract available**: Use the [maintained drand verifier](maintained-smart-contracts/drand.md) via library call - no deployment needed!
 {% endhint %}
 
----
+***
 
 ## Signature Verification at Scale
 
@@ -175,15 +175,15 @@ Verify signatures from external systems (Bitcoin, Ethereum, Solana) on Starknet.
 
 ### Supported Signature Schemes
 
-| Scheme | Curves | Use Case |
-|--------|--------|----------|
-| **ECDSA** | SECP256K1, SECP256R1, BN254, BLS12-381 | Bitcoin, Ethereum, WebAuthn |
-| **Schnorr** | All Weierstrass curves | BIP340 (Taproot), general use |
-| **EdDSA** | Ed25519 | Solana, general use |
+| Scheme      | Curves                                 | Use Case                      |
+| ----------- | -------------------------------------- | ----------------------------- |
+| **ECDSA**   | SECP256K1, SECP256R1, BN254, BLS12-381 | Bitcoin, Ethereum, WebAuthn   |
+| **Schnorr** | All Weierstrass curves                 | BIP340 (Taproot), general use |
+| **EdDSA**   | Ed25519                                | Solana, general use           |
 
 ### Example: Multi-Chain Message Verification
 
-```cairo
+```rust
 use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature_assuming_hash};
 use garaga::definitions::G1Point;
 
@@ -206,7 +206,7 @@ fn verify_webauthn_signature(
 }
 ```
 
----
+***
 
 ## zkVM Proof Verification
 
@@ -244,10 +244,11 @@ Verify proofs from zkVMs like RISC Zero and SP1 to enable trustless execution of
 ### Getting Started
 
 See the maintained contracts:
-- [RISC Zero Integration](maintained-smart-contracts/risczero.md)
-- [SP1 Integration](maintained-smart-contracts/sp1.md)
 
----
+* [RISC Zero Integration](maintained-smart-contracts/risczero.md)
+* [SP1 Integration](maintained-smart-contracts/sp1.md)
+
+***
 
 ## Time-Lock Encryption (Coming Soon)
 
@@ -259,21 +260,21 @@ Time-lock encryption allows you to encrypt data that can only be decrypted at a 
 
 ### Use Cases
 
-- **Sealed-bid auctions**: Bids are encrypted until the auction ends
-- **Scheduled reveals**: Information released at a predetermined time
-- **Fair launches**: Token distributions with time-locked claiming
+* **Sealed-bid auctions**: Bids are encrypted until the auction ends
+* **Scheduled reveals**: Information released at a predetermined time
+* **Fair launches**: Token distributions with time-locked claiming
 
----
+***
 
 ## Build Your Own
 
 The primitives above can be combined to create novel applications:
 
-| Combination | Application |
-|-------------|-------------|
-| Groth16 + Signatures | Cross-chain asset bridges |
-| Noir + drand | Private lotteries with verifiable randomness |
-| zkVM + MSM | Verifiable ML inference |
-| EdDSA + Groth16 | Solana → Starknet bridges |
+| Combination          | Application                                  |
+| -------------------- | -------------------------------------------- |
+| Groth16 + Signatures | Cross-chain asset bridges                    |
+| Noir + drand         | Private lotteries with verifiable randomness |
+| zkVM + MSM           | Verifiable ML inference                      |
+| EdDSA + Groth16      | Solana → Starknet bridges                    |
 
 **Need help?** Join our [Telegram community](https://t.me/GaragaPairingCairo) to discuss your use case.

@@ -2,11 +2,11 @@
 icon: binary-circle-check
 ---
 
-# Hashing Functions
+# Hashing functions
 
 Garaga provides implementations of common hash functions optimized for Cairo.
 
----
+***
 
 ## SHA-512
 
@@ -14,7 +14,7 @@ A pure Cairo implementation of SHA-512 following [RFC-6234](https://datatracker.
 
 ### Usage
 
-```cairo
+```rust
 use garaga::hashes::sha_512::sha512;
 
 fn hash_message() {
@@ -59,21 +59,21 @@ fn hash_text() {
 
 ### Function Signature
 
-```cairo
+```rust
 pub fn sha512(data: Array<u8>) -> Array<u8>
 ```
 
-- **Input**: `Array<u8>` - The message bytes to hash
-- **Output**: `Array<u8>` - 64-byte (512-bit) hash result
+* **Input**: `Array<u8>` - The message bytes to hash
+* **Output**: `Array<u8>` - 64-byte (512-bit) hash result
 
----
+***
 
 ## Poseidon (BN254 Scalar Field)
 
 A ZK-friendly hash function operating on the BN254 scalar field. This implementation is compatible with:
 
-- [Circom Poseidon](https://github.com/iden3/circomlib/blob/252f8130105a66c8ae8b4a23c7f5662e17458f3f/circuits/poseidon.circom#L198-L208) (`nInputs=2`)
-- [Noir Poseidon](https://noir-lang.org/docs/noir/standard_library/cryptographic_primitives/hashes#poseidon) (`std::hash::poseidon::hash::hash_2`)
+* [Circom Poseidon](https://github.com/iden3/circomlib/blob/252f8130105a66c8ae8b4a23c7f5662e17458f3f/circuits/poseidon.circom#L198-L208) (`nInputs=2`)
+* [Noir Poseidon](https://noir-lang.org/docs/noir/standard_library/cryptographic_primitives/hashes#poseidon) (`std::hash::poseidon::hash::hash_2`)
 
 ### Cross-Language Example
 
@@ -105,7 +105,7 @@ fn test_main() {
 {% endtab %}
 
 {% tab title="Cairo" %}
-```cairo
+```rust
 use garaga::hashes::poseidon_hash_2_bn254;
 use garaga::definitions::u384;
 
@@ -124,12 +124,12 @@ fn test_poseidon_bn254() {
 
 ### Function Signature
 
-```cairo
+```rust
 pub fn poseidon_hash_2_bn254(x: u384, y: u384) -> u384
 ```
 
-- **Input**: Two `u384` field elements
-- **Output**: `u384` - The Poseidon hash result
+* **Input**: Two `u384` field elements
+* **Output**: `u384` - The Poseidon hash result
 
 {% hint style="info" %}
 This hash function is particularly useful when building circuits in Noir that need to verify hashes computed on Starknet, or vice versa.

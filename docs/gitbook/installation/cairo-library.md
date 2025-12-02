@@ -1,5 +1,5 @@
 ---
-icon: cairo
+icon: sparkles
 ---
 
 # Cairo Library
@@ -85,9 +85,9 @@ use garaga::ec_ops::msm_g1;
 use garaga::signatures::ecdsa::{ECDSASignatureWithHint, is_valid_ecdsa_signature_assuming_hash};
 ```
 
-See [Using Garaga Libraries](../using-garaga-libraries-in-your-cairo-project/README.md) for detailed usage documentation.
+See [Using Garaga Libraries](../using-garaga-libraries-in-your-cairo-project/) for detailed usage documentation.
 
 ## Registry Links
 
-- **Package Page:** [scarbs.xyz/packages/garaga](https://scarbs.xyz/packages/garaga)
-- **Source Code:** [github.com/keep-starknet-strange/garaga](https://github.com/keep-starknet-strange/garaga)
+* **Package Page:** [scarbs.xyz/packages/garaga](https://scarbs.xyz/packages/garaga)
+* **Source Code:** [github.com/keep-starknet-strange/garaga](https://github.com/keep-starknet-strange/garaga)
