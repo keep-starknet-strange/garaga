@@ -252,7 +252,7 @@ VERSION_UPDATES = [
         "noir_smart_contract_docs_path",
         UpdateConfig(
             name="Noir version in smart contract docs",
-            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+\))",
+            pattern=r"(\* Noir\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `noirup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+or `npm i @noir-lang/noir_js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s*\))",
             replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
             description="Noir version in smart contract generator documentation",
             version_key="nargo_version",
