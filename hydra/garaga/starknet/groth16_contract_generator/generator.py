@@ -267,9 +267,12 @@ def write_verifier_files(
         target_constants_path = constants_output_path or os.path.join(
             src_dir, constants_filename
         )
-        os.makedirs(os.path.dirname(target_constants_path), exist_ok=True)
+        target_constants_dir = os.path.dirname(target_constants_path)
+        os.makedirs(target_constants_dir, exist_ok=True)
         with open(target_constants_path, "w") as f:
             f.write(header_cairo + constants_code)
+
+        subprocess.run(["scarb", "fmt", "."], cwd=target_constants_dir, check=True)
 
     # Write contract file
     with open(os.path.join(src_dir, contract_filename), "w") as f:
