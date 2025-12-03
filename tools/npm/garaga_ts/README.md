@@ -48,7 +48,7 @@ const groth16Calldata = getGroth16CallData(proof, verifyingKey, CurveId.BN254);
 
 ## Available Functions
 
-📋 **For complete API documentation with examples, see:** [API Reference](https://github.com/keep-starknet-strange/garaga/blob/v1.0.0/tools/npm/garaga_ts/src/node/api.ts)
+📋 **For complete API documentation with examples, see:** [API Reference](https://github.com/keep-starknet-strange/garaga/blob/v1.0.1/tools/npm/garaga_ts/src/node/api.ts)
 
 - `msmCalldataBuilder()` - Multi-scalar multiplication calldata generation
 - `mpcCalldataBuilder()` - Multi-pairing check calldata generation
@@ -58,7 +58,6 @@ const groth16Calldata = getGroth16CallData(proof, verifyingKey, CurveId.BN254);
 - `toWeirstrass()` - Convert from Twisted Edwards to Weierstrass coordinates
 - `toTwistedEdwards()` - Convert from Weierstrass to Twisted Edwards coordinates
 - `getGroth16CallData()` - Generate Groth16 proof verification calldata
-- `getHonkCallData()` - Generate Noir Honk proof verification calldata
 - `getZKHonkCallData()` - Generate Noir ZK Honk proof verification calldata
 - `fetchAndGetDrandCallData()` - Fetch Drand randomness and generate calldata
 - `poseidonHashBN254()` - Compute Poseidon hash on BN254 curve

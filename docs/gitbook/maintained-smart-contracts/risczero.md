@@ -39,7 +39,7 @@ export PATH="$HOME/.risc0/bin:$PATH"
 rzup install
 ```
 
-_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero v2.2.2 use Garaga 1.0.0. Check [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json) for the latest supported versions._
+_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero v2.2.2 use Garaga 1.0.1. Check [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json) for the latest supported versions._
 
 3. Install RiscZero additional/custom dependencies
 
@@ -94,7 +94,7 @@ hex = "0.4"
 Optionally, if you intend to explicitly generate and handle the call-data, also add the following dependency to `host/Cargo.toml`. Make sure to use a Garaga version tag that is consistent with your setup.
 
 <pre class="language-toml"><code class="lang-toml">[dependencies]
-<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
+<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1" }
 </strong>...
 </code></pre>
 
