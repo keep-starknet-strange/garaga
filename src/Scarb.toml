@@ -1,6 +1,6 @@
 [package]
 name = "garaga"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2024_07"
 licence = "MIT"
 keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]

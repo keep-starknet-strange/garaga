@@ -19,7 +19,7 @@ Or add it manually to your `Scarb.toml`:
 {% code title="Scarb.toml" %}
 ```toml
 [dependencies]
-garaga = "1.0.0"
+garaga = "1.0.1"
 
 [cairo]
 sierra-replace-ids = false # Required to avoid compilation errors
@@ -40,7 +40,7 @@ If you need a specific commit or unreleased version, you can install from Git:
 
 ```toml
 [dependencies]
-garaga = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
+garaga = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1" }
 ```
 
 ---

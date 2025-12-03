@@ -22,7 +22,7 @@ Alternatively, add Garaga directly to your `Scarb.toml`:
 
 ```toml
 [dependencies]
-garaga = "1.0.0"
+garaga = "1.0.1"
 
 [cairo]
 sierra-replace-ids = false  # Required for Garaga
@@ -37,14 +37,14 @@ sierra-replace-ids = false  # Required for Garaga
 To install a specific version:
 
 ```bash
-scarb add garaga@1.0.0
+scarb add garaga@1.0.1
 ```
 
 Or in `Scarb.toml`:
 
 ```toml
 [dependencies]
-garaga = "=1.0.0"  # Exact version
+garaga = "=1.0.1"  # Exact version
 ```
 
 ## Installing from Git
@@ -53,7 +53,7 @@ If you need an unreleased version or a specific commit:
 
 ```toml
 [dependencies]
-garaga = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
+garaga = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1" }
 ```
 
 Or from a specific branch/commit:
@@ -72,7 +72,7 @@ For more information on managing dependencies with Scarb, see the [Scarb documen
 {% hint style="warning" %}
 **Version Matching:** When using Garaga SDKs (Python, Rust, npm) to generate calldata, ensure the Cairo library version matches the SDK version. Mismatched versions may produce incompatible calldata.
 
-For example, if using `pip install garaga==1.0.0`, use `garaga = "1.0.0"` in your `Scarb.toml`.
+For example, if using `pip install garaga==1.0.1`, use `garaga = "1.0.1"` in your `Scarb.toml`.
 {% endhint %}
 
 ## Usage

@@ -73,7 +73,7 @@ Garaga achieves remarkable efficiency through optimized Cairo implementations. S
 * **For generated contracts** (Groth16, Noir): Use the same SDK version that generated your verifier contract
 * **For maintained contracts** (RISC Zero, SP1, drand): Use the SDK version matching the Garaga release that declared the contract class hashes
 
-All packages are released together with matching version numbers (e.g., `pip install garaga==1.0.0` + `garaga = "1.0.0"` in Scarb.toml + `garaga_rs` tag `v1.0.0` + `npm install garaga@1.0.0`).
+All packages are released together with matching version numbers (e.g., `pip install garaga==1.0.1` + `garaga = "1.0.1"` in Scarb.toml + `garaga_rs` tag `v1.0.1` + `npm install garaga@1.0.1`).
 {% endhint %}
 
 ***
@@ -98,7 +98,7 @@ Or add to `Scarb.toml`:
 
 ```toml
 [dependencies]
-garaga = "1.0.0"
+garaga = "1.0.1"
 ```
 {% endtab %}
 

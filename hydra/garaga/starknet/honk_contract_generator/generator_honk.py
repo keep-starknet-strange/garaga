@@ -33,6 +33,7 @@ def gen_honk_verifier(
     output_folder_path: str,
     output_folder_name: str,
     cli_mode: bool = False,
+    include_test_sample: bool = True,
 ) -> bool:
     """
     Generate the honk verifier files and write them to the output folder.
@@ -55,6 +56,7 @@ def gen_honk_verifier(
         contract_code,
         contract_name,
         verification_function_name,
+        include_test_sample,
     )
     return True
 

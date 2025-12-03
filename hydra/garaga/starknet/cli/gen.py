@@ -84,9 +84,7 @@ def check_bb_starknet_support(
 
 
 def print_bb_warning(soft: bool = False, with_starknet: bool = False):
-    bb_version_ok, bb_version, has_starknet = check_bb_starknet_support(
-        BB_VERSION, with_starknet
-    )
+    bb_version_ok, bb_version, _ = check_bb_starknet_support(BB_VERSION, with_starknet)
     nargo_version_ok, nargo_version = check_version("nargo", NARGO_VERSION)
     if not bb_version_ok or not nargo_version_ok:
         console = Console()
@@ -99,7 +97,7 @@ def print_bb_warning(soft: bool = False, with_starknet: bool = False):
             )
         )
         console.print(
-            f"Detected bb version: [bold red]{bb_version}[/bold red] with support for starknet optimized oracle hash: [bold red]{has_starknet}[/bold red]\n"
+            f"Detected bb version: [bold red]{bb_version}[/bold red]\n"
             f"Detected nargo version: [bold red]{nargo_version}[/bold red]"
         )
         console.print(
@@ -179,18 +177,12 @@ def gen(
                     cli_mode=True,
                     include_test_sample=include_test_sample,
                 )
-            case (
-                ProofSystem.UltraKeccakHonk
-                | ProofSystem.UltraStarknetHonk
-                | ProofSystem.UltraKeccakZKHonk
-                | ProofSystem.UltraStarknetZKHonk
-            ):
+            case ProofSystem.UltraKeccakZKHonk:
                 try:
                     gen_honk_verifier(
                         vk=vk,
                         output_folder_path=cwd,
                         output_folder_name=project_name,
-                        system=system,
                         cli_mode=True,
                         include_test_sample=include_test_sample,
                     )
@@ -200,10 +192,10 @@ def gen(
                     print(
                         f"\n[bold red]Error:[/bold red] An error occurred while generating the verifier: \n{traceback.format_exc()}"
                     )
-                    print_bb_warning(
-                        with_starknet=system == ProofSystem.UltraStarknetHonk
-                        or system == ProofSystem.UltraStarknetZKHonk
-                    )
+                    # print_bb_warning(
+                    #     with_starknet=system == ProofSystem.UltraStarknetHonk
+                    #     or system == ProofSystem.UltraStarknetZKHonk
+                    # )
 
                     raise typer.Exit(code=1)
 
@@ -229,15 +221,6 @@ def gen(
         f"[bold]You can now test the main endpoint of the verifier using a proof and `garaga calldata` command.[/bold]"
     )
     if system in [
-        ProofSystem.UltraKeccakHonk,
-        ProofSystem.UltraStarknetHonk,
         ProofSystem.UltraKeccakZKHonk,
-        ProofSystem.UltraStarknetZKHonk,
     ]:
-        if (
-            system == ProofSystem.UltraStarknetHonk
-            or system == ProofSystem.UltraStarknetZKHonk
-        ):
-            print_bb_warning(soft=True, with_starknet=True)
-        else:
-            print_bb_warning(soft=True)
+        print_bb_warning(soft=True, with_starknet=False)

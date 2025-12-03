@@ -12,12 +12,12 @@ garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git"}
 ```
 
 {% hint style="warning" %}
-**Version Compatibility:** Use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) (e.g., `v1.0.0`) to match the declared [maintained smart contracts](../maintained-smart-contracts/ "mention") and ensure compatibility with the pip package that generated your verifiers.
+**Version Compatibility:** Use the latest [release tag](https://github.com/keep-starknet-strange/garaga/releases) (e.g., `v1.0.1`) to match the declared [maintained smart contracts](../maintained-smart-contracts/ "mention") and ensure compatibility with the pip package that generated your verifiers.
 {% endhint %}
 
 ```toml
 [dependencies]
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1" }
 ```
 
 ## Features
@@ -31,5 +31,5 @@ The `garaga_rs` crate provides optional features for different use cases:
 For example, if you're building a Python extension:
 ```toml
 [dependencies]
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0", features = ["python"] }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1", features = ["python"] }
 ```
