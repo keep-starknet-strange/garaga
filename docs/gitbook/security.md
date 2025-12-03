@@ -16,7 +16,7 @@ Garaga has undergone a comprehensive security audit:
 
 | Audit | Auditor | Date | Report |
 |-------|---------|------|--------|
-| **Garaga v1.0.0** | [CryptoExperts](https://www.cryptoexperts.com/) | June 27, 2025 | [View Report (PDF)](https://github.com/keep-starknet-strange/garaga/blob/main/docs/Garaga-audit-report-v2.pdf) |
+| **Garaga v1.0.1** | [CryptoExperts](https://www.cryptoexperts.com/) | June 27, 2025 | [View Report (PDF)](https://github.com/keep-starknet-strange/garaga/blob/main/docs/Garaga-audit-report-v2.pdf) |
 
 {% hint style="success" %}
 The audit covered core cryptographic operations including pairing checks, multi-scalar multiplication, and the Groth16 verifier implementation.
