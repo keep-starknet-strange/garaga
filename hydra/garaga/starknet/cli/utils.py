@@ -277,4 +277,6 @@ def get_default_vk_path(vk_type: str) -> Path:
                 / "vk_sp1.json"
             )
         case _:
-            raise ValueError(f"Unsupported default VK for proof type: {vk_type}")
+            raise ValueError(
+                f"Unsupported default VK for proof type: {vk_type}. Please specify a vk."
+            )

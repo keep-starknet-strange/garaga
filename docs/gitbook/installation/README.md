@@ -30,14 +30,14 @@ scarb add garaga
 Or in `Scarb.toml`:
 ```toml
 [dependencies]
-garaga = "1.0.0"
+garaga = "1.0.1"
 ```
 {% endtab %}
 
 {% tab title="Rust" %}
 ```toml
 [dependencies]
-garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.0" }
+garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1" }
 ```
 {% endtab %}
 
@@ -52,11 +52,11 @@ npm install garaga
 
 All Garaga packages are released together with matching version numbers. When using multiple packages, ensure they all use the same version to guarantee compatibility.
 
-For example, when using version 1.0.0:
-- Python: `pip install garaga==1.0.0`
-- Cairo: `garaga = "1.0.0"` in Scarb.toml
-- Rust: `tag = "v1.0.0"` in Cargo.toml
-- npm: `npm install garaga@1.0.0`
+For example, when using version 1.0.1:
+- Python: `pip install garaga==1.0.1`
+- Cairo: `garaga = "1.0.1"` in Scarb.toml
+- Rust: `tag = "v1.0.1"` in Cargo.toml
+- npm: `npm install garaga@1.0.1`
 
 ## Developer Setup
 
