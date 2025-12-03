@@ -1,4 +1,4 @@
-name: WASM
+name: WASM npm publish
 
 on:
   push:
