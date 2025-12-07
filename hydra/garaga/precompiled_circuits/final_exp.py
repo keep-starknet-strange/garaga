@@ -84,7 +84,7 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         # Hacky way to pass SQ as R so that it is hashed.
         # Result is known in advance to be V, and not SQ.
         # R_sparsity encoded as this bypasses the usage of R coefficients.
-        # Essentially, r_sparsity encodes R=V direcly by its static sparsity.
+        # Essentially, r_sparsity encodes R=V directly by its static sparsity.
 
         self.accumulate_poly_instructions[0].append(
             AccPolyInstructionType.SQUARE_TORUS,
