@@ -1,0 +1,6 @@
+[package]
+name = "dummy_proof_circuit"
+type = "bin"
+authors = [""]
+
+[dependencies]
