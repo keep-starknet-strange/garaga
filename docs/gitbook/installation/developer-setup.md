@@ -6,7 +6,7 @@ icon: wrench
 
 To work with Garaga, you need the following dependencies :&#x20;
 
-* Python 3.10.  The command `python3.10` should be available and working in your terminal.&#x20;
+* Python 3.10, 3.11, or 3.12. One of `python3.10`, `python3.11`, or `python3.12` should be available and working in your terminal.&#x20;
 * [Scarb](https://docs.swmansion.com/scarb/download.html) v2.14.0.&#x20;
 * [Rust](https://www.rust-lang.org/tools/install)
 
@@ -35,5 +35,5 @@ Pay attention to any message indicating failure. Contact us on Garaga telegram i
 If everything succeeded, you're good to go!
 
 {% hint style="info" %}
-Make sure to activate the virtual environment created with this setup, using `source/venv/bin/activate`&#x20;
+Make sure to activate the virtual environment created with this setup, using `source venv/bin/activate`
 {% endhint %}
