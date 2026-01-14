@@ -25,10 +25,10 @@ The easiest way to install Garaga is via `pip`, which will fetch and install the
     garaga
     ```
 
-{% hint style="warning" %}
-**Garaga requires Python 3.10.x specifically** (not 3.11 or higher). Use a Python Version Manager like [pyenv](https://github.com/pyenv/pyenv) to install the correct version:
+{% hint style="info" %}
+**Garaga supports Python 3.10, 3.11, and 3.12.** If you need to install a specific Python version, you can use a Python Version Manager like [pyenv](https://github.com/pyenv/pyenv):
 ```bash
-pyenv install 3.10
+pyenv install 3.10  # or 3.11, 3.12
 pyenv local 3.10
 ```
 {% endhint %}
@@ -38,7 +38,7 @@ Please, ensure that the directory containing Python's executable files is includ
 {% endhint %}
 
 {% hint style="info" %}
-If your Python 3.10 installation is not supported by one of the pre-built binary wheels, `pip` will attempt to install Garaga from its source distribution. In that case, please make sure to have [Rust installed](https://www.rust-lang.org/tools/install) and available.
+If your Python installation is not supported by one of the pre-built binary wheels, `pip` will attempt to install Garaga from its source distribution. In that case, please make sure to have [Rust installed](https://www.rust-lang.org/tools/install) and available.
 {% endhint %}
 
 ## Install a specific version or from a specific commit / from source

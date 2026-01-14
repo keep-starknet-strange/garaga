@@ -1,8 +1,108 @@
 # Rust -> Wasm bindings
 
-## Adding bindings
+This guide explains how to add new WASM bindings for Rust functions in the `garaga_rs` crate.
 
-TODO.
+## Overview
+
+The WASM bindings are implemented using `wasm-bindgen`, which provides a way to expose Rust functions to JavaScript/TypeScript. The bindings are located in `tools/garaga_rs/src/wasm_bindings.rs`.
+
+## Adding a New Binding
+
+1. Add your function to `tools/garaga_rs/src/wasm_bindings.rs`
+2. Use the `#[wasm_bindgen]` attribute to expose the function
+3. Rebuild the WASM package
+
+### Example Implementation
+
+```rust
+use wasm_bindgen::prelude::*;
+use num_bigint::BigUint;
+
+#[wasm_bindgen]
+pub fn your_function(
+    input_hex: &str,           // Hex string input
+    input_array: Vec<JsValue>, // Array of values
+) -> Result<JsValue, JsError> {
+    // Parse hex string to BigUint
+    let value = jsvalue_to_biguint(&JsValue::from_str(input_hex))?;
+
+    // Process array elements
+    let values: Vec<BigUint> = input_array
+        .iter()
+        .map(|v| jsvalue_to_biguint(v))
+        .collect::<Result<Vec<_>, _>>()?;
+
+    // Perform computation
+    let result = compute_something(&value, &values)
+        .map_err(|e| JsError::new(&e.to_string()))?;
+
+    // Return result as BigInt string
+    Ok(biguint_to_jsvalue(&result))
+}
+```
+
+### Type Conversions
+
+Common conversion patterns for WASM bindings:
+
+```rust
+// JsValue (hex string) -> BigUint
+let biguint = jsvalue_to_biguint(&js_value)?;
+
+// BigUint -> JsValue (string)
+let js_value = biguint_to_jsvalue(&biguint);
+
+// Parse G1 point from JS object
+let point = parse_g1_point(&js_object)?;
+
+// Parse G2 point from JS object
+let point = parse_g2_point(&js_object)?;
+```
+
+### Error Handling
+
+Use `JsError` for errors that should be visible in JavaScript:
+
+```rust
+.map_err(|e| JsError::new(&e.to_string()))?
+```
+
+## Available Functions
+
+The following functions are currently exposed via WASM:
+
+| Function | Description |
+|----------|-------------|
+| `msm_calldata_builder` | Generate MSM calldata |
+| `mpc_calldata_builder` | Generate multi-pairing check calldata |
+| `get_groth16_calldata` | Generate Groth16 proof calldata |
+| `get_zk_honk_calldata` | Generate ZK Honk proof calldata |
+| `schnorr_calldata_builder` | Schnorr signature calldata |
+| `ecdsa_calldata_builder` | ECDSA signature calldata |
+| `eddsa_calldata_builder` | EdDSA signature calldata |
+| `drand_calldata_builder` | drand verification calldata |
+| `poseidon_hash` | Poseidon hash (BN254) |
+| `to_weirstrass` | Convert Ed25519 to Weierstrass form |
+| `to_twistededwards` | Convert Weierstrass to Twisted Edwards |
+
+## TypeScript Wrapper
+
+The TypeScript API in `tools/npm/garaga_ts/src/node/api.ts` provides a friendlier interface over the raw WASM bindings:
+
+```typescript
+import { init, msmCalldataBuilder } from 'garaga';
+
+// Initialize WASM module (required once)
+await init();
+
+// Use the API
+const calldata = msmCalldataBuilder(
+  points,    // Array of {x, y} objects
+  scalars,   // Array of bigint or hex strings
+  curveId,   // 0=BN254, 1=BLS12-381, etc.
+  { includePointsAndScalars: true }
+);
+```
 
 ## Development notes
 
