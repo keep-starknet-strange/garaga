@@ -52,7 +52,7 @@ sha2 = "0.10"
 sha3 = "0.10"
 lazy_static = "1.4"
 rand = "0.9.0"
-starknet-types-core = { version = "0.1.7", default-features = false, features = ["curve"] }
+starknet-types-core = { version = "1.0", default-features = false, features = ["curve"] }
 lambdaworks-crypto = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329" }
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329" }
 arbitrary = "1.0"
