@@ -19,7 +19,7 @@ jobs:
           concurrent_skipping: 'never'
           paths_ignore: '["**/README.md", "**/docs/**"]'
 
-  devnet-test:
+  devnet-test-matrix:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
@@ -54,3 +54,21 @@ jobs:
 
       - name: Run tests
         run: source venv/bin/activate && pytest -n auto -s -x tests/contracts_e2e/e2e_test.py
+
+  # Summary job for branch protection (matrix jobs have version suffix in name)
+  devnet-test:
+    needs: [pre_job, devnet-test-matrix]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check matrix job status
+        run: |
+          if [ "${{ needs.pre_job.outputs.should_skip }}" == "true" ]; then
+            echo "Tests skipped"
+            exit 0
+          fi
+          if [ "${{ needs.devnet-test-matrix.result }}" != "success" ]; then
+            echo "Matrix tests failed"
+            exit 1
+          fi
+          echo "All tests passed"

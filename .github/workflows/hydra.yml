@@ -20,7 +20,7 @@ jobs:
           paths_ignore: '["**/README.md", "**/docs/**"]'
 
 
-  test-hydra:
+  test-hydra-matrix:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
@@ -82,3 +82,21 @@ jobs:
           source venv/bin/activate
           make check-max-log-n
         continue-on-error: false
+
+  # Summary job for branch protection (matrix jobs have version suffix in name)
+  test-hydra:
+    needs: [pre_job, test-hydra-matrix]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check matrix job status
+        run: |
+          if [ "${{ needs.pre_job.outputs.should_skip }}" == "true" ]; then
+            echo "Tests skipped"
+            exit 0
+          fi
+          if [ "${{ needs.test-hydra-matrix.result }}" != "success" ]; then
+            echo "Matrix tests failed"
+            exit 1
+          fi
+          echo "All tests passed"
