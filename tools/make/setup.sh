@@ -32,6 +32,47 @@ install_parallel() {
     esac
 }
 
+# Function to find a suitable Python version (3.10, 3.11, or 3.12)
+find_python() {
+    # If PYTHON_VERSION env var is set, use that specific version
+    if [ -n "$PYTHON_VERSION" ]; then
+        local python_cmd="python${PYTHON_VERSION}"
+        if command -v "$python_cmd" >/dev/null 2>&1; then
+            echo "$python_cmd"
+            return 0
+        fi
+        # Try without minor version for cases like "3.10" -> "python3.10"
+        python_cmd="python$(echo $PYTHON_VERSION | sed 's/\.[0-9]*$//')"
+        if command -v "$python_cmd" >/dev/null 2>&1; then
+            echo "$python_cmd"
+            return 0
+        fi
+        echo "Error: Requested Python version $PYTHON_VERSION not found" >&2
+        exit 1
+    fi
+
+    # Otherwise, try to find an available Python 3.10-3.12
+    for version in 3.12 3.11 3.10; do
+        if command -v "python${version}" >/dev/null 2>&1; then
+            echo "python${version}"
+            return 0
+        fi
+    done
+
+    # Fall back to python3 if it's in the right version range
+    if command -v python3 >/dev/null 2>&1; then
+        local py_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+        case "$py_version" in
+            3.10|3.11|3.12)
+                echo "python3"
+                return 0
+                ;;
+        esac
+    fi
+
+    return 1
+}
+
 # Clean up any existing venv directory
 if [ -d "venv" ]; then
     echo "Cleaning up existing venv directory..."
@@ -46,34 +87,38 @@ else
     echo "GNU parallel is already installed."
 fi
 
-# Check if python3.10 is installed
-if ! command -v python3.10 >/dev/null; then
-    echo "python3.10 is not installed. Please install Python 3.10 and try again."
+# Find a suitable Python version
+PYTHON_CMD=$(find_python)
+if [ -z "$PYTHON_CMD" ]; then
+    echo "No suitable Python version found. Please install Python 3.10, 3.11, or 3.12."
     case "$OSTYPE" in
         linux-gnu*)
-            echo "On Debian/Ubuntu, you can install it with: sudo apt-get install python3.10"
-            echo "On Fedora, you can install it with: sudo dnf install python3.10"
+            echo "On Debian/Ubuntu, you can install it with: sudo apt-get install python3.12"
+            echo "On Fedora, you can install it with: sudo dnf install python3.12"
             ;;
         darwin*)
-            echo "On macOS, you can install it with Homebrew: brew install python@3.10"
+            echo "On macOS, you can install it with Homebrew: brew install python@3.12"
             ;;
         *)
-            echo "Please refer to your operating system's documentation for installing Python 3.10."
+            echo "Please refer to your operating system's documentation for installing Python."
             ;;
     esac
     exit 1
 fi
 
+echo "Using Python: $PYTHON_CMD ($($PYTHON_CMD --version))"
+
 # Check if venv module is available
-if ! python3.10 -m venv --help >/dev/null 2>&1; then
-    echo "The venv module is not available in your Python 3.10 installation."
+if ! $PYTHON_CMD -m venv --help >/dev/null 2>&1; then
+    echo "The venv module is not available in your Python installation."
+    PY_VERSION=$($PYTHON_CMD -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
     case "$OSTYPE" in
         linux-gnu*)
-            echo "On Debian/Ubuntu, you can install it with: sudo apt-get install python3.10-venv"
-            echo "On Fedora, you can install it with: sudo dnf install python3.10-venv"
+            echo "On Debian/Ubuntu, you can install it with: sudo apt-get install python${PY_VERSION}-venv"
+            echo "On Fedora, you can install it with: sudo dnf install python${PY_VERSION}-venv"
             ;;
         darwin*)
-            echo "On macOS, ensure your Python 3.10 installation includes the venv module."
+            echo "On macOS, ensure your Python installation includes the venv module."
             ;;
         *)
             echo "Please refer to your operating system's documentation for installing the venv module."
@@ -83,8 +128,8 @@ if ! python3.10 -m venv --help >/dev/null 2>&1; then
 fi
 
 # Create virtual environment
-if ! python3.10 -m venv venv; then
-    echo "Failed to create virtual environment with python3.10"
+if ! $PYTHON_CMD -m venv venv; then
+    echo "Failed to create virtual environment with $PYTHON_CMD"
     exit 1
 fi
 
