@@ -23,13 +23,17 @@ jobs:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.12']
+      fail-fast: false
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python 3.10.14
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.10.14
+          python-version: ${{ matrix.python-version }}
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -42,6 +46,8 @@ jobs:
           scarb-version: "2.14.0"
       - name: Install dependencies
         run: make setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
 
       - name: Install devnet
         run: ./tests/contracts_e2e/install_devnet.sh
