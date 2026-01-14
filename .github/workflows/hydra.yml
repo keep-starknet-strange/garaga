@@ -20,10 +20,14 @@ jobs:
           paths_ignore: '["**/README.md", "**/docs/**"]'
 
 
-  test-hydra:
+  test-hydra-matrix:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+      fail-fast: false
 
     steps:
       - name: Set up Rust
@@ -35,12 +39,14 @@ jobs:
           components: rustfmt
 
       - uses: actions/checkout@v3
-      - name: Set up Python 3.10.14
-        uses: actions/setup-python@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
-          python-version: 3.10.14
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: make setup
+        env:
+          PYTHON_VERSION: ${{ matrix.python-version }}
 
       - name: Check Black formatting
         run: source venv/bin/activate && black --check .
@@ -58,6 +64,7 @@ jobs:
         with:
           scarb-version: "2.14.0"
       - name: Run make rewrite and check for unstaged changes
+        if: matrix.python-version == '3.10'
         run: |
           source venv/bin/activate
           if ! make rewrite; then
@@ -70,7 +77,26 @@ jobs:
             exit 1
           fi
       - name: Check bytecode size limits
+        if: matrix.python-version == '3.10'
         run: |
           source venv/bin/activate
           make check-max-log-n
         continue-on-error: false
+
+  # Summary job for branch protection (matrix jobs have version suffix in name)
+  test-hydra:
+    needs: [pre_job, test-hydra-matrix]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check matrix job status
+        run: |
+          if [ "${{ needs.pre_job.outputs.should_skip }}" == "true" ]; then
+            echo "Tests skipped"
+            exit 0
+          fi
+          if [ "${{ needs.test-hydra-matrix.result }}" != "success" ]; then
+            echo "Matrix tests failed"
+            exit 1
+          fi
+          echo "All tests passed"
