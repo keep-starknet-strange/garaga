@@ -2,30 +2,39 @@
 
 Using the `garaga` [npm-package.md](../../../installation/npm-package.md "mention")
 
+## Node.js (with file reading)
+
 ```typescript
-// Version must match the pip package that generated the verifier
 import * as garaga from 'garaga';
 import { CurveId } from 'garaga';
 import { readFileSync } from 'fs';
 
-// 1. Initialize the WASM module (required before using any garaga functions)
 await garaga.init();
 
-// 2. Load your verification key and proof JSON files
-const vkJson = JSON.parse(readFileSync('verification_key.json', 'utf-8'));
-const proofJson = JSON.parse(readFileSync('proof.json', 'utf-8'));
-const publicInputsJson = JSON.parse(readFileSync('public.json', 'utf-8'));
+// Parse from file paths (Node.js only)
+const vk = garaga.parseGroth16VerifyingKeyFromJson('verification_key.json');
+const proof = garaga.parseGroth16ProofFromJson('proof.json', 'public.json');
 
-// 3. Parse the verification key and proof
-const vk: garaga.Groth16VerifyingKey = garaga.parseGroth16VerifyingKeyFromJson(vkJson);
-const proof: garaga.Groth16Proof = garaga.parseGroth16ProofFromJson(proofJson, publicInputsJson);
+const calldata = garaga.getGroth16CallData(proof, vk, CurveId.BN254);
+```
 
-// 4. Generate calldata for Groth16 proof verification
-const calldata: bigint[] = garaga.getGroth16CallData(proof, vk, CurveId.BN254);
+## From JSON objects (Node.js and Browser)
 
-console.log('Calldata length:', calldata.length);
+```typescript
+import * as garaga from 'garaga';
+import { CurveId } from 'garaga';
 
-// The calldata can now be used to call your deployed verifier contract
+await garaga.init();
+
+// Parse from already-loaded JSON objects
+const vkJson = { /* verification key JSON */ };
+const proofJson = { /* proof JSON */ };
+const publicInputs = [/* public inputs as bigint[] */];
+
+const vk = garaga.parseGroth16VerifyingKeyFromObject(vkJson);
+const proof = garaga.parseGroth16ProofFromObject(proofJson, publicInputs);
+
+const calldata = garaga.getGroth16CallData(proof, vk, CurveId.BN254);
 ```
 
 {% hint style="info" %}
@@ -34,23 +43,25 @@ The `CurveId` should match your verifying key's curve: `CurveId.BN254` or `Curve
 
 ## Browser Usage
 
-The same code works in the browser. Make sure to call `garaga.init()` before using any functions:
+Use `parseGroth16*FromObject` functions in the browser (no filesystem access):
 
 ```typescript
 import * as garaga from 'garaga';
 import { CurveId } from 'garaga';
 
-async function verifyProof(vkJson: any, proofJson: any, publicInputsJson: any) {
-    // Initialize WASM module
+async function generateCalldata(vkJson: object, proofJson: object, publicInputs?: bigint[]) {
     await garaga.init();
 
-    // Parse and generate calldata
-    const vk = garaga.parseGroth16VerifyingKeyFromJson(vkJson);
-    const proof = garaga.parseGroth16ProofFromJson(proofJson, publicInputsJson);
-    const calldata = garaga.getGroth16CallData(proof, vk, CurveId.BN254);
+    const vk = garaga.parseGroth16VerifyingKeyFromObject(vkJson);
+    const proof = garaga.parseGroth16ProofFromObject(proofJson, publicInputs);
 
-    return calldata;
+    return garaga.getGroth16CallData(proof, vk, CurveId.BN254);
 }
 ```
 
-See the [npm package documentation](https://github.com/keep-starknet-strange/garaga/tree/main/tools/npm/garaga_ts) for more details.
+{% hint style="warning" %}
+**Webpack users**: Add `Buffer` polyfill via `ProvidePlugin`:
+```javascript
+new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] })
+```
+{% endhint %}
