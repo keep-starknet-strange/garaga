@@ -17,6 +17,11 @@ import {
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 
+export {
+  parseGroth16ProofFromObject,
+  parseGroth16VerifyingKeyFromObject,
+} from './starknet/groth16ContractGenerator/parsingUtils';
+
 /**
  * Represents a point on an elliptic curve in affine coordinates (x, y)
  */
