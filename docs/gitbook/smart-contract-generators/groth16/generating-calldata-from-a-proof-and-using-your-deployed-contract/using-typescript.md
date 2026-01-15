@@ -58,10 +58,3 @@ async function generateCalldata(vkJson: object, proofJson: object, publicInputs?
     return garaga.getGroth16CallData(proof, vk, CurveId.BN254);
 }
 ```
-
-{% hint style="warning" %}
-**Webpack users**: Add `Buffer` polyfill via `ProvidePlugin`:
-```javascript
-new webpack.ProvidePlugin({ Buffer: ['buffer', 'Buffer'] })
-```
-{% endhint %}

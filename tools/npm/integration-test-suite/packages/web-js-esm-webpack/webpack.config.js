@@ -1,6 +1,5 @@
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
-const webpack = require('webpack');
 
 module.exports = {
   entry: './src/bootstrap.js',
@@ -14,7 +13,6 @@ module.exports = {
       "crypto": require.resolve("crypto-browserify"),
       "stream": require.resolve("stream-browserify"),
       "vm": require.resolve("vm-browserify"),
-      "buffer": require.resolve("buffer"),
       "fs": false
     }
   },
@@ -23,9 +21,5 @@ module.exports = {
   },
   plugins: [
     new CopyPlugin({ patterns: ['./public/index.html'] }),
-    // Make Buffer available globally for browser builds
-    new webpack.ProvidePlugin({
-      Buffer: ['buffer', 'Buffer'],
-    }),
   ],
 };

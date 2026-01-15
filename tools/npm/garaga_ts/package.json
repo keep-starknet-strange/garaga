@@ -76,7 +76,6 @@
     }
   },
   "dependencies": {
-    "buffer": "^6.0.3",
     "crypto-browserify": "^3.12.1",
     "stream-browserify": "^3.0.0",
     "vm-browserify": "^1.1.2"
@@ -85,7 +84,6 @@
     "crypto": "crypto-browserify",
     "stream": "stream-browserify",
     "vm": "vm-browserify",
-    "fs": false,
-    "buffer": "buffer"
+    "fs": false
   }
 }

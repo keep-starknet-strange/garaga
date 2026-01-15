@@ -9,7 +9,6 @@
     "test-generate": "npm run start-bg && node scrape.cjs > output.txt; npm run stop-bg"
   },
   "devDependencies": {
-    "buffer": "^6.0.3",
     "copy-webpack-plugin": "^12.0.2",
     "crypto-browserify": "^3.12.1",
     "garaga": "file:../../garaga.tgz",
