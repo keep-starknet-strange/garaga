@@ -74,5 +74,16 @@
       "import": "./dist/index.mjs",
       "types": "./dist/index.d.ts"
     }
+  },
+  "dependencies": {
+    "crypto-browserify": "^3.12.1",
+    "stream-browserify": "^3.0.0",
+    "vm-browserify": "^1.1.2"
+  },
+  "browser": {
+    "crypto": "crypto-browserify",
+    "stream": "stream-browserify",
+    "vm": "vm-browserify",
+    "fs": false
   }
 }
