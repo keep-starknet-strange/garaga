@@ -1,3 +1,4 @@
+pub mod addchain_pow_generated;
 pub mod bls12_381_final_exp_witness;
 pub mod bn254_final_exp_witness;
 use crate::definitions::{BLS12381PrimeField, BN254PrimeField};
