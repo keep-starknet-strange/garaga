@@ -374,80 +374,91 @@ export const checkGroth16VerifyingKey = (vk: Groth16VerifyingKey): boolean => {
 
 
 
+// Helper: concatenate multiple Uint8Arrays
+const concatBytes = (...arrays: Uint8Array[]): Uint8Array => {
+    const totalLength = arrays.reduce((sum, arr) => sum + arr.length, 0);
+    const result = new Uint8Array(totalLength);
+    let offset = 0;
+    for (const arr of arrays) {
+        result.set(arr, offset);
+        offset += arr.length;
+    }
+    return result;
+};
+
+// Helper: write uint32 as big-endian bytes
+const uint32ToBE = (value: number): Uint8Array => {
+    const arr = new Uint8Array(4);
+    new DataView(arr.buffer).setUint32(0, value, false);
+    return arr;
+};
+
+// Helper: write uint16 as big-endian bytes
+const uint16ToBE = (value: number): Uint8Array => {
+    const arr = new Uint8Array(2);
+    new DataView(arr.buffer).setUint16(0, value, false);
+    return arr;
+};
+
+// Helper: encode string to bytes
+const stringToBytes = (str: string): Uint8Array => new TextEncoder().encode(str);
+
+// Helper: bytes to hex string
+const bytesToHex = (bytes: Uint8Array): string =>
+    Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+
 const digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
     const { tagDigest, input, preStateDigest, postStateDigest, output, exitCode } = receipt;
 
-    const systemExitCodeBuffer = Buffer.alloc(4);
-    systemExitCodeBuffer.writeUInt32BE(exitCode.system << 24);
+    const systemExitCodeBytes = uint32ToBE(exitCode.system << 24);
+    const userExitCodeBytes = uint32ToBE(exitCode.user << 24);
+    const twoBytes = uint16ToBE(4 << 8);
 
-    const userExitCodeBuffer = Buffer.alloc(4);
-    userExitCodeBuffer.writeUInt32BE(exitCode.user << 24);
-
-    // Create a 2-byte big-endian representation of 4 << 8
-    const twoBytes = Buffer.alloc(2);
-    twoBytes.writeUInt16BE(4 << 8);
-
-
-    // Concatenating all parts into one Buffer
-    const data = Buffer.concat([
+    const data = concatBytes(
         tagDigest!,
         input,
         preStateDigest,
         postStateDigest,
         output,
-        systemExitCodeBuffer,
-        userExitCodeBuffer,
+        systemExitCodeBytes,
+        userExitCodeBytes,
         twoBytes
-    ]);
+    );
 
     return createHash('sha256').update(data).digest();
 }
 
 function ok(imageId: Uint8Array, journalDigest: Uint8Array): ReceiptClaim {
-    // Create ExitCode object with system = 0 and user = 0 (equivalent to (Halted, 0) in Python)
-    const exitCode: ExitCode = {
-        system: 0,
-        user: 0
-    };
-
-    // Create Output object
+    const exitCode: ExitCode = { system: 0, user: 0 };
     const output: Output = {
         journalDigest,
-        assumptionsDigest: new Uint8Array(32) // bytes32(0) equivalent
-    }
+        assumptionsDigest: new Uint8Array(32)
+    };
 
-
-    // Create and return the ReceiptClaim object
     return {
-        tagDigest: createHash('sha256').update(Buffer.from("risc0.ReceiptClaim")).digest(),
+        tagDigest: createHash('sha256').update(stringToBytes("risc0.ReceiptClaim")).digest(),
         preStateDigest: imageId,
         postStateDigest: RISC0_SYSTEM_STATE_ZERO_DIGEST,
         exitCode,
-        input: new Uint8Array(32), // bytes32(0) equivalent
+        input: new Uint8Array(32),
         output: digestOutput(output),
-    }
-
+    };
 }
 
 
 const digestOutput = (output: Output): Uint8Array => {
     const { journalDigest, assumptionsDigest } = output;
 
+    const tagDigest = createHash('sha256').update(stringToBytes("risc0.Output")).digest();
+    const twoBytes = uint16ToBE(512);
 
-    // Compute the internal tag digest equivalent to hashlib.sha256(b"risc0.Output").digest()
-    const tagDigest = createHash('sha256').update(Buffer.from("risc0.Output")).digest();
-
-    const twoBytes = Buffer.alloc(2);
-    twoBytes.writeUInt16BE(512);
-
-    const combined = Buffer.concat([
+    const combined = concatBytes(
         tagDigest,
-        Buffer.from(journalDigest),
-        Buffer.from(assumptionsDigest),
-        twoBytes // Append 2 as a 2-byte big-endian integer
-    ]);
+        journalDigest,
+        assumptionsDigest,
+        twoBytes
+    );
 
-    // Return the sha256 digest of the combined data
     return createHash('sha256').update(combined).digest();
 }
 
@@ -455,20 +466,15 @@ const reverseByteOrderUint256 = (value: bigint | Uint8Array): bigint => {
     let valueBytes: Uint8Array;
 
     if (typeof value === 'bigint') {
-        // Convert bigint to 32-byte array (big-endian)
         const hexString = value.toString(16).padStart(64, '0');
-        valueBytes = Uint8Array.from(Buffer.from(hexString, 'hex'));
+        valueBytes = hexStringToBytes(hexString);
     } else {
-        // Ensure it's 32 bytes, pad with zeros if needed
         valueBytes = new Uint8Array(32);
         valueBytes.set(value.slice(0, 32), 0);
     }
 
-    // Reverse the byte order
     const reversedBytes = valueBytes.slice().reverse();
-
-    // Convert the reversed bytes back to bigint
-    return BigInt('0x' + Buffer.from(reversedBytes).toString('hex'));
+    return BigInt('0x' + bytesToHex(reversedBytes));
 }
 
 const splitDigest = (digest: bigint | Uint8Array): [bigint, bigint] => {
