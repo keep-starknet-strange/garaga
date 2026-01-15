@@ -1,5 +1,5 @@
-use crate::definitions::BN254PrimeField;
 use super::addchain_pow_generated::bn254 as bn254_addchain;
+use crate::definitions::BN254PrimeField;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::{
     Degree12ExtensionField, Degree2ExtensionField, Degree6ExtensionField,
 };
@@ -73,7 +73,6 @@ fn pow_3_ord(a: &FieldElement<Degree12ExtensionField>) -> usize {
     }
     t
 }
-
 
 #[cfg(test)]
 mod tests {

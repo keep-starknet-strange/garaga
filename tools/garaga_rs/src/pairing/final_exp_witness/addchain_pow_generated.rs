@@ -23,7 +23,9 @@ pub mod bn254 {
     use lambdaworks_math::field::element::FieldElement;
 
     /// Generated from tools/addchain/bn254_exp.acc
-    pub fn pow_exp(base: &FieldElement<Degree12ExtensionField>) -> FieldElement<Degree12ExtensionField> {
+    pub fn pow_exp(
+        base: &FieldElement<Degree12ExtensionField>,
+    ) -> FieldElement<Degree12ExtensionField> {
         let base = base.clone();
         let _10 = {
             let t0 = square_n(&base, 1);
@@ -1521,7 +1523,9 @@ pub mod bn254 {
     }
 
     /// Generated from tools/addchain/bn254_exp0.acc
-    pub fn pow_exp0(base: &FieldElement<Degree12ExtensionField>) -> FieldElement<Degree12ExtensionField> {
+    pub fn pow_exp0(
+        base: &FieldElement<Degree12ExtensionField>,
+    ) -> FieldElement<Degree12ExtensionField> {
         let base = base.clone();
         let _10 = {
             let t0 = square_n(&base, 1);
@@ -3004,7 +3008,9 @@ pub mod bn254 {
     }
 
     /// Generated from tools/addchain/bn254_r_m_d_inv.acc
-    pub fn pow_r_m_d_inv(base: &FieldElement<Degree12ExtensionField>) -> FieldElement<Degree12ExtensionField> {
+    pub fn pow_r_m_d_inv(
+        base: &FieldElement<Degree12ExtensionField>,
+    ) -> FieldElement<Degree12ExtensionField> {
         let base = base.clone();
         let _10 = {
             let t0 = square_n(&base, 1);
@@ -5508,7 +5514,6 @@ pub mod bn254 {
         };
         result
     }
-
 }
 
 pub mod bls12_381 {
@@ -5517,7 +5522,9 @@ pub mod bls12_381 {
     use lambdaworks_math::field::element::FieldElement;
 
     /// Generated from tools/addchain/bls12_381_h3_s.acc
-    pub fn pow_h3_s(base: &FieldElement<Degree12ExtensionField>) -> FieldElement<Degree12ExtensionField> {
+    pub fn pow_h3_s(
+        base: &FieldElement<Degree12ExtensionField>,
+    ) -> FieldElement<Degree12ExtensionField> {
         let base = base.clone();
         let _10 = {
             let t0 = square_n(&base, 1);
@@ -7559,7 +7566,9 @@ pub mod bls12_381 {
     }
 
     /// Generated from tools/addchain/bls12_381_e.acc
-    pub fn pow_e(base: &FieldElement<Degree12ExtensionField>) -> FieldElement<Degree12ExtensionField> {
+    pub fn pow_e(
+        base: &FieldElement<Degree12ExtensionField>,
+    ) -> FieldElement<Degree12ExtensionField> {
         let base = base.clone();
         let _10 = {
             let t0 = square_n(&base, 1);
@@ -9528,5 +9537,4 @@ pub mod bls12_381 {
         };
         result
     }
-
 }
