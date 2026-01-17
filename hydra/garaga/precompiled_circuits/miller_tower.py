@@ -37,17 +37,17 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         r1 = [line[2], line[3]]
         if self.curve_id == BN254_ID:
             return [
-                self.mul(r0[0], xNegOverY),
-                self.mul(r0[1], xNegOverY),
-                self.mul(r1[0], yInv),
-                self.mul(r1[1], yInv),
+                (r0[0] * xNegOverY),
+                (r0[1] * xNegOverY),
+                (r1[0] * yInv),
+                (r1[1] * yInv),
             ]
         elif self.curve_id == BLS12_381_ID:
             return [
-                self.mul(r1[0], yInv),
-                self.mul(r1[1], yInv),
-                self.mul(r0[0], xNegOverY),
-                self.mul(r0[1], xNegOverY),
+                (r1[0] * yInv),
+                (r1[1] * yInv),
+                (r0[0] * xNegOverY),
+                (r0[1] * xNegOverY),
             ]
         else:
             raise NotImplementedError
@@ -111,7 +111,7 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
             a = self._fp6_by_01(a, c0, c1)
             b = self.fp6_mul_by_non_residue(c1_fp6)
 
-            d = [self.add(self.set_or_get_constant(1), c1[0]), c1[1]]
+            d = [(self.set_or_get_constant(1) + c1[0]), c1[1]]
 
             z_c1 = self.vector_add(c1_fp6, c0_fp6)
             z_c1 = self._fp6_by_01(z_c1, c0, d)
@@ -143,7 +143,7 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
                 self.vector_sub(self.fp2_mul(self.vector_add(d3, d4), tmp), x3), x4
             )
             z00 = self.fp2_mul_by_non_residue(x4)
-            z00 = [self.add(z00[0], self.set_or_get_constant(1)), z00[1]]
+            z00 = [(z00[0] + self.set_or_get_constant(1)), z00[1]]
 
             return z00 + x3 + x34 + x03 + x04
         if self.curve_id == 1:
@@ -432,7 +432,7 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
 
     def fp2_conjugate(self, a: list[ModuloCircuitElement]):
         assert len(a) == 2
-        return [a[0], self.neg(a[1])]
+        return [a[0], (-a[1])]
 
     def mul_by_non_residue_k_power_n(
         self, x: list[ModuloCircuitElement], k: int, n: int
@@ -452,14 +452,14 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
             return self.fp2_mul(factor, x)
         else:
             factor = self.set_or_get_constant(res.a0)
-            return [self.mul(factor, x[0]), self.mul(factor, x[1])]
+            return [(factor * x[0]), (factor * x[1])]
 
     def fp12_frob(self, a: list[ModuloCircuitElement]):
         assert len(a) == 12
 
         c0b0 = self.fp2_conjugate(a[0:2])
-        c0b0[0] = self.add(
-            c0b0[0], self.set_or_get_constant(0)
+        c0b0[0] = c0b0[0] + self.set_or_get_constant(
+            0
         )  # Input cannot be output. # TODO: Make a manual circuit or something better.
         c0b1 = self.fp2_conjugate(a[2:4])
         c0b2 = self.fp2_conjugate(a[4:6])
@@ -478,8 +478,8 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
     def fp12_frob_square(self, a: list[ModuloCircuitElement]):
         assert len(a) == 12
         c0b0 = [
-            self.add(a[0], self.set_or_get_constant(0)),
-            self.add(a[1], self.set_or_get_constant(0)),
+            (a[0] + self.set_or_get_constant(0)),
+            (a[1] + self.set_or_get_constant(0)),
         ]  # Input cannot be output. # TODO: Make a manual circuit or something better.
         c0b1 = self.mul_by_non_residue_k_power_n(a[2:4], 2, 2)
         c0b2 = self.mul_by_non_residue_k_power_n(a[4:6], 2, 4)
@@ -493,8 +493,8 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         assert len(a) == 12
 
         c0b0 = self.fp2_conjugate(a[0:2])
-        c0b0[0] = self.add(
-            c0b0[0], self.set_or_get_constant(0)
+        c0b0[0] = c0b0[0] + self.set_or_get_constant(
+            0
         )  # Input cannot be output. # TODO: Make a manual circuit or something better.
         c0b1 = self.fp2_conjugate(a[2:4])
         c0b2 = self.fp2_conjugate(a[4:6])
@@ -613,7 +613,7 @@ class MillerTowerCircuit(MultiMillerLoopCircuit):
         t2 = self.vector_add(t2, t1)
         zc0b0 = self.fp2_mul_by_non_residue(t2)
         zc0b0 = [
-            self.add(zc0b0[0], self.set_or_get_constant(1)),
+            (zc0b0[0] + self.set_or_get_constant(1)),
             zc0b0[1],
         ]
 
