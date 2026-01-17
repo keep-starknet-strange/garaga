@@ -1,3 +1,4 @@
+import uuid as uuid_module
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from typing import List, Union
@@ -351,6 +352,7 @@ class ModuloCircuit:
         self.exact_output_refs_needed = None
         self.input_structs: list[Cairo1SerializableStruct] = []
         self.do_not_inline = False
+        self.uuid = str(uuid_module.uuid4())
 
     @property
     def values_offset(self) -> int:
@@ -409,7 +411,7 @@ class ModuloCircuit:
                 instruction,
             )
         )
-        res = ModuloCircuitElement(elmt, value_offset)
+        res = ModuloCircuitElement(elmt, value_offset, circuit=self)
         return res
 
     def write_struct(

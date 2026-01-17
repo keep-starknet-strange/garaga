@@ -80,14 +80,13 @@ z = circuit.write_struct(structs.u384("z", [field(42)]))
 one = circuit.set_or_get_constant(1)
 
 # Here happens the core circuit logic.
-# The core operations are add, sub, mul, inv.
-# However, more high level methods are available that translate to
-# a sequence of the core operations (ex: div &#x3C;=> inv then mul)
-a = circuit.add(x, y)
-b = circuit.sub(a, one)
-c = circuit.mul(b, z)
+# The core operations support Pythonic syntax: +, -, *, /, and unary -.
+# Use circuit.inv(x) for multiplicative inverse.
+a = x + y
+b = a - one
+c = b * z
 d = circuit.inv(c)
-f = circuit.div(d, z)
+f = d / z
 
 # Define the output of the function using structs as well.
 circuit.extend_struct_output(structs.u384Span("abc", [a, b, c]))
@@ -223,7 +222,7 @@ The abstract methods to implement are : \
     - deserializing the input list of elements,
     - creating a ModuloCircuit class (or class that derives from ModuloCircuit)
     - "writing" the inputs to the ModuloCircuit class to obtain ModuloCircuitElements
-    - using the methods add, sub, mul, inv (or higher level methods) of the ModuloCircuit class
+    - using arithmetic operators (+, -, *, /) or methods like inv() on ModuloCircuitElements
         to define the list of operations on the given inputs.
     - Returning the ModuloCircuit class in a state where the circuit has been run, and therefore holding
         the metadata so that its instructions can be compiled to Cairo code.
@@ -268,7 +267,7 @@ class FixedExpCircuit(BaseModuloCircuit):
         z = circuit.write_struct(structs.u384("z", [input[2]]), WriteOps.INPUT)
         res = z
         for i in range(n):
-            res = circuit.mul(res, z)
+            res = res * z
         circuit.extend_struct_output(structs.u384("res", [res]))
 
         return circuit

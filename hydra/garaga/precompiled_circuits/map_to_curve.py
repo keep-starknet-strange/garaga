@@ -209,15 +209,12 @@ class MapToCurveG2(Fp2Circuits):
         # Compute if parities are the same using XNOR (opposite of XOR)
         # XNOR(a,b) = 1 - (a + b - 2ab) = 2ab - a - b + 1
         same_parity = [
-            self.add(
-                self.sub(
-                    self.mul(
-                        self.set_or_get_constant(2),
-                        self.mul(y_parity[0], element_parity[0]),
-                    ),
-                    self.add(y_parity[0], element_parity[0]),
-                ),
-                self.set_or_get_constant(1),
+            (
+                (
+                    (self.set_or_get_constant(2) * (y_parity[0] * element_parity[0]))
+                    - (y_parity[0] + element_parity[0])
+                )
+                + self.set_or_get_constant(1)
             ),
             self.zero[0],  # imaginary part is 0
         ]
@@ -227,7 +224,7 @@ class MapToCurveG2(Fp2Circuits):
             self.fp2_mul([same_parity[0], same_parity[1]], y),  # Keep y if same parity
             self.fp2_mul(
                 [
-                    self.sub(self.one[0], same_parity[0]),
+                    (self.one[0] - same_parity[0]),
                     self.zero[0],
                 ],  # [1 - same_parity, 0]
                 self.fp2_sub(self.zero, y),  # -y
@@ -274,12 +271,12 @@ class MapToCurveG2(Fp2Circuits):
         )  # Witness for r0 (parity of x0)
 
         # Enforce that r0 ∈ {0, 1}
-        r0_sub_1 = self.sub(r0, one)
-        r0_times_r0_sub_1 = self.mul(r0, r0_sub_1)
+        r0_sub_1 = r0 - one
+        r0_times_r0_sub_1 = r0 * r0_sub_1
         self.sub_and_assert(r0_times_r0_sub_1, zero, zero, comment="Ensure r0 ∈ {0,1}")
 
         # Enforce x0 = 2 * q0 + r0
-        two_q0 = self.mul(q0, two)
+        two_q0 = q0 * two
         self.add_and_assert(two_q0, r0, element[0], comment="Validate x0 decomposition")
 
         # Similarly for element[1] (imaginary part)
@@ -291,34 +288,34 @@ class MapToCurveG2(Fp2Circuits):
         )  # Witness for r1 (parity of x1)
 
         # Enforce that r1 ∈ {0, 1}
-        r1_sub_1 = self.sub(r1, one)
-        r1_times_r1_sub_1 = self.mul(r1, r1_sub_1)
+        r1_sub_1 = r1 - one
+        r1_times_r1_sub_1 = r1 * r1_sub_1
         self.sub_and_assert(r1_times_r1_sub_1, zero, zero, comment="Ensure r1 ∈ {0,1}")
 
         # Enforce x1 = 2 * q1 + r1
-        two_q1 = self.mul(q1, two)
+        two_q1 = q1 * two
         self.add_and_assert(two_q1, r1, element[1], comment="Validate x1 decomposition")
 
         # Compute zero_0 = 1 - fp_is_non_zero(x0)
         real_is_non_zero = self.fp_is_non_zero(
             element[0]
         )  # Returns 1 if x0 ≠ 0, else 0
-        zero_0 = self.sub(one, real_is_non_zero)
+        zero_0 = one - real_is_non_zero
 
         # Compute s = r0 OR (zero_0 AND r1)
         # Implementing logical operations using arithmetic operations
         # zero_0 AND r1
-        zero_0_and_r1 = self.mul(zero_0, r1)
+        zero_0_and_r1 = zero_0 * r1
 
         # r0 OR (zero_0 AND r1)
         # OR(a, b) = a + b - a * b
-        or_input = self.sub(self.add(r0, zero_0_and_r1), self.mul(r0, zero_0_and_r1))
+        or_input = (r0 + zero_0_and_r1) - (r0 * zero_0_and_r1)
         s = or_input  # Since values are in {0,1}, this computes the logical OR
 
         # select q based on s
         q = self.add(
-            self.mul(q0, self.sub(one, zero_0_and_r1)),  # q0 when not using r1
-            self.mul(q1, zero_0_and_r1),  # q1 when using r1
+            (q0 * (one - zero_0_and_r1)),  # q0 when not using r1
+            (q1 * zero_0_and_r1),  # q1 when using r1
         )
 
         # Return parity as [s, 0]
@@ -371,34 +368,34 @@ class MapToCurveG1(ModuloCircuit):
         """
         # Calculate u² and related terms
         u2 = self.square(input_value)  # u²
-        zeta_u2 = self.mul(self.swu_z, u2)  # z·u²
+        zeta_u2 = self.swu_z * u2  # z·u²
         zeta_u2_square = self.square(zeta_u2)  # z²u⁴
-        ta = self.add(zeta_u2_square, zeta_u2)  # t = z²u⁴ + zu²
-        neg_ta = self.sub(self.zero, ta)  # -t
-        num_x1 = self.mul(self.swu_b, self.add(ta, self.one))  # b(t + 1)
+        ta = zeta_u2_square + zeta_u2  # t = z²u⁴ + zu²
+        neg_ta = self.zero - ta  # -t
+        num_x1 = self.swu_b * (ta + self.one)  # b(t + 1)
 
         # Handle special case when t = 0
         is_non_zero = self.fp_is_non_zero(neg_ta)  # 1 if t ≠ 0, 0 if t = 0
         neg_ta_or_z = self.add(
-            self.mul(self.sub(self.one, is_non_zero), self.swu_z),  # z if t = 0
-            self.mul(is_non_zero, neg_ta),  # -t if t ≠ 0
+            ((self.one - is_non_zero) * self.swu_z),  # z if t = 0
+            (is_non_zero * neg_ta),  # -t if t ≠ 0
         )
 
         # Calculate x₁ numerator and denominator
-        div = self.mul(self.swu_a, neg_ta_or_z)  # a·(-t) or a·z
+        div = self.swu_a * neg_ta_or_z  # a·(-t) or a·z
         num2_x1 = self.square(num_x1)  # (b(t + 1))²
         div2 = self.square(div)  # (a·(-t))²
-        div3 = self.mul(div, div2)  # (a·(-t))³
+        div3 = div * div2  # (a·(-t))³
 
         # Calculate g(x₁) = x₁³ + ax₁ + b
         num_gx1 = self.add(
             self.mul(
-                self.add(num2_x1, self.mul(self.swu_a, div2)),  # x₁²  # ax₁
+                (num2_x1 + (self.swu_a * div2)),  # x₁²  # ax₁
                 num_x1,  # ·x₁ (completing the x₁³ term)
             ),
-            self.mul(self.swu_b, div3),  # + b
+            (self.swu_b * div3),  # + b
         )
-        g1x = self.mul(num_gx1, self.inv(div3))  # Final result normalized
+        g1x = num_gx1 * self.inv(div3)  # Final result normalized
 
         return [g1x, div, num_x1, zeta_u2]
 
@@ -447,7 +444,7 @@ class MapToCurveG1(ModuloCircuit):
         y_initial = self.fp_sqrt(g1x)
 
         # Convert x to affine coordinates
-        x_affine = self.div(num_x1, div)
+        x_affine = num_x1 / div
 
         return [x_affine, y_initial, field]
 
@@ -496,14 +493,14 @@ class MapToCurveG1(ModuloCircuit):
         """
         # Since z·g1x is a quadratic residue (product of two non-quadratic residues),
         # this square root is guaranteed to exist
-        y1 = self.fp_sqrt(self.mul(self.swu_z, g1x))
+        y1 = self.fp_sqrt((self.swu_z * g1x))
 
         # Compute initial y-coordinate
-        y_initial = self.mul(zeta_u2, self.mul(field, y1))
+        y_initial = zeta_u2 * (field * y1)
 
         # Compute x-coordinate in affine form
-        num_x = self.mul(zeta_u2, num_x1)
-        x_affine = self.div(num_x, div)
+        num_x = zeta_u2 * num_x1
+        x_affine = num_x / div
 
         return [x_affine, y_initial, field]
 
@@ -518,25 +515,16 @@ class MapToCurveG1(ModuloCircuit):
 
         # Compute if parities are the same using XNOR (opposite of XOR)
         # XNOR(a,b) = 1 - (a + b - 2ab) = 2ab - a - b + 1
-        same_parity = self.add(
-            self.sub(
-                self.mul(
-                    self.set_or_get_constant(2),
-                    self.mul(y_parity, element_parity),
-                ),
-                self.add(y_parity, element_parity),
-            ),
-            self.set_or_get_constant(1),
-        )
+        same_parity = (
+            (self.set_or_get_constant(2) * (y_parity * element_parity))
+            - (y_parity + element_parity)
+        ) + self.set_or_get_constant(1)
 
         # Adjust y sign if parities don't match:
         # y_affine = same_parity ? y : -y
-        y_affine = self.add(
-            self.mul(same_parity, y),  # Keep y if same parity
-            self.mul(
-                self.sub(self.one, same_parity),
-                self.sub(self.zero, y),  # -y
-            ),
+        y_affine = (same_parity * y) + self.mul(  # Keep y if same parity
+            (self.one - same_parity),
+            (self.zero - y),  # -y
         )
 
         return [y_affine, qy, qfield]
@@ -569,12 +557,12 @@ class MapToCurveG1(ModuloCircuit):
         )  # Witness for remainder (parity)
 
         # Enforce that r ∈ {0, 1}
-        r_sub_1 = self.sub(r, one)
-        r_times_r_sub_1 = self.mul(r, r_sub_1)
+        r_sub_1 = r - one
+        r_times_r_sub_1 = r * r_sub_1
         self.sub_and_assert(r_times_r_sub_1, zero, zero, comment="Ensure r ∈ {0,1}")
 
         # Enforce element = 2 * q + r
-        two_q = self.mul(q, two)
+        two_q = q * two
         self.add_and_assert(two_q, r, element, comment="Validate element decomposition")
 
         return q, r

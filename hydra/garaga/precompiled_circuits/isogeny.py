@@ -88,11 +88,11 @@ class IsogenyG1(ModuloCircuit):
 
         x_affine_num = self.eval_horner(self.x_num, x, "x_num")
         x_affine_den = self.eval_horner(self.x_den, x, "x_den")
-        x_affine = self.div(x_affine_num, x_affine_den)
+        x_affine = x_affine_num / x_affine_den
         y_affine_num = self.eval_horner(self.y_num, x, "y_num")
         y_affine_den = self.eval_horner(self.y_den, x, "y_den")
-        y_affine_eval = self.div(y_affine_num, y_affine_den)
-        y_affine = self.mul(y_affine_eval, y)
+        y_affine_eval = y_affine_num / y_affine_den
+        y_affine = y_affine_eval * y
 
         return x_affine, y_affine
 
