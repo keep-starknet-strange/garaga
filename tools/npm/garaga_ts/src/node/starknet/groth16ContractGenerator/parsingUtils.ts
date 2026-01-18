@@ -258,8 +258,8 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 
             }
         }
-        const a = tryParseG1PointFromKey(proof, ['a'], curveId);
-        const b = tryParseG2PointFromKey(proof, ['b'], curveId);
+        const a = tryParseG1PointFromKey(proof, ['a', 'Ar'], curveId);
+        const b = tryParseG2PointFromKey(proof, ['b', 'Bs'], curveId);
         const c = tryParseG1PointFromKey(proof, ['c', 'Krs'], curveId);
 
         const returnProof = {
@@ -558,7 +558,7 @@ const findItemFromKeyPatterns = (data: { [key: string]: any }, keyPatterns: stri
         });
     });
 
-    if (bestMatch) {
+    if (bestMatch !== null) {
         return bestMatch;
     }
     throw new KeyPatternNotFoundError(`No key found with patterns ${keyPatterns}`);
