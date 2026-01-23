@@ -43,6 +43,9 @@ def gen_sp1_groth16_verifier(
         + "\n"
     )
     verification_function_name = f"verify_sp1_groth16_proof_{curve_id.name.lower()}"
+    verification_function_name_u32 = (
+        f"verify_sp1_groth16_proof_{curve_id.name.lower()}_u32"
+    )
 
     contract_code = (
         dedent(
@@ -53,6 +56,10 @@ def gen_sp1_groth16_verifier(
                     self: @TContractState,
                     full_proof_with_hints: Span<felt252>,
                 ) -> Result<(u256, Span<u256>), felt252>;
+                fn {verification_function_name_u32}(
+                    self: @TContractState,
+                    full_proof_with_hints: Span<felt252>,
+                ) -> Result<(u256, Span<u32>), felt252>;
             }}
 
             #[starknet::contract]
@@ -69,73 +76,95 @@ def gen_sp1_groth16_verifier(
                 #[storage]
                 struct Storage {{}}
 
+                /// Internal helper function that performs the core SP1 Groth16 verification.
+                /// Returns (vkey, public_inputs_u256, public_inputs_u32) on success.
+                fn verify_sp1_groth16_proof_inner(
+                    full_proof_with_hints: Span<felt252>,
+                ) -> Result<(u256, Span<u256>, Span<u32>), felt252> {{
+                    // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+                    // This function returns Result::Ok((vkey, public_inputs_u256, public_inputs_u32)) if the proof is valid.
+                    // If the proof is invalid, it returns Result::Err(error).
+                    // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
+
+                    let fph = deserialize_full_proof_with_hints_sp1(full_proof_with_hints);
+                    let groth16_proof = fph.groth16_proof;
+                    let vkey = fph.vkey;
+                    let public_inputs_sp1 = fph.public_inputs_sp1;
+                    let mpcheck_hint = fph.mpcheck_hint;
+                    let msm_hint = fph.msm_hint;
+
+                    groth16_proof.check_proof_points({curve_id.value});
+
+                    let ic = ic.span();
+
+                    let public_inputs_u32 = public_inputs_sp1.span();
+                    let (pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(public_inputs_sp1);
+
+                    let vk_x: G1Point = match ic.len() {{
+                        0 => panic!("Malformed VK"),
+                        1 => *ic.at(0),
+                        _ => {{
+                            let mut msm_calldata: Array<felt252> = array![];
+                            // Add the points from VK and public inputs to the proof.
+                            Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
+                            // Serialize public inputs as u256 array.
+                            Serde::serialize(@N_PUBLIC_INPUTS, ref msm_calldata);
+                            Serde::serialize(@vkey, ref msm_calldata);
+                            Serde::serialize(@pub_input_hash, ref msm_calldata);
+                            // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
+                            msm_calldata.append({curve_id.value});
+                            // Add the hint array.
+                            for x in msm_hint {{
+                                msm_calldata.append(*x);
+                            }}
+
+                            // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
+                            // to obtain vk_x.
+                            let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
+                                ECIP_OPS_CLASS_HASH.try_into().unwrap(),
+                                selector!("msm_g1"),
+                                msm_calldata.span()
+                            )
+                                .unwrap_syscall();
+
+                            ec_safe_add(
+                                Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), {curve_id.value}
+                            )
+                        }}
+                    }};
+                    // Perform the pairing check.
+                    let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
+                        G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
+                        G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
+                        G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
+                        vk.alpha_beta_miller_loop_result,
+                        precomputed_lines.span(),
+                        mpcheck_hint,
+                    );
+                    match check {{
+                        Result::Ok(_) => Result::Ok((vkey, pub_inputs_256, public_inputs_u32)),
+                        Result::Err(error) => Result::Err(error),
+                    }}
+                }}
+
                 #[abi(embed_v0)]
                 impl ISP1Groth16Verifier{curve_id.name} of super::ISP1Groth16Verifier{curve_id.name}<ContractState> {{
                     fn {verification_function_name}(
                         self: @ContractState,
                         full_proof_with_hints: Span<felt252>,
                     ) -> Result<(u256, Span<u256>), felt252> {{
-                        // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-                        // This function returns Result::Ok((vkey, public_inputs)) if the proof is valid.
-                        // If the proof is invalid, it returns Result::Err(error).
-                        // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
+                        match verify_sp1_groth16_proof_inner(full_proof_with_hints) {{
+                            Result::Ok((vkey, pub_inputs_256, _)) => Result::Ok((vkey, pub_inputs_256)),
+                            Result::Err(error) => Result::Err(error),
+                        }}
+                    }}
 
-                        let fph = deserialize_full_proof_with_hints_sp1(full_proof_with_hints);
-                        let groth16_proof = fph.groth16_proof;
-                        let vkey = fph.vkey;
-                        let public_inputs_sp1 = fph.public_inputs_sp1;
-                        let mpcheck_hint = fph.mpcheck_hint;
-                        let msm_hint = fph.msm_hint;
-
-                        groth16_proof.check_proof_points({curve_id.value});
-
-                        let ic = ic.span();
-
-                        let (pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(public_inputs_sp1);
-
-                        let vk_x: G1Point = match ic.len() {{
-                            0 => panic!("Malformed VK"),
-                            1 => *ic.at(0),
-                            _ => {{
-                                let mut msm_calldata: Array<felt252> = array![];
-                                // Add the points from VK and public inputs to the proof.
-                                Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
-                                // Serialize public inputs as u256 array.
-                                Serde::serialize(@N_PUBLIC_INPUTS, ref msm_calldata);
-                                Serde::serialize(@vkey, ref msm_calldata);
-                                Serde::serialize(@pub_input_hash, ref msm_calldata);
-                                // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
-                                msm_calldata.append({curve_id.value});
-                                // Add the hint array.
-                                for x in msm_hint {{
-                                    msm_calldata.append(*x);
-                                }}
-
-                                // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
-                                // to obtain vk_x.
-                                let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
-                                    ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                                    selector!("msm_g1"),
-                                    msm_calldata.span()
-                                )
-                                    .unwrap_syscall();
-
-                                ec_safe_add(
-                                    Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), {curve_id.value}
-                                )
-                            }}
-                        }};
-                        // Perform the pairing check.
-                        let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
-                            G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
-                            G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
-                            G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
-                            vk.alpha_beta_miller_loop_result,
-                            precomputed_lines.span(),
-                            mpcheck_hint,
-                        );
-                        match check {{
-                            Result::Ok(_) => Result::Ok((vkey, pub_inputs_256)),
+                    fn {verification_function_name_u32}(
+                        self: @ContractState,
+                        full_proof_with_hints: Span<felt252>,
+                    ) -> Result<(u256, Span<u32>), felt252> {{
+                        match verify_sp1_groth16_proof_inner(full_proof_with_hints) {{
+                            Result::Ok((vkey, _, pub_inputs_u32)) => Result::Ok((vkey, pub_inputs_u32)),
                             Result::Err(error) => Result::Err(error),
                         }}
                     }}
