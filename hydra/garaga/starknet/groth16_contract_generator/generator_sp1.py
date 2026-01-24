@@ -1,12 +1,15 @@
 import os
 from textwrap import dedent
+from typing import Optional
 
 from garaga.curves import ProofSystem
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
-    precompute_lines_from_vk,
+    GeneratorConfig,
+    Groth16VerifierGenerator,
+    get_common_contract_imports,
+    get_ecip_class_hash_const,
     write_test_calldata_file_generic,
-    write_verifier_files,
 )
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16Proof,
@@ -14,49 +17,61 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 )
 
 
-def gen_sp1_groth16_verifier(
-    vk_path: str,
-    output_folder_path: str,
-    output_folder_name: str,
-    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
-    cli_mode: bool = False,
-) -> str:
-    vk = Groth16VerifyingKey.from_json(vk_path)
-    curve_id = vk.curve_id
-    output_folder_name = output_folder_name + f"_{curve_id.name.lower()}"
-    output_folder_path = os.path.join(output_folder_path, output_folder_name)
+class SP1VerifierGenerator(Groth16VerifierGenerator):
+    """SP1 Groth16 verifier with u256 and u32 output variants."""
 
-    precomputed_lines = precompute_lines_from_vk(vk)
+    @property
+    def contract_name(self) -> str:
+        return f"SP1Groth16Verifier{self.curve_id.name}"
 
-    contract_cairo_name = f"SP1Groth16Verifier{curve_id.name}"
-    constants_code = (
-        dedent(
-            f"""
+    @property
+    def verification_function_name(self) -> str:
+        return f"verify_sp1_groth16_proof_{self.curve_id.name.lower()}"
+
+    @property
+    def verification_function_name_u32(self) -> str:
+        return f"verify_sp1_groth16_proof_{self.curve_id.name.lower()}_u32"
+
+    @property
+    def proof_system(self) -> ProofSystem:
+        return ProofSystem.Groth16
+
+    @property
+    def extra_modules(self) -> list:
+        return ["groth16_verifier"]
+
+    @property
+    def constants_output_path(self) -> Optional[str]:
+        return os.path.join("src", "src", "apps", "sp1_constants.cairo")
+
+    def generate_constants_code(self) -> str:
+        return (
+            dedent(
+                f"""
             use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
             use garaga::groth16::Groth16VerifyingKey;
 
-            pub const N_PUBLIC_INPUTS: usize = {len(vk.ic) - 1};
-            {vk.serialize_to_cairo()}
-            pub const precomputed_lines: [G2Line; {len(precomputed_lines) // 4}] = {precomputed_lines.serialize(raw=True, const=True)};
+            pub const N_PUBLIC_INPUTS: usize = {len(self.vk.ic) - 1};
+            {self.vk.serialize_to_cairo()}
+            {self.get_precomputed_lines_const()}
             """
-        ).strip()
-        + "\n"
-    )
-    verification_function_name = f"verify_sp1_groth16_proof_{curve_id.name.lower()}"
-    verification_function_name_u32 = (
-        f"verify_sp1_groth16_proof_{curve_id.name.lower()}_u32"
-    )
+            ).strip()
+            + "\n"
+        )
 
-    contract_code = (
-        dedent(
-            f"""
+    def generate_contract_code(self) -> str:
+        curve_id = self.curve_id
+        ecip_class_hash = self.config.ecip_class_hash
+        return (
+            dedent(
+                f"""
             #[starknet::interface]
             pub trait ISP1Groth16Verifier{curve_id.name}<TContractState> {{
-                fn {verification_function_name}(
+                fn {self.verification_function_name}(
                     self: @TContractState,
                     full_proof_with_hints: Span<felt252>,
                 ) -> Result<(u256, Span<u256>), felt252>;
-                fn {verification_function_name_u32}(
+                fn {self.verification_function_name_u32}(
                     self: @TContractState,
                     full_proof_with_hints: Span<felt252>,
                 ) -> Result<(u256, Span<u32>), felt252>;
@@ -64,14 +79,11 @@ def gen_sp1_groth16_verifier(
 
             #[starknet::contract]
             mod SP1Groth16Verifier{curve_id.name} {{
-                use starknet::SyscallResultTrait;
-                use garaga::definitions::{{G1Point, G1G2Pair}};
-                use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
-                use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
+            {get_common_contract_imports(curve_id)}
                 use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1}};
                 use garaga::apps::sp1_constants::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
 
-                const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
+            {get_ecip_class_hash_const(ecip_class_hash)}
 
                 #[storage]
                 struct Storage {{}}
@@ -149,7 +161,7 @@ def gen_sp1_groth16_verifier(
 
                 #[abi(embed_v0)]
                 impl ISP1Groth16Verifier{curve_id.name} of super::ISP1Groth16Verifier{curve_id.name}<ContractState> {{
-                    fn {verification_function_name}(
+                    fn {self.verification_function_name}(
                         self: @ContractState,
                         full_proof_with_hints: Span<felt252>,
                     ) -> Result<(u256, Span<u256>), felt252> {{
@@ -159,7 +171,7 @@ def gen_sp1_groth16_verifier(
                         }}
                     }}
 
-                    fn {verification_function_name_u32}(
+                    fn {self.verification_function_name_u32}(
                         self: @ContractState,
                         full_proof_with_hints: Span<felt252>,
                     ) -> Result<(u256, Span<u32>), felt252> {{
@@ -171,25 +183,29 @@ def gen_sp1_groth16_verifier(
                 }}
             }}
             """
-        ).strip()
-        + "\n"
-    )
+            ).strip()
+            + "\n"
+        )
 
-    # Use the reusable function to write all files
-    write_verifier_files(
-        output_folder_path,
-        output_folder_name,
-        constants_code,
-        contract_code,
-        contract_cairo_name,
-        verification_function_name,
-        ProofSystem.Groth16,
-        cli_mode,
-        modules=["groth16_verifier"],
-        constants_output_path=os.path.join("src", "src", "apps", "sp1_constants.cairo"),
-    )
 
-    return constants_code
+def gen_sp1_groth16_verifier(
+    vk_path: str,
+    output_folder_path: str,
+    output_folder_name: str,
+    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
+    cli_mode: bool = False,
+) -> str:
+    vk = Groth16VerifyingKey.from_json(vk_path)
+
+    config = GeneratorConfig(
+        vk=vk,
+        output_folder_path=output_folder_path,
+        output_folder_name=output_folder_name,
+        ecip_class_hash=ecip_class_hash,
+        cli_mode=cli_mode,
+    )
+    generator = SP1VerifierGenerator(config)
+    return generator.generate()
 
 
 if __name__ == "__main__":

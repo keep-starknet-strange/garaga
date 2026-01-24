@@ -1,6 +1,9 @@
 import os
 import subprocess
+from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from garaga.curves import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
@@ -18,6 +21,84 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 ECIP_OPS_CLASS_HASH = 0x312D1DD5F967EAF6F86965E3FA7ACBC9D0FBD979066A17721DD913736AF2F5E
 
 
+@dataclass
+class GeneratorConfig:
+    """Configuration for a Groth16 verifier generator."""
+
+    vk: "Groth16VerifyingKey"
+    output_folder_path: str
+    output_folder_name: str
+    ecip_class_hash: int = ECIP_OPS_CLASS_HASH
+    cli_mode: bool = False
+    include_test_sample: bool = True
+
+
+def get_common_contract_imports(curve_id: CurveID) -> str:
+    """Common Cairo imports used by all Groth16 verifier contracts."""
+    return f"""    use starknet::SyscallResultTrait;
+    use garaga::definitions::{{G1Point, G1G2Pair}};
+    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};"""
+
+
+def get_ecip_class_hash_const(ecip_class_hash: int) -> str:
+    """ECIP class hash constant declaration."""
+    return f"    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};"
+
+
+def get_msm_syscall_code() -> str:
+    """Shared MSM syscall code - identical across all verifiers."""
+    return """
+                    let mut _msm_result_serialized = starknet::syscalls::library_call_syscall(
+                        ECIP_OPS_CLASS_HASH.try_into().unwrap(),
+                        selector!("msm_g1"),
+                        msm_calldata.span()
+                    )
+                        .unwrap_syscall();
+"""
+
+
+def get_pairing_check_code(curve_id: CurveID) -> str:
+    """Shared pairing check code - identical across all verifiers."""
+    return f"""
+            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
+                G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
+                G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
+                G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
+                vk.alpha_beta_miller_loop_result,
+                precomputed_lines.span(),
+                mpcheck_hint,
+            );"""
+
+
+def get_storage_struct() -> str:
+    """Empty storage struct used by all verifiers."""
+    return """    #[storage]
+    struct Storage {}"""
+
+
+def get_verification_comment() -> str:
+    """Standard comment block for verification functions."""
+    return """            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+            // This function returns Result::Ok(output) if the proof is valid.
+            // If the proof is invalid, it returns Result::Err(error).
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key."""
+
+
+def get_msm_hint_loop() -> str:
+    """Loop to append MSM hint array to calldata."""
+    return """            // Add the hint array.
+            for x in msm_hint {
+                msm_calldata.append(*x);
+            }"""
+
+
+def get_curve_id_append(curve_id: CurveID) -> str:
+    """Append curve identifier to MSM calldata."""
+    return f"""            // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
+            msm_calldata.append({curve_id.value});"""
+
+
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
 
     # Precompute lines for fixed G2 points
@@ -31,6 +112,220 @@ def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
     )
 
     return precomputed_lines
+
+
+class Groth16VerifierGenerator(ABC):
+    """Base class for Groth16 verifier generators.
+
+    Subclasses must implement:
+    - contract_name (property)
+    - verification_function_name (property)
+    - proof_system (property)
+    - generate_constants_code()
+    - generate_contract_code()
+    """
+
+    def __init__(self, config: GeneratorConfig):
+        self.config = config
+        self.vk = config.vk
+        self.curve_id = config.vk.curve_id
+        self.precomputed_lines = precompute_lines_from_vk(config.vk)
+
+    @property
+    @abstractmethod
+    def contract_name(self) -> str:
+        """Cairo contract name, e.g., 'Groth16VerifierBN254'."""
+
+    @property
+    @abstractmethod
+    def verification_function_name(self) -> str:
+        """Main verify function name."""
+
+    @property
+    @abstractmethod
+    def proof_system(self) -> ProofSystem:
+        """The proof system enum value."""
+
+    @abstractmethod
+    def generate_constants_code(self) -> str:
+        """Generate the constants Cairo file content."""
+
+    @abstractmethod
+    def generate_contract_code(self) -> str:
+        """Generate the contract Cairo file content."""
+
+    @property
+    def extra_modules(self) -> list:
+        """Modules for lib.cairo. Override if needed."""
+        return ["groth16_verifier", "groth16_verifier_constants"]
+
+    @property
+    def constants_output_path(self) -> Optional[str]:
+        """Override if constants go to non-standard location."""
+        return None
+
+    def get_precomputed_lines_const(self) -> str:
+        """Precomputed lines constant declaration."""
+        n_lines = len(self.precomputed_lines) // 4
+        serialized = self.precomputed_lines.serialize(raw=True, const=True)
+        return f"pub const precomputed_lines: [G2Line; {n_lines}] = {serialized};"
+
+    def generate(self) -> str:
+        """Generate all verifier files. Returns constants_code."""
+        if self.config.cli_mode:
+            output_folder_name = self.config.output_folder_name
+        else:
+            output_folder_name = (
+                self.config.output_folder_name + f"_{self.curve_id.name.lower()}"
+            )
+        output_folder_path = os.path.join(
+            self.config.output_folder_path, output_folder_name
+        )
+
+        constants_code = self.generate_constants_code()
+        contract_code = self.generate_contract_code()
+
+        write_verifier_files(
+            output_folder_path=output_folder_path,
+            package_name=output_folder_name,
+            constants_code=constants_code,
+            contract_code=contract_code,
+            contract_cairo_name=self.contract_name,
+            verification_function_name=self.verification_function_name,
+            system=self.proof_system,
+            cli_mode=self.config.cli_mode,
+            modules=self.extra_modules,
+            constants_output_path=self.constants_output_path,
+            include_test_sample=self.config.include_test_sample,
+        )
+
+        return constants_code
+
+
+class StandardGroth16Generator(Groth16VerifierGenerator):
+    """Standard Groth16 verifier for BN254/BLS12-381."""
+
+    @property
+    def contract_name(self) -> str:
+        return f"Groth16Verifier{self.curve_id.name}"
+
+    @property
+    def verification_function_name(self) -> str:
+        return f"verify_groth16_proof_{self.curve_id.name.lower()}"
+
+    @property
+    def proof_system(self) -> ProofSystem:
+        return ProofSystem.Groth16
+
+    def generate_constants_code(self) -> str:
+        u288_import = (
+            f"use garaga::definitions::u288;"
+            if self.curve_id != CurveID.BLS12_381
+            else ""
+        )
+        return f"""
+    use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384}};
+    {u288_import}
+    use garaga::groth16::Groth16VerifyingKey;
+
+    pub const N_PUBLIC_INPUTS:usize = {len(self.vk.ic)-1};
+    {self.vk.serialize_to_cairo()}
+    {self.get_precomputed_lines_const()}
+    """
+
+    def generate_contract_code(self) -> str:
+        curve_id = self.curve_id
+        ecip_class_hash = self.config.ecip_class_hash
+        return f"""
+use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
+
+#[starknet::interface]
+pub trait I{self.contract_name}<TContractState> {{
+    fn {self.verification_function_name}(
+        self: @TContractState,
+        full_proof_with_hints: Span<felt252>,
+    ) -> Result<Span<u256>, felt252>;
+}}
+
+#[starknet::contract]
+mod {self.contract_name} {{
+{get_common_contract_imports(curve_id)}
+    use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
+    use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
+
+{get_ecip_class_hash_const(ecip_class_hash)}
+
+    #[storage]
+    struct Storage {{}}
+
+    #[abi(embed_v0)]
+    impl IGroth16Verifier{curve_id.name} of super::I{self.contract_name}<ContractState> {{
+        fn {self.verification_function_name}(
+            self: @ContractState,
+            full_proof_with_hints: Span<felt252>,
+        ) -> Result<Span<u256>, felt252> {{
+            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+            // This function returns Result::Ok(public_inputs) if the proof is valid.
+            // If the proof is invalid, it returns Result::Err(error).
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
+            let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
+            let groth16_proof = fph.groth16_proof;
+            let mpcheck_hint = fph.mpcheck_hint;
+            let msm_hint = fph.msm_hint;
+
+            groth16_proof.raw.check_proof_points({curve_id.value});
+
+            let ic = ic.span();
+
+            let vk_x: G1Point = match ic.len() {{
+                0 => panic!("Malformed VK"),
+                1 => *ic.at(0),
+                _ => {{
+                    // Start serialization with the hint array directly to avoid copying it.
+                    let mut msm_calldata: Array<felt252> = array![];
+                    // Add the points from VK and public inputs to the proof.
+                    Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
+                    Serde::serialize(@groth16_proof.public_inputs, ref msm_calldata);
+                    // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
+                    msm_calldata.append({curve_id.value});
+                    // Add the hint array.
+                    for x in msm_hint {{
+                        msm_calldata.append(*x);
+                    }}
+
+                    // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
+                    // to obtain vk_x.
+                    let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
+                        ECIP_OPS_CLASS_HASH.try_into().unwrap(),
+                        selector!("msm_g1"),
+                        msm_calldata.span()
+                    )
+                        .unwrap_syscall();
+
+                    ec_safe_add(
+                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), {curve_id.value}
+                    )
+                }}
+            }};
+            // Perform the pairing check.
+            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
+                G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
+                G1G2Pair {{ p: groth16_proof.raw.c, q: vk.delta_g2 }},
+                G1G2Pair {{ p: groth16_proof.raw.a.negate({curve_id.value}), q: groth16_proof.raw.b }},
+                vk.alpha_beta_miller_loop_result,
+                precomputed_lines.span(),
+                mpcheck_hint,
+            );
+            match check {{
+                Result::Ok(_) => Result::Ok(groth16_proof.public_inputs),
+                Result::Err(error) => Result::Err(error),
+            }}
+        }}
+    }}
+}}
+
+
+    """
 
 
 def gen_test_file(
@@ -333,136 +628,17 @@ def gen_groth16_verifier(
 ) -> str:
     if isinstance(vk, (Path, str)):
         vk = Groth16VerifyingKey.from_json(vk)
-    else:
-        vk = vk
 
-    curve_id = vk.curve_id
-    if cli_mode:
-        output_folder_name = output_folder_name
-    else:
-        output_folder_name = output_folder_name + f"_{curve_id.name.lower()}"
-    output_folder_path = os.path.join(output_folder_path, output_folder_name)
-
-    precomputed_lines = precompute_lines_from_vk(vk)
-    verification_function_name = f"verify_groth16_proof_{curve_id.name.lower()}"
-    contract_cairo_name = f"Groth16Verifier{curve_id.name}"
-    constants_code = f"""
-    use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384}};
-    {f"use garaga::definitions::u288;" if curve_id!=CurveID.BLS12_381 else ""}
-    use garaga::groth16::Groth16VerifyingKey;
-
-    pub const N_PUBLIC_INPUTS:usize = {len(vk.ic)-1};
-    {vk.serialize_to_cairo()}
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
-    """
-    contract_code = f"""
-use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
-
-#[starknet::interface]
-pub trait I{contract_cairo_name}<TContractState> {{
-    fn {verification_function_name}(
-        self: @TContractState,
-        full_proof_with_hints: Span<felt252>,
-    ) -> Result<Span<u256>, felt252>;
-}}
-
-#[starknet::contract]
-mod {contract_cairo_name} {{
-    use starknet::SyscallResultTrait;
-    use garaga::definitions::{{G1Point, G1G2Pair}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
-    use garaga::utils::calldata::{{deserialize_full_proof_with_hints_{curve_id.name.lower()}}};
-    use super::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
-
-    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
-
-    #[storage]
-    struct Storage {{}}
-
-    #[abi(embed_v0)]
-    impl IGroth16Verifier{curve_id.name} of super::IGroth16Verifier{curve_id.name}<ContractState> {{
-        fn {verification_function_name}(
-            self: @ContractState,
-            full_proof_with_hints: Span<felt252>,
-        ) -> Result<Span<u256>, felt252> {{
-            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
-            // This function returns Result::Ok(public_inputs) if the proof is valid.
-            // If the proof is invalid, it returns Result::Err(error).
-            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
-            let fph = deserialize_full_proof_with_hints_{curve_id.name.lower()}(full_proof_with_hints);
-            let groth16_proof = fph.groth16_proof;
-            let mpcheck_hint = fph.mpcheck_hint;
-            let msm_hint = fph.msm_hint;
-
-            groth16_proof.raw.check_proof_points({curve_id.value});
-
-            let ic = ic.span();
-
-            let vk_x: G1Point = match ic.len() {{
-                0 => panic!("Malformed VK"),
-                1 => *ic.at(0),
-                _ => {{
-                    // Start serialization with the hint array directly to avoid copying it.
-                    let mut msm_calldata: Array<felt252> = array![];
-                    // Add the points from VK and public inputs to the proof.
-                    Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
-                    Serde::serialize(@groth16_proof.public_inputs, ref msm_calldata);
-                    // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
-                    msm_calldata.append({curve_id.value});
-                    // Add the hint array.
-                    for x in msm_hint {{
-                        msm_calldata.append(*x);
-                    }}
-
-                    // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
-                    // to obtain vk_x.
-                    let mut _vx_x_serialized = starknet::syscalls::library_call_syscall(
-                        ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                        selector!("msm_g1"),
-                        msm_calldata.span()
-                    )
-                        .unwrap_syscall();
-
-                    ec_safe_add(
-                        Serde::<G1Point>::deserialize(ref _vx_x_serialized).unwrap(), *ic.at(0), {curve_id.value}
-                    )
-                }}
-            }};
-            // Perform the pairing check.
-            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
-                G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
-                G1G2Pair {{ p: groth16_proof.raw.c, q: vk.delta_g2 }},
-                G1G2Pair {{ p: groth16_proof.raw.a.negate({curve_id.value}), q: groth16_proof.raw.b }},
-                vk.alpha_beta_miller_loop_result,
-                precomputed_lines.span(),
-                mpcheck_hint,
-            );
-            match check {{
-                Result::Ok(_) => Result::Ok(groth16_proof.public_inputs),
-                Result::Err(error) => Result::Err(error),
-            }}
-        }}
-    }}
-}}
-
-
-    """
-
-    # Use the new reusable function to write all files
-    write_verifier_files(
-        output_folder_path,
-        output_folder_name,
-        constants_code,
-        contract_code,
-        contract_cairo_name,
-        verification_function_name,
-        ProofSystem.Groth16,
-        cli_mode,
+    config = GeneratorConfig(
+        vk=vk,
+        output_folder_path=output_folder_path,
+        output_folder_name=output_folder_name,
+        ecip_class_hash=ecip_class_hash,
+        cli_mode=cli_mode,
         include_test_sample=include_test_sample,
     )
-
-    return constants_code
+    generator = StandardGroth16Generator(config)
+    return generator.generate()
 
 
 if __name__ == "__main__":
