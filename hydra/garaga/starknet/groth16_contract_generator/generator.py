@@ -31,6 +31,44 @@ class GeneratorConfig:
     include_test_sample: bool = True
 
 
+def get_common_contract_imports(curve_id: CurveID) -> str:
+    """Common Cairo imports used by all Groth16 verifier contracts."""
+    return f"""    use starknet::SyscallResultTrait;
+    use garaga::definitions::{{G1Point, G1G2Pair}};
+    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
+    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};"""
+
+
+def get_ecip_class_hash_const(ecip_class_hash: int) -> str:
+    """ECIP class hash constant declaration."""
+    return f"    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};"
+
+
+def get_msm_syscall_code() -> str:
+    """Shared MSM syscall code - identical across all verifiers."""
+    return """
+                    let mut _msm_result_serialized = starknet::syscalls::library_call_syscall(
+                        ECIP_OPS_CLASS_HASH.try_into().unwrap(),
+                        selector!("msm_g1"),
+                        msm_calldata.span()
+                    )
+                        .unwrap_syscall();
+"""
+
+
+def get_pairing_check_code(curve_id: CurveID) -> str:
+    """Shared pairing check code - identical across all verifiers."""
+    return f"""
+            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
+                G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
+                G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
+                G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
+                vk.alpha_beta_miller_loop_result,
+                precomputed_lines.span(),
+                mpcheck_hint,
+            );"""
+
+
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
 
     # Precompute lines for fixed G2 points
