@@ -5,9 +5,13 @@ from garaga.modulo_circuit_structs import G1PointCircuit
 from garaga.starknet.constants import RISC0_RELEASE_VERSION
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
-    precompute_lines_from_vk,
+    GeneratorConfig,
+    Groth16VerifierGenerator,
+    get_common_contract_imports,
+    get_ecip_class_hash_const,
+    get_msm_syscall_code,
+    get_pairing_check_code,
     write_test_calldata_file_generic,
-    write_verifier_files,
 )
 from garaga.starknet.groth16_contract_generator.parsing_utils import (
     RISC0_BN254_CONTROL_ID,
@@ -20,53 +24,63 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 PACKAGE_NAME = "risc0_verifier"
 
 
-def gen_risc0_groth16_verifier(
-    vk_path: str,
-    output_folder_path: str,
-    output_folder_name: str,
-    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
-    control_root: int = RISC0_CONTROL_ROOT,
-    control_id: int = RISC0_BN254_CONTROL_ID,
-    cli_mode: bool = False,
-) -> str:
-    vk = Groth16VerifyingKey.from_json(vk_path)
-    curve_id = vk.curve_id
-    output_folder_name = output_folder_name + f"_{curve_id.name.lower()}"
-    output_folder_path = os.path.join(output_folder_path, output_folder_name)
+class Risc0VerifierGenerator(Groth16VerifierGenerator):
+    """RISC0 Groth16 verifier with control root and control ID."""
 
-    precomputed_lines = precompute_lines_from_vk(vk)
-    CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(control_root)
+    def __init__(self, config: GeneratorConfig, control_root: int, control_id: int):
+        super().__init__(config)
+        self.control_root = control_root
+        self.control_id = control_id
+        self.control_root_0, self.control_root_1 = split_digest(control_root)
+        self.T = self._compute_T_point()
 
-    T = G1PointCircuit.from_G1Point(
-        name="T",
-        point=(vk.ic[1].scalar_mul(CONTROL_ROOT_0))
-        .add(vk.ic[2].scalar_mul(CONTROL_ROOT_1))
-        .add(vk.ic[5].scalar_mul(control_id).add(vk.ic[0])),
-    )
+    def _compute_T_point(self) -> G1PointCircuit:
+        """Precompute T = IC[0] + IC[1]*root_0 + IC[2]*root_1 + IC[5]*control_id."""
+        vk = self.vk
+        return G1PointCircuit.from_G1Point(
+            name="T",
+            point=(vk.ic[1].scalar_mul(self.control_root_0))
+            .add(vk.ic[2].scalar_mul(self.control_root_1))
+            .add(vk.ic[5].scalar_mul(self.control_id).add(vk.ic[0])),
+        )
 
-    contract_cairo_name = f"Risc0Groth16Verifier{curve_id.name}"
-    constants_code = f"""
+    @property
+    def contract_name(self) -> str:
+        return f"Risc0Groth16Verifier{self.curve_id.name}"
+
+    @property
+    def verification_function_name(self) -> str:
+        return f"verify_r0_groth16_proof_{self.curve_id.name.lower()}"
+
+    @property
+    def proof_system(self) -> ProofSystem:
+        return ProofSystem.Groth16
+
+    def generate_constants_code(self) -> str:
+        return f"""
     use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
     use garaga::groth16::Groth16VerifyingKey;
 
     pub const N_FREE_PUBLIC_INPUTS:usize = 2;
     // RISC0 version tag : {RISC0_RELEASE_VERSION}
-    // CONTROL ROOT USED : {hex(control_root)}
-    // \t CONTROL_ROOT_0 : {hex(CONTROL_ROOT_0)}
-    // \t CONTROL_ROOT_1 : {hex(CONTROL_ROOT_1)}
-    // BN254 CONTROL ID USED : {hex(control_id)}
-    pub const T: G1Point = {T.serialize(raw=True)}; // IC[0] + IC[1] * CONTROL_ROOT_0 + IC[2] * CONTROL_ROOT_1 + IC[5] * BN254_CONTROL_ID
-    {vk.serialize_to_cairo()}
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
+    // CONTROL ROOT USED : {hex(self.control_root)}
+    // \t CONTROL_ROOT_0 : {hex(self.control_root_0)}
+    // \t CONTROL_ROOT_1 : {hex(self.control_root_1)}
+    // BN254 CONTROL ID USED : {hex(self.control_id)}
+    pub const T: G1Point = {self.T.serialize(raw=True)}; // IC[0] + IC[1] * CONTROL_ROOT_0 + IC[2] * CONTROL_ROOT_1 + IC[5] * BN254_CONTROL_ID
+    {self.vk.serialize_to_cairo()}
+    {self.get_precomputed_lines_const()}
     """
-    verification_function_name = f"verify_r0_groth16_proof_{curve_id.name.lower()}"
 
-    contract_code = f"""
+    def generate_contract_code(self) -> str:
+        curve_id = self.curve_id
+        ecip_class_hash = self.config.ecip_class_hash
+        return f"""
 use super::groth16_verifier_constants::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
 #[starknet::interface]
 pub trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
-    fn {verification_function_name}(
+    fn {self.verification_function_name}(
         self: @TContractState,
         full_proof_with_hints: Span<felt252>,
     ) -> Result<Span<u8>, felt252>;
@@ -74,21 +88,18 @@ pub trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
 
 #[starknet::contract]
 mod Risc0Groth16Verifier{curve_id.name} {{
-    use starknet::SyscallResultTrait;
-    use garaga::definitions::{{G1Point, G1G2Pair}};
-    use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
-    use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
+{get_common_contract_imports(curve_id)}
     use garaga::apps::risc0::{{compute_receipt_claim, journal_sha256, deserialize_full_proof_with_hints_risc0}};
     use super::{{N_FREE_PUBLIC_INPUTS, vk, ic, precomputed_lines, T}};
 
-    const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
+{get_ecip_class_hash_const(ecip_class_hash)}
 
     #[storage]
     struct Storage {{}}
 
     #[abi(embed_v0)]
     impl IRisc0Groth16Verifier{curve_id.name} of super::IRisc0Groth16Verifier{curve_id.name}<ContractState> {{
-        fn {verification_function_name}(
+        fn {self.verification_function_name}(
             self: @ContractState,
             full_proof_with_hints: Span<felt252>,
         ) -> Result<Span<u8>, felt252> {{
@@ -131,27 +142,14 @@ mod Risc0Groth16Verifier{curve_id.name} {{
 
             // Call the multi scalar multiplication endpoint on the Garaga ECIP ops contract
             // to obtain claim0 * IC[3] + claim1 * IC[4].
-            let mut _msm_result_serialized = starknet::syscalls::library_call_syscall(
-                ECIP_OPS_CLASS_HASH.try_into().unwrap(),
-                selector!("msm_g1"),
-                msm_calldata.span()
-            )
-                .unwrap_syscall();
-
+{get_msm_syscall_code()}
             // Finalize vk_x computation by adding the precomputed T point.
             let vk_x = ec_safe_add(
                 T, Serde::<G1Point>::deserialize(ref _msm_result_serialized).unwrap(), {curve_id.value}
             );
 
             // Perform the pairing check.
-            let check = multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result(
-                G1G2Pair {{ p: vk_x, q: vk.gamma_g2 }},
-                G1G2Pair {{ p: groth16_proof.c, q: vk.delta_g2 }},
-                G1G2Pair {{ p: groth16_proof.a.negate({curve_id.value}), q: groth16_proof.b }},
-                vk.alpha_beta_miller_loop_result,
-                precomputed_lines.span(),
-                mpcheck_hint,
-            );
+{get_pairing_check_code(curve_id)}
             match check {{
                 Result::Ok(_) => Result::Ok(journal),
                 Result::Err(error) => Result::Err(error),
@@ -161,19 +159,27 @@ mod Risc0Groth16Verifier{curve_id.name} {{
 }}
     """
 
-    # Use the reusable function to write all files
-    write_verifier_files(
-        output_folder_path,
-        output_folder_name,
-        constants_code,
-        contract_code,
-        contract_cairo_name,
-        verification_function_name,
-        ProofSystem.Groth16,
-        cli_mode,
-    )
 
-    return constants_code
+def gen_risc0_groth16_verifier(
+    vk_path: str,
+    output_folder_path: str,
+    output_folder_name: str,
+    ecip_class_hash: int = ECIP_OPS_CLASS_HASH,
+    control_root: int = RISC0_CONTROL_ROOT,
+    control_id: int = RISC0_BN254_CONTROL_ID,
+    cli_mode: bool = False,
+) -> str:
+    vk = Groth16VerifyingKey.from_json(vk_path)
+
+    config = GeneratorConfig(
+        vk=vk,
+        output_folder_path=output_folder_path,
+        output_folder_name=output_folder_name,
+        ecip_class_hash=ecip_class_hash,
+        cli_mode=cli_mode,
+    )
+    generator = Risc0VerifierGenerator(config, control_root, control_id)
+    return generator.generate()
 
 
 if __name__ == "__main__":
