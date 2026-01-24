@@ -39,7 +39,7 @@ def gen_test_file(
     system: ProofSystem,
     verification_function_name: str,
     package_name: str,
-    rpc_url: str = "https://rpc.starknet-testnet.lava.build:443",
+    rpc_url: str = "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
 ):
     code = f"""
 //! # Starknet Verification Contract Tests
