@@ -1,7 +1,9 @@
 import os
 import subprocess
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Optional
 
 from garaga.curves import CurveID, ProofSystem
 from garaga.modulo_circuit_structs import G2Line, StructArray
@@ -82,6 +84,94 @@ def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
     )
 
     return precomputed_lines
+
+
+class Groth16VerifierGenerator(ABC):
+    """Base class for Groth16 verifier generators.
+
+    Subclasses must implement:
+    - contract_name (property)
+    - verification_function_name (property)
+    - proof_system (property)
+    - generate_constants_code()
+    - generate_contract_code()
+    """
+
+    def __init__(self, config: GeneratorConfig):
+        self.config = config
+        self.vk = config.vk
+        self.curve_id = config.vk.curve_id
+        self.precomputed_lines = precompute_lines_from_vk(config.vk)
+
+    @property
+    @abstractmethod
+    def contract_name(self) -> str:
+        """Cairo contract name, e.g., 'Groth16VerifierBN254'."""
+
+    @property
+    @abstractmethod
+    def verification_function_name(self) -> str:
+        """Main verify function name."""
+
+    @property
+    @abstractmethod
+    def proof_system(self) -> ProofSystem:
+        """The proof system enum value."""
+
+    @abstractmethod
+    def generate_constants_code(self) -> str:
+        """Generate the constants Cairo file content."""
+
+    @abstractmethod
+    def generate_contract_code(self) -> str:
+        """Generate the contract Cairo file content."""
+
+    @property
+    def extra_modules(self) -> list:
+        """Modules for lib.cairo. Override if needed."""
+        return ["groth16_verifier", "groth16_verifier_constants"]
+
+    @property
+    def constants_output_path(self) -> Optional[str]:
+        """Override if constants go to non-standard location."""
+        return None
+
+    def get_precomputed_lines_const(self) -> str:
+        """Precomputed lines constant declaration."""
+        n_lines = len(self.precomputed_lines) // 4
+        serialized = self.precomputed_lines.serialize(raw=True, const=True)
+        return f"pub const precomputed_lines: [G2Line; {n_lines}] = {serialized};"
+
+    def generate(self) -> str:
+        """Generate all verifier files. Returns constants_code."""
+        if self.config.cli_mode:
+            output_folder_name = self.config.output_folder_name
+        else:
+            output_folder_name = (
+                self.config.output_folder_name + f"_{self.curve_id.name.lower()}"
+            )
+        output_folder_path = os.path.join(
+            self.config.output_folder_path, output_folder_name
+        )
+
+        constants_code = self.generate_constants_code()
+        contract_code = self.generate_contract_code()
+
+        write_verifier_files(
+            output_folder_path=output_folder_path,
+            package_name=output_folder_name,
+            constants_code=constants_code,
+            contract_code=contract_code,
+            contract_cairo_name=self.contract_name,
+            verification_function_name=self.verification_function_name,
+            system=self.proof_system,
+            cli_mode=self.config.cli_mode,
+            modules=self.extra_modules,
+            constants_output_path=self.constants_output_path,
+            include_test_sample=self.config.include_test_sample,
+        )
+
+        return constants_code
 
 
 def gen_test_file(
