@@ -71,6 +71,34 @@ def get_pairing_check_code(curve_id: CurveID) -> str:
             );"""
 
 
+def get_storage_struct() -> str:
+    """Empty storage struct used by all verifiers."""
+    return """    #[storage]
+    struct Storage {}"""
+
+
+def get_verification_comment() -> str:
+    """Standard comment block for verification functions."""
+    return """            // DO NOT EDIT THIS FUNCTION UNLESS YOU KNOW WHAT YOU ARE DOING.
+            // This function returns Result::Ok(output) if the proof is valid.
+            // If the proof is invalid, it returns Result::Err(error).
+            // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key."""
+
+
+def get_msm_hint_loop() -> str:
+    """Loop to append MSM hint array to calldata."""
+    return """            // Add the hint array.
+            for x in msm_hint {
+                msm_calldata.append(*x);
+            }"""
+
+
+def get_curve_id_append(curve_id: CurveID) -> str:
+    """Append curve identifier to MSM calldata."""
+    return f"""            // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
+            msm_calldata.append({curve_id.value});"""
+
+
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
 
     # Precompute lines for fixed G2 points
