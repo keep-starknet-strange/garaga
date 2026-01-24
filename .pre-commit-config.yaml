@@ -25,3 +25,17 @@ repos:
     hooks:
     -   id: black
         files: \.py$
+-   repo: local
+    hooks:
+    -   id: scarb-fmt
+        name: scarb fmt
+        entry: bash -c 'cd src && scarb fmt'
+        language: system
+        files: \.cairo$
+        pass_filenames: false
+    -   id: cargo-fmt
+        name: cargo fmt
+        entry: bash -c 'cd tools/garaga_rs && cargo fmt'
+        language: system
+        files: ^tools/garaga_rs/.*\.rs$
+        pass_filenames: false
