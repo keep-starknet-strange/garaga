@@ -1,5 +1,6 @@
 import os
 import subprocess
+from dataclasses import dataclass
 from pathlib import Path
 
 from garaga.curves import CurveID, ProofSystem
@@ -16,6 +17,18 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
 )
 
 ECIP_OPS_CLASS_HASH = 0x312D1DD5F967EAF6F86965E3FA7ACBC9D0FBD979066A17721DD913736AF2F5E
+
+
+@dataclass
+class GeneratorConfig:
+    """Configuration for a Groth16 verifier generator."""
+
+    vk: "Groth16VerifyingKey"
+    output_folder_path: str
+    output_folder_name: str
+    ecip_class_hash: int = ECIP_OPS_CLASS_HASH
+    cli_mode: bool = False
+    include_test_sample: bool = True
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
