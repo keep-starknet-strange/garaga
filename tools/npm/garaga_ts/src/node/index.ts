@@ -1,5 +1,6 @@
-export * from './api'; // exports "ts" interface
-export * from '../wasm/pkg/garaga_rs'; // export "raw" interface
+export * from './api';
+export * from '../wasm/pkg/garaga_rs';
+export * from './starknet/groth16ContractGenerator/parsingUtils';
 
 export { CurveId } from './definitions';
 
