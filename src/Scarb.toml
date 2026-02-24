@@ -3,7 +3,17 @@ name = "garaga"
 version = "1.0.1"
 edition = "2024_07"
 licence = "MIT"
-keywords = ["zk", "snarks", "curve", "pairing", "groth16", "plonk", "bls", "elliptic", "signature"]
+keywords = [
+    "zk",
+    "snarks",
+    "curve",
+    "pairing",
+    "groth16",
+    "plonk",
+    "bls",
+    "elliptic",
+    "signature",
+]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet"
 readme = "../README.md"
 repository = "https://github.com/keep-starknet-strange/garaga"
@@ -18,10 +28,10 @@ full = []
 corelib_imports = { path = "corelib_imports", version = "0.1.2" }
 
 [dev-dependencies]
-snforge_std = "0.53.0"
-assert_macros = "2.14.0"
-#cairo_test = "2.14.0"
-cairo_execute = "2.14.0"
+snforge_std = "0.56.0"
+assert_macros = "2.15.0"
+#cairo_test = "2.15.0"
+cairo_execute = "2.15.0"
 
 [scripts]
 test = "snforge test -p garaga --include-ignored"

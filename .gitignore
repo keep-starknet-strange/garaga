@@ -44,3 +44,5 @@ tools/noir/hello/foundry.toml
 .cargo/benchmarks/*/
 src/profile/
 **/.snfoundry_trace/**
+
+node_modules/
