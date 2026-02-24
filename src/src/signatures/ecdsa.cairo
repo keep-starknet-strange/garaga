@@ -14,10 +14,10 @@ use garaga::utils::u384_eq_zero;
 /// * `z`: `u256` - The message hash.
 #[derive(Drop, Debug, PartialEq)]
 pub struct ECDSASignature {
-    rx: u384,
-    s: u256,
-    v: bool,
-    z: u256,
+    pub rx: u384,
+    pub s: u256,
+    pub v: bool,
+    pub z: u256,
 }
 
 pub impl SerdeECDSASignature of Serde<ECDSASignature> {
@@ -43,8 +43,8 @@ pub impl SerdeECDSASignature of Serde<ECDSASignature> {
 /// * `msm_hint`: `Span<felt252>` - Hint for multi-scalar multiplication computation.
 #[derive(Drop, Debug, PartialEq, Serde)]
 pub struct ECDSASignatureWithHint {
-    signature: ECDSASignature,
-    msm_hint: Span<felt252>,
+    pub signature: ECDSASignature,
+    pub msm_hint: Span<felt252>,
 }
 
 /// Verifies an ECDSA signature with associated hints, assuming the message hash is correct.

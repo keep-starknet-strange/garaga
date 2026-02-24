@@ -526,9 +526,9 @@ fn map_to_curve_inner_final_not_quad_res(
 
 // The result of a timelock encryption over drand quicknet.
 pub struct CipherText {
-    U: G2Point,
-    V: [u8; 16],
-    W: [u8; 16],
+    pub U: G2Point,
+    pub V: [u8; 16],
+    pub W: [u8; 16],
 }
 
 // bytes("IBE-H2") (4 + 2 bytes)
