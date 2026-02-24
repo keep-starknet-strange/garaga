@@ -49,17 +49,17 @@ const G_neg: G1Point = G1Point {
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 pub struct EdDSASignature {
-    Ry_twisted: u256, // Compressed form of Ry (converted to integer from little endian bytes)
-    s: u256,
-    msg: Span<u8>,
+    pub Ry_twisted: u256, // Compressed form of Ry (converted to integer from little endian bytes)
+    pub s: u256,
+    pub msg: Span<u8>,
 }
 
 #[derive(Copy, Drop, Debug, PartialEq, Serde)]
 pub struct EdDSASignatureWithHint {
-    signature: EdDSASignature,
-    msm_hint: Span<felt252>,
-    sqrt_Rx_hint: u256,
-    sqrt_Px_hint: u256,
+    pub signature: EdDSASignature,
+    pub msm_hint: Span<felt252>,
+    pub sqrt_Rx_hint: u256,
+    pub sqrt_Px_hint: u256,
 }
 
 
