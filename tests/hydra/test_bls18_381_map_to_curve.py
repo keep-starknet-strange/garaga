@@ -57,11 +57,11 @@ def test_bls18_381_map_to_curve_g2_non_quadratic():
         == 1011496392125783422068061997226415746244229915320831072846626167000664891392171563621675612638222437312051389941143
     )
 
-    (x_affine, y, field) = circuit.compute_initial_coordinates_non_quadratic(
+    x_affine, y, field = circuit.compute_initial_coordinates_non_quadratic(
         field, g1x, div, num_x1, zeta_u2
     )
 
-    (y_affine, qfield, qy) = circuit.adjust_y_sign(y, field)
+    y_affine, qfield, qy = circuit.adjust_y_sign(y, field)
 
     # Assert final results
     assert (
@@ -138,11 +138,11 @@ def test_bls18_381_map_to_curve_g2_quadratic():
         == 2186733141282187687524429079326838649285331456588145172920951615849025076744838489106511432055390831654029460361575
     )
 
-    (x_affine, y, field) = circuit.compute_initial_coordinates_quadratic(
+    x_affine, y, field = circuit.compute_initial_coordinates_quadratic(
         field, g1x, div, num_x1
     )
 
-    (y_affine, qfield, qy) = circuit.adjust_y_sign(y, field)
+    y_affine, qfield, qy = circuit.adjust_y_sign(y, field)
 
     # Assert final results
     assert (
@@ -194,11 +194,11 @@ def test_bls18_381_map_to_curve_g1_quadratic():
         == 1458720157247399937074920312179320190319011370446888399995409372377477911247349655187476411795089883075347478260790
     )
 
-    (x_affine, y_initial, field) = circuit.compute_initial_coordinates_quadratic(
+    x_affine, y_initial, field = circuit.compute_initial_coordinates_quadratic(
         field, g1x, div, num_x1
     )
 
-    (y_affine, qy, qfield) = circuit.adjust_y_sign(y_initial, field)
+    y_affine, qy, qfield = circuit.adjust_y_sign(y_initial, field)
 
     # Assert final results
     assert (
@@ -241,11 +241,11 @@ def test_bls18_381_map_to_curve_g1_non_quadratic():
         == 3595463469902610153619251584554498156597029272564817168764456841515827675239496939601340079478403412813212271353518
     )
 
-    (x_affine, y_initial, field) = circuit.compute_initial_coordinates_non_quadratic(
+    x_affine, y_initial, field = circuit.compute_initial_coordinates_non_quadratic(
         field, g1x, div, num_x1, zeta_u2
     )
 
-    (y_affine, qy, qfield) = circuit.adjust_y_sign(y_initial, field)
+    y_affine, qy, qfield = circuit.adjust_y_sign(y_initial, field)
 
     # Assert final results
     assert (

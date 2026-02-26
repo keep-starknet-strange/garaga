@@ -29,27 +29,20 @@ def gen_sp1_groth16_verifier(
     precomputed_lines = precompute_lines_from_vk(vk)
 
     contract_cairo_name = f"SP1Groth16Verifier{curve_id.name}"
-    constants_code = (
-        dedent(
-            f"""
+    constants_code = dedent(f"""
             use garaga::definitions::{{G1Point, G2Point, E12D, G2Line, u384, u288}};
             use garaga::groth16::Groth16VerifyingKey;
 
             pub const N_PUBLIC_INPUTS: usize = {len(vk.ic) - 1};
             {vk.serialize_to_cairo()}
             pub const precomputed_lines: [G2Line; {len(precomputed_lines) // 4}] = {precomputed_lines.serialize(raw=True, const=True)};
-            """
-        ).strip()
-        + "\n"
-    )
+            """).strip() + "\n"
     verification_function_name = f"verify_sp1_groth16_proof_{curve_id.name.lower()}"
     verification_function_name_u32 = (
         f"verify_sp1_groth16_proof_{curve_id.name.lower()}_u32"
     )
 
-    contract_code = (
-        dedent(
-            f"""
+    contract_code = dedent(f"""
             #[starknet::interface]
             pub trait ISP1Groth16Verifier{curve_id.name}<TContractState> {{
                 fn {verification_function_name}(
@@ -170,10 +163,7 @@ def gen_sp1_groth16_verifier(
                     }}
                 }}
             }}
-            """
-        ).strip()
-        + "\n"
-    )
+            """).strip() + "\n"
 
     # Use the reusable function to write all files
     write_verifier_files(

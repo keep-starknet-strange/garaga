@@ -8,7 +8,7 @@ State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & S
 pip install garaga
 ```
 
-**Requirements:** Python 3.10, 3.11, or 3.12
+**Requirements:** Python 3.10 through 3.14
 
 ## What is Garaga?
 
