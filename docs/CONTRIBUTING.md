@@ -11,7 +11,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 
 To set up a development environment, please follow these steps:
 
-1. Clone the repo and run setup (Python 3.10-3.12 and [uv](https://docs.astral.sh/uv/) are installed automatically if needed):
+1. Clone the repo and run setup (Python 3.10-3.14 and [uv](https://docs.astral.sh/uv/) are installed automatically if needed):
 
    ```sh
    git clone https://github.com/keep-starknet-strange/garaga

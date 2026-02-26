@@ -11,7 +11,7 @@ pub fn nondeterministic_extension_field_mul_divmod(
     curve_id: usize,
     ext_degree: usize,
     py_list: &Bound<'_, PyList>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let list_coeffs = py_list
         .into_iter()
         .map(|x| x.extract())
@@ -32,7 +32,7 @@ fn handle_extension_field_mul_divmod<F>(
     py: Python,
     ext_degree: usize,
     list_coeffs: Vec<Vec<BigUint>>,
-) -> PyResult<PyObject>
+) -> PyResult<Py<PyAny>>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,

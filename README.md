@@ -51,7 +51,7 @@ Garaga consists of a Pythonic backend with Rust bindings and CairoZero / Cairo l
 Currently, only Groth16 on BN254 and BLS12_381 is supported with automatic support for json files coming from SnarkJS and Gnark.
 
 1. Create a new directory for you project, and bring the jsons files for verification key, proof file and public inputs inside it.
-2. Install the garaga pip package with `pip install garaga`. Python3.10 is mandatory and a virtual environment is recommended. Enter `garaga` in your terminal to get started.
+2. Install the garaga pip package with `pip install garaga`. Python 3.10+ is required and a virtual environment is recommended. Enter `garaga` in your terminal to get started.
 3. Run the `garaga gen` command in your terminal to generate the code for the SNARK verifier given your verification key.
 4. Edit the generated smart contract to fit the needs of your dapp.
 
@@ -73,7 +73,7 @@ Ensure you have the following installed:
 - [Rust](https://www.rust-lang.org/tools/install) - Required for building the `garaga_rs` extension.
 - [Scarb 2.14.0](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside.
 
-Python 3.10-3.12 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available. Make sure you have GMP installed for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
+Python 3.10-3.14 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available. Make sure you have GMP installed for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
 
 ##### Optionally :
 
@@ -91,7 +91,7 @@ make setup
 
 This will automatically:
 - Install [uv](https://docs.astral.sh/uv/) if not present
-- Install Python 3.12 via uv if no compatible version (3.10-3.12) is found
+- Install Python 3.14 via uv if no compatible version (3.10-3.14) is found
 - Create a virtual environment and install all dependencies
 - Build the Rust extension
 

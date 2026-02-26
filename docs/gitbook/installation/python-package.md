@@ -26,9 +26,9 @@ The easiest way to install Garaga is via `pip`, which will fetch and install the
     ```
 
 {% hint style="info" %}
-**Garaga supports Python 3.10, 3.11, and 3.12.** If you need to install a specific Python version, you can use [uv](https://docs.astral.sh/uv/):
+**Garaga supports Python 3.10 through 3.14.** If you need to install a specific Python version, you can use [uv](https://docs.astral.sh/uv/):
 ```bash
-uv python install 3.12  # or 3.11, 3.10
+uv python install 3.14  # or 3.13, 3.12, 3.11, 3.10
 ```
 {% endhint %}
 

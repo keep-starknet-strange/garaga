@@ -1,6 +1,6 @@
 #!/bin/bash
 
-PYTHON_VERSION_TARGET="3.12"
+PYTHON_VERSION_TARGET="3.14"
 
 # Function to install GNU parallel
 install_parallel() {
@@ -44,7 +44,7 @@ ensure_uv() {
     export PATH="$HOME/.local/bin:$PATH"
 }
 
-# Find or install a suitable Python version (3.10-3.12)
+# Find or install a suitable Python version (3.10-3.14)
 find_python() {
     # If PYTHON_VERSION env var is set, use that specific version
     if [ -n "$PYTHON_VERSION" ]; then
@@ -52,7 +52,7 @@ find_python() {
     fi
 
     # Try to find it on PATH first
-    for version in $PYTHON_VERSION_TARGET 3.12 3.11 3.10; do
+    for version in $PYTHON_VERSION_TARGET 3.14 3.13 3.12 3.11 3.10; do
         if command -v "python${version}" >/dev/null 2>&1; then
             echo "python${version}"
             return 0
@@ -63,7 +63,7 @@ find_python() {
     if command -v python3 >/dev/null 2>&1; then
         local py_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
         case "$py_version" in
-            3.10|3.11|3.12)
+            3.10|3.11|3.12|3.13|3.14)
                 echo "python3"
                 return 0
                 ;;
@@ -90,7 +90,7 @@ venv_is_valid() {
     local py_version
     py_version=$(venv/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null) || return 1
     case "$py_version" in
-        3.10|3.11|3.12) return 0 ;;
+        3.10|3.11|3.12|3.13|3.14) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -118,7 +118,7 @@ else
     PYTHON_CMD=$(find_python)
     if [ -z "$PYTHON_CMD" ]; then
         echo "No suitable Python version found and uv install failed."
-        echo "Please install Python 3.10, 3.11, or 3.12 manually."
+        echo "Please install Python 3.10 through 3.14 manually."
         exit 1
     fi
 
