@@ -494,8 +494,8 @@ def construct_function(Ps: list[G1Point] | list[G2Point]) -> FF:
             x0 = None
 
         for n in range(0, len(xs) // 2):
-            (A, aNum) = xs[2 * n]
-            (B, bNum) = xs[2 * n + 1]
+            A, aNum = xs[2 * n]
+            B, bNum = xs[2 * n + 1]
             aNum_bNum = aNum * bNum
             line_AB = line(A, B)
             product = aNum_bNum * line_AB

@@ -599,19 +599,17 @@ if __name__ == "__main__":
 
     if g1x.felt.is_quad_residue():
         print("Quadratic residue")
-        (x_affine, y_initial, field) = circuit.compute_initial_coordinates_quadratic(
+        x_affine, y_initial, field = circuit.compute_initial_coordinates_quadratic(
             field, g1x, div, num_x1
         )
     else:
         print("Non quadratic residue")
-        (x_affine, y_initial, field) = (
-            circuit.compute_initial_coordinates_non_quadratic(
-                field, g1x, div, num_x1, zeta_u2
-            )
+        x_affine, y_initial, field = circuit.compute_initial_coordinates_non_quadratic(
+            field, g1x, div, num_x1, zeta_u2
         )
 
     # Adjust y sign
-    (y_affine, qy, qfield) = circuit.adjust_y_sign(field, y_initial)
+    y_affine, qy, qfield = circuit.adjust_y_sign(field, y_initial)
 
     print("x_affine", x_affine)
     print("y_affine", y_affine)
