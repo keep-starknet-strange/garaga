@@ -6,7 +6,7 @@ pub fn hades_permutation(
     py_value_1: &Bound<'_, PyBytes>,
     py_value_2: &Bound<'_, PyBytes>,
     py_value_3: &Bound<'_, PyBytes>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let byte_slice_1: &[u8] = py_value_1.as_bytes();
     let byte_slice_2: &[u8] = py_value_2.as_bytes();
     let byte_slice_3: &[u8] = py_value_3.as_bytes();

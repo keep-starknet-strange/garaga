@@ -36,7 +36,7 @@ pub fn poseidon_hash_bn254(
     py: Python,
     x: &Bound<'_, PyInt>,
     y: &Bound<'_, PyInt>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let x_biguint: BigUint = x.extract()?;
     let y_biguint: BigUint = y.extract()?;
 

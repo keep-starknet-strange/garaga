@@ -39,5 +39,5 @@ def test_poseidon_hash_bn254():
     assert len(hex(result)[2:]) <= 64  # Result should be within field size
 
     # Test invalid inputs
-    with pytest.raises(OverflowError):
+    with pytest.raises((OverflowError, ValueError)):
         garaga_rs.poseidon_hash_bn254(-1, 1)  # Negative numbers not allowed
