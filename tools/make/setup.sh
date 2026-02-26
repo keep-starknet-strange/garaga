@@ -1,5 +1,7 @@
 #!/bin/bash
 
+PYTHON_VERSION_TARGET="3.12"
+
 # Function to install GNU parallel
 install_parallel() {
     case "$OSTYPE" in
@@ -32,27 +34,25 @@ install_parallel() {
     esac
 }
 
-# Function to find a suitable Python version (3.10, 3.11, or 3.12)
+# Ensure uv is available (installs if missing)
+ensure_uv() {
+    if command -v uv >/dev/null 2>&1; then
+        return 0
+    fi
+    echo "Installing uv..."
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    export PATH="$HOME/.local/bin:$PATH"
+}
+
+# Find or install a suitable Python version (3.10-3.12)
 find_python() {
     # If PYTHON_VERSION env var is set, use that specific version
     if [ -n "$PYTHON_VERSION" ]; then
-        local python_cmd="python${PYTHON_VERSION}"
-        if command -v "$python_cmd" >/dev/null 2>&1; then
-            echo "$python_cmd"
-            return 0
-        fi
-        # Try without minor version for cases like "3.10" -> "python3.10"
-        python_cmd="python$(echo $PYTHON_VERSION | sed 's/\.[0-9]*$//')"
-        if command -v "$python_cmd" >/dev/null 2>&1; then
-            echo "$python_cmd"
-            return 0
-        fi
-        echo "Error: Requested Python version $PYTHON_VERSION not found" >&2
-        exit 1
+        PYTHON_VERSION_TARGET="$PYTHON_VERSION"
     fi
 
-    # Otherwise, try to find an available Python 3.10-3.12
-    for version in 3.12 3.11 3.10; do
+    # Try to find it on PATH first
+    for version in $PYTHON_VERSION_TARGET 3.12 3.11 3.10; do
         if command -v "python${version}" >/dev/null 2>&1; then
             echo "python${version}"
             return 0
@@ -70,14 +70,30 @@ find_python() {
         esac
     fi
 
+    # Not found — use uv to install it
+    echo "Python ${PYTHON_VERSION_TARGET} not found. Installing via uv..." >&2
+    ensure_uv
+    uv python install "$PYTHON_VERSION_TARGET" >&2
+    local uv_python
+    uv_python=$(uv python find "$PYTHON_VERSION_TARGET" 2>/dev/null)
+    if [ -n "$uv_python" ]; then
+        echo "$uv_python"
+        return 0
+    fi
+
     return 1
 }
 
-# Clean up any existing venv directory
-if [ -d "venv" ]; then
-    echo "Cleaning up existing venv directory..."
-    rm -rf venv
-fi
+# Check if existing venv is valid and matches expected Python version range
+venv_is_valid() {
+    [ -f "venv/bin/python" ] || return 1
+    local py_version
+    py_version=$(venv/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null) || return 1
+    case "$py_version" in
+        3.10|3.11|3.12) return 0 ;;
+        *) return 1 ;;
+    esac
+}
 
 # Check if parallel is installed, if not, attempt to install it
 if ! command -v parallel >/dev/null; then
@@ -87,58 +103,41 @@ else
     echo "GNU parallel is already installed."
 fi
 
-# Find a suitable Python version
-PYTHON_CMD=$(find_python)
-if [ -z "$PYTHON_CMD" ]; then
-    echo "No suitable Python version found. Please install Python 3.10, 3.11, or 3.12."
-    case "$OSTYPE" in
-        linux-gnu*)
-            echo "On Debian/Ubuntu, you can install it with: sudo apt-get install python3.12"
-            echo "On Fedora, you can install it with: sudo dnf install python3.12"
-            ;;
-        darwin*)
-            echo "On macOS, you can install it with Homebrew: brew install python@3.12"
-            ;;
-        *)
-            echo "Please refer to your operating system's documentation for installing Python."
-            ;;
-    esac
-    exit 1
+ensure_uv
+
+if venv_is_valid; then
+    echo "Existing venv is valid ($(venv/bin/python --version)). Updating dependencies..."
+else
+    # Clean up broken/outdated venv
+    if [ -d "venv" ]; then
+        echo "Removing invalid venv..."
+        rm -rf venv
+    fi
+
+    # Find a suitable Python version (installs via uv if needed)
+    PYTHON_CMD=$(find_python)
+    if [ -z "$PYTHON_CMD" ]; then
+        echo "No suitable Python version found and uv install failed."
+        echo "Please install Python 3.10, 3.11, or 3.12 manually."
+        exit 1
+    fi
+
+    echo "Using Python: $PYTHON_CMD ($($PYTHON_CMD --version))"
+
+    # Create virtual environment using uv (no venv module needed)
+    if ! uv venv --python "$PYTHON_CMD" venv; then
+        echo "Failed to create virtual environment"
+        exit 1
+    fi
+
+    echo 'export PYTHONPATH="$PWD/hydra:$PWD:$PYTHONPATH"' >> venv/bin/activate
+    echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/activate
 fi
 
-echo "Using Python: $PYTHON_CMD ($($PYTHON_CMD --version))"
-
-# Check if venv module is available
-if ! $PYTHON_CMD -m venv --help >/dev/null 2>&1; then
-    echo "The venv module is not available in your Python installation."
-    PY_VERSION=$($PYTHON_CMD -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
-    case "$OSTYPE" in
-        linux-gnu*)
-            echo "On Debian/Ubuntu, you can install it with: sudo apt-get install python${PY_VERSION}-venv"
-            echo "On Fedora, you can install it with: sudo dnf install python${PY_VERSION}-venv"
-            ;;
-        darwin*)
-            echo "On macOS, ensure your Python installation includes the venv module."
-            ;;
-        *)
-            echo "Please refer to your operating system's documentation for installing the venv module."
-            ;;
-    esac
-    exit 1
-fi
-
-# Create virtual environment
-if ! $PYTHON_CMD -m venv venv; then
-    echo "Failed to create virtual environment with $PYTHON_CMD"
-    exit 1
-fi
-
-echo 'export PYTHONPATH="$PWD/hydra:$PWD:$PYTHONPATH"' >> venv/bin/activate
-echo 'export PYTHONPYCACHEPREFIX="$PWD/venv/build/__pycache__"' >> venv/bin/activate
 echo "PROJECT_ROOT=$PWD" > .env
 echo "PYTHONPATH=$PWD/hydra" >> .env # For vscode python path when running in integrated terminal.
 source venv/bin/activate
-pip install uv
+
 uv pip compile pyproject.toml --extra dev --output-file tools/make/requirements.txt -q
 uv pip install -r tools/make/requirements.txt
 
