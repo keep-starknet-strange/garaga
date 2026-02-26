@@ -451,9 +451,9 @@ class EdDSA25519Signature:
         )
 
         cd.extend(msm_calldata)
-        (Rx_twisted, _) = self.curve.to_twistededwards(R.x, R.y)
+        Rx_twisted, _ = self.curve.to_twistededwards(R.x, R.y)
         cd.extend(split_128(Rx_twisted))  # sqrt_Rx_hint
-        (Px_twisted, _) = self.curve.to_twistededwards(A.x, A.y)
+        Px_twisted, _ = self.curve.to_twistededwards(A.x, A.y)
         cd.extend(split_128(Px_twisted))  # sqrt_Px_hint
 
         if as_str:

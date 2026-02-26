@@ -15,7 +15,7 @@ pub fn get_groth16_calldata(
     journal: Option<&[u8]>,
     public_inputs_sp1: Option<&[u8]>,
     vkey: Option<&[u8]>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let proof_values = proof
         .into_iter()
         .map(|x| x.extract())

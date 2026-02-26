@@ -33,7 +33,7 @@ pub trait IHasher<T> {
 
 #[derive(Drop, Debug)]
 pub struct KeccakHasherState {
-    arr: Array<u64>,
+    pub arr: Array<u64>,
 }
 
 pub impl KeccakHasher of IHasher<KeccakHasherState> {

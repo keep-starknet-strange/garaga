@@ -10,7 +10,7 @@ pub fn get_zk_honk_calldata(
     proof: &Bound<'_, PyBytes>,
     public_inputs: &Bound<'_, PyBytes>,
     vk: &Bound<'_, PyBytes>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let proof_bytes = proof.as_bytes();
     let public_inputs_bytes = public_inputs.as_bytes();
     let vk_bytes = vk.as_bytes();

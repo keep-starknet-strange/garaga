@@ -481,7 +481,7 @@ class TowerMillerFinalizeBN(BaseTowerMillerLoop):
         lines = circuit._bn254_finalize_step(current_points)
 
         for l in lines:
-            ((l1r0, l1r1), (l2r0, l2r1)) = l
+            (l1r0, l1r1), (l2r0, l2r1) = l
 
             l1_eval = circuit.eval_tower_line(
                 l1r0 + l1r1, circuit.yInv[k], circuit.xNegOverY[k]

@@ -9,7 +9,7 @@ pub fn g2_add(
     curve_id: usize,
     py_tuple_1: &Bound<'_, PyTuple>,
     py_tuple_2: &Bound<'_, PyTuple>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let a_0: BigUint = py_tuple_1.get_item(0)?.extract()?;
     let a_1: BigUint = py_tuple_1.get_item(1)?.extract()?;
     let a_2: BigUint = py_tuple_1.get_item(2)?.extract()?;
@@ -121,7 +121,7 @@ pub fn g2_scalar_mul(
     curve_id: usize,
     py_tuple_1: &Bound<'_, PyTuple>,
     py_int_2: &Bound<'_, PyInt>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let a_0: BigUint = py_tuple_1.get_item(0)?.extract()?;
     let a_1: BigUint = py_tuple_1.get_item(1)?.extract()?;
     let a_2: BigUint = py_tuple_1.get_item(2)?.extract()?;
