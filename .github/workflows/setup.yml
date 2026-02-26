@@ -44,8 +44,6 @@ jobs:
             name: Linux x86_64
           - os: macos-14
             name: macOS arm64
-          - os: macos-13
-            name: macOS x86_64
       fail-fast: false
     name: setup (${{ matrix.name }})
     steps:
