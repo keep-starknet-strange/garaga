@@ -29,7 +29,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run ShellCheck
-        run: shellcheck -s bash tools/make/setup.sh
+        # SC2016: single-quoted strings intentionally prevent expansion (activate script)
+        # SC1091: sourced files (venv/bin/activate) don't exist at lint time
+        run: shellcheck -s bash -e SC2016,SC1091 tools/make/setup.sh
 
   test-setup:
     needs: pre_job
@@ -48,6 +50,11 @@ jobs:
     name: setup (${{ matrix.name }})
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1

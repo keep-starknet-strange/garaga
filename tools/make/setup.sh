@@ -120,7 +120,8 @@ find_python() {
 
     # Fall back to python3 if it's in the right version range
     if command -v python3 >/dev/null 2>&1; then
-        local py_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
+        local py_version
+        py_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
         case "$py_version" in
             3.10|3.11|3.12|3.13|3.14)
                 echo "python3"
@@ -166,10 +167,9 @@ fi
 gmp_found=false
 case "$OSTYPE" in
     linux-gnu*)
-        # Check header in standard and multiarch paths, or via pkg-config/ldconfig
+        # Check for the development headers (gmp.h), not just the runtime library
         if [ -f /usr/include/gmp.h ] \
-            || pkg-config --exists gmp 2>/dev/null \
-            || ldconfig -p 2>/dev/null | grep -q libgmp; then
+            || pkg-config --exists gmp 2>/dev/null; then
             gmp_found=true
         fi
         ;;
