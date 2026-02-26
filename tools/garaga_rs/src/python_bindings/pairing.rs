@@ -25,7 +25,7 @@ pub fn multi_pairing(
     py: Python,
     curve_id: usize,
     py_list_1: &Bound<'_, PyList>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     assert!(py_list_1.len() % 6 == 0, "invalid length");
 
     if curve_id == CURVE_BN254 {
@@ -134,7 +134,7 @@ pub fn multi_miller_loop(
     py: Python,
     curve_id: usize,
     py_list_1: &Bound<'_, PyList>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     assert!(py_list_1.len() % 6 == 0, "invalid length");
 
     if curve_id == CURVE_BN254 {
@@ -256,7 +256,11 @@ pub fn multi_miller_loop(
 }
 
 #[pyfunction]
-pub fn final_exp(py: Python, curve_id: usize, py_list_1: &Bound<'_, PyList>) -> PyResult<PyObject> {
+pub fn final_exp(
+    py: Python,
+    curve_id: usize,
+    py_list_1: &Bound<'_, PyList>,
+) -> PyResult<Py<PyAny>> {
     assert!(py_list_1.len() == 12, "invalid length");
 
     let [f_0, f_1, f_2, f_3, f_4, f_5, f_6, f_7, f_8, f_9, f_10, f_11] =

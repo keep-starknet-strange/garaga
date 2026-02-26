@@ -9,7 +9,7 @@ pub fn msm_calldata_builder(
     curve_id: usize,
     include_points_and_scalars: bool,
     serialize_as_pure_felt252_array: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let values = py_list1
         .into_iter()
         .map(|x| x.extract())

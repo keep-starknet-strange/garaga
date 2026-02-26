@@ -7,7 +7,7 @@ pub fn mpc_calldata_builder(
     py_list1: &Bound<'_, PyList>,
     n_fixed_g2: usize,
     py_list2: &Bound<'_, PyList>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let values1 = py_list1
         .into_iter()
         .map(|x| x.extract())

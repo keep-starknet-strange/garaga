@@ -6,9 +6,10 @@ icon: wrench
 
 To work with Garaga, you need the following dependencies :&#x20;
 
-* Python 3.10, 3.11, or 3.12. One of `python3.10`, `python3.11`, or `python3.12` should be available and working in your terminal.&#x20;
-* [Scarb](https://docs.swmansion.com/scarb/download.html) v2.14.0.&#x20;
 * [Rust](https://www.rust-lang.org/tools/install)
+* [Scarb](https://docs.swmansion.com/scarb/download.html) v2.14.0
+
+Python 3.10-3.14 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available.
 
 Simply clone the [repository](https://github.com/keep-starknet-strange/garaga) :
 
@@ -29,6 +30,8 @@ After that, go into the root of the directory and run the command :&#x20;
 ```bash
 make setup
 ```
+
+This will automatically install [uv](https://docs.astral.sh/uv/) and Python 3.14 if needed, create a virtual environment, install all dependencies, and build the Rust extension. The setup is idempotent — running it again updates dependencies without recreating the venv.
 
 Pay attention to any message indicating failure. Contact us on Garaga telegram if you have any trouble at this point.&#x20;
 

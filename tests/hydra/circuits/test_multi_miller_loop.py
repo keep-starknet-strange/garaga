@@ -44,7 +44,7 @@ def circuit_and_points(
 
 
 def test_precomputed_and_without_precompute_gives_same_output(
-    circuit_and_points: tuple[MultiMillerLoopCircuit, list[G1Point], list[G2Point]]
+    circuit_and_points: tuple[MultiMillerLoopCircuit, list[G1Point], list[G2Point]],
 ):
     circuit0, Ps, Qs = circuit_and_points
     n_pairs = len(Ps)
@@ -69,7 +69,7 @@ def test_precomputed_and_without_precompute_gives_same_output(
 
 
 def test_partially_precomputed_and_without_precompute_gives_same_output(
-    circuit_and_points: tuple[MultiMillerLoopCircuit, list[G1Point], list[G2Point]]
+    circuit_and_points: tuple[MultiMillerLoopCircuit, list[G1Point], list[G2Point]],
 ):
     circuit0, Ps, Qs = circuit_and_points
     n_pairs = len(Ps)
@@ -93,7 +93,7 @@ def test_partially_precomputed_and_without_precompute_gives_same_output(
 
 
 def test_prod_miller_loop_equals_multi_miller_loop(
-    circuit_and_points: tuple[MultiMillerLoopCircuit, list[G1Point], list[G2Point]]
+    circuit_and_points: tuple[MultiMillerLoopCircuit, list[G1Point], list[G2Point]],
 ):
     circuit_multi, Ps, Qs = circuit_and_points
     curve_id = circuit_multi.curve_id

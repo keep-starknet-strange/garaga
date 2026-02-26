@@ -5,7 +5,7 @@ pub fn get_final_exp_witness(
     py: Python,
     curve_id: usize,
     py_list: &Bound<'_, PyList>,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let f_0: BigUint = py_list.get_item(0)?.extract()?;
     let f_1: BigUint = py_list.get_item(1)?.extract()?;
     let f_2: BigUint = py_list.get_item(2)?.extract()?;

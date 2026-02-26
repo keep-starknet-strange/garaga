@@ -10,7 +10,7 @@ pub fn schnorr_calldata_builder(
     py_coord: &Bound<'_, PyInt>,
     prepend_public_key: bool,
     curve_id: usize,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let rx: BigUint = rx.extract()?;
     let s: BigUint = s.extract()?;
     let e: BigUint = e.extract()?;
@@ -43,7 +43,7 @@ pub fn ecdsa_calldata_builder(
     z: &Bound<'_, PyInt>,
     prepend_public_key: bool,
     curve_id: usize,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let r: BigUint = r.extract()?;
     let s: BigUint = s.extract()?;
     let px: BigUint = px.extract()?;
@@ -74,7 +74,7 @@ pub fn eddsa_calldata_builder(
     py_coord: &Bound<'_, PyInt>,
     msg: &Bound<'_, PyBytes>,
     prepend_public_key: bool,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let rx: BigUint = rx.extract()?;
     let s: BigUint = s.extract()?;
     let py_coord: BigUint = py_coord.extract()?;

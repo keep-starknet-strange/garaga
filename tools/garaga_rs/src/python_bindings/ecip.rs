@@ -6,7 +6,7 @@ pub fn zk_ecip_hint(
     flattened_g1_points_list: &Bound<'_, PyList>,
     scalars_list: &Bound<'_, PyList>,
     curve_id: usize,
-) -> PyResult<PyObject> {
+) -> PyResult<Py<PyAny>> {
     let list_values = flattened_g1_points_list
         .into_iter()
         .map(|x| x.extract())
