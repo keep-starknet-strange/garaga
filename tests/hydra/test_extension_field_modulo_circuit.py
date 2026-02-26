@@ -61,7 +61,7 @@ def generate_random_sparsity(
 
 
 def test_eval_sparse(
-    circuit: tuple[ExtensionFieldModuloCircuit, list[ModuloCircuitElement]]
+    circuit: tuple[ExtensionFieldModuloCircuit, list[ModuloCircuitElement]],
 ):
     c, X = circuit
 
