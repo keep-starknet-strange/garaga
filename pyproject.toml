@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "garaga"
 version = "1.0.1"
-requires-python = ">=3.10,<3.13"
+requires-python = ">=3.10,<3.15"
 dependencies = [
   "fastecdsa>=3.0.0",
   "sympy",
@@ -46,6 +46,8 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
   "Topic :: Security :: Cryptography",
   "Topic :: Scientific/Engineering :: Mathematics",
   "Topic :: Software Development :: Libraries :: Python Modules",
@@ -65,7 +67,7 @@ dev = [
   "pytest",
   "pytest-asyncio",
   "pytest-xdist",
-  "black==24.4.2",
+  "black>=25.1",
   "pre-commit",
   "inquirer",
   "pandas",
@@ -96,7 +98,7 @@ asyncio_default_fixture_loop_scope = "function"  # Explicitly set the loop scope
 
 [tool.black]
 line-length = 88
-target-version = ['py310', 'py311', 'py312']
+target-version = ['py310', 'py311', 'py312', 'py313']
 include = '\.pyi?$'
 extend-exclude = '''
 /(

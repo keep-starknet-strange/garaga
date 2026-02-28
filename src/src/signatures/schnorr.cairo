@@ -13,9 +13,9 @@ use garaga::utils::u384_eq_zero;
 /// * `e`: `u256` - The challenge hash.
 #[derive(Drop, Debug, PartialEq)]
 pub struct SchnorrSignature {
-    rx: u384,
-    s: u256,
-    e: u256,
+    pub rx: u384,
+    pub s: u256,
+    pub e: u256,
 }
 
 pub impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
@@ -39,8 +39,8 @@ pub impl SerdeSchnorrSignature of Serde<SchnorrSignature> {
 /// * `msm_hint`: `Span<felt252>` - Hint for multi-scalar multiplication computation.
 #[derive(Drop, Debug, PartialEq, Serde)]
 pub struct SchnorrSignatureWithHint {
-    signature: SchnorrSignature,
-    msm_hint: Span<felt252>,
+    pub signature: SchnorrSignature,
+    pub msm_hint: Span<felt252>,
 }
 
 /// Verifies a Schnorr signature with associated hints, assuming the hash challenge is correct.

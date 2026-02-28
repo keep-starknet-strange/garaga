@@ -18,8 +18,15 @@ import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
 
 export {
+  parseGroth16ProofFromJson,
   parseGroth16ProofFromObject,
+  parseGroth16VerifyingKeyFromJson,
   parseGroth16VerifyingKeyFromObject,
+} from './starknet/groth16ContractGenerator/parsingUtils';
+
+export type {
+  Groth16Proof,
+  Groth16VerifyingKey,
 } from './starknet/groth16ContractGenerator/parsingUtils';
 
 /**
