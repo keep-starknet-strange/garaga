@@ -159,7 +159,7 @@ Garaga is used in production by teams building:
 ## Resources
 
 * **GitHub**: [github.com/keep-starknet-strange/garaga](https://github.com/keep-starknet-strange/garaga)
-* **Telegram**: [t.me/GaragaPairingCairo](https://t.me/GaragaPairingCairo)
+* **Telegram**: [t.me/GaragaStarknet](https://t.me/GaragaPairingCairo)
 * **Academic Papers**: See [References](./#references) below
 
 ***
