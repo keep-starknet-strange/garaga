@@ -525,6 +525,7 @@ fn map_to_curve_inner_final_not_quad_res(
 }
 
 // The result of a timelock encryption over drand quicknet.
+#[derive(Drop, Serde)]
 pub struct CipherText {
     pub U: G2Point,
     pub V: [u8; 16],
