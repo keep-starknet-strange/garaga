@@ -1,4 +1,5 @@
 import secrets
+from pathlib import Path
 from typing import Optional
 
 import garaga.hints.io as io
@@ -100,6 +101,17 @@ def _drand_encrypt_to_calldata(
         int.from_bytes(randomness, "big"),
     ]
     return garaga_rs.drand_tlock_encrypt_calldata_builder(data)
+
+
+def generate_drand_decrypt_constants(
+    verifier_class_hash: int, decrypt_contract_path: Path
+):
+    """Write the verifier class hash to the decrypt contract's constants file."""
+    constants_file = decrypt_contract_path / "src" / "drand_decrypt_constants.cairo"
+    constants_file.write_text(
+        f"// Generated — do not edit manually.\n"
+        f"pub const VERIFIER_CLASS_HASH: felt252 = {hex(verifier_class_hash)};\n"
+    )
 
 
 if __name__ == "__main__":

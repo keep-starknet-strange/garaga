@@ -7,6 +7,8 @@ edition = "2024_07"
 garaga = { path = "../.." }
 starknet = "2.14.0"
 
+[lib]
+
 [cairo]
 sierra-replace-ids = false
 
