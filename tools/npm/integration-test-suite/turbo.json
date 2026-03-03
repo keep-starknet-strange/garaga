@@ -5,6 +5,9 @@
     },
     "test": {
       "dependsOn": ["build"]
+    },
+    "test-generate": {
+      "dependsOn": ["build"]
     }
   }
 }

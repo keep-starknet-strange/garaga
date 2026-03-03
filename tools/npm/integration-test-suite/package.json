@@ -6,7 +6,8 @@
   ],
   "scripts": {
     "build": "turbo build",
-    "test": "turbo test --concurrency 1"
+    "test": "turbo test --concurrency 1",
+    "test-generate": "turbo test-generate --concurrency 1"
   },
   "devDependencies": {
     "turbo": "^2.1.1"
