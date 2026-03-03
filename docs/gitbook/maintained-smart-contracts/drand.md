@@ -39,8 +39,8 @@ Verifies drand BLS signatures and stores them on-chain.
 
 | Network | Class Hash |
 |---------|------------|
-| **Mainnet** | `0x59d24936725776758dc34d74b254d15f74b26683018470b6357d23dcab6b4bd` |
-| **Sepolia** | `0x59d24936725776758dc34d74b254d15f74b26683018470b6357d23dcab6b4bd` |
+| **Mainnet** | `0x1628f8e2d8ad8c26aea873b13703e4421f2c01a57c0c4974e599490ee30677d` |
+| **Sepolia** | `0x1628f8e2d8ad8c26aea873b13703e4421f2c01a57c0c4974e599490ee30677d` |
 
 ```cairo
 #[starknet::interface]
@@ -174,7 +174,7 @@ use starknet::{SyscallResultTrait, syscalls};
 use garaga::definitions::G1Point;
 
 const DRAND_QUICKNET_CLASS_HASH: felt252 =
-    0x59d24936725776758dc34d74b254d15f74b26683018470b6357d23dcab6b4bd;
+    0x1628f8e2d8ad8c26aea873b13703e4421f2c01a57c0c4974e599490ee30677d;
 
 fn verify_drand_round(full_proof_with_hints: Span<felt252>) -> u64 {
     let mut call_data: Array<felt252> = array![];
@@ -383,7 +383,7 @@ mod Lottery {
     use starknet::{SyscallResultTrait, syscalls};
 
     const DRAND_QUICKNET_CLASS_HASH: felt252 =
-        0x59d24936725776758dc34d74b254d15f74b26683018470b6357d23dcab6b4bd;
+        0x1628f8e2d8ad8c26aea873b13703e4421f2c01a57c0c4974e599490ee30677d;
 
     #[storage]
     struct Storage {

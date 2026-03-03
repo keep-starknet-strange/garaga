@@ -118,7 +118,7 @@ Use the maintained drand verifier contract via library call:
 use starknet::{SyscallResultTrait, syscalls};
 
 const DRAND_QUICKNET_CLASS_HASH: felt252 =
-    0x59d24936725776758dc34d74b254d15f74b26683018470b6357d23dcab6b4bd;
+    0x1628f8e2d8ad8c26aea873b13703e4421f2c01a57c0c4974e599490ee30677d;
 
 #[starknet::contract]
 mod Lottery {
