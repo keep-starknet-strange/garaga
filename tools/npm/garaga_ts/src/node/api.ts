@@ -3,6 +3,7 @@
 
 import {
   drand_calldata_builder,
+  drand_tlock_encrypt_calldata_builder,
   msm_calldata_builder,
   mpc_calldata_builder,
   schnorr_calldata_builder,
@@ -404,6 +405,23 @@ export async function fetchAndGetDrandCallData(roundNumber: number | 'latest' = 
  */
 export function getDrandCallData({ round, randomness, signature }: DrandRandomnessBeacon): bigint[] {
   return drand_calldata_builder([round, randomness, signature]);
+}
+
+/**
+ * Encrypts a message using drand tlock encryption for a specific round and returns calldata.
+ * The message can only be decrypted once the drand beacon for that round is published.
+ *
+ * @param roundNumber - The drand round number to encrypt for
+ * @param message - 16-byte message to encrypt
+ * @param randomness - 16-byte randomness for encryption
+ * @returns Array of bigint values representing the tlock encryption calldata
+ */
+export function encryptToDrandRoundAndGetCallData(roundNumber: number, message: Uint8Array, randomness: Uint8Array): bigint[] {
+  if (message.length != 16) throw new Error('Message size should be 16');
+  if (randomness.length != 16) throw new Error('Randomness size should be 16');
+  const messageValue = message.reduce((acc: bigint, b: number) => (acc << 8n) | BigInt(b), 0n);
+  const randomnessValue = randomness.reduce((acc: bigint, b: number) => (acc << 8n) | BigInt(b), 0n);
+  return drand_tlock_encrypt_calldata_builder([roundNumber, messageValue, randomnessValue]);
 }
 
 /**
