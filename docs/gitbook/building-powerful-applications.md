@@ -116,7 +116,6 @@ Use the maintained drand verifier contract via library call:
 
 ```rust
 use starknet::{SyscallResultTrait, syscalls};
-use garaga::apps::drand::DrandResult;
 
 const DRAND_QUICKNET_CLASS_HASH: felt252 =
     0x59d24936725776758dc34d74b254d15f74b26683018470b6357d23dcab6b4bd;
@@ -124,7 +123,7 @@ const DRAND_QUICKNET_CLASS_HASH: felt252 =
 #[starknet::contract]
 mod Lottery {
     use starknet::storage::{Map, StorageMapReadAccess, StoragePointerReadAccess};
-    use super::{DRAND_QUICKNET_CLASS_HASH, DrandResult, SyscallResultTrait, syscalls};
+    use super::{DRAND_QUICKNET_CLASS_HASH, SyscallResultTrait, syscalls};
 
     #[storage]
     struct Storage {
@@ -145,19 +144,31 @@ mod Lottery {
         // Verify drand signature via library call to maintained contract
         let mut result = syscalls::library_call_syscall(
             DRAND_QUICKNET_CLASS_HASH.try_into().unwrap(),
-            selector!("verify_round_and_get_randomness"),
+            selector!("verify_round"),
             call_data.span(),
         ).unwrap_syscall();
 
-        let drand_result: Option<DrandResult> = Serde::deserialize(ref result).unwrap();
-        let verified = drand_result.expect('Invalid drand proof');
+        let round_result: Result<u64, felt252> = Serde::deserialize(ref result).unwrap();
+        let verified_round = round_result.unwrap();
 
         // Ensure we're using the correct round
-        assert!(verified.round_number == self.target_round.read(), "Wrong round");
+        assert!(verified_round == self.target_round.read(), "Wrong round");
+
+        // Retrieve randomness for the verified round
+        let mut rand_call_data: Array<felt252> = array![];
+        Serde::serialize(@verified_round, ref rand_call_data);
+
+        let mut rand_result = syscalls::library_call_syscall(
+            DRAND_QUICKNET_CLASS_HASH.try_into().unwrap(),
+            selector!("get_randomness_for_round"),
+            rand_call_data.span(),
+        ).unwrap_syscall();
+
+        let randomness: Result<felt252, felt252> = Serde::deserialize(ref rand_result).unwrap();
 
         // Use randomness to select winner
         let count: u256 = self.participant_count.read().into();
-        let winner_index: u32 = (verified.randomness.into() % count).try_into().unwrap();
+        let winner_index: u32 = (randomness.unwrap().into() % count).try_into().unwrap();
         self.participants.read(winner_index)
     }
 }
@@ -250,19 +261,56 @@ See the maintained contracts:
 
 ***
 
-## Time-Lock Encryption (Coming Soon)
+## Time-Lock Encryption (tlock)
 
-{% hint style="warning" %}
-**Under Development**: Time-lock encryption utilities are being added to the drand module.
-{% endhint %}
+Encrypt data that can only be decrypted at a specific future time, using drand's distributed randomness beacon. Decryption can happen entirely on-chain.
 
-Time-lock encryption allows you to encrypt data that can only be decrypted at a specific future time, using drand's distributed randomness.
+### How It Works
+
+1. **Encrypt** a 16-byte message for a future drand round `N` using the SDK (Python, Rust, or TypeScript)
+2. **Wait** for drand to publish round `N`
+3. **Decrypt on-chain** by verifying the drand signature and using it to recover the message
 
 ### Use Cases
 
 * **Sealed-bid auctions**: Bids are encrypted until the auction ends
 * **Scheduled reveals**: Information released at a predetermined time
 * **Fair launches**: Token distributions with time-locked claiming
+* **Commit-reveal schemes**: Players commit encrypted moves, revealed together
+
+### Example: Encrypt Off-Chain, Decrypt On-Chain
+
+{% tabs %}
+{% tab title="Python" %}
+```python
+from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_encrypt_to_calldata,
+)
+
+# Encrypt a 16-byte message for a future round
+message = b"secret message!!"  # exactly 16 bytes
+calldata = drand_encrypt_to_calldata(round_number=100000, message=message)
+# Submit calldata to the decrypt contract once the round is published
+```
+{% endtab %}
+
+{% tab title="TypeScript" %}
+```typescript
+import * as garaga from 'garaga';
+await garaga.init();
+
+const message = new Uint8Array(16);
+message.set(new TextEncoder().encode('secret message!!'));
+const randomness = crypto.getRandomValues(new Uint8Array(16));
+
+const calldata = garaga.encryptToDrandRoundAndGetCallData(100000, message, randomness);
+```
+{% endtab %}
+{% endtabs %}
+
+{% hint style="success" %}
+**Production contracts available**: Use the [maintained drand decrypt contract](maintained-smart-contracts/drand.md) for on-chain tlock decryption. See the [full tlock documentation](maintained-smart-contracts/drand.md#time-lock-encryption-tlock) for details.
+{% endhint %}
 
 ***
 
@@ -270,11 +318,12 @@ Time-lock encryption allows you to encrypt data that can only be decrypted at a 
 
 The primitives above can be combined to create novel applications:
 
-| Combination          | Application                                  |
-| -------------------- | -------------------------------------------- |
-| Groth16 + Signatures | Cross-chain asset bridges                    |
-| Noir + drand         | Private lotteries with verifiable randomness |
-| zkVM + MSM           | Verifiable ML inference                      |
-| EdDSA + Groth16      | Solana → Starknet bridges                    |
+| Combination                | Application                                    |
+| -------------------------- | ---------------------------------------------- |
+| Groth16 + Signatures       | Cross-chain asset bridges                      |
+| Noir + drand               | Private lotteries with verifiable randomness   |
+| tlock + Noir               | Sealed-bid auctions with private bid amounts   |
+| zkVM + MSM                 | Verifiable ML inference                        |
+| EdDSA + Groth16            | Solana → Starknet bridges                      |
 
 **Need help?** Join our [Telegram community](https://t.me/GaragaPairingCairo) to discuss your use case.
