@@ -1,0 +1,96 @@
+name: Test make setup (cross-platform)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tools/make/setup.sh'
+      - '.github/workflows/setup.yml'
+  pull_request:
+    paths:
+      - 'tools/make/setup.sh'
+      - '.github/workflows/setup.yml'
+
+jobs:
+  pre_job:
+    runs-on: ubuntu-latest
+    outputs:
+      should_skip: ${{ steps.skip_check.outputs.should_skip }}
+    steps:
+      - id: skip_check
+        uses: fkirc/skip-duplicate-actions@v5
+        with:
+          concurrent_skipping: 'never'
+
+  shellcheck:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        # SC2016: single-quoted strings intentionally prevent expansion (activate script)
+        # SC1091: sourced files (venv/bin/activate) don't exist at lint time
+        run: shellcheck -s bash -e SC2016,SC1091 tools/make/setup.sh
+
+  test-setup:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            name: Linux x86_64
+          - os: macos-14
+            name: macOS arm64
+      fail-fast: false
+    name: setup (${{ matrix.name }})
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+          profile: minimal
+
+      - name: Run make setup
+        run: make setup
+
+      - name: Verify venv
+        run: |
+          source venv/bin/activate
+          python --version
+
+  test-setup-fedora:
+    needs: pre_job
+    if: needs.pre_job.outputs.should_skip != 'true'
+    runs-on: ubuntu-latest
+    container: fedora:latest
+    name: setup (Fedora dnf)
+    steps:
+      - name: Install base tools
+        run: dnf install -y git curl gcc g++ make perl-FindBin
+
+      - uses: actions/checkout@v4
+
+      - name: Mark workspace as safe for git
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install Rust
+        run: |
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+
+      - name: Run make setup
+        run: |
+          source "$HOME/.cargo/env"
+          make setup
+
+      - name: Verify venv
+        run: |
+          source "$HOME/.cargo/env"
+          source venv/bin/activate
+          python --version
