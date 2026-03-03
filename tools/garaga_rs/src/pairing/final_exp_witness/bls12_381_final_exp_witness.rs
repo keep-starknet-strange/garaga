@@ -1,6 +1,36 @@
 use super::addchain_pow_generated::bls12_381 as bls12_addchain;
 use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bls12_381::field_extension::Degree12ExtensionField;
 use lambdaworks_math::field::element::FieldElement;
+use num_bigint::BigUint;
+
+pub fn pow_custom(
+    base: &FieldElement<Degree12ExtensionField>,
+    exponent: &BigUint,
+) -> FieldElement<Degree12ExtensionField> {
+    if exponent == &BigUint::from(0u64) {
+        return FieldElement::<Degree12ExtensionField>::one();
+    }
+    if exponent == &BigUint::from(1u64) {
+        return base.clone();
+    }
+
+    let mut result = FieldElement::<Degree12ExtensionField>::one();
+    let temp = base.clone();
+
+    let exponent_bytes = exponent.to_bytes_be();
+
+    for byte in exponent_bytes {
+        for i in (0..8).rev() {
+            result = result.square();
+
+            if (byte >> i) & 1 == 1 {
+                result = &result * &temp;
+            }
+        }
+    }
+
+    result
+}
 
 /// Takes a miller loop output and returns root, shift such that
 /// root ** lam = shift * mlo, if and only if mlo ** h == 1.
@@ -26,38 +56,6 @@ mod tests {
     };
     use num_bigint::BigUint;
     use num_traits::Num;
-
-    // Optimized implementation of exponentiation using square-and-multiply algorithm
-    // with binary representation scanning
-    fn pow_custom(
-        base: &FieldElement<Degree12ExtensionField>,
-        exponent: &BigUint,
-    ) -> FieldElement<Degree12ExtensionField> {
-        if exponent == &BigUint::from(0u64) {
-            return FieldElement::<Degree12ExtensionField>::one();
-        }
-        if exponent == &BigUint::from(1u64) {
-            return base.clone();
-        }
-
-        let mut result = FieldElement::<Degree12ExtensionField>::one();
-        let temp = base.clone();
-
-        // Use bytes directly instead of string conversion for better performance
-        let exponent_bytes = exponent.to_bytes_be();
-
-        for byte in exponent_bytes {
-            for i in (0..8).rev() {
-                result = result.square();
-
-                if (byte >> i) & 1 == 1 {
-                    result = &result * &temp;
-                }
-            }
-        }
-
-        result
-    }
 
     fn sample_element() -> FieldElement<Degree12ExtensionField> {
         FieldElement::<Degree12ExtensionField>::new([
