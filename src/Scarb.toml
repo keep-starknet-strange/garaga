@@ -16,6 +16,7 @@ full = []
 
 [dependencies]
 corelib_imports = { path = "corelib_imports", version = "0.1.2" }
+starknet = "2.14.0"
 
 [dev-dependencies]
 snforge_std = "0.53.0"

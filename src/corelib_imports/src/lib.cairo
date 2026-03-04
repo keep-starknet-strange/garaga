@@ -34,7 +34,8 @@ pub mod circuit {
             AddHelperTo128By64Impl, AddHelperTo128By96Impl, AddHelperTo96By32Impl, DivRemU128By64,
             DivRemU128By96, DivRemU96By32, DivRemU96By64, MulHelper32By96Impl, MulHelper64By32Impl,
             MulHelper64By64Impl, NZ_POW32_TYPED, NZ_POW64_TYPED, NZ_POW96_TYPED, POW32, POW32_TYPED,
-            POW64, POW64_TYPED, POW96_TYPED, UnitInt, upcast,
+            POW64, POW64_TYPED, POW96_TYPED, UnitInt, felt252_try_into_two_u96,
+            two_u96_into_felt252, upcast,
         };
     }
 }
