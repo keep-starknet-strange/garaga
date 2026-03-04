@@ -1963,3 +1963,4 @@ Output of get_groth16_calldata: [
   "340282366920938463475639663367112901035n",
   "340282366920938463466510485605024151680n"
 ]
+Output of encryptToDrandRoundAndGetCallData: 50 elements

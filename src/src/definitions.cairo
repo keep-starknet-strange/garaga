@@ -24,7 +24,8 @@ pub use structs::fields::{
     u288, u288Serde,
 };
 pub use structs::points::{
-    G1G2Pair, G1Point, G1PointSerde, G1PointZero, G2Line, G2Point, G2PointSerde, G2PointZero,
+    G1G2Pair, G1Point, G1PointSerde, G1PointStorePacking, G1PointZero, G2Line, G2Point,
+    G2PointSerde, G2PointZero,
 };
 pub use crate::ec::pairing::pairing_check::{
     BLSProcessedPair, BNProcessedPair, MillerLoopResultScalingFactor,
