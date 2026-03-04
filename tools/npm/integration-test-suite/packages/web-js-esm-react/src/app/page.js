@@ -23,7 +23,15 @@ export default function Home() {
 
       const messageCalldata = 'Output of get_groth16_calldata: ' + jsonCalldata;
 
-      setData(tmpData + "\n" + messageCalldata);
+      // Tlock encrypt
+      const message2 = new Uint8Array(16);
+      message2.set(new TextEncoder().encode('Hello, world!'));
+      const randomness = new Uint8Array(16);
+      randomness.set(new TextEncoder().encode('fixed_random_val'));
+      const tlockCalldata = garaga.encryptToDrandRoundAndGetCallData(1, message2, randomness);
+      const messageTlock = 'Output of encryptToDrandRoundAndGetCallData: ' + tlockCalldata.length + ' elements';
+
+      setData(tmpData + "\n" + messageCalldata + "\n" + messageTlock);
 
     } catch (e) {
       setError(String(e));

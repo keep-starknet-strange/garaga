@@ -98,13 +98,13 @@ pub fn drand_round_to_calldata(round_number: usize) -> Result<Vec<BigUint>, Stri
     drand_randomness_to_calldata(round)
 }
 
-fn digest_func(round_number: u64) -> [u8; 32] {
+pub fn digest_func(round_number: u64) -> [u8; 32] {
     let bytes = round_number.to_be_bytes();
     let digest = Sha256::digest(bytes);
     digest.into()
 }
 
-fn hash_to_curve<F>(message: [u8; 32], hash_name: &str) -> Result<G1Point<F>, String>
+pub fn hash_to_curve<F>(message: [u8; 32], hash_name: &str) -> Result<G1Point<F>, String>
 where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
