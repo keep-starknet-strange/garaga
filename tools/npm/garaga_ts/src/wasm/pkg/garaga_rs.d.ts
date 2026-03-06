@@ -7,6 +7,9 @@ export function mpc_calldata_builder(curve_id: number, values1: any[], n_fixed_g
 export function schnorr_calldata_builder(rx: any, s: any, e: any, px: any, py: any, prepend_public_key: boolean, curve_id: number): any[];
 export function ecdsa_calldata_builder(r: any, s: any, v: number, px: any, py: any, z: any, prepend_public_key: boolean, curve_id: number): any[];
 export function eddsa_calldata_builder(ry_twisted: any, s: any, py_twisted: any, msg: any, prepend_public_key: boolean): any[];
+export function falcon_calldata_builder(vk_bytes: Uint8Array, signature_bytes: Uint8Array, message: any[], prepend_public_key: boolean): any[];
+export function pack_falcon_public_key(coeffs: Uint16Array): any[];
+export function unpack_falcon_public_key(packed: any[]): Uint16Array;
 export function to_weirstrass(x_twisted: any, y_twisted: any): any[];
 export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
@@ -24,6 +27,9 @@ export interface InitOutput {
   readonly schnorr_calldata_builder: (a: any, b: any, c: any, d: any, e: any, f: number, g: number) => [number, number, number, number];
   readonly ecdsa_calldata_builder: (a: any, b: any, c: number, d: any, e: any, f: any, g: number, h: number) => [number, number, number, number];
   readonly eddsa_calldata_builder: (a: any, b: any, c: any, d: any, e: number) => [number, number, number, number];
+  readonly falcon_calldata_builder: (a: number, b: number, c: number, d: number, e: number, f: number, g: number) => [number, number, number, number];
+  readonly pack_falcon_public_key: (a: number, b: number) => [number, number, number, number];
+  readonly unpack_falcon_public_key: (a: number, b: number) => [number, number, number, number];
   readonly to_weirstrass: (a: any, b: any) => [number, number, number, number];
   readonly to_twistededwards: (a: any, b: any) => [number, number, number, number];
   readonly get_groth16_calldata: (a: any, b: any, c: any) => [number, number, number, number];

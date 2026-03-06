@@ -45,6 +45,7 @@ pub mod hashes {
 pub mod signatures {
     pub mod ecdsa;
     pub mod eddsa_25519;
+    pub mod falcon;
     pub mod schnorr;
 }
 

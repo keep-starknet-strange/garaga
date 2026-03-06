@@ -1,5 +1,6 @@
 pub mod drand_calldata;
 pub mod drand_tlock_calldata;
+pub mod falcon_calldata;
 pub mod full_proof_with_hints {
     pub mod groth16;
     pub mod zk_honk;

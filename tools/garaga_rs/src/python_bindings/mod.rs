@@ -1,6 +1,7 @@
 pub mod drand_calldata;
 pub mod ecip;
 pub mod extf_mul;
+pub mod falcon;
 pub mod final_exp_witness;
 pub mod g2;
 pub mod groth16_calldata;
@@ -79,5 +80,8 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
         drand_calldata::drand_tlock_encrypt_calldata_builder,
         m
     )?)?;
+    m.add_function(wrap_pyfunction!(falcon::falcon_calldata_builder, m)?)?;
+    m.add_function(wrap_pyfunction!(falcon::pack_falcon_public_key, m)?)?;
+    m.add_function(wrap_pyfunction!(falcon::unpack_falcon_public_key, m)?)?;
     Ok(())
 }

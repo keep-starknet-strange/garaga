@@ -195,6 +195,52 @@ pub fn eddsa_calldata_builder(
     Ok(result.into_iter().map(biguint_to_jsvalue).collect())
 }
 
+#[wasm_bindgen]
+pub fn falcon_calldata_builder(
+    vk_bytes: &[u8],
+    signature_bytes: &[u8],
+    message: Vec<JsValue>,
+    prepend_public_key: bool,
+) -> Result<Vec<JsValue>, JsValue> {
+    let msg: Vec<BigUint> = message
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let result = crate::calldata::falcon_calldata::falcon_calldata_builder(
+        vk_bytes,
+        signature_bytes,
+        &msg,
+        prepend_public_key,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn pack_falcon_public_key(coeffs: &[u16]) -> Result<Vec<JsValue>, JsValue> {
+    if coeffs.len() != 512 {
+        return Err(JsValue::from_str(&format!(
+            "Expected 512 coefficients, got {}",
+            coeffs.len()
+        )));
+    }
+    let result = crate::calldata::falcon_calldata::pack_falcon_public_key(coeffs);
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn unpack_falcon_public_key(packed: Vec<JsValue>) -> Result<Vec<u16>, JsValue> {
+    let packed: Vec<BigUint> = packed
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+    Ok(crate::calldata::falcon_calldata::unpack_falcon_public_key(
+        &packed,
+    ))
+}
+
 fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
     let s = (JsValue::from_str("") + v)
         .as_string()
