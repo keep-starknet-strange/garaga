@@ -250,4 +250,54 @@ mod tests {
         // Salt is 40 bytes = 2 chunks of 31 bytes
         assert!(cd.len() > 60, "calldata too short: {}", cd.len());
     }
+
+    #[test]
+    fn test_calldata_builder_roundtrip_verify() {
+        use falcon_rs::falcon::Falcon;
+        use falcon_rs::hash_to_point::Shake256Hash;
+
+        // Generate keypair with fixed seed for reproducibility
+        let seed = [42u8; 56];
+        let (sk, vk) = Falcon::<Shake256Hash>::keygen_with_seed(&seed);
+
+        // Sign a message using SHAKE256
+        let msg = b"hello garaga falcon";
+        let salt = [1u8; 40];
+        let sig = Falcon::<Shake256Hash>::sign_with_salt(&sk, msg, &salt);
+
+        // Verify original signature
+        assert!(
+            Falcon::<Shake256Hash>::verify(&vk, msg, &sig).unwrap(),
+            "Original signature must verify"
+        );
+
+        // Build calldata with prepend_public_key=true
+        let message_felts = vec![BigUint::from_bytes_be(msg)];
+        let cd_with_pk =
+            falcon_calldata_builder(&vk.to_bytes(), &sig.to_bytes(), &message_felts, true)
+                .expect("calldata builder with pk failed");
+
+        // Build calldata with prepend_public_key=false
+        let cd_without_pk =
+            falcon_calldata_builder(&vk.to_bytes(), &sig.to_bytes(), &message_felts, false)
+                .expect("calldata builder without pk failed");
+
+        // The difference should be exactly 29 (packed pk)
+        assert_eq!(cd_with_pk.len(), cd_without_pk.len() + PACKED_SLOTS);
+
+        // Verify the packed pk portion matches standalone packing
+        let h_ntt = ntt(vk.h().as_ref());
+        let pk_u16: Vec<u16> = h_ntt.iter().map(|&v| v.rem_euclid(Q) as u16).collect();
+        let standalone_packed = pack_falcon_public_key(&pk_u16);
+        assert_eq!(&cd_with_pk[..PACKED_SLOTS], &standalone_packed[..]);
+    }
+
+    #[test]
+    fn test_calldata_builder_rejects_bad_pk() {
+        let bad_pk = vec![0u8; 10];
+        let sig = vec![0u8; 666];
+        let msg = vec![BigUint::from(1u64)];
+        let result = falcon_calldata_builder(&bad_pk, &sig, &msg, false);
+        assert!(result.is_err());
+    }
 }
