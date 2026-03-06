@@ -327,6 +327,86 @@ export function eddsa_calldata_builder(ry_twisted, s, py_twisted, msg, prepend_p
     return v1;
 }
 
+function passArray8ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 1, 1) >>> 0;
+    getUint8ArrayMemory0().set(arg, ptr / 1);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+/**
+ * @param {Uint8Array} vk_bytes
+ * @param {Uint8Array} signature_bytes
+ * @param {any[]} message
+ * @param {boolean} prepend_public_key
+ * @returns {any[]}
+ */
+export function falcon_calldata_builder(vk_bytes, signature_bytes, message, prepend_public_key) {
+    const ptr0 = passArray8ToWasm0(vk_bytes, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ptr1 = passArray8ToWasm0(signature_bytes, wasm.__wbindgen_malloc);
+    const len1 = WASM_VECTOR_LEN;
+    const ptr2 = passArrayJsValueToWasm0(message, wasm.__wbindgen_malloc);
+    const len2 = WASM_VECTOR_LEN;
+    const ret = wasm.falcon_calldata_builder(ptr0, len0, ptr1, len1, ptr2, len2, prepend_public_key);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v4 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v4;
+}
+
+let cachedUint16ArrayMemory0 = null;
+
+function getUint16ArrayMemory0() {
+    if (cachedUint16ArrayMemory0 === null || cachedUint16ArrayMemory0.byteLength === 0) {
+        cachedUint16ArrayMemory0 = new Uint16Array(wasm.memory.buffer);
+    }
+    return cachedUint16ArrayMemory0;
+}
+
+function passArray16ToWasm0(arg, malloc) {
+    const ptr = malloc(arg.length * 2, 2) >>> 0;
+    getUint16ArrayMemory0().set(arg, ptr / 2);
+    WASM_VECTOR_LEN = arg.length;
+    return ptr;
+}
+/**
+ * @param {Uint16Array} coeffs
+ * @returns {any[]}
+ */
+export function pack_falcon_public_key(coeffs) {
+    const ptr0 = passArray16ToWasm0(coeffs, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.pack_falcon_public_key(ptr0, len0);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v2 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v2;
+}
+
+function getArrayU16FromWasm0(ptr, len) {
+    ptr = ptr >>> 0;
+    return getUint16ArrayMemory0().subarray(ptr / 2, ptr / 2 + len);
+}
+/**
+ * @param {any[]} packed
+ * @returns {Uint16Array}
+ */
+export function unpack_falcon_public_key(packed) {
+    const ptr0 = passArrayJsValueToWasm0(packed, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.unpack_falcon_public_key(ptr0, len0);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v2 = getArrayU16FromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 2, 2);
+    return v2;
+}
+
 /**
  * @param {any} x_twisted
  * @param {any} y_twisted
@@ -400,33 +480,6 @@ export function poseidon_hash(x, y) {
         throw takeFromExternrefTable0(ret[1]);
     }
     return takeFromExternrefTable0(ret[0]);
-}
-
-/**
- * @param {any} vk_bytes
- * @param {any} signature_bytes
- * @param {any[]} message
- * @param {boolean} prepend_public_key
- * @returns {any[]}
- */
-export function falcon_calldata_builder(vk_bytes, signature_bytes, message, prepend_public_key) {
-    throw new Error('falcon_calldata_builder requires WASM rebuild with falcon support');
-}
-
-/**
- * @param {any} coeffs
- * @returns {any[]}
- */
-export function pack_falcon_public_key(coeffs) {
-    throw new Error('pack_falcon_public_key requires WASM rebuild with falcon support');
-}
-
-/**
- * @param {any[]} packed
- * @returns {any}
- */
-export function unpack_falcon_public_key(packed) {
-    throw new Error('unpack_falcon_public_key requires WASM rebuild with falcon support');
 }
 
 async function __wbg_load(module, imports) {
@@ -584,6 +637,7 @@ function __wbg_finalize_init(instance, module) {
     wasm = instance.exports;
     __wbg_init.__wbindgen_wasm_module = module;
     cachedDataViewMemory0 = null;
+    cachedUint16ArrayMemory0 = null;
     cachedUint8ArrayMemory0 = null;
 
 
