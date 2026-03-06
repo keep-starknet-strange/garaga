@@ -5,3 +5,8 @@ pub mod ntt_felt252;
 pub mod packing;
 pub mod types;
 pub mod zq;
+
+#[cfg(test)]
+mod tests {
+    mod test_packing;
+}

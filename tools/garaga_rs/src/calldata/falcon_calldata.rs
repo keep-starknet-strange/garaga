@@ -300,4 +300,38 @@ mod tests {
         let result = falcon_calldata_builder(&bad_pk, &sig, &msg, false);
         assert!(result.is_err());
     }
+
+    #[test]
+    fn generate_test_vector() {
+        use falcon_rs::falcon::Falcon;
+        use falcon_rs::hash_to_point::Shake256Hash;
+
+        let seed = [42u8; 56];
+        let (sk, vk) = Falcon::<Shake256Hash>::keygen_with_seed(&seed);
+
+        let msg = b"garaga falcon test";
+        let salt = [7u8; 40];
+        let sig = Falcon::<Shake256Hash>::sign_with_salt(&sk, msg, &salt);
+
+        // Verify
+        assert!(Falcon::<Shake256Hash>::verify(&vk, msg, &sig).unwrap());
+
+        let message_felts = vec![BigUint::from_bytes_be(msg)];
+        let cd =
+            falcon_calldata_builder(&vk.to_bytes(), &sig.to_bytes(), &message_felts, true).unwrap();
+
+        // Print test vector as JSON for cross-language use
+        println!("{{");
+        println!("  \"vk_hex\": \"{}\",", hex::encode(vk.to_bytes()));
+        println!("  \"sig_hex\": \"{}\",", hex::encode(sig.to_bytes()));
+        println!("  \"message_hex\": \"{}\",", hex::encode(msg));
+        println!(
+            "  \"calldata\": [{}]",
+            cd.iter()
+                .map(|v| format!("\"{}\"", v))
+                .collect::<Vec<_>>()
+                .join(", ")
+        );
+        println!("}}");
+    }
 }
