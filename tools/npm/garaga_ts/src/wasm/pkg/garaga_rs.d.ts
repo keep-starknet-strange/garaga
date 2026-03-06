@@ -12,6 +12,9 @@ export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
 export function get_zk_honk_calldata(proof_js: any, public_inputs_js: any, vk_js: any): any[];
 export function poseidon_hash(x: any, y: any): any;
+export function falcon_calldata_builder(vk_bytes: any, signature_bytes: any, message: any[], prepend_public_key: boolean): any[];
+export function pack_falcon_public_key(coeffs: any): any[];
+export function unpack_falcon_public_key(packed: any[]): any;
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 

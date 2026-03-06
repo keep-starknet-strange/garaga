@@ -402,6 +402,33 @@ export function poseidon_hash(x, y) {
     return takeFromExternrefTable0(ret[0]);
 }
 
+/**
+ * @param {any} vk_bytes
+ * @param {any} signature_bytes
+ * @param {any[]} message
+ * @param {boolean} prepend_public_key
+ * @returns {any[]}
+ */
+export function falcon_calldata_builder(vk_bytes, signature_bytes, message, prepend_public_key) {
+    throw new Error('falcon_calldata_builder requires WASM rebuild with falcon support');
+}
+
+/**
+ * @param {any} coeffs
+ * @returns {any[]}
+ */
+export function pack_falcon_public_key(coeffs) {
+    throw new Error('pack_falcon_public_key requires WASM rebuild with falcon support');
+}
+
+/**
+ * @param {any[]} packed
+ * @returns {any}
+ */
+export function unpack_falcon_public_key(packed) {
+    throw new Error('unpack_falcon_public_key requires WASM rebuild with falcon support');
+}
+
 async function __wbg_load(module, imports) {
     if (typeof Response === 'function' && module instanceof Response) {
         if (typeof WebAssembly.instantiateStreaming === 'function') {
