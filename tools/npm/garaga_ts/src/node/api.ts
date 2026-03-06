@@ -14,6 +14,9 @@ import {
   get_groth16_calldata,
   get_zk_honk_calldata,
   poseidon_hash,
+  falcon_calldata_builder,
+  pack_falcon_public_key,
+  unpack_falcon_public_key,
 } from '../wasm/pkg/garaga_rs';
 import { CurveId } from './definitions';
 import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
@@ -493,6 +496,49 @@ export async function fetchDrandRandomness(roundNumber: number | 'latest' = 'lat
  * // 115CC0F5E7D690413DF64C6B9662E9CF2A3617F2743245519E19607A4417189A
  * ```
  */
+/**
+ * Builds calldata for Falcon-512 signature verification.
+ * Falcon is a post-quantum lattice-based signature scheme using NTT-based
+ * polynomial arithmetic over Z_12289.
+ *
+ * @param vk - Public key bytes (896 bytes, 512 coefficients at 14 bits each)
+ * @param signature - Compressed signature bytes (666 bytes)
+ * @param message - Message as array of felt252 values
+ * @param prependPublicKey - Whether to include the packed public key in calldata.
+ *                           When true, prepends 29 packed felt252 values.
+ *                           When false, only includes signature + hint + message.
+ * @returns Array of bigint values representing the Falcon verification calldata
+ */
+export function falconCalldataBuilder(
+  vk: Uint8Array,
+  signature: Uint8Array,
+  message: bigint[],
+  prependPublicKey: boolean,
+): bigint[] {
+  return falcon_calldata_builder(vk, signature, message, prependPublicKey);
+}
+
+/**
+ * Pack 512 Falcon Zq coefficients (u16, values in [0, 12288]) into 29 felt252 values
+ * using base-Q Horner encoding. Useful for preparing public keys for on-chain storage.
+ *
+ * @param coeffs - Array of 512 u16 values, each in [0, 12288]
+ * @returns Array of 29 bigint (felt252) values
+ */
+export function packFalconPublicKey(coeffs: number[]): bigint[] {
+  return pack_falcon_public_key(new Uint16Array(coeffs));
+}
+
+/**
+ * Unpack 29 felt252 values back to 512 Falcon Zq coefficients.
+ *
+ * @param packed - Array of 29 bigint (felt252) values
+ * @returns Array of 512 u16 values, each in [0, 12288]
+ */
+export function unpackFalconPublicKey(packed: bigint[]): number[] {
+  return Array.from(unpack_falcon_public_key(packed));
+}
+
 export function poseidonHashBN254(x: bigint, y: bigint): bigint {
   try {
     const result = poseidon_hash(x, y);
