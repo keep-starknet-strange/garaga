@@ -31,10 +31,16 @@ def check_version(cmd: str, version: str) -> tuple[bool, str]:
     try:
         result = subprocess.run([cmd, "--version"], capture_output=True, text=True)
         result_version = result.stdout.strip()
-        return (
-            result.returncode == 0 and version in result_version,
-            result_version,
-        )
+        if result.returncode != 0:
+            stderr_msg = result.stderr.strip()
+            error_detail = stderr_msg or result_version or "unknown error"
+            return (
+                False,
+                f"'{cmd} --version' failed (exit code {result.returncode}): {error_detail}",
+            )
+        if not result_version:
+            return (False, f"'{cmd} --version' returned empty output")
+        return (version in result_version, result_version)
     except (FileNotFoundError, OSError):
         # Command not found or other OS error
         return (False, f"Command '{cmd}' not found or not executable")
