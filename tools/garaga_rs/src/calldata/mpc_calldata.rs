@@ -93,7 +93,10 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    miller_loop(std::slice::from_ref(&public_pair.g1), std::slice::from_ref(&public_pair.g2))
+    miller_loop(
+        std::slice::from_ref(&public_pair.g1),
+        std::slice::from_ref(&public_pair.g2),
+    )
 }
 
 #[allow(clippy::type_complexity)]

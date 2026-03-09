@@ -352,11 +352,11 @@ impl ZKHonkProof {
         let mut offset = 0;
 
         // Parse pairing point object
-        let pairing_point_object: [BigUint; PAIRING_POINT_OBJECT_LENGTH] =
-            values[offset..offset + PAIRING_POINT_OBJECT_LENGTH]
-                .to_vec()
-                .try_into()
-                .unwrap();
+        let pairing_point_object: [BigUint; PAIRING_POINT_OBJECT_LENGTH] = values
+            [offset..offset + PAIRING_POINT_OBJECT_LENGTH]
+            .to_vec()
+            .try_into()
+            .unwrap();
         offset += PAIRING_POINT_OBJECT_LENGTH;
 
         fn parse_g1_proof_point(values: [BigUint; 2]) -> G1PointBigUint {
@@ -400,11 +400,11 @@ impl ZKHonkProof {
         offset += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH;
 
         // Parse sumcheck evaluations
-        let sumcheck_evaluations: [BigUint; NUMBER_OF_ENTITIES] =
-            values[offset..offset + NUMBER_OF_ENTITIES]
-                .to_vec()
-                .try_into()
-                .unwrap();
+        let sumcheck_evaluations: [BigUint; NUMBER_OF_ENTITIES] = values
+            [offset..offset + NUMBER_OF_ENTITIES]
+            .to_vec()
+            .try_into()
+            .unwrap();
         offset += NUMBER_OF_ENTITIES;
 
         let libra_evaluation = values[offset].clone();
@@ -1152,11 +1152,10 @@ fn compute_shplemini_msm_scalars(
         "07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76",
     );
 
-    let denom_0 =
-        (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r)).unwrap();
-    let denom_1 =
-        (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - subgroup_generator * gemini_r))
-            .unwrap();
+    let denom_0 = (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r)).unwrap();
+    let denom_1 = (FieldElement::<GrumpkinPrimeField>::from(1)
+        / (shplonk_z - subgroup_generator * gemini_r))
+        .unwrap();
     let denominators = [denom_0, denom_1, denom_0, denom_0];
 
     let mut batching_scalars = vec![];
@@ -1201,12 +1200,15 @@ fn check_evals_consistency(
     let mut challenge_poly_lagrange =
         vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
     challenge_poly_lagrange[0] = FieldElement::<GrumpkinPrimeField>::from(1);
-    for (round, u_challenge) in sumcheck_u_challenges.iter().enumerate().take(log_circuit_size) {
+    for (round, u_challenge) in sumcheck_u_challenges
+        .iter()
+        .enumerate()
+        .take(log_circuit_size)
+    {
         let curr_idx = 1 + LIBRA_UNIVARIATES_LENGTH * round;
         challenge_poly_lagrange[curr_idx] = FieldElement::<GrumpkinPrimeField>::from(1);
         for idx in curr_idx + 1..curr_idx + LIBRA_UNIVARIATES_LENGTH {
-            challenge_poly_lagrange[idx] =
-                challenge_poly_lagrange[idx - 1] * u_challenge;
+            challenge_poly_lagrange[idx] = challenge_poly_lagrange[idx - 1] * u_challenge;
         }
     }
 
