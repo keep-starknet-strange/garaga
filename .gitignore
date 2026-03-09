@@ -47,3 +47,5 @@ src/profile/
 
 # Worktrees
 .worktrees/
+.stignore
+.claude/worktrees/

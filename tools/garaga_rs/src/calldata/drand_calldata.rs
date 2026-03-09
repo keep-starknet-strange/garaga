@@ -409,7 +409,7 @@ where
         CurveID::BLS12_381 => {
             let f1 = RationalFunction::new(
                 Polynomial::new(
-                    vec![
+                    [
                         BigUint::from_str_radix("11A05F2B1E833340B809101DD99815856B303E88A2D7005FF2627B56CDB4E2C85610C2D5F2E62D6EAEAC1662734649B7", 16).unwrap(),
                         BigUint::from_str_radix("17294ED3E943AB2F0588BAB22147A81C7C17E75B2F6A8417F565E33C70D1E86B4838F2A6F318C356E834EEF1B3CB83BB", 16).unwrap(),
                         BigUint::from_str_radix("D54005DB97678EC1D1048C5D10A9A1BCE032473295983E56878E501EC68E25C958C3E3D2A09729FE0179F9DAC9EDCB0", 16).unwrap(),
@@ -425,7 +425,7 @@ where
                     ].iter().map(element_from_biguint).collect()
                 ),
                 Polynomial::new(
-                    vec![
+                    [
                         BigUint::from_str_radix("8CA8D548CFF19AE18B2E62F4BD3FA6F01D5EF4BA35B48BA9C9588617FC8AC62B558D681BE343DF8993CF9FA40D21B1C", 16).unwrap(),
                         BigUint::from_str_radix("12561A5DEB559C4348B4711298E536367041E8CA0CF0800C0126C2588C48BF5713DAA8846CB026E9E5C8276EC82B3BFF", 16).unwrap(),
                         BigUint::from_str_radix("B2962FE57A3225E8137E629BFF2991F6F89416F5A718CD1FCA64E00B11ACEACD6A3D0967C94FEDCFCC239BA5CB83E19", 16).unwrap(),
@@ -442,7 +442,7 @@ where
             );
             let f2 = RationalFunction::new(
                 Polynomial::new(
-                    vec![
+                    [
                         BigUint::from_str_radix("90d97c81ba24ee0259d1f094980dcfa11ad138e48a869522b52af6c956543d3cd0c7aee9b3ba3c2be9845719707bb33", 16).unwrap(),
                         BigUint::from_str_radix("134996a104ee5811d51036d776fb46831223e96c254f383d0f906343eb67ad34d6c56711962fa8bfe097e75a2e41c696", 16).unwrap(),
                         BigUint::from_str_radix("cc786baa966e66f4a384c86a3b49942552e2d658a31ce2c344be4b91400da7d26d521628b00523b8dfe240c72de1f6", 16).unwrap(),
@@ -462,7 +462,7 @@ where
                     ].iter().map(element_from_biguint).collect()
                 ),
                 Polynomial::new(
-                    vec![
+                    [
                         BigUint::from_str_radix("16112c4c3a9c98b252181140fad0eae9601a6de578980be6eec3232b5be72e7a07f3688ef60c206d01479253b03663c1", 16).unwrap(),
                         BigUint::from_str_radix("1962d75c2381201e1a0cbd6c43c348b885c84ff731c4d59ca4a10356f453e01f78a4260763529e3532f6102c2e49a03d", 16).unwrap(),
                         BigUint::from_str_radix("58df3306640da276faaae7d6e8eb15778c4855551ae7f310c35a5dd279cd2eca6757cd636f96f891e2538b53dbf67f2", 16).unwrap(),
@@ -495,7 +495,7 @@ pub struct MapToCurveHint {
 }
 
 impl MapToCurveHint {
-    fn to_calldata(self) -> Vec<BigUint> {
+    fn to_calldata(&self) -> Vec<BigUint> {
         let mut call_data = vec![];
         call_data.push(self.gx1_is_square.into());
         call_data.extend(field_element_to_u384_limbs(&self.y1).map(BigUint::from));
@@ -510,7 +510,7 @@ pub struct HashToCurveHint {
 }
 
 impl HashToCurveHint {
-    fn to_calldata(self) -> Result<Vec<BigUint>, String> {
+    fn to_calldata(&self) -> Result<Vec<BigUint>, String> {
         let mut call_data = vec![];
         call_data.extend(self.f0_hint.to_calldata());
         call_data.extend(self.f1_hint.to_calldata());
