@@ -87,6 +87,10 @@ module-name = "garaga.garaga_rs"
 # python source root must be under <tool.maturin.python-source>/<project.name>
 python-source = "hydra"
 
+[tool.uv]
+# Override ecdsa pinned by crypto-cpp-py to fix high-severity security vulnerability
+override-dependencies = ["ecdsa>=0.19.0"]
+
 [tool.isort]
 profile = "black"
 
