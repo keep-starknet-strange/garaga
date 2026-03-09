@@ -1,11 +1,11 @@
 import json
 
 import pytest
-
 from garaga.curves import CurveID
 from garaga.starknet.tests_and_calldata_generators.signatures import (
     ECDSASignature,
     EdDSA25519Signature,
+    RSA2048Signature,
     SchnorrSignature,
 )
 
@@ -83,6 +83,32 @@ def test_eddsa_25519_signatures(prepend_public_key, full=False):
         assert (
             calldata_py == calldata_rust
         ), f"Mismatch in EdDSA calldata for test vector {i}"
+
+
+@pytest.mark.parametrize("prepend_public_key", [True, False])
+def test_rsa2048_calldata_lengths(prepend_public_key):
+    signature = RSA2048Signature.sample(seed=0)
+    calldata = signature.serialize_with_hints(
+        use_rust=False, prepend_public_key=prepend_public_key
+    )
+    expected_len = 888 if prepend_public_key else 864
+    assert len(calldata) == expected_len
+
+
+def test_rsa2048_calldata_public_key_prefix():
+    signature = RSA2048Signature.sample(seed=0)
+    full = signature.serialize_with_hints(use_rust=False, prepend_public_key=True)
+    public_key = signature.serialize_public_key()
+    witness = signature.serialize_signature_with_hints()
+
+    assert full[: len(public_key)] == public_key
+    assert full[len(public_key) :] == witness
+
+
+def test_rsa2048_rust_builder_not_implemented():
+    signature = RSA2048Signature.sample(seed=0)
+    with pytest.raises(NotImplementedError):
+        signature.serialize_with_hints(use_rust=True)
 
 
 if __name__ == "__main__":

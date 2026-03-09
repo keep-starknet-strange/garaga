@@ -7,6 +7,15 @@ from garaga import garaga_rs
 from garaga.curves import BASE, CURVES, N_LIMBS, CurveID, TwistedEdwardsCurve
 from garaga.hints.io import bigint_split, split_128
 from garaga.points import G1Point
+from garaga.rsa_rns import (
+    CHANNEL_MODULI,
+    CairoRNSContext,
+    EncodedValue,
+    ReductionWitness,
+    RSA2048WitnessBundle,
+    build_rsa2048_witness_bundle,
+    is_valid_rsa2048_witness,
+)
 
 
 @dataclass(slots=True)
@@ -304,6 +313,128 @@ class ECDSASignature:
         if as_str:
             return "[{}]".format(", ".join(map(hex, cd)))
         return cd
+
+
+@dataclass(slots=True)
+class RSA2048Signature:
+    modulus: EncodedValue
+    signature: EncodedValue
+    expected_message: EncodedValue
+    reductions: tuple[ReductionWitness, ...]
+
+    @classmethod
+    def from_bundle(cls, bundle: RSA2048WitnessBundle) -> "RSA2048Signature":
+        return cls(
+            modulus=bundle.modulus,
+            signature=bundle.signature,
+            expected_message=bundle.expected_message,
+            reductions=bundle.reductions,
+        )
+
+    @classmethod
+    def sample(cls, seed: int = 0) -> "RSA2048Signature":
+        return cls.from_bundle(build_rsa2048_witness_bundle(seed=seed))
+
+    @classmethod
+    def tampered_residue_sample(cls, seed: int = 0) -> "RSA2048Signature":
+        sample = cls.sample(seed=seed)
+        first = sample.reductions[0]
+        bad_residues = list(first.remainder.residues)
+        bad_residues[0] = (bad_residues[0] + 1) % CHANNEL_MODULI[0]
+        tampered_remainder = EncodedValue(
+            value=first.remainder.value,
+            limbs=first.remainder.limbs,
+            residues=tuple(bad_residues),
+        )
+        return cls(
+            modulus=sample.modulus,
+            signature=sample.signature,
+            expected_message=sample.expected_message,
+            reductions=(
+                ReductionWitness(
+                    quotient=first.quotient,
+                    remainder=tampered_remainder,
+                ),
+                *sample.reductions[1:],
+            ),
+        )
+
+    @classmethod
+    def tampered_limb_sample(cls, seed: int = 0) -> "RSA2048Signature":
+        sample = cls.sample(seed=seed)
+        first = sample.reductions[0]
+        bad_limbs = list(first.quotient.limbs)
+        bad_limbs[1] ^= 1
+        tampered_quotient = EncodedValue(
+            value=first.quotient.value,
+            limbs=tuple(bad_limbs),
+            residues=first.quotient.residues,
+        )
+        return cls(
+            modulus=sample.modulus,
+            signature=sample.signature,
+            expected_message=sample.expected_message,
+            reductions=(
+                ReductionWitness(
+                    quotient=tampered_quotient,
+                    remainder=first.remainder,
+                ),
+                *sample.reductions[1:],
+            ),
+        )
+
+    @classmethod
+    def tampered_expected_message_sample(cls, seed: int = 0) -> "RSA2048Signature":
+        sample = cls.sample(seed=seed)
+        bad_limbs = list(sample.expected_message.limbs)
+        bad_limbs[0] ^= 1
+        tampered_expected_message = EncodedValue(
+            value=sample.expected_message.value,
+            limbs=tuple(bad_limbs),
+            residues=sample.expected_message.residues,
+        )
+        return cls(
+            modulus=sample.modulus,
+            signature=sample.signature,
+            expected_message=tampered_expected_message,
+            reductions=sample.reductions,
+        )
+
+    def _to_bundle(self) -> RSA2048WitnessBundle:
+        return RSA2048WitnessBundle(
+            modulus=self.modulus,
+            signature=self.signature,
+            expected_message=self.expected_message,
+            reductions=self.reductions,
+        )
+
+    def is_valid(self) -> bool:
+        return is_valid_rsa2048_witness(
+            self._to_bundle(), ctx=CairoRNSContext(CHANNEL_MODULI)
+        )
+
+    def serialize_public_key(self) -> list[int]:
+        return self.modulus.serialize_to_calldata()
+
+    def serialize_signature_with_hints(self) -> list[int]:
+        return self._to_bundle().serialize_signature_with_hint()
+
+    def serialize(self, prepend_public_key: bool = True) -> list[int]:
+        return self._to_bundle().serialize(prepend_public_key=prepend_public_key)
+
+    def serialize_with_hints(
+        self,
+        use_rust: bool = False,
+        as_str: bool = False,
+        prepend_public_key: bool = True,
+    ) -> list[int] | str:
+        if use_rust:
+            raise NotImplementedError("RSA2048 Rust calldata parity is not implemented")
+
+        calldata = self.serialize(prepend_public_key=prepend_public_key)
+        if as_str:
+            return "[{}]".format(", ".join(map(hex, calldata)))
+        return calldata
 
 
 @dataclass(slots=True)

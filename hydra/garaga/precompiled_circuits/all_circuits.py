@@ -59,6 +59,10 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     PsiG2BLS12_381Circuit,
     QuadrupleAndAdd9Circuit,
 )
+from garaga.precompiled_circuits.compilable_circuits.rsa import (
+    RSAEval6ChunksCircuit,
+    RSARelationCheckCircuit,
+)
 from garaga.starknet.cli.utils import create_directory
 
 STARKNET_DIR = Path(__file__).parent.parent / "starknet"
@@ -126,6 +130,8 @@ class CircuitID(Enum):
     DOUBLE_AND_ADD_EC_POINT_G2 = int.from_bytes(b"double_and_add_ec_point_g2", "big")
     PSI_G2_BLS12_381 = int.from_bytes(b"psi_g2_bls12_381", "big")
     FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
+    RSA_EVAL_6_CHUNKS = int.from_bytes(b"rsa_eval_6_chunks", "big")
+    RSA_RELATION_CHECK = int.from_bytes(b"rsa_relation_check", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -195,6 +201,20 @@ ALL_CAIRO_CIRCUITS = {
         "class": PsiG2BLS12_381Circuit,
         "params": None,
         "filename": "ec",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.RSA_EVAL_6_CHUNKS: {
+        "class": RSAEval6ChunksCircuit,
+        "params": None,
+        "filename": "rsa",
+        # Generic-modulus circuit: compile it once and pass the RSA channel modulus at runtime.
+        # The Horner step is also a runtime input: step_i = 2^384 mod p_i for each fixed RSA channel.
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.RSA_RELATION_CHECK: {
+        "class": RSARelationCheckCircuit,
+        "params": None,
+        "filename": "rsa",
         "curve_ids": [CurveID.BLS12_381],
     },
     CircuitID.MP_CHECK_BIT0_LOOP: {

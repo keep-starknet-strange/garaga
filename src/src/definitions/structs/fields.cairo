@@ -19,6 +19,16 @@ pub struct u288 {
     pub limb2: u96,
 }
 
+#[derive(Copy, Drop, Debug, PartialEq)]
+pub struct RSA2048Chunks {
+    pub w0: u384,
+    pub w1: u384,
+    pub w2: u384,
+    pub w3: u384,
+    pub w4: u384,
+    pub w5: u384,
+}
+
 /// Degree-12 extension field element (generic coefficients).
 ///
 /// Represents an element of the extension field F_{q^12} modeled as the
@@ -141,6 +151,26 @@ pub fn deserialize_u384(ref serialized: Span<felt252>) -> u384 {
 pub fn serialize_u384_array(self: @Array<u384>, ref output: Array<felt252>) {
     self.len().serialize(ref output);
     serialize_u384_array_helper(self.span(), ref output);
+}
+
+pub impl RSA2048ChunksSerde of Serde<RSA2048Chunks> {
+    fn serialize(self: @RSA2048Chunks, ref output: Array<felt252>) {
+        serialize_u384(self.w0, ref output);
+        serialize_u384(self.w1, ref output);
+        serialize_u384(self.w2, ref output);
+        serialize_u384(self.w3, ref output);
+        serialize_u384(self.w4, ref output);
+        serialize_u384(self.w5, ref output);
+    }
+    fn deserialize(ref serialized: Span<felt252>) -> Option<RSA2048Chunks> {
+        let w0 = deserialize_u384(ref serialized);
+        let w1 = deserialize_u384(ref serialized);
+        let w2 = deserialize_u384(ref serialized);
+        let w3 = deserialize_u384(ref serialized);
+        let w4 = deserialize_u384(ref serialized);
+        let w5 = deserialize_u384(ref serialized);
+        return Option::Some(RSA2048Chunks { w0, w1, w2, w3, w4, w5 });
+    }
 }
 
 pub fn serialize_u384_array_helper(mut input: Span<u384>, ref output: Array<felt252>) {
