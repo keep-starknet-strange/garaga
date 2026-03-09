@@ -189,7 +189,7 @@ pub fn biguint_split<const N: usize, const SIZE: usize>(x: &BigUint) -> [u128; N
 }
 
 pub fn byte_slice_split<const N: usize, const SIZE: usize>(bytes: &[u8]) -> [u128; N] {
-    assert!(SIZE <= 128 && SIZE % 8 == 0);
+    assert!(SIZE <= 128 && SIZE.is_multiple_of(8));
     assert!(bytes.len() <= N * SIZE / 8);
     let mut bytes = bytes;
     let mut limbs = [0u128; N];

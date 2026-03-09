@@ -277,6 +277,7 @@ where
     (new_f, new_new_points)
 }
 
+#[allow(clippy::type_complexity)]
 pub fn multi_pairing_check<F, E2, E6, E12>(
     p: &[G1Point<F>],
     q: &[G2Point<F, E2>],

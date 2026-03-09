@@ -242,7 +242,7 @@ fn construct_function<F: IsPrimeField + CurveParamsProvider<F>>(ps: Vec<G1Point<
     while xs.len() != 1 {
         let mut xs2: Vec<(G1Point<F>, FF<F>)> = Vec::new();
 
-        let x0 = if xs.len() % 2 != 0 {
+        let x0 = if !xs.len().is_multiple_of(2) {
             let x0 = xs[0].clone();
             xs.remove(0);
             Some(x0)
