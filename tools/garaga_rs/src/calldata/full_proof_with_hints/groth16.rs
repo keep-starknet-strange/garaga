@@ -543,7 +543,6 @@ mod test_groth16_calldata {
     use super::Groth16Proof;
     use hex;
     use num_bigint::BigUint;
-    use num_traits::Num;
     use sha2::{Digest, Sha256};
 
     #[test]
