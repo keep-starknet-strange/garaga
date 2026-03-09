@@ -137,7 +137,7 @@ pub fn encrypt_for_round(
     let v: [u8; 16] = {
         let bytes = sigma
             .into_iter()
-            .zip(r_gid_hash.into_iter())
+            .zip(r_gid_hash)
             .map(|(a, b)| a ^ b)
             .collect::<Vec<_>>();
         bytes.try_into().unwrap()
@@ -154,7 +154,7 @@ pub fn encrypt_for_round(
     let w: [u8; 16] = {
         let bytes = message
             .into_iter()
-            .zip(sigma_hash.into_iter())
+            .zip(sigma_hash)
             .map(|(a, b)| a ^ b)
             .collect::<Vec<_>>();
         bytes.try_into().unwrap()
