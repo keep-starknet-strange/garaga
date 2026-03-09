@@ -60,7 +60,7 @@ impl Groth16Proof {
 
         // Serialize a.x, a.y, b.x[0], b.x[1], b.y[0], b.y[1], c.x, c.y directly
         // This matches the Python: cd.extend(io.bigint_split(self.a.x)) etc.
-        for v in vec![
+        for v in [
             &self.a.x, &self.a.y, &self.b.x0, &self.b.x1, &self.b.y0, &self.b.y1, &self.c.x,
             &self.c.y,
         ] {
@@ -196,7 +196,7 @@ impl Groth16Proof {
 
         // sha256(public_values) % 2**253
         assert!(
-            public_values.len() % 32 == 0,
+            public_values.len().is_multiple_of(32),
             "public_values must be a multiple of 32 bytes"
         );
         let pub_input_hash = BigUint::from_bytes_be(&Sha256::digest(&public_values));

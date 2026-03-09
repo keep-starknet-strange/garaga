@@ -120,6 +120,7 @@ pub fn schnorr_calldata_builder(
 /// * `z` - message hash
 /// * `prepend_public_key` - whether to prepend the public key to the calldata
 /// * `curve_id` - curve identifier
+#[allow(clippy::too_many_arguments)]
 pub fn ecdsa_calldata_builder(
     r: BigUint,
     s: BigUint,

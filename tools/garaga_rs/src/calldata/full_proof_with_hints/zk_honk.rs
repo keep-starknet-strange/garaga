@@ -319,7 +319,7 @@ impl ZKHonkProof {
             values.push(BigUint::from_bytes_be(&proof_bytes[i..i + 32]));
         }
 
-        if public_inputs_bytes.len() % 32 != 0 {
+        if !public_inputs_bytes.len().is_multiple_of(32) {
             return Err(format!(
                 "Invalid public input bytes length: {}",
                 public_inputs_bytes.len()
@@ -352,12 +352,11 @@ impl ZKHonkProof {
         let mut offset = 0;
 
         // Parse pairing point object
-        let mut pairing_point_object = vec![];
-        for i in offset..offset + PAIRING_POINT_OBJECT_LENGTH {
-            pairing_point_object.push(values[i].clone());
-        }
         let pairing_point_object: [BigUint; PAIRING_POINT_OBJECT_LENGTH] =
-            pairing_point_object.try_into().unwrap();
+            values[offset..offset + PAIRING_POINT_OBJECT_LENGTH]
+                .to_vec()
+                .try_into()
+                .unwrap();
         offset += PAIRING_POINT_OBJECT_LENGTH;
 
         fn parse_g1_proof_point(values: [BigUint; 2]) -> G1PointBigUint {
@@ -385,11 +384,12 @@ impl ZKHonkProof {
             .step_by(ZK_BATCHED_RELATION_PARTIAL_LENGTH)
             .take(log_circuit_size)
         {
-            let mut sumcheck_univariate = vec![];
-            for j in i..i + ZK_BATCHED_RELATION_PARTIAL_LENGTH {
-                sumcheck_univariate.push(values[j].clone());
-            }
-            sumcheck_univariates.push(sumcheck_univariate.try_into().unwrap());
+            sumcheck_univariates.push(
+                values[i..i + ZK_BATCHED_RELATION_PARTIAL_LENGTH]
+                    .to_vec()
+                    .try_into()
+                    .unwrap(),
+            );
         }
         // Fill rest with zeros
         while sumcheck_univariates.len() < CONST_PROOF_SIZE_LOG_N {
@@ -400,12 +400,11 @@ impl ZKHonkProof {
         offset += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH;
 
         // Parse sumcheck evaluations
-        let mut sumcheck_evaluations = vec![];
-        for i in offset..offset + NUMBER_OF_ENTITIES {
-            sumcheck_evaluations.push(values[i].clone());
-        }
         let sumcheck_evaluations: [BigUint; NUMBER_OF_ENTITIES] =
-            sumcheck_evaluations.try_into().unwrap();
+            values[offset..offset + NUMBER_OF_ENTITIES]
+                .to_vec()
+                .try_into()
+                .unwrap();
         offset += NUMBER_OF_ENTITIES;
 
         let libra_evaluation = values[offset].clone();
@@ -446,10 +445,7 @@ impl ZKHonkProof {
         offset += (log_circuit_size - 1) * 2;
 
         // Parse gemini a evaluations
-        let mut gemini_a_evaluations = vec![];
-        for i in offset..offset + log_circuit_size {
-            gemini_a_evaluations.push(values[i].clone());
-        }
+        let mut gemini_a_evaluations = values[offset..offset + log_circuit_size].to_vec();
         // Fill rest with zeros
         while gemini_a_evaluations.len() < CONST_PROOF_SIZE_LOG_N {
             gemini_a_evaluations.push(BigUint::from(0u8));
@@ -1156,15 +1152,12 @@ fn compute_shplemini_msm_scalars(
         "07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76",
     );
 
-    let mut denominators = vec![];
-    denominators
-        .push((FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r)).unwrap());
-    denominators.push(
+    let denom_0 =
+        (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r)).unwrap();
+    let denom_1 =
         (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - subgroup_generator * gemini_r))
-            .unwrap(),
-    );
-    denominators.push(denominators[0]);
-    denominators.push(denominators[0]);
+            .unwrap();
+    let denominators = [denom_0, denom_1, denom_0, denom_0];
 
     let mut batching_scalars = vec![];
     batching_challenge *= shplonk_nu * shplonk_nu;
@@ -1208,12 +1201,12 @@ fn check_evals_consistency(
     let mut challenge_poly_lagrange =
         vec![FieldElement::<GrumpkinPrimeField>::from(0); SUBGROUP_SIZE];
     challenge_poly_lagrange[0] = FieldElement::<GrumpkinPrimeField>::from(1);
-    for round in 0..log_circuit_size {
+    for (round, u_challenge) in sumcheck_u_challenges.iter().enumerate().take(log_circuit_size) {
         let curr_idx = 1 + LIBRA_UNIVARIATES_LENGTH * round;
         challenge_poly_lagrange[curr_idx] = FieldElement::<GrumpkinPrimeField>::from(1);
         for idx in curr_idx + 1..curr_idx + LIBRA_UNIVARIATES_LENGTH {
             challenge_poly_lagrange[idx] =
-                challenge_poly_lagrange[idx - 1] * sumcheck_u_challenges[round];
+                challenge_poly_lagrange[idx - 1] * u_challenge;
         }
     }
 
