@@ -9,6 +9,8 @@ import {
   schnorr_calldata_builder,
   ecdsa_calldata_builder,
   eddsa_calldata_builder,
+  rsa_2048_calldata_builder,
+  rsa_2048_sha256_calldata_builder,
   to_twistededwards,
   to_weirstrass,
   get_groth16_calldata,
@@ -246,6 +248,60 @@ export function ecdsaCalldataBuilder(r: bigint, s: bigint, v: number, px: bigint
  */
 export function eddsaCalldataBuilder(ry_twisted_le: bigint, s: bigint, py_twisted_le: bigint, msg: Uint8Array, prependPublickey: boolean): bigint[] {
   return eddsa_calldata_builder(ry_twisted_le, s, py_twisted_le, msg, prependPublickey);
+}
+
+/**
+ * Builds calldata for RSA-2048 signature verification.
+ * Computes s^{65537} mod n via square-and-multiply with 17 certified reductions.
+ *
+ * @param signature - RSA signature value s
+ * @param expectedMessage - Expected result m = s^{65537} mod n
+ * @param modulus - RSA-2048 modulus n
+ * @param prependPublicKey - Whether to include the modulus in the calldata.
+ *                           When true, prepends n to the output (24 elements).
+ *                           When false, only includes signature, message, and reduction witnesses.
+ * @returns Array of bigint values representing the RSA verification calldata
+ *
+ * @example
+ * ```typescript
+ * const calldata = rsa2048CalldataBuilder(
+ *   signature,       // RSA signature
+ *   expectedMessage, // s^65537 mod n
+ *   modulus,         // RSA-2048 modulus
+ *   true             // include modulus in calldata
+ * );
+ * ```
+ */
+export function rsa2048CalldataBuilder(signature: bigint, expectedMessage: bigint, modulus: bigint, prependPublicKey: boolean): bigint[] {
+  return rsa_2048_calldata_builder(signature, expectedMessage, modulus, prependPublicKey);
+}
+
+/**
+ * Builds calldata for RSA-2048 SHA-256 full on-chain signature verification.
+ * Computes SHA-256(message), constructs the PKCS#1 v1.5 encoding, generates
+ * RSA reduction witnesses, and appends the ByteArray-serialized message.
+ *
+ * @param signature - RSA signature value s
+ * @param message - Raw message bytes to verify
+ * @param modulus - RSA-2048 modulus n
+ * @param prependPublicKey - Whether to include the modulus in the calldata.
+ *                           When true, prepends n to the output (24 elements).
+ *                           When false, only includes signature, message, and reduction witnesses.
+ * @returns Array of bigint values representing the RSA SHA-256 verification calldata
+ *
+ * @example
+ * ```typescript
+ * const message = new TextEncoder().encode("hello garaga");
+ * const calldata = rsa2048Sha256CalldataBuilder(
+ *   signature,  // RSA signature
+ *   message,    // raw message bytes
+ *   modulus,    // RSA-2048 modulus
+ *   true        // include modulus in calldata
+ * );
+ * ```
+ */
+export function rsa2048Sha256CalldataBuilder(signature: bigint, message: Uint8Array, modulus: bigint, prependPublicKey: boolean): bigint[] {
+  return rsa_2048_sha256_calldata_builder(signature, message, modulus, prependPublicKey);
 }
 
 /**

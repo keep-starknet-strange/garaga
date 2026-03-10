@@ -7,6 +7,16 @@ from garaga import garaga_rs
 from garaga.curves import BASE, CURVES, N_LIMBS, CurveID, TwistedEdwardsCurve
 from garaga.hints.io import bigint_split, split_128
 from garaga.points import G1Point
+from garaga.rsa_rns import (
+    CHANNEL_MODULI,
+    ReductionWitness,
+    RNSContext,
+    RNSInteger,
+    RSA2048ExponentiationWitness,
+    generate_rsa2048_sha256_witness,
+    generate_rsa2048_witness,
+    is_valid_rsa2048_witness,
+)
 
 
 @dataclass(slots=True)
@@ -186,7 +196,7 @@ class ECDSASignature:
           3. Generate a random message hash z (in practice, z = H(message)).
           4. Choose a random nonce k and compute R = k * G.
           5. Let r = R.x mod n (with r != 0).
-          6. Compute s = k⁻¹ * (z + r * d) mod n (with s != 0).
+          6. Compute s = k^{-1} * (z + r * d) mod n (with s != 0).
           7. Set the recovery parameter v = 0 if R.y is even, else 1.
         """
         curve = CURVES[curve_id.value]
@@ -229,9 +239,9 @@ class ECDSASignature:
         Verify the ECDSA signature using the stored message hash and public key.
 
         Standard verification:
-          1. Compute w = s⁻¹ mod n.
-          2. Compute u₁ = z * w mod n and u₂ = r * w mod n.
-          3. Compute R' = u₁ * G + u₂ * Q.
+          1. Compute w = s^{-1} mod n.
+          2. Compute u1 = z * w mod n and u2 = r * w mod n.
+          3. Compute R' = u1 * G + u2 * Q.
           4. The signature is valid if (R'.x mod n) equals r.
         """
         curve = CURVES[self.curve_id.value]
@@ -249,7 +259,6 @@ class ECDSASignature:
 
         R_prime = G.scalar_mul(u1).add(Q.scalar_mul(u2))
         return (R_prime.x % n) == self.r
-        # return (R_prime.x) == self.r
 
     def serialize(self, prepend_public_key: bool = True) -> list[int]:
         cd = []
@@ -304,6 +313,197 @@ class ECDSASignature:
         if as_str:
             return "[{}]".format(", ".join(map(hex, cd)))
         return cd
+
+
+@dataclass(slots=True)
+class RSA2048Signature:
+    """RSA-2048 signature with reduction witnesses for on-chain verification."""
+
+    modulus: RNSInteger
+    signature: RNSInteger
+    expected_message: RNSInteger
+    reductions: tuple[ReductionWitness, ...]
+
+    @classmethod
+    def from_bundle(cls, bundle: RSA2048ExponentiationWitness) -> "RSA2048Signature":
+        return cls(
+            modulus=bundle.modulus,
+            signature=bundle.signature,
+            expected_message=bundle.expected_message,
+            reductions=bundle.reductions,
+        )
+
+    @classmethod
+    def sample(cls, seed: int = 0) -> "RSA2048Signature":
+        return cls.from_bundle(generate_rsa2048_witness(seed=seed))
+
+    @classmethod
+    def tampered_residue_sample(cls, seed: int = 0) -> "RSA2048Signature":
+        sample = cls.sample(seed=seed)
+        first = sample.reductions[0]
+        bad_residues = list(first.remainder.residues)
+        bad_residues[0] = (bad_residues[0] + 1) % CHANNEL_MODULI[0]
+        tampered_remainder = RNSInteger(
+            value=first.remainder.value,
+            limbs=first.remainder.limbs,
+            residues=tuple(bad_residues),
+        )
+        return cls(
+            modulus=sample.modulus,
+            signature=sample.signature,
+            expected_message=sample.expected_message,
+            reductions=(
+                ReductionWitness(
+                    quotient=first.quotient,
+                    remainder=tampered_remainder,
+                ),
+                *sample.reductions[1:],
+            ),
+        )
+
+    @classmethod
+    def tampered_limb_sample(cls, seed: int = 0) -> "RSA2048Signature":
+        sample = cls.sample(seed=seed)
+        first = sample.reductions[0]
+        bad_limbs = list(first.quotient.limbs)
+        bad_limbs[1] ^= 1
+        tampered_quotient = RNSInteger(
+            value=first.quotient.value,
+            limbs=tuple(bad_limbs),
+            residues=first.quotient.residues,
+        )
+        return cls(
+            modulus=sample.modulus,
+            signature=sample.signature,
+            expected_message=sample.expected_message,
+            reductions=(
+                ReductionWitness(
+                    quotient=tampered_quotient,
+                    remainder=first.remainder,
+                ),
+                *sample.reductions[1:],
+            ),
+        )
+
+    @classmethod
+    def tampered_expected_message_sample(cls, seed: int = 0) -> "RSA2048Signature":
+        sample = cls.sample(seed=seed)
+        bad_limbs = list(sample.expected_message.limbs)
+        bad_limbs[0] ^= 1
+        tampered_expected_message = RNSInteger(
+            value=sample.expected_message.value,
+            limbs=tuple(bad_limbs),
+            residues=sample.expected_message.residues,
+        )
+        return cls(
+            modulus=sample.modulus,
+            signature=sample.signature,
+            expected_message=tampered_expected_message,
+            reductions=sample.reductions,
+        )
+
+    def _to_bundle(self) -> RSA2048ExponentiationWitness:
+        return RSA2048ExponentiationWitness(
+            modulus=self.modulus,
+            signature=self.signature,
+            expected_message=self.expected_message,
+            reductions=self.reductions,
+        )
+
+    def is_valid(self) -> bool:
+        return is_valid_rsa2048_witness(
+            self._to_bundle(), ctx=RNSContext(CHANNEL_MODULI)
+        )
+
+    def serialize_public_key(self) -> list[int]:
+        return self.modulus.serialize_to_calldata()
+
+    def serialize_signature_with_hints(self) -> list[int]:
+        return self._to_bundle().serialize_signature_with_hint()
+
+    def serialize(self, prepend_public_key: bool = True) -> list[int]:
+        return self._to_bundle().serialize(prepend_public_key=prepend_public_key)
+
+    def serialize_with_hints(
+        self,
+        use_rust: bool = False,
+        as_str: bool = False,
+        prepend_public_key: bool = True,
+    ) -> list[int] | str:
+        if use_rust:
+            cd = garaga_rs.rsa_2048_calldata_builder(
+                self.signature.value,
+                self.expected_message.value,
+                self.modulus.value,
+                prepend_public_key,
+            )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
+
+        calldata = self.serialize(prepend_public_key=prepend_public_key)
+        if as_str:
+            return "[{}]".format(", ".join(map(hex, calldata)))
+        return calldata
+
+    @classmethod
+    def from_sha256_message(cls, message: bytes, seed: int = 0) -> "RSA2048Signature":
+        """Create an RSA2048Signature from a raw message using SHA-256."""
+        return cls.from_bundle(generate_rsa2048_sha256_witness(message, seed=seed))
+
+    def serialize_sha256_with_hints(
+        self,
+        message: bytes,
+        use_rust: bool = False,
+        as_str: bool = False,
+        prepend_public_key: bool = True,
+    ) -> list[int] | str:
+        """Serialize the signature with hints for SHA-256 on-chain verification.
+
+        Appends the ByteArray-serialized message after the RSA calldata.
+        """
+        if use_rust:
+            cd = garaga_rs.rsa_2048_sha256_calldata_builder(
+                self.signature.value,
+                message,
+                self.modulus.value,
+                prepend_public_key,
+            )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
+
+        # Python path: RSA calldata + ByteArray serialization
+        calldata = self.serialize(prepend_public_key=prepend_public_key)
+        calldata.extend(_serialize_byte_array(message))
+        if as_str:
+            return "[{}]".format(", ".join(map(hex, calldata)))
+        return calldata
+
+
+def _serialize_byte_array(data: bytes) -> list[int]:
+    """Serialize bytes as a Cairo ByteArray in felt252 calldata format.
+
+    Layout: [num_full_words, word_0, ..., word_{n-1}, pending_word, pending_word_len]
+    Each full word is 31 bytes. The pending word is 0-30 bytes.
+    """
+    full_word_count = len(data) // 31
+    pending_len = len(data) % 31
+
+    cd = [full_word_count]
+    for i in range(full_word_count):
+        start = i * 31
+        word = int.from_bytes(data[start : start + 31], byteorder="big")
+        cd.append(word)
+
+    if pending_len > 0:
+        pending = int.from_bytes(data[full_word_count * 31 :], byteorder="big")
+        cd.append(pending)
+    else:
+        cd.append(0)
+    cd.append(pending_len)
+
+    return cd
 
 
 @dataclass(slots=True)

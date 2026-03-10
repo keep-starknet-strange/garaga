@@ -92,3 +92,51 @@ pub fn eddsa_calldata_builder(
     let py_list = PyList::new(py, result);
     Ok(py_list?.into())
 }
+
+#[pyfunction]
+pub fn rsa_2048_calldata_builder(
+    py: Python,
+    signature: &Bound<'_, PyInt>,
+    expected_message: &Bound<'_, PyInt>,
+    modulus: &Bound<'_, PyInt>,
+    prepend_public_key: bool,
+) -> PyResult<Py<PyAny>> {
+    let signature: BigUint = signature.extract()?;
+    let expected_message: BigUint = expected_message.extract()?;
+    let modulus: BigUint = modulus.extract()?;
+
+    let result = crate::calldata::signatures::rsa_2048_calldata_builder(
+        signature,
+        expected_message,
+        modulus,
+        prepend_public_key,
+    )
+    .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+
+    let py_list = PyList::new(py, result);
+    Ok(py_list?.into())
+}
+
+#[pyfunction]
+pub fn rsa_2048_sha256_calldata_builder(
+    py: Python,
+    signature: &Bound<'_, PyInt>,
+    message: &Bound<'_, PyBytes>,
+    modulus: &Bound<'_, PyInt>,
+    prepend_public_key: bool,
+) -> PyResult<Py<PyAny>> {
+    let signature: BigUint = signature.extract()?;
+    let message: Vec<u8> = message.extract()?;
+    let modulus: BigUint = modulus.extract()?;
+
+    let result = crate::calldata::signatures::rsa_2048_sha256_calldata_builder(
+        signature,
+        &message,
+        modulus,
+        prepend_public_key,
+    )
+    .map_err(PyErr::new::<pyo3::exceptions::PyValueError, _>)?;
+
+    let py_list = PyList::new(py, result);
+    Ok(py_list?.into())
+}

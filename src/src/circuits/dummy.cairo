@@ -3,6 +3,7 @@ use core::circuit::{
     circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+
 #[inline(always)]
 pub fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
     // INPUT stack

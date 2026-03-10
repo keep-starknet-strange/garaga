@@ -16,6 +16,7 @@ pub mod circuits {
     pub(crate) mod extf_mul;
     pub(crate) mod isogeny;
     pub(crate) mod multi_pairing_check;
+    pub(crate) mod rsa;
     pub(crate) mod tower_circuits;
 }
 pub mod crypto {
@@ -45,6 +46,7 @@ pub mod hashes {
 pub mod signatures {
     pub mod ecdsa;
     pub mod eddsa_25519;
+    pub mod rsa;
     pub mod schnorr;
 }
 
@@ -58,6 +60,8 @@ mod tests {
         mod msm_tests;
         #[cfg(test)]
         mod pairing_tests;
+        #[cfg(test)]
+        mod rsa_tests;
         #[cfg(test)]
         mod schnorr_tests;
         #[cfg(test)]
