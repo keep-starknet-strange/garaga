@@ -60,11 +60,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     QuadrupleAndAdd9Circuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.rsa import (
-    RSABatchedSquaringCircuit,
-    RSAEval6ChunksCircuit,
-    RSAFirstStepCircuit,
-    RSAFusedEvalRelationCircuit,
-    RSARelationCheckCircuit,
+    RSAFullVerificationCircuit,
 )
 from garaga.starknet.cli.utils import create_directory
 
@@ -133,11 +129,7 @@ class CircuitID(Enum):
     DOUBLE_AND_ADD_EC_POINT_G2 = int.from_bytes(b"double_and_add_ec_point_g2", "big")
     PSI_G2_BLS12_381 = int.from_bytes(b"psi_g2_bls12_381", "big")
     FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
-    RSA_EVAL_6_CHUNKS = int.from_bytes(b"rsa_eval_6_chunks", "big")
-    RSA_RELATION_CHECK = int.from_bytes(b"rsa_relation_check", "big")
-    RSA_FUSED_EVAL_RELATION = int.from_bytes(b"rsa_fused_eval_rel", "big")
-    RSA_FIRST_STEP = int.from_bytes(b"rsa_first_step", "big")
-    RSA_BATCHED_SQUARING = int.from_bytes(b"rsa_batched_sq", "big")
+    RSA_FULL_VERIFICATION = int.from_bytes(b"rsa_full_verif", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -209,34 +201,8 @@ ALL_CAIRO_CIRCUITS = {
         "filename": "ec",
         "curve_ids": [CurveID.BLS12_381],
     },
-    CircuitID.RSA_EVAL_6_CHUNKS: {
-        "class": RSAEval6ChunksCircuit,
-        "params": None,
-        "filename": "rsa",
-        # Generic-modulus circuit: compile it once and pass the RSA channel modulus at runtime.
-        # The Horner step is also a runtime input: step_i = 2^384 mod p_i for each fixed RSA channel.
-        "curve_ids": [CurveID.BLS12_381],
-    },
-    CircuitID.RSA_RELATION_CHECK: {
-        "class": RSARelationCheckCircuit,
-        "params": None,
-        "filename": "rsa",
-        "curve_ids": [CurveID.BLS12_381],
-    },
-    CircuitID.RSA_FUSED_EVAL_RELATION: {
-        "class": RSAFusedEvalRelationCircuit,
-        "params": None,
-        "filename": "rsa",
-        "curve_ids": [CurveID.BLS12_381],
-    },
-    CircuitID.RSA_FIRST_STEP: {
-        "class": RSAFirstStepCircuit,
-        "params": None,
-        "filename": "rsa",
-        "curve_ids": [CurveID.BLS12_381],
-    },
-    CircuitID.RSA_BATCHED_SQUARING: {
-        "class": RSABatchedSquaringCircuit,
+    CircuitID.RSA_FULL_VERIFICATION: {
+        "class": RSAFullVerificationCircuit,
         "params": None,
         "filename": "rsa",
         "curve_ids": [CurveID.BLS12_381],
