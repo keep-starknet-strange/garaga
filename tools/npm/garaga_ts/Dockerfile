@@ -15,4 +15,4 @@ ENV PATH="$HOME/n/bin/:$PATH"
 
 WORKDIR /garaga/tools/npm/garaga_ts
 
-CMD npm ci && npm run build && npm pack && ./fix-chown.sh ../..
+CMD npm ci --ignore-scripts && npm run build && npm pack && ./fix-chown.sh ../..

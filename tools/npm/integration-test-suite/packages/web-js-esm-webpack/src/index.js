@@ -17,6 +17,13 @@ async function main() {
 
   element.textContent += "\n" + messageCalldata;
 
+  // Tlock encrypt
+  const message2 = new Uint8Array(16);
+  message2.set(new TextEncoder().encode('Hello, world!'));
+  const randomness = new Uint8Array(16);
+  randomness.set(new TextEncoder().encode('fixed_random_val'));
+  const tlockCalldata = garaga.encryptToDrandRoundAndGetCallData(1, message2, randomness);
+  element.textContent += "\n" + 'Output of encryptToDrandRoundAndGetCallData: ' + tlockCalldata.length + ' elements';
 
   document.body.appendChild(element);
 }

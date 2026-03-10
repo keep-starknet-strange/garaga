@@ -1,2 +1,2 @@
-mod drand_verifier;
+pub mod drand_verifier;
 mod drand_verifier_constants;

@@ -75,5 +75,9 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(poseidon_hash_bn254, m)?)?;
     m.add_function(wrap_pyfunction!(pairing::final_exp, m)?)?;
     m.add_function(wrap_pyfunction!(drand_calldata::drand_calldata_builder, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        drand_calldata::drand_tlock_encrypt_calldata_builder,
+        m
+    )?)?;
     Ok(())
 }

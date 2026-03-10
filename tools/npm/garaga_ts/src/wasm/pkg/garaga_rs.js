@@ -211,6 +211,22 @@ export function drand_calldata_builder(values) {
 
 /**
  * @param {any[]} values
+ * @returns {any[]}
+ */
+export function drand_tlock_encrypt_calldata_builder(values) {
+    const ptr0 = passArrayJsValueToWasm0(values, wasm.__wbindgen_malloc);
+    const len0 = WASM_VECTOR_LEN;
+    const ret = wasm.drand_tlock_encrypt_calldata_builder(ptr0, len0);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v2 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v2;
+}
+
+/**
+ * @param {any[]} values
  * @param {any[]} scalars
  * @param {number} curve_id
  * @param {boolean} include_points_and_scalars

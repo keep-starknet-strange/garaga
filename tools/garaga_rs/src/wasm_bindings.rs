@@ -30,6 +30,22 @@ pub fn drand_calldata_builder(values: Vec<JsValue>) -> Result<Vec<JsValue>, JsVa
 }
 
 #[wasm_bindgen]
+pub fn drand_tlock_encrypt_calldata_builder(values: Vec<JsValue>) -> Result<Vec<JsValue>, JsValue> {
+    let values: Vec<BigUint> = values
+        .into_iter()
+        .map(jsvalue_to_biguint)
+        .collect::<Result<Vec<_>, _>>()?;
+
+    let result =
+        crate::calldata::drand_tlock_calldata::drand_tlock_encrypt_calldata_builder(&values)
+            .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    let result: Vec<BigUint> = result;
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
 pub fn msm_calldata_builder(
     values: Vec<JsValue>,
     scalars: Vec<JsValue>,
@@ -203,6 +219,7 @@ fn get_property(obj: &js_sys::Object, key: &str) -> Result<JsValue, JsValue> {
     js_sys::Reflect::get(obj, &JsValue::from_str(key))
 }
 
+#[allow(dead_code)]
 fn set_property(obj: &js_sys::Object, key: &str, value: &JsValue) -> Result<(), JsValue> {
     let success = js_sys::Reflect::set(obj, &JsValue::from_str(key), value)?;
     if !success {
@@ -227,6 +244,7 @@ fn parse_g1_point(value: JsValue) -> Result<G1PointBigUint, JsValue> {
     Ok(G1PointBigUint { x, y })
 }
 
+#[allow(dead_code)]
 fn jsvalue_from_g1_point(point: &G1PointBigUint, curve_id: usize) -> Result<JsValue, JsValue> {
     let point_obj = js_sys::Object::new();
     set_property(&point_obj, "x", &biguint_to_jsvalue(point.x.clone()))?;
@@ -275,6 +293,7 @@ fn parse_biguint_array(value: JsValue) -> Result<Vec<BigUint>, JsValue> {
         .collect()
 }
 
+#[allow(dead_code)]
 fn jsvalue_from_biguint_array(values: &[BigUint]) -> Result<JsValue, JsValue> {
     let values = values
         .iter()
@@ -297,6 +316,7 @@ fn parse_g1_point_array(value: JsValue) -> Result<Vec<G1PointBigUint>, JsValue> 
     Ok(points)
 }
 
+#[allow(dead_code)]
 fn jsvalue_from_g1_point_array(
     points: &[G1PointBigUint],
     curve_id: usize,

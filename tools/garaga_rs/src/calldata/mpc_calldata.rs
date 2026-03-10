@@ -19,7 +19,7 @@ pub fn mpc_calldata_builder(
     n_fixed_g2: usize,
     values2: &[BigUint],
 ) -> Result<Vec<BigUint>, String> {
-    if values1.len() % 6 != 0 {
+    if !values1.len().is_multiple_of(6) {
         return Err("Pairs values length must be a multiple of 6".to_string());
     }
     let n_pairs = values1.len() / 6;
@@ -93,9 +93,13 @@ where
     F: IsPrimeField + CurveParamsProvider<F> + IsSubFieldOf<E2>,
     E2: IsField<BaseType = [FieldElement<F>; 2]>,
 {
-    miller_loop(&[public_pair.g1.clone()], &[public_pair.g2.clone()])
+    miller_loop(
+        std::slice::from_ref(&public_pair.g1),
+        std::slice::from_ref(&public_pair.g2),
+    )
 }
 
+#[allow(clippy::type_complexity)]
 fn multi_pairing_check_result<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     m: &Option<Polynomial<F>>,
@@ -140,6 +144,7 @@ where
     )
 }
 
+#[allow(clippy::too_many_arguments)]
 fn hash_hints_and_get_base_random_rlc_coeff<F, E2>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
@@ -266,6 +271,7 @@ where
     new_transcript.state[0]
 }
 
+#[allow(clippy::type_complexity)]
 fn build_mpcheck_hint<F, E2, E6, E12>(
     pairs: &[G1G2Pair<F, E2>],
     n_fixed_g2: usize,
@@ -291,10 +297,7 @@ where
     assert!(n_fixed_g2 <= n_pairs);
 
     let curve_id = F::get_curve_params().curve_id;
-    let three_limbs_only: bool = match curve_id {
-        CurveID::BLS12_381 => false,
-        _ => true,
-    };
+    let three_limbs_only: bool = !matches!(curve_id, CurveID::BLS12_381);
 
     let m = public_pair
         .as_ref()
@@ -355,7 +358,7 @@ fn seed_transcript_with_base_rlc<F>(
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
-    transcript.hash_emulated_field_elements(&[c1.clone()], None, three_limbs_only);
+    transcript.hash_emulated_field_elements(std::slice::from_ref(c1), None, three_limbs_only);
 }
 
 fn new_transcript_from_text(init_hash_text: String) -> CairoPoseidonTranscript {

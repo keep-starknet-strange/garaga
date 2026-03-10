@@ -15,6 +15,14 @@ async function main(): Promise<void> {
   const messageCalldata = 'Output of get_groth16_calldata: ' + jsonCalldata;
 
   console.log(messageCalldata);
+
+  // Tlock encrypt
+  const message2 = new Uint8Array(16);
+  message2.set(new TextEncoder().encode('Hello, world!'));
+  const randomness = new Uint8Array(16);
+  randomness.set(new TextEncoder().encode('fixed_random_val'));
+  const tlockCalldata = garaga.encryptToDrandRoundAndGetCallData(1, message2, randomness);
+  console.log('Output of encryptToDrandRoundAndGetCallData:', tlockCalldata.length, 'elements');
 }
 
 main()

@@ -28,6 +28,7 @@ from garaga.starknet.honk_contract_generator.calldata import (
     get_ultra_flavor_honk_calldata_from_vk_and_proof,
 )
 from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+    drand_encrypt_to_calldata,
     drand_round_to_calldata,
 )
 
@@ -243,6 +244,126 @@ async def test_drand_contract(account_devnet: BaseAccount, contract_info: dict):
         invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
 
         await invoke_result.wait_for_acceptance()
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "contract_info",
+    [
+        {
+            "verifier_project": SmartContractProject(
+                smart_contract_folder=CONTRACTS_PATH / "drand_quicknet"
+            ),
+            "decrypt_project": SmartContractProject(
+                smart_contract_folder=CONTRACTS_PATH / "drand_decrypt_quicknet"
+            ),
+        },
+    ],
+)
+async def test_drand_decrypt_contract(account_devnet: BaseAccount, contract_info: dict):
+    account = account_devnet
+
+    # Step 1: Declare the verifier class (not deployed) and generate decrypt constants
+    verifier_project: SmartContractProject = contract_info["verifier_project"]
+    verifier_class_hash, _ = await verifier_project.declare_class_hash(account)
+    print(f"Declared verifier class hash: {hex(verifier_class_hash)}")
+
+    from garaga.starknet.tests_and_calldata_generators.drand_calldata import (
+        generate_drand_decrypt_constants,
+    )
+
+    decrypt_project: SmartContractProject = contract_info["decrypt_project"]
+    generate_drand_decrypt_constants(
+        verifier_class_hash, decrypt_project.smart_contract_folder
+    )
+
+    # Step 2: Declare and deploy the decrypt contract
+    decrypt_class_hash, decrypt_abi = await decrypt_project.declare_class_hash(account)
+
+    precomputed_address = compute_address(
+        class_hash=decrypt_class_hash,
+        constructor_calldata=[],
+        salt=pedersen_hash(to_int(account.address), 2),
+        deployer_address=DEPLOYER_ADDRESS,
+    )
+
+    try_contract = await get_contract_if_exists(account, precomputed_address)
+    if try_contract is None:
+        deploy_result = await Contract.deploy_contract_v3(
+            account=account,
+            class_hash=decrypt_class_hash,
+            abi=decrypt_abi,
+            deployer_address=DEPLOYER_ADDRESS,
+            auto_estimate=True,
+            salt=2,
+            cairo_version=1,
+        )
+        await deploy_result.wait_for_acceptance()
+        contract = deploy_result.deployed_contract
+    else:
+        contract = try_contract
+
+    print(f"Deployed decrypt contract at: {hex(contract.address)}")
+    print(f"Functions: {contract.functions}")
+
+    verify_fn: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["verify"]
+    )
+    decrypt_fn: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["decrypt"]
+    )
+
+    # Step 3: Verify round 1 via library_call
+    invoke = PreparedFunctionInvokeV3(
+        to_addr=verify_fn.contract_data.address,
+        calldata=drand_round_to_calldata(1),
+        selector=verify_fn.get_selector(verify_fn.name),
+        _contract_data=verify_fn.contract_data,
+        _client=verify_fn.client,
+        _account=verify_fn.account,
+        _payload_transformer=verify_fn._payload_transformer,
+        resource_bounds=None,
+    )
+    result = await invoke.invoke(auto_estimate=True)
+    await result.wait_for_acceptance()
+    print("Round 1 verified via library_call")
+
+    # Step 4: Decrypt for round 1 (signature already stored)
+    decrypt_calldata = drand_encrypt_to_calldata(
+        1, b"0000000000000000", b"0000000000000000"
+    )
+    invoke = PreparedFunctionInvokeV3(
+        to_addr=decrypt_fn.contract_data.address,
+        calldata=decrypt_calldata,
+        selector=decrypt_fn.get_selector(decrypt_fn.name),
+        _contract_data=decrypt_fn.contract_data,
+        _client=decrypt_fn.client,
+        _account=decrypt_fn.account,
+        _payload_transformer=decrypt_fn._payload_transformer,
+        resource_bounds=None,
+    )
+    result = await invoke.invoke(auto_estimate=True)
+    await result.wait_for_acceptance()
+    print("Round 1 decrypted (stored sig)")
+
+    # Step 5: Decrypt for round 2 (combined: verify inline + decrypt)
+    encrypt_cd = drand_encrypt_to_calldata(2, b"0000000000000000", b"0000000000000000")
+    verify_cd = drand_round_to_calldata(2)
+    combined_data = encrypt_cd[1:] + verify_cd[1:]
+    combined_calldata = [len(combined_data)] + combined_data
+    invoke = PreparedFunctionInvokeV3(
+        to_addr=decrypt_fn.contract_data.address,
+        calldata=combined_calldata,
+        selector=decrypt_fn.get_selector(decrypt_fn.name),
+        _contract_data=decrypt_fn.contract_data,
+        _client=decrypt_fn.client,
+        _account=decrypt_fn.account,
+        _payload_transformer=decrypt_fn._payload_transformer,
+        resource_bounds=None,
+    )
+    result = await invoke.invoke(auto_estimate=True)
+    await result.wait_for_acceptance()
+    print("Round 2 verified + decrypted in one tx")
 
 
 HONK_CONTRACTS = [

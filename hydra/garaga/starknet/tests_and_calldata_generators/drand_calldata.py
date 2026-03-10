@@ -1,3 +1,7 @@
+import secrets
+from pathlib import Path
+from typing import Optional
+
 import garaga.hints.io as io
 from garaga import garaga_rs
 from garaga.drand.client import (
@@ -7,6 +11,7 @@ from garaga.drand.client import (
     get_chain_info,
     get_randomness,
 )
+from garaga.drand.tlock import encrypt_for_round
 from garaga.signature import hash_to_curve
 from garaga.starknet.tests_and_calldata_generators.map_to_curve import *
 from garaga.starknet.tests_and_calldata_generators.mpcheck import (
@@ -63,6 +68,50 @@ def _drand_round_to_calldata_rust(
         signature,
     ]
     return garaga_rs.drand_calldata_builder(data)
+
+
+def drand_encrypt_to_calldata(
+    round_number: int,
+    message: bytes,
+    randomness: Optional[bytes] = None,
+    use_rust=False,
+) -> list[int]:
+    if use_rust:
+        return _drand_encrypt_to_calldata(round_number, message, randomness)
+    chain = get_chain_info(DrandNetwork.quicknet.value)
+    cipher_text = encrypt_for_round(
+        chain.public_key, round_number, message, randomness is not None, randomness
+    )
+    cd = []
+    cd.append(round_number)
+    cd.extend(cipher_text.serialize_to_calldata())
+    return [len(cd)] + cd
+
+
+def _drand_encrypt_to_calldata(
+    round_number: int,
+    message: bytes,
+    randomness: Optional[bytes] = None,
+) -> list[int]:
+    if randomness is None:
+        randomness = secrets.token_bytes(16)
+    data = [
+        round_number,
+        int.from_bytes(message, "big"),
+        int.from_bytes(randomness, "big"),
+    ]
+    return garaga_rs.drand_tlock_encrypt_calldata_builder(data)
+
+
+def generate_drand_decrypt_constants(
+    verifier_class_hash: int, decrypt_contract_path: Path
+):
+    """Write the verifier class hash to the decrypt contract's constants file."""
+    constants_file = decrypt_contract_path / "src" / "drand_decrypt_constants.cairo"
+    constants_file.write_text(
+        f"// Generated — do not edit manually.\n"
+        f"pub const VERIFIER_CLASS_HASH: felt252 = {hex(verifier_class_hash)};\n"
+    )
 
 
 if __name__ == "__main__":
