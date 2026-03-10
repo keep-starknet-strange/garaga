@@ -1,5 +1,9 @@
+import math
+
 from garaga.rsa_rns import (
+    BASE,
     CHANNEL_MODULI,
+    CHUNK_LIMBS,
     DELTA_ABS_BOUND,
     RSA_PUBLIC_EXPONENT,
     RSA_REDUCTION_COUNT,
@@ -8,6 +12,62 @@ from garaga.rsa_rns import (
     verify_rsa_signature_with_exact_checks,
 )
 from garaga.starknet.tests_and_calldata_generators.signatures import RSA2048Signature
+
+
+def eval_chunks_mod(chunks: tuple[int, ...], step: int, modulus: int) -> int:
+    acc = 0
+    for chunk in reversed(chunks):
+        acc = (acc * step + chunk) % modulus
+    return acc
+
+
+def test_rsa_channel_moduli_are_pairwise_coprime():
+    for i, lhs in enumerate(CHANNEL_MODULI):
+        assert lhs > 1
+        for j, rhs in enumerate(CHANNEL_MODULI[i + 1 :], start=i + 1):
+            assert (
+                math.gcd(lhs, rhs) == 1
+            ), f"channel moduli {i} and {j} are not coprime"
+
+
+def test_rsa_chunk_steps_match_chunk_radix_mod_channel_moduli():
+    expected_steps = [pow(BASE, CHUNK_LIMBS, p) for p in CHANNEL_MODULI]
+    assert expected_steps == [
+        5880,
+        9624,
+        24728,
+        32024,
+        38504,
+        45624,
+        48200,
+        55592,
+        57224,
+        64488,
+        71448,
+    ]
+
+
+def test_rsa_chunk_horner_evaluation_matches_residues():
+    ctx = CairoRNSContext(CHANNEL_MODULI)
+    steps = [pow(BASE, CHUNK_LIMBS, p) for p in CHANNEL_MODULI]
+
+    for seed in range(3):
+        sample = RSA2048Signature.sample(seed=seed)
+        encoded_values = [
+            sample.modulus,
+            sample.signature,
+            sample.expected_message,
+            sample.reductions[0].quotient,
+            sample.reductions[0].remainder,
+            sample.reductions[-1].quotient,
+            sample.reductions[-1].remainder,
+        ]
+        for encoded_value in encoded_values:
+            horner_residues = tuple(
+                eval_chunks_mod(encoded_value.chunks, step, modulus)
+                for step, modulus in zip(steps, CHANNEL_MODULI)
+            )
+            assert horner_residues == ctx.residues_from_limbs(encoded_value.limbs)
 
 
 def test_rsa_context_exactness_bound():

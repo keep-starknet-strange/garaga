@@ -5,7 +5,7 @@ use core::serde::Serde;
 use core::traits::TryInto;
 use corelib_imports::bounded_int::upcast;
 use garaga::basic_field_ops::is_even_u384;
-use garaga::circuits::rsa::{run_RSA_EVAL_6_CHUNKS_circuit, run_RSA_RELATION_CHECK_circuit};
+use garaga::circuits::rsa::{run_RSA_EVAL_6_CHUNKS_circuit, run_RSA_FUSED_EVAL_RELATION_circuit};
 use garaga::definitions::{RSA2048Chunks, deserialize_u384, serialize_u384};
 
 const RSA_TOP_CHUNK_LIMB1_MAX: u128 = 0xFFFF_FFFF_u128;
@@ -534,148 +534,6 @@ fn evaluate_rsa2048_encoded_value(x: @RSA2048EncodedValue) -> Option<RSA2048Eval
 }
 
 #[inline(never)]
-fn reduction_witness_is_valid(
-    lhs: @RSA2048EvaluatedValue,
-    rhs: @RSA2048EvaluatedValue,
-    modulus: @RSA2048EvaluatedValue,
-    quotient: @RSA2048EvaluatedValue,
-    remainder: @RSA2048EvaluatedValue,
-) -> bool {
-    if !chunks_lt(*remainder.chunks, *modulus.chunks) {
-        return false;
-    }
-
-    let lhs_residues = lhs.residues;
-    let rhs_residues = rhs.residues;
-    let quotient_residues = quotient.residues;
-    let modulus_residues = modulus.residues;
-    let remainder_residues = remainder.residues;
-
-    let (diff0,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r0,
-        *rhs_residues.r0,
-        *quotient_residues.r0,
-        *modulus_residues.r0,
-        *remainder_residues.r0,
-        get_rsa_channel_modulus(0),
-    );
-    if !diff0.is_zero() {
-        return false;
-    }
-    let (diff1,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r1,
-        *rhs_residues.r1,
-        *quotient_residues.r1,
-        *modulus_residues.r1,
-        *remainder_residues.r1,
-        get_rsa_channel_modulus(1),
-    );
-    if !diff1.is_zero() {
-        return false;
-    }
-    let (diff2,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r2,
-        *rhs_residues.r2,
-        *quotient_residues.r2,
-        *modulus_residues.r2,
-        *remainder_residues.r2,
-        get_rsa_channel_modulus(2),
-    );
-    if !diff2.is_zero() {
-        return false;
-    }
-    let (diff3,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r3,
-        *rhs_residues.r3,
-        *quotient_residues.r3,
-        *modulus_residues.r3,
-        *remainder_residues.r3,
-        get_rsa_channel_modulus(3),
-    );
-    if !diff3.is_zero() {
-        return false;
-    }
-    let (diff4,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r4,
-        *rhs_residues.r4,
-        *quotient_residues.r4,
-        *modulus_residues.r4,
-        *remainder_residues.r4,
-        get_rsa_channel_modulus(4),
-    );
-    if !diff4.is_zero() {
-        return false;
-    }
-    let (diff5,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r5,
-        *rhs_residues.r5,
-        *quotient_residues.r5,
-        *modulus_residues.r5,
-        *remainder_residues.r5,
-        get_rsa_channel_modulus(5),
-    );
-    if !diff5.is_zero() {
-        return false;
-    }
-    let (diff6,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r6,
-        *rhs_residues.r6,
-        *quotient_residues.r6,
-        *modulus_residues.r6,
-        *remainder_residues.r6,
-        get_rsa_channel_modulus(6),
-    );
-    if !diff6.is_zero() {
-        return false;
-    }
-    let (diff7,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r7,
-        *rhs_residues.r7,
-        *quotient_residues.r7,
-        *modulus_residues.r7,
-        *remainder_residues.r7,
-        get_rsa_channel_modulus(7),
-    );
-    if !diff7.is_zero() {
-        return false;
-    }
-    let (diff8,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r8,
-        *rhs_residues.r8,
-        *quotient_residues.r8,
-        *modulus_residues.r8,
-        *remainder_residues.r8,
-        get_rsa_channel_modulus(8),
-    );
-    if !diff8.is_zero() {
-        return false;
-    }
-    let (diff9,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r9,
-        *rhs_residues.r9,
-        *quotient_residues.r9,
-        *modulus_residues.r9,
-        *remainder_residues.r9,
-        get_rsa_channel_modulus(9),
-    );
-    if !diff9.is_zero() {
-        return false;
-    }
-    let (diff10,) = run_RSA_RELATION_CHECK_circuit(
-        *lhs_residues.r10,
-        *rhs_residues.r10,
-        *quotient_residues.r10,
-        *modulus_residues.r10,
-        *remainder_residues.r10,
-        get_rsa_channel_modulus(10),
-    );
-    if !diff10.is_zero() {
-        return false;
-    }
-    true
-}
-
-#[inline(never)]
 fn pop_and_validate_reduction_witness(
     lhs: @RSA2048EvaluatedValue,
     rhs: @RSA2048EvaluatedValue,
@@ -687,13 +545,156 @@ fn pop_and_validate_reduction_witness(
     }
 
     let witness = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let quotient = evaluate_rsa2048_encoded_value(@witness.quotient)?;
-    let remainder = evaluate_rsa2048_encoded_value(@witness.remainder)?;
-    if !reduction_witness_is_valid(lhs, rhs, modulus, @quotient, @remainder) {
+
+    if !top_chunk_is_well_formed(witness.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(witness.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(witness.remainder.chunks, *modulus.chunks) {
         return Option::None;
     }
 
-    Option::Some(remainder)
+    let (r0, diff0) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(0),
+        *lhs.residues.r0,
+        *rhs.residues.r0,
+        *modulus.residues.r0,
+        get_rsa_channel_modulus(0),
+    );
+    if !diff0.is_zero() {
+        return Option::None;
+    }
+    let (r1, diff1) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(1),
+        *lhs.residues.r1,
+        *rhs.residues.r1,
+        *modulus.residues.r1,
+        get_rsa_channel_modulus(1),
+    );
+    if !diff1.is_zero() {
+        return Option::None;
+    }
+    let (r2, diff2) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(2),
+        *lhs.residues.r2,
+        *rhs.residues.r2,
+        *modulus.residues.r2,
+        get_rsa_channel_modulus(2),
+    );
+    if !diff2.is_zero() {
+        return Option::None;
+    }
+    let (r3, diff3) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(3),
+        *lhs.residues.r3,
+        *rhs.residues.r3,
+        *modulus.residues.r3,
+        get_rsa_channel_modulus(3),
+    );
+    if !diff3.is_zero() {
+        return Option::None;
+    }
+    let (r4, diff4) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(4),
+        *lhs.residues.r4,
+        *rhs.residues.r4,
+        *modulus.residues.r4,
+        get_rsa_channel_modulus(4),
+    );
+    if !diff4.is_zero() {
+        return Option::None;
+    }
+    let (r5, diff5) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(5),
+        *lhs.residues.r5,
+        *rhs.residues.r5,
+        *modulus.residues.r5,
+        get_rsa_channel_modulus(5),
+    );
+    if !diff5.is_zero() {
+        return Option::None;
+    }
+    let (r6, diff6) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(6),
+        *lhs.residues.r6,
+        *rhs.residues.r6,
+        *modulus.residues.r6,
+        get_rsa_channel_modulus(6),
+    );
+    if !diff6.is_zero() {
+        return Option::None;
+    }
+    let (r7, diff7) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(7),
+        *lhs.residues.r7,
+        *rhs.residues.r7,
+        *modulus.residues.r7,
+        get_rsa_channel_modulus(7),
+    );
+    if !diff7.is_zero() {
+        return Option::None;
+    }
+    let (r8, diff8) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(8),
+        *lhs.residues.r8,
+        *rhs.residues.r8,
+        *modulus.residues.r8,
+        get_rsa_channel_modulus(8),
+    );
+    if !diff8.is_zero() {
+        return Option::None;
+    }
+    let (r9, diff9) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(9),
+        *lhs.residues.r9,
+        *rhs.residues.r9,
+        *modulus.residues.r9,
+        get_rsa_channel_modulus(9),
+    );
+    if !diff9.is_zero() {
+        return Option::None;
+    }
+    let (r10, diff10) = run_RSA_FUSED_EVAL_RELATION_circuit(
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(10),
+        *lhs.residues.r10,
+        *rhs.residues.r10,
+        *modulus.residues.r10,
+        get_rsa_channel_modulus(10),
+    );
+    if !diff10.is_zero() {
+        return Option::None;
+    }
+
+    Option::Some(
+        RSA2048EvaluatedValue {
+            chunks: witness.remainder.chunks,
+            residues: RSA2048Residues { r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 },
+        },
+    )
 }
 
 #[inline(never)]

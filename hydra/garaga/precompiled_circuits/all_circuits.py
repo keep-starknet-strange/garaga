@@ -61,6 +61,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
 )
 from garaga.precompiled_circuits.compilable_circuits.rsa import (
     RSAEval6ChunksCircuit,
+    RSAFusedEvalRelationCircuit,
     RSARelationCheckCircuit,
 )
 from garaga.starknet.cli.utils import create_directory
@@ -132,6 +133,7 @@ class CircuitID(Enum):
     FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
     RSA_EVAL_6_CHUNKS = int.from_bytes(b"rsa_eval_6_chunks", "big")
     RSA_RELATION_CHECK = int.from_bytes(b"rsa_relation_check", "big")
+    RSA_FUSED_EVAL_RELATION = int.from_bytes(b"rsa_fused_eval_rel", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -213,6 +215,12 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.RSA_RELATION_CHECK: {
         "class": RSARelationCheckCircuit,
+        "params": None,
+        "filename": "rsa",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.RSA_FUSED_EVAL_RELATION: {
+        "class": RSAFusedEvalRelationCircuit,
         "params": None,
         "filename": "rsa",
         "curve_ids": [CurveID.BLS12_381],
