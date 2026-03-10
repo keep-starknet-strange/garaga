@@ -195,6 +195,53 @@ pub fn eddsa_calldata_builder(
     Ok(result.into_iter().map(biguint_to_jsvalue).collect())
 }
 
+#[wasm_bindgen]
+pub fn rsa_2048_calldata_builder(
+    signature: JsValue,
+    expected_message: JsValue,
+    modulus: JsValue,
+    prepend_public_key: bool,
+) -> Result<Vec<JsValue>, JsValue> {
+    let signature: BigUint = jsvalue_to_biguint(signature)?;
+    let expected_message: BigUint = jsvalue_to_biguint(expected_message)?;
+    let modulus: BigUint = jsvalue_to_biguint(modulus)?;
+
+    let result = crate::calldata::signatures::rsa_2048_calldata_builder(
+        signature,
+        expected_message,
+        modulus,
+        prepend_public_key,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
+#[wasm_bindgen]
+pub fn rsa_2048_sha256_calldata_builder(
+    signature: JsValue,
+    message: JsValue,
+    modulus: JsValue,
+    prepend_public_key: bool,
+) -> Result<Vec<JsValue>, JsValue> {
+    let signature: BigUint = jsvalue_to_biguint(signature)?;
+    let message: Vec<u8> = message
+        .dyn_into::<Uint8Array>()
+        .map(|arr| arr.to_vec())
+        .map_err(|_| JsValue::from_str("message must be a Uint8Array"))?;
+    let modulus: BigUint = jsvalue_to_biguint(modulus)?;
+
+    let result = crate::calldata::signatures::rsa_2048_sha256_calldata_builder(
+        signature,
+        &message,
+        modulus,
+        prepend_public_key,
+    )
+    .map_err(|e| JsValue::from_str(&e.to_string()))?;
+
+    Ok(result.into_iter().map(biguint_to_jsvalue).collect())
+}
+
 fn jsvalue_to_biguint(v: JsValue) -> Result<BigUint, JsValue> {
     let s = (JsValue::from_str("") + v)
         .as_string()

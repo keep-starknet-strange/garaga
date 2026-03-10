@@ -16,6 +16,7 @@
 * [Using garaga libraries in your Cairo project](using-garaga-libraries-in-your-cairo-project/README.md)
   * [EC (Multi)-Scalar Multiplication](using-garaga-libraries-in-your-cairo-project/ec-multi-scalar-multiplication.md)
   * [ECDSA, Schnorr & EdDSA Signatures](using-garaga-libraries-in-your-cairo-project/ec-signatures.md)
+  * [RSA-2048 Signatures](using-garaga-libraries-in-your-cairo-project/rsa-signatures.md)
   * [Hashing functions](using-garaga-libraries-in-your-cairo-project/hashing-functions.md)
 * [Smart Contract Generators](smart-contract-generators/README.md)
   * [Groth16 Verifier](smart-contract-generators/groth16/README.md)

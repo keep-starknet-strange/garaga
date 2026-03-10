@@ -928,6 +928,7 @@ class ModuloCircuit:
         if self.is_empty_circuit():
             return "", ""
         self.values_segment = self.values_segment.non_interactive_transform()
+        inline = inline and not self.do_not_inline
         if self.compilation_mode == 0:
             return self.compile_circuit_cairo_zero(function_name), None
         elif self.compilation_mode == 1:
