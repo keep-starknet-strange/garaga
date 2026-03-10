@@ -60,7 +60,9 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     QuadrupleAndAdd9Circuit,
 )
 from garaga.precompiled_circuits.compilable_circuits.rsa import (
+    RSABatchedSquaringCircuit,
     RSAEval6ChunksCircuit,
+    RSAFirstStepCircuit,
     RSAFusedEvalRelationCircuit,
     RSARelationCheckCircuit,
 )
@@ -134,6 +136,8 @@ class CircuitID(Enum):
     RSA_EVAL_6_CHUNKS = int.from_bytes(b"rsa_eval_6_chunks", "big")
     RSA_RELATION_CHECK = int.from_bytes(b"rsa_relation_check", "big")
     RSA_FUSED_EVAL_RELATION = int.from_bytes(b"rsa_fused_eval_rel", "big")
+    RSA_FIRST_STEP = int.from_bytes(b"rsa_first_step", "big")
+    RSA_BATCHED_SQUARING = int.from_bytes(b"rsa_batched_sq", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
@@ -221,6 +225,18 @@ ALL_CAIRO_CIRCUITS = {
     },
     CircuitID.RSA_FUSED_EVAL_RELATION: {
         "class": RSAFusedEvalRelationCircuit,
+        "params": None,
+        "filename": "rsa",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.RSA_FIRST_STEP: {
+        "class": RSAFirstStepCircuit,
+        "params": None,
+        "filename": "rsa",
+        "curve_ids": [CurveID.BLS12_381],
+    },
+    CircuitID.RSA_BATCHED_SQUARING: {
+        "class": RSABatchedSquaringCircuit,
         "params": None,
         "filename": "rsa",
         "curve_ids": [CurveID.BLS12_381],

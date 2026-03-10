@@ -5,7 +5,10 @@ use core::serde::Serde;
 use core::traits::TryInto;
 use corelib_imports::bounded_int::upcast;
 use garaga::basic_field_ops::is_even_u384;
-use garaga::circuits::rsa::{run_RSA_EVAL_6_CHUNKS_circuit, run_RSA_FUSED_EVAL_RELATION_circuit};
+use garaga::circuits::rsa::{
+    run_RSA_BATCHED_SQUARING_circuit, run_RSA_FIRST_STEP_circuit,
+    run_RSA_FUSED_EVAL_RELATION_circuit,
+};
 use garaga::definitions::{RSA2048Chunks, deserialize_u384, serialize_u384};
 
 const RSA_TOP_CHUNK_LIMB1_MAX: u128 = 0xFFFF_FFFF_u128;
@@ -485,53 +488,6 @@ fn top_chunk_is_well_formed(top: u384) -> bool {
     limb1 <= RSA_TOP_CHUNK_LIMB1_MAX
 }
 
-#[inline(never)]
-fn derive_rsa2048_residues(chunks: @RSA2048Chunks) -> RSA2048Residues {
-    let (r0,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(0), get_rsa_channel_modulus(0),
-    );
-    let (r1,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(1), get_rsa_channel_modulus(1),
-    );
-    let (r2,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(2), get_rsa_channel_modulus(2),
-    );
-    let (r3,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(3), get_rsa_channel_modulus(3),
-    );
-    let (r4,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(4), get_rsa_channel_modulus(4),
-    );
-    let (r5,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(5), get_rsa_channel_modulus(5),
-    );
-    let (r6,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(6), get_rsa_channel_modulus(6),
-    );
-    let (r7,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(7), get_rsa_channel_modulus(7),
-    );
-    let (r8,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(8), get_rsa_channel_modulus(8),
-    );
-    let (r9,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(9), get_rsa_channel_modulus(9),
-    );
-    let (r10,) = run_RSA_EVAL_6_CHUNKS_circuit(
-        *chunks, get_rsa_chunk_step(10), get_rsa_channel_modulus(10),
-    );
-    RSA2048Residues { r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 }
-}
-
-#[inline(never)]
-fn evaluate_rsa2048_encoded_value(x: @RSA2048EncodedValue) -> Option<RSA2048EvaluatedValue> {
-    if !top_chunk_is_well_formed(*x.chunks.w5) {
-        return Option::None;
-    }
-    let chunks = *x.chunks;
-    let residues = derive_rsa2048_residues(x.chunks);
-    Option::Some(RSA2048EvaluatedValue { chunks, residues })
-}
 
 #[inline(never)]
 fn pop_and_validate_reduction_witness(
@@ -698,68 +654,550 @@ fn pop_and_validate_reduction_witness(
 }
 
 #[inline(never)]
-fn validate_square_reductions(
-    remaining: usize,
+fn pop_and_validate_first_reduction(
+    sig_chunks: RSA2048Chunks, modulus_chunks: RSA2048Chunks, ref reductions_hint: Span<felt252>,
+) -> Option<(RSA2048EvaluatedValue, RSA2048Residues, RSA2048Residues)> {
+    if reductions_hint.len() < RSA2048_REDUCTION_WITNESS_SERIALIZED_LEN {
+        return Option::None;
+    }
+
+    let witness = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+
+    if !top_chunk_is_well_formed(witness.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(witness.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(witness.remainder.chunks, modulus_chunks) {
+        return Option::None;
+    }
+
+    let (mod_r0, sig_r0, rem_r0, diff0) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(0),
+        get_rsa_channel_modulus(0),
+    );
+    if !diff0.is_zero() {
+        return Option::None;
+    }
+    let (mod_r1, sig_r1, rem_r1, diff1) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(1),
+        get_rsa_channel_modulus(1),
+    );
+    if !diff1.is_zero() {
+        return Option::None;
+    }
+    let (mod_r2, sig_r2, rem_r2, diff2) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(2),
+        get_rsa_channel_modulus(2),
+    );
+    if !diff2.is_zero() {
+        return Option::None;
+    }
+    let (mod_r3, sig_r3, rem_r3, diff3) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(3),
+        get_rsa_channel_modulus(3),
+    );
+    if !diff3.is_zero() {
+        return Option::None;
+    }
+    let (mod_r4, sig_r4, rem_r4, diff4) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(4),
+        get_rsa_channel_modulus(4),
+    );
+    if !diff4.is_zero() {
+        return Option::None;
+    }
+    let (mod_r5, sig_r5, rem_r5, diff5) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(5),
+        get_rsa_channel_modulus(5),
+    );
+    if !diff5.is_zero() {
+        return Option::None;
+    }
+    let (mod_r6, sig_r6, rem_r6, diff6) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(6),
+        get_rsa_channel_modulus(6),
+    );
+    if !diff6.is_zero() {
+        return Option::None;
+    }
+    let (mod_r7, sig_r7, rem_r7, diff7) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(7),
+        get_rsa_channel_modulus(7),
+    );
+    if !diff7.is_zero() {
+        return Option::None;
+    }
+    let (mod_r8, sig_r8, rem_r8, diff8) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(8),
+        get_rsa_channel_modulus(8),
+    );
+    if !diff8.is_zero() {
+        return Option::None;
+    }
+    let (mod_r9, sig_r9, rem_r9, diff9) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(9),
+        get_rsa_channel_modulus(9),
+    );
+    if !diff9.is_zero() {
+        return Option::None;
+    }
+    let (mod_r10, sig_r10, rem_r10, diff10) = run_RSA_FIRST_STEP_circuit(
+        modulus_chunks,
+        sig_chunks,
+        witness.quotient.chunks,
+        witness.remainder.chunks,
+        get_rsa_chunk_step(10),
+        get_rsa_channel_modulus(10),
+    );
+    if !diff10.is_zero() {
+        return Option::None;
+    }
+
+    let remainder = RSA2048EvaluatedValue {
+        chunks: witness.remainder.chunks,
+        residues: RSA2048Residues {
+            r0: rem_r0,
+            r1: rem_r1,
+            r2: rem_r2,
+            r3: rem_r3,
+            r4: rem_r4,
+            r5: rem_r5,
+            r6: rem_r6,
+            r7: rem_r7,
+            r8: rem_r8,
+            r9: rem_r9,
+            r10: rem_r10,
+        },
+    };
+    let modulus_residues = RSA2048Residues {
+        r0: mod_r0,
+        r1: mod_r1,
+        r2: mod_r2,
+        r3: mod_r3,
+        r4: mod_r4,
+        r5: mod_r5,
+        r6: mod_r6,
+        r7: mod_r7,
+        r8: mod_r8,
+        r9: mod_r9,
+        r10: mod_r10,
+    };
+    let signature_residues = RSA2048Residues {
+        r0: sig_r0,
+        r1: sig_r1,
+        r2: sig_r2,
+        r3: sig_r3,
+        r4: sig_r4,
+        r5: sig_r5,
+        r6: sig_r6,
+        r7: sig_r7,
+        r8: sig_r8,
+        r9: sig_r9,
+        r10: sig_r10,
+    };
+
+    Option::Some((remainder, modulus_residues, signature_residues))
+}
+
+const RSA2048_BATCHED_SQUARING_WITNESS_LEN: usize = 5 * RSA2048_REDUCTION_WITNESS_SERIALIZED_LEN;
+
+#[inline(never)]
+fn pop_and_validate_batched_square_reductions(
     current_remainder: RSA2048EvaluatedValue,
     modulus: @RSA2048EvaluatedValue,
     ref reductions_hint: Span<felt252>,
 ) -> Option<RSA2048EvaluatedValue> {
-    if remaining == 0 {
+    if reductions_hint.len() < RSA2048_BATCHED_SQUARING_WITNESS_LEN {
+        return Option::None;
+    }
+
+    let w0 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+    let w1 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+    let w2 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+    let w3 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+    let w4 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+
+    if !top_chunk_is_well_formed(w0.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w0.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(w0.remainder.chunks, *modulus.chunks) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w1.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w1.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(w1.remainder.chunks, *modulus.chunks) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w2.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w2.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(w2.remainder.chunks, *modulus.chunks) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w3.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w3.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(w3.remainder.chunks, *modulus.chunks) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w4.quotient.chunks.w5) {
+        return Option::None;
+    }
+    if !top_chunk_is_well_formed(w4.remainder.chunks.w5) {
+        return Option::None;
+    }
+    if !chunks_lt(w4.remainder.chunks, *modulus.chunks) {
+        return Option::None;
+    }
+
+    let (r0, d0_0, d0_1, d0_2, d0_3, d0_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(0),
+        current_remainder.residues.r0,
+        *modulus.residues.r0,
+        get_rsa_channel_modulus(0),
+    );
+    if !d0_0.is_zero() || !d0_1.is_zero() || !d0_2.is_zero() || !d0_3.is_zero() || !d0_4.is_zero() {
+        return Option::None;
+    }
+    let (r1, d1_0, d1_1, d1_2, d1_3, d1_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(1),
+        current_remainder.residues.r1,
+        *modulus.residues.r1,
+        get_rsa_channel_modulus(1),
+    );
+    if !d1_0.is_zero() || !d1_1.is_zero() || !d1_2.is_zero() || !d1_3.is_zero() || !d1_4.is_zero() {
+        return Option::None;
+    }
+    let (r2, d2_0, d2_1, d2_2, d2_3, d2_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(2),
+        current_remainder.residues.r2,
+        *modulus.residues.r2,
+        get_rsa_channel_modulus(2),
+    );
+    if !d2_0.is_zero() || !d2_1.is_zero() || !d2_2.is_zero() || !d2_3.is_zero() || !d2_4.is_zero() {
+        return Option::None;
+    }
+    let (r3, d3_0, d3_1, d3_2, d3_3, d3_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(3),
+        current_remainder.residues.r3,
+        *modulus.residues.r3,
+        get_rsa_channel_modulus(3),
+    );
+    if !d3_0.is_zero() || !d3_1.is_zero() || !d3_2.is_zero() || !d3_3.is_zero() || !d3_4.is_zero() {
+        return Option::None;
+    }
+    let (r4, d4_0, d4_1, d4_2, d4_3, d4_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(4),
+        current_remainder.residues.r4,
+        *modulus.residues.r4,
+        get_rsa_channel_modulus(4),
+    );
+    if !d4_0.is_zero() || !d4_1.is_zero() || !d4_2.is_zero() || !d4_3.is_zero() || !d4_4.is_zero() {
+        return Option::None;
+    }
+    let (r5, d5_0, d5_1, d5_2, d5_3, d5_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(5),
+        current_remainder.residues.r5,
+        *modulus.residues.r5,
+        get_rsa_channel_modulus(5),
+    );
+    if !d5_0.is_zero() || !d5_1.is_zero() || !d5_2.is_zero() || !d5_3.is_zero() || !d5_4.is_zero() {
+        return Option::None;
+    }
+    let (r6, d6_0, d6_1, d6_2, d6_3, d6_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(6),
+        current_remainder.residues.r6,
+        *modulus.residues.r6,
+        get_rsa_channel_modulus(6),
+    );
+    if !d6_0.is_zero() || !d6_1.is_zero() || !d6_2.is_zero() || !d6_3.is_zero() || !d6_4.is_zero() {
+        return Option::None;
+    }
+    let (r7, d7_0, d7_1, d7_2, d7_3, d7_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(7),
+        current_remainder.residues.r7,
+        *modulus.residues.r7,
+        get_rsa_channel_modulus(7),
+    );
+    if !d7_0.is_zero() || !d7_1.is_zero() || !d7_2.is_zero() || !d7_3.is_zero() || !d7_4.is_zero() {
+        return Option::None;
+    }
+    let (r8, d8_0, d8_1, d8_2, d8_3, d8_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(8),
+        current_remainder.residues.r8,
+        *modulus.residues.r8,
+        get_rsa_channel_modulus(8),
+    );
+    if !d8_0.is_zero() || !d8_1.is_zero() || !d8_2.is_zero() || !d8_3.is_zero() || !d8_4.is_zero() {
+        return Option::None;
+    }
+    let (r9, d9_0, d9_1, d9_2, d9_3, d9_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(9),
+        current_remainder.residues.r9,
+        *modulus.residues.r9,
+        get_rsa_channel_modulus(9),
+    );
+    if !d9_0.is_zero() || !d9_1.is_zero() || !d9_2.is_zero() || !d9_3.is_zero() || !d9_4.is_zero() {
+        return Option::None;
+    }
+    let (r10, d10_0, d10_1, d10_2, d10_3, d10_4) = run_RSA_BATCHED_SQUARING_circuit(
+        w0.quotient.chunks,
+        w0.remainder.chunks,
+        w1.quotient.chunks,
+        w1.remainder.chunks,
+        w2.quotient.chunks,
+        w2.remainder.chunks,
+        w3.quotient.chunks,
+        w3.remainder.chunks,
+        w4.quotient.chunks,
+        w4.remainder.chunks,
+        get_rsa_chunk_step(10),
+        current_remainder.residues.r10,
+        *modulus.residues.r10,
+        get_rsa_channel_modulus(10),
+    );
+    if !d10_0.is_zero()
+        || !d10_1.is_zero()
+        || !d10_2.is_zero()
+        || !d10_3.is_zero()
+        || !d10_4.is_zero() {
+        return Option::None;
+    }
+
+    Option::Some(
+        RSA2048EvaluatedValue {
+            chunks: w4.remainder.chunks,
+            residues: RSA2048Residues { r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10 },
+        },
+    )
+}
+
+#[inline(never)]
+fn validate_batched_square_reductions(
+    remaining_batches: usize,
+    current_remainder: RSA2048EvaluatedValue,
+    modulus: @RSA2048EvaluatedValue,
+    ref reductions_hint: Span<felt252>,
+) -> Option<RSA2048EvaluatedValue> {
+    if remaining_batches == 0 {
         return Option::Some(current_remainder);
     }
 
-    let next_remainder = pop_and_validate_reduction_witness(
-        @current_remainder, @current_remainder, modulus, ref reductions_hint,
+    let next_remainder = pop_and_validate_batched_square_reductions(
+        current_remainder, modulus, ref reductions_hint,
     )?;
-    validate_square_reductions(remaining - 1, next_remainder, modulus, ref reductions_hint)
+    validate_batched_square_reductions(
+        remaining_batches - 1, next_remainder, modulus, ref reductions_hint,
+    )
 }
 
 #[inline(never)]
 pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
     signature: @RSA2048SignatureWithHint, public_key: @RSA2048PublicKey,
 ) -> bool {
-    let modulus = match evaluate_rsa2048_encoded_value(public_key.modulus) {
-        Option::Some(value) => value,
-        Option::None => { return false; },
-    };
-    let base_signature = match evaluate_rsa2048_encoded_value(signature.signature.signature) {
-        Option::Some(value) => value,
-        Option::None => { return false; },
-    };
-    let expected_message =
-        match evaluate_rsa2048_encoded_value(signature.signature.expected_message) {
-        Option::Some(value) => value,
-        Option::None => { return false; },
-    };
+    let modulus_chunks = *public_key.modulus.chunks;
+    let sig_chunks = *signature.signature.signature.chunks;
+    let expected_message_chunks = *signature.signature.expected_message.chunks;
 
-    if chunks_le(modulus.chunks, RSA_ONE_CHUNKS) {
+    if !top_chunk_is_well_formed(modulus_chunks.w5) {
         return false;
     }
-    if is_even_u384(modulus.chunks.w0) {
+    if !top_chunk_is_well_formed(sig_chunks.w5) {
         return false;
     }
-    if !chunks_lt(base_signature.chunks, modulus.chunks) {
+    if !top_chunk_is_well_formed(expected_message_chunks.w5) {
         return false;
     }
-    if !chunks_lt(expected_message.chunks, modulus.chunks) {
+
+    if chunks_le(modulus_chunks, RSA_ONE_CHUNKS) {
+        return false;
+    }
+    if is_even_u384(modulus_chunks.w0) {
+        return false;
+    }
+    if !chunks_lt(sig_chunks, modulus_chunks) {
+        return false;
+    }
+    if !chunks_lt(expected_message_chunks, modulus_chunks) {
         return false;
     }
 
     let mut reductions_hint = *signature.reductions_hint;
+
+    // First step: mega-fused circuit evaluates mod, sig, quot, rem + relation check
+    let (current_remainder, modulus_residues, signature_residues) =
+        match pop_and_validate_first_reduction(sig_chunks, modulus_chunks, ref reductions_hint) {
+        Option::Some(result) => result,
+        Option::None => { return false; },
+    };
+
+    let modulus = RSA2048EvaluatedValue { chunks: modulus_chunks, residues: modulus_residues };
+    let base_signature = RSA2048EvaluatedValue { chunks: sig_chunks, residues: signature_residues };
+
+    // Steps 2-16: 15 square reductions in 3 batches of 5
     let current_remainder =
-        match pop_and_validate_reduction_witness(
-            @base_signature, @base_signature, @modulus, ref reductions_hint,
+        match validate_batched_square_reductions(
+            3, current_remainder, @modulus, ref reductions_hint,
         ) {
         Option::Some(remainder) => remainder,
         Option::None => { return false; },
     };
-    let current_remainder =
-        match validate_square_reductions(
-            RSA2048_REDUCTION_COUNT - 2, current_remainder, @modulus, ref reductions_hint,
-        ) {
-        Option::Some(remainder) => remainder,
-        Option::None => { return false; },
-    };
+    // Step 17: final multiply by signature
     let current_remainder =
         match pop_and_validate_reduction_witness(
             @current_remainder, @base_signature, @modulus, ref reductions_hint,
@@ -772,7 +1210,7 @@ pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
         return false;
     }
 
-    current_remainder.chunks == expected_message.chunks
+    current_remainder.chunks == expected_message_chunks
 }
 
 pub fn is_valid_rsa2048_signature_assuming_encoded_message(
