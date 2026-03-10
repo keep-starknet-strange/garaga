@@ -29,8 +29,8 @@ corelib_imports = { path = "corelib_imports", version = "0.1.2" }
 starknet = "2.16.1-rc.0"
 
 [dev-dependencies]
-snforge_std = "0.57.0"
-assert_macros = "2.16.1-rc.0"
+snforge_std = "0.56.0"
+assert_macros = "2.14.0"
 #cairo_test = "2.14.0"
 cairo_execute = "2.16.1-rc.0"
 
