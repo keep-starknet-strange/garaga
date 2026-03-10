@@ -4,7 +4,7 @@ use garaga::groth16::Groth16VerifyingKey;
 
 pub const N_PUBLIC_INPUTS: usize = 2;
 
-pub const vk: Groth16VerifyingKey<u288> = Groth16VerifyingKey {
+pub const vk: Groth16VerifyingKey = Groth16VerifyingKey {
     alpha_beta_miller_loop_result: E12D {
         w0: u288 {
             limb0: 0x38febe9f87f730fa3e5bd174,
@@ -167,7 +167,7 @@ pub const ic: [G1Point; 3] = [
 ];
 
 
-pub const precomputed_lines: [G2Line<u288>; 176] = [
+pub const precomputed_lines: [G2Line; 176] = [
     G2Line {
         r0a0: u288 {
             limb0: 0x4d347301094edcbfa224d3d5,
