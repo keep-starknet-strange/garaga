@@ -1,6 +1,5 @@
 use core::circuit::{CircuitModulus, u384, u96};
 use core::num::traits::Zero;
-use core::panic_with_felt252;
 use core::serde::Serde;
 use core::traits::TryInto;
 use corelib_imports::bounded_int::upcast;
@@ -10,8 +9,7 @@ use garaga::definitions::{RSA2048Chunks, deserialize_u384, serialize_u384};
 
 const RSA_TOP_CHUNK_LIMB1_MAX: u128 = 0xFFFF_FFFF_u128;
 const RSA2048_CHUNKS_SERIALIZED_LEN: usize = 24;
-const RSA2048_ENCODED_VALUE_SERIALIZED_LEN: usize = RSA2048_CHUNKS_SERIALIZED_LEN;
-const RSA2048_REDUCTION_WITNESS_SERIALIZED_LEN: usize = 2 * RSA2048_ENCODED_VALUE_SERIALIZED_LEN;
+const RSA2048_REDUCTION_WITNESS_SERIALIZED_LEN: usize = 2 * RSA2048_CHUNKS_SERIALIZED_LEN;
 const RSA2048_REDUCTION_COUNT: usize = 17;
 const RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN: usize = RSA2048_REDUCTION_COUNT
     * RSA2048_REDUCTION_WITNESS_SERIALIZED_LEN;
@@ -61,19 +59,6 @@ const RSA_CHANNEL_MODULI: [[u96; 4]; 11] = [
         0x1fffffffffffffffffffffff,
     ],
 ];
-const RSA_CHUNK_STEP_MODULI: [u384; 11] = [
-    u384 { limb0: 0x16f8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x2598, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x6098, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x7d18, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x9668, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xb238, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xbc48, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xd928, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xdf88, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xfbe8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x11718, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-];
 const U384_ZERO: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
 const U384_ONE: u384 = u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
 const RSA_ONE_CHUNKS: RSA2048Chunks = RSA2048Chunks {
@@ -100,104 +85,55 @@ fn deserialize_rsa2048_chunks(ref serialized: Span<felt252>) -> RSA2048Chunks {
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
-pub struct RSA2048EncodedValue {
-    pub chunks: RSA2048Chunks,
-}
-
-fn serialize_rsa2048_encoded_value(self: @RSA2048EncodedValue, ref output: Array<felt252>) {
-    serialize_rsa2048_chunks(self.chunks, ref output);
-}
-
-fn deserialize_rsa2048_encoded_value(ref serialized: Span<felt252>) -> RSA2048EncodedValue {
-    let chunks = deserialize_rsa2048_chunks(ref serialized);
-    RSA2048EncodedValue { chunks }
-}
-
-pub impl RSA2048EncodedValueSerde of Serde<RSA2048EncodedValue> {
-    fn serialize(self: @RSA2048EncodedValue, ref output: Array<felt252>) {
-        serialize_rsa2048_encoded_value(self, ref output);
-    }
-
-    fn deserialize(ref serialized: Span<felt252>) -> Option<RSA2048EncodedValue> {
-        Option::Some(deserialize_rsa2048_encoded_value(ref serialized))
-    }
-}
-
-#[derive(Copy, Drop, Debug, PartialEq)]
 pub struct RSA2048PublicKey {
-    pub modulus: RSA2048EncodedValue,
-}
-
-fn serialize_rsa2048_public_key(self: @RSA2048PublicKey, ref output: Array<felt252>) {
-    serialize_rsa2048_encoded_value(self.modulus, ref output);
-}
-
-fn deserialize_rsa2048_public_key(ref serialized: Span<felt252>) -> RSA2048PublicKey {
-    let modulus = deserialize_rsa2048_encoded_value(ref serialized);
-    RSA2048PublicKey { modulus }
+    pub modulus: RSA2048Chunks,
 }
 
 pub impl RSA2048PublicKeySerde of Serde<RSA2048PublicKey> {
     fn serialize(self: @RSA2048PublicKey, ref output: Array<felt252>) {
-        serialize_rsa2048_public_key(self, ref output);
+        serialize_rsa2048_chunks(self.modulus, ref output);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<RSA2048PublicKey> {
-        Option::Some(deserialize_rsa2048_public_key(ref serialized))
+        Option::Some(RSA2048PublicKey { modulus: deserialize_rsa2048_chunks(ref serialized) })
     }
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct RSA2048Signature {
-    pub signature: RSA2048EncodedValue,
-    pub expected_message: RSA2048EncodedValue,
-}
-
-fn serialize_rsa2048_signature(self: @RSA2048Signature, ref output: Array<felt252>) {
-    serialize_rsa2048_encoded_value(self.signature, ref output);
-    serialize_rsa2048_encoded_value(self.expected_message, ref output);
-}
-
-fn deserialize_rsa2048_signature(ref serialized: Span<felt252>) -> RSA2048Signature {
-    let signature = deserialize_rsa2048_encoded_value(ref serialized);
-    let expected_message = deserialize_rsa2048_encoded_value(ref serialized);
-    RSA2048Signature { signature, expected_message }
+    pub signature: RSA2048Chunks,
+    pub expected_message: RSA2048Chunks,
 }
 
 pub impl RSA2048SignatureSerde of Serde<RSA2048Signature> {
     fn serialize(self: @RSA2048Signature, ref output: Array<felt252>) {
-        serialize_rsa2048_signature(self, ref output);
+        serialize_rsa2048_chunks(self.signature, ref output);
+        serialize_rsa2048_chunks(self.expected_message, ref output);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<RSA2048Signature> {
-        Option::Some(deserialize_rsa2048_signature(ref serialized))
+        let signature = deserialize_rsa2048_chunks(ref serialized);
+        let expected_message = deserialize_rsa2048_chunks(ref serialized);
+        Option::Some(RSA2048Signature { signature, expected_message })
     }
 }
 
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct RSA2048ReductionWitness {
-    pub quotient: RSA2048EncodedValue,
-    pub remainder: RSA2048EncodedValue,
-}
-
-fn serialize_rsa2048_reduction_witness(self: @RSA2048ReductionWitness, ref output: Array<felt252>) {
-    serialize_rsa2048_encoded_value(self.quotient, ref output);
-    serialize_rsa2048_encoded_value(self.remainder, ref output);
-}
-
-fn deserialize_rsa2048_reduction_witness(ref serialized: Span<felt252>) -> RSA2048ReductionWitness {
-    let quotient = deserialize_rsa2048_encoded_value(ref serialized);
-    let remainder = deserialize_rsa2048_encoded_value(ref serialized);
-    RSA2048ReductionWitness { quotient, remainder }
+    pub quotient: RSA2048Chunks,
+    pub remainder: RSA2048Chunks,
 }
 
 pub impl RSA2048ReductionWitnessSerde of Serde<RSA2048ReductionWitness> {
     fn serialize(self: @RSA2048ReductionWitness, ref output: Array<felt252>) {
-        serialize_rsa2048_reduction_witness(self, ref output);
+        serialize_rsa2048_chunks(self.quotient, ref output);
+        serialize_rsa2048_chunks(self.remainder, ref output);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<RSA2048ReductionWitness> {
-        Option::Some(deserialize_rsa2048_reduction_witness(ref serialized))
+        let quotient = deserialize_rsa2048_chunks(ref serialized);
+        let remainder = deserialize_rsa2048_chunks(ref serialized);
+        Option::Some(RSA2048ReductionWitness { quotient, remainder })
     }
 }
 
@@ -207,170 +143,41 @@ pub struct RSA2048SignatureWithHint {
     pub reductions_hint: Span<felt252>,
 }
 
-fn serialize_rsa2048_reductions_hint(reductions_hint: Span<felt252>, ref output: Array<felt252>) {
-    output.append_span(reductions_hint);
-}
-
-fn deserialize_rsa2048_reductions_hint(ref serialized: Span<felt252>) -> Option<Span<felt252>> {
-    let serialized_len = serialized.len();
-    if serialized_len < RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN {
-        return Option::None;
-    }
-    let reductions_hint = serialized.slice(0, RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN);
-    serialized = serialized
-        .slice(
-            RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN,
-            serialized_len - RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN,
-        );
-    Option::Some(reductions_hint)
-}
-
-fn serialize_rsa2048_signature_with_hint(
-    self: @RSA2048SignatureWithHint, ref output: Array<felt252>,
-) {
-    serialize_rsa2048_signature(self.signature, ref output);
-    serialize_rsa2048_reductions_hint(*self.reductions_hint, ref output);
-}
-
-fn deserialize_rsa2048_signature_with_hint(
-    ref serialized: Span<felt252>,
-) -> Option<RSA2048SignatureWithHint> {
-    let signature = Serde::<RSA2048Signature>::deserialize(ref serialized)?;
-    let reductions_hint = deserialize_rsa2048_reductions_hint(ref serialized)?;
-    Option::Some(RSA2048SignatureWithHint { signature, reductions_hint })
-}
-
 pub impl SerdeRSA2048SignatureWithHint of Serde<RSA2048SignatureWithHint> {
     fn serialize(self: @RSA2048SignatureWithHint, ref output: Array<felt252>) {
-        serialize_rsa2048_signature_with_hint(self, ref output);
+        Serde::<RSA2048Signature>::serialize(self.signature, ref output);
+        output.append_span(*self.reductions_hint);
     }
 
     fn deserialize(ref serialized: Span<felt252>) -> Option<RSA2048SignatureWithHint> {
-        deserialize_rsa2048_signature_with_hint(ref serialized)
+        let signature = Serde::<RSA2048Signature>::deserialize(ref serialized)?;
+        let serialized_len = serialized.len();
+        if serialized_len < RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN {
+            return Option::None;
+        }
+        let reductions_hint = serialized.slice(0, RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN);
+        serialized = serialized
+            .slice(
+                RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN,
+                serialized_len - RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN,
+            );
+        Option::Some(RSA2048SignatureWithHint { signature, reductions_hint })
     }
 }
 
-fn get_rsa_channel_modulus(i: usize) -> CircuitModulus {
-    return match i {
-        0 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xfffffffffffffffffffffd21, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        1 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xfffffffffffffffffffffb4d, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        2 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xfffffffffffffffffffff3ed, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        3 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xfffffffffffffffffffff05d, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        4 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffed33, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        5 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffe9b9, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        6 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffe877, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        7 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffe4db, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        8 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffe40f, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        9 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffe083, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        10 => TryInto::<
-            _, CircuitModulus,
-        >::try_into(
-            [
-                0xffffffffffffffffffffdd1d, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
-                0x1fffffffffffffffffffffff,
-            ],
-        )
-            .unwrap(),
-        _ => panic_with_felt252('bad channel'),
-    };
-}
-
-fn get_rsa_chunk_step(i: usize) -> u384 {
-    match i {
-        0 => u384 { limb0: 0x16f8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        1 => u384 { limb0: 0x2598, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        2 => u384 { limb0: 0x6098, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        3 => u384 { limb0: 0x7d18, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        4 => u384 { limb0: 0x9668, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        5 => u384 { limb0: 0xb238, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        6 => u384 { limb0: 0xbc48, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        7 => u384 { limb0: 0xd928, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        8 => u384 { limb0: 0xdf88, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        9 => u384 { limb0: 0xfbe8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        10 => u384 { limb0: 0x11718, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        _ => panic_with_felt252('bad channel'),
-    }
-}
+const RSA_CHUNK_STEPS: [u384; 11] = [
+    u384 { limb0: 0x16f8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x2598, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x6098, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x7d18, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x9668, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xb238, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xbc48, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xd928, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xdf88, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xfbe8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x11718, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+];
 
 fn limb_lt(lhs: u96, rhs: u96) -> bool {
     let lhs_u128: u128 = upcast(lhs);
@@ -425,13 +232,26 @@ fn top_chunk_is_well_formed(top: u384) -> bool {
     limb1 <= RSA_TOP_CHUNK_LIMB1_MAX
 }
 
+/// Validate a reduction witness: top chunks well-formed for both quotient and remainder,
+/// and remainder < modulus.
+fn deserialize_and_validate_witness(
+    ref hint: Span<felt252>, modulus_chunks: RSA2048Chunks,
+) -> RSA2048ReductionWitness {
+    let quotient = deserialize_rsa2048_chunks(ref hint);
+    let remainder = deserialize_rsa2048_chunks(ref hint);
+    assert(top_chunk_is_well_formed(quotient.w5), 'RSA:bad quotient top chunk');
+    assert(top_chunk_is_well_formed(remainder.w5), 'RSA:bad remainder top chunk');
+    assert(chunks_lt(remainder, modulus_chunks), 'RSA:remainder >= modulus');
+    RSA2048ReductionWitness { quotient, remainder }
+}
+
 #[inline(never)]
 pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
     signature: @RSA2048SignatureWithHint, public_key: @RSA2048PublicKey,
 ) -> bool {
-    let modulus_chunks = *public_key.modulus.chunks;
-    let sig_chunks = *signature.signature.signature.chunks;
-    let expected_message_chunks = *signature.signature.expected_message.chunks;
+    let modulus_chunks = *public_key.modulus;
+    let sig_chunks = *signature.signature.signature;
+    let expected_message_chunks = *signature.signature.expected_message;
 
     if !top_chunk_is_well_formed(modulus_chunks.w5) {
         return false;
@@ -463,228 +283,73 @@ pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
         return false;
     }
 
-    let w0 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w1 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w2 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w3 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w4 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w5 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w6 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w7 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w8 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w9 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w10 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w11 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w12 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w13 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w14 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w15 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
-    let w16 = deserialize_rsa2048_reduction_witness(ref reductions_hint);
+    let w0 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w1 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w2 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w3 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w4 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w5 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w6 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w7 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w8 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w9 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w10 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w11 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w12 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w13 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w14 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w15 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
+    let w16 = deserialize_and_validate_witness(ref reductions_hint, modulus_chunks);
 
     if !reductions_hint.is_empty() {
         return false;
     }
 
-    // Validate top chunks for all 34 values (17 quotients + 17 remainders)
-    if !top_chunk_is_well_formed(w0.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w0.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w1.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w1.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w2.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w2.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w3.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w3.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w4.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w4.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w5.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w5.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w6.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w6.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w7.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w7.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w8.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w8.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w9.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w9.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w10.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w10.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w11.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w11.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w12.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w12.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w13.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w13.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w14.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w14.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w15.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w15.remainder.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w16.quotient.chunks.w5) {
-        return false;
-    }
-    if !top_chunk_is_well_formed(w16.remainder.chunks.w5) {
-        return false;
-    }
-
-    // Validate all 17 remainders < modulus
-    if !chunks_lt(w0.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w1.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w2.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w3.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w4.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w5.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w6.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w7.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w8.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w9.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w10.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w11.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w12.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w13.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w14.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w15.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-    if !chunks_lt(w16.remainder.chunks, modulus_chunks) {
-        return false;
-    }
-
     // Run mega-circuit for each of 11 channels
-    let mut channel_idx: usize = 0;
-    while channel_idx < 11 {
+    let mut steps = RSA_CHUNK_STEPS.span();
+    for modulus_limbs in RSA_CHANNEL_MODULI.span() {
+        let step = *steps.pop_front().unwrap();
+        let modulus: CircuitModulus = (*modulus_limbs).try_into().unwrap();
         let (d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16) =
             run_RSA_FULL_VERIFICATION_circuit(
             modulus_chunks,
             sig_chunks,
-            w0.quotient.chunks,
-            w0.remainder.chunks,
-            w1.quotient.chunks,
-            w1.remainder.chunks,
-            w2.quotient.chunks,
-            w2.remainder.chunks,
-            w3.quotient.chunks,
-            w3.remainder.chunks,
-            w4.quotient.chunks,
-            w4.remainder.chunks,
-            w5.quotient.chunks,
-            w5.remainder.chunks,
-            w6.quotient.chunks,
-            w6.remainder.chunks,
-            w7.quotient.chunks,
-            w7.remainder.chunks,
-            w8.quotient.chunks,
-            w8.remainder.chunks,
-            w9.quotient.chunks,
-            w9.remainder.chunks,
-            w10.quotient.chunks,
-            w10.remainder.chunks,
-            w11.quotient.chunks,
-            w11.remainder.chunks,
-            w12.quotient.chunks,
-            w12.remainder.chunks,
-            w13.quotient.chunks,
-            w13.remainder.chunks,
-            w14.quotient.chunks,
-            w14.remainder.chunks,
-            w15.quotient.chunks,
-            w15.remainder.chunks,
-            w16.quotient.chunks,
-            w16.remainder.chunks,
-            get_rsa_chunk_step(channel_idx),
-            get_rsa_channel_modulus(channel_idx),
+            w0.quotient,
+            w0.remainder,
+            w1.quotient,
+            w1.remainder,
+            w2.quotient,
+            w2.remainder,
+            w3.quotient,
+            w3.remainder,
+            w4.quotient,
+            w4.remainder,
+            w5.quotient,
+            w5.remainder,
+            w6.quotient,
+            w6.remainder,
+            w7.quotient,
+            w7.remainder,
+            w8.quotient,
+            w8.remainder,
+            w9.quotient,
+            w9.remainder,
+            w10.quotient,
+            w10.remainder,
+            w11.quotient,
+            w11.remainder,
+            w12.quotient,
+            w12.remainder,
+            w13.quotient,
+            w13.remainder,
+            w14.quotient,
+            w14.remainder,
+            w15.quotient,
+            w15.remainder,
+            w16.quotient,
+            w16.remainder,
+            step,
+            modulus,
         );
         if !d0.is_zero()
             || !d1.is_zero()
@@ -705,11 +370,10 @@ pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
             || !d16.is_zero() {
             return false;
         }
-        channel_idx += 1;
     }
 
     // Compare last remainder == expected message
-    w16.remainder.chunks == expected_message_chunks
+    w16.remainder == expected_message_chunks
 }
 
 pub fn is_valid_rsa2048_signature_assuming_encoded_message(
