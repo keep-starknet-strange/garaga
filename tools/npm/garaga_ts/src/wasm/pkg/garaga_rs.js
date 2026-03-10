@@ -328,6 +328,40 @@ export function eddsa_calldata_builder(ry_twisted, s, py_twisted, msg, prepend_p
 }
 
 /**
+ * @param {any} signature
+ * @param {any} expected_message
+ * @param {any} modulus
+ * @param {boolean} prepend_public_key
+ * @returns {any[]}
+ */
+export function rsa_2048_calldata_builder(signature, expected_message, modulus, prepend_public_key) {
+    const ret = wasm.rsa_2048_calldata_builder(signature, expected_message, modulus, prepend_public_key);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v1;
+}
+
+/**
+ * @param {any} signature
+ * @param {any} message
+ * @param {any} modulus
+ * @param {boolean} prepend_public_key
+ * @returns {any[]}
+ */
+export function rsa_2048_sha256_calldata_builder(signature, message, modulus, prepend_public_key) {
+    const ret = wasm.rsa_2048_sha256_calldata_builder(signature, message, modulus, prepend_public_key);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v1;
+}
+
+/**
  * @param {any} x_twisted
  * @param {any} y_twisted
  * @returns {any[]}

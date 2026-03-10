@@ -7,6 +7,8 @@ export function mpc_calldata_builder(curve_id: number, values1: any[], n_fixed_g
 export function schnorr_calldata_builder(rx: any, s: any, e: any, px: any, py: any, prepend_public_key: boolean, curve_id: number): any[];
 export function ecdsa_calldata_builder(r: any, s: any, v: number, px: any, py: any, z: any, prepend_public_key: boolean, curve_id: number): any[];
 export function eddsa_calldata_builder(ry_twisted: any, s: any, py_twisted: any, msg: any, prepend_public_key: boolean): any[];
+export function rsa_2048_calldata_builder(signature: any, expected_message: any, modulus: any, prepend_public_key: boolean): any[];
+export function rsa_2048_sha256_calldata_builder(signature: any, message: any, modulus: any, prepend_public_key: boolean): any[];
 export function to_weirstrass(x_twisted: any, y_twisted: any): any[];
 export function to_twistededwards(x_weirstrass: any, y_weirstrass: any): any[];
 export function get_groth16_calldata(proof_js: any, vk_js: any, curve_id_js: any): any[];
@@ -24,6 +26,8 @@ export interface InitOutput {
   readonly schnorr_calldata_builder: (a: any, b: any, c: any, d: any, e: any, f: number, g: number) => [number, number, number, number];
   readonly ecdsa_calldata_builder: (a: any, b: any, c: number, d: any, e: any, f: any, g: number, h: number) => [number, number, number, number];
   readonly eddsa_calldata_builder: (a: any, b: any, c: any, d: any, e: number) => [number, number, number, number];
+  readonly rsa_2048_calldata_builder: (a: any, b: any, c: any, d: number) => [number, number, number, number];
+  readonly rsa_2048_sha256_calldata_builder: (a: any, b: any, c: any, d: number) => [number, number, number, number];
   readonly to_weirstrass: (a: any, b: any) => [number, number, number, number];
   readonly to_twistededwards: (a: any, b: any) => [number, number, number, number];
   readonly get_groth16_calldata: (a: any, b: any, c: any) => [number, number, number, number];
