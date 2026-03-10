@@ -3,7 +3,7 @@ use core::circuit::{
     circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
-use garaga::definitions::RSA2048Chunks;
+use garaga::definitions::{RSA2048Chunks, RSA2048ReductionWitness};
 
 impl CircuitDefinition17<
     E0, E1, E2, E3, E4, E5, E6, E7, E8, E9, E10, E11, E12, E13, E14, E15, E16,
@@ -60,40 +60,23 @@ impl MyDrp_17<
 pub fn run_RSA_FULL_VERIFICATION_circuit(
     mod_chunks: RSA2048Chunks,
     sig_chunks: RSA2048Chunks,
-    quot_chunks_0: RSA2048Chunks,
-    rem_chunks_0: RSA2048Chunks,
-    quot_chunks_1: RSA2048Chunks,
-    rem_chunks_1: RSA2048Chunks,
-    quot_chunks_2: RSA2048Chunks,
-    rem_chunks_2: RSA2048Chunks,
-    quot_chunks_3: RSA2048Chunks,
-    rem_chunks_3: RSA2048Chunks,
-    quot_chunks_4: RSA2048Chunks,
-    rem_chunks_4: RSA2048Chunks,
-    quot_chunks_5: RSA2048Chunks,
-    rem_chunks_5: RSA2048Chunks,
-    quot_chunks_6: RSA2048Chunks,
-    rem_chunks_6: RSA2048Chunks,
-    quot_chunks_7: RSA2048Chunks,
-    rem_chunks_7: RSA2048Chunks,
-    quot_chunks_8: RSA2048Chunks,
-    rem_chunks_8: RSA2048Chunks,
-    quot_chunks_9: RSA2048Chunks,
-    rem_chunks_9: RSA2048Chunks,
-    quot_chunks_10: RSA2048Chunks,
-    rem_chunks_10: RSA2048Chunks,
-    quot_chunks_11: RSA2048Chunks,
-    rem_chunks_11: RSA2048Chunks,
-    quot_chunks_12: RSA2048Chunks,
-    rem_chunks_12: RSA2048Chunks,
-    quot_chunks_13: RSA2048Chunks,
-    rem_chunks_13: RSA2048Chunks,
-    quot_chunks_14: RSA2048Chunks,
-    rem_chunks_14: RSA2048Chunks,
-    quot_chunks_15: RSA2048Chunks,
-    rem_chunks_15: RSA2048Chunks,
-    quot_chunks_16: RSA2048Chunks,
-    rem_chunks_16: RSA2048Chunks,
+    w_0: RSA2048ReductionWitness,
+    w_1: RSA2048ReductionWitness,
+    w_2: RSA2048ReductionWitness,
+    w_3: RSA2048ReductionWitness,
+    w_4: RSA2048ReductionWitness,
+    w_5: RSA2048ReductionWitness,
+    w_6: RSA2048ReductionWitness,
+    w_7: RSA2048ReductionWitness,
+    w_8: RSA2048ReductionWitness,
+    w_9: RSA2048ReductionWitness,
+    w_10: RSA2048ReductionWitness,
+    w_11: RSA2048ReductionWitness,
+    w_12: RSA2048ReductionWitness,
+    w_13: RSA2048ReductionWitness,
+    w_14: RSA2048ReductionWitness,
+    w_15: RSA2048ReductionWitness,
+    w_16: RSA2048ReductionWitness,
     step: u384,
     modulus: core::circuit::CircuitModulus,
 ) -> (
@@ -655,210 +638,210 @@ pub fn run_RSA_FULL_VERIFICATION_circuit(
     circuit_inputs = circuit_inputs.next_2(sig_chunks.w3); // in9
     circuit_inputs = circuit_inputs.next_2(sig_chunks.w4); // in10
     circuit_inputs = circuit_inputs.next_2(sig_chunks.w5); // in11
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_0.w0); // in12
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_0.w1); // in13
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_0.w2); // in14
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_0.w3); // in15
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_0.w4); // in16
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_0.w5); // in17
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_0.w0); // in18
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_0.w1); // in19
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_0.w2); // in20
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_0.w3); // in21
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_0.w4); // in22
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_0.w5); // in23
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_1.w0); // in24
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_1.w1); // in25
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_1.w2); // in26
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_1.w3); // in27
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_1.w4); // in28
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_1.w5); // in29
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_1.w0); // in30
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_1.w1); // in31
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_1.w2); // in32
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_1.w3); // in33
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_1.w4); // in34
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_1.w5); // in35
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_2.w0); // in36
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_2.w1); // in37
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_2.w2); // in38
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_2.w3); // in39
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_2.w4); // in40
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_2.w5); // in41
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_2.w0); // in42
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_2.w1); // in43
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_2.w2); // in44
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_2.w3); // in45
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_2.w4); // in46
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_2.w5); // in47
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_3.w0); // in48
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_3.w1); // in49
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_3.w2); // in50
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_3.w3); // in51
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_3.w4); // in52
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_3.w5); // in53
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_3.w0); // in54
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_3.w1); // in55
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_3.w2); // in56
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_3.w3); // in57
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_3.w4); // in58
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_3.w5); // in59
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_4.w0); // in60
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_4.w1); // in61
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_4.w2); // in62
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_4.w3); // in63
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_4.w4); // in64
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_4.w5); // in65
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_4.w0); // in66
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_4.w1); // in67
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_4.w2); // in68
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_4.w3); // in69
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_4.w4); // in70
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_4.w5); // in71
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_5.w0); // in72
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_5.w1); // in73
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_5.w2); // in74
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_5.w3); // in75
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_5.w4); // in76
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_5.w5); // in77
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_5.w0); // in78
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_5.w1); // in79
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_5.w2); // in80
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_5.w3); // in81
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_5.w4); // in82
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_5.w5); // in83
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_6.w0); // in84
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_6.w1); // in85
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_6.w2); // in86
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_6.w3); // in87
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_6.w4); // in88
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_6.w5); // in89
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_6.w0); // in90
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_6.w1); // in91
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_6.w2); // in92
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_6.w3); // in93
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_6.w4); // in94
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_6.w5); // in95
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_7.w0); // in96
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_7.w1); // in97
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_7.w2); // in98
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_7.w3); // in99
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_7.w4); // in100
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_7.w5); // in101
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_7.w0); // in102
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_7.w1); // in103
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_7.w2); // in104
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_7.w3); // in105
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_7.w4); // in106
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_7.w5); // in107
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_8.w0); // in108
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_8.w1); // in109
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_8.w2); // in110
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_8.w3); // in111
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_8.w4); // in112
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_8.w5); // in113
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_8.w0); // in114
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_8.w1); // in115
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_8.w2); // in116
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_8.w3); // in117
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_8.w4); // in118
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_8.w5); // in119
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_9.w0); // in120
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_9.w1); // in121
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_9.w2); // in122
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_9.w3); // in123
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_9.w4); // in124
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_9.w5); // in125
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_9.w0); // in126
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_9.w1); // in127
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_9.w2); // in128
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_9.w3); // in129
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_9.w4); // in130
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_9.w5); // in131
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_10.w0); // in132
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_10.w1); // in133
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_10.w2); // in134
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_10.w3); // in135
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_10.w4); // in136
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_10.w5); // in137
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_10.w0); // in138
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_10.w1); // in139
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_10.w2); // in140
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_10.w3); // in141
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_10.w4); // in142
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_10.w5); // in143
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_11.w0); // in144
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_11.w1); // in145
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_11.w2); // in146
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_11.w3); // in147
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_11.w4); // in148
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_11.w5); // in149
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_11.w0); // in150
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_11.w1); // in151
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_11.w2); // in152
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_11.w3); // in153
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_11.w4); // in154
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_11.w5); // in155
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_12.w0); // in156
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_12.w1); // in157
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_12.w2); // in158
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_12.w3); // in159
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_12.w4); // in160
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_12.w5); // in161
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_12.w0); // in162
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_12.w1); // in163
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_12.w2); // in164
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_12.w3); // in165
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_12.w4); // in166
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_12.w5); // in167
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_13.w0); // in168
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_13.w1); // in169
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_13.w2); // in170
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_13.w3); // in171
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_13.w4); // in172
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_13.w5); // in173
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_13.w0); // in174
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_13.w1); // in175
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_13.w2); // in176
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_13.w3); // in177
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_13.w4); // in178
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_13.w5); // in179
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_14.w0); // in180
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_14.w1); // in181
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_14.w2); // in182
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_14.w3); // in183
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_14.w4); // in184
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_14.w5); // in185
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_14.w0); // in186
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_14.w1); // in187
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_14.w2); // in188
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_14.w3); // in189
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_14.w4); // in190
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_14.w5); // in191
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_15.w0); // in192
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_15.w1); // in193
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_15.w2); // in194
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_15.w3); // in195
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_15.w4); // in196
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_15.w5); // in197
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_15.w0); // in198
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_15.w1); // in199
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_15.w2); // in200
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_15.w3); // in201
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_15.w4); // in202
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_15.w5); // in203
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_16.w0); // in204
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_16.w1); // in205
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_16.w2); // in206
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_16.w3); // in207
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_16.w4); // in208
-    circuit_inputs = circuit_inputs.next_2(quot_chunks_16.w5); // in209
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_16.w0); // in210
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_16.w1); // in211
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_16.w2); // in212
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_16.w3); // in213
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_16.w4); // in214
-    circuit_inputs = circuit_inputs.next_2(rem_chunks_16.w5); // in215
+    circuit_inputs = circuit_inputs.next_2(w_0.quotient.w0); // in12
+    circuit_inputs = circuit_inputs.next_2(w_0.quotient.w1); // in13
+    circuit_inputs = circuit_inputs.next_2(w_0.quotient.w2); // in14
+    circuit_inputs = circuit_inputs.next_2(w_0.quotient.w3); // in15
+    circuit_inputs = circuit_inputs.next_2(w_0.quotient.w4); // in16
+    circuit_inputs = circuit_inputs.next_2(w_0.quotient.w5); // in17
+    circuit_inputs = circuit_inputs.next_2(w_0.remainder.w0); // in18
+    circuit_inputs = circuit_inputs.next_2(w_0.remainder.w1); // in19
+    circuit_inputs = circuit_inputs.next_2(w_0.remainder.w2); // in20
+    circuit_inputs = circuit_inputs.next_2(w_0.remainder.w3); // in21
+    circuit_inputs = circuit_inputs.next_2(w_0.remainder.w4); // in22
+    circuit_inputs = circuit_inputs.next_2(w_0.remainder.w5); // in23
+    circuit_inputs = circuit_inputs.next_2(w_1.quotient.w0); // in24
+    circuit_inputs = circuit_inputs.next_2(w_1.quotient.w1); // in25
+    circuit_inputs = circuit_inputs.next_2(w_1.quotient.w2); // in26
+    circuit_inputs = circuit_inputs.next_2(w_1.quotient.w3); // in27
+    circuit_inputs = circuit_inputs.next_2(w_1.quotient.w4); // in28
+    circuit_inputs = circuit_inputs.next_2(w_1.quotient.w5); // in29
+    circuit_inputs = circuit_inputs.next_2(w_1.remainder.w0); // in30
+    circuit_inputs = circuit_inputs.next_2(w_1.remainder.w1); // in31
+    circuit_inputs = circuit_inputs.next_2(w_1.remainder.w2); // in32
+    circuit_inputs = circuit_inputs.next_2(w_1.remainder.w3); // in33
+    circuit_inputs = circuit_inputs.next_2(w_1.remainder.w4); // in34
+    circuit_inputs = circuit_inputs.next_2(w_1.remainder.w5); // in35
+    circuit_inputs = circuit_inputs.next_2(w_2.quotient.w0); // in36
+    circuit_inputs = circuit_inputs.next_2(w_2.quotient.w1); // in37
+    circuit_inputs = circuit_inputs.next_2(w_2.quotient.w2); // in38
+    circuit_inputs = circuit_inputs.next_2(w_2.quotient.w3); // in39
+    circuit_inputs = circuit_inputs.next_2(w_2.quotient.w4); // in40
+    circuit_inputs = circuit_inputs.next_2(w_2.quotient.w5); // in41
+    circuit_inputs = circuit_inputs.next_2(w_2.remainder.w0); // in42
+    circuit_inputs = circuit_inputs.next_2(w_2.remainder.w1); // in43
+    circuit_inputs = circuit_inputs.next_2(w_2.remainder.w2); // in44
+    circuit_inputs = circuit_inputs.next_2(w_2.remainder.w3); // in45
+    circuit_inputs = circuit_inputs.next_2(w_2.remainder.w4); // in46
+    circuit_inputs = circuit_inputs.next_2(w_2.remainder.w5); // in47
+    circuit_inputs = circuit_inputs.next_2(w_3.quotient.w0); // in48
+    circuit_inputs = circuit_inputs.next_2(w_3.quotient.w1); // in49
+    circuit_inputs = circuit_inputs.next_2(w_3.quotient.w2); // in50
+    circuit_inputs = circuit_inputs.next_2(w_3.quotient.w3); // in51
+    circuit_inputs = circuit_inputs.next_2(w_3.quotient.w4); // in52
+    circuit_inputs = circuit_inputs.next_2(w_3.quotient.w5); // in53
+    circuit_inputs = circuit_inputs.next_2(w_3.remainder.w0); // in54
+    circuit_inputs = circuit_inputs.next_2(w_3.remainder.w1); // in55
+    circuit_inputs = circuit_inputs.next_2(w_3.remainder.w2); // in56
+    circuit_inputs = circuit_inputs.next_2(w_3.remainder.w3); // in57
+    circuit_inputs = circuit_inputs.next_2(w_3.remainder.w4); // in58
+    circuit_inputs = circuit_inputs.next_2(w_3.remainder.w5); // in59
+    circuit_inputs = circuit_inputs.next_2(w_4.quotient.w0); // in60
+    circuit_inputs = circuit_inputs.next_2(w_4.quotient.w1); // in61
+    circuit_inputs = circuit_inputs.next_2(w_4.quotient.w2); // in62
+    circuit_inputs = circuit_inputs.next_2(w_4.quotient.w3); // in63
+    circuit_inputs = circuit_inputs.next_2(w_4.quotient.w4); // in64
+    circuit_inputs = circuit_inputs.next_2(w_4.quotient.w5); // in65
+    circuit_inputs = circuit_inputs.next_2(w_4.remainder.w0); // in66
+    circuit_inputs = circuit_inputs.next_2(w_4.remainder.w1); // in67
+    circuit_inputs = circuit_inputs.next_2(w_4.remainder.w2); // in68
+    circuit_inputs = circuit_inputs.next_2(w_4.remainder.w3); // in69
+    circuit_inputs = circuit_inputs.next_2(w_4.remainder.w4); // in70
+    circuit_inputs = circuit_inputs.next_2(w_4.remainder.w5); // in71
+    circuit_inputs = circuit_inputs.next_2(w_5.quotient.w0); // in72
+    circuit_inputs = circuit_inputs.next_2(w_5.quotient.w1); // in73
+    circuit_inputs = circuit_inputs.next_2(w_5.quotient.w2); // in74
+    circuit_inputs = circuit_inputs.next_2(w_5.quotient.w3); // in75
+    circuit_inputs = circuit_inputs.next_2(w_5.quotient.w4); // in76
+    circuit_inputs = circuit_inputs.next_2(w_5.quotient.w5); // in77
+    circuit_inputs = circuit_inputs.next_2(w_5.remainder.w0); // in78
+    circuit_inputs = circuit_inputs.next_2(w_5.remainder.w1); // in79
+    circuit_inputs = circuit_inputs.next_2(w_5.remainder.w2); // in80
+    circuit_inputs = circuit_inputs.next_2(w_5.remainder.w3); // in81
+    circuit_inputs = circuit_inputs.next_2(w_5.remainder.w4); // in82
+    circuit_inputs = circuit_inputs.next_2(w_5.remainder.w5); // in83
+    circuit_inputs = circuit_inputs.next_2(w_6.quotient.w0); // in84
+    circuit_inputs = circuit_inputs.next_2(w_6.quotient.w1); // in85
+    circuit_inputs = circuit_inputs.next_2(w_6.quotient.w2); // in86
+    circuit_inputs = circuit_inputs.next_2(w_6.quotient.w3); // in87
+    circuit_inputs = circuit_inputs.next_2(w_6.quotient.w4); // in88
+    circuit_inputs = circuit_inputs.next_2(w_6.quotient.w5); // in89
+    circuit_inputs = circuit_inputs.next_2(w_6.remainder.w0); // in90
+    circuit_inputs = circuit_inputs.next_2(w_6.remainder.w1); // in91
+    circuit_inputs = circuit_inputs.next_2(w_6.remainder.w2); // in92
+    circuit_inputs = circuit_inputs.next_2(w_6.remainder.w3); // in93
+    circuit_inputs = circuit_inputs.next_2(w_6.remainder.w4); // in94
+    circuit_inputs = circuit_inputs.next_2(w_6.remainder.w5); // in95
+    circuit_inputs = circuit_inputs.next_2(w_7.quotient.w0); // in96
+    circuit_inputs = circuit_inputs.next_2(w_7.quotient.w1); // in97
+    circuit_inputs = circuit_inputs.next_2(w_7.quotient.w2); // in98
+    circuit_inputs = circuit_inputs.next_2(w_7.quotient.w3); // in99
+    circuit_inputs = circuit_inputs.next_2(w_7.quotient.w4); // in100
+    circuit_inputs = circuit_inputs.next_2(w_7.quotient.w5); // in101
+    circuit_inputs = circuit_inputs.next_2(w_7.remainder.w0); // in102
+    circuit_inputs = circuit_inputs.next_2(w_7.remainder.w1); // in103
+    circuit_inputs = circuit_inputs.next_2(w_7.remainder.w2); // in104
+    circuit_inputs = circuit_inputs.next_2(w_7.remainder.w3); // in105
+    circuit_inputs = circuit_inputs.next_2(w_7.remainder.w4); // in106
+    circuit_inputs = circuit_inputs.next_2(w_7.remainder.w5); // in107
+    circuit_inputs = circuit_inputs.next_2(w_8.quotient.w0); // in108
+    circuit_inputs = circuit_inputs.next_2(w_8.quotient.w1); // in109
+    circuit_inputs = circuit_inputs.next_2(w_8.quotient.w2); // in110
+    circuit_inputs = circuit_inputs.next_2(w_8.quotient.w3); // in111
+    circuit_inputs = circuit_inputs.next_2(w_8.quotient.w4); // in112
+    circuit_inputs = circuit_inputs.next_2(w_8.quotient.w5); // in113
+    circuit_inputs = circuit_inputs.next_2(w_8.remainder.w0); // in114
+    circuit_inputs = circuit_inputs.next_2(w_8.remainder.w1); // in115
+    circuit_inputs = circuit_inputs.next_2(w_8.remainder.w2); // in116
+    circuit_inputs = circuit_inputs.next_2(w_8.remainder.w3); // in117
+    circuit_inputs = circuit_inputs.next_2(w_8.remainder.w4); // in118
+    circuit_inputs = circuit_inputs.next_2(w_8.remainder.w5); // in119
+    circuit_inputs = circuit_inputs.next_2(w_9.quotient.w0); // in120
+    circuit_inputs = circuit_inputs.next_2(w_9.quotient.w1); // in121
+    circuit_inputs = circuit_inputs.next_2(w_9.quotient.w2); // in122
+    circuit_inputs = circuit_inputs.next_2(w_9.quotient.w3); // in123
+    circuit_inputs = circuit_inputs.next_2(w_9.quotient.w4); // in124
+    circuit_inputs = circuit_inputs.next_2(w_9.quotient.w5); // in125
+    circuit_inputs = circuit_inputs.next_2(w_9.remainder.w0); // in126
+    circuit_inputs = circuit_inputs.next_2(w_9.remainder.w1); // in127
+    circuit_inputs = circuit_inputs.next_2(w_9.remainder.w2); // in128
+    circuit_inputs = circuit_inputs.next_2(w_9.remainder.w3); // in129
+    circuit_inputs = circuit_inputs.next_2(w_9.remainder.w4); // in130
+    circuit_inputs = circuit_inputs.next_2(w_9.remainder.w5); // in131
+    circuit_inputs = circuit_inputs.next_2(w_10.quotient.w0); // in132
+    circuit_inputs = circuit_inputs.next_2(w_10.quotient.w1); // in133
+    circuit_inputs = circuit_inputs.next_2(w_10.quotient.w2); // in134
+    circuit_inputs = circuit_inputs.next_2(w_10.quotient.w3); // in135
+    circuit_inputs = circuit_inputs.next_2(w_10.quotient.w4); // in136
+    circuit_inputs = circuit_inputs.next_2(w_10.quotient.w5); // in137
+    circuit_inputs = circuit_inputs.next_2(w_10.remainder.w0); // in138
+    circuit_inputs = circuit_inputs.next_2(w_10.remainder.w1); // in139
+    circuit_inputs = circuit_inputs.next_2(w_10.remainder.w2); // in140
+    circuit_inputs = circuit_inputs.next_2(w_10.remainder.w3); // in141
+    circuit_inputs = circuit_inputs.next_2(w_10.remainder.w4); // in142
+    circuit_inputs = circuit_inputs.next_2(w_10.remainder.w5); // in143
+    circuit_inputs = circuit_inputs.next_2(w_11.quotient.w0); // in144
+    circuit_inputs = circuit_inputs.next_2(w_11.quotient.w1); // in145
+    circuit_inputs = circuit_inputs.next_2(w_11.quotient.w2); // in146
+    circuit_inputs = circuit_inputs.next_2(w_11.quotient.w3); // in147
+    circuit_inputs = circuit_inputs.next_2(w_11.quotient.w4); // in148
+    circuit_inputs = circuit_inputs.next_2(w_11.quotient.w5); // in149
+    circuit_inputs = circuit_inputs.next_2(w_11.remainder.w0); // in150
+    circuit_inputs = circuit_inputs.next_2(w_11.remainder.w1); // in151
+    circuit_inputs = circuit_inputs.next_2(w_11.remainder.w2); // in152
+    circuit_inputs = circuit_inputs.next_2(w_11.remainder.w3); // in153
+    circuit_inputs = circuit_inputs.next_2(w_11.remainder.w4); // in154
+    circuit_inputs = circuit_inputs.next_2(w_11.remainder.w5); // in155
+    circuit_inputs = circuit_inputs.next_2(w_12.quotient.w0); // in156
+    circuit_inputs = circuit_inputs.next_2(w_12.quotient.w1); // in157
+    circuit_inputs = circuit_inputs.next_2(w_12.quotient.w2); // in158
+    circuit_inputs = circuit_inputs.next_2(w_12.quotient.w3); // in159
+    circuit_inputs = circuit_inputs.next_2(w_12.quotient.w4); // in160
+    circuit_inputs = circuit_inputs.next_2(w_12.quotient.w5); // in161
+    circuit_inputs = circuit_inputs.next_2(w_12.remainder.w0); // in162
+    circuit_inputs = circuit_inputs.next_2(w_12.remainder.w1); // in163
+    circuit_inputs = circuit_inputs.next_2(w_12.remainder.w2); // in164
+    circuit_inputs = circuit_inputs.next_2(w_12.remainder.w3); // in165
+    circuit_inputs = circuit_inputs.next_2(w_12.remainder.w4); // in166
+    circuit_inputs = circuit_inputs.next_2(w_12.remainder.w5); // in167
+    circuit_inputs = circuit_inputs.next_2(w_13.quotient.w0); // in168
+    circuit_inputs = circuit_inputs.next_2(w_13.quotient.w1); // in169
+    circuit_inputs = circuit_inputs.next_2(w_13.quotient.w2); // in170
+    circuit_inputs = circuit_inputs.next_2(w_13.quotient.w3); // in171
+    circuit_inputs = circuit_inputs.next_2(w_13.quotient.w4); // in172
+    circuit_inputs = circuit_inputs.next_2(w_13.quotient.w5); // in173
+    circuit_inputs = circuit_inputs.next_2(w_13.remainder.w0); // in174
+    circuit_inputs = circuit_inputs.next_2(w_13.remainder.w1); // in175
+    circuit_inputs = circuit_inputs.next_2(w_13.remainder.w2); // in176
+    circuit_inputs = circuit_inputs.next_2(w_13.remainder.w3); // in177
+    circuit_inputs = circuit_inputs.next_2(w_13.remainder.w4); // in178
+    circuit_inputs = circuit_inputs.next_2(w_13.remainder.w5); // in179
+    circuit_inputs = circuit_inputs.next_2(w_14.quotient.w0); // in180
+    circuit_inputs = circuit_inputs.next_2(w_14.quotient.w1); // in181
+    circuit_inputs = circuit_inputs.next_2(w_14.quotient.w2); // in182
+    circuit_inputs = circuit_inputs.next_2(w_14.quotient.w3); // in183
+    circuit_inputs = circuit_inputs.next_2(w_14.quotient.w4); // in184
+    circuit_inputs = circuit_inputs.next_2(w_14.quotient.w5); // in185
+    circuit_inputs = circuit_inputs.next_2(w_14.remainder.w0); // in186
+    circuit_inputs = circuit_inputs.next_2(w_14.remainder.w1); // in187
+    circuit_inputs = circuit_inputs.next_2(w_14.remainder.w2); // in188
+    circuit_inputs = circuit_inputs.next_2(w_14.remainder.w3); // in189
+    circuit_inputs = circuit_inputs.next_2(w_14.remainder.w4); // in190
+    circuit_inputs = circuit_inputs.next_2(w_14.remainder.w5); // in191
+    circuit_inputs = circuit_inputs.next_2(w_15.quotient.w0); // in192
+    circuit_inputs = circuit_inputs.next_2(w_15.quotient.w1); // in193
+    circuit_inputs = circuit_inputs.next_2(w_15.quotient.w2); // in194
+    circuit_inputs = circuit_inputs.next_2(w_15.quotient.w3); // in195
+    circuit_inputs = circuit_inputs.next_2(w_15.quotient.w4); // in196
+    circuit_inputs = circuit_inputs.next_2(w_15.quotient.w5); // in197
+    circuit_inputs = circuit_inputs.next_2(w_15.remainder.w0); // in198
+    circuit_inputs = circuit_inputs.next_2(w_15.remainder.w1); // in199
+    circuit_inputs = circuit_inputs.next_2(w_15.remainder.w2); // in200
+    circuit_inputs = circuit_inputs.next_2(w_15.remainder.w3); // in201
+    circuit_inputs = circuit_inputs.next_2(w_15.remainder.w4); // in202
+    circuit_inputs = circuit_inputs.next_2(w_15.remainder.w5); // in203
+    circuit_inputs = circuit_inputs.next_2(w_16.quotient.w0); // in204
+    circuit_inputs = circuit_inputs.next_2(w_16.quotient.w1); // in205
+    circuit_inputs = circuit_inputs.next_2(w_16.quotient.w2); // in206
+    circuit_inputs = circuit_inputs.next_2(w_16.quotient.w3); // in207
+    circuit_inputs = circuit_inputs.next_2(w_16.quotient.w4); // in208
+    circuit_inputs = circuit_inputs.next_2(w_16.quotient.w5); // in209
+    circuit_inputs = circuit_inputs.next_2(w_16.remainder.w0); // in210
+    circuit_inputs = circuit_inputs.next_2(w_16.remainder.w1); // in211
+    circuit_inputs = circuit_inputs.next_2(w_16.remainder.w2); // in212
+    circuit_inputs = circuit_inputs.next_2(w_16.remainder.w3); // in213
+    circuit_inputs = circuit_inputs.next_2(w_16.remainder.w4); // in214
+    circuit_inputs = circuit_inputs.next_2(w_16.remainder.w5); // in215
     circuit_inputs = circuit_inputs.next_2(step); // in216
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();

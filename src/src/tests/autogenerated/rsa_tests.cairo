@@ -286,7 +286,9 @@ fn test_rsa2048_positive_seed_0() {
         RSA2048SignatureWithHint,
     >::deserialize(ref rsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(rsa_with_hints, public_key);
+    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(
+        @rsa_with_hints, @public_key,
+    );
     assert!(is_valid);
 }
 
@@ -573,7 +575,9 @@ fn test_rsa2048_tampered_message_seed_0() {
         RSA2048SignatureWithHint,
     >::deserialize(ref rsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(rsa_with_hints, public_key);
+    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(
+        @rsa_with_hints, @public_key,
+    );
     assert!(!is_valid);
 }
 
@@ -860,6 +864,8 @@ fn test_rsa2048_tampered_limb_seed_0() {
         RSA2048SignatureWithHint,
     >::deserialize(ref rsa_sig_with_hints_serialized)
         .expect('FailToDeserializeSig');
-    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(rsa_with_hints, public_key);
+    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(
+        @rsa_with_hints, @public_key,
+    );
     assert!(!is_valid);
 }

@@ -5,7 +5,7 @@ use core::traits::TryInto;
 use corelib_imports::bounded_int::upcast;
 use garaga::basic_field_ops::is_even_u384;
 use garaga::circuits::rsa::run_RSA_FULL_VERIFICATION_circuit;
-use garaga::definitions::{RSA2048Chunks, deserialize_u384, serialize_u384};
+use garaga::definitions::{RSA2048Chunks, RSA2048ReductionWitness, deserialize_u384, serialize_u384};
 
 const RSA_TOP_CHUNK_LIMB1_MAX: u128 = 0xFFFF_FFFF_u128;
 const RSA2048_CHUNKS_SERIALIZED_LEN: usize = 24;
@@ -65,6 +65,21 @@ const RSA_ONE_CHUNKS: RSA2048Chunks = RSA2048Chunks {
     w0: U384_ONE, w1: U384_ZERO, w2: U384_ZERO, w3: U384_ZERO, w4: U384_ZERO, w5: U384_ZERO,
 };
 
+const RSA_CHUNK_STEPS: [u384; 11] = [
+    u384 { limb0: 0x16f8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x2598, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x6098, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x7d18, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x9668, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xb238, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xbc48, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xd928, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xdf88, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0xfbe8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    u384 { limb0: 0x11718, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+];
+
+
 fn serialize_rsa2048_chunks(self: @RSA2048Chunks, ref output: Array<felt252>) {
     serialize_u384(self.w0, ref output);
     serialize_u384(self.w1, ref output);
@@ -118,12 +133,6 @@ pub impl RSA2048SignatureSerde of Serde<RSA2048Signature> {
     }
 }
 
-#[derive(Copy, Drop, Debug, PartialEq)]
-pub struct RSA2048ReductionWitness {
-    pub quotient: RSA2048Chunks,
-    pub remainder: RSA2048Chunks,
-}
-
 pub impl RSA2048ReductionWitnessSerde of Serde<RSA2048ReductionWitness> {
     fn serialize(self: @RSA2048ReductionWitness, ref output: Array<felt252>) {
         serialize_rsa2048_chunks(self.quotient, ref output);
@@ -164,20 +173,6 @@ pub impl SerdeRSA2048SignatureWithHint of Serde<RSA2048SignatureWithHint> {
         Option::Some(RSA2048SignatureWithHint { signature, reductions_hint })
     }
 }
-
-const RSA_CHUNK_STEPS: [u384; 11] = [
-    u384 { limb0: 0x16f8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x2598, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x6098, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x7d18, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x9668, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xb238, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xbc48, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xd928, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xdf88, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0xfbe8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-    u384 { limb0: 0x11718, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-];
 
 fn limb_lt(lhs: u96, rhs: u96) -> bool {
     let lhs_u128: u128 = upcast(lhs);
@@ -246,7 +241,7 @@ fn deserialize_and_validate_witness(
 }
 
 #[inline(never)]
-pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
+pub fn is_valid_rsa2048_signature_assuming_encoded_message(
     signature: @RSA2048SignatureWithHint, public_key: @RSA2048PublicKey,
 ) -> bool {
     let modulus_chunks = *public_key.modulus;
@@ -307,49 +302,32 @@ pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
 
     // Run mega-circuit for each of 11 channels
     let mut steps = RSA_CHUNK_STEPS.span();
-    for modulus_limbs in RSA_CHANNEL_MODULI.span() {
+    for channel_modulus_limbs in RSA_CHANNEL_MODULI.span() {
         let step = *steps.pop_front().unwrap();
-        let modulus: CircuitModulus = (*modulus_limbs).try_into().unwrap();
+        let channel_modulus: CircuitModulus = (*channel_modulus_limbs).try_into().unwrap();
         let (d0, d1, d2, d3, d4, d5, d6, d7, d8, d9, d10, d11, d12, d13, d14, d15, d16) =
             run_RSA_FULL_VERIFICATION_circuit(
             modulus_chunks,
             sig_chunks,
-            w0.quotient,
-            w0.remainder,
-            w1.quotient,
-            w1.remainder,
-            w2.quotient,
-            w2.remainder,
-            w3.quotient,
-            w3.remainder,
-            w4.quotient,
-            w4.remainder,
-            w5.quotient,
-            w5.remainder,
-            w6.quotient,
-            w6.remainder,
-            w7.quotient,
-            w7.remainder,
-            w8.quotient,
-            w8.remainder,
-            w9.quotient,
-            w9.remainder,
-            w10.quotient,
-            w10.remainder,
-            w11.quotient,
-            w11.remainder,
-            w12.quotient,
-            w12.remainder,
-            w13.quotient,
-            w13.remainder,
-            w14.quotient,
-            w14.remainder,
-            w15.quotient,
-            w15.remainder,
-            w16.quotient,
-            w16.remainder,
+            w0,
+            w1,
+            w2,
+            w3,
+            w4,
+            w5,
+            w6,
+            w7,
+            w8,
+            w9,
+            w10,
+            w11,
+            w12,
+            w13,
+            w14,
+            w15,
+            w16,
             step,
-            modulus,
+            channel_modulus,
         );
         if !d0.is_zero()
             || !d1.is_zero()
@@ -374,10 +352,4 @@ pub(crate) fn is_valid_rsa2048_signature_assuming_encoded_message_ref(
 
     // Compare last remainder == expected message
     w16.remainder == expected_message_chunks
-}
-
-pub fn is_valid_rsa2048_signature_assuming_encoded_message(
-    signature: RSA2048SignatureWithHint, public_key: RSA2048PublicKey,
-) -> bool {
-    is_valid_rsa2048_signature_assuming_encoded_message_ref(@signature, @public_key)
 }

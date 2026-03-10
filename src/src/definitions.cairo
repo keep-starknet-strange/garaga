@@ -20,8 +20,8 @@ pub use curves::{
     has_endomorphism_available,
 };
 pub use structs::fields::{
-    E12D, E12T, RSA2048Chunks, RSA2048ChunksSerde, deserialize_u384, deserialize_u384_array,
-    serialize_u384, serialize_u384_array, u288, u288Serde,
+    E12D, E12T, RSA2048Chunks, RSA2048ChunksSerde, RSA2048ReductionWitness, deserialize_u384,
+    deserialize_u384_array, serialize_u384, serialize_u384_array, u288, u288Serde,
 };
 pub use structs::points::{
     G1G2Pair, G1Point, G1PointSerde, G1PointStorePacking, G1PointZero, G2Line, G2Point,

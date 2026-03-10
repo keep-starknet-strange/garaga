@@ -379,7 +379,7 @@ fn test_rsa2048_{suffix}_seed_{seed}() {{
     let mut rsa_sig_with_hints_serialized = array!{signature.serialize_with_hints(as_str=True)}.span();
     let public_key = Serde::<RSA2048PublicKey>::deserialize(ref rsa_sig_with_hints_serialized).expect('FailToDeserializePk');
     let rsa_with_hints = Serde::<RSA2048SignatureWithHint>::deserialize(ref rsa_sig_with_hints_serialized).expect('FailToDeserializeSig');
-    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(rsa_with_hints, public_key);
+    let is_valid = is_valid_rsa2048_signature_assuming_encoded_message(@rsa_with_hints, @public_key);
     {assertion}
 }}
 """

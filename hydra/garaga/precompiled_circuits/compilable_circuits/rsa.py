@@ -1,7 +1,7 @@
 from random import randrange
 
 from garaga.modulo_circuit import ModuloCircuit, WriteOps
-from garaga.modulo_circuit_structs import RSA2048Chunks, u384
+from garaga.modulo_circuit_structs import RSA2048Chunks, RSA2048ReductionWitness, u384
 from garaga.precompiled_circuits.compilable_circuits.base import (
     BaseModuloCircuit,
     PyFelt,
@@ -15,7 +15,7 @@ RSA2048_N_STEPS = 17
 class RSAFullVerificationCircuit(BaseModuloCircuit):
     """Mega-circuit: all 17 reduction steps fused into one circuit per channel.
 
-    Inputs (217): mod(6) + sig(6) + 17*(quot(6)+rem(6)) + step(1)
+    Inputs (217): mod(6) + sig(6) + 17*(witness(12)) + step(1)
     Outputs (17): 17 diffs
     """
 
@@ -75,22 +75,13 @@ class RSAFullVerificationCircuit(BaseModuloCircuit):
         all_quot_chunks = []
         all_rem_chunks = []
         for i in range(RSA2048_N_STEPS):
-            quot = circuit.write_struct(
-                RSA2048Chunks(
-                    f"quot_chunks_{i}",
-                    [input.pop(0) for _ in range(RSA2048_N_CHUNKS)],
-                ),
+            witness_elmts = [input.pop(0) for _ in range(2 * RSA2048_N_CHUNKS)]
+            witness = circuit.write_struct(
+                RSA2048ReductionWitness(f"w_{i}", witness_elmts),
                 WriteOps.INPUT,
             )
-            rem = circuit.write_struct(
-                RSA2048Chunks(
-                    f"rem_chunks_{i}",
-                    [input.pop(0) for _ in range(RSA2048_N_CHUNKS)],
-                ),
-                WriteOps.INPUT,
-            )
-            all_quot_chunks.append(quot)
-            all_rem_chunks.append(rem)
+            all_quot_chunks.append(witness[:RSA2048_N_CHUNKS])
+            all_rem_chunks.append(witness[RSA2048_N_CHUNKS:])
 
         step = circuit.write_struct(u384("step", [input.pop(0)]), WriteOps.INPUT)
         assert len(input) == 0, f"Expected empty input, got {len(input)} elements left"

@@ -29,6 +29,12 @@ pub struct RSA2048Chunks {
     pub w5: u384,
 }
 
+#[derive(Copy, Drop, Debug, PartialEq)]
+pub struct RSA2048ReductionWitness {
+    pub quotient: RSA2048Chunks,
+    pub remainder: RSA2048Chunks,
+}
+
 /// Degree-12 extension field element (generic coefficients).
 ///
 /// Represents an element of the extension field F_{q^12} modeled as the
