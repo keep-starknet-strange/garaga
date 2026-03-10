@@ -39,4 +39,4 @@ fi
 end_time=$(date +%s.%N)
 elapsed_time=$(echo "$end_time - $start_time" | bc)
 
-printf "Total time taken: %.2f seconds\n" "$elapsed_time"
+LC_NUMERIC=C printf "Total time taken: %.2f seconds\n" "$elapsed_time"
