@@ -19,6 +19,11 @@ pub struct u288 {
     pub limb2: u96,
 }
 
+/// A 2048-bit integer packed into 6 chunks of at most 384 bits each
+/// (the top chunk w5 is constrained to 128 bits).
+///
+/// Given 22 limbs of 96 bits, groups of 4 consecutive limbs form one u384
+/// chunk. The last group uses only 2 limbs, yielding a 128-bit top chunk.
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct RSA2048Chunks {
     pub w0: u384,
@@ -29,6 +34,9 @@ pub struct RSA2048Chunks {
     pub w5: u384,
 }
 
+/// Witness for one modular reduction a * b = q * n + r over Z,
+/// where q (quotient) and r (remainder) are 2048-bit integers
+/// in chunk representation.
 #[derive(Copy, Drop, Debug, PartialEq)]
 pub struct RSA2048ReductionWitness {
     pub quotient: RSA2048Chunks,
@@ -55,7 +63,7 @@ pub struct RSA2048ReductionWitness {
 /// - [`num::traits::One`] is implemented for `E12D<u384>` and `E12D<u288>`; the
 ///   multiplicative identity is `w0 = 1` and all other coefficients are zero.
 ///
-/// Example: create the multiplicative identity for `u288` coefficients. HOHO
+/// Example: create the multiplicative identity for `u288` coefficients.
 /// ```text
 /// let one: E12D<u288> = E12D {
 ///     w0: U288One::one(),

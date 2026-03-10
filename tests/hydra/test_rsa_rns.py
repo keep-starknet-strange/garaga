@@ -4,17 +4,18 @@ from garaga.rsa_rns import (
     BASE,
     CHANNEL_MODULI,
     CHUNK_LIMBS,
-    DELTA_ABS_BOUND,
+    CRT_EXACTNESS_BOUND,
     RSA_PUBLIC_EXPONENT,
     RSA_REDUCTION_COUNT,
-    CairoRNSContext,
-    build_rsa2048_witness_bundle,
-    verify_rsa_signature_with_exact_checks,
+    RNSContext,
+    generate_rsa2048_witness,
+    modular_exponentiation_with_proof,
 )
 from garaga.starknet.tests_and_calldata_generators.signatures import RSA2048Signature
 
 
 def eval_chunks_mod(chunks: tuple[int, ...], step: int, modulus: int) -> int:
+    """Horner evaluation of chunk polynomial at step, reduced modulo modulus."""
     acc = 0
     for chunk in reversed(chunks):
         acc = (acc * step + chunk) % modulus
@@ -48,7 +49,7 @@ def test_rsa_chunk_steps_match_chunk_radix_mod_channel_moduli():
 
 
 def test_rsa_chunk_horner_evaluation_matches_residues():
-    ctx = CairoRNSContext(CHANNEL_MODULI)
+    ctx = RNSContext(CHANNEL_MODULI)
     steps = [pow(BASE, CHUNK_LIMBS, p) for p in CHANNEL_MODULI]
 
     for seed in range(3):
@@ -71,8 +72,8 @@ def test_rsa_chunk_horner_evaluation_matches_residues():
 
 
 def test_rsa_context_exactness_bound():
-    ctx = CairoRNSContext(CHANNEL_MODULI)
-    assert ctx.M > DELTA_ABS_BOUND
+    ctx = RNSContext(CHANNEL_MODULI)
+    assert ctx.M > CRT_EXACTNESS_BOUND
 
 
 def test_rsa_sample_is_valid():
@@ -85,15 +86,15 @@ def test_rsa_sample_is_valid():
 
 
 def test_rsa_verification_path_uses_expected_reductions():
-    ctx = CairoRNSContext(CHANNEL_MODULI)
-    bundle = build_rsa2048_witness_bundle(seed=0)
-    verified_message, steps = verify_rsa_signature_with_exact_checks(
+    ctx = RNSContext(CHANNEL_MODULI)
+    bundle = generate_rsa2048_witness(seed=0)
+    verified_message, reduction_count = modular_exponentiation_with_proof(
         ctx,
         bundle.signature.value,
         RSA_PUBLIC_EXPONENT,
         bundle.modulus.value,
     )
-    assert steps == RSA_REDUCTION_COUNT
+    assert reduction_count == RSA_REDUCTION_COUNT
     assert verified_message == bundle.expected_message.value
 
 

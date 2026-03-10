@@ -13,10 +13,16 @@ RSA2048_N_STEPS = 17
 
 
 class RSAFullVerificationCircuit(BaseModuloCircuit):
-    """Mega-circuit: all 17 reduction steps fused into one circuit per channel.
+    """RNS channel circuit for RSA-2048 modular exponentiation verification.
 
-    Inputs (217): mod(6) + sig(6) + 17*(witness(12)) + step(1)
-    Outputs (17): 17 diffs
+    Verifies all 17 reduction steps (16 squarings + 1 final multiply) of the
+    square-and-multiply chain s^{65537} mod n within a single RNS channel.
+    Each step a*b = q*n + r is checked by Horner evaluation of chunk
+    polynomials at the channel's evaluation point alpha, asserting
+    a(alpha)*b(alpha) - q(alpha)*n(alpha) - r(alpha) = 0.
+
+    Inputs (217): n(6) + s(6) + 17 x (q_i(6) + r_i(6)) + alpha(1)
+    Outputs (17): differences delta_i (zero iff all reductions are valid)
     """
 
     def __init__(

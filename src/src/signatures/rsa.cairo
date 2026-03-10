@@ -1,3 +1,17 @@
+//! RSA-2048 signature verification via multi-channel RNS arithmetic.
+//!
+//! Verifies s^{65537} ≡ m (mod n) for a 2048-bit RSA modulus n without
+//! native 2048-bit arithmetic. Integers are represented in a Residue Number
+//! System (RNS) defined by 11 pairwise coprime ~384-bit primes p_1, ..., p_{11}.
+//!
+//! Each modular reduction a·b = q·n + r in the exponentiation chain is verified
+//! by evaluating chunk polynomials at α_i = (2^{96})^4 mod p_i via Horner's method
+//! and checking a(α_i)·b(α_i) - q(α_i)·n(α_i) - r(α_i) = 0 for all i.
+//!
+//! The CRT exactness theorem guarantees that if all 11 channel checks pass and
+//! ∏ p_i exceeds the maximum deviation |a·b - q·n - r|, then the integer
+//! relation holds exactly.
+
 use core::circuit::{CircuitModulus, u384, u96};
 use core::num::traits::Zero;
 use core::serde::Serde;
@@ -61,10 +75,14 @@ const RSA_CHANNEL_MODULI: [[u96; 4]; 11] = [
 ];
 const U384_ZERO: u384 = u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
 const U384_ONE: u384 = u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 };
+/// The multiplicative identity 1 in chunk representation.
 const RSA_ONE_CHUNKS: RSA2048Chunks = RSA2048Chunks {
     w0: U384_ONE, w1: U384_ZERO, w2: U384_ZERO, w3: U384_ZERO, w4: U384_ZERO, w5: U384_ZERO,
 };
 
+/// Horner evaluation bases: α_i = (2^96)^4 mod p_i for each of the 11 channel primes.
+/// Used to evaluate the chunk polynomial representation of 2048-bit integers
+/// within each RNS channel circuit.
 const RSA_CHUNK_STEPS: [u384; 11] = [
     u384 { limb0: 0x16f8, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
     u384 { limb0: 0x2598, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
@@ -227,8 +245,9 @@ fn top_chunk_is_well_formed(top: u384) -> bool {
     limb1 <= RSA_TOP_CHUNK_LIMB1_MAX
 }
 
-/// Validate a reduction witness: top chunks well-formed for both quotient and remainder,
-/// and remainder < modulus.
+/// Deserialize and validate a modular reduction witness (q, r) from raw felt252 data.
+/// Checks that both quotient and remainder have well-formed top chunks,
+/// and that the remainder is strictly less than the modulus.
 fn deserialize_and_validate_witness(
     ref hint: Span<felt252>, modulus_chunks: RSA2048Chunks,
 ) -> RSA2048ReductionWitness {
@@ -240,6 +259,14 @@ fn deserialize_and_validate_witness(
     RSA2048ReductionWitness { quotient, remainder }
 }
 
+/// Verify an RSA-2048 signature assuming the message is already encoded.
+///
+/// Given public key n and signature data (s, m, 17 reduction witnesses),
+/// verifies s^{65537} ≡ m (mod n) by:
+///   1. Well-formedness: n > 1 odd, 0 ≤ s < n, 0 ≤ m < n, valid chunk bounds.
+///   2. For each of 11 RNS channels: run the mega-circuit to verify all 17
+///      reduction steps of the square-and-multiply chain.
+///   3. Final equality: the last reduction remainder equals the expected message m.
 #[inline(never)]
 pub fn is_valid_rsa2048_signature_assuming_encoded_message(
     signature: @RSA2048SignatureWithHint, public_key: @RSA2048PublicKey,
@@ -273,7 +300,7 @@ pub fn is_valid_rsa2048_signature_assuming_encoded_message(
 
     let mut reductions_hint = *signature.reductions_hint;
 
-    // Deserialize all 17 witnesses upfront
+    // Deserialize and validate all 17 modular reduction witnesses (q_i, r_i)
     if reductions_hint.len() < RSA2048_REDUCTIONS_HINT_SERIALIZED_LEN {
         return false;
     }
@@ -300,7 +327,7 @@ pub fn is_valid_rsa2048_signature_assuming_encoded_message(
         return false;
     }
 
-    // Run mega-circuit for each of 11 channels
+    // For each RNS channel p_i, verify all 17 reductions via the fused circuit
     let mut steps = RSA_CHUNK_STEPS.span();
     for channel_modulus_limbs in RSA_CHANNEL_MODULI.span() {
         let step = *steps.pop_front().unwrap();
@@ -350,6 +377,6 @@ pub fn is_valid_rsa2048_signature_assuming_encoded_message(
         }
     }
 
-    // Compare last remainder == expected message
+    // The final remainder r_{16} must equal the expected message m
     w16.remainder == expected_message_chunks
 }
