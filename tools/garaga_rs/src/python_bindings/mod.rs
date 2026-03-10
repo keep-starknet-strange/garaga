@@ -72,6 +72,11 @@ fn garaga_rs(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(signatures::schnorr_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::ecdsa_calldata_builder, m)?)?;
     m.add_function(wrap_pyfunction!(signatures::eddsa_calldata_builder, m)?)?;
+    m.add_function(wrap_pyfunction!(signatures::rsa_2048_calldata_builder, m)?)?;
+    m.add_function(wrap_pyfunction!(
+        signatures::rsa_2048_sha256_calldata_builder,
+        m
+    )?)?;
     m.add_function(wrap_pyfunction!(poseidon_hash_bn254, m)?)?;
     m.add_function(wrap_pyfunction!(pairing::final_exp, m)?)?;
     m.add_function(wrap_pyfunction!(drand_calldata::drand_calldata_builder, m)?)?;

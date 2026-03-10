@@ -5,11 +5,15 @@ from garaga.rsa_rns import (
     CHANNEL_MODULI,
     CHUNK_LIMBS,
     CRT_EXACTNESS_BOUND,
+    PKCS1_SHA256_DIGEST_INFO_PREFIX,
     RSA_PUBLIC_EXPONENT,
     RSA_REDUCTION_COUNT,
     RNSContext,
+    generate_rsa2048_sha256_witness,
     generate_rsa2048_witness,
+    is_valid_rsa2048_witness,
     modular_exponentiation_with_proof,
+    pkcs1_v1_5_encode_sha256,
 )
 from garaga.starknet.tests_and_calldata_generators.signatures import RSA2048Signature
 
@@ -108,3 +112,62 @@ def test_rsa_tampered_limb_is_invalid():
 
 def test_rsa_tampered_expected_message_is_invalid():
     assert not RSA2048Signature.tampered_expected_message_sample(seed=0).is_valid()
+
+
+def test_pkcs1_v1_5_encode_sha256_structure():
+    message_hash = bytes(range(32))
+    encoded = pkcs1_v1_5_encode_sha256(message_hash)
+    encoded_bytes = encoded.to_bytes(256, byteorder="big")
+
+    # 0x00 || 0x01 || PS(0xFF × 202) || 0x00 || DigestInfo(19) || Hash(32) = 256
+    assert encoded_bytes[0] == 0x00
+    assert encoded_bytes[1] == 0x01
+    assert encoded_bytes[2:204] == b"\xff" * 202
+    assert encoded_bytes[204] == 0x00
+    assert encoded_bytes[205:224] == PKCS1_SHA256_DIGEST_INFO_PREFIX
+    assert encoded_bytes[224:256] == message_hash
+
+
+def test_rsa2048_sha256_witness_is_valid():
+    bundle = generate_rsa2048_sha256_witness(b"hello garaga", seed=0)
+    assert is_valid_rsa2048_witness(bundle)
+    assert len(bundle.reductions) == RSA_REDUCTION_COUNT
+
+    # Verify the expected message is a valid PKCS#1 v1.5 encoding
+    import hashlib
+
+    message_hash = hashlib.sha256(b"hello garaga").digest()
+    expected = pkcs1_v1_5_encode_sha256(message_hash)
+    assert bundle.expected_message.value == expected
+
+
+def test_rsa2048_sha256_byte_array_serialization():
+    """Test that ByteArray serialization matches Cairo's format."""
+    from garaga.starknet.tests_and_calldata_generators.signatures import (
+        _serialize_byte_array,
+    )
+
+    # Empty
+    cd = _serialize_byte_array(b"")
+    assert cd == [0, 0, 0]
+
+    # Short message (< 31 bytes)
+    cd = _serialize_byte_array(b"hello")
+    assert cd[0] == 0  # 0 full words
+    assert cd[1] == int.from_bytes(b"hello", "big")  # pending word
+    assert cd[2] == 5  # pending len
+
+    # Exactly 31 bytes
+    data = bytes(range(31))
+    cd = _serialize_byte_array(data)
+    assert cd[0] == 1  # 1 full word
+    assert cd[1] == int.from_bytes(data[:31], "big")
+    assert cd[2] == 0  # pending = 0
+    assert cd[3] == 0  # pending len = 0
+
+    # 65 bytes = 2 full words + 3 pending
+    data = bytes([0xCD] * 65)
+    cd = _serialize_byte_array(data)
+    assert cd[0] == 2
+    assert len(cd) == 5
+    assert cd[4] == 3  # pending len

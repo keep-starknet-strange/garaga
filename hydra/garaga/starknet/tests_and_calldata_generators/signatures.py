@@ -13,6 +13,7 @@ from garaga.rsa_rns import (
     RNSContext,
     RNSInteger,
     RSA2048ExponentiationWitness,
+    generate_rsa2048_sha256_witness,
     generate_rsa2048_witness,
     is_valid_rsa2048_witness,
 )
@@ -430,12 +431,79 @@ class RSA2048Signature:
         prepend_public_key: bool = True,
     ) -> list[int] | str:
         if use_rust:
-            raise NotImplementedError("RSA2048 Rust calldata parity is not implemented")
+            cd = garaga_rs.rsa_2048_calldata_builder(
+                self.signature.value,
+                self.expected_message.value,
+                self.modulus.value,
+                prepend_public_key,
+            )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
 
         calldata = self.serialize(prepend_public_key=prepend_public_key)
         if as_str:
             return "[{}]".format(", ".join(map(hex, calldata)))
         return calldata
+
+    @classmethod
+    def from_sha256_message(cls, message: bytes, seed: int = 0) -> "RSA2048Signature":
+        """Create an RSA2048Signature from a raw message using SHA-256."""
+        return cls.from_bundle(generate_rsa2048_sha256_witness(message, seed=seed))
+
+    def serialize_sha256_with_hints(
+        self,
+        message: bytes,
+        use_rust: bool = False,
+        as_str: bool = False,
+        prepend_public_key: bool = True,
+    ) -> list[int] | str:
+        """Serialize the signature with hints for SHA-256 on-chain verification.
+
+        Appends the ByteArray-serialized message after the RSA calldata.
+        """
+        if use_rust:
+            cd = garaga_rs.rsa_2048_sha256_calldata_builder(
+                self.signature.value,
+                message,
+                self.modulus.value,
+                prepend_public_key,
+            )
+            if as_str:
+                return "[{}]".format(", ".join(map(hex, cd)))
+            return cd
+
+        # Python path: RSA calldata + ByteArray serialization
+        calldata = self.serialize(prepend_public_key=prepend_public_key)
+        calldata.extend(_serialize_byte_array(message))
+        if as_str:
+            return "[{}]".format(", ".join(map(hex, calldata)))
+        return calldata
+
+
+def _serialize_byte_array(data: bytes) -> list[int]:
+    """Serialize bytes as a Cairo ByteArray in felt252 calldata format.
+
+    Layout: [num_full_words, word_0, ..., word_{n-1}, pending_word, pending_word_len]
+    Each full word is 31 bytes. The pending word is 0-30 bytes.
+    """
+    full_word_count = len(data) // 31
+    pending_len = len(data) % 31
+
+    cd = [full_word_count]
+    for i in range(full_word_count):
+        start = i * 31
+        word = int.from_bytes(data[start : start + 31], byteorder="big")
+        cd.append(word)
+
+    if pending_len > 0:
+        pending = int.from_bytes(data[full_word_count * 31 :], byteorder="big")
+        cd.append(pending)
+    else:
+        cd.append(0)
+    cd.append(pending_len)
+
+    return cd
 
 
 @dataclass(slots=True)

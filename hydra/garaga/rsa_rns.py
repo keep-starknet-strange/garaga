@@ -20,6 +20,7 @@ yielding 16 squarings + 1 final multiplication = 17 certified reductions.
 
 from __future__ import annotations
 
+import hashlib
 import math
 import random
 from dataclasses import dataclass
@@ -471,6 +472,59 @@ def generate_rsa2048_witness(seed: int = 0) -> RSA2048ExponentiationWitness:
     rng = random.Random(0x5253412048 + seed)
     expected_message = rng.randrange(2, modulus - 1)
     signature = pow(expected_message, private_exponent, modulus)
+    reductions = build_rsa2048_reductions(
+        ctx, signature, expected_message, modulus, e=e
+    )
+    return RSA2048ExponentiationWitness(
+        modulus=ctx.encode(modulus),
+        signature=ctx.encode(signature),
+        expected_message=ctx.encode(expected_message),
+        reductions=reductions,
+    )
+
+
+# PKCS#1 v1.5 SHA-256 DigestInfo prefix (DER-encoded AlgorithmIdentifier + NULL param).
+# RFC 8017, Section 9.2, Note 1.
+PKCS1_SHA256_DIGEST_INFO_PREFIX = bytes.fromhex(
+    "3031300d060960864801650304020105000420"
+)
+
+
+def pkcs1_v1_5_encode_sha256(
+    message_hash: bytes, modulus_byte_length: int = 256
+) -> int:
+    """Encode a SHA-256 hash as a PKCS#1 v1.5 padded integer.
+
+    Constructs: 0x00 || 0x01 || PS || 0x00 || DigestInfo || H
+    where PS is (modulus_byte_length - 3 - len(DigestInfo) - 32) bytes of 0xFF.
+
+    For RSA-2048 (modulus_byte_length=256), PS is 202 bytes of 0xFF.
+    """
+    if len(message_hash) != 32:
+        raise ValueError("message_hash must be exactly 32 bytes (SHA-256)")
+    digest_info = PKCS1_SHA256_DIGEST_INFO_PREFIX + message_hash
+    ps_len = modulus_byte_length - 3 - len(digest_info)
+    if ps_len < 8:
+        raise ValueError("modulus too short for PKCS#1 v1.5 SHA-256 encoding")
+    encoded = b"\x00\x01" + b"\xff" * ps_len + b"\x00" + digest_info
+    return int.from_bytes(encoded, byteorder="big")
+
+
+def generate_rsa2048_sha256_witness(
+    message: bytes, seed: int = 0
+) -> RSA2048ExponentiationWitness:
+    """Generate an RSA-2048 verification witness for a SHA-256 message digest.
+
+    Signs the PKCS#1 v1.5 encoding of SHA-256(message) under a deterministic
+    demo key, then builds the full exponentiation witness.
+    """
+    ctx = RNSContext(CHANNEL_MODULI)
+    modulus, e, private_exponent = generate_demo_rsa_key(seed=20260305 + seed)
+
+    message_hash = hashlib.sha256(message).digest()
+    expected_message = pkcs1_v1_5_encode_sha256(message_hash)
+    signature = pow(expected_message, private_exponent, modulus)
+
     reductions = build_rsa2048_reductions(
         ctx, signature, expected_message, modulus, e=e
     )

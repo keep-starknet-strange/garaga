@@ -15,8 +15,9 @@
 use core::circuit::{CircuitModulus, u384, u96};
 use core::num::traits::Zero;
 use core::serde::Serde;
+use core::sha256::compute_sha256_byte_array;
 use core::traits::TryInto;
-use corelib_imports::bounded_int::upcast;
+use corelib_imports::bounded_int::{downcast, upcast};
 use garaga::basic_field_ops::is_even_u384;
 use garaga::circuits::rsa::run_RSA_FULL_VERIFICATION_circuit;
 use garaga::definitions::{RSA2048Chunks, RSA2048ReductionWitness, deserialize_u384, serialize_u384};
@@ -379,4 +380,100 @@ pub fn is_valid_rsa2048_signature_assuming_encoded_message(
 
     // The final remainder r_{16} must equal the expected message m
     w16.remainder == expected_message_chunks
+}
+
+// PKCS#1 v1.5 SHA-256 constant chunks (W1..W5).
+// These encode: 0x00||0x01||0xFF×202||0x00||DigestInfo[12:19]
+// W0 depends on the hash and is built dynamically.
+
+const PKCS1_SHA256_W5: u384 = u384 {
+    limb0: 0xffffffffffffffffffffffff, limb1: 0x0001ffff, limb2: 0x0, limb3: 0x0,
+};
+const PKCS1_SHA256_W4: u384 = u384 {
+    limb0: 0xffffffffffffffffffffffff,
+    limb1: 0xffffffffffffffffffffffff,
+    limb2: 0xffffffffffffffffffffffff,
+    limb3: 0xffffffffffffffffffffffff,
+};
+const PKCS1_SHA256_W3: u384 = u384 {
+    limb0: 0xffffffffffffffffffffffff,
+    limb1: 0xffffffffffffffffffffffff,
+    limb2: 0xffffffffffffffffffffffff,
+    limb3: 0xffffffffffffffffffffffff,
+};
+const PKCS1_SHA256_W2: u384 = u384 {
+    limb0: 0xffffffffffffffffffffffff,
+    limb1: 0xffffffffffffffffffffffff,
+    limb2: 0xffffffffffffffffffffffff,
+    limb3: 0xffffffffffffffffffffffff,
+};
+const PKCS1_SHA256_W1: u384 = u384 {
+    limb0: 0xffffffffffffffff00303130,
+    limb1: 0xffffffffffffffffffffffff,
+    limb2: 0xffffffffffffffffffffffff,
+    limb3: 0xffffffffffffffffffffffff,
+};
+// W0.limb3 is the constant part: DigestInfo[3:15] encoded as 96 bits.
+const PKCS1_SHA256_W0_LIMB3: u96 = 0x0d0609608648016503040201;
+
+/// Build the PKCS#1 v1.5 SHA-256 encoded message from 8 hash words.
+///
+/// Layout (256 bytes big-endian):
+///   0x00||0x01||PS(0xFF×202)||0x00||DigestInfo(19)||SHA-256(32)
+///
+/// W0 limb packing:
+///   limb0 = hw5 * 2^64 + hw6 * 2^32 + hw7
+///   limb1 = hw2 * 2^64 + hw3 * 2^32 + hw4
+///   limb2 = 0x05000420 * 2^64 + hw0 * 2^32 + hw1
+///   limb3 = 0x0d0609608648016503040201 (constant)
+fn pkcs1_v1_5_sha256_encode(hash: [u32; 8]) -> RSA2048Chunks {
+    let [hw0, hw1, hw2, hw3, hw4, hw5, hw6, hw7] = hash;
+
+    let hw0: felt252 = hw0.into();
+    let hw1: felt252 = hw1.into();
+    let hw2: felt252 = hw2.into();
+    let hw3: felt252 = hw3.into();
+    let hw4: felt252 = hw4.into();
+    let hw5: felt252 = hw5.into();
+    let hw6: felt252 = hw6.into();
+    let hw7: felt252 = hw7.into();
+
+    let limb0: u96 = downcast(hw5 * 0x10000000000000000 + hw6 * 0x100000000 + hw7).unwrap();
+    let limb1: u96 = downcast(hw2 * 0x10000000000000000 + hw3 * 0x100000000 + hw4).unwrap();
+    let limb2: u96 = downcast(0x05000420 * 0x10000000000000000 + hw0 * 0x100000000 + hw1).unwrap();
+
+    let w0 = u384 { limb0, limb1, limb2, limb3: PKCS1_SHA256_W0_LIMB3 };
+
+    RSA2048Chunks {
+        w0,
+        w1: PKCS1_SHA256_W1,
+        w2: PKCS1_SHA256_W2,
+        w3: PKCS1_SHA256_W3,
+        w4: PKCS1_SHA256_W4,
+        w5: PKCS1_SHA256_W5,
+    }
+}
+
+/// Verify an RSA-2048 signature against a raw message using SHA-256.
+///
+/// Computes SHA-256(message) on-chain, constructs the PKCS#1 v1.5 encoding,
+/// asserts it matches the expected_message hint, then delegates to the
+/// existing RNS-based RSA verification.
+#[inline(never)]
+pub fn is_valid_rsa2048_sha256_signature(
+    signature: @RSA2048SignatureWithHint, public_key: @RSA2048PublicKey, message: @ByteArray,
+) -> bool {
+    // Compute SHA-256 of the message on-chain
+    let hash: [u32; 8] = compute_sha256_byte_array(message);
+
+    // Build the PKCS#1 v1.5 encoded message from the hash
+    let encoded = pkcs1_v1_5_sha256_encode(hash);
+
+    // Assert the hint matches the on-chain computation
+    if encoded != *signature.signature.expected_message {
+        return false;
+    }
+
+    // Delegate to the existing RSA verifier
+    is_valid_rsa2048_signature_assuming_encoded_message(signature, public_key)
 }

@@ -410,16 +410,46 @@ def generate_rsa_tests(seed: int) -> str:
     return code
 
 
+def generate_rsa_sha256_test(
+    signature: "RSA2048Signature",
+    message: bytes,
+    seed: int,
+    suffix: str,
+) -> str:
+    calldata_str = signature.serialize_sha256_with_hints(
+        message=message, as_str=True, prepend_public_key=True
+    )
+    return f"""
+#[test]
+fn test_rsa2048_sha256_{suffix}_seed_{seed}() {{
+    let mut rsa_sha256_serialized = array!{calldata_str}.span();
+    let public_key = Serde::<RSA2048PublicKey>::deserialize(ref rsa_sha256_serialized).expect('FailToDeserializePk');
+    let rsa_with_hints = Serde::<RSA2048SignatureWithHint>::deserialize(ref rsa_sha256_serialized).expect('FailToDeserializeSig');
+    let message = Serde::<ByteArray>::deserialize(ref rsa_sha256_serialized).expect('FailToDeserializeMsg');
+    let is_valid = is_valid_rsa2048_sha256_signature(@rsa_with_hints, @public_key, @message);
+    assert!(is_valid);
+}}
+"""
+
+
+def generate_rsa_sha256_tests(seed: int) -> str:
+    message = b"hello garaga"
+    sig = RSA2048Signature.from_sha256_message(message, seed=seed)
+    return generate_rsa_sha256_test(sig, message, seed, "positive")
+
+
 def generate_rsa_test_file() -> str:
     code = """
     use core::serde::Serde;
     use garaga::signatures::rsa::{
         RSA2048PublicKey, RSA2048SignatureWithHint,
         is_valid_rsa2048_signature_assuming_encoded_message,
+        is_valid_rsa2048_sha256_signature,
     };
     """
 
     code += generate_rsa_tests(seed=0)
+    code += generate_rsa_sha256_tests(seed=0)
     return code
 
 
