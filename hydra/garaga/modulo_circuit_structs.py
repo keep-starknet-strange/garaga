@@ -304,6 +304,101 @@ class u384(Cairo1SerializableStruct):
             return 1
 
 
+class RSA2048Chunks(Cairo1SerializableStruct):
+    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
+        super().__init__(name, elmts)
+        self.members_names = ("w0", "w1", "w2", "w3", "w4", "w5")
+
+    @property
+    def struct_name(self) -> str:
+        return "RSA2048Chunks"
+
+    def serialize(self, raw: bool = False) -> str:
+        assert len(self.elmts) == 6
+        raw_struct = (
+            f"{self.struct_name} {{"
+            + ",".join(
+                f"{self.members_names[i]}: {int_to_u384(self.elmts[i].value)}"
+                for i in range(6)
+            )
+            + "}"
+        )
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 6
+        return io.bigint_split_array(self.elmts, prepend_length=False)
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        assert len(self.elmts) == 6
+        return f"let {self.name}:{self.struct_name} = {self.struct_name} {{ {','.join([f'{self.members_names[i]}: outputs.get_output({offset_to_reference_map[self.elmts[i].offset]})' for i in range(6)])} }};"
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for mem_name in self.members_names:
+            code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{mem_name});\n"
+        return code
+
+    def __len__(self) -> int:
+        if self.elmts is not None:
+            assert len(self.elmts) == 6
+            return 6
+        else:
+            return 6
+
+
+class RSA2048ReductionWitness(Cairo1SerializableStruct):
+    """Composite struct: quotient (6 u384) + remainder (6 u384) = 12 elements."""
+
+    def __init__(self, name: str, elmts: list[ModuloCircuitElement]):
+        super().__init__(name, elmts)
+        self.chunk_names = ("w0", "w1", "w2", "w3", "w4", "w5")
+
+    @property
+    def struct_name(self) -> str:
+        return "RSA2048ReductionWitness"
+
+    def serialize(self, raw: bool = False) -> str:
+        assert len(self.elmts) == 12
+        quot = ", ".join(
+            f"{self.chunk_names[i]}: {int_to_u384(self.elmts[i].value)}"
+            for i in range(6)
+        )
+        rem = ", ".join(
+            f"{self.chunk_names[i]}: {int_to_u384(self.elmts[6 + i].value)}"
+            for i in range(6)
+        )
+        raw_struct = f"{self.struct_name} {{ quotient: RSA2048Chunks {{ {quot} }}, remainder: RSA2048Chunks {{ {rem} }} }}"
+        if raw:
+            return raw_struct
+        else:
+            return f"let {self.name}:{self.struct_name} = {raw_struct};\n"
+
+    def _serialize_to_calldata(self) -> list[int]:
+        assert len(self.elmts) == 12
+        return io.bigint_split_array(self.elmts, prepend_length=False)
+
+    def extract_from_circuit_output(
+        self, offset_to_reference_map: dict[int, str]
+    ) -> str:
+        raise NotImplementedError("RSA2048ReductionWitness is input-only")
+
+    def dump_to_circuit_input(self) -> str:
+        code = ""
+        for member in ("quotient", "remainder"):
+            for chunk in self.chunk_names:
+                code += f"circuit_inputs = circuit_inputs.next_2({self.name}.{member}.{chunk});\n"
+        return code
+
+    def __len__(self) -> int:
+        return 12
+
+
 class GenericT(Cairo1SerializableStruct):
     # <T> => u384 or u288
 

@@ -176,6 +176,11 @@ from definitions import bn, bls
 
         # Combine all definitions
         all_definitions = structs_to_import
+        definitions_import = ""
+        if all_definitions:
+            definitions_import = (
+                f"use garaga::definitions::{{{', '.join(all_definitions)}}};"
+            )
 
         return f"""
 use core::circuit::{{
@@ -186,7 +191,7 @@ use core::circuit::{{
 use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue}};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
-use garaga::definitions::{{{', '.join(all_definitions)}}};
+{definitions_import}
 """
 
 

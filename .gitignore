@@ -43,6 +43,7 @@ tools/noir/hello/foundry.toml
 # Benchmarks and profiling data
 .cargo/benchmarks/*/
 src/profile/
+/profiles/
 **/.snfoundry_trace/**
 
 # Worktrees

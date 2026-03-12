@@ -28,3 +28,5 @@
 **TypeScript coverage**: Every WASM binding needs a typed wrapper in `tools/npm/garaga_ts/src/node/api.ts`, a Jest test, and coverage across all 4 integration suites (Node CJS, Node ESM, Webpack, React).
 
 **E2E tests**: Deploy on starknet-devnet via `SmartContractProject.declare_class_hash()`, generate calldata via Python, invoke contract, assert via `wait_for_acceptance()`.
+
+**Cairo circuits**: Never include unused values in circuit output tuples (`extend_struct_output`) — each output enlarges the circuit's generic tuple and can trigger CASM `Offset overflow` when the tuple exceeds stdlib `CircuitDefinition` bounds. Prefer `#[inline(always)]` on circuit functions and loops over repeated calls to keep AP offsets scoped per iteration.
