@@ -147,7 +147,9 @@ def get_scarb_toml_file(package_name: str, cli_mode: bool, inlining_level: int =
     else:
         dep = 'path = "../../../"'
 
-    return header + f"""[package]
+    return (
+        header
+        + f"""[package]
 name = "{package_name}"
 version = "0.1.0"
 edition = "2024_07"
@@ -168,6 +170,7 @@ assert_macros = "{CAIRO_VERSION}"
 casm = true
 casm-add-pythonic-hints = true
 """
+    )
 
 
 def write_test_calldata_file(
@@ -350,7 +353,7 @@ def gen_groth16_verifier(
 
     pub const N_PUBLIC_INPUTS:usize = {len(vk.ic)-1};
     {vk.serialize_to_cairo()}
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
+    pub const precomputed_lines: [G2Line<{"u384" if curve_id==CurveID.BLS12_381 else "u288"}>; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
     """
     contract_code = f"""
 use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};

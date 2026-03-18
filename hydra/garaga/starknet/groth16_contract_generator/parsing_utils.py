@@ -278,8 +278,9 @@ class Groth16VerifyingKey:
                 for i, point in enumerate(self.ic)
             ],
         )
+        field_type = "u384" if self.curve_id == CurveID.BLS12_381 else "u288"
         code = f"""
-        pub const vk:Groth16VerifyingKey = Groth16VerifyingKey{{
+        pub const vk:Groth16VerifyingKey<{field_type}> = Groth16VerifyingKey{{
             alpha_beta_miller_loop_result: {M.serialize(raw=True)},
             gamma_g2: {gamma_g2.serialize(raw=True)},
             delta_g2: {delta_g2.serialize(raw=True)}

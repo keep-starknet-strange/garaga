@@ -57,14 +57,14 @@ sudo apt install -y python3
 
 In order to implement the Verifier one needs to install the tooling for Cairo development and Garaga:
 
-4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.14.0)
+4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.16.1)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.53.0)
+5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.57.0)
 
 ```bash
 curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | bash

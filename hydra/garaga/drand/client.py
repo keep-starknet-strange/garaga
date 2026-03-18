@@ -313,6 +313,6 @@ if __name__ == "__main__":
     )
 
     def generate_precomputed_lines_code(precomputed_lines: StructArray) -> str:
-        return f"pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};"
+        return f"pub const precomputed_lines: [G2Line<u384>; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};"
 
     # print(generate_precomputed_lines_code(precomputed_lines))

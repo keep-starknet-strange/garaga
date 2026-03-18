@@ -458,7 +458,7 @@ use garaga::definitions::{{G1Point, G2Line, u384, u288}};
 use garaga::apps::noir::HonkVk;
 
 {vk.to_cairo()}\n
-pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
+pub const precomputed_lines: [G2Line<u288>; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
 """
 
 

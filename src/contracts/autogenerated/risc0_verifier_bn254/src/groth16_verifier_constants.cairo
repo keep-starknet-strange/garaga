@@ -24,7 +24,7 @@ pub const T: G1Point = G1Point {
     },
 }; // IC[0] + IC[1] * CONTROL_ROOT_0 + IC[2] * CONTROL_ROOT_1 + IC[5] * BN254_CONTROL_ID
 
-pub const vk: Groth16VerifyingKey = Groth16VerifyingKey {
+pub const vk: Groth16VerifyingKey<u288> = Groth16VerifyingKey {
     alpha_beta_miller_loop_result: E12D {
         w0: u288 {
             limb0: 0x38febe9f87f730fa3e5bd174,
@@ -229,7 +229,7 @@ pub const ic: [G1Point; 6] = [
 ];
 
 
-pub const precomputed_lines: [G2Line; 176] = [
+pub const precomputed_lines: [G2Line<u288>; 176] = [
     G2Line {
         r0a0: u288 {
             limb0: 0x4d347301094edcbfa224d3d5,

@@ -20,7 +20,7 @@ To set up a development environment, please follow these steps:
    source venv/bin/activate
    ```
 
-2. You also need [Rust](https://www.rust-lang.org/tools/install) and [Scarb 2.14.0](https://docs.swmansion.com/scarb/download.html) installed.
+2. You also need [Rust](https://www.rust-lang.org/tools/install) and [Scarb 2.16.1](https://docs.swmansion.com/scarb/download.html) installed.
 
 ## Issues and feature requests
 

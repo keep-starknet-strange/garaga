@@ -389,7 +389,7 @@ pub const vk: HonkVk = HonkVk {
     },
 };
 
-pub const precomputed_lines: [G2Line; 176] = [
+pub const precomputed_lines: [G2Line<u288>; 176] = [
     G2Line {
         r0a0: u288 {
             limb0: 0x4d347301094edcbfa224d3d5,

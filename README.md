@@ -71,7 +71,7 @@ To get started with Garaga, you'll need to have some tools and dependencies inst
 
 Ensure you have the following installed:
 - [Rust](https://www.rust-lang.org/tools/install) - Required for building the `garaga_rs` extension.
-- [Scarb 2.14.0](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside.
+- [Scarb 2.16.1](https://docs.swmansion.com/scarb/download.html) - The Cairo package manager. Comes with Cairo inside.
 
 Python 3.10-3.14 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available. Make sure you have GMP installed for the `fastecdsa` python package. See [here](https://pypi.org/project/fastecdsa/#installing) for linux and [here](https://github.com/AntonKueltz/fastecdsa/issues/74) for macos.
 
