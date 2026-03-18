@@ -293,7 +293,7 @@ Along with the `verify_and_submit_fibonacci_number` contract method, we need to 
 use core::starknet::ClassHash;
 
 pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-    0x1367d4ed2f58cfaaeda8cb18a8fb108d77c33b847e9beced89351adece9fd5a;
+    0x41d5e111b93acbf1afb531253e0bc64d43f90a8a99290361e851ec0c4968ab1;
 ```
 
 The contract state which stores the current lower bound which gets updated whenever a new Fibonacci number is submitted
