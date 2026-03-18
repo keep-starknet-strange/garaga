@@ -28,7 +28,7 @@ run_generators_with_tests() {
 # Main script
 clean_dirs
 
-start_time=$(date +%s.%N)
+start_time=$(date +%s)
 
 if [ "$1" = "no-tests" ]; then
     run_generators
@@ -36,7 +36,7 @@ else
     run_generators_with_tests
 fi
 
-end_time=$(date +%s.%N)
-elapsed_time=$(echo "$end_time - $start_time" | bc)
+end_time=$(date +%s)
+elapsed_time=$((end_time - start_time))
 
-LC_NUMERIC=C printf "Total time taken: %.2f seconds\n" "$elapsed_time"
+echo "Total time taken: ${elapsed_time} seconds"
