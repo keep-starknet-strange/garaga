@@ -7,7 +7,7 @@ icon: wrench
 To work with Garaga, you need the following dependencies :&#x20;
 
 * [Rust](https://www.rust-lang.org/tools/install)
-* [Scarb](https://docs.swmansion.com/scarb/download.html) v2.14.0
+* [Scarb](https://docs.swmansion.com/scarb/download.html) v2.16.1
 
 Python 3.10-3.14 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available.
 

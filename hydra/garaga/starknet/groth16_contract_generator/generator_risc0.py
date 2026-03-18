@@ -57,7 +57,7 @@ def gen_risc0_groth16_verifier(
     // BN254 CONTROL ID USED : {hex(control_id)}
     pub const T: G1Point = {T.serialize(raw=True)}; // IC[0] + IC[1] * CONTROL_ROOT_0 + IC[2] * CONTROL_ROOT_1 + IC[5] * BN254_CONTROL_ID
     {vk.serialize_to_cairo()}
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
+    pub const precomputed_lines: [G2Line<u288>; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
     """
     verification_function_name = f"verify_r0_groth16_proof_{curve_id.name.lower()}"
 

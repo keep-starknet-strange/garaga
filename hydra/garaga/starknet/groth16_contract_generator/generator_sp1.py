@@ -35,7 +35,7 @@ def gen_sp1_groth16_verifier(
 
             pub const N_PUBLIC_INPUTS: usize = {len(vk.ic) - 1};
             {vk.serialize_to_cairo()}
-            pub const precomputed_lines: [G2Line; {len(precomputed_lines) // 4}] = {precomputed_lines.serialize(raw=True, const=True)};
+            pub const precomputed_lines: [G2Line<u288>; {len(precomputed_lines) // 4}] = {precomputed_lines.serialize(raw=True, const=True)};
             """).strip() + "\n"
     verification_function_name = f"verify_sp1_groth16_proof_{curve_id.name.lower()}"
     verification_function_name_u32 = (

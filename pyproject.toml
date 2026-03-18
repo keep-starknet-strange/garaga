@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "garaga"
-version = "1.0.1"
+version = "1.1.0"
 requires-python = ">=3.10,<3.15"
 dependencies = [
   "fastecdsa>=3.0.0",
@@ -17,10 +17,10 @@ dependencies = [
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 readme = "docs/PYPI_README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 authors = [
-  {name = "feltroidprime"},
-  {name = "Keep Starknet Strange Contributors"}
+  { name = "feltroidprime" },
+  { name = "Keep Starknet Strange Contributors" },
 ]
 keywords = [
   "elliptic-curves",
@@ -35,7 +35,7 @@ keywords = [
   "cairo-lang",
   "starknet",
   "cryptography",
-  "blockchain"
+  "blockchain",
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -51,7 +51,7 @@ classifiers = [
   "Topic :: Security :: Cryptography",
   "Topic :: Scientific/Engineering :: Mathematics",
   "Topic :: Software Development :: Libraries :: Python Modules",
-  "Operating System :: OS Independent"
+  "Operating System :: OS Independent",
 ]
 
 [project.urls]
@@ -98,7 +98,7 @@ profile = "black"
 cache_dir = ".cargo/.pytest_cache"
 testpaths = ["tests/hydra"]
 # addopts = "--tb=short --showlocals"
-asyncio_default_fixture_loop_scope = "function"  # Explicitly set the loop scope
+asyncio_default_fixture_loop_scope = "function" # Explicitly set the loop scope
 
 [tool.black]
 line-length = 88
