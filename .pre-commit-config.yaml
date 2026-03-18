@@ -21,9 +21,10 @@ repos:
     -   id: check-yaml
     -   id: check-toml
 -   repo: https://github.com/psf/black
-    rev: 25.1.0
+    rev: 26.1.0
     hooks:
     -   id: black
+        args: ["--target-version", "py310"]
         files: \.py$
 -   repo: local
     hooks:

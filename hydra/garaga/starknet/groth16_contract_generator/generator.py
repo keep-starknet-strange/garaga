@@ -147,9 +147,7 @@ def get_scarb_toml_file(package_name: str, cli_mode: bool, inlining_level: int =
     else:
         dep = 'path = "../../../"'
 
-    return (
-        header
-        + f"""[package]
+    return header + f"""[package]
 name = "{package_name}"
 version = "0.1.0"
 edition = "2024_07"
@@ -170,7 +168,6 @@ assert_macros = "{CAIRO_VERSION}"
 casm = true
 casm-add-pythonic-hints = true
 """
-    )
 
 
 def write_test_calldata_file(
