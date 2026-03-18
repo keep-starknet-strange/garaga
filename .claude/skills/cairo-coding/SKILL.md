@@ -309,7 +309,7 @@ When optimizing existing code:
 ```toml
 # Scarb.toml
 [dependencies]
-corelib_imports = "0.1.2"
+corelib_imports = "0.1.3"
 ```
 
 ```cairo
