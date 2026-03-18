@@ -15,7 +15,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
 )
 
-ECIP_OPS_CLASS_HASH = 0x312D1DD5F967EAF6F86965E3FA7ACBC9D0FBD979066A17721DD913736AF2F5E
+ECIP_OPS_CLASS_HASH = 0x396D5915ECF475AAB117BB25A0272B261E9E25FFE1C0CE05A51A3F77489C89E
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -350,7 +350,7 @@ def gen_groth16_verifier(
 
     pub const N_PUBLIC_INPUTS:usize = {len(vk.ic)-1};
     {vk.serialize_to_cairo()}
-    pub const precomputed_lines: [G2Line; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
+    pub const precomputed_lines: [G2Line<{"u384" if curve_id==CurveID.BLS12_381 else "u288"}>; {len(precomputed_lines)//4}] = {precomputed_lines.serialize(raw=True, const=True)};
     """
     contract_code = f"""
 use super::groth16_verifier_constants::{{N_PUBLIC_INPUTS, vk, ic, precomputed_lines}};
