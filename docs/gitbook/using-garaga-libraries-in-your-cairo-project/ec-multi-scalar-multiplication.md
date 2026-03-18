@@ -25,7 +25,7 @@ version = "0.1.0"
 edition = "2024_07"
 
 [dependencies]
-garaga = "1.0.1"
+garaga = "1.1.0"
 
 [cairo]
 sierra-replace-ids = false
