@@ -6,7 +6,7 @@ edition = "2024_07"
 [dependencies]
 garaga = { path = "../.." }
 drand_quicknet = { path = "../drand_quicknet" }
-starknet = "2.14.0"
+starknet = "2.16.1"
 
 [cairo]
 sierra-replace-ids = false

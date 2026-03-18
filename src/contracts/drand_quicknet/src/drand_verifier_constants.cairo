@@ -28,7 +28,7 @@ pub const G2_GEN: G2Point = G2Point {
     },
 };
 
-pub const precomputed_lines: [G2Line; 136] = [
+pub const precomputed_lines: [G2Line<u384>; 136] = [
     G2Line {
         r0a0: u384 {
             limb0: 0x36701a5831c9fb39250e2ea9,

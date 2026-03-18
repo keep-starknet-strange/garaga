@@ -344,6 +344,17 @@ LANGUAGE_CONFIGS = [
 ]
 
 
+def hex_to_uint8array_literal(hex_str: str) -> str:
+    """Convert a hex string like '0xABCD...' to 'new Uint8Array([0xAB, 0xCD, ...])'."""
+    raw = hex_str.removeprefix("0x").removeprefix("0X")
+    byte_values = [f"0x{raw[i:i+2].upper()}" for i in range(0, len(raw), 2)]
+    # Format in rows of 16 for readability
+    rows = []
+    for i in range(0, len(byte_values), 16):
+        rows.append("    " + ", ".join(byte_values[i : i + 16]))
+    return "new Uint8Array([\n" + ",\n".join(rows) + "\n])"
+
+
 def safe_read_file(file_path: str) -> str:
     """Safely read a file with proper error handling."""
     try:
@@ -475,7 +486,7 @@ def generate_unified_constants(
     elif config.name == "TypeScript":
         lines.extend(
             [
-                f'export const RISC0_SYSTEM_STATE_ZERO_DIGEST = Uint8Array.from(Buffer.from("{risc0_info["system_state_zero_digest"].lstrip("0x")}", "hex"));',
+                f'export const RISC0_SYSTEM_STATE_ZERO_DIGEST = {hex_to_uint8array_literal(risc0_info["system_state_zero_digest"])};',
                 f'export const RISC0_TAG_DIGEST = "{risc0_info["tag_digest"]}";',
                 f'export const RISC0_OUTPUT_TAG = "{risc0_info["output_tag"]}";',
             ]

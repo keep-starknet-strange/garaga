@@ -1,6 +1,6 @@
 [package]
 name = "garaga"
-version = "1.0.1"
+version = "1.1.0"
 edition = "2024_07"
 licence = "MIT"
 keywords = [
@@ -26,13 +26,13 @@ full = []
 
 [dependencies]
 corelib_imports = { path = "corelib_imports", version = "0.1.2" }
-starknet = "2.16.1-rc.0"
+starknet = "2.16.1"
 
 [dev-dependencies]
-snforge_std = "0.56.0"
-assert_macros = "2.14.0"
-#cairo_test = "2.14.0"
-cairo_execute = "2.16.1-rc.0"
+snforge_std = "0.57.0"
+assert_macros = "2.16.1"
+#cairo_test = "2.16.1"
+cairo_execute = "2.16.1"
 
 [scripts]
 test = "snforge test -p garaga --include-ignored"
