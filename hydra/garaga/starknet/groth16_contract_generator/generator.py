@@ -15,7 +15,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
 )
 
-ECIP_OPS_CLASS_HASH = 0x312D1DD5F967EAF6F86965E3FA7ACBC9D0FBD979066A17721DD913736AF2F5E
+ECIP_OPS_CLASS_HASH = 0x396D5915ECF475AAB117BB25A0272B261E9E25FFE1C0CE05A51A3F77489C89E
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
