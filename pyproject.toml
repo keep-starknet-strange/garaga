@@ -67,7 +67,7 @@ dev = [
   "pytest",
   "pytest-asyncio",
   "pytest-xdist",
-  "black>=25.1",
+  "black>=26.3.1",
   "pre-commit",
   "inquirer",
   "pandas",

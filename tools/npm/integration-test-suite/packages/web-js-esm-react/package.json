@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "garaga": "file:../../garaga.tgz",
-    "next": "16.1.6",
+    "next": "16.1.7",
     "react": "^18",
     "react-dom": "^18"
   },
