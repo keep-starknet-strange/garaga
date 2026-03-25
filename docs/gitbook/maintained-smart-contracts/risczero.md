@@ -39,7 +39,7 @@ export PATH="$HOME/.risc0/bin:$PATH"
 rzup install
 ```
 
-_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero v2.2.2 use Garaga 1.0.1. Check [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json) for the latest supported versions._
+_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero v2.2.2 use Garaga 1.1.0. Check [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json) for the latest supported versions._
 
 3. Install RiscZero additional/custom dependencies
 
@@ -57,14 +57,14 @@ sudo apt install -y python3
 
 In order to implement the Verifier one needs to install the tooling for Cairo development and Garaga:
 
-4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.14.0)
+4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.16.1)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.53.0)
+5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.57.0)
 
 ```bash
 curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | bash
@@ -94,7 +94,7 @@ hex = "0.4"
 Optionally, if you intend to explicitly generate and handle the call-data, also add the following dependency to `host/Cargo.toml`. Make sure to use a Garaga version tag that is consistent with your setup.
 
 <pre class="language-toml"><code class="lang-toml">[dependencies]
-<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.0.1" }
+<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.1.0" }
 </strong>...
 </code></pre>
 
@@ -293,7 +293,7 @@ Along with the `verify_and_submit_fibonacci_number` contract method, we need to 
 use core::starknet::ClassHash;
 
 pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-    0x1367d4ed2f58cfaaeda8cb18a8fb108d77c33b847e9beced89351adece9fd5a;
+    0x41d5e111b93acbf1afb531253e0bc64d43f90a8a99290361e851ec0c4968ab1;
 ```
 
 The contract state which stores the current lower bound which gets updated whenever a new Fibonacci number is submitted

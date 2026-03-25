@@ -5,8 +5,8 @@ members = [
 ]
 
 [workspace.dependencies]
-cairo_test = "2.14.0"
-starknet = "2.14.0"
+cairo_test = "2.16.1"
+starknet = "2.16.1"
 
 [workspace.scripts]
 test = "snforge test -p garaga --include-ignored"
