@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass
-from typing import Generic, TypeVar
+from typing import TYPE_CHECKING, Any, Generic, TypeVar
+
+if TYPE_CHECKING:
+    pass
 
 from sympy import legendre_symbol, sqrt_mod
 
@@ -386,11 +389,13 @@ class ModuloCircuitElement:
 
     Attributes:
         emulated_felt (PyFelt): The emulated field element in the modulo circuit
-        offset (int): The offset in the values segment within the modulo circuit where the element is stored.
+        offset (int): The offset in the values segment
+        circuit: Reference to parent ModuloCircuit (None for standalone elements)
     """
 
     emulated_felt: PyFelt
     offset: int
+    circuit: Any = None
 
     __repr__ = lambda self: f"ModuloCircuitElement({hex(self.value)}, {self.offset})"
 
@@ -405,6 +410,46 @@ class ModuloCircuitElement:
     @property
     def felt(self) -> PyFelt:
         return self.emulated_felt
+
+    def _check_circuit(self, other: "ModuloCircuitElement | None" = None) -> None:
+        if self.circuit is None:
+            raise ValueError(
+                "Cannot perform arithmetic on element without circuit reference. "
+                "Use circuit.add(a, b) or ensure elements are created via circuit.write_element()."
+            )
+        if other is not None and other.circuit is not None:
+            if self.circuit.uuid != other.circuit.uuid:
+                raise ValueError(f"Cannot operate on elements from different circuits.")
+
+    def __add__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        self._check_circuit(other)
+        return self.circuit.add(self, other)
+
+    def __radd__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        return self.__add__(other)
+
+    def __sub__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        self._check_circuit(other)
+        return self.circuit.sub(self, other)
+
+    def __rsub__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        self._check_circuit(other)
+        return self.circuit.sub(other, self)
+
+    def __mul__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        self._check_circuit(other)
+        return self.circuit.mul(self, other)
+
+    def __rmul__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        return self.__mul__(other)
+
+    def __truediv__(self, other: "ModuloCircuitElement") -> "ModuloCircuitElement":
+        self._check_circuit(other)
+        return self.circuit.div(self, other)
+
+    def __neg__(self) -> "ModuloCircuitElement":
+        self._check_circuit()
+        return self.circuit.neg(self)
 
 
 class Polynomial(Generic[T]):

@@ -1017,38 +1017,29 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         num = self.set_or_get_constant(1)
         den = self.set_or_get_constant(1)
         PERMUTATION_ARGUMENT_VALUE_SEPARATOR = 1 << 28
-        num_acc = self.add(
-            gamma,
-            self.mul(
-                beta,
-                self.add(
-                    self.set_or_get_constant(PERMUTATION_ARGUMENT_VALUE_SEPARATOR),
-                    offset,
-                ),
-            ),
+        num_acc = gamma + (
+            beta
+            * (self.set_or_get_constant(PERMUTATION_ARGUMENT_VALUE_SEPARATOR) + offset)
         )
-        den_acc = self.sub(
-            gamma,
-            self.mul(beta, self.add(offset, self.set_or_get_constant(1))),
-        )
+        den_acc = gamma - (beta * (offset + self.set_or_get_constant(1)))
 
         for i, pub_input in enumerate(public_inputs):
-            num = self.mul(num, self.add(num_acc, pub_input))
-            den = self.mul(den, self.add(den_acc, pub_input))
+            num = num * (num_acc + pub_input)
+            den = den * (den_acc + pub_input)
 
-            num_acc = self.add(num_acc, beta)
-            den_acc = self.sub(den_acc, beta)
+            num_acc = num_acc + beta
+            den_acc = den_acc - beta
 
         for i, pub_input in enumerate(pairing_point_object):
-            num = self.mul(num, self.add(num_acc, pub_input))
-            den = self.mul(den, self.add(den_acc, pub_input))
+            num = num * (num_acc + pub_input)
+            den = den * (den_acc + pub_input)
 
             # skip last round (unused otherwise)
             if i != len(pairing_point_object) - 1:
-                num_acc = self.add(num_acc, beta)
-                den_acc = self.sub(den_acc, beta)
+                num_acc = num_acc + beta
+                den_acc = den_acc - beta
 
-        return self.div(num, den)
+        return num / den
 
     def verify_sum_check(
         self,
@@ -1075,17 +1066,15 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         """
 
         pow_partial_evaluation = self.set_or_get_constant(1)
-        round_target = self.mul(libra_challenge, libra_sum)
+        round_target = libra_challenge * libra_sum
         check_rlc = None
 
         rlc_coeff = base_rlc
         current_gate_challenge = gate_challenge
         for i, round in enumerate(range(log_n)):
             round_univariate: list[ModuloCircuitElement] = sumcheck_univariates[round]
-            total_sum = self.add(round_univariate[0], round_univariate[1])
-            check_rlc = self.add(
-                check_rlc, self.mul(self.sub(total_sum, round_target), rlc_coeff)
-            )
+            total_sum = round_univariate[0] + round_univariate[1]
+            check_rlc = check_rlc + ((total_sum - round_target) * rlc_coeff)
 
             round_challenge = sum_check_u_challenges[round]
             round_target = self.compute_next_target_sum(
@@ -1099,7 +1088,7 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             )
             # Skip at the last round
             if i != log_n - 1:
-                rlc_coeff = self.mul(rlc_coeff, base_rlc)
+                rlc_coeff = rlc_coeff * base_rlc
                 current_gate_challenge = self.square(current_gate_challenge)
 
         # Last Round
@@ -1122,27 +1111,20 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         alpha_i = alpha
         len_evaluations = len(evaluations) - 1
         for i, evaluation in enumerate(evaluations[1:]):
-            grand_honk_relation_sum = self.add(
-                grand_honk_relation_sum,
-                self.mul(evaluation, alpha_i),
-            )
+            grand_honk_relation_sum = grand_honk_relation_sum + (evaluation * alpha_i)
             # Skip last update of alpha_i
             if i != len_evaluations - 1:
-                alpha_i = self.mul(alpha_i, alpha)
+                alpha_i = alpha_i * alpha
 
         evaluation = sum_check_u_challenges[2]
         for i in range(3, log_n):
-            evaluation = self.mul(evaluation, sum_check_u_challenges[i])
+            evaluation = evaluation * sum_check_u_challenges[i]
 
-        grand_honk_relation_sum = self.add(
-            self.mul(
-                grand_honk_relation_sum,
-                self.sub(self.set_or_get_constant(1), evaluation),
-            ),
-            self.mul(libra_evaluation, libra_challenge),
-        )
+        grand_honk_relation_sum = (
+            grand_honk_relation_sum * (self.set_or_get_constant(1) - evaluation)
+        ) + (libra_evaluation * libra_challenge)
 
-        check = self.sub(grand_honk_relation_sum, round_target)
+        check = grand_honk_relation_sum - round_target
 
         return check_rlc, check
 
@@ -1196,25 +1178,23 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         for i in range(ZK_BATCHED_RELATION_PARTIAL_LENGTH):
             # Update numerator
-            numerator = self.mul(
-                numerator, self.sub(challenge, self.set_or_get_constant(i))
-            )
+            numerator = numerator * (challenge - self.set_or_get_constant(i))
 
             # Calculate inverse of the denominator
             inv = self.inv(
-                self.mul(
-                    BARYCENTRIC_LAGRANGE_DENOMINATORS[i],
-                    self.sub(challenge, BARYCENTRIC_DOMAIN[i]),
+                (
+                    BARYCENTRIC_LAGRANGE_DENOMINATORS[i]
+                    * (challenge - BARYCENTRIC_DOMAIN[i])
                 )
             )
 
             # Calculate term and update target_sum
             term = round_univariate[i]
-            term = self.mul(term, inv)
-            target_sum = self.add(target_sum, term)
+            term = term * inv
+            target_sum = target_sum + term
 
         # Scale the sum by the value of B(x)
-        target_sum = self.mul(target_sum, numerator)
+        target_sum = target_sum * numerator
 
         return target_sum
 
@@ -1228,11 +1208,10 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         """
         Univariate evaluation of the monomial ((1-X_l) + X_l.B_l) at the challenge point X_l=u_l
         """
-        univariate_eval = self.add(
-            self.set_or_get_constant(1),
-            self.mul(challenge, self.sub(gate_challenge, self.set_or_get_constant(1))),
+        univariate_eval = self.set_or_get_constant(1) + (
+            challenge * (gate_challenge - self.set_or_get_constant(1))
         )
-        new_evaluation = self.mul(current_evaluation, univariate_eval)
+        new_evaluation = current_evaluation * univariate_eval
 
         return new_evaluation
 
@@ -1321,7 +1300,7 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         accum = self.product(
             [
-                self.sub(q_arith, self.set_or_get_constant(3)),
+                (q_arith - self.set_or_get_constant(3)),
                 p[Wire.Q_M],
                 p[Wire.W_R],
                 p[Wire.W_L],
@@ -1331,28 +1310,25 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         accum = self.sum(
             [
                 accum,
-                self.mul(p[Wire.Q_L], p[Wire.W_L]),
-                self.mul(p[Wire.Q_R], p[Wire.W_R]),
-                self.mul(p[Wire.Q_O], p[Wire.W_O]),
-                self.mul(p[Wire.Q_4], p[Wire.W_4]),
+                (p[Wire.Q_L] * p[Wire.W_L]),
+                (p[Wire.Q_R] * p[Wire.W_R]),
+                (p[Wire.Q_O] * p[Wire.W_O]),
+                (p[Wire.Q_4] * p[Wire.W_4]),
                 p[Wire.Q_C],
             ]
         )
-        accum = self.add(
-            accum,
-            self.mul(self.sub(q_arith, self.set_or_get_constant(1)), p[Wire.W_4_SHIFT]),
-        )
+        accum = accum + ((q_arith - self.set_or_get_constant(1)) * p[Wire.W_4_SHIFT])
         accum = self.product([accum, q_arith, domain_separator])
 
         evaluations[0] = accum
 
         # Relation 1
         accum = self.sum([p[Wire.W_L], p[Wire.W_4], p[Wire.Q_M]])
-        accum = self.sub(accum, p[Wire.W_L_SHIFT])
-        accum = self.mul(accum, self.sub(q_arith, self.set_or_get_constant(2)))
-        accum = self.mul(accum, self.sub(q_arith, self.set_or_get_constant(1)))
-        accum = self.mul(accum, q_arith)
-        accum = self.mul(accum, domain_separator)
+        accum = accum - p[Wire.W_L_SHIFT]
+        accum = accum * (q_arith - self.set_or_get_constant(2))
+        accum = accum * (q_arith - self.set_or_get_constant(1))
+        accum = accum * q_arith
+        accum = accum * domain_separator
 
         evaluations[1] = accum
 
@@ -1370,29 +1346,22 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         p = purported_evaluations
 
         # Grand Product Numerator
-        n = self.sum([p[Wire.W_L], self.mul(p[Wire.ID_1], beta), gamma])
-        n = self.mul(n, self.sum([p[Wire.W_R], self.mul(p[Wire.ID_2], beta), gamma]))
-        n = self.mul(n, self.sum([p[Wire.W_O], self.mul(p[Wire.ID_3], beta), gamma]))
-        n = self.mul(n, self.sum([p[Wire.W_4], self.mul(p[Wire.ID_4], beta), gamma]))
+        n = self.sum([p[Wire.W_L], (p[Wire.ID_1] * beta), gamma])
+        n = n * self.sum([p[Wire.W_R], (p[Wire.ID_2] * beta), gamma])
+        n = n * self.sum([p[Wire.W_O], (p[Wire.ID_3] * beta), gamma])
+        n = n * self.sum([p[Wire.W_4], (p[Wire.ID_4] * beta), gamma])
 
         # Grand Product Denominator
-        d = self.sum([p[Wire.W_L], self.mul(p[Wire.SIGMA_1], beta), gamma])
-        d = self.mul(d, self.sum([p[Wire.W_R], self.mul(p[Wire.SIGMA_2], beta), gamma]))
-        d = self.mul(d, self.sum([p[Wire.W_O], self.mul(p[Wire.SIGMA_3], beta), gamma]))
-        d = self.mul(d, self.sum([p[Wire.W_4], self.mul(p[Wire.SIGMA_4], beta), gamma]))
+        d = self.sum([p[Wire.W_L], (p[Wire.SIGMA_1] * beta), gamma])
+        d = d * self.sum([p[Wire.W_R], (p[Wire.SIGMA_2] * beta), gamma])
+        d = d * self.sum([p[Wire.W_O], (p[Wire.SIGMA_3] * beta), gamma])
+        d = d * self.sum([p[Wire.W_4], (p[Wire.SIGMA_4] * beta), gamma])
 
-        acc = self.mul(n, self.add(p[Wire.Z_PERM], p[Wire.LAGRANGE_FIRST]))
-        acc = self.sub(
-            acc,
-            self.mul(
-                d,
-                self.add(
-                    p[Wire.Z_PERM_SHIFT],
-                    self.mul(p[Wire.LAGRANGE_LAST], public_inputs_delta),
-                ),
-            ),
+        acc = n * (p[Wire.Z_PERM] + p[Wire.LAGRANGE_FIRST])
+        acc = acc - (
+            d * (p[Wire.Z_PERM_SHIFT] + (p[Wire.LAGRANGE_LAST] * public_inputs_delta))
         )
-        evaluations[2] = self.mul(acc, domain_separator)
+        evaluations[2] = acc * domain_separator
 
         evaluations[3] = self.product(
             [p[Wire.LAGRANGE_LAST], p[Wire.Z_PERM_SHIFT], domain_separator]
@@ -1415,55 +1384,48 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             [
                 p[Wire.TABLE_1],
                 gamma,
-                self.mul(p[Wire.TABLE_2], eta),
-                self.mul(p[Wire.TABLE_3], eta_two),
-                self.mul(p[Wire.TABLE_4], eta_three),
+                (p[Wire.TABLE_2] * eta),
+                (p[Wire.TABLE_3] * eta_two),
+                (p[Wire.TABLE_4] * eta_three),
             ]
         )
 
         derived_entry_1 = self.sum(
-            [p[Wire.W_L], gamma, self.mul(p[Wire.Q_R], p[Wire.W_L_SHIFT])]
+            [p[Wire.W_L], gamma, (p[Wire.Q_R] * p[Wire.W_L_SHIFT])]
         )
-        derived_entry_2 = self.add(
-            p[Wire.W_R], self.mul(p[Wire.Q_M], p[Wire.W_R_SHIFT])
-        )
-        derived_entry_3 = self.add(
-            p[Wire.W_O], self.mul(p[Wire.Q_C], p[Wire.W_O_SHIFT])
-        )
+        derived_entry_2 = p[Wire.W_R] + (p[Wire.Q_M] * p[Wire.W_R_SHIFT])
+        derived_entry_3 = p[Wire.W_O] + (p[Wire.Q_C] * p[Wire.W_O_SHIFT])
         read_term = self.sum(
             [
                 derived_entry_1,
-                self.mul(derived_entry_2, eta),
-                self.mul(derived_entry_3, eta_two),
-                self.mul(p[Wire.Q_O], eta_three),
+                (derived_entry_2 * eta),
+                (derived_entry_3 * eta_two),
+                (p[Wire.Q_O] * eta_three),
             ]
         )
 
-        read_inverse = self.mul(p[Wire.LOOKUP_INVERSES], write_term)
-        write_inverse = self.mul(p[Wire.LOOKUP_INVERSES], read_term)
+        read_inverse = p[Wire.LOOKUP_INVERSES] * write_term
+        write_inverse = p[Wire.LOOKUP_INVERSES] * read_term
 
-        inverse_exists_xor = self.sub(
-            self.add(p[Wire.LOOKUP_READ_TAGS], p[Wire.Q_LOOKUP]),
-            self.mul(p[Wire.LOOKUP_READ_TAGS], p[Wire.Q_LOOKUP]),
+        inverse_exists_xor = (p[Wire.LOOKUP_READ_TAGS] + p[Wire.Q_LOOKUP]) - (
+            p[Wire.LOOKUP_READ_TAGS] * p[Wire.Q_LOOKUP]
         )
 
         accumulator_none = self.product(
             [read_term, write_term, p[Wire.LOOKUP_INVERSES]]
         )
-        accumulator_none = self.sub(accumulator_none, inverse_exists_xor)
-        accumulator_none = self.mul(accumulator_none, domain_separator)
+        accumulator_none = accumulator_none - inverse_exists_xor
+        accumulator_none = accumulator_none * domain_separator
 
-        accumulator_one = self.mul(p[Wire.Q_LOOKUP], read_inverse)
-        accumulator_one = self.sub(
-            accumulator_one, self.mul(p[Wire.LOOKUP_READ_COUNTS], write_inverse)
-        )
+        accumulator_one = p[Wire.Q_LOOKUP] * read_inverse
+        accumulator_one = accumulator_one - (p[Wire.LOOKUP_READ_COUNTS] * write_inverse)
         read_tag = p[Wire.LOOKUP_READ_TAGS]
 
-        read_tag_boolean_relation = self.sub(self.square(read_tag), read_tag)
+        read_tag_boolean_relation = self.square(read_tag) - read_tag
 
         evaluations[4] = accumulator_none
         evaluations[5] = accumulator_one
-        evaluations[6] = self.mul(read_tag_boolean_relation, domain_separator)
+        evaluations[6] = read_tag_boolean_relation * domain_separator
 
         return evaluations
 
@@ -1480,26 +1442,26 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         # Precompute common terms
         q_range = p[Wire.Q_RANGE]
-        q_range_times_domain = self.mul(q_range, domain_separator)
+        q_range_times_domain = q_range * domain_separator
 
         # Compute deltas
-        delta_1 = self.sub(p[Wire.W_R], p[Wire.W_L])
-        delta_2 = self.sub(p[Wire.W_O], p[Wire.W_R])
-        delta_3 = self.sub(p[Wire.W_4], p[Wire.W_O])
-        delta_4 = self.sub(p[Wire.W_L_SHIFT], p[Wire.W_4])
+        delta_1 = p[Wire.W_R] - p[Wire.W_L]
+        delta_2 = p[Wire.W_O] - p[Wire.W_R]
+        delta_3 = p[Wire.W_4] - p[Wire.W_O]
+        delta_4 = p[Wire.W_L_SHIFT] - p[Wire.W_4]
 
         # Process each delta
         for i, delta in enumerate([delta_1, delta_2, delta_3, delta_4]):
             # Compute delta + (-1), delta + (-2), delta + (-3) efficiently
-            delta_minus_1 = self.add(delta, minus_one)
-            delta_minus_2 = self.add(delta_minus_1, minus_one)  # Reuse delta_minus_1
-            delta_minus_3 = self.add(delta_minus_2, minus_one)  # Reuse delta_minus_2
+            delta_minus_1 = delta + minus_one
+            delta_minus_2 = delta_minus_1 + minus_one  # Reuse delta_minus_1
+            delta_minus_3 = delta_minus_2 + minus_one  # Reuse delta_minus_2
 
             # Compute product efficiently
-            temp = self.mul(delta, delta_minus_1)
-            temp = self.mul(temp, delta_minus_2)
-            temp = self.mul(temp, delta_minus_3)
-            evaluations[7 + i] = self.mul(temp, q_range_times_domain)
+            temp = delta * delta_minus_1
+            temp = temp * delta_minus_2
+            temp = temp * delta_minus_3
+            evaluations[7 + i] = temp * q_range_times_domain
 
         return evaluations
 
@@ -1522,19 +1484,19 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         q_sign = p[Wire.Q_L]
         q_is_double = p[Wire.Q_M]
 
-        x_diff = self.sub(x2, x1)
-        y1_sqr = self.mul(y1, y1)
+        x_diff = x2 - x1
+        y1_sqr = y1 * y1
 
-        y2_sqr = self.mul(y2, y2)
+        y2_sqr = y2 * y2
         y1y2 = self.product([y1, y2, q_sign])
         x_add_identity = self.sum([x3, x2, x1])
         x_add_identity = self.product([x_add_identity, x_diff, x_diff])
-        x_add_identity = self.sub(x_add_identity, y2_sqr)
-        x_add_identity = self.sub(x_add_identity, y1_sqr)
-        x_add_identity = self.add(x_add_identity, y1y2)
-        x_add_identity = self.add(x_add_identity, y1y2)
+        x_add_identity = x_add_identity - y2_sqr
+        x_add_identity = x_add_identity - y1_sqr
+        x_add_identity = x_add_identity + y1y2
+        x_add_identity = x_add_identity + y1y2
 
-        q_is_add = self.sub(self.set_or_get_constant(1), q_is_double)
+        q_is_add = self.set_or_get_constant(1) - q_is_double
 
         # Point addition, x-coordinate check
         evaluations[11] = self.product(
@@ -1547,12 +1509,9 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         )
 
         # Point addition, y-coordinate check
-        y1_plus_y3 = self.add(y1, y3)
-        y_diff = self.sub(self.mul(y2, q_sign), y1)
-        y_add_identity = self.add(
-            self.mul(y1_plus_y3, x_diff),
-            self.mul(self.sub(x3, x1), y_diff),
-        )
+        y1_plus_y3 = y1 + y3
+        y_diff = (y2 * q_sign) - y1
+        y_add_identity = (y1_plus_y3 * x_diff) + ((x3 - x1) * y_diff)
         evaluations[12] = self.product(
             [
                 y_add_identity,
@@ -1565,36 +1524,25 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         # Point doubling, x-coordinate check
 
         GRUMPKIN_CURVE_B_PARAMETER_NEGATED = self.set_or_get_constant(17)  # - (- 17)
-        x_pow_4 = self.mul(self.add(y1_sqr, GRUMPKIN_CURVE_B_PARAMETER_NEGATED), x1)
-        y1_sqr_mul_4 = self.add(y1_sqr, y1_sqr)
-        y1_sqr_mul_4 = self.add(y1_sqr_mul_4, y1_sqr_mul_4)
+        x_pow_4 = (y1_sqr + GRUMPKIN_CURVE_B_PARAMETER_NEGATED) * x1
+        y1_sqr_mul_4 = y1_sqr + y1_sqr
+        y1_sqr_mul_4 = y1_sqr_mul_4 + y1_sqr_mul_4
 
-        x1_pow_4_mul_9 = self.mul(x_pow_4, self.set_or_get_constant(9))
+        x1_pow_4_mul_9 = x_pow_4 * self.set_or_get_constant(9)
 
-        x_double_identity = self.sub(
-            self.mul(self.sum([x3, x1, x1]), y1_sqr_mul_4), x1_pow_4_mul_9
-        )
+        x_double_identity = (self.sum([x3, x1, x1]) * y1_sqr_mul_4) - x1_pow_4_mul_9
 
-        evaluations[11] = self.add(
-            evaluations[11],
-            self.product(
-                [x_double_identity, domain_separator, p[Wire.Q_ELLIPTIC], q_is_double]
-            ),
+        evaluations[11] = evaluations[11] + self.product(
+            [x_double_identity, domain_separator, p[Wire.Q_ELLIPTIC], q_is_double]
         )
 
         # Point doubling, y-coordinate check
 
-        x1_sqr_mul_3 = self.mul(self.sum([x1, x1, x1]), x1)
-        y_double_identity = self.sub(
-            self.mul(x1_sqr_mul_3, self.sub(x1, x3)),
-            self.mul(self.add(y1, y1), self.add(y1, y3)),
-        )
+        x1_sqr_mul_3 = self.sum([x1, x1, x1]) * x1
+        y_double_identity = (x1_sqr_mul_3 * (x1 - x3)) - ((y1 + y1) * (y1 + y3))
 
-        evaluations[12] = self.add(
-            evaluations[12],
-            self.product(
-                [y_double_identity, domain_separator, p[Wire.Q_ELLIPTIC], q_is_double]
-            ),
+        evaluations[12] = evaluations[12] + self.product(
+            [y_double_identity, domain_separator, p[Wire.Q_ELLIPTIC], q_is_double]
         )
 
         return evaluations
@@ -1610,82 +1558,73 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
     ) -> list[ModuloCircuitElement]:
         p = purported_evaluations
 
-        memory_record_check = self.mul(p[Wire.W_O], eta_three)
-        memory_record_check = self.add(
-            memory_record_check, self.mul(p[Wire.W_R], eta_two)
-        )
-        memory_record_check = self.add(memory_record_check, self.mul(p[Wire.W_L], eta))
-        memory_record_check = self.add(memory_record_check, p[Wire.Q_C])
+        memory_record_check = p[Wire.W_O] * eta_three
+        memory_record_check = memory_record_check + (p[Wire.W_R] * eta_two)
+        memory_record_check = memory_record_check + (p[Wire.W_L] * eta)
+        memory_record_check = memory_record_check + p[Wire.Q_C]
         partial_record_check = memory_record_check
-        memory_record_check = self.sub(memory_record_check, p[Wire.W_4])
+        memory_record_check = memory_record_check - p[Wire.W_4]
 
-        index_delta = self.sub(p[Wire.W_L_SHIFT], p[Wire.W_L])
-        record_delta = self.sub(p[Wire.W_4_SHIFT], p[Wire.W_4])
+        index_delta = p[Wire.W_L_SHIFT] - p[Wire.W_L]
+        record_delta = p[Wire.W_4_SHIFT] - p[Wire.W_4]
 
-        index_is_monotonically_increasing = self.mul(
-            index_delta, self.sub(index_delta, self.set_or_get_constant(1))
+        index_is_monotonically_increasing = index_delta * (
+            index_delta - self.set_or_get_constant(1)
         )
-        adjacent_values_match_if_adjacent_indices_match = self.mul(
-            self.add(
-                self.mul(index_delta, self.set_or_get_constant(-1)),
-                self.set_or_get_constant(1),
-            ),
-            record_delta,
-        )
+        adjacent_values_match_if_adjacent_indices_match = (
+            (index_delta * self.set_or_get_constant(-1)) + self.set_or_get_constant(1)
+        ) * record_delta
 
-        wire_ql_times_qr = self.mul(p[Wire.Q_L], p[Wire.Q_R])
+        wire_ql_times_qr = p[Wire.Q_L] * p[Wire.Q_R]
 
-        q_memory_times_domain = self.mul(p[Wire.Q_MEMORY], domain_separator)
+        q_memory_times_domain = p[Wire.Q_MEMORY] * domain_separator
 
         wire_ql_times_qr_times_qmemory_times_domain = self.product(
             [wire_ql_times_qr, q_memory_times_domain]
         )
-        evaluations[14] = self.mul(
-            adjacent_values_match_if_adjacent_indices_match,
-            wire_ql_times_qr_times_qmemory_times_domain,
+        evaluations[14] = (
+            adjacent_values_match_if_adjacent_indices_match
+            * wire_ql_times_qr_times_qmemory_times_domain
         )
-        evaluations[15] = self.mul(
-            index_is_monotonically_increasing,
-            wire_ql_times_qr_times_qmemory_times_domain,
+        evaluations[15] = (
+            index_is_monotonically_increasing
+            * wire_ql_times_qr_times_qmemory_times_domain
         )
 
-        ROM_consistency_check_identity = self.mul(memory_record_check, wire_ql_times_qr)
+        ROM_consistency_check_identity = memory_record_check * wire_ql_times_qr
 
-        access_type = self.sub(p[Wire.W_4], partial_record_check)
-        access_check = self.mul(
-            access_type, self.sub(access_type, self.set_or_get_constant(1))
-        )
+        access_type = p[Wire.W_4] - partial_record_check
+        access_check = access_type * (access_type - self.set_or_get_constant(1))
 
         next_gate_access_type = self.sum(
             [
-                self.mul(p[Wire.W_O_SHIFT], eta_three),
-                self.mul(p[Wire.W_R_SHIFT], eta_two),
-                self.mul(p[Wire.W_L_SHIFT], eta),
+                (p[Wire.W_O_SHIFT] * eta_three),
+                (p[Wire.W_R_SHIFT] * eta_two),
+                (p[Wire.W_L_SHIFT] * eta),
             ]
         )
-        next_gate_access_type = self.sub(p[Wire.W_4_SHIFT], next_gate_access_type)
+        next_gate_access_type = p[Wire.W_4_SHIFT] - next_gate_access_type
 
-        value_delta = self.sub(p[Wire.W_O_SHIFT], p[Wire.W_O])
+        value_delta = p[Wire.W_O_SHIFT] - p[Wire.W_O]
         adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation = self.product(
             [
-                self.add(
-                    self.mul(index_delta, self.set_or_get_constant(-1)),
-                    self.set_or_get_constant(1),
+                (
+                    (index_delta * self.set_or_get_constant(-1))
+                    + self.set_or_get_constant(1)
                 ),
                 value_delta,
-                self.add(
-                    self.mul(next_gate_access_type, self.set_or_get_constant(-1)),
-                    self.set_or_get_constant(1),
+                (
+                    (next_gate_access_type * self.set_or_get_constant(-1))
+                    + self.set_or_get_constant(1)
                 ),
             ]
         )
 
-        next_gate_access_type_is_boolean = self.sub(
-            self.mul(next_gate_access_type, next_gate_access_type),
-            next_gate_access_type,
-        )
+        next_gate_access_type_is_boolean = (
+            next_gate_access_type * next_gate_access_type
+        ) - next_gate_access_type
 
-        q_o_times_q_memory_times_domain = self.mul(p[Wire.Q_O], q_memory_times_domain)
+        q_o_times_q_memory_times_domain = p[Wire.Q_O] * q_memory_times_domain
         evaluations[16] = self.product(
             [
                 adjacent_values_match_if_adjacent_indices_match_and_next_access_is_a_read_operation,
@@ -1705,32 +1644,28 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             ]
         )
 
-        RAM_consistency_check_identity = self.mul(access_check, p[Wire.Q_O])
+        RAM_consistency_check_identity = access_check * p[Wire.Q_O]
 
-        timestamp_delta = self.sub(p[Wire.W_R_SHIFT], p[Wire.W_R])
+        timestamp_delta = p[Wire.W_R_SHIFT] - p[Wire.W_R]
 
-        RAM_timestamp_check_identity = self.mul(
-            self.add(
-                self.mul(index_delta, self.set_or_get_constant(-1)),
-                self.set_or_get_constant(1),
-            ),
-            timestamp_delta,
-        )
-        RAM_timestamp_check_identity = self.sub(
-            RAM_timestamp_check_identity, p[Wire.W_O]  # Fixed: was p[Wire.Q_O]
-        )
+        RAM_timestamp_check_identity = (
+            (index_delta * self.set_or_get_constant(-1)) + self.set_or_get_constant(1)
+        ) * timestamp_delta
+        RAM_timestamp_check_identity = (
+            RAM_timestamp_check_identity - p[Wire.W_O]
+        )  # Fixed: was p[Wire.Q_O]
 
         memory_identity = self.sum(
             [
                 ROM_consistency_check_identity,
                 self.product(
-                    [RAM_timestamp_check_identity, self.mul(p[Wire.Q_4], p[Wire.Q_L])]
+                    [RAM_timestamp_check_identity, (p[Wire.Q_4] * p[Wire.Q_L])]
                 ),
-                self.product([memory_record_check, self.mul(p[Wire.Q_M], p[Wire.Q_L])]),
+                self.product([memory_record_check, (p[Wire.Q_M] * p[Wire.Q_L])]),
                 RAM_consistency_check_identity,
             ]
         )
-        memory_identity = self.mul(memory_identity, q_memory_times_domain)
+        memory_identity = memory_identity * q_memory_times_domain
 
         evaluations[13] = memory_identity
 
@@ -1748,78 +1683,66 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         limb_size = self.set_or_get_constant(2**68)
         sub_limb_shift = self.set_or_get_constant(2**14)
 
-        limb_subproduct = self.add(
-            self.mul(p[Wire.W_L], p[Wire.W_R_SHIFT]),
-            self.mul(p[Wire.W_L_SHIFT], p[Wire.W_R]),
+        limb_subproduct = (p[Wire.W_L] * p[Wire.W_R_SHIFT]) + (
+            p[Wire.W_L_SHIFT] * p[Wire.W_R]
         )
 
-        non_native_field_gate_2 = self.sub(
-            self.add(
-                self.mul(p[Wire.W_L], p[Wire.W_4]),
-                self.mul(p[Wire.W_R], p[Wire.W_O]),
-            ),
-            p[Wire.W_O_SHIFT],
-        )
-        non_native_field_gate_2 = self.mul(non_native_field_gate_2, limb_size)
-        non_native_field_gate_2 = self.sub(non_native_field_gate_2, p[Wire.W_4_SHIFT])
-        non_native_field_gate_2 = self.add(non_native_field_gate_2, limb_subproduct)
-        non_native_field_gate_2 = self.mul(non_native_field_gate_2, p[Wire.Q_4])
+        non_native_field_gate_2 = (
+            (p[Wire.W_L] * p[Wire.W_4]) + (p[Wire.W_R] * p[Wire.W_O])
+        ) - p[Wire.W_O_SHIFT]
+        non_native_field_gate_2 = non_native_field_gate_2 * limb_size
+        non_native_field_gate_2 = non_native_field_gate_2 - p[Wire.W_4_SHIFT]
+        non_native_field_gate_2 = non_native_field_gate_2 + limb_subproduct
+        non_native_field_gate_2 = non_native_field_gate_2 * p[Wire.Q_4]
 
-        limb_subproduct = self.mul(limb_subproduct, limb_size)
-        limb_subproduct = self.add(
-            limb_subproduct,
-            self.mul(p[Wire.W_L_SHIFT], p[Wire.W_R_SHIFT]),
-        )
+        limb_subproduct = limb_subproduct * limb_size
+        limb_subproduct = limb_subproduct + (p[Wire.W_L_SHIFT] * p[Wire.W_R_SHIFT])
 
         non_native_field_gate_1 = limb_subproduct
-        non_native_field_gate_1 = self.sub(
-            non_native_field_gate_1,
-            self.add(p[Wire.W_O], p[Wire.W_4]),
-        )
-        non_native_field_gate_1 = self.mul(non_native_field_gate_1, p[Wire.Q_O])
+        non_native_field_gate_1 = non_native_field_gate_1 - (p[Wire.W_O] + p[Wire.W_4])
+        non_native_field_gate_1 = non_native_field_gate_1 * p[Wire.Q_O]
 
         non_native_field_gate_3 = limb_subproduct
-        non_native_field_gate_3 = self.add(non_native_field_gate_3, p[Wire.W_4])
-        non_native_field_gate_3 = self.sub(
-            non_native_field_gate_3,
-            self.add(p[Wire.W_O_SHIFT], p[Wire.W_4_SHIFT]),
+        non_native_field_gate_3 = non_native_field_gate_3 + p[Wire.W_4]
+        non_native_field_gate_3 = non_native_field_gate_3 - (
+            p[Wire.W_O_SHIFT] + p[Wire.W_4_SHIFT]
         )
-        non_native_field_gate_3 = self.mul(non_native_field_gate_3, p[Wire.Q_M])
+        non_native_field_gate_3 = non_native_field_gate_3 * p[Wire.Q_M]
 
         non_native_field_identity = self.sum(
             [non_native_field_gate_1, non_native_field_gate_2, non_native_field_gate_3]
         )
-        non_native_field_identity = self.mul(non_native_field_identity, p[Wire.Q_R])
+        non_native_field_identity = non_native_field_identity * p[Wire.Q_R]
 
-        limb_accumulator_1 = self.mul(p[Wire.W_R_SHIFT], sub_limb_shift)
-        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_L_SHIFT])
-        limb_accumulator_1 = self.mul(limb_accumulator_1, sub_limb_shift)
-        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_O])
-        limb_accumulator_1 = self.mul(limb_accumulator_1, sub_limb_shift)
-        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_R])
-        limb_accumulator_1 = self.mul(limb_accumulator_1, sub_limb_shift)
-        limb_accumulator_1 = self.add(limb_accumulator_1, p[Wire.W_L])
-        limb_accumulator_1 = self.sub(limb_accumulator_1, p[Wire.W_4])
-        limb_accumulator_1 = self.mul(limb_accumulator_1, p[Wire.Q_4])
+        limb_accumulator_1 = p[Wire.W_R_SHIFT] * sub_limb_shift
+        limb_accumulator_1 = limb_accumulator_1 + p[Wire.W_L_SHIFT]
+        limb_accumulator_1 = limb_accumulator_1 * sub_limb_shift
+        limb_accumulator_1 = limb_accumulator_1 + p[Wire.W_O]
+        limb_accumulator_1 = limb_accumulator_1 * sub_limb_shift
+        limb_accumulator_1 = limb_accumulator_1 + p[Wire.W_R]
+        limb_accumulator_1 = limb_accumulator_1 * sub_limb_shift
+        limb_accumulator_1 = limb_accumulator_1 + p[Wire.W_L]
+        limb_accumulator_1 = limb_accumulator_1 - p[Wire.W_4]
+        limb_accumulator_1 = limb_accumulator_1 * p[Wire.Q_4]
 
-        limb_accumulator_2 = self.mul(p[Wire.W_O_SHIFT], sub_limb_shift)
-        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_R_SHIFT])
-        limb_accumulator_2 = self.mul(limb_accumulator_2, sub_limb_shift)
-        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_L_SHIFT])
-        limb_accumulator_2 = self.mul(limb_accumulator_2, sub_limb_shift)
-        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_4])
-        limb_accumulator_2 = self.mul(limb_accumulator_2, sub_limb_shift)
-        limb_accumulator_2 = self.add(limb_accumulator_2, p[Wire.W_O])
-        limb_accumulator_2 = self.sub(limb_accumulator_2, p[Wire.W_4_SHIFT])
-        limb_accumulator_2 = self.mul(limb_accumulator_2, p[Wire.Q_M])
+        limb_accumulator_2 = p[Wire.W_O_SHIFT] * sub_limb_shift
+        limb_accumulator_2 = limb_accumulator_2 + p[Wire.W_R_SHIFT]
+        limb_accumulator_2 = limb_accumulator_2 * sub_limb_shift
+        limb_accumulator_2 = limb_accumulator_2 + p[Wire.W_L_SHIFT]
+        limb_accumulator_2 = limb_accumulator_2 * sub_limb_shift
+        limb_accumulator_2 = limb_accumulator_2 + p[Wire.W_4]
+        limb_accumulator_2 = limb_accumulator_2 * sub_limb_shift
+        limb_accumulator_2 = limb_accumulator_2 + p[Wire.W_O]
+        limb_accumulator_2 = limb_accumulator_2 - p[Wire.W_4_SHIFT]
+        limb_accumulator_2 = limb_accumulator_2 * p[Wire.Q_M]
 
         #         Fr limb_accumulator_identity = ap.limb_accumulator_1 + ap.limb_accumulator_2;
         # limb_accumulator_identity = limb_accumulator_identity * wire(p, WIRE.Q_O); //  deg 3
 
-        limb_accumulator_identity = self.add(limb_accumulator_1, limb_accumulator_2)
-        limb_accumulator_identity = self.mul(limb_accumulator_identity, p[Wire.Q_O])
+        limb_accumulator_identity = limb_accumulator_1 + limb_accumulator_2
+        limb_accumulator_identity = limb_accumulator_identity * p[Wire.Q_O]
 
-        nnf_identiy = self.add(non_native_field_identity, limb_accumulator_identity)
+        nnf_identiy = non_native_field_identity + limb_accumulator_identity
         nnf_identiy = self.product([nnf_identiy, p[Wire.Q_NNF], domain_separator])
         evaluations[19] = nnf_identiy
 
@@ -1834,43 +1757,43 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         p = purported_evaluations
 
-        s1 = self.add(p[Wire.W_L], p[Wire.Q_L])
-        s2 = self.add(p[Wire.W_R], p[Wire.Q_R])
-        s3 = self.add(p[Wire.W_O], p[Wire.Q_O])
-        s4 = self.add(p[Wire.W_4], p[Wire.Q_4])
+        s1 = p[Wire.W_L] + p[Wire.Q_L]
+        s2 = p[Wire.W_R] + p[Wire.Q_R]
+        s3 = p[Wire.W_O] + p[Wire.Q_O]
+        s4 = p[Wire.W_4] + p[Wire.Q_4]
 
         u1 = self.pow5(s1)
         u2 = self.pow5(s2)
         u3 = self.pow5(s3)
         u4 = self.pow5(s4)
 
-        t0 = self.add(u1, u2)
-        t1 = self.add(u3, u4)
-        t2 = self.add(self.add(u2, u2), t1)
-        t3 = self.add(self.add(u4, u4), t0)
+        t0 = u1 + u2
+        t1 = u3 + u4
+        t2 = (u2 + u2) + t1
+        t3 = (u4 + u4) + t0
 
-        v4 = self.add(t1, t1)
-        v4 = self.add(self.add(v4, v4), t3)
+        v4 = t1 + t1
+        v4 = (v4 + v4) + t3
 
-        v2 = self.add(t0, t0)
-        v2 = self.add(self.add(v2, v2), t2)
+        v2 = t0 + t0
+        v2 = (v2 + v2) + t2
 
-        v1 = self.add(t3, v2)
-        v3 = self.add(t2, v4)
+        v1 = t3 + v2
+        v3 = t2 + v4
 
-        q_pos_by_scaling = self.mul(p[Wire.Q_POSEIDON2_EXTERNAL], domain_separator)
+        q_pos_by_scaling = p[Wire.Q_POSEIDON2_EXTERNAL] * domain_separator
 
-        evaluations[20] = self.mul(q_pos_by_scaling, self.sub(v1, p[Wire.W_L_SHIFT]))
-        evaluations[21] = self.mul(q_pos_by_scaling, self.sub(v2, p[Wire.W_R_SHIFT]))
-        evaluations[22] = self.mul(q_pos_by_scaling, self.sub(v3, p[Wire.W_O_SHIFT]))
-        evaluations[23] = self.mul(q_pos_by_scaling, self.sub(v4, p[Wire.W_4_SHIFT]))
+        evaluations[20] = q_pos_by_scaling * (v1 - p[Wire.W_L_SHIFT])
+        evaluations[21] = q_pos_by_scaling * (v2 - p[Wire.W_R_SHIFT])
+        evaluations[22] = q_pos_by_scaling * (v3 - p[Wire.W_O_SHIFT])
+        evaluations[23] = q_pos_by_scaling * (v4 - p[Wire.W_4_SHIFT])
 
         return evaluations
 
     def pow5(self, x: ModuloCircuitElement) -> ModuloCircuitElement:
-        x2 = self.mul(x, x)
-        x4 = self.mul(x2, x2)
-        return self.mul(x4, x)
+        x2 = x * x
+        x4 = x2 * x2
+        return x4 * x
 
     def accumulate_poseidon_internal_relation(
         self,
@@ -1895,7 +1818,7 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             ),
         ]
 
-        s1 = self.add(p[Wire.W_L], p[Wire.Q_L])
+        s1 = p[Wire.W_L] + p[Wire.Q_L]
 
         u1 = self.pow5(s1)
         u2 = p[Wire.W_R]
@@ -1904,19 +1827,19 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
         u_sum = self.sum([u1, u2, u3, u4])
 
-        q_pos_by_scaling = self.mul(p[Wire.Q_POSEIDON2_INTERNAL], domain_separator)
+        q_pos_by_scaling = p[Wire.Q_POSEIDON2_INTERNAL] * domain_separator
 
-        v1 = self.add(self.mul(u1, INTERNAL_MATRIX_DIAGONAL[0]), u_sum)
-        evaluations[24] = self.mul(q_pos_by_scaling, self.sub(v1, p[Wire.W_L_SHIFT]))
+        v1 = (u1 * INTERNAL_MATRIX_DIAGONAL[0]) + u_sum
+        evaluations[24] = q_pos_by_scaling * (v1 - p[Wire.W_L_SHIFT])
 
-        v2 = self.add(self.mul(u2, INTERNAL_MATRIX_DIAGONAL[1]), u_sum)
-        evaluations[25] = self.mul(q_pos_by_scaling, self.sub(v2, p[Wire.W_R_SHIFT]))
+        v2 = (u2 * INTERNAL_MATRIX_DIAGONAL[1]) + u_sum
+        evaluations[25] = q_pos_by_scaling * (v2 - p[Wire.W_R_SHIFT])
 
-        v3 = self.add(self.mul(u3, INTERNAL_MATRIX_DIAGONAL[2]), u_sum)
-        evaluations[26] = self.mul(q_pos_by_scaling, self.sub(v3, p[Wire.W_O_SHIFT]))
+        v3 = (u3 * INTERNAL_MATRIX_DIAGONAL[2]) + u_sum
+        evaluations[26] = q_pos_by_scaling * (v3 - p[Wire.W_O_SHIFT])
 
-        v4 = self.add(self.mul(u4, INTERNAL_MATRIX_DIAGONAL[3]), u_sum)
-        evaluations[27] = self.mul(q_pos_by_scaling, self.sub(v4, p[Wire.W_4_SHIFT]))
+        v4 = (u4 * INTERNAL_MATRIX_DIAGONAL[3]) + u_sum
+        evaluations[27] = q_pos_by_scaling * (v4 - p[Wire.W_4_SHIFT])
 
         return evaluations
 
@@ -1949,54 +1872,46 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         )
 
         pos_inverted_denominator = self.inv(
-            self.sub(tp_shplonk_z, powers_of_evaluations_challenge[0])
+            (tp_shplonk_z - powers_of_evaluations_challenge[0])
         )
         neg_inverted_denominator = self.inv(
-            self.add(tp_shplonk_z, powers_of_evaluations_challenge[0])
+            (tp_shplonk_z + powers_of_evaluations_challenge[0])
         )
 
-        unshifted_scalar = self.add(
-            pos_inverted_denominator,
-            self.mul(tp_shplonk_nu, neg_inverted_denominator),
+        unshifted_scalar = pos_inverted_denominator + (
+            tp_shplonk_nu * neg_inverted_denominator
         )
 
-        shifted_scalar_neg = self.neg(
-            self.mul(
-                self.inv(tp_gemini_r),
-                self.sub(
-                    pos_inverted_denominator,
-                    self.mul(tp_shplonk_nu, neg_inverted_denominator),
-                ),
-            )
+        shifted_scalar_neg = -(
+            self.inv(tp_gemini_r)
+            * (pos_inverted_denominator - (tp_shplonk_nu * neg_inverted_denominator))
         )
 
         scalars[0] = self.set_or_get_constant(1)
 
         batching_challenge = tp_rho
         batched_evaluation = p_gemini_masking_eval
-        unshifted_scalar_neg = self.neg(unshifted_scalar)
+        unshifted_scalar_neg = -unshifted_scalar
         scalars[1] = unshifted_scalar_neg
         for i in range(0, NUMBER_UNSHIFTED):
-            scalars[i + 2] = self.mul(unshifted_scalar_neg, batching_challenge)
-            batched_evaluation = self.add(
-                batched_evaluation,
-                self.mul(p_sumcheck_evaluations[i], batching_challenge),
+            scalars[i + 2] = unshifted_scalar_neg * batching_challenge
+            batched_evaluation = batched_evaluation + (
+                p_sumcheck_evaluations[i] * batching_challenge
             )
-            batching_challenge = self.mul(batching_challenge, tp_rho)
+            batching_challenge = batching_challenge * tp_rho
 
         for i in range(0, NUMBER_TO_BE_SHIFTED):
             scalar_offset = i + SHIFTED_COMMITMENTS_START
             evaluation_offset = i + NUMBER_UNSHIFTED
-            scalars[scalar_offset] = self.add(
-                scalars[scalar_offset], self.mul(shifted_scalar_neg, batching_challenge)
+            scalars[scalar_offset] = scalars[scalar_offset] + (
+                shifted_scalar_neg * batching_challenge
             )
-            batched_evaluation = self.add(
-                batched_evaluation,
-                self.mul(p_sumcheck_evaluations[evaluation_offset], batching_challenge),
+            batched_evaluation = batched_evaluation + (
+                p_sumcheck_evaluations[evaluation_offset] * batching_challenge
             )
             # skip last round:
             if i < NUMBER_TO_BE_SHIFTED - 1:
-                batching_challenge = self.mul(batching_challenge, tp_rho)
+                batching_challenge = batching_challenge * tp_rho
 
         # computeFoldPosEvaluations
         def compute_fold_pos_evaluations(
@@ -2013,19 +1928,16 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
 
                 # (challengePower * batchedEvalAccumulator * Fr.wrap(2)) - evalNeg * (challengePower * (Fr.wrap(1) - u) - u))
                 # (challengePower * (Fr.wrap(1) - u)
-                term = self.mul(
-                    challenge_power, self.sub(self.set_or_get_constant(1), u)
-                )
+                term = challenge_power * (self.set_or_get_constant(1) - u)
 
-                batched_eval_round_acc = self.sub(
-                    self.double(self.mul(challenge_power, batched_eval_accumulator)),
-                    self.mul(eval_neg, self.sub(term, u)),
-                )
+                batched_eval_round_acc = self.double(
+                    (challenge_power * batched_eval_accumulator)
+                ) - (eval_neg * (term - u))
 
                 # (challengePower * (Fr.wrap(1) - u) + u).invert()
-                den = self.add(term, u)
+                den = term + u
 
-                batched_eval_round_acc = self.mul(batched_eval_round_acc, self.inv(den))
+                batched_eval_round_acc = batched_eval_round_acc * self.inv(den)
                 batched_eval_accumulator = batched_eval_round_acc
                 fold_pos_evaluations[i - 1] = batched_eval_accumulator
 
@@ -2038,19 +1950,14 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             powers_of_evaluations_challenge,
         )
 
-        constant_term_accumulator = self.mul(
-            fold_pos_evaluations[0], pos_inverted_denominator
-        )
+        constant_term_accumulator = fold_pos_evaluations[0] * pos_inverted_denominator
 
-        constant_term_accumulator = self.add(
-            constant_term_accumulator,
-            self.product(
-                [
-                    p_gemini_a_evaluations[0],
-                    tp_shplonk_nu,
-                    neg_inverted_denominator,
-                ]
-            ),
+        constant_term_accumulator = constant_term_accumulator + self.product(
+            [
+                p_gemini_a_evaluations[0],
+                tp_shplonk_nu,
+                neg_inverted_denominator,
+            ]
         )
 
         batching_challenge = self.square(tp_shplonk_nu)
@@ -2063,32 +1970,24 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             scaling_factor = self.set_or_get_constant(0)
             if not dummy_round:
                 pos_inverted_denominator = self.inv(
-                    self.sub(tp_shplonk_z, powers_of_evaluations_challenge[i + 1])
+                    (tp_shplonk_z - powers_of_evaluations_challenge[i + 1])
                 )
                 neg_inverted_denominator = self.inv(
-                    self.add(tp_shplonk_z, powers_of_evaluations_challenge[i + 1])
+                    (tp_shplonk_z + powers_of_evaluations_challenge[i + 1])
                 )
 
-                scaling_factor_pos = self.mul(
-                    batching_challenge, pos_inverted_denominator
+                scaling_factor_pos = batching_challenge * pos_inverted_denominator
+                scaling_factor_neg = batching_challenge * (
+                    tp_shplonk_nu * neg_inverted_denominator
                 )
-                scaling_factor_neg = self.mul(
-                    batching_challenge,
-                    self.mul(tp_shplonk_nu, neg_inverted_denominator),
-                )
-                scalars[boundary + i] = self.neg(
-                    self.add(scaling_factor_neg, scaling_factor_pos)
-                )
+                scalars[boundary + i] = -(scaling_factor_neg + scaling_factor_pos)
 
-                accum_contribution = self.mul(
-                    scaling_factor_neg, p_gemini_a_evaluations[i + 1]
+                accum_contribution = scaling_factor_neg * p_gemini_a_evaluations[i + 1]
+                accum_contribution = accum_contribution + (
+                    scaling_factor_pos * fold_pos_evaluations[i + 1]
                 )
-                accum_contribution = self.add(
-                    accum_contribution,
-                    self.mul(scaling_factor_pos, fold_pos_evaluations[i + 1]),
-                )
-                constant_term_accumulator = self.add(
-                    constant_term_accumulator, accum_contribution
+                constant_term_accumulator = (
+                    constant_term_accumulator + accum_contribution
                 )
             else:
                 # print(
@@ -2096,40 +1995,37 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
                 # )
                 pass
 
-            batching_challenge = self.mul(
-                batching_challenge, self.square(tp_shplonk_nu)
-            )
+            batching_challenge = batching_challenge * self.square(tp_shplonk_nu)
 
         boundary += self.log_n - 1
 
         denominators = [self.set_or_get_constant(0)] * 4
-        denominators[0] = self.inv(self.sub(tp_shplonk_z, tp_gemini_r))
+        denominators[0] = self.inv((tp_shplonk_z - tp_gemini_r))
         denominators[1] = self.inv(
-            self.sub(
-                tp_shplonk_z,
-                self.mul(self.set_or_get_constant(SUBGROUP_GENERATOR), tp_gemini_r),
+            (
+                tp_shplonk_z
+                - (self.set_or_get_constant(SUBGROUP_GENERATOR) * tp_gemini_r)
             ),
         )
         denominators[2] = denominators[0]
         denominators[3] = denominators[0]
 
         batching_scalars = [self.set_or_get_constant(0)] * 4
-        batching_challenge = self.mul(batching_challenge, self.square(tp_shplonk_nu))
+        batching_challenge = batching_challenge * self.square(tp_shplonk_nu)
 
         for i in range(LIBRA_EVALUATIONS):
-            scaling_factor = self.mul(denominators[i], batching_challenge)
-            batching_scalars[i] = self.neg(scaling_factor)
+            scaling_factor = denominators[i] * batching_challenge
+            batching_scalars[i] = -scaling_factor
 
             # skip last step:
             if i < LIBRA_EVALUATIONS - 1:
-                batching_challenge = self.mul(batching_challenge, tp_shplonk_nu)
-            constant_term_accumulator = self.add(
-                constant_term_accumulator,
-                self.mul(scaling_factor, p_libra_poly_evals[i]),
+                batching_challenge = batching_challenge * tp_shplonk_nu
+            constant_term_accumulator = constant_term_accumulator + (
+                scaling_factor * p_libra_poly_evals[i]
             )
 
         scalars[boundary] = batching_scalars[0]
-        scalars[boundary + 1] = self.add(batching_scalars[1], batching_scalars[2])
+        scalars[boundary + 1] = batching_scalars[1] + batching_scalars[2]
         scalars[boundary + 2] = batching_scalars[3]
 
         scalars[boundary + 3] = constant_term_accumulator
@@ -2144,9 +2040,9 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         tp_gemini_r: ModuloCircuitElement,
         tp_sumcheck_u_challenges: list[ModuloCircuitElement],
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
-        vanishing_poly_eval = self.sub(
-            self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
-        )
+        vanishing_poly_eval = self.pow(
+            tp_gemini_r, SUBGROUP_SIZE
+        ) - self.set_or_get_constant(1)
 
         challenge_poly_lagrange = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
         challenge_poly_lagrange[0] = self.set_or_get_constant(1)
@@ -2154,58 +2050,43 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
             curr_idx = 1 + LIBRA_UNIVARIATES_LENGTH * r
             challenge_poly_lagrange[curr_idx] = self.set_or_get_constant(1)
             for idx in range(curr_idx + 1, curr_idx + LIBRA_UNIVARIATES_LENGTH):
-                challenge_poly_lagrange[idx] = self.mul(
-                    challenge_poly_lagrange[idx - 1], tp_sumcheck_u_challenges[r]
+                challenge_poly_lagrange[idx] = (
+                    challenge_poly_lagrange[idx - 1] * tp_sumcheck_u_challenges[r]
                 )
 
         root_power = self.set_or_get_constant(1)
         challenge_poly_eval = self.set_or_get_constant(0)
         denominators = [self.set_or_get_constant(0)] * SUBGROUP_SIZE
         for idx in range(SUBGROUP_SIZE):
-            denominators[idx] = self.sub(
-                self.mul(root_power, tp_gemini_r), self.set_or_get_constant(1)
-            )
+            denominators[idx] = (root_power * tp_gemini_r) - self.set_or_get_constant(1)
             denominators[idx] = self.inv(denominators[idx])
-            challenge_poly_eval = self.add(
-                challenge_poly_eval,
-                self.mul(challenge_poly_lagrange[idx], denominators[idx]),
+            challenge_poly_eval = challenge_poly_eval + (
+                challenge_poly_lagrange[idx] * denominators[idx]
             )
             # skip last step:
             if idx < SUBGROUP_SIZE - 1:
-                root_power = self.mul(
-                    root_power, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
+                root_power = root_power * self.set_or_get_constant(
+                    SUBGROUP_GENERATOR_INVERSE
                 )
 
-        numerator = self.mul(
-            vanishing_poly_eval,
-            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
+        numerator = vanishing_poly_eval * self.set_or_get_constant(
+            pow(SUBGROUP_SIZE, -1, self.field.p)
         )
-        challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
-        lagrange_first = self.mul(denominators[0], numerator)
-        lagrange_last = self.mul(denominators[SUBGROUP_SIZE - 1], numerator)
+        challenge_poly_eval = challenge_poly_eval * numerator
+        lagrange_first = denominators[0] * numerator
+        lagrange_last = denominators[SUBGROUP_SIZE - 1] * numerator
 
-        diff = self.mul(lagrange_first, p_libra_poly_evals[2])
-        diff = self.add(
-            diff,
-            self.mul(
-                self.sub(
-                    tp_gemini_r, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
-                ),
-                self.sub(
-                    self.sub(p_libra_poly_evals[1], p_libra_poly_evals[2]),
-                    self.mul(p_libra_poly_evals[0], challenge_poly_eval),
-                ),
-            ),
+        diff = lagrange_first * p_libra_poly_evals[2]
+        diff = diff + (
+            (tp_gemini_r - self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE))
+            * (
+                (p_libra_poly_evals[1] - p_libra_poly_evals[2])
+                - (p_libra_poly_evals[0] * challenge_poly_eval)
+            )
         )
-        diff = self.sub(
-            self.add(
-                diff,
-                self.mul(
-                    lagrange_last, self.sub(p_libra_poly_evals[2], p_libra_evaluation)
-                ),
-            ),
-            self.mul(vanishing_poly_eval, p_libra_poly_evals[3]),
-        )
+        diff = (
+            diff + (lagrange_last * (p_libra_poly_evals[2] - p_libra_evaluation))
+        ) - (vanishing_poly_eval * p_libra_poly_evals[3])
 
         return vanishing_poly_eval, diff
 
@@ -2240,11 +2121,9 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         self,
         tp_gemini_r: ModuloCircuitElement,
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
-        challenge_poly_eval = self.inv(
-            self.sub(tp_gemini_r, self.set_or_get_constant(1))
-        )
-        root_power_times_tp_gemini_r = self.mul(
-            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE), tp_gemini_r
+        challenge_poly_eval = self.inv((tp_gemini_r - self.set_or_get_constant(1)))
+        root_power_times_tp_gemini_r = (
+            self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE) * tp_gemini_r
         )
         return challenge_poly_eval, root_power_times_tp_gemini_r
 
@@ -2257,19 +2136,19 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         challenge_poly_lagrange = self.set_or_get_constant(1)
         for i in range(LIBRA_UNIVARIATES_LENGTH):
             denominator = self.inv(
-                self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
+                (root_power_times_tp_gemini_r - self.set_or_get_constant(1))
             )
-            challenge_poly_eval = self.add(
-                challenge_poly_eval, self.mul(challenge_poly_lagrange, denominator)
+            challenge_poly_eval = challenge_poly_eval + (
+                challenge_poly_lagrange * denominator
             )
-            root_power_times_tp_gemini_r = self.mul(
-                root_power_times_tp_gemini_r,
-                self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+            root_power_times_tp_gemini_r = (
+                root_power_times_tp_gemini_r
+                * self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
             )
             # skip last step:
             if i < LIBRA_UNIVARIATES_LENGTH - 1:
-                challenge_poly_lagrange = self.mul(
-                    challenge_poly_lagrange, tp_sumcheck_u_challenge
+                challenge_poly_lagrange = (
+                    challenge_poly_lagrange * tp_sumcheck_u_challenge
                 )
         return challenge_poly_eval, root_power_times_tp_gemini_r
 
@@ -2285,48 +2164,36 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         # Need to advance root_power for remaining indices up to SUBGROUP_SIZE - 2
         # (SUBGROUP_SIZE - 1 is the last index, handled separately for lagrange_last)
         for _ in range(1 + self.log_n * LIBRA_UNIVARIATES_LENGTH, SUBGROUP_SIZE - 1):
-            root_power_times_tp_gemini_r = self.mul(
-                root_power_times_tp_gemini_r,
-                self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE),
+            root_power_times_tp_gemini_r = (
+                root_power_times_tp_gemini_r
+                * self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
             )
-        denominator_first = self.inv(self.sub(tp_gemini_r, self.set_or_get_constant(1)))
+        denominator_first = self.inv((tp_gemini_r - self.set_or_get_constant(1)))
         denominator_last = self.inv(
-            self.sub(root_power_times_tp_gemini_r, self.set_or_get_constant(1))
+            (root_power_times_tp_gemini_r - self.set_or_get_constant(1))
         )
 
-        vanishing_poly_eval = self.sub(
-            self.pow(tp_gemini_r, SUBGROUP_SIZE), self.set_or_get_constant(1)
+        vanishing_poly_eval = self.pow(
+            tp_gemini_r, SUBGROUP_SIZE
+        ) - self.set_or_get_constant(1)
+        numerator = vanishing_poly_eval * self.set_or_get_constant(
+            pow(SUBGROUP_SIZE, -1, self.field.p)
         )
-        numerator = self.mul(
-            vanishing_poly_eval,
-            self.set_or_get_constant(pow(SUBGROUP_SIZE, -1, self.field.p)),
-        )
-        challenge_poly_eval = self.mul(challenge_poly_eval, numerator)
-        lagrange_first = self.mul(denominator_first, numerator)
-        lagrange_last = self.mul(denominator_last, numerator)
+        challenge_poly_eval = challenge_poly_eval * numerator
+        lagrange_first = denominator_first * numerator
+        lagrange_last = denominator_last * numerator
 
-        diff = self.mul(lagrange_first, p_libra_poly_evals[2])
-        diff = self.add(
-            diff,
-            self.mul(
-                self.sub(
-                    tp_gemini_r, self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE)
-                ),
-                self.sub(
-                    self.sub(p_libra_poly_evals[1], p_libra_poly_evals[2]),
-                    self.mul(p_libra_poly_evals[0], challenge_poly_eval),
-                ),
-            ),
+        diff = lagrange_first * p_libra_poly_evals[2]
+        diff = diff + (
+            (tp_gemini_r - self.set_or_get_constant(SUBGROUP_GENERATOR_INVERSE))
+            * (
+                (p_libra_poly_evals[1] - p_libra_poly_evals[2])
+                - (p_libra_poly_evals[0] * challenge_poly_eval)
+            )
         )
-        diff = self.sub(
-            self.add(
-                diff,
-                self.mul(
-                    lagrange_last, self.sub(p_libra_poly_evals[2], p_libra_evaluation)
-                ),
-            ),
-            self.mul(vanishing_poly_eval, p_libra_poly_evals[3]),
-        )
+        diff = (
+            diff + (lagrange_last * (p_libra_poly_evals[2] - p_libra_evaluation))
+        ) - (vanishing_poly_eval * p_libra_poly_evals[3])
 
         return vanishing_poly_eval, diff
 
@@ -2335,7 +2202,7 @@ class ZKHonkVerifierCircuits(ModuloCircuit):
         shift = e.bit_length() - 1
         y = x
         for i in range(shift):
-            y = self.mul(y, y)
+            y = y * y
         return y
 
 
