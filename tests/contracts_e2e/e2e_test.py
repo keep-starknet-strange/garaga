@@ -561,3 +561,163 @@ async def test_risc0_sample_app(account_devnet: BaseAccount):
 
     receipt = await account.client.get_transaction_receipt(invoke_result.hash)
     print(receipt.execution_resources)
+
+
+# ----------------------------------------------------------------
+#  Generic BLS12-381 (min-sig-size, drand DST) verifier E2E
+# ----------------------------------------------------------------
+#
+# Counterpart to test_drand_contract above, but exercising the
+# generic `bls_calldata_builder` (issue #518, this PR) against a
+# reference verifier under `src/contracts/bls_verifier/`. The
+# verifier accepts an arbitrary 32-byte message digest and a
+# per-call G2 public key, so the same class authenticates any BLS
+# signer (validator multisigs, DAO governance keys, backend signers).
+
+
+def _compress_g1_bls(p) -> bytes:
+    """BLS12-381 compressed G1 (48 bytes BE; sign bit on the top byte)."""
+    p_mod = 0x1A0111EA397FE69A4B1BA7B6434BACD764774B84F38512BF6730D2A0F6B0F6241EABFFFEB153FFFFB9FEFFFFFFFFAAAB
+    bx = bytearray(p.x.to_bytes(48, "big"))
+    flag = 0x80
+    if 2 * p.y > p_mod:
+        flag |= 0x20
+    bx[0] |= flag
+    return bytes(bx)
+
+
+def _uncompressed_g2_bls(p) -> bytes:
+    """BLS12-381 uncompressed G2 (192 bytes BE: x0 || x1 || y0 || y1)."""
+    return (
+        p.x[0].to_bytes(48, "big")
+        + p.x[1].to_bytes(48, "big")
+        + p.y[0].to_bytes(48, "big")
+        + p.y[1].to_bytes(48, "big")
+    )
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "contract_info",
+    [
+        {
+            "contract_project": SmartContractProject(
+                smart_contract_folder=CONTRACTS_PATH / "bls_verifier"
+            )
+        },
+    ],
+)
+async def test_bls_verifier_contract(account_devnet: BaseAccount, contract_info: dict):
+    """End-to-end: declare + deploy the reference BLS verifier, then
+    invoke `verify_bls_signature` with calldata produced by
+    `garaga_rs.bls_calldata_builder` on a deterministic SK + message
+    pair. Mirrors `test_drand_contract`'s flow."""
+    from garaga import garaga_rs
+    from garaga.curves import CurveID
+    from garaga.points import G2Point as PyG2Point
+    from garaga.signature import hash_to_curve
+
+    account = account_devnet
+    contract_project: SmartContractProject = contract_info["contract_project"]
+
+    print(f"ACCOUNT {hex(account.address)}, NONCE {await account.get_nonce()}")
+
+    bls_class_hash, bls_abi = await contract_project.declare_class_hash(account)
+    print(f"Declared bls_verifier class hash: {hex(bls_class_hash)}")
+
+    precomputed_address = compute_address(
+        class_hash=bls_class_hash,
+        constructor_calldata=[],
+        salt=pedersen_hash(to_int(account.address), 1),
+        deployer_address=DEPLOYER_ADDRESS,
+    )
+
+    try_contract = await get_contract_if_exists(account, precomputed_address)
+    if try_contract is None:
+        deploy_result = await Contract.deploy_contract_v3(
+            account=account,
+            class_hash=bls_class_hash,
+            abi=bls_abi,
+            deployer_address=DEPLOYER_ADDRESS,
+            auto_estimate=True,
+            salt=1,
+            cairo_version=1,
+        )
+        await deploy_result.wait_for_acceptance()
+        contract = deploy_result.deployed_contract
+    else:
+        print(f"Contract already deployed at {hex(precomputed_address)}")
+        contract = try_contract
+
+    print(f"Deployed contract: {contract.functions}")
+
+    # Deterministic test vector pinned to the Rust unit test in
+    # tools/garaga_rs/src/calldata/bls_calldata.rs and to the
+    # downstream Shhh V8 fixture.
+    sk = 0x12345678
+    message_hash = (
+        0x05BCD634CE46C7234BD7A4B0959C3C5EDEED7F569DCFB7B33E23D7E2197A2A2F
+    )
+
+    g2_gen = PyG2Point.get_nG(CurveID.BLS12_381, 1)
+    pubkey = g2_gen.scalar_mul(sk)
+    msg_bytes = message_hash.to_bytes(32, "big")
+    msg_pt = hash_to_curve(msg_bytes, CurveID.BLS12_381, "sha256")
+    sig = msg_pt.scalar_mul(sk)
+
+    rust_inputs = [
+        message_hash,
+        int.from_bytes(_compress_g1_bls(sig), "big"),
+        int.from_bytes(_uncompressed_g2_bls(pubkey), "big"),
+    ]
+    full_calldata = garaga_rs.bls_calldata_builder(rust_inputs)
+    print(f"bls_calldata_builder emitted {len(full_calldata)} felts")
+
+    # Drop the size prefix — the contract function takes a Span and
+    # the transport layer prepends the length on its own.
+    body = full_calldata[1:]
+
+    # Pubkey passed as a separate G2Point argument (so the same
+    # verifier class authenticates any signer).
+    pubkey_struct = {
+        "x0": pubkey.x[0],
+        "x1": pubkey.x[1],
+        "y0": pubkey.y[0],
+        "y1": pubkey.y[1],
+    }
+
+    function_call: ContractFunction = find_item_from_key_patterns(
+        contract.functions, ["verify_bls_signature"]
+    )
+
+    invoke_calldata = [message_hash] + [
+        pubkey.x[0],
+        pubkey.x[1],
+        pubkey.y[0],
+        pubkey.y[1],
+    ] + [len(body)] + body
+    prepare_invoke = PreparedFunctionInvokeV3(
+        to_addr=function_call.contract_data.address,
+        calldata=invoke_calldata,
+        selector=function_call.get_selector(function_call.name),
+        _contract_data=function_call.contract_data,
+        _client=function_call.client,
+        _account=function_call.account,
+        _payload_transformer=function_call._payload_transformer,
+        resource_bounds=None,
+    )
+
+    invoke_result: InvokeResult = await prepare_invoke.invoke(auto_estimate=True)
+    await invoke_result.wait_for_acceptance()
+    print(f"Invoke status: {invoke_result.status}")
+
+    # Quiet sanity check: a simple call (no transaction) returning the
+    # bool from the same inputs should be Ok=true. The transaction
+    # invocation above already proves the contract didn't revert; this
+    # asserts the boolean return value matches the verification truth.
+    call_result = await contract.functions["verify_bls_signature"].call(
+        message_hash, pubkey_struct, body
+    )
+    assert call_result == (True,) or call_result == True, (
+        f"verify returned {call_result!r}, expected True"
+    )
