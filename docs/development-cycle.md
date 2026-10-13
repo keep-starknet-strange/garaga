@@ -332,3 +332,27 @@ The [raw fingerprint samples](benchmarks/development-cycle/provenance.json) reco
 source venv/bin/activate
 pytest tests/hydra/test_measure.py tests/hydra/test_profile_provenance.py tests/hydra/test_profile_tests.py
 ```
+
+## Keep optimized macOS extensions loadable
+
+Older Rust compilers can produce stripped Mach-O libraries that the current macOS loader rejects.
+The original release extension failed twice with `mis-aligned LINKEDIT string pool`.
+The failure matches [Rust issue 157750](https://github.com/rust-lang/rust/issues/157750).
+
+The Cargo configuration disables stripping only for macOS targets. Release optimization level 3 and LTO remain enabled.
+Linux and WASM compiler flags remain unchanged.
+The source distribution explicitly includes that configuration, so source builds retain the fix.
+
+The ordinary Maturin release build, installed Python import, native loader, and known Poseidon vector now pass.
+Five regression cases run Cargo target probes for both macOS architectures, Linux, and WASM, then inspect the actual source archive.
+The cases pass in 1.18s. The locked dependency check leaves `uv.lock` unchanged.
+One configuration-triggered release build took 26.61s. This is not a paired build-speed comparison.
+The loadable Maturin artifact contains 2,395,992 bytes, a 4.17% increase from the broken artifact.
+No Rust algorithm, WASM byte, or Cairo source changes.
+The [proof record](benchmarks/development-cycle/macos-native.json) includes artifact hashes, tools, timings, and checks.
+
+```sh
+make maturin
+source venv/bin/activate
+pytest tests/hydra/test_native_build_config.py
+```
