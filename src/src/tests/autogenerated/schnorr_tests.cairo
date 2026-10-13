@@ -19,7 +19,7 @@ fn test_schnorr_BN254() {
         0x100000000000000003fda8089c1ac8853, 0x8309133f4f176e9e, 0x2c41289f2cce1b1d98bc1c58,
         0x877a1e0880ae4ac2e8cb9898, 0x1f1f91048403230b, 0x0, 0x51b26382cce36f83e9330566,
         0x9303c191ab170a86a28c3ddd, 0x122b07c7aa481cb, 0x0, 0x100000000000000003a941ddef107f2c9,
-        0x10000000000000000002a2b771d1d6d88, 0x6f26862a18f2c12b, 0x44028f462731bd,
+        0x10000000000000000002a2b771d1d6d88, 0x6f26862a18f2c12b, 0x44028f462731bd
     ]
         .span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized)
@@ -51,7 +51,7 @@ fn test_schnorr_BLS12_381() {
         0x11a0b3d6dba83f3db716cb0e, 0x79e7b489b946a83ef4db5c0, 0x3b050ac62a98e6a19f9fe1c6,
         0x93e750c788c6bfeb8566333a, 0x457b247b6591483d8dbf18b, 0x100000000000000008af4c254e183b405,
         0x100000000000000004cbee0df44e8382c, 0x10000000000000000946f8bb609f9ba7d,
-        0x100000000000000004e77077ba28bdfd6,
+        0x100000000000000004e77077ba28bdfd6
     ]
         .span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized)
@@ -79,7 +79,7 @@ fn test_schnorr_SECP256R1() {
         0x434ebc818522df6c3a48fdeffa4bc338, 0x187026bb983fceb4a56a5ca9e9c969631,
         0x40ab24bf96ae6fa731d65b90, 0x3d2d6da80d5ca858290e1409, 0x953b9901eec6e415, 0x0,
         0x553919b2bd1f42bea69d67f3, 0x320dbca9f723841d3be6dcf9, 0x936046f4cb8c4595, 0x0,
-        0x3de0ac20b2665b5ee208e66433aaac05, 0x67db401fe06eea845a19e61367b76a34,
+        0x3de0ac20b2665b5ee208e66433aaac05, 0x67db401fe06eea845a19e61367b76a34
     ]
         .span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized)
@@ -108,7 +108,7 @@ fn test_schnorr_SECP256K1() {
         0x79a64775d37621de2372f3cb, 0xd3aa1d3b8418f14398df80f2, 0x2430232b1b17cb55, 0x0,
         0x895249ed4eaf972102b5c3f5, 0xd35f2675285d8568f81ef0d, 0x1fbd9931c3f2bbf8, 0x0,
         0x10000000000000000baf06a7a3e4aa015, 0x1000000000000000075adffb9c0d2b742,
-        0x100000000000000006f45630d920758e7, 0x13bfcc5670fee7eb,
+        0x100000000000000006f45630d920758e7, 0x13bfcc5670fee7eb
     ]
         .span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized)
@@ -136,7 +136,7 @@ fn test_schnorr_ED25519() {
         0x3315e27d27a210cb7baa18b5f3f0f9b3, 0x10f773711dcf75ce59993cf26c4f5ebf9,
         0xfbd811bae294558352d2ca8f, 0xc6b9c22af47b1e43d21ba644, 0x5c18972e38278425, 0x0,
         0x6a687b6263384a17569caeb3, 0x4166dd87f125393bd27679eb, 0x13a8e31e947075f3, 0x0,
-        0x2ed8419cedf331ec3d387ed44220284f, 0xdbbf233e0f266b14c85329c2440c426,
+        0x2ed8419cedf331ec3d387ed44220284f, 0xdbbf233e0f266b14c85329c2440c426
     ]
         .span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized)
@@ -164,7 +164,7 @@ fn test_schnorr_GRUMPKIN() {
         0x51cf7b3d0715b44af5d2f31cb1fd7677, 0x15838663fe7e8f8c16583cabb5df7308,
         0xa8fc937f9ebc90a8a9a2cf09, 0x6c2d666bea9386f60b1a46c2, 0x2244eddd508f6f81, 0x0,
         0x5ec6d01c41cedc947662556b, 0x4a7cb97d69bce744b75607b3, 0x2e39c1ad41f66954, 0x0,
-        0x19ae1fd3832d250c6410c5e4cb759edf, 0x538cc4627274d8f320bf5df15c887356,
+        0x19ae1fd3832d250c6410c5e4cb759edf, 0x538cc4627274d8f320bf5df15c887356
     ]
         .span();
     let public_key = Serde::<G1Point>::deserialize(ref sch_sig_with_hints_serialized)
@@ -176,4 +176,3 @@ fn test_schnorr_GRUMPKIN() {
     let is_valid = is_valid_schnorr_signature_assuming_hash(sch_with_hints, public_key, 5);
     assert!(is_valid);
 }
-

@@ -39,26 +39,6 @@
       "mul_mod": 0
     }
   },
-  "test_zk_transcript_keccak": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "garaga::apps::noir::zk_honk_transcript::tests::test_zk_transcript_keccak",
-      "test_name": "test_zk_transcript_keccak",
-      "steps": 73392,
-      "sierra_gas": 9733069,
-      "image_path": "docs/benchmarks/test_zk_transcript_keccak.png",
-      "category": "garaga",
-      "range_check": 5241,
-      "range_check96": 0,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 3476,
-      "ecop": 0,
-      "poseidon": 1,
-      "add_mod": 0,
-      "mul_mod": 0
-    }
-  },
   "test_output_digest": {
     "last_updated": "2025-10-30T15:26:00.944704",
     "latest_metrics": {
@@ -159,46 +139,6 @@
       "mul_mod": 602
     }
   },
-  "test_transcript_keccak": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "garaga::apps::noir::honk_transcript::tests::test_transcript_keccak",
-      "test_name": "test_transcript_keccak",
-      "steps": 71084,
-      "sierra_gas": 9315281,
-      "image_path": "docs/benchmarks/test_transcript_keccak.png",
-      "category": "garaga",
-      "range_check": 5035,
-      "range_check96": 0,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 3180,
-      "ecop": 0,
-      "poseidon": 1,
-      "add_mod": 0,
-      "mul_mod": 0
-    }
-  },
-  "test_zk_transcript_starknet": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "garaga::apps::noir::zk_honk_transcript::tests::test_zk_transcript_starknet",
-      "test_name": "test_zk_transcript_starknet",
-      "steps": 21173,
-      "sierra_gas": 2486994,
-      "image_path": "docs/benchmarks/test_zk_transcript_starknet.png",
-      "category": "garaga",
-      "range_check": 1185,
-      "range_check96": 0,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 0,
-      "ecop": 0,
-      "poseidon": 584,
-      "add_mod": 0,
-      "mul_mod": 0
-    }
-  },
   "test_convert_u32_to_u128": {
     "last_updated": "2025-10-30T15:26:00.944704",
     "latest_metrics": {
@@ -297,26 +237,6 @@
       "poseidon": 0,
       "add_mod": 2,
       "mul_mod": 8
-    }
-  },
-  "test_transcript_starknet": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "garaga::apps::noir::honk_transcript::tests::test_transcript_starknet",
-      "test_name": "test_transcript_starknet",
-      "steps": 19758,
-      "sierra_gas": 2314222,
-      "image_path": "docs/benchmarks/test_transcript_starknet.png",
-      "category": "garaga",
-      "range_check": 1103,
-      "range_check96": 0,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 0,
-      "ecop": 0,
-      "poseidon": 532,
-      "add_mod": 0,
-      "mul_mod": 0
     }
   },
   "test_size_zero": {
@@ -497,26 +417,6 @@
       "poseidon": 509,
       "add_mod": 5401,
       "mul_mod": 8754
-    }
-  },
-  "test_verify_ultra_keccak_honk_proof": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "noir_ultra_keccak_honk_example_integrationtest::test_contract::test_verify_ultra_keccak_honk_proof",
-      "test_name": "test_verify_ultra_keccak_honk_proof",
-      "steps": 1213031,
-      "sierra_gas": 187929077,
-      "image_path": "docs/benchmarks/test_verify_ultra_keccak_honk_proof.png",
-      "category": "contracts",
-      "range_check": 65539,
-      "range_check96": 412656,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 3180,
-      "ecop": 0,
-      "poseidon": 461,
-      "add_mod": 45756,
-      "mul_mod": 43585
     }
   },
   "test_msm_SECP256K1_3P": {
@@ -879,26 +779,6 @@
       "mul_mod": 47993
     }
   },
-  "test_verify_ultra_starknet_honk_proof": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "noir_ultra_starknet_honk_example_integrationtest::test_contract::test_verify_ultra_starknet_honk_proof",
-      "test_name": "test_verify_ultra_starknet_honk_proof",
-      "steps": 1127871,
-      "sierra_gas": 177512050,
-      "image_path": "docs/benchmarks/test_verify_ultra_starknet_honk_proof.png",
-      "category": "contracts",
-      "range_check": 61433,
-      "range_check96": 412522,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 0,
-      "ecop": 0,
-      "poseidon": 992,
-      "add_mod": 45742,
-      "mul_mod": 43569
-    }
-  },
   "test_tower_pairing_BN254_1P": {
     "last_updated": "2025-10-30T15:26:00.944704",
     "latest_metrics": {
@@ -957,26 +837,6 @@
       "poseidon": 0,
       "add_mod": 86187,
       "mul_mod": 37849
-    }
-  },
-  "test_verify_ultra_starknet_zk_honk_proof": {
-    "last_updated": "2025-10-30T15:26:00.944704",
-    "latest_metrics": {
-      "test_name_hierarchical": "noir_ultra_starknet_zk_honk_example_integrationtest::test_contract::test_verify_ultra_starknet_zk_honk_proof",
-      "test_name": "test_verify_ultra_starknet_zk_honk_proof",
-      "steps": 1221360,
-      "sierra_gas": 193032648,
-      "image_path": "docs/benchmarks/test_verify_ultra_starknet_zk_honk_proof.png",
-      "category": "contracts",
-      "range_check": 66173,
-      "range_check96": 451576,
-      "keccak": 0,
-      "pedersen": 0,
-      "bitwise": 0,
-      "ecop": 0,
-      "poseidon": 1044,
-      "add_mod": 49911,
-      "mul_mod": 47987
     }
   },
   "test_tower_pairing_BLS12_381_2P": {

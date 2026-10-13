@@ -11,7 +11,7 @@ dependencies = [
   "sympy",
   "typer",
   "python-dotenv",
-  "starknet-py-unbroken==0.29.0rc3",
+  "starknet-py==0.30.0",
   "requests",
   "filelock",
 ]
@@ -80,16 +80,13 @@ dev = [
 garaga = "garaga.starknet.cli.starknet_cli:app"
 
 [tool.maturin]
-features = ["pyo3/extension-module"]
+# Source builds need the Python module as well as the extension linker settings.
+features = ["python", "pyo3/extension-module"]
 manifest-path = "tools/garaga_rs/Cargo.toml"
 # configures rust package as a module under garaga
 module-name = "garaga.garaga_rs"
 # python source root must be under <tool.maturin.python-source>/<project.name>
 python-source = "hydra"
-
-[tool.uv]
-# Override ecdsa pinned by crypto-cpp-py to fix high-severity security vulnerability
-override-dependencies = ["ecdsa>=0.19.0"]
 
 [tool.isort]
 profile = "black"

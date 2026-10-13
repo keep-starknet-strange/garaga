@@ -439,4 +439,3 @@ mod tests {
         assert_eq!(transcript.shplonk_z, expected.shplonk_z);
     }
 }
-

@@ -1,4 +1,5 @@
 import functools
+import json
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -27,6 +28,13 @@ class EmptyContract(Exception):
 from functools import lru_cache
 
 import rich
+
+
+def _casm_for_hash(casm_artifact: str) -> str:
+    # Hints are not hashed; omit them to avoid starknet-py's unsigned-immediate parser.
+    casm = json.loads(casm_artifact)
+    casm["hints"] = []
+    return json.dumps(casm)
 
 
 # Add at module level
@@ -63,7 +71,7 @@ class SmartContractProject:
         Returns the class hash for the contract (uses scarb to build the contract folder)
         """
         _, casm_artifact = self.get_contract_artifacts()
-        casm_class = create_casm_class(casm_artifact)
+        casm_class = create_casm_class(_casm_for_hash(casm_artifact))
         return compute_casm_class_hash(casm_class)
 
     @lru_cache(maxsize=1)
@@ -123,7 +131,7 @@ class SmartContractProject:
             declare_result: DeclareResult = await Contract.declare_v3(
                 account=account,
                 compiled_contract=sierra,
-                compiled_contract_casm=casm,
+                compiled_contract_casm=_casm_for_hash(casm),
                 auto_estimate=True,
             )
             await declare_result.wait_for_acceptance()

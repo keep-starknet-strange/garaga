@@ -63,6 +63,7 @@ jobs:
         run: |
           source venv/bin/activate
           python --version
+          python -c 'from garaga import garaga_rs'
 
   test-setup-fedora:
     needs: pre_job
@@ -94,3 +95,4 @@ jobs:
           source "$HOME/.cargo/env"
           source venv/bin/activate
           python --version
+          python -c 'from garaga import garaga_rs'

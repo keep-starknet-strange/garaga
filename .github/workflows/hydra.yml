@@ -62,7 +62,7 @@ jobs:
       - name: Set up Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.16.1"
+          scarb-version: "2.21.0"
       - name: Run make rewrite and check for unstaged changes
         if: matrix.python-version == '3.14'
         run: |

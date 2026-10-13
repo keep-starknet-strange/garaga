@@ -282,9 +282,9 @@ def _get_circuit_code_header():
     header = """
 use core::circuit::{
     u384, circuit_add, circuit_sub, circuit_mul, circuit_inverse,
-    EvalCircuitTrait, CircuitOutputsTrait, CircuitInputs, CircuitModulus,
+    CircuitInputs, CircuitModulus,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 use garaga::definitions::{G1Point};\n

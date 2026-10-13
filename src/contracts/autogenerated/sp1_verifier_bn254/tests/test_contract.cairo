@@ -45,8 +45,8 @@ fn declare_contract(name: ByteArray) -> ClassHash {
 /// 4. Assert that verification succeeds
 ///
 /// ## Test Setup
-/// - Uses fork testing against Sepolia testnet to access required declared contracts maintained by
-/// the garaga team - Loads proof calldata from `tests/proof_calldata.txt`
+/// - Declares the locally compiled UniversalECIP contract without an RPC connection
+/// - Loads proof calldata from `tests/proof_calldata.txt`
 /// - To generate the calldata, you can use the garaga CLI:
 /// ```bash
 /// garaga calldata
@@ -65,8 +65,10 @@ fn declare_contract(name: ByteArray) -> ClassHash {
 /// - The function should return Ok(public_inputs) containing the expected public inputs
 /// - No panics or assertion failures should occur
 #[test]
-#[fork(url: "https://api.zan.top/public/starknet-sepolia/rpc/v0_10", block_tag: latest)]
 fn test_verify_sp1_groth16_proof_bn254() {
+    // Declare the ECIP library used by the verification contract.
+    declare_contract("UniversalECIP");
+
     // Step 1: Declare the verification contract
     let class_hash = declare_contract("SP1Groth16VerifierBN254");
     let dispatcher = ISP1Groth16VerifierBN254LibraryDispatcher { class_hash };
