@@ -72,6 +72,8 @@ mod tests {
     #[cfg(test)]
     mod calldata_tests;
     #[cfg(test)]
+    mod scalar_mul_soundness_tests;
+    #[cfg(test)]
     mod sha512_tests;
     #[cfg(test)]
     mod sp1_groth_16_tests;

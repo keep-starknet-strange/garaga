@@ -1,0 +1,72 @@
+warn: unknown manifest field `package.licence` (/private/tmp/garaga-glv-adversarial-baseline/src/Scarb.toml:5:1)
+warn: unknown manifest field `package.licence` (/private/tmp/garaga-glv-adversarial-baseline/src/Scarb.toml:5:1)
+   Compiling snforge_scarb_plugin v0.64.1
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `release` profile [optimized] target(s) in 0.17s
+   Compiling test(garaga_unittest) garaga v1.1.0 (/private/tmp/garaga-glv-adversarial-baseline/src/Scarb.toml)
+warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_inverse`
+ --> /private/tmp/garaga-glv-adversarial-baseline/src/src/circuits/extf_mul.cairo:2:75
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+                                                                          ^^^^^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_sub`
+ --> /private/tmp/garaga-glv-adversarial-baseline/src/src/circuits/extf_mul.cairo:3:18
+    circuit_mul, circuit_sub, u384,
+                 ^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::isogeny::circuit_sub`
+ --> /private/tmp/garaga-glv-adversarial-baseline/src/src/circuits/isogeny.cairo:3:18
+    circuit_mul, circuit_sub, u384,
+                 ^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::rsa::circuit_inverse`
+ --> /private/tmp/garaga-glv-adversarial-baseline/src/src/circuits/rsa.cairo:2:75
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+                                                                          ^^^^^^^^^^^^^^^
+
+warn[E0001]: Unused variable. Consider ignoring by prefixing with `_`.
+ --> /private/tmp/garaga-glv-adversarial-baseline/src/src/tests/scalar_mul_soundness_baseline_tests.cairo:165:9
+    let point = ed25519_torsion();
+        ^^^^^
+note: this error originates in the attribute macro: `test`
+
+    Finished `dev` profile target(s) in 22 seconds
+
+
+Collected 4 test(s) from garaga package
+Running 4 test(s) from src/
+[PASS] garaga::tests::scalar_mul_soundness_baseline_tests::test_baseline_zero_glv_denominator_returns_wrong_q (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~12960000)
+        steps: 9726
+        memory holes: 753
+        builtins: (Builtin(range_check96): 8092, Builtin(range_check): 1006, Builtin(add_mod): 927, Builtin(mul_mod): 823)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_baseline_tests::test_baseline_ed_even_denominator_torsion_shift_returns_wrong_q (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~16440000)
+        steps: 7460
+        memory holes: 595
+        builtins: (Builtin(range_check96): 10262, Builtin(add_mod): 1203, Builtin(mul_mod): 1116, Builtin(range_check): 505)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_baseline_tests::test_baseline_noncanonical_output_is_returned (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~12120000)
+        steps: 8978
+        memory holes: 845
+        builtins: (Builtin(range_check96): 7569, Builtin(range_check): 1041, Builtin(add_mod): 892, Builtin(mul_mod): 771)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_baseline_tests::test_baseline_bls_torsion_shift_returns_wrong_q (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~12840000)
+        steps: 9462
+        memory holes: 851
+        builtins: (Builtin(range_check96): 8014, Builtin(range_check): 1008, Builtin(add_mod): 921, Builtin(mul_mod): 815)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+Tests: 4 passed, 0 failed, 0 ignored, 169 filtered out

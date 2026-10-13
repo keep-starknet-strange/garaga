@@ -231,21 +231,35 @@ def split_scalar(s: int, l: Lattice) -> Tuple[int, int]:
 def half_gcd_eisenstein_hint(
     modulus: int, scalar: int, eigen_value: int
 ) -> Tuple[int, int, int, int]:
-    glv_basis = precompute_lattice(modulus, eigen_value)
-    r = eisenstein.EisensteinInteger(glv_basis.V1[0], glv_basis.V1[1])
+    from garaga.hints.lattice import rational_reconstruct_extension
+
+    if modulus <= 1:
+        raise ValueError("The lattice modulus must be greater than one")
+    scalar %= modulus
     if scalar % modulus == modulus - 1:
         scalar = 1
-    # print(f"SPLIT SCALAR INPUT: {scalar}")
-    sp = split_scalar(scalar, glv_basis)
-    s = eisenstein.EisensteinInteger(sp[0], sp[1])
-    # in-circuit we check that Q - [s]P = 0 or equivalently Q + [-s]P = 0
-    # so here we return -s instead of s.
-    s = -s
-    # print(f"r: {r}, \ns: {s}")
-    w, v_res, _ = eisenstein.half_gcd(r, s)
 
-    # Note : outputs can be negative.
-    return w.a0, w.a1, v_res.a0, v_res.a1
+    # A checked short Half-GCD result avoids exact LLL's host cost on ordinary inputs.
+    if eigen_value % modulus:
+        try:
+            basis = precompute_lattice(modulus, eigen_value % modulus)
+        except ValueError:
+            return rational_reconstruct_extension(modulus, scalar, eigen_value)
+        kernel = eisenstein.EisensteinInteger(*basis.V1)
+        if kernel.norm() == modulus:
+            remainder = eisenstein.EisensteinInteger(scalar, 0) % kernel
+            w, v, _ = eisenstein.half_gcd(kernel, -remainder)
+            candidate = (w.a0, w.a1, v.a0, v.a1)
+            width = (modulus.bit_length() + 3) // 4 + 1
+            denominator = (v.a0 + eigen_value * v.a1) % modulus
+            relation = (w.a0 + eigen_value * w.a1 + scalar * denominator) % modulus
+            if (
+                denominator
+                and relation == 0
+                and all(abs(x).bit_length() <= width for x in candidate)
+            ):
+                return candidate
+    return rational_reconstruct_extension(modulus, scalar, eigen_value)
 
 
 from garaga.hints.io import bigint_split
@@ -259,6 +273,8 @@ def get_glv_fake_glv_hint(
     point: G1Point, scalar: int
 ) -> tuple[G1Point, int, int, int, int]:
     curve = CURVES[point.curve_id.value]
+    if point.curve_id == CurveID.BLS12_381 and not point.is_in_prime_order_subgroup():
+        raise ValueError("BLS12-381 MSM points must be in the prime-order subgroup")
     assert (
         curve.is_endomorphism_available()
     ), f"Curve {point.curve_id} does not have an endomorphism, use get_fake_glv_hint instead"
@@ -283,21 +299,43 @@ def encode_glv_fake_glv_hint(
 
 def get_fake_glv_hint(point: G1Point, scalar: int) -> tuple[G1Point, int, int]:
     curve = CURVES[point.curve_id.value]
-    if scalar == 0:
-        scalar = 1
+    decomposition_scalar = scalar or 1
     assert (
         not curve.is_endomorphism_available()
     ), f"Curve {point.curve_id} has an endomorphism, use get_glv_fake_glv_hint instead"
-    glv_basis = precompute_lattice(curve.n, scalar)
+    glv_basis = precompute_lattice(curve.n, decomposition_scalar)
     s1, s2 = glv_basis.V1[0], glv_basis.V1[1]
-    assert (s1 + scalar * s2) % curve.n == 0
+    assert (s1 + decomposition_scalar * s2) % curve.n == 0
     assert 0 < s1 and s2 != 0
     Q = point.scalar_mul(scalar)
     return Q, s1, encode(s2)
 
 
+def get_ed25519_cofactor_hint(point: G1Point, scalar: int) -> G1Point:
+    """Return S with [8]S = result - [scalar mod 8]point."""
+    if point.curve_id != CurveID.ED25519:
+        raise ValueError("The cofactor hint is only for ED25519")
+    return point.scalar_mul(scalar // 8)
+
+
+def get_bls12_381_cofactor_hint(point: G1Point) -> G1Point:
+    """Return an on-curve S with [0xd201000000010001]S = point."""
+    if point.curve_id != CurveID.BLS12_381:
+        raise ValueError("The cofactor hint is only for BLS12-381")
+    if not point.is_infinity() and not point.is_on_curve():
+        raise ValueError("The cofactor hint requires an on-curve point")
+    clearing_factor = 0xD201000000010001
+    inverse = pow(clearing_factor, -1, CURVES[CurveID.BLS12_381.value].n)
+    preimage = point.scalar_mul(inverse)
+    if preimage.scalar_mul(clearing_factor) != point:
+        raise ValueError("BLS12-381 MSM points must be in the prime-order subgroup")
+    return preimage
+
+
 def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     curve = CURVES[point.curve_id.value]
+    if point.curve_id == CurveID.BLS12_381:
+        assert point.is_in_prime_order_subgroup(), "BLS12-381 point not in subgroup"
     assert scalar % curve.n != 0, f"Scalar is 0 for point {point}"
     assert point.is_infinity() == False, f"Point is infinity for scalar {scalar}"
 
@@ -331,6 +369,9 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     assert (
         _scalar * (v1 + eigen_value * v2) + u1 + eigen_value * u2
     ) % curve.n == 0, f"Wrong decomposition for scalar {scalar}"
+    assert (v1 + eigen_value * v2) % curve.n != 0, "Zero effective denominator"
+    n_bits = (curve.n.bit_length() + 3) // 4 + 1
+    assert all(abs(value).bit_length() <= n_bits for value in (u1, u2, v1, v2))
 
     # Precompute -P, -Φ(P), Φ(P):
     table_P = [None, None]
@@ -402,13 +443,7 @@ def scalar_mul_glv_and_fake_glv(point: G1Point, scalar: int) -> G1Point:
     # N.B.: Acc cannot be equal to G, otherwise this means G = -Φ²([s+1]P)
     Acc = Acc.add(G1Point.get_nG(point.curve_id, 1))
 
-    # 	// u1, u2, v1, v2 < r^{1/4} (up to a constant factor).
-    # // We prove that the factor is log_(3/sqrt(3)))(r).
-    # // so we need to add 9 bits to r^{1/4}.nbits().
-    # nbits := st.Modulus().BitLen()>>2 + 9
-
-    n_bits = curve.n.bit_length() // 4 + 9
-    # n_bits = 73
+    # LLL coefficients fit ceil(log2(n)/4)+1 bits: 65 for every supported curve.
 
     def to_bits_le(x: int) -> List[int]:
         """
@@ -556,6 +591,26 @@ def scalar_mul_fake_glv(point: G1Point, scalar: int) -> G1Point:
     assert (
         not curve.is_endomorphism_available()
     ), f"Curve {point.curve_id} has an endomorphism; this function is for curves without it."
+
+    if point.curve_id == CurveID.ED25519:
+        result = point.scalar_mul(scalar)
+        cofactor_hint = get_ed25519_cofactor_hint(point, scalar)
+        assert cofactor_hint.scalar_mul(8) == result.add(-point.scalar_mul(scalar % 8))
+        cleared_point = point.scalar_mul(8)
+        if not cleared_point.is_infinity():
+            # The subgroup relation and the torsion relation jointly bind the full result.
+            assert scalar_mul_fake_glv_subgroup(
+                cleared_point, scalar
+            ) == result.scalar_mul(8)
+        else:
+            assert result == point.scalar_mul(scalar % 8)
+        return result
+
+    return scalar_mul_fake_glv_subgroup(point, scalar)
+
+
+def scalar_mul_fake_glv_subgroup(point: G1Point, scalar: int) -> G1Point:
+    curve = CURVES[point.curve_id.value]
 
     # Handle scalar multiple of curve order n: result is infinity.
     if scalar % curve.n == 0:

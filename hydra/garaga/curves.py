@@ -627,7 +627,7 @@ if __name__ == "__main__":
         for curve_id in CURVES:
             curve: WeierstrassCurve = CURVES[curve_id]
             if curve.is_endomorphism_available():
-                nbits = curve.n.bit_length() // 4 + 9
+                nbits = (curve.n.bit_length() + 3) // 4 + 1
                 print(
                     f"Curve {curve_id}: {nbits}, {G1Point.get_nG(CurveID(curve_id), 2 ** (nbits - 1)).to_cairo_1()}"
                 )

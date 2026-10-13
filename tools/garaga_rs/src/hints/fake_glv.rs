@@ -1,42 +1,16 @@
 use crate::algebra::g1point::G1Point;
 use crate::definitions::CurveParamsProvider;
-use crate::hints::eisenstein;
+use crate::hints::eisenstein::{half_gcd as half_gcd_ext, EisensteinInteger};
 use lambdaworks_math::field::traits::IsPrimeField;
 use num_bigint::{BigInt, BigUint, Sign, ToBigInt};
 use num_integer::Integer;
 use num_traits::Signed;
 
-/*
-Represents a 2D lattice basis (V1, V2) derived from GLV decomposition.
-
-Attributes:
-    V1: First basis vector [v11, v12].
-    V2: Second basis vector [v21, v22], chosen to be short.
-    Det: Determinant of the lattice basis (v11*v22 - v12*v21).
-    b1: Rounding coefficient derived from V2, used in scalar decomposition.
-    b2: Rounding coefficient derived from V1, used in scalar decomposition.
-*/
 struct Lattice {
     v1: [BigInt; 2],
-    v2: [BigInt; 2],
-    det: BigInt,
-    b1: BigInt,
-    b2: BigInt,
 }
 
-/*
-Computes the first vector of a GLV lattice basis for a given modulus and input.
-
-This is a Python adaptation of a Go function likely used for cryptographic
-scalar multiplication optimizations (GLV method).
-
-Args:
-    modu (int): The modulus (often the group order `r`).
-    input_val (int): The input value (often the eigenvalue `lambda`).
-
-Returns:
-    Tuple[int, int]: The components (v11, |v12|) of the first basis vector V1.
-*/
+/// Return the first GLV lattice vector, with its second coordinate nonnegative.
 pub fn half_gcd(modu: &BigInt, input_val: &BigInt) -> Result<[BigInt; 2], String> {
     let lattice = precompute_lattice(modu, input_val)?;
     let output0 = lattice.v1[0].clone();
@@ -46,189 +20,31 @@ pub fn half_gcd(modu: &BigInt, input_val: &BigInt) -> Result<[BigInt; 2], String
     Ok([output0, output1.abs()])
 }
 
-/*
-Computes a short 2D lattice basis related to parameters (r, lambda).
-
-Uses a variant of the Extended Euclidean Algorithm to find short vectors
-(v1, v2) such that v1 = [a, b] and v2 = [c, d] satisfy
-a + b*lambda = 0 (mod r) and c + d*lambda = 0 (mod r).
-See https://www.iacr.org/archive/crypto2001/21390189.pdf (Algorithm 3.7)
-
-Args:
-    r (int): The modulus.
-    lam (int): The lambda value (e.g., eigenvalue in GLV).
-
-Returns:
-    Lattice: An object containing the lattice basis vectors (V1, V2),
-             determinant (Det), and rounding coefficients (b1, b2).
-
-Raises:
-    ValueError: If intermediate steps lead to division by zero (e.g., lam=0 mod r)
-                or if the final determinant is zero.
-*/
+/// Return the half-GCD vector (a,b) with a+b*λ=0 modulo r.
 fn precompute_lattice(r: &BigInt, lam: &BigInt) -> Result<Lattice, String> {
-    // Extended Euclidean Algorithm State: [[value, s_coeff, t_coeff], ...]
-    // We maintain two states [ri, si, ti] such that ri = si*r + ti*lambda
-    let mut euclidean_state = [
-        [r.clone(), 1.into(), 0.into()], // Corresponds to r = 1*r + 0*lambda
-        [lam.clone(), 0.into(), 1.into()], // Corresponds to lam = 0*r + 1*lambda
-    ];
-
-    // Compute the integer square root of r as the termination threshold
     let sqrt_r = r.sqrt();
-
-    // Run Euclidean algorithm until the remainder (state[1][0]) is smaller than sqrt(r)
-    while euclidean_state[1][0].abs() >= sqrt_r {
-        let [current_rem, s_curr, t_curr] = euclidean_state[1].clone();
-        let [prev_rem, s_prev, t_prev] = euclidean_state[0].clone();
-
-        if current_rem == 0.into() {
-            // This occurs if lambda is a multiple of r or lambda is 0.
-            return Err("Division by zero in Euclidean algorithm. Check inputs r and lam.".into());
+    let mut previous = r.clone();
+    let mut remainder = lam.clone();
+    let mut previous_coefficient = BigInt::from(0);
+    let mut coefficient = BigInt::from(1);
+    while remainder.abs() >= sqrt_r {
+        if remainder == BigInt::from(0) {
+            return Err("Division by zero in scalar decomposition".into());
         }
-
-        let quotient = prev_rem.div_floor(&current_rem);
-        let next_rem = prev_rem.mod_floor(&current_rem);
-
-        // Update coefficients using the identity: R_next = R_prev - q * R_curr
-        // where R represents [rem, s, t]
-        let s_next = &s_prev - &s_curr * &quotient;
-        let t_next = &t_prev - &t_curr * &quotient;
-
-        // Shift states: current becomes previous, new becomes current
-        euclidean_state[0] = [current_rem, s_curr, t_curr];
-        euclidean_state[1] = [next_rem, s_next, t_next];
+        let quotient = previous.div_floor(&remainder);
+        let next_remainder = previous.mod_floor(&remainder);
+        let next_coefficient = &previous_coefficient - &coefficient * quotient;
+        previous = remainder;
+        remainder = next_remainder;
+        previous_coefficient = coefficient;
+        coefficient = next_coefficient;
     }
-
-    // One final step to potentially find a shorter vector combination
-    let [current_rem, _s_curr, t_curr] = euclidean_state[1].clone();
-    let [prev_rem, _s_prev, t_prev] = euclidean_state[0].clone();
-
-    if current_rem == 0.into() {
-        return Err(
-            "Division by zero in Euclidean algorithm final step. Check inputs r and lam.".into(),
-        );
+    if remainder == BigInt::from(0) {
+        return Err("The scalar decomposition has a zero numerator".into());
     }
-
-    let quotient = prev_rem.div_floor(&current_rem);
-    // Calculate the next potential remainder and t-coefficient
-    let final_rem = prev_rem.mod_floor(&current_rem);
-    let final_t = &t_prev - &t_curr * &quotient;
-
-    // First basis vector: V1 = [current_rem, -t_curr]
-    // Satisfies current_rem + (-t_curr)*lambda = 0 mod r (since current_rem = s_curr*r + t_curr*lambda)
-    let v1_list = [current_rem.clone(), -t_curr];
-
-    // Candidate vectors for the second basis vector V2
-    // Candidate 1: [prev_rem, -t_prev]
-    let cand1 = [prev_rem.clone(), -t_prev];
-    // Candidate 2: [final_rem, -final_t]
-    let cand2 = [final_rem.clone(), -final_t];
-
-    // Choose the shorter candidate vector based on squared Euclidean norm (||v||^2 = x^2 + y^2)
-    let norm1_sq = cand1[0].pow(2) + cand1[1].pow(2);
-    let norm2_sq = cand2[0].pow(2) + cand2[1].pow(2);
-
-    let v2_list = if norm1_sq > norm2_sq { cand2 } else { cand1 };
-
-    // Calculate the determinant of the chosen basis {V1, V2}
-    let det = &v1_list[0] * &v2_list[1] - &v1_list[1] * &v2_list[0];
-
-    if det == 0.into() {
-        // Basis vectors are linearly dependent, which shouldn't happen for typical inputs.
-        return Err("Lattice determinant is zero. Input parameters might be unsuitable.".into());
-    }
-
-    /*
-    Computes round(a / b), rounding ties away from zero.
-
-    Equivalent to standard mathematical rounding, differs from Python's
-    default round() which rounds ties to the nearest even number.
-    Needed to potentially match specific Go implementation behavior.
-    */
-    fn round_half_away_from_zero(a: &BigInt, b: &BigInt) -> Result<BigInt, String> {
-        if *b == 0.into() {
-            return Err("Division by zero in rounding.".into());
-        }
-        // Perform division using absolute values
-        let (mut quotient, remainder) = a.abs().div_rem(&b.abs());
-        // Check if the remainder is large enough to round up (away from zero)
-        if remainder * 2 >= b.abs() {
-            quotient += 1;
-        }
-        // Restore the sign based on the original signs of a and b
-        if (*a < 0.into()) != (*b < 0.into()) {
-            Ok(-quotient) // Result is negative
-        } else {
-            Ok(quotient) // Result is positive
-        }
-    }
-
-    // Compute rounding coefficients b1, b2 used in scalar decomposition
-    // n is calculated to ensure 2^n is sufficiently larger than |det|,
-    // potentially matching Go's fixed-size integer/word alignment logic.
-    // The `+ 32 >> 6 << 6` part aligns the bit length to a multiple of 64.
-    let n_bit_length = std::cmp::max(&1.into(), &det).bits(); // Use max(1,...) for robustness if det=0 (though checked above)
-    let n = 2 * (((n_bit_length + 32) >> 6) << 6);
-
-    // Calculate b1 = round(2^n * V2[1] / det)
-    let b1 = round_half_away_from_zero(&(&v2_list[1] << n), &det)?;
-    // Calculate b2 = round(2^n * V1[1] / det)
-    let b2 = round_half_away_from_zero(&(&v1_list[1] << n), &det)?;
-
-    // Return the results structured in the Lattice dataclass
     Ok(Lattice {
-        v1: v1_list,
-        v2: v2_list,
-        det,
-        b1,
-        b2,
+        v1: [remainder, -coefficient],
     })
-}
-
-/*
-Splits a scalar s into components (u, v) using a precomputed GLV lattice.
-
-Based on the approach described in https://www.iacr.org/archive/crypto2001/21390189.pdf,
-this function finds a vector (u, v) such that s = u + v*lambda (mod r),
-where lambda and r are the parameters used to generate the lattice l.
-The vector (u, v) is typically chosen such that u and v have smaller magnitudes than s.
-
-Args:
-    s: The scalar to split.
-    l: The precomputed Lattice object containing basis V1, V2, determinant Det,
-       and rounding coefficients b1, b2.
-
-Returns:
-    A tuple (u, v) representing the scalar decomposition.
-*/
-fn split_scalar(s: &BigInt, l: &Lattice) -> [BigInt; 2] {
-    // Calculate intermediate values k1, k2 using the scalar and rounding coefficients
-    let mut k1 = s * &l.b1;
-    let mut k2 = -(s * &l.b2);
-
-    // Determine the shift amount 'n' used during lattice precomputation
-    // This should match the logic in precompute_lattice
-    let n_bit_length = std::cmp::max(1.into(), l.det.clone()).bits();
-    let n = 2 * (((n_bit_length + 32) >> 6) << 6);
-
-    // Right-shift k1 and k2 to effectively divide by 2^n,
-    // approximating division by the determinant Det.
-    // This gives the integer coefficients for the closest lattice vector approximation.
-    k1 >>= n;
-    k2 >>= n;
-
-    // Calculate the lattice vector w = k1*V1 + k2*V2
-    let w_vec0 = &k1 * &l.v1[0] + &k2 * &l.v2[0];
-    let w_vec1 = &k1 * &l.v1[1] + &k2 * &l.v2[1];
-
-    // Calculate the final decomposition (u, v)
-    // u = s - w[0]
-    // v = -w[1]
-    let u = s - &w_vec0;
-    let v = -w_vec1;
-
-    [u, v]
 }
 
 pub fn half_gcd_eisenstein_hint(
@@ -236,29 +52,38 @@ pub fn half_gcd_eisenstein_hint(
     scalar: &BigInt,
     eigen_value: &BigInt,
 ) -> Result<[BigInt; 4], String> {
-    let glv_basis = precompute_lattice(modulus, eigen_value)?;
-    let r = eisenstein::EisensteinInteger::new(glv_basis.v1[0].clone(), glv_basis.v1[1].clone());
-    let scalar = if scalar % modulus == modulus - 1 {
+    if modulus <= &BigInt::from(1) {
+        return Err("The lattice modulus must be greater than one".into());
+    }
+    let scalar = scalar.mod_floor(modulus);
+    let scalar = if scalar == modulus - 1 {
         BigInt::from(1)
     } else {
-        scalar.clone()
+        scalar
     };
-
-    let sp = split_scalar(&scalar, &glv_basis);
-    let s = eisenstein::EisensteinInteger::new(sp[0].clone(), sp[1].clone());
-    // in-circuit we check that Q - [s]P = 0 or equivalently Q + [-s]P = 0
-    // so here we return -s instead of s.
-    let s = -s;
-    // println!("r: {}, \ns: {}", r, s);
-    let [w, v_res, _] = eisenstein::half_gcd(&r, &s)?;
-
-    // Note : outputs can be negative.
-    Ok([
-        w.a0.clone(),
-        w.a1.clone(),
-        v_res.a0.clone(),
-        v_res.a1.clone(),
-    ])
+    // Accept the cheap reconstruction only when it meets the exact circuit contract.
+    if let Ok(basis) = precompute_lattice(modulus, &eigen_value.mod_floor(modulus)) {
+        let kernel = EisensteinInteger::new(basis.v1[0].clone(), basis.v1[1].clone());
+        if kernel.norm() == *modulus {
+            let [_, remainder] =
+                EisensteinInteger::new(scalar.clone(), 0.into()).quo_rem(&kernel)?;
+            let [w, v, _] = half_gcd_ext(&kernel, &(-remainder))?;
+            let denominator = (&v.a0 + eigen_value * &v.a1).mod_floor(modulus);
+            let relation =
+                (&w.a0 + eigen_value * &w.a1 + &scalar * &denominator).mod_floor(modulus);
+            let candidate = [w.a0, w.a1, v.a0, v.a1];
+            let width = modulus.bits().div_ceil(4) + 1;
+            if denominator != BigInt::from(0)
+                && relation == BigInt::from(0)
+                && candidate
+                    .iter()
+                    .all(|coordinate| coordinate.bits() <= width)
+            {
+                return Ok(candidate);
+            }
+        }
+    }
+    crate::hints::lattice::rational_reconstruct_extension(modulus, &scalar, eigen_value)
 }
 
 fn encode_value(value: &BigInt) -> BigUint {
@@ -298,6 +123,12 @@ where
     let curve_n_bigint = curve_params.n.to_bigint().unwrap();
     let scalar_bigint = scalar.to_bigint().unwrap();
 
+    if curve_params.curve_id == crate::definitions::CurveID::BLS12_381
+        && !point.scalar_mul(curve_n_bigint.clone()).is_infinity()
+    {
+        return Err("BLS12-381 MSM points must be in the prime-order subgroup".into());
+    }
+
     // Get eigen_value from curve_params
     let eigen_value = match &curve_params.eigen_value {
         Some(ev) => ev,
@@ -333,6 +164,11 @@ where
     let curve_params = F::get_curve_params();
     let curve_n_bigint = curve_params.n.to_bigint().unwrap();
     let scalar_bigint = scalar.to_bigint().unwrap();
+    let decomposition_scalar = if scalar_bigint == BigInt::from(0) {
+        BigInt::from(1)
+    } else {
+        scalar_bigint.clone()
+    };
 
     // Check if the curve has an endomorphism; if so, this hint shouldn't be used.
     if curve_params.eigen_value.is_some() {
@@ -344,12 +180,12 @@ where
 
     // Call precompute_lattice using the scalar as the 'lambda' parameter,
     // mimicking the Python implementation.
-    let glv_basis = precompute_lattice(&curve_n_bigint, &scalar_bigint)?;
+    let glv_basis = precompute_lattice(&curve_n_bigint, &decomposition_scalar)?;
     let s1 = &glv_basis.v1[0];
     let s2 = &glv_basis.v1[1];
 
     // Assertions from Python code converted to Rust checks
-    if (s1 + &scalar_bigint * s2).mod_floor(&curve_n_bigint) != BigInt::from(0) {
+    if (s1 + &decomposition_scalar * s2).mod_floor(&curve_n_bigint) != BigInt::from(0) {
         return Err("Assertion failed: (s1 + scalar * s2) % curve.n != 0".to_string());
     }
     // Check s1 > 0 and s2 != 0
@@ -368,12 +204,127 @@ where
     Ok((q, s1_biguint, s2_encoded))
 }
 
+pub fn get_ed25519_cofactor_hint<F>(point: &G1Point<F>, scalar: &BigUint) -> G1Point<F>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    point.scalar_mul((scalar / BigUint::from(8u64)).to_bigint().unwrap())
+}
+
+pub fn get_bls12_381_cofactor_hint<F>(point: &G1Point<F>) -> Result<G1Point<F>, String>
+where
+    F: IsPrimeField + CurveParamsProvider<F>,
+{
+    let curve = F::get_curve_params();
+    if curve.curve_id != crate::definitions::CurveID::BLS12_381 {
+        return Err("The cofactor hint is only for BLS12-381".into());
+    }
+    if !point.is_on_curve() {
+        return Err("The cofactor hint requires an on-curve point".into());
+    }
+    let clearing_factor = BigInt::from(0xd201000000010001u64);
+    let order = curve.n.to_bigint().unwrap();
+    let inverse = clearing_factor.extended_gcd(&order).x.mod_floor(&order);
+    let preimage = point.scalar_mul(inverse);
+    if !preimage.scalar_mul(clearing_factor).eq(point) {
+        return Err("BLS12-381 MSM points must be in the prime-order subgroup".into());
+    }
+    Ok(preimage)
+}
+
 #[allow(unused_imports)]
 mod tests {
     use super::*;
     use num_traits::Num;
     use rand::Rng;
     use std::str::FromStr;
+
+    #[test]
+    fn test_checked_eisenstein_fast_path_matches_python() {
+        let modulus = BigInt::from(13);
+        let eigenvalue = BigInt::from(3);
+        for scalar in [5, 18, -8] {
+            let scalar = BigInt::from(scalar);
+            let result = half_gcd_eisenstein_hint(&modulus, &scalar, &eigenvalue).unwrap();
+            assert_eq!(result, [1.into(), 0.into(), (-2).into(), (-2).into()]);
+            let denominator = &result[2] + &eigenvalue * &result[3];
+            assert_ne!(denominator.mod_floor(&modulus), BigInt::from(0));
+            assert_eq!(
+                (&result[0] + &eigenvalue * &result[1] + &scalar * denominator).mod_floor(&modulus),
+                BigInt::from(0),
+            );
+            assert!(result.iter().all(|coordinate| coordinate.bits() <= 2));
+        }
+    }
+
+    #[test]
+    fn test_checked_eisenstein_full_lll_fallback_accepts_extra_bit() {
+        let modulus = BigInt::from(13);
+        let scalar = BigInt::from(5);
+        let eigenvalue = BigInt::from(0);
+        let result = half_gcd_eisenstein_hint(&modulus, &scalar, &eigenvalue).unwrap();
+        assert_eq!(
+            result,
+            crate::hints::lattice::rational_reconstruct_extension(&modulus, &scalar, &eigenvalue)
+                .unwrap(),
+        );
+        let maximum = result.iter().map(Signed::abs).max().unwrap();
+        assert_eq!(maximum, BigInt::from(3));
+        assert!(maximum > modulus.sqrt().sqrt());
+        assert_ne!(result[2].mod_floor(&modulus), BigInt::from(0));
+        assert_eq!(
+            (&result[0] + &scalar * &result[2]).mod_floor(&modulus),
+            BigInt::from(0),
+        );
+        assert!(result.iter().all(|coordinate| coordinate.bits() <= 2));
+    }
+
+    #[test]
+    fn test_checked_eisenstein_rejects_invalid_modulus() {
+        for modulus in [0, 1, -13] {
+            assert!(
+                half_gcd_eisenstein_hint(&modulus.into(), &5.into(), &3.into())
+                    .unwrap_err()
+                    .contains("modulus")
+            );
+        }
+    }
+
+    #[test]
+    fn test_checked_eisenstein_precompute_failure_uses_lll() {
+        let modulus = BigInt::from(15);
+        let scalar = BigInt::from(5);
+        let eigenvalue = BigInt::from(5);
+        assert_eq!(
+            half_gcd_eisenstein_hint(&modulus, &scalar, &eigenvalue).unwrap(),
+            crate::hints::lattice::rational_reconstruct_extension(&modulus, &scalar, &eigenvalue)
+                .unwrap(),
+        );
+    }
+
+    #[test]
+    fn test_bls12_381_cofactor_preimage() -> Result<(), String> {
+        use crate::definitions::{BLS12381PrimeField, FieldElement};
+        let generator = G1Point::<BLS12381PrimeField>::generator();
+        let order = BLS12381PrimeField::get_curve_params().n;
+        for scalar in [BigUint::from(0u64), 1u64.into(), 2u64.into(), order - 1u64] {
+            let point = generator.scalar_mul(scalar.into());
+            let preimage = get_bls12_381_cofactor_hint(&point)?;
+            assert!(preimage.is_on_curve());
+            assert_eq!(preimage.scalar_mul(0xd201000000010001u64.into()), point);
+        }
+        let torsion = G1Point::<BLS12381PrimeField>::new(
+            FieldElement::zero(),
+            FieldElement::from(2u64),
+            false,
+        )?;
+        for point in [torsion.clone(), generator.add(&torsion)] {
+            assert!(get_bls12_381_cofactor_hint(&point)
+                .unwrap_err()
+                .contains("prime-order subgroup"));
+        }
+        Ok(())
+    }
 
     #[test]
     fn test_bn254() -> Result<(), String> {

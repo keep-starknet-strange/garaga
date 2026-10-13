@@ -16,6 +16,9 @@ class MSMCalldataBuilder:
     scalars: list[int]
 
     def __post_init__(self):
+        modulus = CURVES[self.curve_id.value].p
+        if any(not (0 <= p.x < modulus and 0 <= p.y < modulus) for p in self.points):
+            raise ValueError("MSM point coordinates must be canonical")
         assert all(
             point.curve_id == self.curve_id for point in self.points
         ), "All points must be on the same curve."
@@ -23,8 +26,8 @@ class MSMCalldataBuilder:
             self.scalars
         ), f"Number of points and scalars must be equal, got {len(self.points)} points and {len(self.scalars)} scalars"
         assert all(
-            0 <= s <= CURVES[self.curve_id.value].n for s in self.scalars
-        ), f"Scalars must be in [0, {self.curve_id.name}'s order] == [0, {CURVES[self.curve_id.value].n}]."
+            0 <= s < CURVES[self.curve_id.value].n for s in self.scalars
+        ), f"Scalars must be less than {self.curve_id.name}'s order."
 
     def __hash__(self) -> int:
         return hash((self.curve_id, tuple(self.points), tuple(self.scalars)))
@@ -63,6 +66,21 @@ class MSMCalldataBuilder:
                         ],
                     )
                 )
+                if self.curve_id == CurveID.BLS12_381:
+                    record = [hints_structs.pop()]
+                    record[0].name = "glv_hint"
+                    for name, target in [("point_preimage", point), ("q_preimage", Q)]:
+                        preimage = fake_glv.get_bls12_381_cofactor_hint(target)
+                        record.append(
+                            structs.G1PointCircuit.from_G1Point(name, preimage)
+                        )
+                    hints_structs.append(
+                        structs.Struct(
+                            struct_name="Bls12381GlvFakeGlvHint",
+                            name=f"bls_glv_hint_{i}",
+                            elmts=record,
+                        )
+                    )
             else:
                 Q, s1, s2 = fake_glv.get_fake_glv_hint(point, scalar)
                 hints_structs.append(
@@ -73,6 +91,23 @@ class MSMCalldataBuilder:
                             structs.G1PointCircuit.from_G1Point("Q", Q),
                             structs.felt252(name=f"s1_{i}", elmts=[PyFelt(s1, STARK)]),
                             structs.felt252(name=f"s2_{i}", elmts=[PyFelt(s2, STARK)]),
+                        ],
+                    )
+                )
+
+            if self.curve_id == CurveID.ED25519:
+                cofactor_hint = fake_glv.get_ed25519_cofactor_hint(point, scalar)
+                glv_hint = hints_structs.pop()
+                glv_hint.name = "glv_hint"
+                hints_structs.append(
+                    structs.Struct(
+                        struct_name="Ed25519FakeGlvHint",
+                        name=f"ed25519_glv_hint_{i}",
+                        elmts=[
+                            glv_hint,
+                            structs.G1PointCircuit.from_G1Point(
+                                "cofactor_preimage", cofactor_hint
+                            ),
                         ],
                     )
                 )
@@ -187,7 +222,7 @@ if __name__ == "__main__":
     msm = MSMCalldataBuilder(
         curve_id=c,
         points=[G1Point.gen_random_point(c) for _ in range(1)],
-        scalars=[random.randint(0, order) for _ in range(1)],
+        scalars=[random.randrange(order) for _ in range(1)],
     )
     cd = msm.serialize_to_calldata(
         include_points_and_scalars=True,

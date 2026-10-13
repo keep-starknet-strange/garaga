@@ -1469,32 +1469,41 @@ pub fn run_IS_ON_CURVE_G1_G2_circuit(
     return (zero_check_0, zero_check_1, zero_check_2);
 }
 #[inline(always)]
-pub fn run_IS_ON_CURVE_G1_circuit(p: G1Point, a: u384, b: u384, curve_index: usize) -> (u384,) {
+pub fn run_IS_ON_CURVE_G1_circuit(
+    p: G1Point, a: u384, b: u384, curve_index: usize,
+) -> (u384, u384, u384) {
+    // CONSTANT stack
+    let in0 = CE::<CI<0>> {}; // 0x0
+
     // INPUT stack
-    let (in0, in1, in2) = (CE::<CI<0>> {}, CE::<CI<1>> {}, CE::<CI<2>> {});
-    let in3 = CE::<CI<3>> {};
-    let t0 = circuit_mul(in1, in1);
-    let t1 = circuit_mul(in0, in0);
-    let t2 = circuit_mul(in0, t1);
-    let t3 = circuit_mul(in2, in0);
-    let t4 = circuit_add(t3, in3);
+    let (in1, in2, in3) = (CE::<CI<1>> {}, CE::<CI<2>> {}, CE::<CI<3>> {});
+    let in4 = CE::<CI<4>> {};
+    let t0 = circuit_mul(in2, in2);
+    let t1 = circuit_mul(in1, in1);
+    let t2 = circuit_mul(in1, t1);
+    let t3 = circuit_mul(in3, in1);
+    let t4 = circuit_add(t3, in4);
     let t5 = circuit_add(t2, t4);
     let t6 = circuit_sub(t0, t5);
+    let t7 = circuit_add(in1, in0);
+    let t8 = circuit_add(in2, in0);
 
     let modulus = crate::definitions::get_modulus(curve_index);
 
-    let mut circuit_inputs = (t6,).new_inputs();
+    let mut circuit_inputs = (t6, t7, t8).new_inputs();
     // Prefill constants:
-
+    circuit_inputs = circuit_inputs.next_2([0x0, 0x0, 0x0, 0x0]); // in0
     // Fill inputs:
-    circuit_inputs = circuit_inputs.next_2(p.x); // in0
-    circuit_inputs = circuit_inputs.next_2(p.y); // in1
-    circuit_inputs = circuit_inputs.next_2(a); // in2
-    circuit_inputs = circuit_inputs.next_2(b); // in3
+    circuit_inputs = circuit_inputs.next_2(p.x); // in1
+    circuit_inputs = circuit_inputs.next_2(p.y); // in2
+    circuit_inputs = circuit_inputs.next_2(a); // in3
+    circuit_inputs = circuit_inputs.next_2(b); // in4
 
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let zero_check: u384 = outputs.get_output(t6);
-    return (zero_check,);
+    let x_reduced: u384 = outputs.get_output(t7);
+    let y_reduced: u384 = outputs.get_output(t8);
+    return (zero_check, x_reduced, y_reduced);
 }
 #[inline(always)]
 pub fn run_IS_ON_CURVE_G2_circuit(
@@ -1555,26 +1564,28 @@ pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
     s2_sign: u384,
     A_weirstrass: u384,
     modulus: core::circuit::CircuitModulus,
-) -> (
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    u384,
-    u384,
-    u384,
-    u384,
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    u384,
-    u384,
-    u384,
-    u384,
-    G1Point,
-    u384,
-) {
+) -> Option<
+    (
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        u384,
+        u384,
+        u384,
+        u384,
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        u384,
+        u384,
+        u384,
+        u384,
+        G1Point,
+        u384,
+    ),
+> {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -1757,7 +1768,10 @@ pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
     circuit_inputs = circuit_inputs.next_2(s2_sign); // in5
     circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in6
 
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let outputs = match circuit_inputs.done_2().eval(modulus) {
+        Result::Ok(outputs) => outputs,
+        Result::Err(_) => { return Option::None; },
+    };
     let T1: G1Point = G1Point { x: outputs.get_output(t50), y: outputs.get_output(t53) };
     let T2: G1Point = G1Point { x: outputs.get_output(t60), y: outputs.get_output(t63) };
     let T3: G1Point = G1Point { x: outputs.get_output(t70), y: outputs.get_output(t73) };
@@ -1776,7 +1790,9 @@ pub fn run_PREPARE_FAKE_GLV_PTS_circuit(
     let T16y: u384 = outputs.get_output(t132);
     let R2: G1Point = G1Point { x: outputs.get_output(t40), y: outputs.get_output(t43) };
     let R0y: u384 = outputs.get_output(t22);
-    return (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y);
+    return Option::Some(
+        (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y),
+    );
 }
 #[inline(always)]
 pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
@@ -1791,27 +1807,29 @@ pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
     Gen: G1Point,
     third_root: u384,
     modulus: core::circuit::CircuitModulus,
-) -> (
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    G1Point,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    u384,
-    G1Point,
-) {
+) -> Option<
+    (
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        G1Point,
+        u384,
+        u384,
+        u384,
+        u384,
+        u384,
+        u384,
+        u384,
+        u384,
+        u384,
+        u384,
+        G1Point,
+    ),
+> {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x0
 
@@ -2012,7 +2030,10 @@ pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
     circuit_inputs = circuit_inputs.next_2(Gen.y); // in10
     circuit_inputs = circuit_inputs.next_2(third_root); // in11
 
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let outputs = match circuit_inputs.done_2().eval(modulus) {
+        Result::Ok(outputs) => outputs,
+        Result::Err(_) => { return Option::None; },
+    };
     let B1: G1Point = G1Point { x: outputs.get_output(t51), y: outputs.get_output(t54) };
     let B2: G1Point = G1Point { x: outputs.get_output(t61), y: outputs.get_output(t64) };
     let B3: G1Point = G1Point { x: outputs.get_output(t71), y: outputs.get_output(t74) };
@@ -2032,26 +2053,28 @@ pub fn run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
     let Phi_P0x: u384 = outputs.get_output(t21);
     let Phi_Q0x: u384 = outputs.get_output(t22);
     let Acc: G1Point = G1Point { x: outputs.get_output(t139), y: outputs.get_output(t142) };
-    return (
-        B1,
-        B2,
-        B3,
-        B4,
-        B5,
-        B6,
-        B7,
-        B8,
-        B9y,
-        B10y,
-        B11y,
-        B12y,
-        B13y,
-        B14y,
-        B15y,
-        B16y,
-        Phi_P0x,
-        Phi_Q0x,
-        Acc,
+    return Option::Some(
+        (
+            B1,
+            B2,
+            B3,
+            B4,
+            B5,
+            B6,
+            B7,
+            B8,
+            B9y,
+            B10y,
+            B11y,
+            B12y,
+            B13y,
+            B14y,
+            B15y,
+            B16y,
+            Phi_P0x,
+            Phi_Q0x,
+            Acc,
+        ),
     );
 }
 #[inline(always)]
@@ -2138,7 +2161,7 @@ pub fn run_QUADRUPLE_AND_ADD_9_circuit(
     Q_9: G1Point,
     A_weirstrass: u384,
     modulus: core::circuit::CircuitModulus,
-) -> (G1Point,) {
+) -> Option<(G1Point,)> {
     // CONSTANT stack
     let in0 = CE::<CI<0>> {}; // 0x3
 
@@ -2449,7 +2472,10 @@ pub fn run_QUADRUPLE_AND_ADD_9_circuit(
     circuit_inputs = circuit_inputs.next_2(Q_9.y); // in20
     circuit_inputs = circuit_inputs.next_2(A_weirstrass); // in21
 
-    let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
+    let outputs = match circuit_inputs.done_2().eval(modulus) {
+        Result::Ok(outputs) => outputs,
+        Result::Err(_) => { return Option::None; },
+    };
     let R: G1Point = G1Point { x: outputs.get_output(t266), y: outputs.get_output(t269) };
-    return (R,);
+    return Option::Some((R,));
 }

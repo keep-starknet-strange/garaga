@@ -1,0 +1,91 @@
+{
+  "source_commit": "c59517adbd68ef31e70878934597a2228ada9f1f",
+  "command": "docker compose up --build --exit-code-from app",
+  "cwd": "tools/npm/garaga_ts",
+  "exit_code": 0,
+  "all_five_generated_files_identical": true,
+  "expected_sha256": {
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs.d.ts": "5144487620e18af771d7485156c9efa2ddb2d9c971eb02eb97e128b297d44441",
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs.js": "6d8bf363844f224886902275ccba48e94b0e19c45e0528ddf6f077c31b5c7851",
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs_bg.wasm.d.ts": "83483ce3eb90f4c584abf64787c30a6bbd090ec9575b7ea75ec1336ccb3b693e",
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs_bg.wasm.js": "338806580ee91535ae7d480e6aa4ef26d19461260d36aff77acc8626f5512b02",
+    "tools/npm/garaga_ts/src/wasm/pkg/package.json": "e480fdd5391990ca42cbecbfb15b67140c6009377082b97aed787bfb8b116c54"
+  },
+  "actual_sha256": {
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs.d.ts": "5144487620e18af771d7485156c9efa2ddb2d9c971eb02eb97e128b297d44441",
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs.js": "6d8bf363844f224886902275ccba48e94b0e19c45e0528ddf6f077c31b5c7851",
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs_bg.wasm.d.ts": "83483ce3eb90f4c584abf64787c30a6bbd090ec9575b7ea75ec1336ccb3b693e",
+    "tools/npm/garaga_ts/src/wasm/pkg/garaga_rs_bg.wasm.js": "338806580ee91535ae7d480e6aa4ef26d19461260d36aff77acc8626f5512b02",
+    "tools/npm/garaga_ts/src/wasm/pkg/package.json": "e480fdd5391990ca42cbecbfb15b67140c6009377082b97aed787bfb8b116c54"
+  },
+  "package_sha1": "ee01cd717a42f6e77d44d8a990baa5fa9b51429b",
+  "log": "/tmp/garaga-glv-wasm-rebuild.log",
+  "toolchain": {
+    "docker_platform": "linux/amd64",
+    "builder_base_image": "rust:1.87.0",
+    "rustc": "1.87.0 (17067e9ac 2025-05-09)",
+    "wasm_pack": "0.13.1",
+    "node": "20.17.0",
+    "browser": "Chromium 131.0.6778.204"
+  },
+  "checks": {
+    "npm": {
+      "cwd": "tools/npm/garaga_ts",
+      "command": "npm test -- --runInBand",
+      "exit_code": 0,
+      "suites_passed": 8,
+      "tests_passed": 50,
+      "log": "/tmp/garaga-glv-npm-tests.log"
+    },
+    "wasm": {
+      "cwd": "tools/garaga_rs",
+      "command": "RUSTFLAGS='--cfg getrandom_backend=\"wasm_js\"' wasm-pack test --node --release --no-default-features --features wasm",
+      "exit_code": 0,
+      "tests_passed": 5,
+      "log": "/tmp/garaga-glv-wasm-tests.log"
+    },
+    "integration_generate": {
+      "cwd": "tools/npm/integration-test-suite",
+      "command": "npm run test-generate",
+      "exit_code": 0,
+      "tasks_passed": 8,
+      "log": "/tmp/garaga-glv-integration-generate-final.log"
+    },
+    "integration_test": {
+      "cwd": "tools/npm/integration-test-suite",
+      "command": "npm run test -- --force",
+      "exit_code": 0,
+      "tasks_passed": 8,
+      "cached_tasks": 0,
+      "duration_seconds": 57.317,
+      "browser_scrapes_executed": [
+        "web-js-esm-webpack",
+        "web-js-esm-react"
+      ],
+      "log": "/tmp/garaga-glv-integration-tests-final.log"
+    }
+  },
+  "integration_fixtures": {
+    "tools/npm/integration-test-suite/packages/nodejs-ts-cjs-tsc/output.txt": {
+      "sha256": "4ba261373cd4589b9d9f0169fd888838e32d026392db7c66908f6f43b7aec1aa",
+      "matches_committed_snapshot": true,
+      "matches_forced_test_output": true
+    },
+    "tools/npm/integration-test-suite/packages/nodejs-ts-esm-tsc/output.txt": {
+      "sha256": "4ba261373cd4589b9d9f0169fd888838e32d026392db7c66908f6f43b7aec1aa",
+      "matches_committed_snapshot": true,
+      "matches_forced_test_output": true
+    },
+    "tools/npm/integration-test-suite/packages/web-js-esm-webpack/output.txt": {
+      "sha256": "4ba261373cd4589b9d9f0169fd888838e32d026392db7c66908f6f43b7aec1aa",
+      "matches_committed_snapshot": true,
+      "matches_forced_test_output": true
+    },
+    "tools/npm/integration-test-suite/packages/web-js-esm-react/output.txt": {
+      "sha256": "4ba261373cd4589b9d9f0169fd888838e32d026392db7c66908f6f43b7aec1aa",
+      "matches_committed_snapshot": true,
+      "matches_forced_test_output": true
+    }
+  },
+  "scoped_generated_git_diff_exit_code": 0
+}

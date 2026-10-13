@@ -28,10 +28,10 @@ pub impl G1PointImpl of G1PointTrait {
         }
     }
     fn is_on_curve_excluding_infinity(self: @G1Point, curve_index: usize) -> bool {
-        let (check) = ec::run_IS_ON_CURVE_G1_circuit(
+        let (check, x_reduced, y_reduced) = ec::run_IS_ON_CURVE_G1_circuit(
             *self, get_a(curve_index), get_b(curve_index), curve_index,
         );
-        check.is_zero()
+        check.is_zero() && x_reduced == *self.x && y_reduced == *self.y
     }
     fn negate(self: @G1Point, curve_index: usize) -> G1Point {
         let modulus = get_modulus(curve_index);
@@ -146,6 +146,19 @@ pub struct FakeGlvHint {
     pub s2: felt252 // Encoded as 2^128 * sign + abs(s2)_u128
 }
 
+#[derive(Drop, Serde)]
+pub struct Bls12381GlvFakeGlvHint {
+    pub glv_hint: GlvFakeGlvHint,
+    pub point_preimage: G1Point,
+    pub q_preimage: G1Point,
+}
+
+#[derive(Drop, Serde)]
+pub struct Ed25519FakeGlvHint {
+    pub glv_hint: FakeGlvHint,
+    pub cofactor_preimage: G1Point,
+}
+
 pub fn msm_g1(
     points: Span<G1Point>, scalars: Span<u256>, curve_index: usize, mut hint: Span<felt252>,
 ) -> G1Point {
@@ -164,7 +177,12 @@ pub fn msm_fake_glv(
     if n == 0 {
         panic_with_felt252('Msm size must be >= 1');
     }
-    assert(hint.len() == n * 10, 'wrong fakeglv hint size');
+    let hint_size = if curve_index == 4 {
+        18
+    } else {
+        10
+    };
+    assert(hint.len() == n * hint_size, 'wrong fakeglv hint size');
 
     let order_modulus = get_curve_order_modulus(curve_index);
     let curve_order: u256 = get_n(curve_index);
@@ -180,23 +198,38 @@ pub fn msm_fake_glv(
         assert(scalar < curve_order, 'unreduced scalar');
         let scalar_u384: u384 = scalar.into();
         let fake_glv_hint: FakeGlvHint = Serde::deserialize(ref hint).unwrap();
-        let temp = _scalar_mul_fake_glv(
-            pt,
-            scalar_u384,
-            order_modulus,
-            modulus,
-            A_weirstrass,
-            order_minus_one,
-            base_min_one,
-            fake_glv_hint,
-            curve_index,
-        );
+        let temp = if curve_index == 4 {
+            let cofactor_preimage: G1Point = Serde::deserialize(ref hint).unwrap();
+            scalar_mul_fake_glv_ed25519(
+                pt,
+                scalar_u384,
+                order_modulus,
+                modulus,
+                A_weirstrass,
+                order_minus_one,
+                base_min_one,
+                fake_glv_hint,
+                cofactor_preimage,
+            )
+        } else {
+            _scalar_mul_fake_glv(
+                pt,
+                scalar_u384,
+                order_modulus,
+                modulus,
+                A_weirstrass,
+                order_minus_one,
+                base_min_one,
+                fake_glv_hint,
+                curve_index,
+            )
+        };
         acc = _ec_safe_add(acc, temp, modulus, curve_index);
     }
     return acc;
 }
 
-pub fn _scalar_mul_fake_glv(
+fn _scalar_mul_fake_glv(
     point: G1Point,
     scalar: u384,
     order_modulus: CircuitModulus,
@@ -210,7 +243,11 @@ pub fn _scalar_mul_fake_glv(
     if scalar.is_zero() || point.is_infinity() {
         return G1PointZero::zero();
     }
-    point.assert_on_curve_excluding_infinity(curve_index);
+    if curve_index == 4 {
+        point.assert_on_curve_excluding_infinity(curve_index);
+    } else {
+        point.assert_in_subgroup_excluding_infinity(curve_index);
+    }
 
     if scalar.is_one() {
         return point;
@@ -219,7 +256,11 @@ pub fn _scalar_mul_fake_glv(
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
     }
 
-    hint.Q.assert_on_curve_excluding_infinity(curve_index);
+    if curve_index == 4 {
+        hint.Q.assert_on_curve_excluding_infinity(curve_index);
+    } else {
+        hint.Q.assert_in_subgroup_excluding_infinity(curve_index);
+    }
 
     let (_s2_sign_order, _s2_sign_base, _s2_abs): (u384, u384, u128) =
         match u128s_from_felt252(hint.s2) {
@@ -230,7 +271,10 @@ pub fn _scalar_mul_fake_glv(
                 low,
             )
         },
-        U128sFromFelt252Result::Wide((_, low)) => { (order_minus_one, base_min_one, low) },
+        U128sFromFelt252Result::Wide((high, low)) => {
+            assert(high == 1, 'FakeGLV: invalid sign');
+            (order_minus_one, base_min_one, low)
+        },
     };
 
     // Verify decomposition : s1 + scalar*s2 = 0 mod n && s2!=0.
@@ -256,10 +300,19 @@ pub fn _scalar_mul_fake_glv(
     assert(_s2_abs != 0, 'FakeGLV: s2=0');
     assert(outputs.get_output(check).is_zero(), 'Wrong FakeGLV decomposition');
 
-    let (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y) =
-        ec::run_PREPARE_FAKE_GLV_PTS_circuit(
+    let prepared = ec::run_PREPARE_FAKE_GLV_PTS_circuit(
         point, hint.Q, _s2_sign_base, A_weirstrass, modulus,
     );
+    let (T1, T2, T3, T4, T5y, T6y, T7y, T8y, T9, T10, T11, T12, T13y, T14y, T15y, T16y, R2, R0y) =
+        match prepared {
+        Option::Some(points) => points,
+        Option::None => {
+            assert_fake_glv_complete(
+                point, hint.Q, hint.s1, _s2_abs, _s2_sign_base, modulus, curve_index,
+            );
+            return hint.Q;
+        },
+    };
 
     // ['T6', 'T7', 'T10', 'T11', 'T8', 'T5', 'T12', 'T9', 'T14', 'T15', 'T2', 'T3', 'T16', 'T13',
     // 'T4', 'T1']
@@ -277,7 +330,15 @@ pub fn _scalar_mul_fake_glv(
     // Add corrected point for the last bits 2-1 at position 16 in Ts array.
     let last_selector = *selectors.pop_front().unwrap();
     let last_selector_pt = *Ts[last_selector];
-    let (last_selector_pt_corrected) = ec::run_ADD_EC_POINT_circuit(last_selector_pt, R2, modulus);
+    let last_selector_pt_corrected = _ec_safe_add(last_selector_pt, R2, modulus, curve_index);
+    if last_selector_pt_corrected.is_infinity() {
+        // The affine ladder can accept infinity as an off-curve (0,0) input without inversion
+        // failure.
+        assert_fake_glv_complete(
+            point, hint.Q, hint.s1, _s2_abs, _s2_sign_base, modulus, curve_index,
+        );
+        return hint.Q;
+    }
     Ts.append(last_selector_pt_corrected);
 
     let Ts = Ts.span();
@@ -290,7 +351,7 @@ pub fn _scalar_mul_fake_glv(
     let Bi = *Ts[selector_y];
 
     let (Acc) = ec::run_DOUBLE_EC_POINT_circuit(T2, A_weirstrass, modulus);
-    let (mut Acc) = ec::run_ADD_EC_POINT_circuit(Acc, Bi, modulus);
+    let mut Acc = _ec_safe_add(Acc, Bi, modulus, curve_index);
 
     // assert(selectors.len() == 63, 'wrong number of selectors');
     // 7 iterations* 9 * 2 bits = 63 * 2 = 126 bits.
@@ -319,29 +380,132 @@ pub fn _scalar_mul_fake_glv(
         let Bi7 = *Ts.at(selector_y7);
         let Bi8 = *Ts.at(selector_y8);
 
-        let (_Acc) = ec::run_QUADRUPLE_AND_ADD_9_circuit(
+        let next = ec::run_QUADRUPLE_AND_ADD_9_circuit(
             Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, Bi8, A_weirstrass, modulus,
         );
-        Acc = _Acc;
+        match next {
+            Option::Some((_acc,)) => { Acc = _acc; },
+            Option::None => {
+                assert_fake_glv_complete(
+                    point, hint.Q, hint.s1, _s2_abs, _s2_sign_base, modulus, curve_index,
+                );
+                return hint.Q;
+            },
+        }
     }
 
-    let (Acc) = if s1lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(
-            Acc, G1Point { x: point.x, y: neg_mod_p(point.y, modulus) }, modulus,
+    let Acc = if s1lsb == 0 {
+        _ec_safe_add(
+            Acc, G1Point { x: point.x, y: neg_mod_p(point.y, modulus) }, modulus, curve_index,
         )
     } else {
-        (Acc,)
+        Acc
     };
-    let (Acc) = if s2lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: hint.Q.x, y: R0y }, modulus)
+    let Acc = if s2lsb == 0 {
+        _ec_safe_add(Acc, G1Point { x: hint.Q.x, y: R0y }, modulus, curve_index)
     } else {
-        (Acc,)
+        Acc
     };
 
     // Assert.
     assert(Acc == R2, 'wrong FakeGLV result');
 
     return hint.Q;
+}
+
+fn double_point_safe(point: G1Point, modulus: CircuitModulus, curve_index: usize) -> G1Point {
+    if point.y.is_zero() {
+        return G1PointZero::zero();
+    }
+    let (result) = ec::run_DOUBLE_EC_POINT_circuit(point, get_a(curve_index), modulus);
+    result
+}
+
+fn mul_by_8(point: G1Point, modulus: CircuitModulus) -> G1Point {
+    let point = double_point_safe(point, modulus, 4);
+    let point = double_point_safe(point, modulus, 4);
+    double_point_safe(point, modulus, 4)
+}
+
+fn mul_by_u128(
+    mut point: G1Point, mut scalar: u128, modulus: CircuitModulus, curve_index: usize,
+) -> G1Point {
+    let mut result = G1PointZero::zero();
+    while scalar != 0 {
+        if scalar % 2 == 1 {
+            result = _ec_safe_add(result, point, modulus, curve_index);
+        }
+        scalar = scalar / 2;
+        if scalar != 0 {
+            point = double_point_safe(point, modulus, curve_index);
+        }
+    }
+    result
+}
+
+fn assert_fake_glv_complete(
+    point: G1Point,
+    q: G1Point,
+    s1: u128,
+    s2: u128,
+    s2_sign: u384,
+    modulus: CircuitModulus,
+    curve_index: usize,
+) {
+    let signed_q = G1Point { x: q.x, y: mul_mod_p(q.y, s2_sign, modulus) };
+    let lhs = mul_by_u128(point, s1, modulus, curve_index);
+    let rhs = mul_by_u128(signed_q, s2, modulus, curve_index);
+    assert(_ec_safe_add(lhs, rhs, modulus, curve_index).is_infinity(), 'wrong FakeGLV result');
+}
+
+fn scalar_mul_fake_glv_ed25519(
+    point: G1Point,
+    scalar: u384,
+    order_modulus: CircuitModulus,
+    modulus: CircuitModulus,
+    a: u384,
+    order_minus_one: u384,
+    base_min_one: u384,
+    hint: FakeGlvHint,
+    cofactor_preimage: G1Point,
+) -> G1Point {
+    if scalar.is_zero() || point.is_infinity() {
+        return G1PointZero::zero();
+    }
+    point.assert_on_curve_excluding_infinity(4);
+    if !hint.Q.is_infinity() {
+        hint.Q.assert_on_curve_excluding_infinity(4);
+    }
+
+    let point8 = mul_by_8(point, modulus);
+    let scalar_low: u128 = upcast(scalar.limb0);
+    let torsion_result = mul_by_u128(point, scalar_low % 8, modulus, 4);
+    if point8.is_infinity() {
+        assert(hint.Q == torsion_result, 'Wrong Ed25519 torsion result');
+        return hint.Q;
+    }
+
+    // The preimage fixes the torsion class. The FakeGLV relation fixes the prime component.
+    if !cofactor_preimage.is_infinity() {
+        cofactor_preimage.assert_on_curve_excluding_infinity(4);
+    }
+    let difference = _ec_safe_add(hint.Q, torsion_result.negate(4), modulus, 4);
+    assert(mul_by_8(cofactor_preimage, modulus) == difference, 'Wrong Ed25519 cofactor preimage');
+
+    let q8 = mul_by_8(hint.Q, modulus);
+    let result8 = _scalar_mul_fake_glv(
+        point8,
+        scalar,
+        order_modulus,
+        modulus,
+        a,
+        order_minus_one,
+        base_min_one,
+        FakeGlvHint { Q: q8, s1: hint.s1, s2: hint.s2 },
+        4,
+    );
+    assert(result8 == q8, 'Wrong Ed25519 subgroup result');
+    hint.Q
 }
 
 
@@ -353,7 +517,12 @@ fn msm_glv_fake_glv(
     if n == 0 {
         panic_with_felt252('Msm size must be >= 1');
     }
-    assert(hint.len() == n * 12, 'wrong glv&fakeglv hint size');
+    let hint_size = if curve_index == 1 {
+        28
+    } else {
+        12
+    };
+    assert(hint.len() == n * hint_size, 'wrong glv&fakeglv hint size');
     let eigen = get_eigenvalue(curve_index);
     let third_root_of_unity = get_third_root_of_unity(curve_index);
     let modulus = get_modulus(curve_index);
@@ -370,11 +539,28 @@ fn msm_glv_fake_glv(
         assert(scalar < curve_order, 'unreduced scalar');
         let scalar_u384: u384 = scalar.into();
         let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref hint).unwrap();
+        let (point_preimage, q_preimage) = if curve_index == 1 {
+            (
+                Serde::<G1Point>::deserialize(ref hint).unwrap(),
+                Serde::<G1Point>::deserialize(ref hint).unwrap(),
+            )
+        } else {
+            (G1PointZero::zero(), G1PointZero::zero())
+        };
         match pt.is_infinity() {
             true => { acc = acc; },
             false => {
-                pt.assert_on_curve_excluding_infinity(curve_index);
-                let temp = _scalar_mul_glv_and_fake_glv(
+                if curve_index == 1 && !scalar_u384.is_zero() {
+                    assert_bls12_381_cofactor_preimage(pt, point_preimage, modulus);
+                    if !scalar_u384.is_one() && scalar_u384 != min_one {
+                        assert_bls12_381_cofactor_preimage(
+                            glv_fake_glv_hint.Q, q_preimage, modulus,
+                        );
+                    }
+                } else {
+                    pt.assert_on_curve_excluding_infinity(curve_index);
+                }
+                let temp = scalar_mul_glv_and_fake_glv_verified(
                     pt,
                     scalar_u384,
                     order_modulus,
@@ -396,8 +582,75 @@ fn msm_glv_fake_glv(
 
 
 #[inline(always)]
-// /!\ Assumes point is on curve (not infinity) and scalar is reduced mod n. /!\
+// /!\ Assumes point is not infinity and scalar is reduced mod n. /!\
+// Curve parameters and the bias point must match curve_index.
 pub fn _scalar_mul_glv_and_fake_glv(
+    point: G1Point,
+    scalar: u384,
+    order_modulus: CircuitModulus,
+    modulus: CircuitModulus,
+    hint: GlvFakeGlvHint,
+    _lambda: u384,
+    third_root_of_unity: u384,
+    minus_one: u384,
+    n_bits_G: G1Point,
+    curve_index: usize,
+) -> G1Point {
+    point.assert_in_subgroup_excluding_infinity(curve_index);
+    if !scalar.is_zero() && !scalar.is_one() && scalar != minus_one {
+        hint.Q.assert_in_subgroup_excluding_infinity(curve_index);
+    }
+    scalar_mul_glv_and_fake_glv_verified(
+        point,
+        scalar,
+        order_modulus,
+        modulus,
+        hint,
+        _lambda,
+        third_root_of_unity,
+        minus_one,
+        n_bits_G,
+        curve_index,
+    )
+}
+
+fn assert_bls12_381_cofactor_preimage(point: G1Point, preimage: G1Point, modulus: CircuitModulus) {
+    if !point.is_infinity() {
+        point.assert_on_curve_excluding_infinity(1);
+    }
+    if !preimage.is_infinity() {
+        preimage.assert_on_curve_excluding_infinity(1);
+    }
+    // This exponent kills all cofactor torsion and is coprime to the prime subgroup order.
+    let a = get_a(1);
+    let result = double_n_times_safe(preimage, 1, modulus, a);
+    let result = _ec_safe_add(result, preimage, modulus, 1);
+    let result = double_n_times_safe(result, 2, modulus, a);
+    let result = _ec_safe_add(result, preimage, modulus, 1);
+    let result = double_n_times_safe(result, 3, modulus, a);
+    let result = _ec_safe_add(result, preimage, modulus, 1);
+    let result = double_n_times_safe(result, 9, modulus, a);
+    let result = _ec_safe_add(result, preimage, modulus, 1);
+    let result = double_n_times_safe(result, 32, modulus, a);
+    let result = _ec_safe_add(result, preimage, modulus, 1);
+    let result = double_n_times_safe(result, 16, modulus, a);
+    let result = _ec_safe_add(result, preimage, modulus, 1);
+    assert(result == point, 'Wrong BLS cofactor preimage');
+}
+
+fn double_n_times_safe(p: G1Point, n: usize, modulus: CircuitModulus, a: u384) -> G1Point {
+    let mut result = p;
+    for _ in 0..n {
+        if result.y.is_zero() {
+            return G1PointZero::zero();
+        }
+        let (doubled) = ec::run_DOUBLE_EC_POINT_circuit(result, a, modulus);
+        result = doubled;
+    }
+    result
+}
+
+fn scalar_mul_glv_and_fake_glv_verified(
     point: G1Point,
     scalar: u384,
     order_modulus: CircuitModulus,
@@ -416,17 +669,17 @@ pub fn _scalar_mul_glv_and_fake_glv(
         return point;
     }
 
-    hint.Q.assert_on_curve_excluding_infinity(curve_index);
-
     if scalar == minus_one {
         return G1Point { x: point.x, y: neg_mod_p(point.y, modulus) };
     }
+
+    hint.Q.assert_on_curve_excluding_infinity(curve_index);
 
     let one_u384: u384 = u384 { limb0: 1, limb1: 0, limb2: 0, limb3: 0 };
 
     // Retrieve the u1, u2, v1, v2 values from the hint
     // They are encoded as 2^128 * sign + abs(value)
-    // If high_128 limbs are != 0, we consider the value is negative, otherwise it is positive.
+    // The high 128-bit word is the sign bit.
     // We also precompute the negated value of the y coordinate of the points based on the sign in
     // the same match condition for efficiency.
 
@@ -434,7 +687,8 @@ pub fn _scalar_mul_glv_and_fake_glv(
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
         },
-        U128sFromFelt252Result::Wide((_, low)) => {
+        U128sFromFelt252Result::Wide((high, low)) => {
+            assert(high == 1, 'GLV: invalid sign');
             (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus))
         },
     };
@@ -443,7 +697,8 @@ pub fn _scalar_mul_glv_and_fake_glv(
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
         },
-        U128sFromFelt252Result::Wide((_, low)) => {
+        U128sFromFelt252Result::Wide((high, low)) => {
+            assert(high == 1, 'GLV: invalid sign');
             (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus))
         },
     };
@@ -451,14 +706,32 @@ pub fn _scalar_mul_glv_and_fake_glv(
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
         },
-        U128sFromFelt252Result::Wide((_, low)) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
+        U128sFromFelt252Result::Wide((high, low)) => {
+            assert(high == 1, 'GLV: invalid sign');
+            (minus_one, downcast(low).unwrap(), hint.Q.y)
+        },
     };
     let (_v2_sign, _v2_abs, Phi_Q0y): (u384, u96, u384) = match u128s_from_felt252(hint.v2) {
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(hint.Q.y, modulus))
         },
-        U128sFromFelt252Result::Wide((_, low)) => { (minus_one, downcast(low).unwrap(), hint.Q.y) },
+        U128sFromFelt252Result::Wide((high, low)) => {
+            assert(high == 1, 'GLV: invalid sign');
+            (minus_one, downcast(low).unwrap(), hint.Q.y)
+        },
     };
+
+    let _u1: u128 = upcast(_u1_abs);
+    let _u2: u128 = upcast(_u2_abs);
+    let _v1: u128 = upcast(_v1_abs);
+    let _v2: u128 = upcast(_v2_abs);
+    assert(
+        _u1 < 0x20000000000000000
+            && _u2 < 0x20000000000000000
+            && _v1 < 0x20000000000000000
+            && _v2 < 0x20000000000000000,
+        'GLV coefficient out of range',
+    );
 
     // At this point ~ 631 steps.
 
@@ -492,7 +765,9 @@ pub fn _scalar_mul_glv_and_fake_glv(
     // s*(v1 + λ*v2) + u1 + λ*u2
     let res = circuit_add(s_v1_lambda_v2, u1_lambda_u2);
 
-    let outputs = (res,)
+    // An invertible denominator binds Q to [scalar]P instead of a vacuous relation.
+    let denominator_inverse = circuit_inverse(v1_lambda_v2);
+    let outputs = (res, denominator_inverse)
         .new_inputs()
         .next_2(scalar)
         .next_2(_lambda)
@@ -506,7 +781,7 @@ pub fn _scalar_mul_glv_and_fake_glv(
         .next_2(_v2_sign)
         .done_2()
         .eval(order_modulus)
-        .unwrap();
+        .expect('GLV denominator is zero');
 
     assert(outputs.get_output(res).is_zero(), 'Wrong GLV/FakeGLV decomposition');
 
@@ -516,6 +791,19 @@ pub fn _scalar_mul_glv_and_fake_glv(
     let P0 = G1Point { x: point.x, y: P0y };
     let Q0 = G1Point { x: hint.Q.x, y: Q0y };
 
+    let prepared = ec::run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
+        point.x,
+        P0y,
+        P1y,
+        hint.Q.x,
+        Q0y,
+        Phi_P0y,
+        Phi_P1y,
+        Phi_Q0y,
+        get_G(curve_index),
+        third_root_of_unity,
+        modulus,
+    );
     let (
         B1,
         B2,
@@ -537,19 +825,39 @@ pub fn _scalar_mul_glv_and_fake_glv(
         Phi_Q0x,
         mut Acc,
     ) =
-        ec::run_PREPARE_GLV_FAKE_GLV_PTS_circuit(
-        point.x,
-        P0y,
-        P1y,
-        hint.Q.x,
-        Q0y,
-        Phi_P0y,
-        Phi_P1y,
-        Phi_Q0y,
-        get_G(curve_index),
-        third_root_of_unity,
-        modulus,
-    );
+        match prepared {
+        Option::Some(points) => points,
+        Option::None => {
+            let phi_px = mul_mod_p(point.x, third_root_of_unity, modulus);
+            let phi_qx = mul_mod_p(hint.Q.x, third_root_of_unity, modulus);
+            let a = mul_by_u128(
+                G1Point { x: point.x, y: P1y }, upcast(_u1_abs), modulus, curve_index,
+            );
+            let b = mul_by_u128(
+                G1Point { x: phi_px, y: Phi_P1y }, upcast(_u2_abs), modulus, curve_index,
+            );
+            let c = mul_by_u128(
+                G1Point { x: hint.Q.x, y: neg_mod_p(Q0y, modulus) },
+                upcast(_v1_abs),
+                modulus,
+                curve_index,
+            );
+            let d = mul_by_u128(
+                G1Point { x: phi_qx, y: neg_mod_p(Phi_Q0y, modulus) },
+                upcast(_v2_abs),
+                modulus,
+                curve_index,
+            );
+            let sum = _ec_safe_add(
+                _ec_safe_add(a, b, modulus, curve_index),
+                _ec_safe_add(c, d, modulus, curve_index),
+                modulus,
+                curve_index,
+            );
+            assert(sum.is_infinity(), 'Wrong Glv&FakeGLV result');
+            return hint.Q;
+        },
+    };
     let Bs: Span<G1Point> = array![
         G1Point { x: B1.x, y: B16y }, B8, G1Point { x: B3.x, y: B14y }, B6,
         G1Point { x: B5.x, y: B12y }, B4, G1Point { x: B7.x, y: B10y }, B2,
@@ -562,11 +870,6 @@ pub fn _scalar_mul_glv_and_fake_glv(
 
     // println!("Bs: {:?}", Bs);
     // println!("Acc: {:?}", Acc);
-    let mut _u1: u128 = upcast(_u1_abs);
-    let mut _u2: u128 = upcast(_u2_abs);
-    let mut _v1: u128 = upcast(_v1_abs);
-    let mut _v2: u128 = upcast(_v2_abs);
-
     let (mut selectors, u1lsb, u2lsb, v1lsb, v2lsb) = selectors::build_selectors_inlined(
         _u1, _u2, _v1, _v2,
     );
@@ -594,31 +897,31 @@ pub fn _scalar_mul_glv_and_fake_glv(
         let Bi6 = *Bs.at(selector_y6);
         let Bi7 = *Bs.at(selector_y7);
 
-        Acc = double_and_add_8(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
+        Acc = double_and_add_8_glv(Acc, Bi, Bi1, Bi2, Bi3, Bi4, Bi5, Bi6, Bi7, modulus);
     }
 
     // println!("Acc final: {:?}", Acc);
-    let (Acc) = if u1lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, P0, modulus)
+    let Acc = if u1lsb == 0 {
+        _ec_safe_add(Acc, P0, modulus, curve_index)
     } else {
-        (Acc,)
+        Acc
     };
-    let (Acc) = if u2lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: Phi_P0x, y: Phi_P0y }, modulus)
+    let Acc = if u2lsb == 0 {
+        _ec_safe_add(Acc, G1Point { x: Phi_P0x, y: Phi_P0y }, modulus, curve_index)
     } else {
-        (Acc,)
-    };
-
-    let (Acc) = if v1lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, Q0, modulus)
-    } else {
-        (Acc,)
+        Acc
     };
 
-    let (Acc) = if v2lsb == 0 {
-        ec::run_ADD_EC_POINT_circuit(Acc, G1Point { x: Phi_Q0x, y: Phi_Q0y }, modulus)
+    let Acc = if v1lsb == 0 {
+        _ec_safe_add(Acc, Q0, modulus, curve_index)
     } else {
-        (Acc,)
+        Acc
+    };
+
+    let Acc = if v2lsb == 0 {
+        _ec_safe_add(Acc, G1Point { x: Phi_Q0x, y: Phi_Q0y }, modulus, curve_index)
+    } else {
+        Acc
     };
 
     assert(Acc == n_bits_G, 'Wrong Glv&FakeGLV result');
@@ -711,7 +1014,7 @@ pub fn double_and_add(p: G1Point, q: G1Point, modulus: CircuitModulus) -> G1Poin
 
 // Computes 2*(2*(2*(2*(2*(2*(2*(2*P + Q0) + Q1) + Q2) + Q3) + Q4) + Q5) + Q6) + Q7
 #[inline(always)]
-pub fn double_and_add_8(
+fn try_double_and_add_8(
     p: G1Point,
     q0: G1Point,
     q1: G1Point,
@@ -722,7 +1025,7 @@ pub fn double_and_add_8(
     q6: G1Point,
     q7: G1Point,
     modulus: CircuitModulus,
-) -> G1Point {
+) -> Option<G1Point> {
     let px = CircuitElement::<CircuitInput<0>> {};
     let py = CircuitElement::<CircuitInput<1>> {};
     let q0x = CircuitElement::<CircuitInput<2>> {};
@@ -939,8 +1242,70 @@ pub fn double_and_add_8(
         .next_2(q7.x)
         .next_2(q7.y)
         .done_2()
-        .eval(modulus)
-        .expect('double_and_add_8 failed');
+        .eval(modulus);
+    let outputs = match outputs {
+        Result::Ok(outputs) => outputs,
+        Result::Err(_) => { return Option::None; },
+    };
 
-    return G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) };
+    return Option::Some(G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) });
+}
+
+/// Computes repeated steps [2]acc + q_i.
+/// Inputs must be valid points on the curve selected by modulus.
+/// This generic helper rejects exceptional inputs under incomplete affine formulas.
+#[inline(always)]
+pub fn double_and_add_8(
+    p: G1Point,
+    q0: G1Point,
+    q1: G1Point,
+    q2: G1Point,
+    q3: G1Point,
+    q4: G1Point,
+    q5: G1Point,
+    q6: G1Point,
+    q7: G1Point,
+    modulus: CircuitModulus,
+) -> G1Point {
+    try_double_and_add_8(p, q0, q1, q2, q3, q4, q5, q6, q7, modulus)
+        .expect('double_and_add_8 failed')
+}
+
+#[inline(always)]
+fn double_and_add_8_glv(
+    p: G1Point,
+    q0: G1Point,
+    q1: G1Point,
+    q2: G1Point,
+    q3: G1Point,
+    q4: G1Point,
+    q5: G1Point,
+    q6: G1Point,
+    q7: G1Point,
+    modulus: CircuitModulus,
+) -> G1Point {
+    match try_double_and_add_8(p, q0, q1, q2, q3, q4, q5, q6, q7, modulus) {
+        Option::Some(result) => result,
+        Option::None => {
+            // GLV curves have a=0. The public generic helper remains incomplete.
+            let mut result = p;
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q0, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q1, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q2, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q3, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q4, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q5, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q6, modulus, 0);
+            result = double_point_safe(result, modulus, 0);
+            result = _ec_safe_add(result, q7, modulus, 0);
+            result
+        },
+    }
 }

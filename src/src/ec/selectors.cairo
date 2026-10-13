@@ -117,7 +117,7 @@ fn _extract_and_calculate_selector_bit_inlined_fake_glv(
 pub fn build_selectors_inlined(
     _u1: u128, _u2: u128, _v1: u128, _v2: u128,
 ) -> (Span<usize>, u128, u128, u128, u128) {
-    // Generated code for n_bits = 73
+    // Generated code for n_bits = 65
     let mut selectors: Array<usize> = array![];
 
     let mut u1: BoundedInt<0, { POW128 - 1 }> = upcast(_u1);
@@ -135,7 +135,7 @@ pub fn build_selectors_inlined(
     v1 = upcast(qv1);
     v2 = upcast(qv2);
 
-    // Inlined loop (72 iterations)
+    // Inlined loop (64 iterations)
     let (u1, u2, v1, v2, selector_0) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
     selectors.append(upcast(selector_0));
     let (u1, u2, v1, v2, selector_1) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
@@ -264,25 +264,10 @@ pub fn build_selectors_inlined(
     selectors.append(upcast(selector_62));
     let (u1, u2, v1, v2, selector_63) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
     selectors.append(upcast(selector_63));
-    let (u1, u2, v1, v2, selector_64) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_64));
-    let (u1, u2, v1, v2, selector_65) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_65));
-    let (u1, u2, v1, v2, selector_66) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_66));
-    let (u1, u2, v1, v2, selector_67) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_67));
-    let (u1, u2, v1, v2, selector_68) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_68));
-    let (u1, u2, v1, v2, selector_69) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_69));
-    let (u1, u2, v1, v2, selector_70) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_70));
-    let (_, _, _, _, selector_71) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);
-    selectors.append(upcast(selector_71));
+    // Every coefficient bit must reach the accumulator.
+    assert(u1 == 0 && u2 == 0 && v1 == 0 && v2 == 0, 'GLV coefficient out of range');
     return (selectors.span(), upcast(u1lsb), upcast(u2lsb), upcast(v1lsb), upcast(v2lsb));
 }
-
 #[inline(always)]
 pub fn build_selectors_inlined_fake_glv(_s1: u128, _s2: u128) -> (Span<usize>, u128, u128) {
     // Generated code for n_bits = 128

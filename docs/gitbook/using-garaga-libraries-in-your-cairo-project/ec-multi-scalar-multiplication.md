@@ -55,6 +55,22 @@ As you can see, this function not only needs points and scalars, but also additi
 \
 Under `hydra/garaga/starknet/tests_and_calldata_generators/`, you will find in the file [`msm.py`](https://github.com/keep-starknet-strange/garaga/blob/main/hydra/garaga/starknet/tests_and_calldata_generators/msm.py) some tools to generate a cairo test (using `MSMCalldataBuilder.to_cairo_1_test()`) for this function given some points and scalars, or directly the raw calldata for starknet usage (using `MSMCalldataBuilder.serialize_to_calldata()`).
 
+### Input and hint requirements
+
+Scalars must satisfy `0 <= scalar < n`, where `n` is the prime subgroup order.
+BLS12-381 points must belong to the prime-order subgroup. ED25519 supports the full curve, including mixed-order points.
+
+Each BLS12-381 hint contains 28 felts: the 12-felt GLV hint, then two 8-felt cofactor preimages for the input and result.
+Each ED25519 hint contains 18 felts: the 10-felt Fake GLV hint, then an 8-felt cofactor preimage for the torsion relation.
+BN254 and SECP256K1 retain 12-felt hints. SECP256R1 and GRUMPKIN retain 10-felt hints.
+
+Generate new calldata with the matching Python, Rust, or TypeScript package. Earlier BLS12-381 and ED25519 hints are incompatible with these checks.
+Deploy the updated Cairo verifier and update the calldata package together. Existing deployed verifiers retain their earlier hint format.
+
+The earlier `_scalar_mul_fake_glv` helper is now private. Use `msm_fake_glv` or `msm_g1`, with the cofactor witness for ED25519.
+
+The [comparison and security notes](../../../notes/gnark-glv-comparison.md) describe the constraints and upstream fixes.
+
 ### Generating and using calldata
 
 \
@@ -72,7 +88,7 @@ if __name__ == "__main__":
     msm = MSMCalldataBuilder(
         curve_id=c,
         points=[G1Point.gen_random_point(c) for _ in range(1)],
-        scalars=[random.randint(0, order) for _ in range(1)],
+        scalars=[random.randrange(order) for _ in range(1)],
     )
     cd = msm.serialize_to_calldata(
         include_points_and_scalars=True,
