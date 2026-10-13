@@ -26,7 +26,5 @@ else
     python hydra/garaga/starknet/tests_and_calldata_generators/test_writer.py
 fi
 
-scarb fmt
-
 elapsed=$(($(date +%s) - start_time))
 echo "Total time taken: ${elapsed} seconds"
