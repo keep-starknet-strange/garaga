@@ -16,9 +16,3 @@ from hypothesis.database import DirectoryBasedExampleDatabase
 # Also set the database for good measure
 settings.register_profile("default", database=DirectoryBasedExampleDatabase(build_path))
 settings.load_profile("default")
-
-pytest_plugins = [
-    "tests.contracts_e2e.fixtures.accounts",
-    "tests.contracts_e2e.fixtures.clients",
-    "tests.contracts_e2e.fixtures.devnet",
-]
