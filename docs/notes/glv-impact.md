@@ -134,7 +134,7 @@ Python passes 793 tests with five skips. Rust passes 62 tests and one doctest.
 WASM passes five tests. npm passes eight suites with 50 tests.
 All four Node and browser integration examples pass with unchanged snapshots.
 
-The maximum-log-N bytecode uses 68,466 bytes against the 81,290-byte limit.
+The maximum-log-N bytecode contains 68,466 entries against the 81,290-entry limit.
 Regeneration preserves all 50 tracked generated files.
 The [WASM rebuild record](../benchmarks/glv/wasm-idempotence.json) confirms byte-identical generated files and package output.
 
