@@ -133,6 +133,8 @@ def main():
         parser.error("--iterations must be positive")
     env = os.environ.copy()
     env["ASDF_SCARB_VERSION"] = CAIRO_VERSION
+    env.pop("SCARB_TARGET_DIR", None)
+    env["SCARB_PROFILE"] = "dev"
     version = run(["scarb", "--version"], REPO, env).strip()
     assert version.startswith(f"scarb {CAIRO_VERSION} "), version
     results = {
