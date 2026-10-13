@@ -3704,4 +3704,3 @@ pub const precomputed_lines: [G2Line<u384>; 136] = [
         },
     },
 ];
-

@@ -6,8 +6,6 @@ pub mod structs {
 
 pub use core::circuit::{u384, u96};
 pub use core::num::traits::{One, Zero};
-
-
 pub use curves::{
     BLS12_381, BLS12_381_SEED_BITS, BLS12_381_SEED_BITS_COMPRESSED, BLS_G2_GENERATOR, BLS_X_SEED_SQ,
     BN254, BN254_SEED_BITS_JY00_COMPRESSED, BN254_SEED_BITS_NAF, Curve, ED25519, GRUMPKIN,

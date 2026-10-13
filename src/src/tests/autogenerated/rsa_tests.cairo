@@ -278,7 +278,7 @@ fn test_rsa2048_positive_seed_0() {
         0xe58e194ead8b059afb9cc6e5, 0x714a92db56aaef13c5eb239d, 0xd17462b734aae256a7c053bb,
         0xc7364388960d6831d60e8379, 0xa6e642a3822390a909108133, 0xbb3455c47c1d625f04473e54,
         0x473a8914fd186b8c2f53bd98, 0x56cb778707e253d5bcd9c897, 0xb212545df5bc302598e61647,
-        0x879e816f, 0x0, 0x0,
+        0x879e816f, 0x0, 0x0
     ]
         .span();
     let public_key = Serde::<RSA2048PublicKey>::deserialize(ref rsa_sig_with_hints_serialized)
@@ -567,7 +567,7 @@ fn test_rsa2048_tampered_message_seed_0() {
         0xe58e194ead8b059afb9cc6e5, 0x714a92db56aaef13c5eb239d, 0xd17462b734aae256a7c053bb,
         0xc7364388960d6831d60e8379, 0xa6e642a3822390a909108133, 0xbb3455c47c1d625f04473e54,
         0x473a8914fd186b8c2f53bd98, 0x56cb778707e253d5bcd9c897, 0xb212545df5bc302598e61647,
-        0x879e816f, 0x0, 0x0,
+        0x879e816f, 0x0, 0x0
     ]
         .span();
     let public_key = Serde::<RSA2048PublicKey>::deserialize(ref rsa_sig_with_hints_serialized)
@@ -856,7 +856,7 @@ fn test_rsa2048_tampered_limb_seed_0() {
         0xe58e194ead8b059afb9cc6e5, 0x714a92db56aaef13c5eb239d, 0xd17462b734aae256a7c053bb,
         0xc7364388960d6831d60e8379, 0xa6e642a3822390a909108133, 0xbb3455c47c1d625f04473e54,
         0x473a8914fd186b8c2f53bd98, 0x56cb778707e253d5bcd9c897, 0xb212545df5bc302598e61647,
-        0x879e816f, 0x0, 0x0,
+        0x879e816f, 0x0, 0x0
     ]
         .span();
     let public_key = Serde::<RSA2048PublicKey>::deserialize(ref rsa_sig_with_hints_serialized)
@@ -1145,7 +1145,7 @@ fn test_rsa2048_sha256_positive_seed_0() {
         0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
         0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff,
         0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff, 0xffffffffffffffffffffffff, 0x1ffff,
-        0x0, 0x0, 0x0, 0x68656c6c6f20676172616761, 0xc,
+        0x0, 0x0, 0x0, 0x68656c6c6f20676172616761, 0xc
     ]
         .span();
     let public_key = Serde::<RSA2048PublicKey>::deserialize(ref rsa_sha256_serialized)

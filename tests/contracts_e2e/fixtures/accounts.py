@@ -10,7 +10,7 @@ from starknet_py.net.account.account import Account
 from starknet_py.net.account.base_account import BaseAccount
 from starknet_py.net.client_models import PriceUnit
 from starknet_py.net.full_node_client import FullNodeClient
-from starknet_py.net.http_client import HttpMethod, RpcHttpClient
+from starknet_py.net.http_client import RpcHttpClient
 from starknet_py.net.models import AddressRepresentation, StarknetChainId
 from starknet_py.net.signer.key_pair import KeyPair
 
@@ -80,11 +80,10 @@ async def devnet_account_details(
 
 
 async def mint_token_on_devnet(url: str, address: int, amount: int, unit: str):
-    http_client = RpcHttpClient(url)
-    await http_client.request(
-        http_method=HttpMethod.POST,
-        address=f"{url}/mint",
-        payload={"address": hex(address), "amount": amount, "unit": unit},
+    http_client = RpcHttpClient(url, method_prefix="devnet")
+    await http_client.call(
+        method_name="mint",
+        params={"address": hex(address), "amount": amount, "unit": unit},
     )
 
 

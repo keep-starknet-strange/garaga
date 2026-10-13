@@ -56,75 +56,75 @@ fn test_tower_pairing_BN254_1P() {
                 limb0: 0x898578b55e1f63739d870e95,
                 limb1: 0xda01bde280a3ed6f87e5feb,
                 limb2: 0x262b253feda94cfe,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b0a1: u384 {
                 limb0: 0x918ed66b49d34b48efb8a4a,
                 limb1: 0xa1b1f823879abbd397c4dea,
                 limb2: 0x2e02d2cc795a200,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b1a0: u384 {
                 limb0: 0x87ecb1fc4e135402fdbd1de0,
                 limb1: 0xa5b1ad44b31977935fd29573,
                 limb2: 0x13a9f2d6e29b128d,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b1a1: u384 {
                 limb0: 0x699ce630b130b08a6ea1162b,
                 limb1: 0x4b31984a74e68659c4b420bd,
                 limb2: 0x40ba9fa500f1a5c,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b2a0: u384 {
                 limb0: 0x211ce30bf5e3eeaef89eafdb,
                 limb1: 0xbe359d7f9873f052478f590b,
                 limb2: 0xafc2f3fd870678f,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b2a1: u384 {
                 limb0: 0xcc5a8243f9cddbd2d98dd1f0,
                 limb1: 0xbdc662d929e645cadda9a712,
                 limb2: 0x1c54a530398c9064,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b0a0: u384 {
                 limb0: 0xfd4b7aef5c0d58c5dc2429fe,
                 limb1: 0x23794a0d856f92591ba990ec,
                 limb2: 0x95c0fbf5d5a1ac0,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b0a1: u384 {
                 limb0: 0x590cb4a60f8215d4b99f2b4a,
                 limb1: 0xa31dc10f7b4053c9e9ad9ebb,
                 limb2: 0x14d3d6ca72d8a950,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b1a0: u384 {
                 limb0: 0x43c585fdfaf545838ca7429,
                 limb1: 0x89dc206b4b91c85759dc1a23,
                 limb2: 0x1dc0e7bbc3d70e66,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b1a1: u384 {
                 limb0: 0xac16cc1b7ab2cd3ed5e22b97,
                 limb1: 0x98a855ffc837d2a75ab90d61,
                 limb2: 0xb53320e5a6488cb,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b2a0: u384 {
                 limb0: 0xc42a9c0f9bd7fddaf5ebd723,
                 limb1: 0x6c91476ef36cd1d318ce07ba,
                 limb2: 0x13a8afd3085dae4c,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b2a1: u384 {
                 limb0: 0x43940c383e5314859e762c97,
                 limb1: 0xb601f3730a3afa965ceee1b3,
                 limb2: 0xf97b5221474526,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -240,8 +240,8 @@ fn test_tower_pairing_BN254_2P() {
             c1b1a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b1a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b2a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        },
+            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+        }
     );
 }
 
@@ -403,8 +403,8 @@ fn test_tower_pairing_BN254_3P() {
             c1b1a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b1a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b2a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        },
+            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+        }
     );
 }
 
@@ -467,75 +467,75 @@ fn test_tower_pairing_BLS12_381_1P() {
                 limb0: 0x839c508a84305aaca1789b6,
                 limb1: 0x3dd8e90ce98db3e7b6d194f6,
                 limb2: 0x68d0d727272d441befa15c50,
-                limb3: 0x1250ebd871fc0a92a7b2d831,
+                limb3: 0x1250ebd871fc0a92a7b2d831
             },
             c0b0a1: u384 {
                 limb0: 0x50439f1d59882a98eaa0170f,
                 limb1: 0xaf5af689452eafabf1a8943e,
                 limb2: 0xa532348868a84045483c92b7,
-                limb3: 0x89a1c5b46e5110b86750ec6,
+                limb3: 0x89a1c5b46e5110b86750ec6
             },
             c0b1a0: u384 {
                 limb0: 0x9396b38c881c4c849ec23e87,
                 limb1: 0x16da0e22a5031b54ddff5730,
                 limb2: 0x689ce34c0378a68e72a6b3b2,
-                limb3: 0x1368bb445c7c2d209703f239,
+                limb3: 0x1368bb445c7c2d209703f239
             },
             c0b1a1: u384 {
                 limb0: 0x579973b1315021ec3c19934f,
                 limb1: 0x7c90d8bd66065b1fffe51d7a,
                 limb2: 0x5a50512937e0794e1e65a761,
-                limb3: 0x193502b86edb8857c273fa07,
+                limb3: 0x193502b86edb8857c273fa07
             },
             c0b2a0: u384 {
                 limb0: 0xbbaad8431dad1c1fb597aaa5,
                 limb1: 0x185203fcca589ac719c34dff,
                 limb2: 0x4dc4007cfbf2f8da752f7c74,
-                limb3: 0x1b2f522473d171391125ba8,
+                limb3: 0x1b2f522473d171391125ba8
             },
             c0b2a1: u384 {
                 limb0: 0xa35c8ca78beae9624045b4b6,
                 limb1: 0x8061e55cceba478b23f7daca,
                 limb2: 0x7a45b84546da634b8f6be14a,
-                limb3: 0x18107154f25a764bd3c7993,
+                limb3: 0x18107154f25a764bd3c7993
             },
             c1b0a0: u384 {
                 limb0: 0x86a8703e0f948226e47ee89d,
                 limb1: 0xdea54d43b2b73f2cbb12d583,
                 limb2: 0xc3d5a04dc88784fbb3d0b2db,
-                limb3: 0x19f26337d205fb469cd6bd15,
+                limb3: 0x19f26337d205fb469cd6bd15
             },
             c1b0a1: u384 {
                 limb0: 0xff02f0b8102ae1c2d5d5ab1a,
                 limb1: 0xa7d2809d61bfe02e1bfd1b68,
                 limb2: 0xa771b6ffd5857baaf222eb95,
-                limb3: 0x6fba23eb7c5af0d9f80940c,
+                limb3: 0x6fba23eb7c5af0d9f80940c
             },
             c1b1a0: u384 {
                 limb0: 0x1e32fac91b93b47333e2ba57,
                 limb1: 0x7d0d15ff7b984e8978ef4888,
                 limb2: 0x3b0b0ec5c81a93b330ee1a67,
-                limb3: 0x11b8b424cd48bf38fcef6808,
+                limb3: 0x11b8b424cd48bf38fcef6808
             },
             c1b1a1: u384 {
                 limb0: 0xa09ffdd9be2291a0c25a99a2,
                 limb1: 0x20c806ad360829107ba810c5,
                 limb2: 0x6ce5771cc6a0e9786ab59733,
-                limb3: 0x3350f55a7aefcd3c31b4fcb,
+                limb3: 0x3350f55a7aefcd3c31b4fcb
             },
             c1b2a0: u384 {
                 limb0: 0x66245cb9108f0242d0fe3ef,
                 limb1: 0x1c7cdba7b3872629a4fafc05,
                 limb2: 0x728ffd21a189e87935a95405,
-                limb3: 0x4c581234d086a9902249b64,
+                limb3: 0x4c581234d086a9902249b64
             },
             c1b2a1: u384 {
                 limb0: 0xafe47e1efde449383b676631,
                 limb1: 0xdeff686bfd6df543d48eaa24,
                 limb2: 0xd01a7ec73baca4d72ca93544,
-                limb3: 0xf41e58663bf08cf068672cb,
-            },
-        },
+                limb3: 0xf41e58663bf08cf068672cb
+            }
+        }
     );
 }
 
@@ -651,8 +651,8 @@ fn test_tower_pairing_BLS12_381_2P() {
             c1b1a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b1a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b2a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        },
+            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+        }
     );
 }
 
@@ -814,8 +814,8 @@ fn test_tower_pairing_BLS12_381_3P() {
             c1b1a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b1a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
             c1b2a0: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        },
+            c1b2a1: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 }
+        }
     );
 }
 
@@ -905,75 +905,75 @@ fn test_tower_final_exp_BN254() {
                 limb0: 0xdbc3eb4cffd298b3fa7d5a31,
                 limb1: 0x9c46ca08e6740e40f6588c03,
                 limb2: 0x1e656501517e97b6,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b0a1: u384 {
                 limb0: 0x5c5f9021ddc05b4e8e458180,
                 limb1: 0xfc9ac0db94ad84f883101197,
                 limb2: 0x10d35fc577ab954a,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b1a0: u384 {
                 limb0: 0x8338823c5e5ac5cd9c54b10c,
                 limb1: 0x1749d62236197afa5b52b1b2,
                 limb2: 0xc2fb8c574d4a2aa,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b1a1: u384 {
                 limb0: 0x3fed1e7b4d562acb92ab1a7c,
                 limb1: 0x215c21048e64e6366563b7bd,
                 limb2: 0x56befad9198c47f,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b2a0: u384 {
                 limb0: 0x2e357f74fb161fde82246aaf,
                 limb1: 0x30461114e53b7faeeabde969,
                 limb2: 0x160bd4f153a876cc,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c0b2a1: u384 {
                 limb0: 0x9953d9fc7152b696a117f008,
                 limb1: 0x3260659f2890ee7e7fef447,
                 limb2: 0x2c09cd97bcdf915f,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b0a0: u384 {
                 limb0: 0x68db7596dac15cee7f675e5b,
                 limb1: 0xd64fc7fa279a306f05a4f7bb,
                 limb2: 0x1badb5f4113cf175,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b0a1: u384 {
                 limb0: 0xd43446d44724e68a5d3e0ce0,
                 limb1: 0x1ad7eb734406471bac65ff96,
                 limb2: 0x15027bc7d1c7191b,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b1a0: u384 {
                 limb0: 0x75668ecaf7e92d7d38d72226,
                 limb1: 0x2f055eefa07fed95961aa90e,
                 limb2: 0x231ea84923202c33,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b1a1: u384 {
                 limb0: 0x5d2ac3131b5214c54a04b4ca,
                 limb1: 0x5a879571728f9d6a335a11b6,
                 limb2: 0x1a88b1de9b27f1fe,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b2a0: u384 {
                 limb0: 0x1c3137fb1e4efedec89693d5,
                 limb1: 0x90787e810e0d14fcd37605c5,
                 limb2: 0x27a6e50c674c3d45,
-                limb3: 0x0,
+                limb3: 0x0
             },
             c1b2a1: u384 {
                 limb0: 0x36b1cc116e2ac5e8f8918e00,
                 limb1: 0xcb7e94a03ed3261502d9cf46,
                 limb2: 0xbec9af879f51f8,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1063,75 +1063,74 @@ fn test_tower_final_exp_BLS12_381() {
                 limb0: 0xc47661ee2c6ec195b6465492,
                 limb1: 0x6923c966026d1a5202d2547f,
                 limb2: 0x3ca333e30f3750a593c5dd62,
-                limb3: 0x16211c8f3af6c885d6e7aae7,
+                limb3: 0x16211c8f3af6c885d6e7aae7
             },
             c0b0a1: u384 {
                 limb0: 0x18ef376237b7b85323d0d503,
                 limb1: 0x6e98bbb5ebf752814d657668,
                 limb2: 0xf72474b60f257f5566c184d6,
-                limb3: 0x6298b60c51ccfdaa550d764,
+                limb3: 0x6298b60c51ccfdaa550d764
             },
             c0b1a0: u384 {
                 limb0: 0x348c2c399e7bd6de56256576,
                 limb1: 0xf4a77fefb18543958b97e185,
                 limb2: 0x5d0aab75be4368260e7d2ed9,
-                limb3: 0x158469853e297d165ee80a77,
+                limb3: 0x158469853e297d165ee80a77
             },
             c0b1a1: u384 {
                 limb0: 0x72f3c5aec1469c18e1fdbce1,
                 limb1: 0x51ddbb4388643f1a6efaf631,
                 limb2: 0x34f1e1e014398ac114bd5c0,
-                limb3: 0x10e831545a67da3f9fdf361a,
+                limb3: 0x10e831545a67da3f9fdf361a
             },
             c0b2a0: u384 {
                 limb0: 0xf0e118cc2ee8a943979abc0c,
                 limb1: 0x6e7b8556c21ea7bb63547b6d,
                 limb2: 0x4479c64648fd5135f004569a,
-                limb3: 0x9c3267b433303abded9ab0,
+                limb3: 0x9c3267b433303abded9ab0
             },
             c0b2a1: u384 {
                 limb0: 0xe5fa5528617a7773128a3a1f,
                 limb1: 0x6be496fac02353edcae1c79e,
                 limb2: 0x4f9bbd2d6d5199cbf179da1f,
-                limb3: 0x17f02c9ce45af7421efccde,
+                limb3: 0x17f02c9ce45af7421efccde
             },
             c1b0a0: u384 {
                 limb0: 0xd2192367be40c767eecd94f0,
                 limb1: 0x5a094323a3c2b121fc6db025,
                 limb2: 0xe70f56b994092e1f7d106f54,
-                limb3: 0x12ac5958b941614ac10d5ff6,
+                limb3: 0x12ac5958b941614ac10d5ff6
             },
             c1b0a1: u384 {
                 limb0: 0x96dcae9f5d11d83ff8ee58e0,
                 limb1: 0x1539f36298c543196ff7521,
                 limb2: 0xf4f41990abca0c681a3221f6,
-                limb3: 0x11aa8e62757ec2cbf6c16ffc,
+                limb3: 0x11aa8e62757ec2cbf6c16ffc
             },
             c1b1a0: u384 {
                 limb0: 0xffb243b8fb10435f6ea824db,
                 limb1: 0x1bda384d4058fd317cf9270f,
                 limb2: 0x3f176c05329fa1b37897428a,
-                limb3: 0x9ffc940d1185cb35015aa48,
+                limb3: 0x9ffc940d1185cb35015aa48
             },
             c1b1a1: u384 {
                 limb0: 0x74d71b12604949416f2e7fad,
                 limb1: 0x84b612cd1cafbc9b8af3e707,
                 limb2: 0xe4855dd3d16e5ae18223225e,
-                limb3: 0x801946300201b84e305ee6,
+                limb3: 0x801946300201b84e305ee6
             },
             c1b2a0: u384 {
                 limb0: 0xbb3b943ceffbff6187a09c3a,
                 limb1: 0x8c71050ce550d5e89695deb2,
                 limb2: 0x2fd70aa73c133a3e0e483ef2,
-                limb3: 0x7f835c51a9434870d20cedf,
+                limb3: 0x7f835c51a9434870d20cedf
             },
             c1b2a1: u384 {
                 limb0: 0xcb5beb0bdcff8c233260205d,
                 limb1: 0x987fe621d66e1a6dca01005b,
                 limb2: 0xf19f8ff647ec05851ed472a9,
-                limb3: 0x9f783e3dcba8af017c07469,
-            },
-        },
+                limb3: 0x9f783e3dcba8af017c07469
+            }
+        }
     );
 }
-

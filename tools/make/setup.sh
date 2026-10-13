@@ -1,7 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-PYTHON_VERSION_TARGET="3.14"
+PYTHON_VERSION_TARGET="${PYTHON_VERSION:-3.14}"
+case "$PYTHON_VERSION_TARGET" in
+    3.11|3.12|3.13|3.14) ;;
+    *)
+        echo "Unsupported Python version: $PYTHON_VERSION_TARGET. Choose 3.11 through 3.14." >&2
+        exit 1
+        ;;
+esac
 
 # Function to install GNU parallel
 install_parallel() {
@@ -30,36 +37,6 @@ install_parallel() {
             ;;
         *)
             echo "Unsupported operating system for automatic parallel installation."
-            exit 1
-            ;;
-    esac
-}
-
-# Function to install GMP (required by fastecdsa)
-install_gmp() {
-    case "$OSTYPE" in
-        linux-gnu*)
-            if command -v apt-get >/dev/null; then
-                sudo apt-get install -y libgmp-dev
-            elif command -v dnf >/dev/null; then
-                sudo dnf install -y gmp-devel
-            else
-                echo "Unsupported Linux distribution for automatic GMP installation."
-                echo "Please install GMP manually: https://pypi.org/project/fastecdsa/#installing"
-                exit 1
-            fi
-            ;;
-        darwin*)
-            if command -v brew >/dev/null; then
-                brew install gmp
-            else
-                echo "Homebrew is not installed. Please install Homebrew and try again."
-                exit 1
-            fi
-            ;;
-        *)
-            echo "Unsupported operating system for automatic GMP installation."
-            echo "Please install GMP manually: https://gmplib.org/"
             exit 1
             ;;
     esac
@@ -103,15 +80,10 @@ ensure_uv() {
     export PATH="$HOME/.local/bin:$PATH"
 }
 
-# Find or install a suitable Python version (3.10-3.14)
+# Find or install a suitable Python version (3.11-3.14)
 find_python() {
-    # If PYTHON_VERSION env var is set, use that specific version
-    if [ -n "${PYTHON_VERSION:-}" ]; then
-        PYTHON_VERSION_TARGET="$PYTHON_VERSION"
-    fi
-
     # Try to find it on PATH first
-    for version in $PYTHON_VERSION_TARGET 3.14 3.13 3.12 3.11 3.10; do
+    for version in $PYTHON_VERSION_TARGET 3.14 3.13 3.12 3.11; do
         if command -v "python${version}" >/dev/null 2>&1; then
             echo "python${version}"
             return 0
@@ -123,7 +95,7 @@ find_python() {
         local py_version
         py_version=$(python3 -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')")
         case "$py_version" in
-            3.10|3.11|3.12|3.13|3.14)
+            3.11|3.12|3.13|3.14)
                 echo "python3"
                 return 0
                 ;;
@@ -150,7 +122,7 @@ venv_is_valid() {
     local py_version
     py_version=$(venv/bin/python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')" 2>/dev/null) || return 1
     case "$py_version" in
-        3.10|3.11|3.12|3.13|3.14) return 0 ;;
+        3.11|3.12|3.13|3.14) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -161,34 +133,6 @@ if ! command -v parallel >/dev/null; then
     install_parallel
 else
     echo "GNU parallel is already installed."
-fi
-
-# Check if GMP is installed (required by fastecdsa)
-gmp_found=false
-case "$OSTYPE" in
-    linux-gnu*)
-        # Check for the development headers (gmp.h), not just the runtime library
-        if [ -f /usr/include/gmp.h ] \
-            || pkg-config --exists gmp 2>/dev/null; then
-            gmp_found=true
-        fi
-        ;;
-    darwin*)
-        # Use formula-specific prefix (works even if formula is unlinked)
-        if command -v brew >/dev/null 2>&1; then
-            GMP_PREFIX=$(brew --prefix gmp 2>/dev/null || true)
-            if [ -n "$GMP_PREFIX" ] && [ -f "${GMP_PREFIX}/include/gmp.h" ]; then
-                gmp_found=true
-            fi
-        fi
-        ;;
-esac
-
-if [ "$gmp_found" = false ]; then
-    echo "GMP not found. Attempting to install (required by fastecdsa)..."
-    install_gmp
-else
-    echo "GMP is already installed."
 fi
 
 # Check if cmake is installed (required by crypto-cpp-py)
@@ -214,7 +158,7 @@ else
     PYTHON_CMD=$(find_python || true)
     if [ -z "$PYTHON_CMD" ]; then
         echo "No suitable Python version found and uv install failed."
-        echo "Please install Python 3.10 through 3.14 manually."
+        echo "Please install Python 3.11 through 3.14 manually."
         exit 1
     fi
 
@@ -233,15 +177,6 @@ fi
 echo "PROJECT_ROOT=$PWD" > .env
 echo "PYTHONPATH=$PWD/hydra" >> .env # For vscode python path when running in integrated terminal.
 source venv/bin/activate
-
-# On macOS, ensure compiler can find Homebrew-installed GMP
-if [[ "$OSTYPE" == darwin* ]] && command -v brew >/dev/null; then
-    GMP_PREFIX=$(brew --prefix gmp 2>/dev/null || true)
-    if [ -n "$GMP_PREFIX" ] && [ -d "${GMP_PREFIX}/include" ]; then
-        export CFLAGS="-I${GMP_PREFIX}/include ${CFLAGS:-}"
-        export LDFLAGS="-L${GMP_PREFIX}/lib ${LDFLAGS:-}"
-    fi
-fi
 
 # Allow crypto-cpp-py's bundled googletest to build with newer cmake (>= 4.x)
 export CMAKE_POLICY_VERSION_MINIMUM=3.5
@@ -270,8 +205,8 @@ echo "All done!"
 # Check Scarb version and print warning if it's not
 cd src/ # To use the .tool-versions file with asdf.
 scarb_version=$(scarb --version 2>/dev/null || true)
-if ! echo "$scarb_version" | grep -q "2.16.1"; then
-    echo "Warning: Scarb is not installed or its version is not 2.16.1."
+if ! echo "$scarb_version" | grep -q "2.21.0"; then
+    echo "Warning: Scarb is not installed or its version is not 2.21.0."
     echo "Got: ${scarb_version:-<not found>}"
-    echo "Please install Scarb 2.16.1 before continuing. https://docs.swmansion.com/scarb/download.html"
+    echo "Please install Scarb 2.21.0 before continuing. https://docs.swmansion.com/scarb/download.html"
 fi

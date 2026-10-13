@@ -63,6 +63,8 @@ jobs:
         run: |
           source venv/bin/activate
           python --version
+          python -c 'from garaga import garaga_rs'
+          python -c 'from garaga.points import G1Point'
 
   test-setup-fedora:
     needs: pre_job
@@ -72,7 +74,7 @@ jobs:
     name: setup (Fedora dnf)
     steps:
       - name: Install base tools
-        run: dnf install -y git curl gcc g++ make perl-FindBin
+        run: dnf install -y git curl gcc g++ make perl-FindBin python3-devel
 
       - uses: actions/checkout@v4
 
@@ -94,3 +96,5 @@ jobs:
           source "$HOME/.cargo/env"
           source venv/bin/activate
           python --version
+          python -c 'from garaga import garaga_rs'
+          python -c 'from garaga.points import G1Point'

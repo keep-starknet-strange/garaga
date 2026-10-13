@@ -185,10 +185,10 @@ from definitions import bn, bls
         return f"""
 use core::circuit::{{
     u384, circuit_add, circuit_sub,
-    circuit_mul, circuit_inverse, EvalCircuitTrait, CircuitOutputsTrait,
+    circuit_mul, circuit_inverse,
     CircuitInputs,
     }};
-use garaga::core::circuit::{{AddInputResultTrait2, u288IntoCircuitInputValue}};
+use garaga::core::circuit::{{AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue}};
 use core::circuit::CircuitElement as CE;
 use core::circuit::CircuitInput as CI;
 {definitions_import}
@@ -203,9 +203,10 @@ mod tests {
 
     use core::circuit::{
         RangeCheck96, AddMod, MulMod, CircuitElement, CircuitInput, circuit_add, circuit_sub,
-        circuit_mul, circuit_inverse, EvalCircuitResult, EvalCircuitTrait, u384,
-        CircuitOutputsTrait, CircuitModulus, AddInputResultTrait, CircuitInputs
+        circuit_mul, circuit_inverse, u384,
+        CircuitModulus, AddInputResultTrait, CircuitInputs
     };
+    use garaga::core::circuit::{CircuitOutputsTrait, EvalCircuitResult, EvalCircuitTrait};
     use garaga::definitions::{G1Point, G2Point, E12D, G1G2Pair, BNProcessedPair, BLSProcessedPair, MillerLoopResultScalingFactor, G2Line};
 
 """

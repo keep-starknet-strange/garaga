@@ -1,7 +1,7 @@
 use core::array::ArrayTrait;
 use core::circuit::{
-    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::{One, Zero};
 use core::panic_with_felt252;
@@ -11,7 +11,9 @@ use corelib_imports::bounded_int::{downcast, upcast};
 use corelib_imports::integer::{U128sFromFelt252Result, u128s_from_felt252};
 use garaga::basic_field_ops::{is_opposite_mod_p, mul_mod_p, neg_mod_p, sub_mod_p};
 use garaga::circuits::ec;
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{
+    AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
+};
 use garaga::definitions::{
     G1Point, G1PointZero, get_G, get_a, get_b, get_curve_order_modulus, get_eigenvalue, get_min_one,
     get_min_one_order, get_modulus, get_n, get_nG_glv_fake_glv, get_third_root_of_unity,
@@ -432,18 +434,18 @@ pub fn _scalar_mul_glv_and_fake_glv(
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
         },
-        U128sFromFelt252Result::Wide((
-            _, low,
-        )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+        U128sFromFelt252Result::Wide((_, low)) => {
+            (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus))
+        },
     };
     let (_u2_sign, _u2_abs, Phi_P0y, Phi_P1y): (u384, u96, u384, u384) =
         match u128s_from_felt252(hint.u2) {
         U128sFromFelt252Result::Narrow(low) => {
             (one_u384, downcast(low).unwrap(), neg_mod_p(point.y, modulus), point.y)
         },
-        U128sFromFelt252Result::Wide((
-            _, low,
-        )) => { (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus)) },
+        U128sFromFelt252Result::Wide((_, low)) => {
+            (minus_one, downcast(low).unwrap(), point.y, neg_mod_p(point.y, modulus))
+        },
     };
     let (_v1_sign, _v1_abs, Q0y): (u384, u96, u384) = match u128s_from_felt252(hint.v1) {
         U128sFromFelt252Result::Narrow(low) => {
@@ -942,4 +944,3 @@ pub fn double_and_add_8(
 
     return G1Point { x: outputs.get_output(T8x), y: outputs.get_output(T8y) };
 }
-

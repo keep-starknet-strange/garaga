@@ -15,7 +15,7 @@ from garaga.starknet.groth16_contract_generator.parsing_utils import (
     Groth16VerifyingKey,
 )
 
-ECIP_OPS_CLASS_HASH = 0x396D5915ECF475AAB117BB25A0272B261E9E25FFE1C0CE05A51A3F77489C89E
+ECIP_OPS_CLASS_HASH = 0x20DC39FC30F4D62DB17CC86A911F1F27135D255357CE99D3B40E2DA78F800DD
 
 
 def precompute_lines_from_vk(vk: Groth16VerifyingKey) -> StructArray:
@@ -41,6 +41,7 @@ def gen_test_file(
     package_name: str,
     rpc_url: str = "https://api.zan.top/public/starknet-sepolia/rpc/v0_10",
 ):
+    """Generate an offline test; rpc_url remains for caller compatibility."""
     code = f"""
 //! # Starknet Verification Contract Tests
 //!
@@ -87,7 +88,7 @@ fn declare_contract(name: ByteArray) -> ClassHash {{
 /// 4. Assert that verification succeeds
 ///
 /// ## Test Setup
-/// - Uses fork testing against Sepolia testnet to access required declared contracts maintained by the garaga team
+/// - Declares the locally compiled UniversalECIP contract without an RPC connection
 /// - Loads proof calldata from `tests/proof_calldata.txt`
 /// - To generate the calldata, you can use the garaga CLI:
 /// ```bash
@@ -107,8 +108,10 @@ fn declare_contract(name: ByteArray) -> ClassHash {{
 /// - The function should return Ok(public_inputs) containing the expected public inputs
 /// - No panics or assertion failures should occur
 #[test]
-#[fork(url: "{rpc_url}", block_tag: latest)]
 fn test_{verification_function_name}() {{
+    // Declare the ECIP library used by the verification contract.
+    declare_contract("UniversalECIP");
+
     // Step 1: Declare the verification contract
     let class_hash = declare_contract("{contract_name}");
     let dispatcher = I{contract_name}LibraryDispatcher {{ class_hash }};
@@ -143,6 +146,16 @@ def get_scarb_toml_file(package_name: str, cli_mode: bool, inlining_level: int =
     else:
         suffix = ', tag = "v' + version + '"'
     if cli_mode:
+        repo_root = Path(__file__).resolve().parents[4]
+        if (repo_root / ".git").exists():
+            revision = subprocess.run(
+                ["git", "rev-parse", "HEAD"],
+                cwd=repo_root,
+                capture_output=True,
+                text=True,
+                check=True,
+            ).stdout.strip()
+            suffix = f', rev = "{revision}"'
         dep = 'git = "https://github.com/keep-starknet-strange/garaga.git"' + suffix
     else:
         dep = 'path = "../../../"'
@@ -167,6 +180,9 @@ assert_macros = "{CAIRO_VERSION}"
 [[target.starknet-contract]]
 casm = true
 casm-add-pythonic-hints = true
+
+[target-defaults.test]
+build-external-contracts = ["garaga::universal_ecip::UniversalECIP"]
 """
 
 

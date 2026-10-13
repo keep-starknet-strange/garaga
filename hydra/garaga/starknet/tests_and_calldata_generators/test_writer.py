@@ -182,7 +182,8 @@ def write_test_file(
     """
     create_directory(TESTS_DIR)
     with open(f"{TESTS_DIR}/{file_path}", "w") as f:
-        f.write(header)
+        # Cairo 2.21 carries template padding with imports reordered on its first pass.
+        f.write(header.strip() + "\n")
         with concurrent.futures.ProcessPoolExecutor() as executor:
             futures = []
             for gen_fn, params in test_generators:

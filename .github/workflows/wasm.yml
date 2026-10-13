@@ -108,11 +108,12 @@ jobs:
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.16.1"
+          scarb-version: "2.21.0"
+          cache: false
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Install dependencies
         run: make setup
       - name: Verify Contract Declaration

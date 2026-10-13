@@ -11,7 +11,7 @@ Please note we have a [code of conduct](CODE_OF_CONDUCT.md), please follow it in
 
 To set up a development environment, please follow these steps:
 
-1. Clone the repo and run setup (Python 3.10-3.14 and [uv](https://docs.astral.sh/uv/) are installed automatically if needed):
+1. Clone the repo and run setup (Python 3.11-3.14 and [uv](https://docs.astral.sh/uv/) are installed automatically if needed; GMP is not required):
 
    ```sh
    git clone https://github.com/keep-starknet-strange/garaga
@@ -20,7 +20,7 @@ To set up a development environment, please follow these steps:
    source venv/bin/activate
    ```
 
-2. You also need [Rust](https://www.rust-lang.org/tools/install) and [Scarb 2.16.1](https://docs.swmansion.com/scarb/download.html) installed.
+2. You also need [Rust](https://www.rust-lang.org/tools/install) and [Scarb 2.21.0](https://docs.swmansion.com/scarb/download.html) installed.
 
 ## Issues and feature requests
 
