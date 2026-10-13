@@ -40,6 +40,11 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Restore Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> .cargo/garaga_rs/target"
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Cargo.toml') }}
       - name: Install dependencies
         run: make setup
         env:

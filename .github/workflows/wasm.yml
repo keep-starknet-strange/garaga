@@ -31,12 +31,19 @@ jobs:
     if: needs.pre_job.outputs.should_skip != 'true'
     name: test-wasm
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: '--cfg getrandom_backend="wasm_js"'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
       - uses: dtolnay/rust-toolchain@stable
+      - name: Restore Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> .cargo/garaga_rs/target"
+          key: wasm-${{ hashFiles('Cargo.toml') }}
       - name: Install pinned wasm-pack binary
         uses: taiki-e/install-action@v2
         with:
@@ -44,7 +51,7 @@ jobs:
           fallback: none
       - name: Run wasm specific tests
         working-directory: tools/garaga_rs
-        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features --features wasm
+        run: wasm-pack test --node --release --no-default-features --features wasm
 
   build-wasm:
     needs: pre_job

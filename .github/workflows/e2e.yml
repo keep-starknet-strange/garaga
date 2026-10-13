@@ -36,6 +36,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@1.87.0
+      - name: Restore Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> .cargo/garaga_rs/target"
+          key: python-${{ matrix.python-version }}-${{ hashFiles('Cargo.toml') }}
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:
