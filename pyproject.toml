@@ -7,7 +7,7 @@ name = "garaga"
 version = "1.1.0"
 requires-python = ">=3.10,<3.15"
 dependencies = [
-  "fastecdsa>=3.0.0",
+  "fastecdsa>=3.0.0,<4",
   "sympy",
   "typer",
   "python-dotenv",
