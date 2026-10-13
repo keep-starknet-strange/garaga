@@ -415,3 +415,27 @@ source venv/bin/activate
 pytest tests/hydra/starknet/test_mpcheck_invariants.py
 pytest tests/hydra/starknet/test_calldata.py -k test_mpcheck_calldata_builder
 ```
+
+## Evaluate polynomials with one multiplication per coefficient
+
+Normal-field polynomial evaluation now uses Horner's method in one pass.
+The loop detects mixed coefficient moduli and retains the previous algorithm for those accepted inputs.
+The point-type assertion, empty-storage result, and input coefficient lists remain unchanged.
+
+Five alternating process pairs used the eight MPCheck configurations after the duplicate-loop cleanup.
+The complete Python/native workload decreased from a 1.3146s median to 1.2994s (1.15%).
+Child CPU decreased from 1.3111s to 1.2952s (1.21%). Every candidate sample was faster than its paired baseline.
+The gain is small and applies to this workload. It does not establish a generation or native-Rust speedup.
+
+All eight serialized calldata artifacts remained byte-identical and stable across samples, with complete Python/native equality.
+A separate comparison preserved all eight generated Cairo pairing tests. Its single-pair timings are not a speedup claim.
+Forty-two evaluation cases include independent direct-power property checks over PyFelt and Fp2.
+Those cases, eight equation-invariant checks, and eight native-parity cases pass (58 focused checks).
+A separate peer review compared 600 additional cases with the old evaluator, including mixed coefficient and point moduli.
+
+The [paired samples](benchmarks/development-cycle/polynomial-evaluation.json), [source hashes](benchmarks/development-cycle/polynomial-evaluation-source.json), and [Cairo output hashes](benchmarks/development-cycle/polynomial-evaluation-cairo.json) preserve the evidence.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/algebra/test_polynomial_evaluate.py
+```

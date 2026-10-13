@@ -822,6 +822,14 @@ class Polynomial(Generic[T]):
         assert isinstance(
             point, self.coeff_type
         ), f"point type must match polynomial type {self.coeff_type}"
+        value = self.zero_field
+        for c in reversed(self.coefficients):
+            if c.p != self.p:
+                break
+            value = value * point + c
+        else:
+            return value
+        # Mixed-modulus coefficients retain the existing left-operand reductions.
         xi = self.field.one()
         value = self.zero_field
         for c in self.coefficients:
