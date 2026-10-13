@@ -388,3 +388,28 @@ cd tools/npm/garaga_ts
 npm run build:node
 npm test -- --runInBand
 ```
+
+## Verify the MPCheck equation once
+
+MPCheck validation previously evaluated every relation twice.
+The second loop only computed an unused debug value. It performed no assertion and produced no calldata.
+The builder now evaluates the live equation once and retains the original assertion.
+
+Five alternating process pairs exercised all eight existing BN254 and BLS12-381 configurations with the same optimized extension.
+The complete Python/native builder workload decreased from a 1.5022s median to 1.4281s (4.9%).
+Child CPU decreased from 1.4593s to 1.4067s (3.6%).
+One candidate wall sample had a scheduler outlier. The [raw samples](benchmarks/development-cycle/mpcheck-validation.json) preserve that result.
+An earlier comparison before debug-counter cleanup measured a smaller 2.7% reduction.
+These process timings include native parity checks and do not describe faster native Rust computation.
+
+Every sample produced eight byte-identical, stable calldata artifacts and required complete Python/native equality.
+Eight independent equation checks retain acceptance and reject corrupted quotients, remainders, and challenges on both curves.
+Those checks and all eight existing native-parity cases pass.
+Full `make rewrite` leaves every tracked generated artifact unchanged.
+The [source record](benchmarks/development-cycle/mpcheck-validation-source.json) identifies both Python snapshots and the shared native extension.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/starknet/test_mpcheck_invariants.py
+pytest tests/hydra/starknet/test_calldata.py -k test_mpcheck_calldata_builder
+```
