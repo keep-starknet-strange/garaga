@@ -145,3 +145,22 @@ After the debug build, run the existing Python/Rust parity checks:
 source venv/bin/activate
 pytest tests/hydra/starknet/test_calldata.py -k test_msm_calldata_builder
 ```
+
+## One formatter across the contributor loop
+
+The CLI, CI, and commit hook now use the Black executable from `venv`.
+Its version comes from `uv.lock`. The hook retains its Python 3.11 target and file filters.
+`make setup` installs this environment before it installs the hooks.
+
+The old hook selected Black 26.1.0 independently of the locked Black 26.5.1 environment.
+The change reduces two formatter-version owners to one and removes the separate Black hook environment.
+Three real hook tests prove locked-version selection, CLI-equivalent formatting, and invalid-syntax rejection.
+They also prove that a conflicting global Black executable cannot change the result.
+
+Run the focused checks:
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_black_hook.py
+pre-commit run black --all-files
+```
