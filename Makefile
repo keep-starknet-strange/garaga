@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 ACTIVATE := source venv/bin/activate &&
 
-.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash
+.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash maturin maturin-dev
 
 constants:
 	$(ACTIVATE) python tools/make/generate_constants.py
@@ -72,6 +72,9 @@ wasm-test-gen:
 
 maturin:
 	$(ACTIVATE) maturin develop --release --features python
+
+maturin-dev:
+	$(ACTIVATE) maturin develop --features python
 
 clean:
 	sudo rm -rf build/

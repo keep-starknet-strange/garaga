@@ -111,3 +111,37 @@ A local check downloaded, checked, and extracted the pinned Linux archive in 0.3
 The archive contained 2,871,133 bytes and matched the SHA256 in the [installer manifest](https://github.com/taiki-e/install-action/blob/main/manifests/wasm-pack.json).
 This local check excludes GitHub Action overhead. Different systems and network conditions prevent a direct timing comparison with the Ubuntu baseline.
 The pinned release has no native macOS arm64 binary. The Ubuntu CI job must pass before this change merges.
+
+## Faster native edit-build cycles
+
+Use the debug extension for short Rust edit-build cycles:
+
+```sh
+make maturin-dev
+```
+
+Use the existing optimized build before performance measurements:
+
+```sh
+make maturin
+```
+
+`make setup`, CI, and release builds retain their optimized profile.
+The debug extension can run cryptographic operations more slowly. It does not replace the optimized build.
+
+Five alternating warm rebuilds used the same source and interpreter on an Apple M4 Pro.
+The tools were Rust 1.93.0, CPython 3.14.7, and maturin 1.12.4.
+Each sample touched `tools/garaga_rs/src/lib.rs` to force recompilation, then ran the complete Make target.
+The measurement includes compilation, wheel creation, and editable installation. Both profiles were warm before measurement.
+
+- `make maturin`: 18.9323s, 19.3033s, 19.1324s, 18.7739s, 18.5382s. Median: 18.9323s.
+- `make maturin-dev`: 1.0603s, 0.9806s, 0.9391s, 0.9303s, 0.9331s. Median: 0.9391s.
+
+The measured rebuild time decreased by 95.0%. These results do not predict cold builds or full test-suite time.
+
+After the debug build, run the existing Python/Rust parity checks:
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/starknet/test_calldata.py -k test_msm_calldata_builder
+```
