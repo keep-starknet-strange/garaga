@@ -44,6 +44,7 @@ pub mod poseidon_transcript;
 pub mod hints {
     pub mod eisenstein;
     pub mod fake_glv;
+    pub mod lattice;
 }
 
 // automatically excludes python bindings on wasm32-unknown-unknown (pyo3 not supported)

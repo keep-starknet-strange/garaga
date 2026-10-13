@@ -1,0 +1,172 @@
+{
+  "description": "Uncached one-point MSM calldata production on 20 seeded full-width scalars per curve and subgroup points (i+1)G; Python includes typed serialization and Rust includes FFI+serialization. Five repeats per input; one untimed warmup per input/backend. Cached hint data is cleared outside timing. Median is the median of per-input medians.",
+  "baseline_commit": "a01fad00d0f77fe8e252ca8c2c64423e5efeb812",
+  "after_worktree": "/Users/felt/PycharmProjects/starknet/garaga-glv-soundness",
+  "timers": {
+    "wall": "time.perf_counter_ns",
+    "process_cpu": "time.process_time_ns"
+  },
+  "commands": {
+    "before": {
+      "cwd": "/tmp/garaga-glv-adversarial-baseline",
+      "benchmark": "PYTHONPATH=hydra uv run --no-project --python /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python python /tmp/garaga-glv-baseline/benchmark_hint_cpu.py --output /tmp/garaga-glv-baseline/hint-cpu-before.json",
+      "build": "CARGO_PROFILE_RELEASE_DEBUG=1 RUSTUP_TOOLCHAIN=1.97.0 uv run --no-project --python /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python python -m maturin build --manifest-path tools/garaga_rs/Cargo.toml --release --features python --interpreter /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python --out /tmp/garaga-glv-baseline/wheels"
+    },
+    "after": {
+      "cwd": "/Users/felt/PycharmProjects/starknet/garaga-glv-soundness",
+      "benchmark": "PYTHONPATH=hydra uv run --no-project --python .venv/bin/python python /tmp/garaga-glv-baseline/benchmark_hint_cpu.py --output /tmp/garaga-glv-baseline/hint-cpu-after.json",
+      "build": "CARGO_PROFILE_RELEASE_DEBUG=1 RUSTUP_TOOLCHAIN=1.97.0 VIRTUAL_ENV=\"$PWD/venv\" PATH=\"$PWD/venv/bin:$PATH\" uv run --python venv/bin/python --no-project maturin develop --release --features python > /tmp/garaga-glv-native-final.log 2>&1"
+    }
+  },
+  "raw_files": {
+    "before": "hint-cpu-before.json",
+    "after": "hint-cpu-after.json",
+    "lll_only": "hint-cpu-after-lll-only.json"
+  },
+  "comparisons": [
+    {
+      "curve": "BN254",
+      "backend": "python",
+      "before_wall_median_ns": 681063.0,
+      "after_wall_median_ns": 710604.0,
+      "wall_ratio": 1.0433748419749715,
+      "before_cpu_median_ns": 682000.0,
+      "after_cpu_median_ns": 711000.0,
+      "cpu_ratio": 1.0425219941348973,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "BN254",
+      "backend": "rust",
+      "before_wall_median_ns": 1351937.5,
+      "after_wall_median_ns": 1446187.5,
+      "wall_ratio": 1.06971476122232,
+      "before_cpu_median_ns": 1352000.0,
+      "after_cpu_median_ns": 1433500.0,
+      "cpu_ratio": 1.0602810650887573,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "BLS12_381",
+      "backend": "python",
+      "before_wall_median_ns": 8135145.5,
+      "after_wall_median_ns": 28714250.0,
+      "wall_ratio": 3.529654140789492,
+      "before_cpu_median_ns": 8135500.0,
+      "after_cpu_median_ns": 28652500.0,
+      "cpu_ratio": 3.5219101468871,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 41
+    },
+    {
+      "curve": "BLS12_381",
+      "backend": "rust",
+      "before_wall_median_ns": 2770187.5,
+      "after_wall_median_ns": 14980083.5,
+      "wall_ratio": 5.407606344335898,
+      "before_cpu_median_ns": 2770500.0,
+      "after_cpu_median_ns": 14936500.0,
+      "cpu_ratio": 5.391265114600253,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 41
+    },
+    {
+      "curve": "SECP256K1",
+      "backend": "python",
+      "before_wall_median_ns": 720229.0,
+      "after_wall_median_ns": 738666.5,
+      "wall_ratio": 1.0255994968267037,
+      "before_cpu_median_ns": 721000.0,
+      "after_cpu_median_ns": 739000.0,
+      "cpu_ratio": 1.0249653259361997,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "SECP256K1",
+      "backend": "rust",
+      "before_wall_median_ns": 1163999.5,
+      "after_wall_median_ns": 1191020.5,
+      "wall_ratio": 1.0232139274973915,
+      "before_cpu_median_ns": 1164000.0,
+      "after_cpu_median_ns": 1183000.0,
+      "cpu_ratio": 1.0163230240549828,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "SECP256R1",
+      "backend": "python",
+      "before_wall_median_ns": 630187.5,
+      "after_wall_median_ns": 663271.0,
+      "wall_ratio": 1.0524978676981058,
+      "before_cpu_median_ns": 631500.0,
+      "after_cpu_median_ns": 662500.0,
+      "cpu_ratio": 1.049089469517023,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    },
+    {
+      "curve": "SECP256R1",
+      "backend": "rust",
+      "before_wall_median_ns": 1222520.5,
+      "after_wall_median_ns": 1246562.5,
+      "wall_ratio": 1.0196659278924156,
+      "before_cpu_median_ns": 1222500.0,
+      "after_cpu_median_ns": 1247000.0,
+      "cpu_ratio": 1.020040899795501,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    },
+    {
+      "curve": "ED25519",
+      "backend": "python",
+      "before_wall_median_ns": 4898020.5,
+      "after_wall_median_ns": 10316937.0,
+      "wall_ratio": 2.106348268652612,
+      "before_cpu_median_ns": 4898500.0,
+      "after_cpu_median_ns": 10251500.0,
+      "cpu_ratio": 2.0927835051546393,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 31
+    },
+    {
+      "curve": "ED25519",
+      "backend": "rust",
+      "before_wall_median_ns": 926125.0,
+      "after_wall_median_ns": 1797792.0,
+      "wall_ratio": 1.9411980024294777,
+      "before_cpu_median_ns": 926500.0,
+      "after_cpu_median_ns": 1798000.0,
+      "cpu_ratio": 1.9406368051807878,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 31
+    },
+    {
+      "curve": "GRUMPKIN",
+      "backend": "python",
+      "before_wall_median_ns": 582062.5,
+      "after_wall_median_ns": 600916.5,
+      "wall_ratio": 1.0323917105121874,
+      "before_cpu_median_ns": 583500.0,
+      "after_cpu_median_ns": 601000.0,
+      "cpu_ratio": 1.0299914310197087,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    },
+    {
+      "curve": "GRUMPKIN",
+      "backend": "rust",
+      "before_wall_median_ns": 1203396.0,
+      "after_wall_median_ns": 1214229.0,
+      "wall_ratio": 1.0090020242713122,
+      "before_cpu_median_ns": 1203500.0,
+      "after_cpu_median_ns": 1213000.0,
+      "cpu_ratio": 1.007893643539676,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    }
+  ]
+}

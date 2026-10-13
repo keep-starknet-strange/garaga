@@ -1,9 +1,12 @@
 use crate::algebra::g1point::G1Point;
 use crate::definitions::{
-    BLS12381PrimeField, BN254PrimeField, CurveParamsProvider, FieldElement, GrumpkinPrimeField,
-    SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
+    get_modulus_from_curve_id, BLS12381PrimeField, BN254PrimeField, CurveParamsProvider,
+    FieldElement, GrumpkinPrimeField, SECP256K1PrimeField, SECP256R1PrimeField, X25519PrimeField,
 };
-use crate::hints::fake_glv::{get_fake_glv_hint, get_glv_fake_glv_hint};
+use crate::hints::fake_glv::{
+    get_bls12_381_cofactor_hint, get_ed25519_cofactor_hint, get_fake_glv_hint,
+    get_glv_fake_glv_hint,
+};
 use crate::io::{
     element_to_biguint, field_element_to_u288_limbs, field_element_to_u384_limbs,
     field_elements_from_big_uints, parse_g1_points_from_flattened_field_elements_list,
@@ -83,12 +86,24 @@ where
     F: IsPrimeField + CurveParamsProvider<F>,
     FieldElement<F>: ByteConversion,
 {
+    let modulus = get_modulus_from_curve_id(F::get_curve_params().curve_id);
+    if values.iter().any(|coordinate| coordinate >= &modulus) {
+        return Err("MSM point coordinates must be canonical".into());
+    }
     let elements = field_elements_from_big_uints::<F>(values);
     let points = parse_g1_points_from_flattened_field_elements_list(&elements)?;
     let limit = &F::get_curve_params().n;
 
     if !scalars.iter().all(|x| x < limit) {
         return Err("Scalar value must be less than the curve order".to_string());
+    }
+
+    if curve_id == CurveID::BLS12_381 as usize
+        && points
+            .iter()
+            .any(|point| !point.scalar_mul(limit.clone().into()).is_infinity())
+    {
+        return Err("BLS12-381 MSM points must be in the prime-order subgroup".into());
     }
 
     Ok(calldata_builder::<F>(
@@ -186,20 +201,26 @@ where
                 push(call_data_ref, u2);
                 push(call_data_ref, v1);
                 push(call_data_ref, v2);
+                if curve_id == CurveID::BLS12_381 as usize {
+                    for target in [pt, &Q] {
+                        let preimage = get_bls12_381_cofactor_hint(target).unwrap();
+                        push_element(call_data_ref, &preimage.x, false);
+                        push_element(call_data_ref, &preimage.y, false);
+                    }
+                }
             }
             _ => {
-                let scalar = if scalar == &BigUint::from(0u64) {
-                    BigUint::from(1u64)
-                } else {
-                    scalar.clone()
-                };
-
-                let (Q, u1, u2) = get_fake_glv_hint(pt, &scalar).unwrap();
+                let (Q, u1, u2) = get_fake_glv_hint(pt, scalar).unwrap();
 
                 push_element(call_data_ref, &Q.x, false);
                 push_element(call_data_ref, &Q.y, false);
                 push(call_data_ref, u1);
                 push(call_data_ref, u2);
+                if curve_id == CurveID::X25519 as usize {
+                    let cofactor_hint = get_ed25519_cofactor_hint(pt, scalar);
+                    push_element(call_data_ref, &cofactor_hint.x, false);
+                    push_element(call_data_ref, &cofactor_hint.y, false);
+                }
             }
         }
     }
@@ -227,4 +248,24 @@ where
 }
 
 #[cfg(test)]
-mod tests {}
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_bls12_381_hint_record_length() {
+        let generator = G1Point::<BLS12381PrimeField>::generator();
+        let values = [
+            element_to_biguint(&generator.x),
+            element_to_biguint(&generator.y),
+        ];
+        for scalar in [0u64, 1, 2] {
+            let hint = msm_calldata_builder(&values, &[scalar.into()], 1, false, false).unwrap();
+            assert_eq!(hint.len(), 28);
+        }
+        assert!(
+            msm_calldata_builder(&[0u64.into(), 2u64.into()], &[2u64.into()], 1, false, false,)
+                .unwrap_err()
+                .contains("prime-order subgroup")
+        );
+    }
+}

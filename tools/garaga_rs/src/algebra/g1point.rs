@@ -53,7 +53,7 @@ impl<F: IsPrimeField + CurveParamsProvider<F>> G1Point<F> {
             return self.clone();
         }
 
-        if self.x == other.x && self.y != other.y {
+        if self.x == other.x && (&self.y + &other.y) == FieldElement::<F>::zero() {
             return Self::new_unchecked(
                 FieldElement::<F>::zero(),
                 FieldElement::<F>::zero(),

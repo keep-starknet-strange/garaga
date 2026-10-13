@@ -1,0 +1,6639 @@
+{
+  "baseline_commit": "a01fad00d0f77fe8e252ca8c2c64423e5efeb812",
+  "toolchain": {
+    "scarb": "scarb 2.21.0 (fbd5bd03d 2026-10-09)\ncairo: 2.21.0 (https://crates.io/crates/cairo-lang-compiler/2.21.0)\nsierra: 1.9.5\narch: aarch64-apple-darwin",
+    "snforge": "snforge 0.64.1"
+  },
+  "weights": {
+    "steps": 100,
+    "range_check": 70,
+    "range_check96": 56,
+    "keccak": 136189,
+    "pedersen": 4050,
+    "bitwise": 583,
+    "ecop": 4085,
+    "poseidon": 491,
+    "add_mod": 230,
+    "mul_mod": 604
+  },
+  "definition": "Weighted resource score follows tools/profile_tests.py. It excludes syscall costs and is not a transaction-fee estimate.",
+  "baseline_results_count": 117,
+  "after_library_tests": 188,
+  "paired": [
+    {
+      "name": "garaga::apps::drand::tests::test_decrypt_at_round",
+      "before": {
+        "name": "garaga::apps::drand::tests::test_decrypt_at_round",
+        "status": "PASS",
+        "steps": 289977,
+        "memory_holes": 43928,
+        "builtins": {
+          "range_check96": 385790,
+          "add_mod": 57320,
+          "mul_mod": 28871,
+          "bitwise": 14506,
+          "range_check": 3899
+        },
+        "syscalls": {
+          "Sha256ProcessBlock": 13
+        },
+        "l2_gas_approx": 617280000,
+        "package": "drand",
+        "weighted_sierra_gas": 89953552
+      },
+      "after": {
+        "name": "garaga::apps::drand::tests::test_decrypt_at_round",
+        "status": "PASS",
+        "steps": 289977,
+        "memory_holes": 43928,
+        "builtins": {
+          "range_check96": 385790,
+          "add_mod": 57320,
+          "mul_mod": 28871,
+          "bitwise": 14506,
+          "range_check": 3899
+        },
+        "snforge_l2_gas_approx": 617280000,
+        "weighted_sierra_gas": 89953552
+      }
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_drand_quicknet_public_key",
+      "before": {
+        "name": "garaga::apps::drand::tests::test_drand_quicknet_public_key",
+        "status": "PASS",
+        "steps": 12973,
+        "memory_holes": 624,
+        "builtins": {
+          "range_check96": 14864,
+          "mul_mod": 1674,
+          "add_mod": 1490,
+          "range_check": 68
+        },
+        "syscalls": {},
+        "l2_gas_approx": 23800000,
+        "package": "drand",
+        "weighted_sierra_gas": 3488240
+      },
+      "after": {
+        "name": "garaga::apps::drand::tests::test_drand_quicknet_public_key",
+        "status": "PASS",
+        "steps": 12973,
+        "memory_holes": 624,
+        "builtins": {
+          "range_check96": 14864,
+          "mul_mod": 1674,
+          "add_mod": 1490,
+          "range_check": 68
+        },
+        "snforge_l2_gas_approx": 23800000,
+        "weighted_sierra_gas": 3488240
+      }
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_hash_to_curve",
+      "before": {
+        "name": "garaga::apps::drand::tests::test_hash_to_curve",
+        "status": "PASS",
+        "steps": 26326,
+        "memory_holes": 201,
+        "builtins": {
+          "bitwise": 12289,
+          "range_check96": 4559,
+          "range_check": 962,
+          "mul_mod": 602,
+          "add_mod": 422
+        },
+        "syscalls": {
+          "Sha256ProcessBlock": 11
+        },
+        "l2_gas_approx": 78680000,
+        "package": "drand",
+        "weighted_sierra_gas": 10580399
+      },
+      "after": {
+        "name": "garaga::apps::drand::tests::test_hash_to_curve",
+        "status": "PASS",
+        "steps": 26326,
+        "memory_holes": 201,
+        "builtins": {
+          "bitwise": 12289,
+          "range_check96": 4559,
+          "range_check": 962,
+          "mul_mod": 602,
+          "add_mod": 422
+        },
+        "snforge_l2_gas_approx": 78680000,
+        "weighted_sierra_gas": 10580399
+      }
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_hash_to_two_bls_felts",
+      "before": {
+        "name": "garaga::apps::drand::tests::test_hash_to_two_bls_felts",
+        "status": "PASS",
+        "steps": 23418,
+        "memory_holes": 111,
+        "builtins": {
+          "bitwise": 12289,
+          "range_check": 895,
+          "range_check96": 74,
+          "mul_mod": 8,
+          "add_mod": 2
+        },
+        "syscalls": {
+          "Sha256ProcessBlock": 11
+        },
+        "l2_gas_approx": 78680000,
+        "package": "drand",
+        "weighted_sierra_gas": 9578373
+      },
+      "after": {
+        "name": "garaga::apps::drand::tests::test_hash_to_two_bls_felts",
+        "status": "PASS",
+        "steps": 23418,
+        "memory_holes": 111,
+        "builtins": {
+          "bitwise": 12289,
+          "range_check": 895,
+          "range_check96": 74,
+          "mul_mod": 8,
+          "add_mod": 2
+        },
+        "snforge_l2_gas_approx": 78680000,
+        "weighted_sierra_gas": 9578373
+      }
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_isogeny",
+      "before": {
+        "name": "garaga::apps::drand::tests::test_isogeny",
+        "status": "PASS",
+        "steps": 1847,
+        "memory_holes": 5,
+        "builtins": {
+          "range_check96": 878,
+          "mul_mod": 111,
+          "range_check": 58,
+          "add_mod": 51
+        },
+        "syscalls": {},
+        "l2_gas_approx": 1440000,
+        "package": "drand",
+        "weighted_sierra_gas": 316702
+      },
+      "after": {
+        "name": "garaga::apps::drand::tests::test_isogeny",
+        "status": "PASS",
+        "steps": 1847,
+        "memory_holes": 5,
+        "builtins": {
+          "range_check96": 878,
+          "mul_mod": 111,
+          "range_check": 58,
+          "add_mod": 51
+        },
+        "snforge_l2_gas_approx": 1440000,
+        "weighted_sierra_gas": 316702
+      }
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_map_to_curve",
+      "before": {
+        "name": "garaga::apps::drand::tests::test_map_to_curve",
+        "status": "PASS",
+        "steps": 642,
+        "memory_holes": 38,
+        "builtins": {
+          "range_check96": 264,
+          "mul_mod": 39,
+          "range_check": 11,
+          "add_mod": 6
+        },
+        "syscalls": {},
+        "l2_gas_approx": 440000,
+        "package": "drand",
+        "weighted_sierra_gas": 104690
+      },
+      "after": {
+        "name": "garaga::apps::drand::tests::test_map_to_curve",
+        "status": "PASS",
+        "steps": 642,
+        "memory_holes": 38,
+        "builtins": {
+          "range_check96": 264,
+          "mul_mod": 39,
+          "range_check": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 440000,
+        "weighted_sierra_gas": 104690
+      }
+    },
+    {
+      "name": "garaga::ec::ec_ops_g2::tests::test_ec_mul_g2",
+      "before": {
+        "name": "garaga::ec::ec_ops_g2::tests::test_ec_mul_g2",
+        "status": "PASS",
+        "raw_log": "ec_mul_g2.log",
+        "steps": 104697,
+        "memory_holes": 33565,
+        "builtins": {
+          "range_check96": 87664,
+          "mul_mod": 9755,
+          "add_mod": 8551,
+          "range_check": 1054
+        },
+        "snforge_l2_gas_approx": 140280000,
+        "weighted_sierra_gas": 23311414
+      },
+      "after": {
+        "name": "garaga::ec::ec_ops_g2::tests::test_ec_mul_g2",
+        "status": "PASS",
+        "steps": 104697,
+        "memory_holes": 33565,
+        "builtins": {
+          "range_check96": 87664,
+          "mul_mod": 9755,
+          "add_mod": 8551,
+          "range_check": 1054
+        },
+        "snforge_l2_gas_approx": 140280000,
+        "weighted_sierra_gas": 23311414
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BLS12_381",
+      "before": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BLS12_381",
+        "status": "PASS",
+        "raw_log": "ecdsa.log",
+        "steps": 18338,
+        "memory_holes": 1559,
+        "builtins": {
+          "range_check96": 15604,
+          "range_check": 2080,
+          "add_mod": 1809,
+          "mul_mod": 1590
+        },
+        "snforge_l2_gas_approx": 25000000,
+        "weighted_sierra_gas": 4229654
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BLS12_381",
+        "status": "PASS",
+        "steps": 64602,
+        "memory_holes": 53284,
+        "builtins": {
+          "range_check96": 38992,
+          "mul_mod": 4271,
+          "add_mod": 3357,
+          "range_check": 2248
+        },
+        "snforge_l2_gas_approx": 62400000,
+        "weighted_sierra_gas": 12152906
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BN254",
+      "before": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BN254",
+        "status": "PASS",
+        "raw_log": "ecdsa.log",
+        "steps": 18805,
+        "memory_holes": 1377,
+        "builtins": {
+          "range_check96": 15707,
+          "range_check": 2080,
+          "add_mod": 1816,
+          "mul_mod": 1600
+        },
+        "snforge_l2_gas_approx": 25160000,
+        "weighted_sierra_gas": 4289772
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BN254",
+        "status": "PASS",
+        "steps": 20241,
+        "memory_holes": 49164,
+        "builtins": {
+          "range_check96": 14478,
+          "range_check": 1876,
+          "add_mod": 1655,
+          "mul_mod": 1469
+        },
+        "snforge_l2_gas_approx": 23200000,
+        "weighted_sierra_gas": 4234114
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_ED25519",
+      "before": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_ED25519",
+        "status": "PASS",
+        "raw_log": "ecdsa.log",
+        "steps": 14201,
+        "memory_holes": 1162,
+        "builtins": {
+          "range_check96": 20022,
+          "add_mod": 2367,
+          "mul_mod": 2184,
+          "range_check": 1072
+        },
+        "snforge_l2_gas_approx": 32040000,
+        "weighted_sierra_gas": 4479918
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_ED25519",
+        "status": "PASS",
+        "steps": 21650,
+        "memory_holes": 3506,
+        "builtins": {
+          "range_check96": 22814,
+          "add_mod": 2555,
+          "mul_mod": 2487,
+          "range_check": 1145
+        },
+        "snforge_l2_gas_approx": 36520000,
+        "weighted_sierra_gas": 5612532
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_GRUMPKIN",
+      "before": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_GRUMPKIN",
+        "status": "PASS",
+        "raw_log": "ecdsa.log",
+        "steps": 14212,
+        "memory_holes": 1150,
+        "builtins": {
+          "range_check96": 20022,
+          "add_mod": 2367,
+          "mul_mod": 2184,
+          "range_check": 1068
+        },
+        "snforge_l2_gas_approx": 32040000,
+        "weighted_sierra_gas": 4480738
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_GRUMPKIN",
+        "status": "PASS",
+        "steps": 16057,
+        "memory_holes": 2247,
+        "builtins": {
+          "range_check96": 20237,
+          "add_mod": 2382,
+          "mul_mod": 2199,
+          "range_check": 1068
+        },
+        "snforge_l2_gas_approx": 32400000,
+        "weighted_sierra_gas": 4689788
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256K1",
+      "before": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256K1",
+        "status": "PASS",
+        "raw_log": "ecdsa.log",
+        "steps": 18822,
+        "memory_holes": 1369,
+        "builtins": {
+          "range_check96": 15629,
+          "range_check": 2082,
+          "add_mod": 1810,
+          "mul_mod": 1592
+        },
+        "snforge_l2_gas_approx": 25040000,
+        "weighted_sierra_gas": 4281032
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256K1",
+        "status": "PASS",
+        "steps": 20115,
+        "memory_holes": 49261,
+        "builtins": {
+          "range_check96": 14375,
+          "range_check": 1878,
+          "add_mod": 1648,
+          "mul_mod": 1459
+        },
+        "snforge_l2_gas_approx": 23000000,
+        "weighted_sierra_gas": 4208236
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256R1",
+      "before": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256R1",
+        "status": "PASS",
+        "raw_log": "ecdsa.log",
+        "steps": 14152,
+        "memory_holes": 1185,
+        "builtins": {
+          "range_check96": 20022,
+          "add_mod": 2367,
+          "mul_mod": 2184,
+          "range_check": 1072
+        },
+        "snforge_l2_gas_approx": 32040000,
+        "weighted_sierra_gas": 4475018
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256R1",
+        "status": "PASS",
+        "steps": 15991,
+        "memory_holes": 2280,
+        "builtins": {
+          "range_check96": 20237,
+          "add_mod": 2382,
+          "mul_mod": 2199,
+          "range_check": 1072
+        },
+        "snforge_l2_gas_approx": 32400000,
+        "weighted_sierra_gas": 4683468
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_0_0B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_0_0B",
+        "status": "PASS",
+        "steps": 51802,
+        "memory_holes": 4171,
+        "builtins": {
+          "range_check96": 20865,
+          "range_check": 7547,
+          "add_mod": 2419,
+          "mul_mod": 2286,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33400000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9779492
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_0_0B",
+        "status": "PASS",
+        "steps": 60261,
+        "memory_holes": 6864,
+        "builtins": {
+          "range_check96": 24053,
+          "range_check": 7647,
+          "add_mod": 2635,
+          "mul_mod": 2630,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38520000,
+        "weighted_sierra_gas": 11068376
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_10_20B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_10_20B",
+        "status": "PASS",
+        "steps": 52031,
+        "memory_holes": 4277,
+        "builtins": {
+          "range_check96": 20762,
+          "range_check": 7605,
+          "add_mod": 2412,
+          "mul_mod": 2276,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33240000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9793034
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_10_20B",
+        "status": "PASS",
+        "steps": 59355,
+        "memory_holes": 6835,
+        "builtins": {
+          "range_check96": 23547,
+          "range_check": 7687,
+          "add_mod": 2601,
+          "mul_mod": 2578,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37680000,
+        "weighted_sierra_gas": 10913012
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_11_22B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_11_22B",
+        "status": "PASS",
+        "steps": 52085,
+        "memory_holes": 4267,
+        "builtins": {
+          "range_check96": 20762,
+          "range_check": 7615,
+          "add_mod": 2412,
+          "mul_mod": 2276,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33240000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9799134
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_11_22B",
+        "status": "PASS",
+        "steps": 59061,
+        "memory_holes": 6620,
+        "builtins": {
+          "range_check96": 23444,
+          "range_check": 7688,
+          "add_mod": 2594,
+          "mul_mod": 2568,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37520000,
+        "weighted_sierra_gas": 10870264
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_12_24B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_12_24B",
+        "status": "PASS",
+        "steps": 52215,
+        "memory_holes": 4226,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7619,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9822994
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_12_24B",
+        "status": "PASS",
+        "steps": 59942,
+        "memory_holes": 6950,
+        "builtins": {
+          "range_check96": 23736,
+          "range_check": 7710,
+          "add_mod": 2614,
+          "mul_mod": 2598,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38000000,
+        "weighted_sierra_gas": 10998976
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_13_26B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_13_26B",
+        "status": "PASS",
+        "steps": 52257,
+        "memory_holes": 4226,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7625,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9827614
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_13_26B",
+        "status": "PASS",
+        "steps": 59730,
+        "memory_holes": 6677,
+        "builtins": {
+          "range_check96": 23650,
+          "range_check": 7707,
+          "add_mod": 2608,
+          "mul_mod": 2588,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37840000,
+        "weighted_sierra_gas": 10965330
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_14_28B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_14_28B",
+        "status": "PASS",
+        "steps": 52305,
+        "memory_holes": 4221,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7633,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9832974
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_14_28B",
+        "status": "PASS",
+        "steps": 60767,
+        "memory_holes": 6913,
+        "builtins": {
+          "range_check96": 24028,
+          "range_check": 7733,
+          "add_mod": 2634,
+          "mul_mod": 2628,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38480000,
+        "weighted_sierra_gas": 11122158
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_15_30B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_15_30B",
+        "status": "PASS",
+        "steps": 52437,
+        "memory_holes": 4166,
+        "builtins": {
+          "range_check96": 20865,
+          "range_check": 7639,
+          "add_mod": 2419,
+          "mul_mod": 2286,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33400000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9849432
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_15_30B",
+        "status": "PASS",
+        "steps": 59320,
+        "memory_holes": 6565,
+        "builtins": {
+          "range_check96": 23469,
+          "range_check": 7712,
+          "add_mod": 2595,
+          "mul_mod": 2570,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37560000,
+        "weighted_sierra_gas": 10900682
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_16_32B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_16_32B",
+        "status": "PASS",
+        "steps": 52378,
+        "memory_holes": 4231,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7641,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9840834
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_16_32B",
+        "status": "PASS",
+        "steps": 59609,
+        "memory_holes": 6835,
+        "builtins": {
+          "range_check96": 23547,
+          "range_check": 7723,
+          "add_mod": 2601,
+          "mul_mod": 2578,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37680000,
+        "weighted_sierra_gas": 10940932
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_17_34B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_17_34B",
+        "status": "PASS",
+        "steps": 52431,
+        "memory_holes": 4221,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7651,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9846834
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_17_34B",
+        "status": "PASS",
+        "steps": 59907,
+        "memory_holes": 6671,
+        "builtins": {
+          "range_check96": 23650,
+          "range_check": 7733,
+          "add_mod": 2608,
+          "mul_mod": 2588,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37840000,
+        "weighted_sierra_gas": 10984850
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_18_36B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_18_36B",
+        "status": "PASS",
+        "steps": 52467,
+        "memory_holes": 4226,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7655,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9850714
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_18_36B",
+        "status": "PASS",
+        "steps": 59193,
+        "memory_holes": 6283,
+        "builtins": {
+          "range_check96": 23375,
+          "range_check": 7719,
+          "add_mod": 2589,
+          "mul_mod": 2558,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37400000,
+        "weighted_sierra_gas": 10874580
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_19_38B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_19_38B",
+        "status": "PASS",
+        "steps": 52603,
+        "memory_holes": 4180,
+        "builtins": {
+          "range_check96": 20918,
+          "range_check": 7661,
+          "add_mod": 2424,
+          "mul_mod": 2292,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33480000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9875314
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_19_38B",
+        "status": "PASS",
+        "steps": 60969,
+        "memory_holes": 6919,
+        "builtins": {
+          "range_check96": 24028,
+          "range_check": 7761,
+          "add_mod": 2634,
+          "mul_mod": 2628,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38480000,
+        "weighted_sierra_gas": 11144318
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_1_2B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_1_2B",
+        "status": "PASS",
+        "steps": 51759,
+        "memory_holes": 4221,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7555,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9772914
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_1_2B",
+        "status": "PASS",
+        "steps": 58881,
+        "memory_holes": 6468,
+        "builtins": {
+          "range_check96": 23547,
+          "range_check": 7628,
+          "add_mod": 2601,
+          "mul_mod": 2578,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37680000,
+        "weighted_sierra_gas": 10861482
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_20_40B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_20_40B",
+        "status": "PASS",
+        "steps": 52735,
+        "memory_holes": 4125,
+        "builtins": {
+          "range_check96": 20943,
+          "range_check": 7667,
+          "add_mod": 2425,
+          "mul_mod": 2294,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33520000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9891772
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_20_40B",
+        "status": "PASS",
+        "steps": 60100,
+        "memory_holes": 6197,
+        "builtins": {
+          "range_check96": 23692,
+          "range_check": 7740,
+          "add_mod": 2610,
+          "mul_mod": 2590,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37920000,
+        "weighted_sierra_gas": 11008660
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_21_42B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_21_42B",
+        "status": "PASS",
+        "steps": 52771,
+        "memory_holes": 4130,
+        "builtins": {
+          "range_check96": 20943,
+          "range_check": 7671,
+          "add_mod": 2425,
+          "mul_mod": 2294,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33520000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9895652
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_21_42B",
+        "status": "PASS",
+        "steps": 59794,
+        "memory_holes": 6425,
+        "builtins": {
+          "range_check96": 23572,
+          "range_check": 7744,
+          "add_mod": 2602,
+          "mul_mod": 2580,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37720000,
+        "weighted_sierra_gas": 10963740
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_22_44B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_22_44B",
+        "status": "PASS",
+        "steps": 52735,
+        "memory_holes": 4175,
+        "builtins": {
+          "range_check96": 20918,
+          "range_check": 7681,
+          "add_mod": 2424,
+          "mul_mod": 2292,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33480000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9889914
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_22_44B",
+        "status": "PASS",
+        "steps": 60611,
+        "memory_holes": 6792,
+        "builtins": {
+          "range_check96": 23839,
+          "range_check": 7772,
+          "add_mod": 2621,
+          "mul_mod": 2608,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38160000,
+        "weighted_sierra_gas": 11083634
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_23_46B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_23_46B",
+        "status": "PASS",
+        "steps": 52683,
+        "memory_holes": 4221,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7687,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9874554
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_23_46B",
+        "status": "PASS",
+        "steps": 60398,
+        "memory_holes": 6519,
+        "builtins": {
+          "range_check96": 23753,
+          "range_check": 7769,
+          "add_mod": 2615,
+          "mul_mod": 2598,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38040000,
+        "weighted_sierra_gas": 11049888
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_24_48B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_24_48B",
+        "status": "PASS",
+        "steps": 87907,
+        "memory_holes": 7075,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 13732,
+          "bitwise": 3288,
+          "add_mod": 2418,
+          "mul_mod": 2284
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14771560
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_24_48B",
+        "status": "PASS",
+        "steps": 96112,
+        "memory_holes": 9495,
+        "builtins": {
+          "range_check96": 23942,
+          "range_check": 13823,
+          "bitwise": 3288,
+          "add_mod": 2628,
+          "mul_mod": 2618
+        },
+        "snforge_l2_gas_approx": 38320000,
+        "weighted_sierra_gas": 16022178
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_25_50B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_25_50B",
+        "status": "PASS",
+        "steps": 87949,
+        "memory_holes": 7075,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 13738,
+          "bitwise": 3288,
+          "add_mod": 2418,
+          "mul_mod": 2284
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14776180
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_25_50B",
+        "status": "PASS",
+        "steps": 95915,
+        "memory_holes": 9647,
+        "builtins": {
+          "range_check96": 23839,
+          "range_check": 13829,
+          "bitwise": 3288,
+          "add_mod": 2621,
+          "mul_mod": 2608
+        },
+        "snforge_l2_gas_approx": 38160000,
+        "weighted_sierra_gas": 15989480
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_26_52B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_26_52B",
+        "status": "PASS",
+        "steps": 87991,
+        "memory_holes": 7075,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 13744,
+          "bitwise": 3288,
+          "add_mod": 2418,
+          "mul_mod": 2284
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14780800
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_26_52B",
+        "status": "PASS",
+        "steps": 95479,
+        "memory_holes": 9951,
+        "builtins": {
+          "range_check96": 23633,
+          "range_check": 13835,
+          "bitwise": 3288,
+          "add_mod": 2607,
+          "mul_mod": 2588
+        },
+        "snforge_l2_gas_approx": 37840000,
+        "weighted_sierra_gas": 15919464
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_27_54B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_27_54B",
+        "status": "PASS",
+        "steps": 88127,
+        "memory_holes": 7029,
+        "builtins": {
+          "range_check96": 20918,
+          "range_check": 13750,
+          "bitwise": 3288,
+          "add_mod": 2424,
+          "mul_mod": 2292
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33480000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14805400
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_27_54B",
+        "status": "PASS",
+        "steps": 96254,
+        "memory_holes": 9920,
+        "builtins": {
+          "range_check96": 23925,
+          "range_check": 13850,
+          "bitwise": 3288,
+          "add_mod": 2627,
+          "mul_mod": 2618
+        },
+        "snforge_l2_gas_approx": 38280000,
+        "weighted_sierra_gas": 16037086
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_28_56B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_28_56B",
+        "status": "PASS",
+        "steps": 88075,
+        "memory_holes": 7075,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 13756,
+          "bitwise": 3288,
+          "add_mod": 2418,
+          "mul_mod": 2284
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14790040
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_28_56B",
+        "status": "PASS",
+        "steps": 96295,
+        "memory_holes": 9920,
+        "builtins": {
+          "range_check96": 23925,
+          "range_check": 13856,
+          "bitwise": 3288,
+          "add_mod": 2627,
+          "mul_mod": 2618
+        },
+        "snforge_l2_gas_approx": 38280000,
+        "weighted_sierra_gas": 16041606
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_29_58B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_29_58B",
+        "status": "PASS",
+        "steps": 88117,
+        "memory_holes": 7075,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 13762,
+          "bitwise": 3288,
+          "add_mod": 2418,
+          "mul_mod": 2284
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14794660
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_29_58B",
+        "status": "PASS",
+        "steps": 95605,
+        "memory_holes": 9951,
+        "builtins": {
+          "range_check96": 23633,
+          "range_check": 13853,
+          "bitwise": 3288,
+          "add_mod": 2607,
+          "mul_mod": 2588
+        },
+        "snforge_l2_gas_approx": 37840000,
+        "weighted_sierra_gas": 15933324
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_2_4B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_2_4B",
+        "status": "PASS",
+        "steps": 52063,
+        "memory_holes": 4075,
+        "builtins": {
+          "range_check96": 20968,
+          "range_check": 7557,
+          "add_mod": 2426,
+          "mul_mod": 2296,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33560000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9819710
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_2_4B",
+        "status": "PASS",
+        "steps": 59694,
+        "memory_holes": 6846,
+        "builtins": {
+          "range_check96": 23786,
+          "range_check": 7648,
+          "add_mod": 2616,
+          "mul_mod": 2602,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38080000,
+        "weighted_sierra_gas": 10975512
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_30_60B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_30_60B",
+        "status": "PASS",
+        "steps": 88071,
+        "memory_holes": 7116,
+        "builtins": {
+          "range_check96": 20762,
+          "range_check": 13770,
+          "bitwise": 3288,
+          "add_mod": 2412,
+          "mul_mod": 2276
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33240000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14780040
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_30_60B",
+        "status": "PASS",
+        "steps": 95047,
+        "memory_holes": 9469,
+        "builtins": {
+          "range_check96": 23444,
+          "range_check": 13843,
+          "bitwise": 3288,
+          "add_mod": 2594,
+          "mul_mod": 2568
+        },
+        "snforge_l2_gas_approx": 37520000,
+        "weighted_sierra_gas": 15851170
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_31_62B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_31_62B",
+        "status": "PASS",
+        "steps": 88285,
+        "memory_holes": 7025,
+        "builtins": {
+          "range_check96": 20865,
+          "range_check": 13772,
+          "bitwise": 3288,
+          "add_mod": 2419,
+          "mul_mod": 2286
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33400000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14814998
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_31_62B",
+        "status": "PASS",
+        "steps": 96248,
+        "memory_holes": 9598,
+        "builtins": {
+          "range_check96": 23864,
+          "range_check": 13863,
+          "bitwise": 3288,
+          "add_mod": 2622,
+          "mul_mod": 2610
+        },
+        "snforge_l2_gas_approx": 38200000,
+        "weighted_sierra_gas": 16027998
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_32_64B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_32_64B",
+        "status": "PASS",
+        "steps": 88156,
+        "memory_holes": 7115,
+        "builtins": {
+          "range_check96": 20762,
+          "range_check": 13782,
+          "bitwise": 3288,
+          "add_mod": 2412,
+          "mul_mod": 2276
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33240000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 14789380
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_32_64B",
+        "status": "PASS",
+        "steps": 95232,
+        "memory_holes": 9398,
+        "builtins": {
+          "range_check96": 23461,
+          "range_check": 13855,
+          "bitwise": 3288,
+          "add_mod": 2595,
+          "mul_mod": 2568
+        },
+        "snforge_l2_gas_approx": 37560000,
+        "weighted_sierra_gas": 15871692
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_3_6B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_3_6B",
+        "status": "PASS",
+        "steps": 51931,
+        "memory_holes": 4180,
+        "builtins": {
+          "range_check96": 20918,
+          "range_check": 7565,
+          "add_mod": 2424,
+          "mul_mod": 2292,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33480000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9801394
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_3_6B",
+        "status": "PASS",
+        "steps": 60043,
+        "memory_holes": 6646,
+        "builtins": {
+          "range_check96": 23942,
+          "range_check": 7656,
+          "add_mod": 2628,
+          "mul_mod": 2618,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38320000,
+        "weighted_sierra_gas": 11032132
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_4_8B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_4_8B",
+        "status": "PASS",
+        "steps": 52147,
+        "memory_holes": 4075,
+        "builtins": {
+          "range_check96": 20968,
+          "range_check": 7569,
+          "add_mod": 2426,
+          "mul_mod": 2296,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33560000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9828950
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_4_8B",
+        "status": "PASS",
+        "steps": 60017,
+        "memory_holes": 6694,
+        "builtins": {
+          "range_check96": 23889,
+          "range_check": 7660,
+          "add_mod": 2623,
+          "mul_mod": 2612,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38240000,
+        "weighted_sierra_gas": 11022070
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_5_10B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_5_10B",
+        "status": "PASS",
+        "steps": 51927,
+        "memory_holes": 4221,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7579,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9791394
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_5_10B",
+        "status": "PASS",
+        "steps": 58910,
+        "memory_holes": 6550,
+        "builtins": {
+          "range_check96": 23461,
+          "range_check": 7652,
+          "add_mod": 2595,
+          "mul_mod": 2568,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37560000,
+        "weighted_sierra_gas": 10853826
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_6_12B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_6_12B",
+        "status": "PASS",
+        "steps": 52147,
+        "memory_holes": 4125,
+        "builtins": {
+          "range_check96": 20943,
+          "range_check": 7583,
+          "add_mod": 2425,
+          "mul_mod": 2294,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33520000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9827092
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_6_12B",
+        "status": "PASS",
+        "steps": 59019,
+        "memory_holes": 6076,
+        "builtins": {
+          "range_check96": 23503,
+          "range_check": 7647,
+          "add_mod": 2597,
+          "mul_mod": 2570,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 37640000,
+        "weighted_sierra_gas": 10868396
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_7_14B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_7_14B",
+        "status": "PASS",
+        "steps": 52095,
+        "memory_holes": 4171,
+        "builtins": {
+          "range_check96": 20865,
+          "range_check": 7589,
+          "add_mod": 2419,
+          "mul_mod": 2286,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33400000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9811732
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_7_14B",
+        "status": "PASS",
+        "steps": 60554,
+        "memory_holes": 6864,
+        "builtins": {
+          "range_check96": 24053,
+          "range_check": 7689,
+          "add_mod": 2635,
+          "mul_mod": 2630,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38520000,
+        "weighted_sierra_gas": 11100616
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_8_16B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_8_16B",
+        "status": "PASS",
+        "steps": 52053,
+        "memory_holes": 4221,
+        "builtins": {
+          "range_check96": 20840,
+          "range_check": 7597,
+          "add_mod": 2418,
+          "mul_mod": 2284,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33360000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9805254
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_8_16B",
+        "status": "PASS",
+        "steps": 59768,
+        "memory_holes": 6519,
+        "builtins": {
+          "range_check96": 23753,
+          "range_check": 7679,
+          "add_mod": 2615,
+          "mul_mod": 2598,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38040000,
+        "weighted_sierra_gas": 10980588
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_9_18B",
+      "before": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_9_18B",
+        "status": "PASS",
+        "steps": 52183,
+        "memory_holes": 4180,
+        "builtins": {
+          "range_check96": 20918,
+          "range_check": 7601,
+          "add_mod": 2424,
+          "mul_mod": 2292,
+          "bitwise": 1656
+        },
+        "syscalls": {},
+        "l2_gas_approx": 33480000,
+        "package": "eddsa",
+        "weighted_sierra_gas": 9829114
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_9_18B",
+        "status": "PASS",
+        "steps": 59802,
+        "memory_holes": 6525,
+        "builtins": {
+          "range_check96": 23753,
+          "range_check": 7683,
+          "add_mod": 2615,
+          "mul_mod": 2598,
+          "bitwise": 1656
+        },
+        "snforge_l2_gas_approx": 38040000,
+        "weighted_sierra_gas": 10984268
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_10P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_10P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 87000,
+        "memory_holes": 6568,
+        "builtins": {
+          "range_check96": 77104,
+          "range_check": 10303,
+          "add_mod": 9014,
+          "mul_mod": 7846
+        },
+        "snforge_l2_gas_approx": 123400000,
+        "weighted_sierra_gas": 20551238
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_10P",
+        "status": "PASS",
+        "steps": 317248,
+        "memory_holes": 265906,
+        "builtins": {
+          "range_check96": 193804,
+          "mul_mod": 21234,
+          "add_mod": 16738,
+          "range_check": 11143
+        },
+        "snforge_l2_gas_approx": 310120000,
+        "weighted_sierra_gas": 60032910
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_11P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_11P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 96055,
+        "memory_holes": 7005,
+        "builtins": {
+          "range_check96": 85085,
+          "range_check": 11325,
+          "add_mod": 9934,
+          "mul_mod": 8657
+        },
+        "snforge_l2_gas_approx": 136160000,
+        "weighted_sierra_gas": 22676658
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_11P",
+        "status": "PASS",
+        "steps": 349688,
+        "memory_holes": 292008,
+        "builtins": {
+          "range_check96": 213520,
+          "mul_mod": 23389,
+          "add_mod": 18433,
+          "range_check": 12249
+        },
+        "snforge_l2_gas_approx": 341640000,
+        "weighted_sierra_gas": 66149896
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_12P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_12P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 104806,
+        "memory_holes": 7600,
+        "builtins": {
+          "range_check96": 92860,
+          "range_check": 12355,
+          "add_mod": 10840,
+          "mul_mod": 9448
+        },
+        "snforge_l2_gas_approx": 148600000,
+        "weighted_sierra_gas": 24745402
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_12P",
+        "status": "PASS",
+        "steps": 381550,
+        "memory_holes": 318474,
+        "builtins": {
+          "range_check96": 232980,
+          "mul_mod": 25520,
+          "add_mod": 20112,
+          "range_check": 13363
+        },
+        "snforge_l2_gas_approx": 372800000,
+        "weighted_sierra_gas": 72177130
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 8997,
+        "memory_holes": 803,
+        "builtins": {
+          "range_check96": 7619,
+          "range_check": 1037,
+          "add_mod": 894,
+          "mul_mod": 775
+        },
+        "snforge_l2_gas_approx": 12200000,
+        "weighted_sierra_gas": 2072674
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P",
+        "status": "PASS",
+        "steps": 31967,
+        "memory_holes": 26775,
+        "builtins": {
+          "range_check96": 19279,
+          "mul_mod": 2113,
+          "add_mod": 1666,
+          "range_check": 1121
+        },
+        "snforge_l2_gas_approx": 30880000,
+        "weighted_sierra_gas": 6014226
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 1814,
+        "memory_holes": 621,
+        "builtins": {
+          "range_check96": 155,
+          "range_check": 106,
+          "mul_mod": 18,
+          "add_mod": 7
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 209982
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P_edge_case",
+        "status": "PASS",
+        "steps": 13358,
+        "memory_holes": 1626,
+        "builtins": {
+          "range_check96": 6227,
+          "mul_mod": 710,
+          "add_mod": 431,
+          "range_check": 253
+        },
+        "snforge_l2_gas_approx": 10000000,
+        "weighted_sierra_gas": 2230192
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 17988,
+        "memory_holes": 1286,
+        "builtins": {
+          "range_check96": 15628,
+          "range_check": 2059,
+          "add_mod": 1818,
+          "mul_mod": 1590
+        },
+        "snforge_l2_gas_approx": 25040000,
+        "weighted_sierra_gas": 4196598
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P",
+        "status": "PASS",
+        "steps": 64486,
+        "memory_holes": 52818,
+        "builtins": {
+          "range_check96": 39048,
+          "mul_mod": 4274,
+          "add_mod": 3366,
+          "range_check": 2227
+        },
+        "snforge_l2_gas_approx": 62480000,
+        "weighted_sierra_gas": 12146854
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 2470,
+        "memory_holes": 997,
+        "builtins": {
+          "range_check96": 220,
+          "range_check": 154,
+          "mul_mod": 26,
+          "add_mod": 10
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 288104
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P_edge_case",
+        "status": "PASS",
+        "steps": 14404,
+        "memory_holes": 2126,
+        "builtins": {
+          "range_check96": 6310,
+          "mul_mod": 719,
+          "add_mod": 436,
+          "range_check": 337
+        },
+        "snforge_l2_gas_approx": 10120000,
+        "weighted_sierra_gas": 2351906
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 26393,
+        "memory_holes": 2063,
+        "builtins": {
+          "range_check96": 23144,
+          "range_check": 3087,
+          "add_mod": 2705,
+          "mul_mod": 2355
+        },
+        "snforge_l2_gas_approx": 37040000,
+        "weighted_sierra_gas": 6196024
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P",
+        "status": "PASS",
+        "steps": 95570,
+        "memory_holes": 79782,
+        "builtins": {
+          "range_check96": 58174,
+          "mul_mod": 6373,
+          "add_mod": 5023,
+          "range_check": 3339
+        },
+        "snforge_l2_gas_approx": 93080000,
+        "weighted_sierra_gas": 18053056
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 11367,
+        "memory_holes": 1518,
+        "builtins": {
+          "range_check96": 8098,
+          "range_check": 1178,
+          "add_mod": 923,
+          "mul_mod": 827
+        },
+        "snforge_l2_gas_approx": 12960000,
+        "weighted_sierra_gas": 2384446
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P_edge_case",
+        "status": "PASS",
+        "steps": 46546,
+        "memory_holes": 28416,
+        "builtins": {
+          "range_check96": 25898,
+          "mul_mod": 2862,
+          "add_mod": 2123,
+          "range_check": 1445
+        },
+        "snforge_l2_gas_approx": 41440000,
+        "weighted_sierra_gas": 8422976
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_4P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_4P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 34886,
+        "memory_holes": 2785,
+        "builtins": {
+          "range_check96": 30685,
+          "range_check": 4119,
+          "add_mod": 3593,
+          "mul_mod": 3122
+        },
+        "snforge_l2_gas_approx": 49120000,
+        "weighted_sierra_gas": 8207368
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_4P",
+        "status": "PASS",
+        "steps": 126748,
+        "memory_holes": 106689,
+        "builtins": {
+          "range_check96": 77325,
+          "mul_mod": 8474,
+          "add_mod": 6681,
+          "range_check": 4455
+        },
+        "snforge_l2_gas_approx": 123720000,
+        "weighted_sierra_gas": 23971776
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_10P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_10P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 89044,
+        "memory_holes": 5852,
+        "builtins": {
+          "range_check96": 77519,
+          "range_check": 10285,
+          "add_mod": 9045,
+          "mul_mod": 7888
+        },
+        "snforge_l2_gas_approx": 124040000,
+        "weighted_sierra_gas": 20810116
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_10P",
+        "status": "PASS",
+        "steps": 94852,
+        "memory_holes": 245679,
+        "builtins": {
+          "range_check96": 71003,
+          "range_check": 9269,
+          "add_mod": 8213,
+          "mul_mod": 7202
+        },
+        "snforge_l2_gas_approx": 113640000,
+        "weighted_sierra_gas": 20349196
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_11P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_11P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 97957,
+        "memory_holes": 6396,
+        "builtins": {
+          "range_check96": 85294,
+          "range_check": 11315,
+          "add_mod": 9951,
+          "mul_mod": 8679
+        },
+        "snforge_l2_gas_approx": 136480000,
+        "weighted_sierra_gas": 22895060
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_11P",
+        "status": "PASS",
+        "steps": 104508,
+        "memory_holes": 270111,
+        "builtins": {
+          "range_check96": 78192,
+          "range_check": 10189,
+          "add_mod": 9039,
+          "mul_mod": 7930
+        },
+        "snforge_l2_gas_approx": 125120000,
+        "weighted_sierra_gas": 22411472
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_12P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_12P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 107079,
+        "memory_holes": 6843,
+        "builtins": {
+          "range_check96": 93278,
+          "range_check": 12347,
+          "add_mod": 10874,
+          "mul_mod": 9492
+        },
+        "snforge_l2_gas_approx": 149280000,
+        "weighted_sierra_gas": 25029946
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_12P",
+        "status": "PASS",
+        "steps": 114771,
+        "memory_holes": 294149,
+        "builtins": {
+          "range_check96": 85640,
+          "range_check": 11119,
+          "add_mod": 9884,
+          "mul_mod": 8684
+        },
+        "snforge_l2_gas_approx": 137040000,
+        "weighted_sierra_gas": 24569726
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 8984,
+        "memory_holes": 845,
+        "builtins": {
+          "range_check96": 7569,
+          "range_check": 1041,
+          "add_mod": 892,
+          "mul_mod": 771
+        },
+        "snforge_l2_gas_approx": 12120000,
+        "weighted_sierra_gas": 2065978
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P",
+        "status": "PASS",
+        "steps": 9589,
+        "memory_holes": 24833,
+        "builtins": {
+          "range_check96": 6958,
+          "range_check": 931,
+          "add_mod": 811,
+          "mul_mod": 706
+        },
+        "snforge_l2_gas_approx": 11160000,
+        "weighted_sierra_gas": 2026672
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 1795,
+        "memory_holes": 630,
+        "builtins": {
+          "range_check96": 155,
+          "range_check": 106,
+          "mul_mod": 18,
+          "add_mod": 7
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 208082
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P_edge_case",
+        "status": "PASS",
+        "steps": 1899,
+        "memory_holes": 610,
+        "builtins": {
+          "range_check96": 108,
+          "range_check": 106,
+          "mul_mod": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 211392
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 18146,
+        "memory_holes": 1266,
+        "builtins": {
+          "range_check96": 15525,
+          "range_check": 2065,
+          "add_mod": 1811,
+          "mul_mod": 1580
+        },
+        "snforge_l2_gas_approx": 24840000,
+        "weighted_sierra_gas": 4199400
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P",
+        "status": "PASS",
+        "steps": 19533,
+        "memory_holes": 49069,
+        "builtins": {
+          "range_check96": 14278,
+          "range_check": 1861,
+          "add_mod": 1648,
+          "mul_mod": 1448
+        },
+        "snforge_l2_gas_approx": 22880000,
+        "weighted_sierra_gas": 4136770
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 2449,
+        "memory_holes": 1008,
+        "builtins": {
+          "range_check96": 220,
+          "range_check": 154,
+          "mul_mod": 26,
+          "add_mod": 10
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 286004
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P_edge_case",
+        "status": "PASS",
+        "steps": 2757,
+        "memory_holes": 1058,
+        "builtins": {
+          "range_check96": 191,
+          "range_check": 154,
+          "mul_mod": 20,
+          "add_mod": 11
+        },
+        "snforge_l2_gas_approx": 400000,
+        "weighted_sierra_gas": 311786
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 26865,
+        "memory_holes": 1907,
+        "builtins": {
+          "range_check96": 23144,
+          "range_check": 3093,
+          "add_mod": 2705,
+          "mul_mod": 2355
+        },
+        "snforge_l2_gas_approx": 37040000,
+        "weighted_sierra_gas": 6243644
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P",
+        "status": "PASS",
+        "steps": 28578,
+        "memory_holes": 73879,
+        "builtins": {
+          "range_check96": 21211,
+          "range_check": 2787,
+          "add_mod": 2458,
+          "mul_mod": 2152
+        },
+        "snforge_l2_gas_approx": 33960000,
+        "weighted_sierra_gas": 6105854
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 11446,
+        "memory_holes": 1516,
+        "builtins": {
+          "range_check96": 8073,
+          "range_check": 1180,
+          "add_mod": 922,
+          "mul_mod": 825
+        },
+        "snforge_l2_gas_approx": 12920000,
+        "weighted_sierra_gas": 2389648
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P_edge_case",
+        "status": "PASS",
+        "steps": 12533,
+        "memory_holes": 25406,
+        "builtins": {
+          "range_check96": 7433,
+          "range_check": 1082,
+          "add_mod": 842,
+          "mul_mod": 754
+        },
+        "snforge_l2_gas_approx": 11920000,
+        "weighted_sierra_gas": 2394364
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_4P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_4P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 35714,
+        "memory_holes": 2497,
+        "builtins": {
+          "range_check96": 30947,
+          "range_check": 4123,
+          "add_mod": 3615,
+          "mul_mod": 3150
+        },
+        "snforge_l2_gas_approx": 49520000,
+        "weighted_sierra_gas": 8327092
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_4P",
+        "status": "PASS",
+        "steps": 38212,
+        "memory_holes": 98307,
+        "builtins": {
+          "range_check96": 28403,
+          "range_check": 3719,
+          "add_mod": 3287,
+          "mul_mod": 2882
+        },
+        "snforge_l2_gas_approx": 45480000,
+        "weighted_sierra_gas": 8168836
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_10P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_10P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 67197,
+        "memory_holes": 4311,
+        "builtins": {
+          "range_check96": 100021,
+          "add_mod": 11863,
+          "mul_mod": 10898,
+          "range_check": 5225
+        },
+        "snforge_l2_gas_approx": 160040000,
+        "weighted_sierra_gas": 21997508
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_10P",
+        "status": "PASS",
+        "steps": 105771,
+        "memory_holes": 17186,
+        "builtins": {
+          "range_check96": 114258,
+          "add_mod": 12816,
+          "mul_mod": 12444,
+          "range_check": 5635
+        },
+        "snforge_l2_gas_approx": 182840000,
+        "weighted_sierra_gas": 27833854
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_11P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_11P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 73895,
+        "memory_holes": 4725,
+        "builtins": {
+          "range_check96": 110044,
+          "add_mod": 13051,
+          "mul_mod": 11990,
+          "range_check": 5748
+        },
+        "snforge_l2_gas_approx": 176080000,
+        "weighted_sierra_gas": 24198014
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_11P",
+        "status": "PASS",
+        "steps": 116908,
+        "memory_holes": 18949,
+        "builtins": {
+          "range_check96": 125921,
+          "add_mod": 14114,
+          "mul_mod": 13713,
+          "range_check": 6208
+        },
+        "snforge_l2_gas_approx": 201480000,
+        "weighted_sierra_gas": 30705808
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_12P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_12P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 80497,
+        "memory_holes": 5199,
+        "builtins": {
+          "range_check96": 120042,
+          "add_mod": 14238,
+          "mul_mod": 13080,
+          "range_check": 6269
+        },
+        "snforge_l2_gas_approx": 192080000,
+        "weighted_sierra_gas": 26385942
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_12P",
+        "status": "PASS",
+        "steps": 127114,
+        "memory_holes": 20874,
+        "builtins": {
+          "range_check96": 137250,
+          "add_mod": 15390,
+          "mul_mod": 14950,
+          "range_check": 6770
+        },
+        "snforge_l2_gas_approx": 219600000,
+        "weighted_sierra_gas": 33440800
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 6865,
+        "memory_holes": 619,
+        "builtins": {
+          "range_check96": 9842,
+          "add_mod": 1175,
+          "mul_mod": 1074,
+          "range_check": 530
+        },
+        "snforge_l2_gas_approx": 15760000,
+        "weighted_sierra_gas": 2193698
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P",
+        "status": "PASS",
+        "steps": 10428,
+        "memory_holes": 2108,
+        "builtins": {
+          "range_check96": 11165,
+          "add_mod": 1264,
+          "mul_mod": 1219,
+          "range_check": 571
+        },
+        "snforge_l2_gas_approx": 17880000,
+        "weighted_sierra_gas": 2735006
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 1783,
+        "memory_holes": 700,
+        "builtins": {
+          "range_check": 108,
+          "range_check96": 90,
+          "mul_mod": 10,
+          "add_mod": 4
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 197860
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P_edge_case",
+        "status": "PASS",
+        "steps": 5069,
+        "memory_holes": 1878,
+        "builtins": {
+          "range_check96": 1431,
+          "range_check": 176,
+          "mul_mod": 160,
+          "add_mod": 95
+        },
+        "snforge_l2_gas_approx": 2320000,
+        "weighted_sierra_gas": 717846
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 13569,
+        "memory_holes": 1028,
+        "builtins": {
+          "range_check96": 19865,
+          "add_mod": 2363,
+          "mul_mod": 2166,
+          "range_check": 1055
+        },
+        "snforge_l2_gas_approx": 31800000,
+        "weighted_sierra_gas": 4394944
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P",
+        "status": "PASS",
+        "steps": 20827,
+        "memory_holes": 3471,
+        "builtins": {
+          "range_check96": 22553,
+          "add_mod": 2543,
+          "mul_mod": 2458,
+          "range_check": 1128
+        },
+        "snforge_l2_gas_approx": 36120000,
+        "weighted_sierra_gas": 5494150
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 2306,
+        "memory_holes": 1010,
+        "builtins": {
+          "range_check": 157,
+          "range_check96": 90,
+          "mul_mod": 10,
+          "add_mod": 4
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 253590
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P_edge_case",
+        "status": "PASS",
+        "steps": 5713,
+        "memory_holes": 2219,
+        "builtins": {
+          "range_check96": 1431,
+          "range_check": 243,
+          "mul_mod": 160,
+          "add_mod": 95
+        },
+        "snforge_l2_gas_approx": 2320000,
+        "weighted_sierra_gas": 786936
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 20257,
+        "memory_holes": 1438,
+        "builtins": {
+          "range_check96": 29835,
+          "add_mod": 3546,
+          "mul_mod": 3252,
+          "range_check": 1576
+        },
+        "snforge_l2_gas_approx": 47760000,
+        "weighted_sierra_gas": 6586568
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P",
+        "status": "PASS",
+        "steps": 32059,
+        "memory_holes": 5610,
+        "builtins": {
+          "range_check96": 34224,
+          "add_mod": 3841,
+          "mul_mod": 3729,
+          "range_check": 1708
+        },
+        "snforge_l2_gas_approx": 54760000,
+        "weighted_sierra_gas": 8377750
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 9005,
+        "memory_holes": 1424,
+        "builtins": {
+          "range_check96": 10113,
+          "add_mod": 1192,
+          "mul_mod": 1102,
+          "range_check": 680
+        },
+        "snforge_l2_gas_approx": 16200000,
+        "weighted_sierra_gas": 2454196
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P_edge_case",
+        "status": "PASS",
+        "steps": 15865,
+        "memory_holes": 3740,
+        "builtins": {
+          "range_check96": 12716,
+          "mul_mod": 1389,
+          "add_mod": 1367,
+          "range_check": 798
+        },
+        "snforge_l2_gas_approx": 20360000,
+        "weighted_sierra_gas": 3507822
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_4P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_4P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 27133,
+        "memory_holes": 1756,
+        "builtins": {
+          "range_check96": 39961,
+          "add_mod": 4741,
+          "mul_mod": 4354,
+          "range_check": 2097
+        },
+        "snforge_l2_gas_approx": 63960000,
+        "weighted_sierra_gas": 8818152
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_4P",
+        "status": "PASS",
+        "steps": 42038,
+        "memory_holes": 6809,
+        "builtins": {
+          "range_check96": 45448,
+          "add_mod": 5108,
+          "mul_mod": 4950,
+          "range_check": 2252
+        },
+        "snforge_l2_gas_approx": 72720000,
+        "weighted_sierra_gas": 11071168
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_10P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_10P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 67094,
+        "memory_holes": 4331,
+        "builtins": {
+          "range_check96": 99918,
+          "add_mod": 11856,
+          "mul_mod": 10888,
+          "range_check": 5231
+        },
+        "snforge_l2_gas_approx": 159880000,
+        "weighted_sierra_gas": 21974210
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_10P",
+        "status": "PASS",
+        "steps": 76349,
+        "memory_holes": 9675,
+        "builtins": {
+          "range_check96": 100953,
+          "add_mod": 11923,
+          "mul_mod": 10962,
+          "range_check": 5231
+        },
+        "snforge_l2_gas_approx": 161560000,
+        "weighted_sierra_gas": 23017776
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_11P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_11P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 73704,
+        "memory_holes": 4785,
+        "builtins": {
+          "range_check96": 109863,
+          "add_mod": 13038,
+          "mul_mod": 11972,
+          "range_check": 5754
+        },
+        "snforge_l2_gas_approx": 175800000,
+        "weighted_sierra_gas": 24155336
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_11P",
+        "status": "PASS",
+        "steps": 83783,
+        "memory_holes": 10737,
+        "builtins": {
+          "range_check96": 110984,
+          "add_mod": 13111,
+          "mul_mod": 12052,
+          "range_check": 5754
+        },
+        "snforge_l2_gas_approx": 177600000,
+        "weighted_sierra_gas": 25291122
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_12P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_12P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 80486,
+        "memory_holes": 5148,
+        "builtins": {
+          "range_check96": 119911,
+          "add_mod": 14227,
+          "mul_mod": 13066,
+          "range_check": 6273
+        },
+        "snforge_l2_gas_approx": 191880000,
+        "weighted_sierra_gas": 26366800
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_12P",
+        "status": "PASS",
+        "steps": 91529,
+        "memory_holes": 11604,
+        "builtins": {
+          "range_check96": 121143,
+          "add_mod": 14307,
+          "mul_mod": 13154,
+          "range_check": 6273
+        },
+        "snforge_l2_gas_approx": 193840000,
+        "weighted_sierra_gas": 27611644
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 6874,
+        "memory_holes": 607,
+        "builtins": {
+          "range_check96": 9842,
+          "add_mod": 1175,
+          "mul_mod": 1074,
+          "range_check": 530
+        },
+        "snforge_l2_gas_approx": 15760000,
+        "weighted_sierra_gas": 2194598
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P",
+        "status": "PASS",
+        "steps": 7700,
+        "memory_holes": 1218,
+        "builtins": {
+          "range_check96": 9928,
+          "add_mod": 1181,
+          "mul_mod": 1080,
+          "range_check": 530
+        },
+        "snforge_l2_gas_approx": 15920000,
+        "weighted_sierra_gas": 2287018
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 1787,
+        "memory_holes": 691,
+        "builtins": {
+          "range_check": 108,
+          "range_check96": 90,
+          "mul_mod": 10,
+          "add_mod": 4
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 198260
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P_edge_case",
+        "status": "PASS",
+        "steps": 1953,
+        "memory_holes": 697,
+        "builtins": {
+          "range_check": 108,
+          "range_check96": 108,
+          "mul_mod": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 216932
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 13572,
+        "memory_holes": 1020,
+        "builtins": {
+          "range_check96": 19865,
+          "add_mod": 2363,
+          "mul_mod": 2166,
+          "range_check": 1051
+        },
+        "snforge_l2_gas_approx": 31800000,
+        "weighted_sierra_gas": 4394964
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P",
+        "status": "PASS",
+        "steps": 15365,
+        "memory_holes": 2134,
+        "builtins": {
+          "range_check96": 20062,
+          "add_mod": 2376,
+          "mul_mod": 2180,
+          "range_check": 1051
+        },
+        "snforge_l2_gas_approx": 32120000,
+        "weighted_sierra_gas": 4596742
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 2310,
+        "memory_holes": 1001,
+        "builtins": {
+          "range_check": 157,
+          "range_check96": 90,
+          "mul_mod": 10,
+          "add_mod": 4
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 253990
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P_edge_case",
+        "status": "PASS",
+        "steps": 2504,
+        "memory_holes": 1017,
+        "builtins": {
+          "range_check": 157,
+          "range_check96": 108,
+          "mul_mod": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 275462
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 20188,
+        "memory_holes": 1469,
+        "builtins": {
+          "range_check96": 29810,
+          "add_mod": 3545,
+          "mul_mod": 3250,
+          "range_check": 1576
+        },
+        "snforge_l2_gas_approx": 47720000,
+        "weighted_sierra_gas": 6576830
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P",
+        "status": "PASS",
+        "steps": 22808,
+        "memory_holes": 3190,
+        "builtins": {
+          "range_check96": 30093,
+          "add_mod": 3564,
+          "mul_mod": 3270,
+          "range_check": 1576
+        },
+        "snforge_l2_gas_approx": 48160000,
+        "weighted_sierra_gas": 6871128
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 9011,
+        "memory_holes": 1414,
+        "builtins": {
+          "range_check96": 10113,
+          "add_mod": 1192,
+          "mul_mod": 1102,
+          "range_check": 678
+        },
+        "snforge_l2_gas_approx": 16200000,
+        "weighted_sierra_gas": 2454656
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P_edge_case",
+        "status": "PASS",
+        "steps": 10172,
+        "memory_holes": 1933,
+        "builtins": {
+          "range_check96": 10242,
+          "add_mod": 1201,
+          "mul_mod": 1111,
+          "range_check": 678
+        },
+        "snforge_l2_gas_approx": 16400000,
+        "weighted_sierra_gas": 2585486
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_4P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_4P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 26986,
+        "memory_holes": 1831,
+        "builtins": {
+          "range_check96": 39911,
+          "add_mod": 4739,
+          "mul_mod": 4350,
+          "range_check": 2099
+        },
+        "snforge_l2_gas_approx": 63880000,
+        "weighted_sierra_gas": 8797916
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_4P",
+        "status": "PASS",
+        "steps": 30722,
+        "memory_holes": 3948,
+        "builtins": {
+          "range_check96": 40330,
+          "add_mod": 4766,
+          "mul_mod": 4380,
+          "range_check": 2099
+        },
+        "snforge_l2_gas_approx": 64560000,
+        "weighted_sierra_gas": 9219310
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_10P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_10P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 89537,
+        "memory_holes": 5606,
+        "builtins": {
+          "range_check96": 77675,
+          "range_check": 10285,
+          "add_mod": 9057,
+          "mul_mod": 7904
+        },
+        "snforge_l2_gas_approx": 124280000,
+        "weighted_sierra_gas": 20880576
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_10P",
+        "status": "PASS",
+        "steps": 96081,
+        "memory_holes": 244941,
+        "builtins": {
+          "range_check96": 71415,
+          "range_check": 9261,
+          "add_mod": 8241,
+          "mul_mod": 7242
+        },
+        "snforge_l2_gas_approx": 114280000,
+        "weighted_sierra_gas": 20525208
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_11P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_11P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 98645,
+        "memory_holes": 6049,
+        "builtins": {
+          "range_check96": 85553,
+          "range_check": 11313,
+          "add_mod": 9970,
+          "mul_mod": 8705
+        },
+        "snforge_l2_gas_approx": 136920000,
+        "weighted_sierra_gas": 22998298
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_11P",
+        "status": "PASS",
+        "steps": 105704,
+        "memory_holes": 269393,
+        "builtins": {
+          "range_check96": 78579,
+          "range_check": 10185,
+          "add_mod": 9066,
+          "mul_mod": 7968
+        },
+        "snforge_l2_gas_approx": 125760000,
+        "weighted_sierra_gas": 22581626
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_12P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_12P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 107868,
+        "memory_holes": 6441,
+        "builtins": {
+          "range_check96": 93562,
+          "range_check": 12343,
+          "add_mod": 10894,
+          "mul_mod": 9520
+        },
+        "snforge_l2_gas_approx": 149720000,
+        "weighted_sierra_gas": 25145982
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_12P",
+        "status": "PASS",
+        "steps": 116126,
+        "memory_holes": 293343,
+        "builtins": {
+          "range_check96": 86077,
+          "range_check": 11109,
+          "add_mod": 9913,
+          "mul_mod": 8726
+        },
+        "snforge_l2_gas_approx": 137760000,
+        "weighted_sierra_gas": 24761036
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 9278,
+        "memory_holes": 689,
+        "builtins": {
+          "range_check96": 7697,
+          "range_check": 1037,
+          "add_mod": 900,
+          "mul_mod": 783
+        },
+        "snforge_l2_gas_approx": 12320000,
+        "weighted_sierra_gas": 2111354
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P",
+        "status": "PASS",
+        "steps": 9901,
+        "memory_holes": 24641,
+        "builtins": {
+          "range_check96": 7061,
+          "range_check": 935,
+          "add_mod": 818,
+          "mul_mod": 716
+        },
+        "snforge_l2_gas_approx": 11320000,
+        "weighted_sierra_gas": 2071570
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 1845,
+        "memory_holes": 605,
+        "builtins": {
+          "range_check96": 155,
+          "range_check": 106,
+          "mul_mod": 18,
+          "add_mod": 7
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 213082
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P_edge_case",
+        "status": "PASS",
+        "steps": 1937,
+        "memory_holes": 591,
+        "builtins": {
+          "range_check96": 108,
+          "range_check": 106,
+          "mul_mod": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 215192
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 18028,
+        "memory_holes": 1326,
+        "builtins": {
+          "range_check96": 15369,
+          "range_check": 2061,
+          "add_mod": 1799,
+          "mul_mod": 1564
+        },
+        "snforge_l2_gas_approx": 24600000,
+        "weighted_sierra_gas": 4166160
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P",
+        "status": "PASS",
+        "steps": 19117,
+        "memory_holes": 49343,
+        "builtins": {
+          "range_check96": 14072,
+          "range_check": 1857,
+          "add_mod": 1634,
+          "mul_mod": 1428
+        },
+        "snforge_l2_gas_approx": 22520000,
+        "weighted_sierra_gas": 4068054
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 2511,
+        "memory_holes": 977,
+        "builtins": {
+          "range_check96": 220,
+          "range_check": 154,
+          "mul_mod": 26,
+          "add_mod": 10
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 292204
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P_edge_case",
+        "status": "PASS",
+        "steps": 2807,
+        "memory_holes": 1033,
+        "builtins": {
+          "range_check96": 191,
+          "range_check": 154,
+          "mul_mod": 20,
+          "add_mod": 11
+        },
+        "snforge_l2_gas_approx": 400000,
+        "weighted_sierra_gas": 316786
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 27115,
+        "memory_holes": 1774,
+        "builtins": {
+          "range_check96": 23194,
+          "range_check": 3087,
+          "add_mod": 2707,
+          "mul_mod": 2359
+        },
+        "snforge_l2_gas_approx": 37120000,
+        "weighted_sierra_gas": 6273900
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P",
+        "status": "PASS",
+        "steps": 28661,
+        "memory_holes": 73841,
+        "builtins": {
+          "range_check96": 21211,
+          "range_check": 2781,
+          "add_mod": 2458,
+          "mul_mod": 2152
+        },
+        "snforge_l2_gas_approx": 33960000,
+        "weighted_sierra_gas": 6113734
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 11346,
+        "memory_holes": 1563,
+        "builtins": {
+          "range_check96": 7917,
+          "range_check": 1180,
+          "add_mod": 910,
+          "mul_mod": 809
+        },
+        "snforge_l2_gas_approx": 12680000,
+        "weighted_sierra_gas": 2358488
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P_edge_case",
+        "status": "PASS",
+        "steps": 12111,
+        "memory_holes": 25683,
+        "builtins": {
+          "range_check96": 7227,
+          "range_check": 1078,
+          "add_mod": 828,
+          "mul_mod": 734
+        },
+        "snforge_l2_gas_approx": 11600000,
+        "weighted_sierra_gas": 2325048
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_4P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_4P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 36070,
+        "memory_holes": 2304,
+        "builtins": {
+          "range_check96": 31022,
+          "range_check": 4117,
+          "add_mod": 3618,
+          "mul_mod": 3156
+        },
+        "snforge_l2_gas_approx": 49640000,
+        "weighted_sierra_gas": 8370786
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_4P",
+        "status": "PASS",
+        "steps": 38204,
+        "memory_holes": 98339,
+        "builtins": {
+          "range_check96": 28350,
+          "range_check": 3705,
+          "add_mod": 3282,
+          "mul_mod": 2876
+        },
+        "snforge_l2_gas_approx": 45360000,
+        "weighted_sierra_gas": 8159314
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_10P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_10P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 67081,
+        "memory_holes": 4343,
+        "builtins": {
+          "range_check96": 99968,
+          "add_mod": 11858,
+          "mul_mod": 10892,
+          "range_check": 5235
+        },
+        "snforge_l2_gas_approx": 159960000,
+        "weighted_sierra_gas": 21978866
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_10P",
+        "status": "PASS",
+        "steps": 76282,
+        "memory_holes": 9685,
+        "builtins": {
+          "range_check96": 101003,
+          "add_mod": 11925,
+          "mul_mod": 10966,
+          "range_check": 5235
+        },
+        "snforge_l2_gas_approx": 161640000,
+        "weighted_sierra_gas": 23017032
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_11P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_11P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 73673,
+        "memory_holes": 4809,
+        "builtins": {
+          "range_check96": 109913,
+          "add_mod": 13040,
+          "mul_mod": 11976,
+          "range_check": 5758
+        },
+        "snforge_l2_gas_approx": 175880000,
+        "weighted_sierra_gas": 24158192
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_11P",
+        "status": "PASS",
+        "steps": 83692,
+        "memory_holes": 10759,
+        "builtins": {
+          "range_check96": 111034,
+          "add_mod": 13113,
+          "mul_mod": 12056,
+          "range_check": 5758
+        },
+        "snforge_l2_gas_approx": 177680000,
+        "weighted_sierra_gas": 25287978
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_12P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_12P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 80543,
+        "memory_holes": 5128,
+        "builtins": {
+          "range_check96": 120039,
+          "add_mod": 14235,
+          "mul_mod": 13078,
+          "range_check": 6281
+        },
+        "snforge_l2_gas_approx": 192080000,
+        "weighted_sierra_gas": 26389316
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_12P",
+        "status": "PASS",
+        "steps": 91672,
+        "memory_holes": 11474,
+        "builtins": {
+          "range_check96": 121296,
+          "add_mod": 14316,
+          "mul_mod": 13168,
+          "range_check": 6281
+        },
+        "snforge_l2_gas_approx": 194080000,
+        "weighted_sierra_gas": 27645598
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 7026,
+        "memory_holes": 530,
+        "builtins": {
+          "range_check96": 9945,
+          "add_mod": 1182,
+          "mul_mod": 1084,
+          "range_check": 530
+        },
+        "snforge_l2_gas_approx": 15920000,
+        "weighted_sierra_gas": 2223216
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P",
+        "status": "PASS",
+        "steps": 7992,
+        "memory_holes": 1035,
+        "builtins": {
+          "range_check96": 10056,
+          "add_mod": 1189,
+          "mul_mod": 1092,
+          "range_check": 530
+        },
+        "snforge_l2_gas_approx": 16120000,
+        "weighted_sierra_gas": 2332474
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 1765,
+        "memory_holes": 709,
+        "builtins": {
+          "range_check": 108,
+          "range_check96": 90,
+          "mul_mod": 10,
+          "add_mod": 4
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 196060
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P_edge_case",
+        "status": "PASS",
+        "steps": 1928,
+        "memory_holes": 715,
+        "builtins": {
+          "range_check": 108,
+          "range_check96": 108,
+          "mul_mod": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 280000,
+        "weighted_sierra_gas": 214432
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 13528,
+        "memory_holes": 1051,
+        "builtins": {
+          "range_check96": 19865,
+          "add_mod": 2363,
+          "mul_mod": 2166,
+          "range_check": 1053
+        },
+        "snforge_l2_gas_approx": 31800000,
+        "weighted_sierra_gas": 4390704
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P",
+        "status": "PASS",
+        "steps": 15312,
+        "memory_holes": 2164,
+        "builtins": {
+          "range_check96": 20062,
+          "add_mod": 2376,
+          "mul_mod": 2180,
+          "range_check": 1053
+        },
+        "snforge_l2_gas_approx": 32120000,
+        "weighted_sierra_gas": 4591582
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 2288,
+        "memory_holes": 1019,
+        "builtins": {
+          "range_check": 157,
+          "range_check96": 90,
+          "mul_mod": 10,
+          "add_mod": 4
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 251790
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P_edge_case",
+        "status": "PASS",
+        "steps": 2479,
+        "memory_holes": 1035,
+        "builtins": {
+          "range_check": 157,
+          "range_check96": 108,
+          "mul_mod": 11,
+          "add_mod": 6
+        },
+        "snforge_l2_gas_approx": 360000,
+        "weighted_sierra_gas": 272962
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 20208,
+        "memory_holes": 1462,
+        "builtins": {
+          "range_check96": 29835,
+          "add_mod": 3546,
+          "mul_mod": 3252,
+          "range_check": 1576
+        },
+        "snforge_l2_gas_approx": 47760000,
+        "weighted_sierra_gas": 6581668
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P",
+        "status": "PASS",
+        "steps": 22810,
+        "memory_holes": 3183,
+        "builtins": {
+          "range_check96": 30118,
+          "add_mod": 3565,
+          "mul_mod": 3272,
+          "range_check": 1576
+        },
+        "snforge_l2_gas_approx": 48200000,
+        "weighted_sierra_gas": 6874166
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P_edge_case",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P_edge_case",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 8969,
+        "memory_holes": 1444,
+        "builtins": {
+          "range_check96": 10113,
+          "add_mod": 1192,
+          "mul_mod": 1102,
+          "range_check": 678
+        },
+        "snforge_l2_gas_approx": 16200000,
+        "weighted_sierra_gas": 2450456
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P_edge_case",
+        "status": "PASS",
+        "steps": 10121,
+        "memory_holes": 1963,
+        "builtins": {
+          "range_check96": 10242,
+          "add_mod": 1201,
+          "mul_mod": 1111,
+          "range_check": 678
+        },
+        "snforge_l2_gas_approx": 16400000,
+        "weighted_sierra_gas": 2580386
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_4P",
+      "before": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_4P",
+        "status": "PASS",
+        "raw_log": "msm.log",
+        "steps": 27070,
+        "memory_holes": 1786,
+        "builtins": {
+          "range_check96": 39961,
+          "add_mod": 4741,
+          "mul_mod": 4354,
+          "range_check": 2097
+        },
+        "snforge_l2_gas_approx": 63960000,
+        "weighted_sierra_gas": 8811852
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_4P",
+        "status": "PASS",
+        "steps": 30779,
+        "memory_holes": 3904,
+        "builtins": {
+          "range_check96": 40380,
+          "add_mod": 4768,
+          "mul_mod": 4384,
+          "range_check": 2097
+        },
+        "snforge_l2_gas_approx": 64640000,
+        "weighted_sierra_gas": 9230546
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BLS12_381",
+      "before": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BLS12_381",
+        "status": "PASS",
+        "raw_log": "schnorr.log",
+        "steps": 18000,
+        "memory_holes": 1539,
+        "builtins": {
+          "range_check96": 15459,
+          "range_check": 2078,
+          "add_mod": 1803,
+          "mul_mod": 1574
+        },
+        "snforge_l2_gas_approx": 24760000,
+        "weighted_sierra_gas": 4176550
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BLS12_381",
+        "status": "PASS",
+        "steps": 64127,
+        "memory_holes": 53367,
+        "builtins": {
+          "range_check96": 38822,
+          "mul_mod": 4253,
+          "add_mod": 3350,
+          "range_check": 2246
+        },
+        "snforge_l2_gas_approx": 62120000,
+        "weighted_sierra_gas": 12083264
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BN254",
+      "before": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BN254",
+        "status": "PASS",
+        "raw_log": "schnorr.log",
+        "steps": 18267,
+        "memory_holes": 1456,
+        "builtins": {
+          "range_check96": 15406,
+          "range_check": 2076,
+          "add_mod": 1798,
+          "mul_mod": 1568
+        },
+        "snforge_l2_gas_approx": 24680000,
+        "weighted_sierra_gas": 4195368
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BN254",
+        "status": "PASS",
+        "steps": 19110,
+        "memory_holes": 49652,
+        "builtins": {
+          "range_check96": 14052,
+          "range_check": 1872,
+          "add_mod": 1632,
+          "mul_mod": 1427
+        },
+        "snforge_l2_gas_approx": 22520000,
+        "weighted_sierra_gas": 4066220
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_ED25519",
+      "before": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_ED25519",
+        "status": "PASS",
+        "raw_log": "schnorr.log",
+        "steps": 13933,
+        "memory_holes": 1113,
+        "builtins": {
+          "range_check96": 19955,
+          "add_mod": 2367,
+          "mul_mod": 2176,
+          "range_check": 1064
+        },
+        "snforge_l2_gas_approx": 31960000,
+        "weighted_sierra_gas": 4443974
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_ED25519",
+        "status": "PASS",
+        "steps": 21240,
+        "memory_holes": 3540,
+        "builtins": {
+          "range_check96": 22661,
+          "add_mod": 2549,
+          "mul_mod": 2469,
+          "range_check": 1137
+        },
+        "snforge_l2_gas_approx": 36280000,
+        "weighted_sierra_gas": 5550152
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_GRUMPKIN",
+      "before": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_GRUMPKIN",
+        "status": "PASS",
+        "raw_log": "schnorr.log",
+        "steps": 14043,
+        "memory_holes": 1049,
+        "builtins": {
+          "range_check96": 20033,
+          "add_mod": 2373,
+          "mul_mod": 2184,
+          "range_check": 1062
+        },
+        "snforge_l2_gas_approx": 32080000,
+        "weighted_sierra_gas": 4465414
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_GRUMPKIN",
+        "status": "PASS",
+        "steps": 16034,
+        "memory_holes": 2040,
+        "builtins": {
+          "range_check96": 20273,
+          "add_mod": 2389,
+          "mul_mod": 2201,
+          "range_check": 1062
+        },
+        "snforge_l2_gas_approx": 32440000,
+        "weighted_sierra_gas": 4691902
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256K1",
+      "before": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256K1",
+        "status": "PASS",
+        "raw_log": "schnorr.log",
+        "steps": 18419,
+        "memory_holes": 1391,
+        "builtins": {
+          "range_check96": 15512,
+          "range_check": 2082,
+          "add_mod": 1808,
+          "mul_mod": 1580
+        },
+        "snforge_l2_gas_approx": 24840000,
+        "weighted_sierra_gas": 4226472
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256K1",
+        "status": "PASS",
+        "steps": 19603,
+        "memory_holes": 49364,
+        "builtins": {
+          "range_check96": 14205,
+          "range_check": 1870,
+          "add_mod": 1641,
+          "mul_mod": 1441
+        },
+        "snforge_l2_gas_approx": 22760000,
+        "weighted_sierra_gas": 4134474
+      }
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256R1",
+      "before": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256R1",
+        "status": "PASS",
+        "raw_log": "schnorr.log",
+        "steps": 14068,
+        "memory_holes": 1035,
+        "builtins": {
+          "range_check96": 20058,
+          "add_mod": 2374,
+          "mul_mod": 2186,
+          "range_check": 1064
+        },
+        "snforge_l2_gas_approx": 32120000,
+        "weighted_sierra_gas": 4470892
+      },
+      "after": {
+        "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256R1",
+        "status": "PASS",
+        "steps": 16050,
+        "memory_holes": 2025,
+        "builtins": {
+          "range_check96": 20298,
+          "add_mod": 2390,
+          "mul_mod": 2203,
+          "range_check": 1064
+        },
+        "snforge_l2_gas_approx": 32480000,
+        "weighted_sierra_gas": 4696480
+      }
+    },
+    {
+      "name": "groth16_example_bls12_381_integrationtest::test_contract::test_verify_groth16_proof_bls12_381",
+      "before": {
+        "name": "groth16_example_bls12_381_integrationtest::test_contract::test_verify_groth16_proof_bls12_381",
+        "status": "PASS",
+        "steps": 337397,
+        "memory_holes": 53602,
+        "builtins": {
+          "range_check96": 90280,
+          "range_check": 10978,
+          "mul_mod": 10868,
+          "add_mod": 7506,
+          "poseidon": 586
+        },
+        "syscalls": {
+          "LibraryCall": 2
+        },
+        "l2_gas_approx": 144480000,
+        "package": "groth16_example_bls12_381",
+        "weighted_sierra_gas": 48142218
+      },
+      "after": {
+        "name": "groth16_example_bls12_381_integrationtest::test_contract::test_verify_groth16_proof_bls12_381",
+        "status": "PASS",
+        "steps": 392575,
+        "memory_holes": 180734,
+        "builtins": {
+          "range_check96": 102001,
+          "mul_mod": 12210,
+          "range_check": 11110,
+          "add_mod": 8283,
+          "poseidon": 586
+        },
+        "snforge_l2_gas_approx": 163240000,
+        "weighted_sierra_gas": 55314912
+      }
+    },
+    {
+      "name": "groth16_example_bn254_integrationtest::test_contract::test_verify_groth16_proof_bn254",
+      "before": {
+        "name": "groth16_example_bn254_integrationtest::test_contract::test_verify_groth16_proof_bn254",
+        "status": "PASS",
+        "steps": 233180,
+        "memory_holes": 15946,
+        "builtins": {
+          "range_check96": 67149,
+          "range_check": 9791,
+          "mul_mod": 8754,
+          "add_mod": 5401,
+          "poseidon": 509
+        },
+        "syscalls": {
+          "LibraryCall": 2
+        },
+        "l2_gas_approx": 107440000,
+        "package": "groth16_example_bn254",
+        "weighted_sierra_gas": 34543279
+      },
+      "after": {
+        "name": "groth16_example_bn254_integrationtest::test_contract::test_verify_groth16_proof_bn254",
+        "status": "PASS",
+        "steps": 234268,
+        "memory_holes": 118291,
+        "builtins": {
+          "range_check96": 66574,
+          "range_check": 9689,
+          "mul_mod": 8691,
+          "add_mod": 5324,
+          "poseidon": 509
+        },
+        "snforge_l2_gas_approx": 106520000,
+        "weighted_sierra_gas": 34556977
+      }
+    },
+    {
+      "name": "noir_ultra_keccak_zk_honk_example_integrationtest::test_contract::test_verify_ultra_keccak_zk_honk_proof",
+      "before": {
+        "name": "noir_ultra_keccak_zk_honk_example_integrationtest::test_contract::test_verify_ultra_keccak_zk_honk_proof",
+        "status": "PASS",
+        "steps": 1220719,
+        "memory_holes": 209216,
+        "builtins": {
+          "range_check96": 455450,
+          "range_check": 71580,
+          "add_mod": 50522,
+          "mul_mod": 48257,
+          "bitwise": 2654,
+          "poseidon": 461,
+          "keccak": 73
+        },
+        "syscalls": {
+          "Keccak": 73,
+          "LibraryCall": 1
+        },
+        "l2_gas_approx": 728720000,
+        "package": "noir_ultra_keccak_zk_honk_example",
+        "weighted_sierra_gas": 205070418
+      },
+      "after": {
+        "name": "noir_ultra_keccak_zk_honk_example_integrationtest::test_contract::test_verify_ultra_keccak_zk_honk_proof",
+        "status": "PASS",
+        "steps": 1283872,
+        "memory_holes": 5666905,
+        "builtins": {
+          "range_check96": 429642,
+          "range_check": 66168,
+          "add_mod": 46608,
+          "mul_mod": 45615,
+          "bitwise": 2654,
+          "poseidon": 461,
+          "keccak": 73
+        },
+        "snforge_l2_gas_approx": 695080000,
+        "weighted_sierra_gas": 207065642
+      }
+    },
+    {
+      "name": "risc0_verifier_bn254_integrationtest::test_contract::test_verify_r0_groth16_proof_bn254",
+      "before": {
+        "name": "risc0_verifier_bn254_integrationtest::test_contract::test_verify_r0_groth16_proof_bn254",
+        "status": "PASS",
+        "steps": 274221,
+        "memory_holes": 23794,
+        "builtins": {
+          "range_check96": 74896,
+          "range_check": 11888,
+          "mul_mod": 9541,
+          "bitwise": 6698,
+          "add_mod": 6303,
+          "poseidon": 509
+        },
+        "syscalls": {
+          "Sha256ProcessBlock": 6,
+          "LibraryCall": 2
+        },
+        "l2_gas_approx": 119840000,
+        "package": "risc0_verifier_bn254",
+        "weighted_sierra_gas": 43815743
+      },
+      "after": {
+        "name": "risc0_verifier_bn254_integrationtest::test_contract::test_verify_r0_groth16_proof_bn254",
+        "status": "PASS",
+        "steps": 273560,
+        "memory_holes": 230472,
+        "builtins": {
+          "range_check96": 73429,
+          "range_check": 11686,
+          "mul_mod": 9387,
+          "bitwise": 6698,
+          "add_mod": 6128,
+          "poseidon": 509
+        },
+        "snforge_l2_gas_approx": 117520000,
+        "weighted_sierra_gas": 43520085
+      }
+    },
+    {
+      "name": "sp1_verifier_bn254_integrationtest::test_contract::test_verify_sp1_groth16_proof_bn254",
+      "before": {
+        "name": "sp1_verifier_bn254_integrationtest::test_contract::test_verify_sp1_groth16_proof_bn254",
+        "status": "PASS",
+        "steps": 257965,
+        "memory_holes": 19626,
+        "builtins": {
+          "range_check96": 75027,
+          "range_check": 11131,
+          "mul_mod": 9555,
+          "add_mod": 6314,
+          "bitwise": 2230,
+          "poseidon": 509
+        },
+        "syscalls": {
+          "LibraryCall": 2,
+          "Sha256ProcessBlock": 2
+        },
+        "l2_gas_approx": 120080000,
+        "package": "sp1_verifier_bn254",
+        "weighted_sierra_gas": 39550631
+      },
+      "after": {
+        "name": "sp1_verifier_bn254_integrationtest::test_contract::test_verify_sp1_groth16_proof_bn254",
+        "status": "PASS",
+        "steps": 258859,
+        "memory_holes": 224984,
+        "builtins": {
+          "range_check96": 73713,
+          "range_check": 10927,
+          "mul_mod": 9415,
+          "add_mod": 6148,
+          "bitwise": 2230,
+          "poseidon": 509
+        },
+        "snforge_l2_gas_approx": 117960000,
+        "weighted_sierra_gas": 39429427
+      }
+    }
+  ],
+  "after_results": [
+    {
+      "name": "garaga::apps::drand::tests::test_hash_to_two_bls_felts",
+      "status": "PASS",
+      "steps": 23418,
+      "memory_holes": 111,
+      "builtins": {
+        "bitwise": 12289,
+        "range_check": 895,
+        "range_check96": 74,
+        "mul_mod": 8,
+        "add_mod": 2
+      },
+      "snforge_l2_gas_approx": 78680000,
+      "weighted_sierra_gas": 9578373
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_isogeny",
+      "status": "PASS",
+      "steps": 1847,
+      "memory_holes": 5,
+      "builtins": {
+        "range_check96": 878,
+        "mul_mod": 111,
+        "range_check": 58,
+        "add_mod": 51
+      },
+      "snforge_l2_gas_approx": 1440000,
+      "weighted_sierra_gas": 316702
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P",
+      "status": "PASS",
+      "steps": 15365,
+      "memory_holes": 2134,
+      "builtins": {
+        "range_check96": 20062,
+        "add_mod": 2376,
+        "mul_mod": 2180,
+        "range_check": 1051
+      },
+      "snforge_l2_gas_approx": 32120000,
+      "weighted_sierra_gas": 4596742
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P_edge_case",
+      "status": "PASS",
+      "steps": 1953,
+      "memory_holes": 697,
+      "builtins": {
+        "range_check": 108,
+        "range_check96": 108,
+        "mul_mod": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 216932
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_hash_to_curve",
+      "status": "PASS",
+      "steps": 26326,
+      "memory_holes": 201,
+      "builtins": {
+        "bitwise": 12289,
+        "range_check96": 4559,
+        "range_check": 962,
+        "mul_mod": 602,
+        "add_mod": 422
+      },
+      "snforge_l2_gas_approx": 78680000,
+      "weighted_sierra_gas": 10580399
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_2P_edge_case",
+      "status": "PASS",
+      "steps": 2504,
+      "memory_holes": 1017,
+      "builtins": {
+        "range_check": 157,
+        "range_check96": 108,
+        "mul_mod": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 360000,
+      "weighted_sierra_gas": 275462
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_drand_quicknet_public_key",
+      "status": "PASS",
+      "steps": 12973,
+      "memory_holes": 624,
+      "builtins": {
+        "range_check96": 14864,
+        "mul_mod": 1674,
+        "add_mod": 1490,
+        "range_check": 68
+      },
+      "snforge_l2_gas_approx": 23800000,
+      "weighted_sierra_gas": 3488240
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_11_22B",
+      "status": "PASS",
+      "steps": 59061,
+      "memory_holes": 6620,
+      "builtins": {
+        "range_check96": 23444,
+        "range_check": 7688,
+        "add_mod": 2594,
+        "mul_mod": 2568,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37520000,
+      "weighted_sierra_gas": 10870264
+    },
+    {
+      "name": "garaga::apps::risc0::risc0_utils_tests::test_output_digest",
+      "status": "PASS",
+      "steps": 4401,
+      "memory_holes": 17,
+      "builtins": {
+        "bitwise": 2230,
+        "range_check": 170
+      },
+      "snforge_l2_gas_approx": 14280000,
+      "weighted_sierra_gas": 1752090
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P",
+      "status": "PASS",
+      "steps": 7992,
+      "memory_holes": 1035,
+      "builtins": {
+        "range_check96": 10056,
+        "add_mod": 1189,
+        "mul_mod": 1092,
+        "range_check": 530
+      },
+      "snforge_l2_gas_approx": 16120000,
+      "weighted_sierra_gas": 2332474
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_2_4B",
+      "status": "PASS",
+      "steps": 59694,
+      "memory_holes": 6846,
+      "builtins": {
+        "range_check96": 23786,
+        "range_check": 7648,
+        "add_mod": 2616,
+        "mul_mod": 2602,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38080000,
+      "weighted_sierra_gas": 10975512
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_1P_edge_case",
+      "status": "PASS",
+      "steps": 1928,
+      "memory_holes": 715,
+      "builtins": {
+        "range_check": 108,
+        "range_check96": 108,
+        "mul_mod": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 214432
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P",
+      "status": "PASS",
+      "steps": 15312,
+      "memory_holes": 2164,
+      "builtins": {
+        "range_check96": 20062,
+        "add_mod": 2376,
+        "mul_mod": 2180,
+        "range_check": 1053
+      },
+      "snforge_l2_gas_approx": 32120000,
+      "weighted_sierra_gas": 4591582
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_2P_edge_case",
+      "status": "PASS",
+      "steps": 2479,
+      "memory_holes": 1035,
+      "builtins": {
+        "range_check": 157,
+        "range_check96": 108,
+        "mul_mod": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 360000,
+      "weighted_sierra_gas": 272962
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P",
+      "status": "PASS",
+      "steps": 9901,
+      "memory_holes": 24641,
+      "builtins": {
+        "range_check96": 7061,
+        "range_check": 935,
+        "add_mod": 818,
+        "mul_mod": 716
+      },
+      "snforge_l2_gas_approx": 11320000,
+      "weighted_sierra_gas": 2071570
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P",
+      "status": "PASS",
+      "steps": 31967,
+      "memory_holes": 26775,
+      "builtins": {
+        "range_check96": 19279,
+        "mul_mod": 2113,
+        "add_mod": 1666,
+        "range_check": 1121
+      },
+      "snforge_l2_gas_approx": 30880000,
+      "weighted_sierra_gas": 6014226
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_1P_edge_case",
+      "status": "PASS",
+      "steps": 13358,
+      "memory_holes": 1626,
+      "builtins": {
+        "range_check96": 6227,
+        "mul_mod": 710,
+        "add_mod": 431,
+        "range_check": 253
+      },
+      "snforge_l2_gas_approx": 10000000,
+      "weighted_sierra_gas": 2230192
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P",
+      "status": "PASS",
+      "steps": 22810,
+      "memory_holes": 3183,
+      "builtins": {
+        "range_check96": 30118,
+        "add_mod": 3565,
+        "mul_mod": 3272,
+        "range_check": 1576
+      },
+      "snforge_l2_gas_approx": 48200000,
+      "weighted_sierra_gas": 6874166
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_map_to_curve",
+      "status": "PASS",
+      "steps": 642,
+      "memory_holes": 38,
+      "builtins": {
+        "range_check96": 264,
+        "mul_mod": 39,
+        "range_check": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 440000,
+      "weighted_sierra_gas": 104690
+    },
+    {
+      "name": "garaga::apps::noir::zk_honk_transcript::tests::test_transcript_zk_keccak",
+      "status": "PASS",
+      "steps": 48122,
+      "memory_holes": 48,
+      "builtins": {
+        "range_check": 5690,
+        "bitwise": 2654,
+        "keccak": 73,
+        "poseidon": 1
+      },
+      "snforge_l2_gas_approx": 17000000,
+      "weighted_sierra_gas": 16700070
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P",
+      "status": "PASS",
+      "steps": 19117,
+      "memory_holes": 49343,
+      "builtins": {
+        "range_check96": 14072,
+        "range_check": 1857,
+        "add_mod": 1634,
+        "mul_mod": 1428
+      },
+      "snforge_l2_gas_approx": 22520000,
+      "weighted_sierra_gas": 4068054
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_11P",
+      "status": "PASS",
+      "steps": 83692,
+      "memory_holes": 10759,
+      "builtins": {
+        "range_check96": 111034,
+        "add_mod": 13113,
+        "mul_mod": 12056,
+        "range_check": 5758
+      },
+      "snforge_l2_gas_approx": 177680000,
+      "weighted_sierra_gas": 25287978
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_12P",
+      "status": "PASS",
+      "steps": 91672,
+      "memory_holes": 11474,
+      "builtins": {
+        "range_check96": 121296,
+        "add_mod": 14316,
+        "mul_mod": 13168,
+        "range_check": 6281
+      },
+      "snforge_l2_gas_approx": 194080000,
+      "weighted_sierra_gas": 27645598
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_3P_edge_case",
+      "status": "PASS",
+      "steps": 10121,
+      "memory_holes": 1963,
+      "builtins": {
+        "range_check96": 10242,
+        "add_mod": 1201,
+        "mul_mod": 1111,
+        "range_check": 678
+      },
+      "snforge_l2_gas_approx": 16400000,
+      "weighted_sierra_gas": 2580386
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P",
+      "status": "PASS",
+      "steps": 64486,
+      "memory_holes": 52818,
+      "builtins": {
+        "range_check96": 39048,
+        "mul_mod": 4274,
+        "add_mod": 3366,
+        "range_check": 2227
+      },
+      "snforge_l2_gas_approx": 62480000,
+      "weighted_sierra_gas": 12146854
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_2P_edge_case",
+      "status": "PASS",
+      "steps": 14404,
+      "memory_holes": 2126,
+      "builtins": {
+        "range_check96": 6310,
+        "mul_mod": 719,
+        "add_mod": 436,
+        "range_check": 337
+      },
+      "snforge_l2_gas_approx": 10120000,
+      "weighted_sierra_gas": 2351906
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_1P_edge_case",
+      "status": "PASS",
+      "steps": 1937,
+      "memory_holes": 591,
+      "builtins": {
+        "range_check96": 108,
+        "range_check": 106,
+        "mul_mod": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 215192
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P",
+      "status": "PASS",
+      "steps": 22808,
+      "memory_holes": 3190,
+      "builtins": {
+        "range_check96": 30093,
+        "add_mod": 3564,
+        "mul_mod": 3270,
+        "range_check": 1576
+      },
+      "snforge_l2_gas_approx": 48160000,
+      "weighted_sierra_gas": 6871128
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_11P",
+      "status": "PASS",
+      "steps": 349688,
+      "memory_holes": 292008,
+      "builtins": {
+        "range_check96": 213520,
+        "mul_mod": 23389,
+        "add_mod": 18433,
+        "range_check": 12249
+      },
+      "snforge_l2_gas_approx": 341640000,
+      "weighted_sierra_gas": 66149896
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P_edge_case",
+      "status": "PASS",
+      "steps": 46546,
+      "memory_holes": 28416,
+      "builtins": {
+        "range_check96": 25898,
+        "mul_mod": 2862,
+        "add_mod": 2123,
+        "range_check": 1445
+      },
+      "snforge_l2_gas_approx": 41440000,
+      "weighted_sierra_gas": 8422976
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_3P_edge_case",
+      "status": "PASS",
+      "steps": 10172,
+      "memory_holes": 1933,
+      "builtins": {
+        "range_check96": 10242,
+        "add_mod": 1201,
+        "mul_mod": 1111,
+        "range_check": 678
+      },
+      "snforge_l2_gas_approx": 16400000,
+      "weighted_sierra_gas": 2585486
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_4P",
+      "status": "PASS",
+      "steps": 30722,
+      "memory_holes": 3948,
+      "builtins": {
+        "range_check96": 40330,
+        "add_mod": 4766,
+        "mul_mod": 4380,
+        "range_check": 2099
+      },
+      "snforge_l2_gas_approx": 64560000,
+      "weighted_sierra_gas": 9219310
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_4P",
+      "status": "PASS",
+      "steps": 30779,
+      "memory_holes": 3904,
+      "builtins": {
+        "range_check96": 40380,
+        "add_mod": 4768,
+        "mul_mod": 4384,
+        "range_check": 2097
+      },
+      "snforge_l2_gas_approx": 64640000,
+      "weighted_sierra_gas": 9230546
+    },
+    {
+      "name": "garaga::apps::drand::tests::test_decrypt_at_round",
+      "status": "PASS",
+      "steps": 289977,
+      "memory_holes": 43928,
+      "builtins": {
+        "range_check96": 385790,
+        "add_mod": 57320,
+        "mul_mod": 28871,
+        "bitwise": 14506,
+        "range_check": 3899
+      },
+      "snforge_l2_gas_approx": 617280000,
+      "weighted_sierra_gas": 89953552
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_3P",
+      "status": "PASS",
+      "steps": 95570,
+      "memory_holes": 79782,
+      "builtins": {
+        "range_check96": 58174,
+        "mul_mod": 6373,
+        "add_mod": 5023,
+        "range_check": 3339
+      },
+      "snforge_l2_gas_approx": 93080000,
+      "weighted_sierra_gas": 18053056
+    },
+    {
+      "name": "garaga::tests::autogenerated::rsa_tests::test_rsa2048_tampered_limb_seed_0",
+      "status": "PASS",
+      "steps": 18588,
+      "memory_holes": 3714,
+      "builtins": {
+        "range_check96": 3469,
+        "range_check": 2067,
+        "mul_mod": 431,
+        "add_mod": 214
+      },
+      "snforge_l2_gas_approx": 5560000,
+      "weighted_sierra_gas": 2507298
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BN254",
+      "status": "PASS",
+      "steps": 19110,
+      "memory_holes": 49652,
+      "builtins": {
+        "range_check96": 14052,
+        "range_check": 1872,
+        "add_mod": 1632,
+        "mul_mod": 1427
+      },
+      "snforge_l2_gas_approx": 22520000,
+      "weighted_sierra_gas": 4066220
+    },
+    {
+      "name": "garaga::tests::autogenerated::rsa_tests::test_rsa2048_tampered_message_seed_0",
+      "status": "PASS",
+      "steps": 56374,
+      "memory_holes": 4023,
+      "builtins": {
+        "range_check96": 38159,
+        "mul_mod": 4741,
+        "add_mod": 2354,
+        "range_check": 2078
+      },
+      "snforge_l2_gas_approx": 61080000,
+      "weighted_sierra_gas": 11324748
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_11P",
+      "status": "PASS",
+      "steps": 105704,
+      "memory_holes": 269393,
+      "builtins": {
+        "range_check96": 78579,
+        "range_check": 10185,
+        "add_mod": 9066,
+        "mul_mod": 7968
+      },
+      "snforge_l2_gas_approx": 125760000,
+      "weighted_sierra_gas": 22581626
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_10P",
+      "status": "PASS",
+      "steps": 96081,
+      "memory_holes": 244941,
+      "builtins": {
+        "range_check96": 71415,
+        "range_check": 9261,
+        "add_mod": 8241,
+        "mul_mod": 7242
+      },
+      "snforge_l2_gas_approx": 114280000,
+      "weighted_sierra_gas": 20525208
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_ED25519",
+      "status": "PASS",
+      "steps": 21240,
+      "memory_holes": 3540,
+      "builtins": {
+        "range_check96": 22661,
+        "add_mod": 2549,
+        "mul_mod": 2469,
+        "range_check": 1137
+      },
+      "snforge_l2_gas_approx": 36280000,
+      "weighted_sierra_gas": 5550152
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_BLS12_381",
+      "status": "PASS",
+      "steps": 64127,
+      "memory_holes": 53367,
+      "builtins": {
+        "range_check96": 38822,
+        "mul_mod": 4253,
+        "add_mod": 3350,
+        "range_check": 2246
+      },
+      "snforge_l2_gas_approx": 62120000,
+      "weighted_sierra_gas": 12083264
+    },
+    {
+      "name": "garaga::tests::autogenerated::pairing_tests::test_BLS12_381_mpcheck_2P_2F",
+      "status": "PASS",
+      "steps": 45358,
+      "memory_holes": 305,
+      "builtins": {
+        "range_check96": 25250,
+        "mul_mod": 3340,
+        "add_mod": 1420,
+        "poseidon": 544,
+        "range_check": 308
+      },
+      "snforge_l2_gas_approx": 40400000,
+      "weighted_sierra_gas": 8582424
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_GRUMPKIN",
+      "status": "PASS",
+      "steps": 16034,
+      "memory_holes": 2040,
+      "builtins": {
+        "range_check96": 20273,
+        "add_mod": 2389,
+        "mul_mod": 2201,
+        "range_check": 1062
+      },
+      "snforge_l2_gas_approx": 32440000,
+      "weighted_sierra_gas": 4691902
+    },
+    {
+      "name": "garaga::tests::autogenerated::pairing_tests::test_BN254_mpcheck_2P_2F",
+      "status": "PASS",
+      "steps": 48044,
+      "memory_holes": 843,
+      "builtins": {
+        "range_check96": 33047,
+        "mul_mod": 4665,
+        "add_mod": 1731,
+        "poseidon": 460,
+        "range_check": 393
+      },
+      "snforge_l2_gas_approx": 52880000,
+      "weighted_sierra_gas": 10124192
+    },
+    {
+      "name": "garaga::tests::autogenerated::pairing_tests::test_BLS12_381_mpcheck_3P_2F_with_extra_miller_loop_result",
+      "status": "PASS",
+      "steps": 53413,
+      "memory_holes": 1399,
+      "builtins": {
+        "range_check96": 44885,
+        "mul_mod": 5791,
+        "add_mod": 3482,
+        "poseidon": 586,
+        "range_check": 356
+      },
+      "snforge_l2_gas_approx": 71840000,
+      "weighted_sierra_gas": 12466130
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_12P",
+      "status": "PASS",
+      "steps": 116126,
+      "memory_holes": 293343,
+      "builtins": {
+        "range_check96": 86077,
+        "range_check": 11109,
+        "add_mod": 9913,
+        "mul_mod": 8726
+      },
+      "snforge_l2_gas_approx": 137760000,
+      "weighted_sierra_gas": 24761036
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256R1",
+      "status": "PASS",
+      "steps": 16050,
+      "memory_holes": 2025,
+      "builtins": {
+        "range_check96": 20298,
+        "add_mod": 2390,
+        "mul_mod": 2203,
+        "range_check": 1064
+      },
+      "snforge_l2_gas_approx": 32480000,
+      "weighted_sierra_gas": 4696480
+    },
+    {
+      "name": "garaga::tests::autogenerated::rsa_tests::test_rsa2048_positive_seed_0",
+      "status": "PASS",
+      "steps": 56417,
+      "memory_holes": 4000,
+      "builtins": {
+        "range_check96": 38159,
+        "mul_mod": 4741,
+        "add_mod": 2354,
+        "range_check": 2078
+      },
+      "snforge_l2_gas_approx": 61080000,
+      "weighted_sierra_gas": 11329048
+    },
+    {
+      "name": "garaga::tests::autogenerated::rsa_tests::test_rsa2048_sha256_positive_seed_0",
+      "status": "PASS",
+      "steps": 59943,
+      "memory_holes": 4874,
+      "builtins": {
+        "range_check96": 38159,
+        "mul_mod": 4741,
+        "add_mod": 2354,
+        "range_check": 2288,
+        "bitwise": 1115
+      },
+      "snforge_l2_gas_approx": 61080000,
+      "weighted_sierra_gas": 12346393
+    },
+    {
+      "name": "garaga::tests::autogenerated::pairing_tests::test_BN254_mpcheck_3P_2F_with_extra_miller_loop_result",
+      "status": "PASS",
+      "steps": 59625,
+      "memory_holes": 1509,
+      "builtins": {
+        "range_check96": 59008,
+        "mul_mod": 7922,
+        "add_mod": 4469,
+        "poseidon": 509,
+        "range_check": 472
+      },
+      "snforge_l2_gas_approx": 94440000,
+      "weighted_sierra_gas": 15362665
+    },
+    {
+      "name": "garaga::tests::autogenerated::schnorr_tests::test_schnorr_SECP256K1",
+      "status": "PASS",
+      "steps": 19603,
+      "memory_holes": 49364,
+      "builtins": {
+        "range_check96": 14205,
+        "range_check": 1870,
+        "add_mod": 1641,
+        "mul_mod": 1441
+      },
+      "snforge_l2_gas_approx": 22760000,
+      "weighted_sierra_gas": 4134474
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_12P",
+      "status": "PASS",
+      "steps": 381550,
+      "memory_holes": 318474,
+      "builtins": {
+        "range_check96": 232980,
+        "mul_mod": 25520,
+        "add_mod": 20112,
+        "range_check": 13363
+      },
+      "snforge_l2_gas_approx": 372800000,
+      "weighted_sierra_gas": 72177130
+    },
+    {
+      "name": "garaga::tests::calldata_tests::test_deserialize_full_proof_with_hints_bls12_381",
+      "status": "PASS",
+      "steps": 22273,
+      "memory_holes": 1,
+      "builtins": {
+        "range_check": 4714
+      },
+      "snforge_l2_gas_approx": 7560000,
+      "weighted_sierra_gas": 2557280
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_bls_glv_rejects_torsion_input_even_scalar_one",
+      "status": "PASS",
+      "steps": 12290,
+      "memory_holes": 1103,
+      "builtins": {
+        "range_check96": 6338,
+        "mul_mod": 722,
+        "add_mod": 438,
+        "range_check": 140
+      },
+      "snforge_l2_gas_approx": 10160000,
+      "weighted_sierra_gas": 2130556
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_bls_glv_rejects_torsion_shifted_output",
+      "status": "PASS",
+      "steps": 24168,
+      "memory_holes": 2236,
+      "builtins": {
+        "range_check96": 12779,
+        "mul_mod": 1454,
+        "add_mod": 883,
+        "range_check": 215
+      },
+      "snforge_l2_gas_approx": 20480000,
+      "weighted_sierra_gas": 4228780
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_bls_rejects_offcurve_output_preimage",
+      "status": "PASS",
+      "steps": 12676,
+      "memory_holes": 1128,
+      "builtins": {
+        "range_check96": 6504,
+        "mul_mod": 740,
+        "add_mod": 448,
+        "range_check": 140
+      },
+      "snforge_l2_gas_approx": 10440000,
+      "weighted_sierra_gas": 2191624
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_final_exp_BN254",
+      "status": "PASS",
+      "steps": 120847,
+      "memory_holes": 3400,
+      "builtins": {
+        "range_check96": 207134,
+        "add_mod": 31372,
+        "mul_mod": 14955,
+        "range_check": 246
+      },
+      "snforge_l2_gas_approx": 331440000,
+      "weighted_sierra_gas": 39949804
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_final_exp_BLS12_381",
+      "status": "PASS",
+      "steps": 124104,
+      "memory_holes": 6977,
+      "builtins": {
+        "range_check96": 190906,
+        "add_mod": 31359,
+        "mul_mod": 11080,
+        "range_check": 367
+      },
+      "snforge_l2_gas_approx": 305480000,
+      "weighted_sierra_gas": 37031716
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_bls_glv_subgroup_scalar_edges",
+      "status": "PASS",
+      "steps": 26687,
+      "memory_holes": 3613,
+      "builtins": {
+        "range_check96": 12945,
+        "mul_mod": 1471,
+        "add_mod": 891,
+        "range_check": 343
+      },
+      "snforge_l2_gas_approx": 20720000,
+      "weighted_sierra_gas": 4511044
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_curve_0_rejects_noncanonical_output_x",
+      "status": "PASS",
+      "steps": 842,
+      "memory_holes": 200,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 29,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 108698
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_curve_0_rejects_noncanonical_output_y",
+      "status": "PASS",
+      "steps": 850,
+      "memory_holes": 196,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 29,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 109498
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_bls_preimage_with_torsion_clears_correctly",
+      "status": "PASS",
+      "steps": 33314,
+      "memory_holes": 26794,
+      "builtins": {
+        "range_check96": 19963,
+        "mul_mod": 2181,
+        "add_mod": 1710,
+        "range_check": 1092
+      },
+      "snforge_l2_gas_approx": 31960000,
+      "weighted_sierra_gas": 6236392
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_curve_3_rejects_noncanonical_output_x",
+      "status": "PASS",
+      "steps": 956,
+      "memory_holes": 111,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 30,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 120168
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_curve_3_rejects_noncanonical_output_y",
+      "status": "PASS",
+      "steps": 964,
+      "memory_holes": 107,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 30,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 120968
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_bls_rejects_offcurve_input_preimage",
+      "status": "PASS",
+      "steps": 1043,
+      "memory_holes": 119,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 65,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 131318
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_direct_bls_core_rejects_torsion_input",
+      "status": "PASS",
+      "steps": 645,
+      "memory_holes": 46,
+      "builtins": {
+        "range_check96": 277,
+        "mul_mod": 27,
+        "add_mod": 17,
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 480000,
+      "weighted_sierra_gas": 100440
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_curve_4_rejects_noncanonical_output_y",
+      "status": "PASS",
+      "steps": 927,
+      "memory_holes": 96,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 48,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 118528
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_pairing_BN254_1P",
+      "status": "PASS",
+      "steps": 171597,
+      "memory_holes": 4687,
+      "builtins": {
+        "range_check96": 346859,
+        "add_mod": 52435,
+        "mul_mod": 26809,
+        "range_check": 322
+      },
+      "snforge_l2_gas_approx": 555000000,
+      "weighted_sierra_gas": 64859030
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_curve_4_rejects_noncanonical_output_x",
+      "status": "PASS",
+      "steps": 919,
+      "memory_holes": 100,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 48,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 117728
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_even_denominator_cannot_hide_torsion",
+      "status": "PASS",
+      "steps": 3007,
+      "memory_holes": 1312,
+      "builtins": {
+        "range_check96": 877,
+        "mul_mod": 94,
+        "range_check": 71,
+        "add_mod": 57
+      },
+      "snforge_l2_gas_approx": 1440000,
+      "weighted_sierra_gas": 424668
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_direct_bls_core_rejects_torsion_output",
+      "status": "PASS",
+      "steps": 38036,
+      "memory_holes": 1688,
+      "builtins": {
+        "range_check96": 23084,
+        "mul_mod": 2644,
+        "add_mod": 1652,
+        "range_check": 261
+      },
+      "snforge_l2_gas_approx": 36960000,
+      "weighted_sierra_gas": 7091510
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_order_minus_one",
+      "status": "PASS",
+      "steps": 4049,
+      "memory_holes": 1487,
+      "builtins": {
+        "range_check96": 1431,
+        "mul_mod": 160,
+        "add_mod": 95,
+        "range_check": 82
+      },
+      "snforge_l2_gas_approx": 2320000,
+      "weighted_sierra_gas": 609266
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_offcurve_preimage",
+      "status": "PASS",
+      "steps": 2401,
+      "memory_holes": 787,
+      "builtins": {
+        "range_check96": 729,
+        "mul_mod": 81,
+        "range_check": 71,
+        "add_mod": 47
+      },
+      "snforge_l2_gas_approx": 1200000,
+      "weighted_sierra_gas": 345628
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_pure_torsion_scalars",
+      "status": "PASS",
+      "steps": 6606,
+      "memory_holes": 4957,
+      "builtins": {
+        "range_check96": 498,
+        "range_check": 326,
+        "mul_mod": 54,
+        "add_mod": 30
+      },
+      "snforge_l2_gas_approx": 1160000,
+      "weighted_sierra_gas": 750824
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_even_scalar",
+      "status": "PASS",
+      "steps": 9932,
+      "memory_holes": 2091,
+      "builtins": {
+        "range_check96": 10899,
+        "add_mod": 1244,
+        "mul_mod": 1186,
+        "range_check": 546
+      },
+      "snforge_l2_gas_approx": 17440000,
+      "weighted_sierra_gas": 2644228
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_wrong_preimage",
+      "status": "PASS",
+      "steps": 3170,
+      "memory_holes": 956,
+      "builtins": {
+        "range_check96": 1062,
+        "mul_mod": 117,
+        "range_check": 71,
+        "add_mod": 68
+      },
+      "snforge_l2_gas_approx": 1720000,
+      "weighted_sierra_gas": 467750
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_pairing_BLS12_381_1P",
+      "status": "PASS",
+      "steps": 166068,
+      "memory_holes": 9245,
+      "builtins": {
+        "range_check96": 306729,
+        "add_mod": 49637,
+        "mul_mod": 20004,
+        "range_check": 430
+      },
+      "snforge_l2_gas_approx": 490800000,
+      "weighted_sierra_gas": 57312650
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_torsion_shifted_output",
+      "status": "PASS",
+      "steps": 2346,
+      "memory_holes": 1141,
+      "builtins": {
+        "range_check96": 638,
+        "range_check": 71,
+        "mul_mod": 70,
+        "add_mod": 42
+      },
+      "snforge_l2_gas_approx": 1040000,
+      "weighted_sierra_gas": 327238
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_fake_glv_rejects_offcurve_output",
+      "status": "PASS",
+      "steps": 950,
+      "memory_holes": 112,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 30,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 119568
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_fake_glv_complete_fallback_rejects_wrong_output",
+      "status": "PASS",
+      "steps": 3097,
+      "memory_holes": 1330,
+      "builtins": {
+        "range_check96": 1235,
+        "add_mod": 118,
+        "mul_mod": 104,
+        "range_check": 68
+      },
+      "snforge_l2_gas_approx": 2000000,
+      "weighted_sierra_gas": 473576
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_odd_scalar",
+      "status": "PASS",
+      "steps": 5398,
+      "memory_holes": 2212,
+      "builtins": {
+        "range_check96": 1992,
+        "mul_mod": 188,
+        "add_mod": 167,
+        "range_check": 110
+      },
+      "snforge_l2_gas_approx": 3200000,
+      "weighted_sierra_gas": 811014
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_fake_glv_rejects_nonboolean_sign",
+      "status": "PASS",
+      "steps": 1413,
+      "memory_holes": 153,
+      "builtins": {
+        "range_check96": 302,
+        "range_check": 33,
+        "mul_mod": 32,
+        "add_mod": 18
+      },
+      "snforge_l2_gas_approx": 520000,
+      "weighted_sierra_gas": 183990
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_pairing_BLS12_381_3P",
+      "status": "PASS",
+      "steps": 249880,
+      "memory_holes": 13778,
+      "builtins": {
+        "range_check96": 538375,
+        "add_mod": 86193,
+        "mul_mod": 37852,
+        "range_check": 556
+      },
+      "snforge_l2_gas_approx": 861400000,
+      "weighted_sierra_gas": 97862918
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_fake_glv_rejects_zero_denominator",
+      "status": "PASS",
+      "steps": 1509,
+      "memory_holes": 159,
+      "builtins": {
+        "range_check96": 350,
+        "mul_mod": 38,
+        "range_check": 37,
+        "add_mod": 19
+      },
+      "snforge_l2_gas_approx": 560000,
+      "weighted_sierra_gas": 200412
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_nonboolean_sign",
+      "status": "PASS",
+      "steps": 1265,
+      "memory_holes": 256,
+      "builtins": {
+        "range_check96": 302,
+        "range_check": 32,
+        "mul_mod": 32,
+        "add_mod": 18
+      },
+      "snforge_l2_gas_approx": 520000,
+      "weighted_sierra_gas": 169120
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_pairing_BLS12_381_2P",
+      "status": "PASS",
+      "steps": 207891,
+      "memory_holes": 11511,
+      "builtins": {
+        "range_check96": 422552,
+        "add_mod": 67915,
+        "mul_mod": 28928,
+        "range_check": 493
+      },
+      "snforge_l2_gas_approx": 676120000,
+      "weighted_sierra_gas": 77579484
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_scalar_one_rejects_noncanonical_input",
+      "status": "PASS",
+      "steps": 554,
+      "memory_holes": 49,
+      "builtins": {
+        "range_check96": 83,
+        "range_check": 29,
+        "mul_mod": 9,
+        "add_mod": 5
+      },
+      "snforge_l2_gas_approx": 160000,
+      "weighted_sierra_gas": 68664
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_zero_denominator",
+      "status": "PASS",
+      "steps": 2214,
+      "memory_holes": 442,
+      "builtins": {
+        "range_check96": 640,
+        "mul_mod": 64,
+        "range_check": 41,
+        "add_mod": 32
+      },
+      "snforge_l2_gas_approx": 1040000,
+      "weighted_sierra_gas": 306126
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_u1",
+      "status": "PASS",
+      "steps": 76,
+      "memory_holes": 2,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 7810
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_pairing_BN254_2P",
+      "status": "PASS",
+      "steps": 222214,
+      "memory_holes": 5972,
+      "builtins": {
+        "range_check96": 486584,
+        "add_mod": 73498,
+        "mul_mod": 38663,
+        "range_check": 398
+      },
+      "snforge_l2_gas_approx": 778560000,
+      "weighted_sierra_gas": 89754956
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_offcurve_output",
+      "status": "PASS",
+      "steps": 837,
+      "memory_holes": 200,
+      "builtins": {
+        "range_check96": 166,
+        "range_check": 29,
+        "mul_mod": 18,
+        "add_mod": 10
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 108198
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_consume_65_bits",
+      "status": "PASS",
+      "steps": 1174,
+      "memory_holes": 0,
+      "builtins": {
+        "range_check": 68
+      },
+      "snforge_l2_gas_approx": 120000,
+      "weighted_sierra_gas": 122160
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_v1",
+      "status": "PASS",
+      "steps": 76,
+      "memory_holes": 2,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 7810
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_v2",
+      "status": "PASS",
+      "steps": 76,
+      "memory_holes": 2,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 7810
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_u2",
+      "status": "PASS",
+      "steps": 76,
+      "memory_holes": 2,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 7810
+    },
+    {
+      "name": "garaga::tests::sha512_tests::test_sha512_lorem_ipsum",
+      "status": "PASS",
+      "steps": 103289,
+      "memory_holes": 8544,
+      "builtins": {
+        "range_check": 18163,
+        "bitwise": 4904
+      },
+      "snforge_l2_gas_approx": 31400000,
+      "weighted_sierra_gas": 14459342
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_fake_glv_small_scalars_all_curves",
+      "status": "PASS",
+      "steps": 66087,
+      "memory_holes": 14000,
+      "builtins": {
+        "range_check96": 67317,
+        "add_mod": 7696,
+        "mul_mod": 7220,
+        "range_check": 3359
+      },
+      "snforge_l2_gas_approx": 107720000,
+      "weighted_sierra_gas": 16744542
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_public_double_and_add_8_nonzero_a",
+      "status": "PASS",
+      "steps": 1422,
+      "memory_holes": 117,
+      "builtins": {
+        "range_check96": 1724,
+        "add_mod": 192,
+        "mul_mod": 176,
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 2760000,
+      "weighted_sierra_gas": 389418
+    },
+    {
+      "name": "garaga::tests::sha512_tests::test_size_zero",
+      "status": "PASS",
+      "steps": 37724,
+      "memory_holes": 2848,
+      "builtins": {
+        "range_check": 6402,
+        "bitwise": 1640
+      },
+      "snforge_l2_gas_approx": 10520000,
+      "weighted_sierra_gas": 5176660
+    },
+    {
+      "name": "garaga::tests::sha512_tests::test_sha512_size_one",
+      "status": "PASS",
+      "steps": 37709,
+      "memory_holes": 2848,
+      "builtins": {
+        "range_check": 6401,
+        "bitwise": 1640
+      },
+      "snforge_l2_gas_approx": 10520000,
+      "weighted_sierra_gas": 5175090
+    },
+    {
+      "name": "garaga::tests_lib::test_builtins",
+      "status": "PASS",
+      "steps": 62,
+      "memory_holes": 0,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 6410
+    },
+    {
+      "name": "garaga::tests::autogenerated::tower_pairing_tests::test_tower_pairing_BN254_3P",
+      "status": "PASS",
+      "steps": 272993,
+      "memory_holes": 7258,
+      "builtins": {
+        "range_check96": 626309,
+        "add_mod": 94561,
+        "mul_mod": 50517,
+        "range_check": 474
+      },
+      "snforge_l2_gas_approx": 1002120000,
+      "weighted_sierra_gas": 114667082
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_all_coefficient_sign_patterns",
+      "status": "PASS",
+      "steps": 147184,
+      "memory_holes": 388867,
+      "builtins": {
+        "range_check96": 113269,
+        "range_check": 14483,
+        "add_mod": 13120,
+        "mul_mod": 11456
+      },
+      "snforge_l2_gas_approx": 181240000,
+      "weighted_sierra_gas": 32012298
+    },
+    {
+      "name": "garaga::tests_lib::test_circuit_failure",
+      "status": "PASS",
+      "steps": 168,
+      "memory_holes": 0,
+      "builtins": {
+        "range_check96": 23,
+        "range_check": 3,
+        "mul_mod": 2
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 19506
+    },
+    {
+      "name": "garaga::tests_lib::test_circuit_success",
+      "status": "PASS",
+      "steps": 249,
+      "memory_holes": 1,
+      "builtins": {
+        "range_check96": 40,
+        "mul_mod": 4,
+        "range_check": 3,
+        "add_mod": 2
+      },
+      "snforge_l2_gas_approx": 80000,
+      "weighted_sierra_gas": 30226
+    },
+    {
+      "name": "garaga::utils::neg_3::tests::test_scalar_to_epns",
+      "status": "PASS",
+      "steps": 6104,
+      "memory_holes": 191,
+      "builtins": {
+        "range_check": 928
+      },
+      "snforge_l2_gas_approx": 1520000,
+      "weighted_sierra_gas": 675360
+    },
+    {
+      "name": "garaga::tests_lib::test_fill_inputs_loop",
+      "status": "PASS",
+      "steps": 226,
+      "memory_holes": 0,
+      "builtins": {
+        "range_check96": 24,
+        "range_check": 6,
+        "mul_mod": 2,
+        "add_mod": 1
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 25802
+    },
+    {
+      "name": "garaga::utils::neg_3::tests::test_scalar_to_epns_single",
+      "status": "PASS",
+      "steps": 1941,
+      "memory_holes": 44,
+      "builtins": {
+        "range_check": 297
+      },
+      "snforge_l2_gas_approx": 480000,
+      "weighted_sierra_gas": 214890
+    },
+    {
+      "name": "garaga::tests::sp1_groth_16_tests::test_verify_sp1_groth16_proof_bn254",
+      "status": "PASS",
+      "steps": 123841,
+      "memory_holes": 50189,
+      "builtins": {
+        "range_check96": 73841,
+        "mul_mod": 9427,
+        "range_check": 8783,
+        "add_mod": 6156,
+        "bitwise": 2230,
+        "poseidon": 509
+      },
+      "snforge_l2_gas_approx": 118160000,
+      "weighted_sierra_gas": 25793803
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P_edge_case",
+      "status": "PASS",
+      "steps": 12533,
+      "memory_holes": 25406,
+      "builtins": {
+        "range_check96": 7433,
+        "range_check": 1082,
+        "add_mod": 842,
+        "mul_mod": 754
+      },
+      "snforge_l2_gas_approx": 11920000,
+      "weighted_sierra_gas": 2394364
+    },
+    {
+      "name": "garaga::tests_lib::test_u96",
+      "status": "PASS",
+      "steps": 59,
+      "memory_holes": 0,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 6110
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_small_scalars_all_curves",
+      "status": "PASS",
+      "steps": 159942,
+      "memory_holes": 230790,
+      "builtins": {
+        "range_check96": 102902,
+        "mul_mod": 10905,
+        "add_mod": 10077,
+        "range_check": 8702
+      },
+      "snforge_l2_gas_approx": 164680000,
+      "weighted_sierra_gas": 31270182
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P_edge_case",
+      "status": "PASS",
+      "steps": 5713,
+      "memory_holes": 2219,
+      "builtins": {
+        "range_check96": 1431,
+        "range_check": 243,
+        "mul_mod": 160,
+        "add_mod": 95
+      },
+      "snforge_l2_gas_approx": 2320000,
+      "weighted_sierra_gas": 786936
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P_edge_case",
+      "status": "PASS",
+      "steps": 1899,
+      "memory_holes": 610,
+      "builtins": {
+        "range_check96": 108,
+        "range_check": 106,
+        "mul_mod": 11,
+        "add_mod": 6
+      },
+      "snforge_l2_gas_approx": 280000,
+      "weighted_sierra_gas": 211392
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_2P",
+      "status": "PASS",
+      "steps": 20827,
+      "memory_holes": 3471,
+      "builtins": {
+        "range_check96": 22553,
+        "add_mod": 2543,
+        "mul_mod": 2458,
+        "range_check": 1128
+      },
+      "snforge_l2_gas_approx": 36120000,
+      "weighted_sierra_gas": 5494150
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P_edge_case",
+      "status": "PASS",
+      "steps": 15865,
+      "memory_holes": 3740,
+      "builtins": {
+        "range_check96": 12716,
+        "mul_mod": 1389,
+        "add_mod": 1367,
+        "range_check": 798
+      },
+      "snforge_l2_gas_approx": 20360000,
+      "weighted_sierra_gas": 3507822
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_3P",
+      "status": "PASS",
+      "steps": 32059,
+      "memory_holes": 5610,
+      "builtins": {
+        "range_check96": 34224,
+        "add_mod": 3841,
+        "mul_mod": 3729,
+        "range_check": 1708
+      },
+      "snforge_l2_gas_approx": 54760000,
+      "weighted_sierra_gas": 8377750
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_4P",
+      "status": "PASS",
+      "steps": 42038,
+      "memory_holes": 6809,
+      "builtins": {
+        "range_check96": 45448,
+        "add_mod": 5108,
+        "mul_mod": 4950,
+        "range_check": 2252
+      },
+      "snforge_l2_gas_approx": 72720000,
+      "weighted_sierra_gas": 11071168
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P",
+      "status": "PASS",
+      "steps": 28661,
+      "memory_holes": 73841,
+      "builtins": {
+        "range_check96": 21211,
+        "range_check": 2781,
+        "add_mod": 2458,
+        "mul_mod": 2152
+      },
+      "snforge_l2_gas_approx": 33960000,
+      "weighted_sierra_gas": 6113734
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_msm_rejects_truncated_coefficients_before_fallback",
+      "status": "PASS",
+      "steps": 2030,
+      "memory_holes": 443,
+      "builtins": {
+        "range_check96": 505,
+        "mul_mod": 50,
+        "range_check": 40,
+        "add_mod": 29
+      },
+      "snforge_l2_gas_approx": 840000,
+      "weighted_sierra_gas": 270950
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P_edge_case",
+      "status": "PASS",
+      "steps": 2757,
+      "memory_holes": 1058,
+      "builtins": {
+        "range_check96": 191,
+        "range_check": 154,
+        "mul_mod": 20,
+        "add_mod": 11
+      },
+      "snforge_l2_gas_approx": 400000,
+      "weighted_sierra_gas": 311786
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_3P_edge_case",
+      "status": "PASS",
+      "steps": 12111,
+      "memory_holes": 25683,
+      "builtins": {
+        "range_check96": 7227,
+        "range_check": 1078,
+        "add_mod": 828,
+        "mul_mod": 734
+      },
+      "snforge_l2_gas_approx": 11600000,
+      "weighted_sierra_gas": 2325048
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_3P",
+      "status": "PASS",
+      "steps": 28578,
+      "memory_holes": 73879,
+      "builtins": {
+        "range_check96": 21211,
+        "range_check": 2787,
+        "add_mod": 2458,
+        "mul_mod": 2152
+      },
+      "snforge_l2_gas_approx": 33960000,
+      "weighted_sierra_gas": 6105854
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_2P",
+      "status": "PASS",
+      "steps": 19533,
+      "memory_holes": 49069,
+      "builtins": {
+        "range_check96": 14278,
+        "range_check": 1861,
+        "add_mod": 1648,
+        "mul_mod": 1448
+      },
+      "snforge_l2_gas_approx": 22880000,
+      "weighted_sierra_gas": 4136770
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_16_32B",
+      "status": "PASS",
+      "steps": 59609,
+      "memory_holes": 6835,
+      "builtins": {
+        "range_check96": 23547,
+        "range_check": 7723,
+        "add_mod": 2601,
+        "mul_mod": 2578,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37680000,
+      "weighted_sierra_gas": 10940932
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_13_26B",
+      "status": "PASS",
+      "steps": 59730,
+      "memory_holes": 6677,
+      "builtins": {
+        "range_check96": 23650,
+        "range_check": 7707,
+        "add_mod": 2608,
+        "mul_mod": 2588,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37840000,
+      "weighted_sierra_gas": 10965330
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_14_28B",
+      "status": "PASS",
+      "steps": 60767,
+      "memory_holes": 6913,
+      "builtins": {
+        "range_check96": 24028,
+        "range_check": 7733,
+        "add_mod": 2634,
+        "mul_mod": 2628,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38480000,
+      "weighted_sierra_gas": 11122158
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_4P",
+      "status": "PASS",
+      "steps": 38212,
+      "memory_holes": 98307,
+      "builtins": {
+        "range_check96": 28403,
+        "range_check": 3719,
+        "add_mod": 3287,
+        "mul_mod": 2882
+      },
+      "snforge_l2_gas_approx": 45480000,
+      "weighted_sierra_gas": 8168836
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_15_30B",
+      "status": "PASS",
+      "steps": 59320,
+      "memory_holes": 6565,
+      "builtins": {
+        "range_check96": 23469,
+        "range_check": 7712,
+        "add_mod": 2595,
+        "mul_mod": 2570,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37560000,
+      "weighted_sierra_gas": 10900682
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_18_36B",
+      "status": "PASS",
+      "steps": 59193,
+      "memory_holes": 6283,
+      "builtins": {
+        "range_check96": 23375,
+        "range_check": 7719,
+        "add_mod": 2589,
+        "mul_mod": 2558,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37400000,
+      "weighted_sierra_gas": 10874580
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_4P",
+      "status": "PASS",
+      "steps": 38204,
+      "memory_holes": 98339,
+      "builtins": {
+        "range_check96": 28350,
+        "range_check": 3705,
+        "add_mod": 3282,
+        "mul_mod": 2876
+      },
+      "snforge_l2_gas_approx": 45360000,
+      "weighted_sierra_gas": 8159314
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_17_34B",
+      "status": "PASS",
+      "steps": 59907,
+      "memory_holes": 6671,
+      "builtins": {
+        "range_check96": 23650,
+        "range_check": 7733,
+        "add_mod": 2608,
+        "mul_mod": 2588,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37840000,
+      "weighted_sierra_gas": 10984850
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_5_10B",
+      "status": "PASS",
+      "steps": 58910,
+      "memory_holes": 6550,
+      "builtins": {
+        "range_check96": 23461,
+        "range_check": 7652,
+        "add_mod": 2595,
+        "mul_mod": 2568,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37560000,
+      "weighted_sierra_gas": 10853826
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_4_8B",
+      "status": "PASS",
+      "steps": 60017,
+      "memory_holes": 6694,
+      "builtins": {
+        "range_check96": 23889,
+        "range_check": 7660,
+        "add_mod": 2623,
+        "mul_mod": 2612,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38240000,
+      "weighted_sierra_gas": 11022070
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_11P",
+      "status": "PASS",
+      "steps": 104508,
+      "memory_holes": 270111,
+      "builtins": {
+        "range_check96": 78192,
+        "range_check": 10189,
+        "add_mod": 9039,
+        "mul_mod": 7930
+      },
+      "snforge_l2_gas_approx": 125120000,
+      "weighted_sierra_gas": 22411472
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_32_64B",
+      "status": "PASS",
+      "steps": 95232,
+      "memory_holes": 9398,
+      "builtins": {
+        "range_check96": 23461,
+        "range_check": 13855,
+        "bitwise": 3288,
+        "add_mod": 2595,
+        "mul_mod": 2568
+      },
+      "snforge_l2_gas_approx": 37560000,
+      "weighted_sierra_gas": 15871692
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_11P",
+      "status": "PASS",
+      "steps": 116908,
+      "memory_holes": 18949,
+      "builtins": {
+        "range_check96": 125921,
+        "add_mod": 14114,
+        "mul_mod": 13713,
+        "range_check": 6208
+      },
+      "snforge_l2_gas_approx": 201480000,
+      "weighted_sierra_gas": 30705808
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_31_62B",
+      "status": "PASS",
+      "steps": 96248,
+      "memory_holes": 9598,
+      "builtins": {
+        "range_check96": 23864,
+        "range_check": 13863,
+        "bitwise": 3288,
+        "add_mod": 2622,
+        "mul_mod": 2610
+      },
+      "snforge_l2_gas_approx": 38200000,
+      "weighted_sierra_gas": 16027998
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_10P",
+      "status": "PASS",
+      "steps": 105771,
+      "memory_holes": 17186,
+      "builtins": {
+        "range_check96": 114258,
+        "add_mod": 12816,
+        "mul_mod": 12444,
+        "range_check": 5635
+      },
+      "snforge_l2_gas_approx": 182840000,
+      "weighted_sierra_gas": 27833854
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256K1",
+      "status": "PASS",
+      "steps": 20115,
+      "memory_holes": 49261,
+      "builtins": {
+        "range_check96": 14375,
+        "range_check": 1878,
+        "add_mod": 1648,
+        "mul_mod": 1459
+      },
+      "snforge_l2_gas_approx": 23000000,
+      "weighted_sierra_gas": 4208236
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_10P",
+      "status": "PASS",
+      "steps": 94852,
+      "memory_holes": 245679,
+      "builtins": {
+        "range_check96": 71003,
+        "range_check": 9269,
+        "add_mod": 8213,
+        "mul_mod": 7202
+      },
+      "snforge_l2_gas_approx": 113640000,
+      "weighted_sierra_gas": 20349196
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_3_6B",
+      "status": "PASS",
+      "steps": 60043,
+      "memory_holes": 6646,
+      "builtins": {
+        "range_check96": 23942,
+        "range_check": 7656,
+        "add_mod": 2628,
+        "mul_mod": 2618,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38320000,
+      "weighted_sierra_gas": 11032132
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_12P",
+      "status": "PASS",
+      "steps": 91529,
+      "memory_holes": 11604,
+      "builtins": {
+        "range_check96": 121143,
+        "add_mod": 14307,
+        "mul_mod": 13154,
+        "range_check": 6273
+      },
+      "snforge_l2_gas_approx": 193840000,
+      "weighted_sierra_gas": 27611644
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_12P",
+      "status": "PASS",
+      "steps": 127114,
+      "memory_holes": 20874,
+      "builtins": {
+        "range_check96": 137250,
+        "add_mod": 15390,
+        "mul_mod": 14950,
+        "range_check": 6770
+      },
+      "snforge_l2_gas_approx": 219600000,
+      "weighted_sierra_gas": 33440800
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_ED25519",
+      "status": "PASS",
+      "steps": 21650,
+      "memory_holes": 3506,
+      "builtins": {
+        "range_check96": 22814,
+        "add_mod": 2555,
+        "mul_mod": 2487,
+        "range_check": 1145
+      },
+      "snforge_l2_gas_approx": 36520000,
+      "weighted_sierra_gas": 5612532
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_19_38B",
+      "status": "PASS",
+      "steps": 60969,
+      "memory_holes": 6919,
+      "builtins": {
+        "range_check96": 24028,
+        "range_check": 7761,
+        "add_mod": 2634,
+        "mul_mod": 2628,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38480000,
+      "weighted_sierra_gas": 11144318
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BN254",
+      "status": "PASS",
+      "steps": 20241,
+      "memory_holes": 49164,
+      "builtins": {
+        "range_check96": 14478,
+        "range_check": 1876,
+        "add_mod": 1655,
+        "mul_mod": 1469
+      },
+      "snforge_l2_gas_approx": 23200000,
+      "weighted_sierra_gas": 4234114
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_10P",
+      "status": "PASS",
+      "steps": 76349,
+      "memory_holes": 9675,
+      "builtins": {
+        "range_check96": 100953,
+        "add_mod": 11923,
+        "mul_mod": 10962,
+        "range_check": 5231
+      },
+      "snforge_l2_gas_approx": 161560000,
+      "weighted_sierra_gas": 23017776
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_GRUMPKIN",
+      "status": "PASS",
+      "steps": 16057,
+      "memory_holes": 2247,
+      "builtins": {
+        "range_check96": 20237,
+        "add_mod": 2382,
+        "mul_mod": 2199,
+        "range_check": 1068
+      },
+      "snforge_l2_gas_approx": 32400000,
+      "weighted_sierra_gas": 4689788
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_8_16B",
+      "status": "PASS",
+      "steps": 59768,
+      "memory_holes": 6519,
+      "builtins": {
+        "range_check96": 23753,
+        "range_check": 7679,
+        "add_mod": 2615,
+        "mul_mod": 2598,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38040000,
+      "weighted_sierra_gas": 10980588
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_BLS12_381",
+      "status": "PASS",
+      "steps": 64602,
+      "memory_holes": 53284,
+      "builtins": {
+        "range_check96": 38992,
+        "mul_mod": 4271,
+        "add_mod": 3357,
+        "range_check": 2248
+      },
+      "snforge_l2_gas_approx": 62400000,
+      "weighted_sierra_gas": 12152906
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P",
+      "status": "PASS",
+      "steps": 10428,
+      "memory_holes": 2108,
+      "builtins": {
+        "range_check96": 11165,
+        "add_mod": 1264,
+        "mul_mod": 1219,
+        "range_check": 571
+      },
+      "snforge_l2_gas_approx": 17880000,
+      "weighted_sierra_gas": 2735006
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_1P",
+      "status": "PASS",
+      "steps": 7700,
+      "memory_holes": 1218,
+      "builtins": {
+        "range_check96": 9928,
+        "add_mod": 1181,
+        "mul_mod": 1080,
+        "range_check": 530
+      },
+      "snforge_l2_gas_approx": 15920000,
+      "weighted_sierra_gas": 2287018
+    },
+    {
+      "name": "garaga::tests::autogenerated::ecdsa_tests::test_ecdsa_SECP256R1",
+      "status": "PASS",
+      "steps": 15991,
+      "memory_holes": 2280,
+      "builtins": {
+        "range_check96": 20237,
+        "add_mod": 2382,
+        "mul_mod": 2199,
+        "range_check": 1072
+      },
+      "snforge_l2_gas_approx": 32400000,
+      "weighted_sierra_gas": 4683468
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_0_0B",
+      "status": "PASS",
+      "steps": 60261,
+      "memory_holes": 6864,
+      "builtins": {
+        "range_check96": 24053,
+        "range_check": 7647,
+        "add_mod": 2635,
+        "mul_mod": 2630,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38520000,
+      "weighted_sierra_gas": 11068376
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_GRUMPKIN_11P",
+      "status": "PASS",
+      "steps": 83783,
+      "memory_holes": 10737,
+      "builtins": {
+        "range_check96": 110984,
+        "add_mod": 13111,
+        "mul_mod": 12052,
+        "range_check": 5754
+      },
+      "snforge_l2_gas_approx": 177600000,
+      "weighted_sierra_gas": 25291122
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_7_14B",
+      "status": "PASS",
+      "steps": 60554,
+      "memory_holes": 6864,
+      "builtins": {
+        "range_check96": 24053,
+        "range_check": 7689,
+        "add_mod": 2635,
+        "mul_mod": 2630,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38520000,
+      "weighted_sierra_gas": 11100616
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_10_20B",
+      "status": "PASS",
+      "steps": 59355,
+      "memory_holes": 6835,
+      "builtins": {
+        "range_check96": 23547,
+        "range_check": 7687,
+        "add_mod": 2601,
+        "mul_mod": 2578,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37680000,
+      "weighted_sierra_gas": 10913012
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_20_40B",
+      "status": "PASS",
+      "steps": 60100,
+      "memory_holes": 6197,
+      "builtins": {
+        "range_check96": 23692,
+        "range_check": 7740,
+        "add_mod": 2610,
+        "mul_mod": 2590,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37920000,
+      "weighted_sierra_gas": 11008660
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_12P",
+      "status": "PASS",
+      "steps": 114771,
+      "memory_holes": 294149,
+      "builtins": {
+        "range_check96": 85640,
+        "range_check": 11119,
+        "add_mod": 9884,
+        "mul_mod": 8684
+      },
+      "snforge_l2_gas_approx": 137040000,
+      "weighted_sierra_gas": 24569726
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_22_44B",
+      "status": "PASS",
+      "steps": 60611,
+      "memory_holes": 6792,
+      "builtins": {
+        "range_check96": 23839,
+        "range_check": 7772,
+        "add_mod": 2621,
+        "mul_mod": 2608,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38160000,
+      "weighted_sierra_gas": 11083634
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_9_18B",
+      "status": "PASS",
+      "steps": 59802,
+      "memory_holes": 6525,
+      "builtins": {
+        "range_check96": 23753,
+        "range_check": 7683,
+        "add_mod": 2615,
+        "mul_mod": 2598,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38040000,
+      "weighted_sierra_gas": 10984268
+    },
+    {
+      "name": "garaga::crypto::mmr::tests::test_trailing_ones",
+      "status": "PASS",
+      "steps": 345,
+      "memory_holes": 16,
+      "builtins": {
+        "range_check": 33
+      },
+      "snforge_l2_gas_approx": 80000,
+      "weighted_sierra_gas": 36810
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_24_48B",
+      "status": "PASS",
+      "steps": 96112,
+      "memory_holes": 9495,
+      "builtins": {
+        "range_check96": 23942,
+        "range_check": 13823,
+        "bitwise": 3288,
+        "add_mod": 2628,
+        "mul_mod": 2618
+      },
+      "snforge_l2_gas_approx": 38320000,
+      "weighted_sierra_gas": 16022178
+    },
+    {
+      "name": "garaga::hashes::poseidon_bn254::tests::test_run_poseidon_grumpkin_circuit_2",
+      "status": "PASS",
+      "steps": 9915,
+      "memory_holes": 2,
+      "builtins": {
+        "range_check96": 6393,
+        "mul_mod": 919,
+        "add_mod": 353,
+        "range_check": 327
+      },
+      "snforge_l2_gas_approx": 10240000,
+      "weighted_sierra_gas": 2008664
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256R1_10P",
+      "status": "PASS",
+      "steps": 76282,
+      "memory_holes": 9685,
+      "builtins": {
+        "range_check96": 101003,
+        "add_mod": 11925,
+        "mul_mod": 10966,
+        "range_check": 5235
+      },
+      "snforge_l2_gas_approx": 161640000,
+      "weighted_sierra_gas": 23017032
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_23_46B",
+      "status": "PASS",
+      "steps": 60398,
+      "memory_holes": 6519,
+      "builtins": {
+        "range_check96": 23753,
+        "range_check": 7769,
+        "add_mod": 2615,
+        "mul_mod": 2598,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38040000,
+      "weighted_sierra_gas": 11049888
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_21_42B",
+      "status": "PASS",
+      "steps": 59794,
+      "memory_holes": 6425,
+      "builtins": {
+        "range_check96": 23572,
+        "range_check": 7744,
+        "add_mod": 2602,
+        "mul_mod": 2580,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37720000,
+      "weighted_sierra_gas": 10963740
+    },
+    {
+      "name": "garaga::apps::sp1::tests::test_convert_u32_to_u128",
+      "status": "PASS",
+      "steps": 58,
+      "memory_holes": 0,
+      "builtins": {
+        "range_check": 3
+      },
+      "snforge_l2_gas_approx": 40000,
+      "weighted_sierra_gas": 6010
+    },
+    {
+      "name": "garaga::ec::ec_ops_g2::tests::test_ec_mul_g2",
+      "status": "PASS",
+      "steps": 104697,
+      "memory_holes": 33565,
+      "builtins": {
+        "range_check96": 87664,
+        "mul_mod": 9755,
+        "add_mod": 8551,
+        "range_check": 1054
+      },
+      "snforge_l2_gas_approx": 140280000,
+      "weighted_sierra_gas": 23311414
+    },
+    {
+      "name": "garaga::hashes::poseidon_bn254::tests::test_run_poseidon_grumpkin_circuit_1",
+      "status": "PASS",
+      "steps": 9916,
+      "memory_holes": 2,
+      "builtins": {
+        "range_check96": 6393,
+        "mul_mod": 919,
+        "add_mod": 353,
+        "range_check": 327
+      },
+      "snforge_l2_gas_approx": 10240000,
+      "weighted_sierra_gas": 2008764
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_12_24B",
+      "status": "PASS",
+      "steps": 59942,
+      "memory_holes": 6950,
+      "builtins": {
+        "range_check96": 23736,
+        "range_check": 7710,
+        "add_mod": 2614,
+        "mul_mod": 2598,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 38000000,
+      "weighted_sierra_gas": 10998976
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_27_54B",
+      "status": "PASS",
+      "steps": 96254,
+      "memory_holes": 9920,
+      "builtins": {
+        "range_check96": 23925,
+        "range_check": 13850,
+        "bitwise": 3288,
+        "add_mod": 2627,
+        "mul_mod": 2618
+      },
+      "snforge_l2_gas_approx": 38280000,
+      "weighted_sierra_gas": 16037086
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_ED25519_1P_edge_case",
+      "status": "PASS",
+      "steps": 5069,
+      "memory_holes": 1878,
+      "builtins": {
+        "range_check96": 1431,
+        "range_check": 176,
+        "mul_mod": 160,
+        "add_mod": 95
+      },
+      "snforge_l2_gas_approx": 2320000,
+      "weighted_sierra_gas": 717846
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_26_52B",
+      "status": "PASS",
+      "steps": 95479,
+      "memory_holes": 9951,
+      "builtins": {
+        "range_check96": 23633,
+        "range_check": 13835,
+        "bitwise": 3288,
+        "add_mod": 2607,
+        "mul_mod": 2588
+      },
+      "snforge_l2_gas_approx": 37840000,
+      "weighted_sierra_gas": 15919464
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_25_50B",
+      "status": "PASS",
+      "steps": 95915,
+      "memory_holes": 9647,
+      "builtins": {
+        "range_check96": 23839,
+        "range_check": 13829,
+        "bitwise": 3288,
+        "add_mod": 2621,
+        "mul_mod": 2608
+      },
+      "snforge_l2_gas_approx": 38160000,
+      "weighted_sierra_gas": 15989480
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_SECP256K1_2P_edge_case",
+      "status": "PASS",
+      "steps": 2807,
+      "memory_holes": 1033,
+      "builtins": {
+        "range_check96": 191,
+        "range_check": 154,
+        "mul_mod": 20,
+        "add_mod": 11
+      },
+      "snforge_l2_gas_approx": 400000,
+      "weighted_sierra_gas": 316786
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_28_56B",
+      "status": "PASS",
+      "steps": 96295,
+      "memory_holes": 9920,
+      "builtins": {
+        "range_check96": 23925,
+        "range_check": 13856,
+        "bitwise": 3288,
+        "add_mod": 2627,
+        "mul_mod": 2618
+      },
+      "snforge_l2_gas_approx": 38280000,
+      "weighted_sierra_gas": 16041606
+    },
+    {
+      "name": "garaga::apps::risc0::risc0_utils_tests::test_receipt_claim",
+      "status": "PASS",
+      "steps": 11057,
+      "memory_holes": 44,
+      "builtins": {
+        "bitwise": 5591,
+        "range_check": 431
+      },
+      "snforge_l2_gas_approx": 35800000,
+      "weighted_sierra_gas": 4395423
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_30_60B",
+      "status": "PASS",
+      "steps": 95047,
+      "memory_holes": 9469,
+      "builtins": {
+        "range_check96": 23444,
+        "range_check": 13843,
+        "bitwise": 3288,
+        "add_mod": 2594,
+        "mul_mod": 2568
+      },
+      "snforge_l2_gas_approx": 37520000,
+      "weighted_sierra_gas": 15851170
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_1_2B",
+      "status": "PASS",
+      "steps": 58881,
+      "memory_holes": 6468,
+      "builtins": {
+        "range_check96": 23547,
+        "range_check": 7628,
+        "add_mod": 2601,
+        "mul_mod": 2578,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37680000,
+      "weighted_sierra_gas": 10861482
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BN254_1P",
+      "status": "PASS",
+      "steps": 9589,
+      "memory_holes": 24833,
+      "builtins": {
+        "range_check96": 6958,
+        "range_check": 931,
+        "add_mod": 811,
+        "mul_mod": 706
+      },
+      "snforge_l2_gas_approx": 11160000,
+      "weighted_sierra_gas": 2026672
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_29_58B",
+      "status": "PASS",
+      "steps": 95605,
+      "memory_holes": 9951,
+      "builtins": {
+        "range_check96": 23633,
+        "range_check": 13853,
+        "bitwise": 3288,
+        "add_mod": 2607,
+        "mul_mod": 2588
+      },
+      "snforge_l2_gas_approx": 37840000,
+      "weighted_sierra_gas": 15933324
+    },
+    {
+      "name": "garaga::tests::scalar_mul_soundness_tests::test_glv_complete_fallback_rejects_wrong_output",
+      "status": "PASS",
+      "steps": 3420,
+      "memory_holes": 1780,
+      "builtins": {
+        "range_check96": 1315,
+        "add_mod": 115,
+        "mul_mod": 87,
+        "range_check": 74
+      },
+      "snforge_l2_gas_approx": 2120000,
+      "weighted_sierra_gas": 499818
+    },
+    {
+      "name": "garaga::tests::autogenerated::eddsa_tests::test_eddsa_6_12B",
+      "status": "PASS",
+      "steps": 59019,
+      "memory_holes": 6076,
+      "builtins": {
+        "range_check96": 23503,
+        "range_check": 7647,
+        "add_mod": 2597,
+        "mul_mod": 2570,
+        "bitwise": 1656
+      },
+      "snforge_l2_gas_approx": 37640000,
+      "weighted_sierra_gas": 10868396
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_4P",
+      "status": "PASS",
+      "steps": 126748,
+      "memory_holes": 106689,
+      "builtins": {
+        "range_check96": 77325,
+        "mul_mod": 8474,
+        "add_mod": 6681,
+        "range_check": 4455
+      },
+      "snforge_l2_gas_approx": 123720000,
+      "weighted_sierra_gas": 23971776
+    },
+    {
+      "name": "garaga::tests::autogenerated::msm_tests::test_msm_BLS12_381_10P",
+      "status": "PASS",
+      "steps": 317248,
+      "memory_holes": 265906,
+      "builtins": {
+        "range_check96": 193804,
+        "mul_mod": 21234,
+        "add_mod": 16738,
+        "range_check": 11143
+      },
+      "snforge_l2_gas_approx": 310120000,
+      "weighted_sierra_gas": 60032910
+    },
+    {
+      "name": "groth16_example_bn254_integrationtest::test_contract::test_verify_groth16_proof_bn254",
+      "status": "PASS",
+      "steps": 234268,
+      "memory_holes": 118291,
+      "builtins": {
+        "range_check96": 66574,
+        "range_check": 9689,
+        "mul_mod": 8691,
+        "add_mod": 5324,
+        "poseidon": 509
+      },
+      "snforge_l2_gas_approx": 106520000,
+      "weighted_sierra_gas": 34556977
+    },
+    {
+      "name": "groth16_example_bls12_381_integrationtest::test_contract::test_verify_groth16_proof_bls12_381",
+      "status": "PASS",
+      "steps": 392575,
+      "memory_holes": 180734,
+      "builtins": {
+        "range_check96": 102001,
+        "mul_mod": 12210,
+        "range_check": 11110,
+        "add_mod": 8283,
+        "poseidon": 586
+      },
+      "snforge_l2_gas_approx": 163240000,
+      "weighted_sierra_gas": 55314912
+    },
+    {
+      "name": "noir_ultra_keccak_zk_honk_example_integrationtest::test_contract::test_verify_ultra_keccak_zk_honk_proof",
+      "status": "PASS",
+      "steps": 1283872,
+      "memory_holes": 5666905,
+      "builtins": {
+        "range_check96": 429642,
+        "range_check": 66168,
+        "add_mod": 46608,
+        "mul_mod": 45615,
+        "bitwise": 2654,
+        "poseidon": 461,
+        "keccak": 73
+      },
+      "snforge_l2_gas_approx": 695080000,
+      "weighted_sierra_gas": 207065642
+    },
+    {
+      "name": "risc0_verifier_bn254_integrationtest::test_contract::test_verify_r0_groth16_proof_bn254",
+      "status": "PASS",
+      "steps": 273560,
+      "memory_holes": 230472,
+      "builtins": {
+        "range_check96": 73429,
+        "range_check": 11686,
+        "mul_mod": 9387,
+        "bitwise": 6698,
+        "add_mod": 6128,
+        "poseidon": 509
+      },
+      "snforge_l2_gas_approx": 117520000,
+      "weighted_sierra_gas": 43520085
+    },
+    {
+      "name": "sp1_verifier_bn254_integrationtest::test_contract::test_verify_sp1_groth16_proof_bn254",
+      "status": "PASS",
+      "steps": 258859,
+      "memory_holes": 224984,
+      "builtins": {
+        "range_check96": 73713,
+        "range_check": 10927,
+        "mul_mod": 9415,
+        "add_mod": 6148,
+        "bitwise": 2230,
+        "poseidon": 509
+      },
+      "snforge_l2_gas_approx": 117960000,
+      "weighted_sierra_gas": 39429427
+    }
+  ],
+  "commands": {
+    "msm": "snforge test -p garaga test_msm_ --include-ignored --detailed-resources --tracked-resource cairo-steps --color never",
+    "ecdsa": "snforge test -p garaga test_ecdsa_ --include-ignored --detailed-resources --tracked-resource cairo-steps --color never",
+    "schnorr": "snforge test -p garaga test_schnorr_ --include-ignored --detailed-resources --tracked-resource cairo-steps --color never",
+    "subgroup": "snforge test -p garaga test_drand_quicknet_public_key --include-ignored --detailed-resources --tracked-resource cairo-steps --color never",
+    "ec_mul_g2": "snforge test -p garaga test_ec_mul_g2 --include-ignored --detailed-resources --tracked-resource cairo-steps --color never"
+  },
+  "after_library_command": "snforge test -p garaga --include-ignored --detailed-resources --tracked-resource cairo-steps --color never",
+  "after_contract_command": "snforge test --detailed-resources --tracked-resource cairo-steps --color never"
+}

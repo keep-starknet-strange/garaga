@@ -294,7 +294,7 @@ The [release class hashes](./) identify earlier declared builds, not this source
 use core::starknet::ClassHash;
 
 pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-    0x1eb1a211b378d4f146ea7e3669eeeee9c568b2d1b0afdfa9ab9a9ed32295526;
+    0x415bfcd5ea10e52ac4fbba0c17fa7565a7627d50a4934722c734963a3e94142;
 ```
 
 The contract state which stores the current lower bound which gets updated whenever a new Fibonacci number is submitted

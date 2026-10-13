@@ -108,15 +108,15 @@ pub const BN254: Curve = Curve {
     nG_glv_fake_glv: Some(
         G1Point {
             x: u384 {
-                limb0: 0x804f4c2700adf08a0214e529,
-                limb1: 0xa68b293da254e1b0049b5825,
-                limb2: 0x2715e750e68b52fa,
+                limb0: 0xb44ae5aae162e83c9fe86928,
+                limb1: 0x5fea6125056e6d52c4b01de7,
+                limb2: 0x457cafda1576b6f,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x15c090b1de77447950003fc9,
-                limb1: 0xfb5afe510e7c4e23f41e4bad,
-                limb2: 0x3921d1862445f32,
+                limb0: 0x7485a1d78a3d158e529aaabc,
+                limb1: 0x4c4645d8b108abfb95fdb1c8,
+                limb2: 0x16471c8dad2cb3ea,
                 limb3: 0x0,
             },
         },
@@ -187,16 +187,16 @@ pub const BLS12_381: Curve = Curve {
     nG_glv_fake_glv: Some(
         G1Point {
             x: u384 {
-                limb0: 0xcf4357bd59d6560f96d34480,
-                limb1: 0x1c2b3f4bb7a8579e7473612d,
-                limb2: 0x44f04a3ee426074a0864fc6e,
-                limb3: 0x60aa1307100d28a9c44cc51,
+                limb0: 0x687325506111f54e8c78162c,
+                limb1: 0xfd253ec4d3fbe3b3d10f142e,
+                limb2: 0xfc894c8437bd537efb294e79,
+                limb3: 0x14857e17b2a0eaa5aa6e4f7,
             },
             y: u384 {
-                limb0: 0x365913fecd5eb4667fe5e1ea,
-                limb1: 0xa456de882c324863cdfcf5b5,
-                limb2: 0xbaaa2be88ae9a807b36465b8,
-                limb3: 0x31152c621ab7ca0e5a2ab1c,
+                limb0: 0xd599922405aac7e07fa2432e,
+                limb1: 0x529cf1e00e8b2efb95b5546b,
+                limb2: 0x5815f5283a411dbd44972ec4,
+                limb3: 0x7604ca8889836e156c56b0,
             },
         },
     ),
@@ -263,15 +263,15 @@ pub const SECP256K1: Curve = Curve {
     nG_glv_fake_glv: Some(
         G1Point {
             x: u384 {
-                limb0: 0xf668832ffd959af60c82a0a,
-                limb1: 0x6b06c9f1919413b10f9226c6,
-                limb2: 0x948bf809b1988a4,
+                limb0: 0xdb0f5e5313b7e0e742d0e6bd,
+                limb1: 0x82a2147c104d6ecbf774d163,
+                limb2: 0x3322d401243c4e25,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0xc97cd2bed4cb7f88d8c8e589,
-                limb1: 0xdc6b74c5d1c3418c6d4dff08,
-                limb2: 0x53a562856dcb6646,
+                limb0: 0xa2873af624f3a2e96c28b2a0,
+                limb1: 0xbfb019bc4ddaf9b72805f63e,
+                limb2: 0x56e70797e9664ef5,
                 limb3: 0x0,
             },
         },
@@ -813,7 +813,7 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
 /// This precomputed value is used to accelerate scalar multiplication via
 /// GLV (Gallant-Lambert-Vanstone) or fake-GLV decomposition techniques.
 ///
-/// The nbits parameter is computed as: nbits = n.bit_length() // 4 + 9
+/// The nbits parameter is computed as: nbits = (n.bit_length() + 3) // 4 + 1
 /// where n is the curve order.
 ///
 /// # Arguments
@@ -821,9 +821,9 @@ pub fn get_eigenvalue(curve_index: usize) -> u384 {
 ///
 /// # Returns
 /// * The point 2^(nbits-1)·G as G1Point
-///   - For BN254: 2^72·G (nbits=73)
-///   - For BLS12_381: 2^72·G (nbits=73)
-///   - For SECP256K1: 2^72·G (nbits=73)
+///   - For BN254: 2^64·G (nbits=65)
+///   - For BLS12_381: 2^64·G (nbits=65)
+///   - For SECP256K1: 2^64·G (nbits=65)
 ///
 /// # Panics
 /// * Panics for curves without efficient endomorphism (not BN254, BLS12_381, or SECP256K1)

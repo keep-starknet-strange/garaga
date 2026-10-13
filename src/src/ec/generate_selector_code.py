@@ -6,8 +6,7 @@ import textwrap
 
 # Header content including necessary imports, constants, and impls
 CAIRO_HEADER = """\
-use core::internal::bounded_int;
-use core::internal::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, upcast};
+use corelib_imports::bounded_int::{AddHelper, BoundedInt, DivRemHelper, MulHelper, UnitInt, bounded_int, upcast};
 
 const TWO: felt252 = 2;
 const TWO_UI: UnitInt<TWO> = 2;
@@ -175,8 +174,10 @@ def generate_build_selectors_inlined(n_bits: int) -> str:
 
     code.extend(
         [
-            f"    let (_, _, _, _, selector_{n_bits - 2}) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);",
+            f"    let (u1, u2, v1, v2, selector_{n_bits - 2}) = _extract_and_calculate_selector_bit_inlined(u1, u2, v1, v2);",
             f"    selectors.append(upcast(selector_{n_bits - 2}));",
+            "    // Every coefficient bit must reach the accumulator.",
+            "    assert(u1 == 0 && u2 == 0 && v1 == 0 && v2 == 0, 'GLV coefficient out of range');",
         ]
     )
 
@@ -300,7 +301,9 @@ def generate_double_and_add_n(n_points: int) -> str:
 
     # Function signature
     q_params = [f"q{i}: G1Point" for i in range(n_points)]
-    signature = f"pub fn {func_name}(p: G1Point, {', '.join(q_params)}, modulus: CircuitModulus) -> G1Point {{"
+    params = f"p: G1Point, {', '.join(q_params)}, modulus: CircuitModulus"
+    arguments = ", ".join(["p", *[f"q{i}" for i in range(n_points)], "modulus"])
+    signature = f"fn try_{func_name}({params}) -> Option<G1Point> {{"
 
     lines = ["#[inline(always)]", signature]
 
@@ -388,17 +391,36 @@ def generate_double_and_add_n(n_points: int) -> str:
         lines.append(f"        .next_2(q{i}.y)")
     lines.append(f"        .done_2()")
     lines.append(f"        .eval(modulus)")
-    lines.append(f"        .expect('{func_name} failed');")
+    lines.append("        ;")
+    lines.append("    let outputs = match outputs {")
+    lines.append("        Result::Ok(outputs) => outputs,")
+    lines.append("        Result::Err(_) => { return Option::None; },")
+    lines.append("    };")
     lines.append("")
     lines.append(
-        f"    return G1Point {{ x: outputs.get_output({final_x}), y: outputs.get_output({final_y}) }};"
+        f"    return Option::Some(G1Point {{ x: outputs.get_output({final_x}), y: outputs.get_output({final_y}) }});"
     )
     lines.append("}")
 
     # Join lines with proper indentation
     # Indent lines starting from the third line (index 2)
     indented_body = textwrap.indent("\n".join(lines[2:]), "    ")
-    return "\n".join(lines[:2]) + "\n" + indented_body
+    code = "\n".join(lines[:2]) + "\n" + indented_body
+    code += "\n\n/// Computes repeated steps [2]acc + q_i.\n"
+    code += "/// Inputs must be valid points on the curve selected by modulus.\n"
+    code += "/// This generic helper rejects exceptional inputs under incomplete affine formulas.\n"
+    code += f"#[inline(always)]\npub fn {func_name}({params}) -> G1Point {{\n"
+    code += f"    try_{func_name}({arguments}).expect('{func_name} failed')\n}}\n"
+    code += f"\n#[inline(always)]\nfn {func_name}_glv({params}) -> G1Point {{\n"
+    code += f"    match try_{func_name}({arguments}) {{\n"
+    code += "        Option::Some(result) => result,\n        Option::None => {\n"
+    code += "            // GLV curves have a=0. The public generic helper remains incomplete.\n"
+    code += "            let mut result = p;\n"
+    for i in range(n_points):
+        code += "            result = double_point_safe(result, modulus, 0);\n"
+        code += f"            result = _ec_safe_add(result, q{i}, modulus, 0);\n"
+    code += "            result\n        },\n    }\n}\n"
+    return code
 
 
 if __name__ == "__main__":
@@ -408,7 +430,7 @@ if __name__ == "__main__":
 
     # --- Selector Generation ---
     try:
-        n_bits_arg = 73  # Default or example value
+        n_bits_arg = 65  # Rank-4 LLL bound: ceil(bitlen(n) / 4) + 1.
         if len(sys.argv) > 1:
             try:
                 n_bits_arg = int(sys.argv[1])

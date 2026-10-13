@@ -136,6 +136,9 @@ class IsOnCurveG1Circuit(BaseModuloCircuit):
         lhs, rhs = circuit._is_on_curve_G1_weirstrass(px, py, a, b)
         zero_check = circuit.sub(lhs, rhs)
         circuit.extend_struct_output(u384("zero_check", [zero_check]))
+        zero = circuit.set_or_get_constant(0)
+        circuit.extend_struct_output(u384("x_reduced", [circuit.add(px, zero)]))
+        circuit.extend_struct_output(u384("y_reduced", [circuit.add(py, zero)]))
 
         return circuit
 
@@ -972,6 +975,7 @@ class PrepareGLVFakeGLVPtsCircuit(BaseModuloCircuit):
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
         circuit.generic_modulus = True
+        circuit.allow_failure = True
         Px = circuit.write_struct(u384("Px", [input[0]]), WriteOps.INPUT)
         P0y = circuit.write_struct(u384("P0y", [input[1]]), WriteOps.INPUT)
         P1y = circuit.write_struct(u384("P1y", [input[2]]), WriteOps.INPUT)
@@ -1058,6 +1062,7 @@ class PrepareFakeGLVPtsCircuit(BaseModuloCircuit):
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
         circuit.generic_modulus = True
+        circuit.allow_failure = True
         P = circuit.write_struct(
             G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
         )
@@ -1136,6 +1141,7 @@ class QuadrupleAndAdd9Circuit(BaseModuloCircuit):
             self.name, self.curve_id, compilation_mode=self.compilation_mode
         )
         circuit.generic_modulus = True
+        circuit.allow_failure = True
         P = circuit.write_struct(
             G1PointCircuit("P", [input[0], input[1]]), WriteOps.INPUT
         )

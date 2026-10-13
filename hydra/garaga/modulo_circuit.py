@@ -351,6 +351,7 @@ class ModuloCircuit:
         self.exact_output_refs_needed = None
         self.input_structs: list[Cairo1SerializableStruct] = []
         self.do_not_inline = False
+        self.allow_failure = False
 
     @property
     def values_offset(self) -> int:
@@ -1189,6 +1190,9 @@ class ModuloCircuit:
         else:
             signature_output = "Array<u384>"
 
+        if self.allow_failure:
+            signature_output = f"Option<{signature_output}>"
+
         if self.input_structs:
             if sum([len(x) for x in self.input_structs]) == len(self.input):
                 input_is_struct = True
@@ -1306,7 +1310,15 @@ class ModuloCircuit:
         circuit_inputs = circuit_inputs.next_2(val);
     };
     """
-        code += """
+        if self.allow_failure:
+            code += """
+        let outputs = match circuit_inputs.done_2().eval(modulus) {
+            Result::Ok(outputs) => outputs,
+            Result::Err(_) => { return Option::None; },
+        };
+"""
+        else:
+            code += """
         let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
 """
         if return_is_struct:
@@ -1316,13 +1328,16 @@ class ModuloCircuit:
                     for struct in self.output_structs
                 ]
             )
-            code += (
-                f"return ({','.join([struct.name for struct in self.output_structs])}"
-            )
-            code += ",);\n}" if len(self.output_structs) == 1 else ");\n}"
+            result = f"({','.join([struct.name for struct in self.output_structs])}"
+            result += ",)" if len(self.output_structs) == 1 else ")"
+            if self.allow_failure:
+                result = f"Option::Some({result})"
+            code += f"return {result};\n}}"
         else:
             code += f"let res=array![{','.join([f'outputs.get_output({ref})' for ref in outputs_refs])}];\n"
-            code += "return res;\n"
+            code += (
+                "return Option::Some(res);\n" if self.allow_failure else "return res;\n"
+            )
             code += "}\n"
 
         if const_array:

@@ -1,0 +1,172 @@
+{
+  "description": "Uncached one-point MSM calldata production on 20 seeded full-width scalars per curve and subgroup points (i+1)G; Python includes typed serialization and Rust includes FFI+serialization. Five repeats per input; one untimed warmup per input/backend. Cached hint data is cleared outside timing. Median is the median of per-input medians.",
+  "baseline_commit": "a01fad00d0f77fe8e252ca8c2c64423e5efeb812",
+  "after_worktree": "/Users/felt/PycharmProjects/starknet/garaga-glv-soundness",
+  "timers": {
+    "wall": "time.perf_counter_ns",
+    "process_cpu": "time.process_time_ns"
+  },
+  "commands": {
+    "before": {
+      "cwd": "/tmp/garaga-glv-adversarial-baseline",
+      "benchmark": "PYTHONPATH=hydra uv run --no-project --python /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python python /tmp/garaga-glv-baseline/benchmark_hint_cpu.py --output /tmp/garaga-glv-baseline/hint-cpu-before.json",
+      "build": "CARGO_PROFILE_RELEASE_DEBUG=1 RUSTUP_TOOLCHAIN=1.97.0 uv run --no-project --python /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python python -m maturin build --manifest-path tools/garaga_rs/Cargo.toml --release --features python --interpreter /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python --out /tmp/garaga-glv-baseline/wheels"
+    },
+    "after": {
+      "cwd": "/Users/felt/PycharmProjects/starknet/garaga-glv-soundness",
+      "benchmark": "PYTHONPATH=hydra uv run --no-project --python .venv/bin/python python /tmp/garaga-glv-baseline/benchmark_hint_cpu.py --output /tmp/garaga-glv-baseline/hint-cpu-after.json",
+      "build": "CARGO_PROFILE_RELEASE_DEBUG=1 RUSTUP_TOOLCHAIN=1.97.0 uv run --no-project --python .venv/bin/python python -m maturin build --manifest-path tools/garaga_rs/Cargo.toml --release --features python --interpreter .venv/bin/python --out /tmp/garaga-glv-baseline/wheels-after"
+    }
+  },
+  "raw_files": {
+    "before": "hint-cpu-before.json",
+    "after": "hint-cpu-after.json"
+  },
+  "benchmark_script_sha256": "2fbebb0544298f31b2a32f451e6f747646966a6de4a4b52bcf6e5fa17bbe64a3",
+  "comparisons": [
+    {
+      "curve": "BN254",
+      "backend": "python",
+      "before_wall_median_ns": 681063.0,
+      "after_wall_median_ns": 6080271.0,
+      "wall_ratio": 8.927619030838557,
+      "before_cpu_median_ns": 682000.0,
+      "after_cpu_median_ns": 6076500.0,
+      "cpu_ratio": 8.909824046920821,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "BN254",
+      "backend": "rust",
+      "before_wall_median_ns": 1351937.5,
+      "after_wall_median_ns": 27908416.5,
+      "wall_ratio": 20.643274189820165,
+      "before_cpu_median_ns": 1352000.0,
+      "after_cpu_median_ns": 27899500.0,
+      "cpu_ratio": 20.635724852071007,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "BLS12_381",
+      "backend": "python",
+      "before_wall_median_ns": 8135145.5,
+      "after_wall_median_ns": 34872229.0,
+      "wall_ratio": 4.286614050111335,
+      "before_cpu_median_ns": 8135500.0,
+      "after_cpu_median_ns": 34791000.0,
+      "cpu_ratio": 4.27644275090652,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 41
+    },
+    {
+      "curve": "BLS12_381",
+      "backend": "rust",
+      "before_wall_median_ns": 2770187.5,
+      "after_wall_median_ns": 40194521.0,
+      "wall_ratio": 14.509675247614105,
+      "before_cpu_median_ns": 2770500.0,
+      "after_cpu_median_ns": 40181500.0,
+      "cpu_ratio": 14.503338747518498,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 41
+    },
+    {
+      "curve": "SECP256K1",
+      "backend": "python",
+      "before_wall_median_ns": 720229.0,
+      "after_wall_median_ns": 7745458.0,
+      "wall_ratio": 10.754160135179228,
+      "before_cpu_median_ns": 721000.0,
+      "after_cpu_median_ns": 7722500.0,
+      "cpu_ratio": 10.710818307905686,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "SECP256K1",
+      "backend": "rust",
+      "before_wall_median_ns": 1163999.5,
+      "after_wall_median_ns": 37402791.5,
+      "wall_ratio": 32.132996191149566,
+      "before_cpu_median_ns": 1164000.0,
+      "after_cpu_median_ns": 37303000.0,
+      "cpu_ratio": 32.047250859106526,
+      "before_calldata_felts": 25,
+      "after_calldata_felts": 25
+    },
+    {
+      "curve": "SECP256R1",
+      "backend": "python",
+      "before_wall_median_ns": 630187.5,
+      "after_wall_median_ns": 640687.5,
+      "wall_ratio": 1.0166617078250522,
+      "before_cpu_median_ns": 631500.0,
+      "after_cpu_median_ns": 641000.0,
+      "cpu_ratio": 1.0150435471100554,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    },
+    {
+      "curve": "SECP256R1",
+      "backend": "rust",
+      "before_wall_median_ns": 1222520.5,
+      "after_wall_median_ns": 1270583.0,
+      "wall_ratio": 1.0393142691676744,
+      "before_cpu_median_ns": 1222500.0,
+      "after_cpu_median_ns": 1268500.0,
+      "cpu_ratio": 1.0376278118609408,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    },
+    {
+      "curve": "ED25519",
+      "backend": "python",
+      "before_wall_median_ns": 4898020.5,
+      "after_wall_median_ns": 11355896.0,
+      "wall_ratio": 2.3184664090319753,
+      "before_cpu_median_ns": 4898500.0,
+      "after_cpu_median_ns": 10567500.0,
+      "cpu_ratio": 2.157293048892518,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 31
+    },
+    {
+      "curve": "ED25519",
+      "backend": "rust",
+      "before_wall_median_ns": 926125.0,
+      "after_wall_median_ns": 1902292.0,
+      "wall_ratio": 2.0540337427453097,
+      "before_cpu_median_ns": 926500.0,
+      "after_cpu_median_ns": 1872000.0,
+      "cpu_ratio": 2.0205072854830006,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 31
+    },
+    {
+      "curve": "GRUMPKIN",
+      "backend": "python",
+      "before_wall_median_ns": 582062.5,
+      "after_wall_median_ns": 598021.5,
+      "wall_ratio": 1.0274180178245462,
+      "before_cpu_median_ns": 583500.0,
+      "after_cpu_median_ns": 598500.0,
+      "cpu_ratio": 1.025706940874036,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    },
+    {
+      "curve": "GRUMPKIN",
+      "backend": "rust",
+      "before_wall_median_ns": 1203396.0,
+      "after_wall_median_ns": 1259895.5,
+      "wall_ratio": 1.0469500480307397,
+      "before_cpu_median_ns": 1203500.0,
+      "after_cpu_median_ns": 1260500.0,
+      "cpu_ratio": 1.0473618612380557,
+      "before_calldata_felts": 23,
+      "after_calldata_felts": 23
+    }
+  ]
+}

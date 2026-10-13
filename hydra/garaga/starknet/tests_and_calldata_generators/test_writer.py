@@ -45,7 +45,7 @@ def generate_msm_test(curve_id, n_points, seed):
     builder = MSMCalldataBuilder(
         curve_id=curve_id,
         points=[G1Point.gen_random_point(curve_id) for _ in range(n_points)],
-        scalars=[random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points)],
+        scalars=[random.randrange(CURVES[curve_id.value].n) for _ in range(n_points)],
     )
     ignored = False if curve_id in [CurveID.SECP256K1, CurveID.SECP256R1] else True
     ignored = ignored or (False if n_points in [1, 2, 3] else True)
@@ -61,7 +61,7 @@ def generate_msm_test_edge_cases(curve_id, n_points, seed):
     )
     scalars = (
         [0]
-        + [random.randint(0, CURVES[curve_id.value].n) for _ in range(n_points - 1)]
+        + [random.randrange(CURVES[curve_id.value].n) for _ in range(n_points - 1)]
         + [CURVES[curve_id.value].n - 1]
     )
 

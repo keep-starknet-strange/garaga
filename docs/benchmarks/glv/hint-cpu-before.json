@@ -1,0 +1,5164 @@
+{
+  "revision": "a01fad00d0f77fe8e252ca8c2c64423e5efeb812",
+  "working_directory": "/private/tmp/garaga-glv-adversarial-baseline",
+  "python": "3.14.7",
+  "platform": "macOS-27.0.1-arm64-arm-64bit-Mach-O",
+  "extension": "/private/tmp/garaga-glv-adversarial-baseline/hydra/garaga/garaga_rs.cpython-314-darwin.so",
+  "extension_sha256": "c1164fefef15742fcfb1a973899f301945326c8fa1495ff312a24372aa68f362",
+  "source_sha256": {
+    "hydra/garaga/hints/fake_glv.py": "e087a19aae699356a6a51b7e3a36b062471e79da887553b502020754e69fd17f",
+    "tools/garaga_rs/src/hints/fake_glv.rs": "f482771372c3d129f3c4554b469cffc6f0eec1a81738a8c836b23ba001d939c1",
+    "hydra/garaga/starknet/tests_and_calldata_generators/msm.py": "80e103cce61300f43f67dd6dbc30c539532085a04433afd62e9395be4ffff456",
+    "tools/garaga_rs/src/calldata/msm_calldata.rs": "7c0a22e37e29345292e6f614ba323ebbd26eb1daf896775028ba6c06f5cfcc78"
+  },
+  "description": "Uncached one-point MSM calldata production on 20 seeded full-width scalars per curve and subgroup points (i+1)G; Python includes typed serialization and Rust includes FFI+serialization. Five repeats per input; one untimed warmup per input/backend. Cached hint data is cleared outside timing. Median is the median of per-input medians.",
+  "rust_profile": "release opt-level=3 with debug symbols (CARGO_PROFILE_RELEASE_DEBUG=1), Rust 1.97.0",
+  "results": [
+    {
+      "curve": "BN254",
+      "backend": "python",
+      "median_ns": 681063.0,
+      "median_cpu_ns": 682000.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x8ee307a392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            710250,
+            689792,
+            703291,
+            667000,
+            652375
+          ],
+          "median_ns": 689792,
+          "cpu_elapsed_ns": [
+            713000,
+            690000,
+            703000,
+            668000,
+            652000
+          ],
+          "cpu_median_ns": 690000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 1,
+          "scalar": "0x25caa11a16419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            685708,
+            699542,
+            681792,
+            683666,
+            682042
+          ],
+          "median_ns": 683666,
+          "cpu_elapsed_ns": [
+            686000,
+            700000,
+            682000,
+            684000,
+            682000
+          ],
+          "cpu_median_ns": 684000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 2,
+          "scalar": "0x26877991815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            707459,
+            684917,
+            686334,
+            686750,
+            671125
+          ],
+          "median_ns": 686334,
+          "cpu_elapsed_ns": [
+            708000,
+            685000,
+            687000,
+            687000,
+            672000
+          ],
+          "cpu_median_ns": 687000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 3,
+          "scalar": "0x1ad969a98b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            663333,
+            675875,
+            663208,
+            685625,
+            685667
+          ],
+          "median_ns": 675875,
+          "cpu_elapsed_ns": [
+            667000,
+            676000,
+            663000,
+            686000,
+            686000
+          ],
+          "cpu_median_ns": 676000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 4,
+          "scalar": "0xdc7b35e27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            682333,
+            682041,
+            678500,
+            663250,
+            661375
+          ],
+          "median_ns": 678500,
+          "cpu_elapsed_ns": [
+            683000,
+            682000,
+            680000,
+            664000,
+            662000
+          ],
+          "cpu_median_ns": 680000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 5,
+          "scalar": "0x16f984a318c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            675250,
+            695875,
+            689500,
+            688375,
+            671292
+          ],
+          "median_ns": 688375,
+          "cpu_elapsed_ns": [
+            676000,
+            696000,
+            690000,
+            689000,
+            673000
+          ],
+          "cpu_median_ns": 689000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 6,
+          "scalar": "0x1d673799bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            673000,
+            695875,
+            709792,
+            699375,
+            674125
+          ],
+          "median_ns": 695875,
+          "cpu_elapsed_ns": [
+            677000,
+            696000,
+            707000,
+            700000,
+            674000
+          ],
+          "cpu_median_ns": 696000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 7,
+          "scalar": "0x12c36ed08d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            676250,
+            695084,
+            665584,
+            675625,
+            695542
+          ],
+          "median_ns": 676250,
+          "cpu_elapsed_ns": [
+            679000,
+            696000,
+            665000,
+            676000,
+            696000
+          ],
+          "cpu_median_ns": 679000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 8,
+          "scalar": "0xc4e74cb93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            680292,
+            680083,
+            681583,
+            688750,
+            667166
+          ],
+          "median_ns": 680292,
+          "cpu_elapsed_ns": [
+            681000,
+            681000,
+            681000,
+            689000,
+            667000
+          ],
+          "cpu_median_ns": 681000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 9,
+          "scalar": "0x1d04aca447294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            664333,
+            674167,
+            673750,
+            675459,
+            683500
+          ],
+          "median_ns": 674167,
+          "cpu_elapsed_ns": [
+            664000,
+            674000,
+            674000,
+            675000,
+            684000
+          ],
+          "cpu_median_ns": 674000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 10,
+          "scalar": "0x2ae4266935a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            702875,
+            683916,
+            670125,
+            701958,
+            703291
+          ],
+          "median_ns": 701958,
+          "cpu_elapsed_ns": [
+            704000,
+            684000,
+            670000,
+            702000,
+            704000
+          ],
+          "cpu_median_ns": 702000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 11,
+          "scalar": "0x28a37bf89bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            649834,
+            677042,
+            683250,
+            646708,
+            669125
+          ],
+          "median_ns": 669125,
+          "cpu_elapsed_ns": [
+            650000,
+            678000,
+            683000,
+            647000,
+            669000
+          ],
+          "cpu_median_ns": 669000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 12,
+          "scalar": "0x1146d33c6123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            842167,
+            676958,
+            681834,
+            693709,
+            659000
+          ],
+          "median_ns": 681834,
+          "cpu_elapsed_ns": [
+            843000,
+            677000,
+            683000,
+            694000,
+            659000
+          ],
+          "cpu_median_ns": 683000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 13,
+          "scalar": "0x14c10c5faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            691417,
+            687083,
+            681583,
+            657917,
+            686459
+          ],
+          "median_ns": 686459,
+          "cpu_elapsed_ns": [
+            693000,
+            687000,
+            682000,
+            659000,
+            687000
+          ],
+          "cpu_median_ns": 687000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 14,
+          "scalar": "0x244cad8ff16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            659917,
+            667125,
+            666208,
+            678167,
+            672208
+          ],
+          "median_ns": 667125,
+          "cpu_elapsed_ns": [
+            660000,
+            667000,
+            666000,
+            679000,
+            673000
+          ],
+          "cpu_median_ns": 667000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 15,
+          "scalar": "0x2fade6463f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            688875,
+            671375,
+            670125,
+            669958,
+            676833
+          ],
+          "median_ns": 671375,
+          "cpu_elapsed_ns": [
+            690000,
+            672000,
+            671000,
+            670000,
+            678000
+          ],
+          "cpu_median_ns": 672000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 16,
+          "scalar": "0x25589a7ce5d7b8756dadd6c795a76d79bf3c4c06434308bc89fa6a688fb5d27d",
+          "elapsed_ns": [
+            676584,
+            671083,
+            688667,
+            663916,
+            672375
+          ],
+          "median_ns": 672375,
+          "cpu_elapsed_ns": [
+            677000,
+            673000,
+            689000,
+            665000,
+            673000
+          ],
+          "cpu_median_ns": 673000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 17,
+          "scalar": "0x1f95c377827050a82369b584ff5e9ff0ff50bde4382567b85cabcc97663f1c99",
+          "elapsed_ns": [
+            674750,
+            680292,
+            694875,
+            674208,
+            682125
+          ],
+          "median_ns": 680292,
+          "cpu_elapsed_ns": [
+            675000,
+            681000,
+            695000,
+            676000,
+            683000
+          ],
+          "cpu_median_ns": 681000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 18,
+          "scalar": "0xa3d2520a0a04dc427209bdf1c11f735dc713d960c0fd195c17af08a1745d6da",
+          "elapsed_ns": [
+            652584,
+            683958,
+            690250,
+            687334,
+            674792
+          ],
+          "median_ns": 683958,
+          "cpu_elapsed_ns": [
+            653000,
+            683000,
+            690000,
+            688000,
+            675000
+          ],
+          "cpu_median_ns": 683000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 19,
+          "scalar": "0x2623093261b1cd2262801c4510435a1098ae43346c12ace8ae340454cac5b68e",
+          "elapsed_ns": [
+            720625,
+            688083,
+            688709,
+            685292,
+            683500
+          ],
+          "median_ns": 688083,
+          "cpu_elapsed_ns": [
+            721000,
+            689000,
+            689000,
+            685000,
+            684000
+          ],
+          "cpu_median_ns": 689000,
+          "calldata_felts": 25
+        }
+      ]
+    },
+    {
+      "curve": "BN254",
+      "backend": "rust",
+      "median_ns": 1351937.5,
+      "median_cpu_ns": 1352000.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x8ee307a392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            1344291,
+            1334250,
+            1300833,
+            1302708,
+            1299209
+          ],
+          "median_ns": 1302708,
+          "cpu_elapsed_ns": [
+            1346000,
+            1334000,
+            1301000,
+            1302000,
+            1300000
+          ],
+          "cpu_median_ns": 1302000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 1,
+          "scalar": "0x25caa11a16419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            1341750,
+            1316542,
+            1313917,
+            1299583,
+            1324375
+          ],
+          "median_ns": 1316542,
+          "cpu_elapsed_ns": [
+            1345000,
+            1318000,
+            1314000,
+            1300000,
+            1324000
+          ],
+          "cpu_median_ns": 1318000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 2,
+          "scalar": "0x26877991815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            1369083,
+            1363583,
+            1352708,
+            1350417,
+            1350167
+          ],
+          "median_ns": 1352708,
+          "cpu_elapsed_ns": [
+            1372000,
+            1364000,
+            1352000,
+            1350000,
+            1351000
+          ],
+          "cpu_median_ns": 1352000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 3,
+          "scalar": "0x1ad969a98b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            1320459,
+            1316459,
+            1306708,
+            1301208,
+            1301458
+          ],
+          "median_ns": 1306708,
+          "cpu_elapsed_ns": [
+            1324000,
+            1317000,
+            1306000,
+            1301000,
+            1302000
+          ],
+          "cpu_median_ns": 1306000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 4,
+          "scalar": "0xdc7b35e27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            1384000,
+            1382875,
+            1275083,
+            1283333,
+            1279959
+          ],
+          "median_ns": 1283333,
+          "cpu_elapsed_ns": [
+            1382000,
+            1383000,
+            1274000,
+            1283000,
+            1281000
+          ],
+          "cpu_median_ns": 1283000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 5,
+          "scalar": "0x16f984a318c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            1404291,
+            1374459,
+            1371542,
+            1341459,
+            1339541
+          ],
+          "median_ns": 1371542,
+          "cpu_elapsed_ns": [
+            1405000,
+            1375000,
+            1372000,
+            1342000,
+            1340000
+          ],
+          "cpu_median_ns": 1372000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 6,
+          "scalar": "0x1d673799bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            1410208,
+            1387917,
+            1383500,
+            1374375,
+            1367916
+          ],
+          "median_ns": 1383500,
+          "cpu_elapsed_ns": [
+            1411000,
+            1389000,
+            1384000,
+            1375000,
+            1368000
+          ],
+          "cpu_median_ns": 1384000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 7,
+          "scalar": "0x12c36ed08d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            1370667,
+            1354250,
+            1332708,
+            1330417,
+            1337084
+          ],
+          "median_ns": 1337084,
+          "cpu_elapsed_ns": [
+            1371000,
+            1355000,
+            1333000,
+            1332000,
+            1337000
+          ],
+          "cpu_median_ns": 1337000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 8,
+          "scalar": "0xc4e74cb93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            1381958,
+            1376417,
+            1370041,
+            1360584,
+            1376792
+          ],
+          "median_ns": 1376417,
+          "cpu_elapsed_ns": [
+            1383000,
+            1376000,
+            1370000,
+            1361000,
+            1377000
+          ],
+          "cpu_median_ns": 1376000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 9,
+          "scalar": "0x1d04aca447294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            1363625,
+            1348000,
+            1329750,
+            1322125,
+            1316292
+          ],
+          "median_ns": 1329750,
+          "cpu_elapsed_ns": [
+            1368000,
+            1348000,
+            1330000,
+            1323000,
+            1317000
+          ],
+          "cpu_median_ns": 1330000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 10,
+          "scalar": "0x2ae4266935a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            1350417,
+            1345042,
+            1298125,
+            1279167,
+            1260375
+          ],
+          "median_ns": 1298125,
+          "cpu_elapsed_ns": [
+            1351000,
+            1345000,
+            1299000,
+            1279000,
+            1260000
+          ],
+          "cpu_median_ns": 1299000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 11,
+          "scalar": "0x28a37bf89bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            1371292,
+            1369084,
+            1369000,
+            1356792,
+            1347833
+          ],
+          "median_ns": 1369000,
+          "cpu_elapsed_ns": [
+            1372000,
+            1369000,
+            1369000,
+            1357000,
+            1349000
+          ],
+          "cpu_median_ns": 1369000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 12,
+          "scalar": "0x1146d33c6123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            1409292,
+            1397167,
+            1396250,
+            1512792,
+            1438250
+          ],
+          "median_ns": 1409292,
+          "cpu_elapsed_ns": [
+            1410000,
+            1397000,
+            1397000,
+            1505000,
+            1439000
+          ],
+          "cpu_median_ns": 1410000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 13,
+          "scalar": "0x14c10c5faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            1363708,
+            1344625,
+            1447333,
+            1365584,
+            1339833
+          ],
+          "median_ns": 1363708,
+          "cpu_elapsed_ns": [
+            1367000,
+            1345000,
+            1427000,
+            1366000,
+            1340000
+          ],
+          "cpu_median_ns": 1366000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 14,
+          "scalar": "0x244cad8ff16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            1378125,
+            1360708,
+            1351083,
+            1351167,
+            1340750
+          ],
+          "median_ns": 1351167,
+          "cpu_elapsed_ns": [
+            1378000,
+            1361000,
+            1352000,
+            1351000,
+            1342000
+          ],
+          "cpu_median_ns": 1352000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 15,
+          "scalar": "0x2fade6463f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            1429542,
+            1417875,
+            1419542,
+            1410834,
+            1403792
+          ],
+          "median_ns": 1417875,
+          "cpu_elapsed_ns": [
+            1429000,
+            1418000,
+            1420000,
+            1410000,
+            1404000
+          ],
+          "cpu_median_ns": 1418000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 16,
+          "scalar": "0x25589a7ce5d7b8756dadd6c795a76d79bf3c4c06434308bc89fa6a688fb5d27d",
+          "elapsed_ns": [
+            1446125,
+            1423875,
+            1413292,
+            1382333,
+            1301708
+          ],
+          "median_ns": 1413292,
+          "cpu_elapsed_ns": [
+            1447000,
+            1426000,
+            1413000,
+            1371000,
+            1303000
+          ],
+          "cpu_median_ns": 1413000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 17,
+          "scalar": "0x1f95c377827050a82369b584ff5e9ff0ff50bde4382567b85cabcc97663f1c99",
+          "elapsed_ns": [
+            1415083,
+            1388292,
+            1365500,
+            1363417,
+            1373625
+          ],
+          "median_ns": 1373625,
+          "cpu_elapsed_ns": [
+            1416000,
+            1389000,
+            1366000,
+            1363000,
+            1373000
+          ],
+          "cpu_median_ns": 1373000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 18,
+          "scalar": "0xa3d2520a0a04dc427209bdf1c11f735dc713d960c0fd195c17af08a1745d6da",
+          "elapsed_ns": [
+            1337125,
+            1322084,
+            1311708,
+            1309292,
+            1304625
+          ],
+          "median_ns": 1311708,
+          "cpu_elapsed_ns": [
+            1338000,
+            1322000,
+            1312000,
+            1310000,
+            1305000
+          ],
+          "cpu_median_ns": 1312000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 19,
+          "scalar": "0x2623093261b1cd2262801c4510435a1098ae43346c12ace8ae340454cac5b68e",
+          "elapsed_ns": [
+            1289292,
+            1274209,
+            1236875,
+            1219666,
+            1210042
+          ],
+          "median_ns": 1236875,
+          "cpu_elapsed_ns": [
+            1290000,
+            1275000,
+            1237000,
+            1220000,
+            1211000
+          ],
+          "cpu_median_ns": 1237000,
+          "calldata_felts": 25
+        }
+      ]
+    },
+    {
+      "curve": "BLS12_381",
+      "backend": "python",
+      "median_ns": 8135145.5,
+      "median_cpu_ns": 8135500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x11dc60f4392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            8283791,
+            8356958,
+            8381084,
+            8411500,
+            8059083
+          ],
+          "median_ns": 8356958,
+          "cpu_elapsed_ns": [
+            8285000,
+            8357000,
+            8382000,
+            8412000,
+            8059000
+          ],
+          "cpu_median_ns": 8357000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 1,
+          "scalar": "0x4b95423416419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            7956417,
+            8015500,
+            8008459,
+            7997250,
+            7822750
+          ],
+          "median_ns": 7997250,
+          "cpu_elapsed_ns": [
+            7941000,
+            8013000,
+            8009000,
+            7997000,
+            7824000
+          ],
+          "cpu_median_ns": 7997000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 2,
+          "scalar": "0x4d0ef322815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            7786750,
+            7761750,
+            7921583,
+            7758959,
+            7879333
+          ],
+          "median_ns": 7786750,
+          "cpu_elapsed_ns": [
+            7790000,
+            7762000,
+            7921000,
+            7759000,
+            7879000
+          ],
+          "cpu_median_ns": 7790000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 3,
+          "scalar": "0x35b2d3528b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            7883000,
+            7887583,
+            7967291,
+            7900708,
+            7935167
+          ],
+          "median_ns": 7900708,
+          "cpu_elapsed_ns": [
+            7889000,
+            7888000,
+            7968000,
+            7902000,
+            7936000
+          ],
+          "cpu_median_ns": 7902000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 4,
+          "scalar": "0x6120998501a9e71fde8a774bcf36d58b4737819096da1dac72ff5d2a386ecbe2",
+          "elapsed_ns": [
+            8206667,
+            8194666,
+            8137333,
+            8013084,
+            7993209
+          ],
+          "median_ns": 8137333,
+          "cpu_elapsed_ns": [
+            8207000,
+            8195000,
+            8138000,
+            8014000,
+            7995000
+          ],
+          "cpu_median_ns": 8138000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 5,
+          "scalar": "0x1b8f66bd27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            8170375,
+            8081458,
+            8118875,
+            8204209,
+            8277000
+          ],
+          "median_ns": 8170375,
+          "cpu_elapsed_ns": [
+            8175000,
+            8082000,
+            8120000,
+            8205000,
+            8272000
+          ],
+          "cpu_median_ns": 8175000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 6,
+          "scalar": "0x2df3094718c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            8092750,
+            8176459,
+            8078833,
+            8125250,
+            8189625
+          ],
+          "median_ns": 8125250,
+          "cpu_elapsed_ns": [
+            8094000,
+            8171000,
+            8067000,
+            8126000,
+            8190000
+          ],
+          "cpu_median_ns": 8126000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 7,
+          "scalar": "0x3ace6f33bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            8250667,
+            8212917,
+            8305584,
+            8231209,
+            8309666
+          ],
+          "median_ns": 8250667,
+          "cpu_elapsed_ns": [
+            8237000,
+            8213000,
+            8307000,
+            8232000,
+            8310000
+          ],
+          "cpu_median_ns": 8237000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 8,
+          "scalar": "0x2586dda08d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            8193042,
+            7908208,
+            7909625,
+            7963791,
+            8040916
+          ],
+          "median_ns": 7963791,
+          "cpu_elapsed_ns": [
+            8197000,
+            7909000,
+            7909000,
+            7964000,
+            8042000
+          ],
+          "cpu_median_ns": 7964000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 9,
+          "scalar": "0x189ce99693cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            8167833,
+            8112750,
+            8132958,
+            8113959,
+            8314917
+          ],
+          "median_ns": 8132958,
+          "cpu_elapsed_ns": [
+            8168000,
+            8114000,
+            8133000,
+            8114000,
+            8268000
+          ],
+          "cpu_median_ns": 8133000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 10,
+          "scalar": "0x3a09594947294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            8340083,
+            8345834,
+            8244333,
+            8342542,
+            8143375
+          ],
+          "median_ns": 8340083,
+          "cpu_elapsed_ns": [
+            8328000,
+            8346000,
+            8245000,
+            8343000,
+            8134000
+          ],
+          "cpu_median_ns": 8328000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 11,
+          "scalar": "0x55c84cd235a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            7817041,
+            7919959,
+            7891625,
+            7843083,
+            7917708
+          ],
+          "median_ns": 7891625,
+          "cpu_elapsed_ns": [
+            7820000,
+            7919000,
+            7885000,
+            7844000,
+            7918000
+          ],
+          "cpu_median_ns": 7885000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 12,
+          "scalar": "0x5146f7f19bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            8422250,
+            8431125,
+            8475583,
+            8203334,
+            8305208
+          ],
+          "median_ns": 8422250,
+          "cpu_elapsed_ns": [
+            8426000,
+            8432000,
+            8476000,
+            8204000,
+            8306000
+          ],
+          "cpu_median_ns": 8426000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 13,
+          "scalar": "0x228da6796123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            8433875,
+            8292208,
+            8392500,
+            8559375,
+            8440208
+          ],
+          "median_ns": 8433875,
+          "cpu_elapsed_ns": [
+            8441000,
+            8291000,
+            8392000,
+            8560000,
+            8441000
+          ],
+          "cpu_median_ns": 8441000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 14,
+          "scalar": "0x298218bfaf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            7973542,
+            7760333,
+            7883417,
+            7839959,
+            7871375
+          ],
+          "median_ns": 7871375,
+          "cpu_elapsed_ns": [
+            7974000,
+            7760000,
+            7883000,
+            7840000,
+            7872000
+          ],
+          "cpu_median_ns": 7872000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 15,
+          "scalar": "0x670bbda70837b8a3d261a7ab3aa2e4f90e51f30dc6a7ee39c4b032ccd7c524a7",
+          "elapsed_ns": [
+            7877291,
+            7867750,
+            7942750,
+            7902125,
+            8014083
+          ],
+          "median_ns": 7902125,
+          "cpu_elapsed_ns": [
+            7880000,
+            7868000,
+            7942000,
+            7903000,
+            8005000
+          ],
+          "cpu_median_ns": 7903000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 16,
+          "scalar": "0x48995b1ff16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            7862583,
+            7890500,
+            7895917,
+            8016750,
+            7867042
+          ],
+          "median_ns": 7890500,
+          "cpu_elapsed_ns": [
+            7866000,
+            7890000,
+            7896000,
+            8016000,
+            7867000
+          ],
+          "cpu_median_ns": 7890000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 17,
+          "scalar": "0x713d4c26654821d07fcd9eb1a7cad415366eb16f508ebad7b7c93acfe059a0f0",
+          "elapsed_ns": [
+            8190125,
+            8345083,
+            8177208,
+            8210500,
+            8280959
+          ],
+          "median_ns": 8210500,
+          "cpu_elapsed_ns": [
+            8194000,
+            8333000,
+            8169000,
+            8211000,
+            8274000
+          ],
+          "cpu_median_ns": 8211000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 18,
+          "scalar": "0x5f5bcc8c3f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            8160792,
+            8266542,
+            8426917,
+            8259125,
+            8198750
+          ],
+          "median_ns": 8259125,
+          "cpu_elapsed_ns": [
+            8157000,
+            8268000,
+            8419000,
+            8259000,
+            8199000
+          ],
+          "cpu_median_ns": 8259000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 19,
+          "scalar": "0x4ab134f8e5d7b8756dadd6c795a76d79bf3c4c06434308bc89fa6a688fb5d27d",
+          "elapsed_ns": [
+            8270334,
+            8157083,
+            8102917,
+            8245917,
+            8144500
+          ],
+          "median_ns": 8157083,
+          "cpu_elapsed_ns": [
+            8271000,
+            8156000,
+            8103000,
+            8247000,
+            8145000
+          ],
+          "cpu_median_ns": 8156000,
+          "calldata_felts": 25
+        }
+      ]
+    },
+    {
+      "curve": "BLS12_381",
+      "backend": "rust",
+      "median_ns": 2770187.5,
+      "median_cpu_ns": 2770500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x11dc60f4392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            2735250,
+            2707458,
+            2747917,
+            2781416,
+            2756708
+          ],
+          "median_ns": 2747917,
+          "cpu_elapsed_ns": [
+            2736000,
+            2708000,
+            2749000,
+            2780000,
+            2756000
+          ],
+          "cpu_median_ns": 2749000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 1,
+          "scalar": "0x4b95423416419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            2783792,
+            2789125,
+            2800667,
+            2718917,
+            2703417
+          ],
+          "median_ns": 2783792,
+          "cpu_elapsed_ns": [
+            2780000,
+            2789000,
+            2801000,
+            2719000,
+            2704000
+          ],
+          "cpu_median_ns": 2780000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 2,
+          "scalar": "0x4d0ef322815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            2725291,
+            2711166,
+            2678208,
+            2706042,
+            2687250
+          ],
+          "median_ns": 2706042,
+          "cpu_elapsed_ns": [
+            2726000,
+            2712000,
+            2679000,
+            2706000,
+            2689000
+          ],
+          "cpu_median_ns": 2706000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 3,
+          "scalar": "0x35b2d3528b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            2763417,
+            2734000,
+            2715375,
+            2737541,
+            2691792
+          ],
+          "median_ns": 2734000,
+          "cpu_elapsed_ns": [
+            2764000,
+            2734000,
+            2715000,
+            2729000,
+            2691000
+          ],
+          "cpu_median_ns": 2729000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 4,
+          "scalar": "0x6120998501a9e71fde8a774bcf36d58b4737819096da1dac72ff5d2a386ecbe2",
+          "elapsed_ns": [
+            2800083,
+            2808916,
+            2815250,
+            2795000,
+            2774708
+          ],
+          "median_ns": 2800083,
+          "cpu_elapsed_ns": [
+            2804000,
+            2808000,
+            2814000,
+            2795000,
+            2774000
+          ],
+          "cpu_median_ns": 2804000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 5,
+          "scalar": "0x1b8f66bd27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            2765417,
+            2772209,
+            2746458,
+            2750958,
+            2742833
+          ],
+          "median_ns": 2750958,
+          "cpu_elapsed_ns": [
+            2770000,
+            2773000,
+            2747000,
+            2752000,
+            2744000
+          ],
+          "cpu_median_ns": 2752000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 6,
+          "scalar": "0x2df3094718c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            2773500,
+            2743292,
+            2769584,
+            2745916,
+            2744917
+          ],
+          "median_ns": 2745916,
+          "cpu_elapsed_ns": [
+            2776000,
+            2743000,
+            2770000,
+            2747000,
+            2744000
+          ],
+          "cpu_median_ns": 2747000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 7,
+          "scalar": "0x3ace6f33bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            2846917,
+            2803666,
+            2789417,
+            2841084,
+            2796958
+          ],
+          "median_ns": 2803666,
+          "cpu_elapsed_ns": [
+            2844000,
+            2804000,
+            2789000,
+            2841000,
+            2797000
+          ],
+          "cpu_median_ns": 2804000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 8,
+          "scalar": "0x2586dda08d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            2738917,
+            2734625,
+            2757833,
+            2698292,
+            2695500
+          ],
+          "median_ns": 2734625,
+          "cpu_elapsed_ns": [
+            2740000,
+            2735000,
+            2758000,
+            2699000,
+            2696000
+          ],
+          "cpu_median_ns": 2735000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 9,
+          "scalar": "0x189ce99693cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            2802375,
+            2792917,
+            2778167,
+            2805667,
+            2773500
+          ],
+          "median_ns": 2792917,
+          "cpu_elapsed_ns": [
+            2803000,
+            2794000,
+            2778000,
+            2806000,
+            2773000
+          ],
+          "cpu_median_ns": 2794000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 10,
+          "scalar": "0x3a09594947294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            2817750,
+            2817459,
+            2820667,
+            2780708,
+            2783542
+          ],
+          "median_ns": 2817459,
+          "cpu_elapsed_ns": [
+            2818000,
+            2819000,
+            2820000,
+            2781000,
+            2784000
+          ],
+          "cpu_median_ns": 2818000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 11,
+          "scalar": "0x55c84cd235a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            2670000,
+            2673833,
+            2656375,
+            2681292,
+            2679708
+          ],
+          "median_ns": 2673833,
+          "cpu_elapsed_ns": [
+            2670000,
+            2675000,
+            2657000,
+            2681000,
+            2680000
+          ],
+          "cpu_median_ns": 2675000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 12,
+          "scalar": "0x5146f7f19bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            2818583,
+            2790959,
+            2826583,
+            2793875,
+            2765083
+          ],
+          "median_ns": 2793875,
+          "cpu_elapsed_ns": [
+            2819000,
+            2790000,
+            2827000,
+            2794000,
+            2766000
+          ],
+          "cpu_median_ns": 2794000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 13,
+          "scalar": "0x228da6796123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            2850000,
+            2817834,
+            2821583,
+            2827167,
+            2797875
+          ],
+          "median_ns": 2821583,
+          "cpu_elapsed_ns": [
+            2851000,
+            2819000,
+            2823000,
+            2828000,
+            2799000
+          ],
+          "cpu_median_ns": 2823000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 14,
+          "scalar": "0x298218bfaf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            2700750,
+            2680084,
+            2793875,
+            2695292,
+            2692750
+          ],
+          "median_ns": 2695292,
+          "cpu_elapsed_ns": [
+            2702000,
+            2680000,
+            2786000,
+            2695000,
+            2693000
+          ],
+          "cpu_median_ns": 2695000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 15,
+          "scalar": "0x670bbda70837b8a3d261a7ab3aa2e4f90e51f30dc6a7ee39c4b032ccd7c524a7",
+          "elapsed_ns": [
+            2768375,
+            2757625,
+            2743667,
+            2777375,
+            2760875
+          ],
+          "median_ns": 2760875,
+          "cpu_elapsed_ns": [
+            2768000,
+            2758000,
+            2744000,
+            2778000,
+            2761000
+          ],
+          "cpu_median_ns": 2761000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 16,
+          "scalar": "0x48995b1ff16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            2732959,
+            2725625,
+            2739125,
+            2742792,
+            2716500
+          ],
+          "median_ns": 2732959,
+          "cpu_elapsed_ns": [
+            2737000,
+            2726000,
+            2739000,
+            2742000,
+            2718000
+          ],
+          "cpu_median_ns": 2737000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 17,
+          "scalar": "0x713d4c26654821d07fcd9eb1a7cad415366eb16f508ebad7b7c93acfe059a0f0",
+          "elapsed_ns": [
+            2792333,
+            2781625,
+            2776250,
+            2765667,
+            2779500
+          ],
+          "median_ns": 2779500,
+          "cpu_elapsed_ns": [
+            2794000,
+            2782000,
+            2776000,
+            2766000,
+            2780000
+          ],
+          "cpu_median_ns": 2780000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 18,
+          "scalar": "0x5f5bcc8c3f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            2819833,
+            2782625,
+            2785917,
+            2775417,
+            2743917
+          ],
+          "median_ns": 2782625,
+          "cpu_elapsed_ns": [
+            2824000,
+            2783000,
+            2786000,
+            2776000,
+            2744000
+          ],
+          "cpu_median_ns": 2783000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 19,
+          "scalar": "0x4ab134f8e5d7b8756dadd6c795a76d79bf3c4c06434308bc89fa6a688fb5d27d",
+          "elapsed_ns": [
+            2817375,
+            2824791,
+            2813416,
+            2810333,
+            2799834
+          ],
+          "median_ns": 2813416,
+          "cpu_elapsed_ns": [
+            2818000,
+            2826000,
+            2813000,
+            2810000,
+            2801000
+          ],
+          "cpu_median_ns": 2813000,
+          "calldata_felts": 25
+        }
+      ]
+    },
+    {
+      "curve": "SECP256K1",
+      "backend": "python",
+      "median_ns": 720229.0,
+      "median_cpu_ns": 721000.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x23b8c1e9392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            727334,
+            724291,
+            719917,
+            710417,
+            702208
+          ],
+          "median_ns": 719917,
+          "cpu_elapsed_ns": [
+            731000,
+            725000,
+            720000,
+            711000,
+            703000
+          ],
+          "cpu_median_ns": 720000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 1,
+          "scalar": "0x972a846916419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            738625,
+            719125,
+            715250,
+            720250,
+            710875
+          ],
+          "median_ns": 719125,
+          "cpu_elapsed_ns": [
+            739000,
+            720000,
+            716000,
+            720000,
+            711000
+          ],
+          "cpu_median_ns": 720000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 2,
+          "scalar": "0x9a1de644815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            740292,
+            737584,
+            727084,
+            719833,
+            744958
+          ],
+          "median_ns": 737584,
+          "cpu_elapsed_ns": [
+            740000,
+            738000,
+            729000,
+            721000,
+            746000
+          ],
+          "cpu_median_ns": 738000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 3,
+          "scalar": "0x6b65a6a48b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            738750,
+            736292,
+            722333,
+            723458,
+            717042
+          ],
+          "median_ns": 723458,
+          "cpu_elapsed_ns": [
+            739000,
+            737000,
+            723000,
+            724000,
+            718000
+          ],
+          "cpu_median_ns": 724000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 4,
+          "scalar": "0xc241330b01a9e71fde8a774bcf36d58b4737819096da1dac72ff5d2a386ecbe2",
+          "elapsed_ns": [
+            749459,
+            722959,
+            704458,
+            736875,
+            737500
+          ],
+          "median_ns": 736875,
+          "cpu_elapsed_ns": [
+            753000,
+            724000,
+            705000,
+            737000,
+            738000
+          ],
+          "cpu_median_ns": 737000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 5,
+          "scalar": "0x371ecd7b27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            746958,
+            721625,
+            734875,
+            755584,
+            734250
+          ],
+          "median_ns": 734875,
+          "cpu_elapsed_ns": [
+            748000,
+            723000,
+            735000,
+            756000,
+            734000
+          ],
+          "cpu_median_ns": 735000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 6,
+          "scalar": "0x5be6128e18c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            741458,
+            797500,
+            766709,
+            719250,
+            746083
+          ],
+          "median_ns": 746083,
+          "cpu_elapsed_ns": [
+            742000,
+            790000,
+            767000,
+            720000,
+            747000
+          ],
+          "cpu_median_ns": 747000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 7,
+          "scalar": "0x759cde66bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            718042,
+            719500,
+            711333,
+            727125,
+            711042
+          ],
+          "median_ns": 718042,
+          "cpu_elapsed_ns": [
+            721000,
+            720000,
+            711000,
+            728000,
+            712000
+          ],
+          "cpu_median_ns": 720000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 8,
+          "scalar": "0x4b0dbb418d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            731125,
+            708875,
+            725000,
+            713167,
+            714208
+          ],
+          "median_ns": 714208,
+          "cpu_elapsed_ns": [
+            731000,
+            709000,
+            725000,
+            713000,
+            715000
+          ],
+          "cpu_median_ns": 715000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 9,
+          "scalar": "0x3139d32c93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            713125,
+            725042,
+            696000,
+            716291,
+            738917
+          ],
+          "median_ns": 716291,
+          "cpu_elapsed_ns": [
+            713000,
+            727000,
+            697000,
+            718000,
+            739000
+          ],
+          "cpu_median_ns": 718000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 10,
+          "scalar": "0xfc377a4c4a15544dc5e7ce8a3a578a8ea9488d990bbb259911ce5dd2b45ed1f2",
+          "elapsed_ns": [
+            721833,
+            716250,
+            720541,
+            709042,
+            732167
+          ],
+          "median_ns": 720541,
+          "cpu_elapsed_ns": [
+            726000,
+            717000,
+            720000,
+            709000,
+            733000
+          ],
+          "cpu_median_ns": 720000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 11,
+          "scalar": "0x7412b29347294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            706250,
+            725709,
+            733167,
+            717625,
+            713417
+          ],
+          "median_ns": 717625,
+          "cpu_elapsed_ns": [
+            710000,
+            726000,
+            733000,
+            718000,
+            713000
+          ],
+          "cpu_median_ns": 718000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 12,
+          "scalar": "0xab9099a435a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            718417,
+            710125,
+            731375,
+            734750,
+            726750
+          ],
+          "median_ns": 726750,
+          "cpu_elapsed_ns": [
+            720000,
+            711000,
+            732000,
+            736000,
+            727000
+          ],
+          "cpu_median_ns": 727000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 13,
+          "scalar": "0xa28defe39bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            746209,
+            720209,
+            716417,
+            758166,
+            724667
+          ],
+          "median_ns": 724667,
+          "cpu_elapsed_ns": [
+            750000,
+            722000,
+            717000,
+            752000,
+            725000
+          ],
+          "cpu_median_ns": 725000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 14,
+          "scalar": "0x451b4cf36123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            704291,
+            703958,
+            691708,
+            703750,
+            696250
+          ],
+          "median_ns": 703750,
+          "cpu_elapsed_ns": [
+            707000,
+            704000,
+            692000,
+            704000,
+            696000
+          ],
+          "cpu_median_ns": 704000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 15,
+          "scalar": "0x5304317faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            707750,
+            715083,
+            728084,
+            727000,
+            745000
+          ],
+          "median_ns": 727000,
+          "cpu_elapsed_ns": [
+            708000,
+            717000,
+            729000,
+            727000,
+            746000
+          ],
+          "cpu_median_ns": 727000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 16,
+          "scalar": "0xce177b4e0837b8a3d261a7ab3aa2e4f90e51f30dc6a7ee39c4b032ccd7c524a7",
+          "elapsed_ns": [
+            718959,
+            718167,
+            749208,
+            713667,
+            738709
+          ],
+          "median_ns": 718959,
+          "cpu_elapsed_ns": [
+            722000,
+            718000,
+            749000,
+            714000,
+            740000
+          ],
+          "cpu_median_ns": 722000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 17,
+          "scalar": "0x9132b63ef16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            725583,
+            721459,
+            734083,
+            706917,
+            714750
+          ],
+          "median_ns": 721459,
+          "cpu_elapsed_ns": [
+            726000,
+            722000,
+            734000,
+            708000,
+            715000
+          ],
+          "cpu_median_ns": 722000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 18,
+          "scalar": "0xe27a984d654821d07fcd9eb1a7cad415366eb16f508ebad7b7c93acfe059a0f0",
+          "elapsed_ns": [
+            717708,
+            725375,
+            717167,
+            728333,
+            694459
+          ],
+          "median_ns": 717708,
+          "cpu_elapsed_ns": [
+            719000,
+            725000,
+            717000,
+            729000,
+            696000
+          ],
+          "cpu_median_ns": 719000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 19,
+          "scalar": "0xbeb799193f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            700375,
+            713292,
+            730917,
+            736917,
+            703084
+          ],
+          "median_ns": 713292,
+          "cpu_elapsed_ns": [
+            701000,
+            713000,
+            732000,
+            738000,
+            703000
+          ],
+          "cpu_median_ns": 713000,
+          "calldata_felts": 25
+        }
+      ]
+    },
+    {
+      "curve": "SECP256K1",
+      "backend": "rust",
+      "median_ns": 1163999.5,
+      "median_cpu_ns": 1164000.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x23b8c1e9392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            1160417,
+            1139708,
+            1134083,
+            1107041,
+            1107125
+          ],
+          "median_ns": 1134083,
+          "cpu_elapsed_ns": [
+            1161000,
+            1140000,
+            1134000,
+            1108000,
+            1107000
+          ],
+          "cpu_median_ns": 1134000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 1,
+          "scalar": "0x972a846916419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            1114000,
+            1130750,
+            1097666,
+            1097166,
+            1094375
+          ],
+          "median_ns": 1097666,
+          "cpu_elapsed_ns": [
+            1114000,
+            1131000,
+            1097000,
+            1097000,
+            1094000
+          ],
+          "cpu_median_ns": 1097000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 2,
+          "scalar": "0x9a1de644815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            1457125,
+            1237208,
+            1079709,
+            1102750,
+            1080250
+          ],
+          "median_ns": 1102750,
+          "cpu_elapsed_ns": [
+            1395000,
+            1223000,
+            1080000,
+            1103000,
+            1081000
+          ],
+          "cpu_median_ns": 1103000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 3,
+          "scalar": "0x6b65a6a48b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            1218541,
+            1363291,
+            1159417,
+            1134416,
+            1111375
+          ],
+          "median_ns": 1159417,
+          "cpu_elapsed_ns": [
+            1211000,
+            1294000,
+            1160000,
+            1135000,
+            1112000
+          ],
+          "cpu_median_ns": 1160000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 4,
+          "scalar": "0xc241330b01a9e71fde8a774bcf36d58b4737819096da1dac72ff5d2a386ecbe2",
+          "elapsed_ns": [
+            1331125,
+            1368250,
+            1421750,
+            1114041,
+            1112500
+          ],
+          "median_ns": 1331125,
+          "cpu_elapsed_ns": [
+            1309000,
+            1337000,
+            1344000,
+            1115000,
+            1113000
+          ],
+          "cpu_median_ns": 1309000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 5,
+          "scalar": "0x371ecd7b27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            1178000,
+            1306375,
+            1357083,
+            1189833,
+            1119042
+          ],
+          "median_ns": 1189833,
+          "cpu_elapsed_ns": [
+            1170000,
+            1289000,
+            1344000,
+            1191000,
+            1120000
+          ],
+          "cpu_median_ns": 1191000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 6,
+          "scalar": "0x5be6128e18c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            1163375,
+            1145375,
+            1130292,
+            1129583,
+            1116166
+          ],
+          "median_ns": 1130292,
+          "cpu_elapsed_ns": [
+            1164000,
+            1146000,
+            1130000,
+            1130000,
+            1116000
+          ],
+          "cpu_median_ns": 1130000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 7,
+          "scalar": "0x759cde66bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            1205959,
+            1177917,
+            1172417,
+            1157041,
+            1164417
+          ],
+          "median_ns": 1172417,
+          "cpu_elapsed_ns": [
+            1210000,
+            1178000,
+            1173000,
+            1157000,
+            1164000
+          ],
+          "cpu_median_ns": 1173000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 8,
+          "scalar": "0x4b0dbb418d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            1155125,
+            1222500,
+            1183291,
+            1149875,
+            1122042
+          ],
+          "median_ns": 1155125,
+          "cpu_elapsed_ns": [
+            1158000,
+            1216000,
+            1184000,
+            1150000,
+            1123000
+          ],
+          "cpu_median_ns": 1158000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 9,
+          "scalar": "0x3139d32c93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            1305167,
+            1185166,
+            1177834,
+            1162833,
+            1250459
+          ],
+          "median_ns": 1185166,
+          "cpu_elapsed_ns": [
+            1307000,
+            1185000,
+            1178000,
+            1163000,
+            1245000
+          ],
+          "cpu_median_ns": 1185000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 10,
+          "scalar": "0xfc377a4c4a15544dc5e7ce8a3a578a8ea9488d990bbb259911ce5dd2b45ed1f2",
+          "elapsed_ns": [
+            1275083,
+            1115250,
+            1139833,
+            1145416,
+            1140667
+          ],
+          "median_ns": 1140667,
+          "cpu_elapsed_ns": [
+            1265000,
+            1115000,
+            1140000,
+            1145000,
+            1141000
+          ],
+          "cpu_median_ns": 1141000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 11,
+          "scalar": "0x7412b29347294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            1182375,
+            1277583,
+            1214625,
+            1162958,
+            1161208
+          ],
+          "median_ns": 1182375,
+          "cpu_elapsed_ns": [
+            1174000,
+            1260000,
+            1215000,
+            1163000,
+            1162000
+          ],
+          "cpu_median_ns": 1174000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 12,
+          "scalar": "0xab9099a435a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            1137500,
+            1107375,
+            1144500,
+            1138083,
+            1085416
+          ],
+          "median_ns": 1137500,
+          "cpu_elapsed_ns": [
+            1138000,
+            1108000,
+            1145000,
+            1138000,
+            1086000
+          ],
+          "cpu_median_ns": 1138000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 13,
+          "scalar": "0xa28defe39bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            1207167,
+            1179833,
+            1211125,
+            1207417,
+            1299917
+          ],
+          "median_ns": 1207417,
+          "cpu_elapsed_ns": [
+            1208000,
+            1180000,
+            1212000,
+            1208000,
+            1297000
+          ],
+          "cpu_median_ns": 1208000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 14,
+          "scalar": "0x451b4cf36123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            1224666,
+            1197708,
+            1185000,
+            1195084,
+            1207084
+          ],
+          "median_ns": 1197708,
+          "cpu_elapsed_ns": [
+            1226000,
+            1197000,
+            1186000,
+            1196000,
+            1199000
+          ],
+          "cpu_median_ns": 1197000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 15,
+          "scalar": "0x5304317faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            1127375,
+            1129250,
+            1120125,
+            1110709,
+            1164708
+          ],
+          "median_ns": 1127375,
+          "cpu_elapsed_ns": [
+            1128000,
+            1129000,
+            1120000,
+            1111000,
+            1166000
+          ],
+          "cpu_median_ns": 1128000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 16,
+          "scalar": "0xce177b4e0837b8a3d261a7ab3aa2e4f90e51f30dc6a7ee39c4b032ccd7c524a7",
+          "elapsed_ns": [
+            1243583,
+            1161166,
+            1169250,
+            1142416,
+            1136833
+          ],
+          "median_ns": 1161166,
+          "cpu_elapsed_ns": [
+            1229000,
+            1162000,
+            1169000,
+            1142000,
+            1137000
+          ],
+          "cpu_median_ns": 1162000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 17,
+          "scalar": "0x9132b63ef16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            1202500,
+            1243583,
+            1166833,
+            1165083,
+            1147208
+          ],
+          "median_ns": 1166833,
+          "cpu_elapsed_ns": [
+            1203000,
+            1241000,
+            1158000,
+            1166000,
+            1147000
+          ],
+          "cpu_median_ns": 1166000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 18,
+          "scalar": "0xe27a984d654821d07fcd9eb1a7cad415366eb16f508ebad7b7c93acfe059a0f0",
+          "elapsed_ns": [
+            1228708,
+            1192292,
+            1264042,
+            1154875,
+            1159917
+          ],
+          "median_ns": 1192292,
+          "cpu_elapsed_ns": [
+            1229000,
+            1193000,
+            1261000,
+            1155000,
+            1160000
+          ],
+          "cpu_median_ns": 1193000,
+          "calldata_felts": 25
+        },
+        {
+          "sample": 19,
+          "scalar": "0xbeb799193f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            1200417,
+            1226458,
+            1198459,
+            1260417,
+            1183083
+          ],
+          "median_ns": 1200417,
+          "cpu_elapsed_ns": [
+            1201000,
+            1227000,
+            1194000,
+            1256000,
+            1183000
+          ],
+          "cpu_median_ns": 1201000,
+          "calldata_felts": 25
+        }
+      ]
+    },
+    {
+      "curve": "SECP256R1",
+      "backend": "python",
+      "median_ns": 630187.5,
+      "median_cpu_ns": 631500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x23b8c1e9392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            646625,
+            628292,
+            608209,
+            615750,
+            662333
+          ],
+          "median_ns": 628292,
+          "cpu_elapsed_ns": [
+            648000,
+            629000,
+            609000,
+            616000,
+            664000
+          ],
+          "cpu_median_ns": 629000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 1,
+          "scalar": "0x972a846916419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            676917,
+            651458,
+            618167,
+            633542,
+            638042
+          ],
+          "median_ns": 638042,
+          "cpu_elapsed_ns": [
+            663000,
+            652000,
+            618000,
+            634000,
+            639000
+          ],
+          "cpu_median_ns": 639000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 2,
+          "scalar": "0x9a1de644815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            646666,
+            612667,
+            630208,
+            629500,
+            631375
+          ],
+          "median_ns": 630208,
+          "cpu_elapsed_ns": [
+            647000,
+            613000,
+            630000,
+            629000,
+            632000
+          ],
+          "cpu_median_ns": 630000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 3,
+          "scalar": "0x6b65a6a48b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            642208,
+            652000,
+            637250,
+            616459,
+            604375
+          ],
+          "median_ns": 637250,
+          "cpu_elapsed_ns": [
+            643000,
+            652000,
+            637000,
+            616000,
+            605000
+          ],
+          "cpu_median_ns": 637000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 4,
+          "scalar": "0xc241330b01a9e71fde8a774bcf36d58b4737819096da1dac72ff5d2a386ecbe2",
+          "elapsed_ns": [
+            633958,
+            644166,
+            686208,
+            663084,
+            647459
+          ],
+          "median_ns": 647459,
+          "cpu_elapsed_ns": [
+            634000,
+            644000,
+            680000,
+            663000,
+            649000
+          ],
+          "cpu_median_ns": 649000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 5,
+          "scalar": "0x371ecd7b27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            632125,
+            614416,
+            669041,
+            681833,
+            734125
+          ],
+          "median_ns": 669041,
+          "cpu_elapsed_ns": [
+            633000,
+            615000,
+            666000,
+            682000,
+            718000
+          ],
+          "cpu_median_ns": 666000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 6,
+          "scalar": "0x5be6128e18c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            625125,
+            606791,
+            626416,
+            610917,
+            624083
+          ],
+          "median_ns": 624083,
+          "cpu_elapsed_ns": [
+            626000,
+            607000,
+            627000,
+            611000,
+            624000
+          ],
+          "cpu_median_ns": 624000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 7,
+          "scalar": "0x759cde66bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            677084,
+            810042,
+            713458,
+            732958,
+            649166
+          ],
+          "median_ns": 713458,
+          "cpu_elapsed_ns": [
+            669000,
+            748000,
+            693000,
+            701000,
+            647000
+          ],
+          "cpu_median_ns": 693000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 8,
+          "scalar": "0x4b0dbb418d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            641917,
+            627625,
+            640333,
+            617750,
+            613459
+          ],
+          "median_ns": 627625,
+          "cpu_elapsed_ns": [
+            645000,
+            628000,
+            641000,
+            618000,
+            614000
+          ],
+          "cpu_median_ns": 628000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 9,
+          "scalar": "0x3139d32c93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            630167,
+            610125,
+            610583,
+            738875,
+            651708
+          ],
+          "median_ns": 630167,
+          "cpu_elapsed_ns": [
+            633000,
+            611000,
+            611000,
+            729000,
+            652000
+          ],
+          "cpu_median_ns": 633000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 10,
+          "scalar": "0xfc377a4c4a15544dc5e7ce8a3a578a8ea9488d990bbb259911ce5dd2b45ed1f2",
+          "elapsed_ns": [
+            641708,
+            645292,
+            643583,
+            652042,
+            642084
+          ],
+          "median_ns": 643583,
+          "cpu_elapsed_ns": [
+            643000,
+            647000,
+            643000,
+            653000,
+            643000
+          ],
+          "cpu_median_ns": 643000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 11,
+          "scalar": "0x7412b29347294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            647166,
+            645375,
+            629250,
+            626292,
+            625542
+          ],
+          "median_ns": 629250,
+          "cpu_elapsed_ns": [
+            649000,
+            646000,
+            630000,
+            627000,
+            625000
+          ],
+          "cpu_median_ns": 630000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 12,
+          "scalar": "0xab9099a435a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            597625,
+            648750,
+            620583,
+            636250,
+            638625
+          ],
+          "median_ns": 636250,
+          "cpu_elapsed_ns": [
+            599000,
+            639000,
+            621000,
+            638000,
+            639000
+          ],
+          "cpu_median_ns": 638000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 13,
+          "scalar": "0xa28defe39bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            610625,
+            610250,
+            631250,
+            651333,
+            627917
+          ],
+          "median_ns": 627917,
+          "cpu_elapsed_ns": [
+            611000,
+            610000,
+            632000,
+            652000,
+            629000
+          ],
+          "cpu_median_ns": 629000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 14,
+          "scalar": "0x451b4cf36123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            641500,
+            628917,
+            641833,
+            619125,
+            613750
+          ],
+          "median_ns": 628917,
+          "cpu_elapsed_ns": [
+            645000,
+            629000,
+            642000,
+            619000,
+            614000
+          ],
+          "cpu_median_ns": 629000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 15,
+          "scalar": "0x5304317faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            626459,
+            593125,
+            613708,
+            624458,
+            624125
+          ],
+          "median_ns": 624125,
+          "cpu_elapsed_ns": [
+            630000,
+            594000,
+            614000,
+            624000,
+            624000
+          ],
+          "cpu_median_ns": 624000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 16,
+          "scalar": "0xce177b4e0837b8a3d261a7ab3aa2e4f90e51f30dc6a7ee39c4b032ccd7c524a7",
+          "elapsed_ns": [
+            632084,
+            611792,
+            628833,
+            628458,
+            632667
+          ],
+          "median_ns": 628833,
+          "cpu_elapsed_ns": [
+            636000,
+            612000,
+            629000,
+            629000,
+            633000
+          ],
+          "cpu_median_ns": 629000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 17,
+          "scalar": "0x9132b63ef16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            637625,
+            644250,
+            649250,
+            621458,
+            639750
+          ],
+          "median_ns": 639750,
+          "cpu_elapsed_ns": [
+            641000,
+            645000,
+            650000,
+            622000,
+            640000
+          ],
+          "cpu_median_ns": 641000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 18,
+          "scalar": "0xe27a984d654821d07fcd9eb1a7cad415366eb16f508ebad7b7c93acfe059a0f0",
+          "elapsed_ns": [
+            618000,
+            624042,
+            648417,
+            642583,
+            618375
+          ],
+          "median_ns": 624042,
+          "cpu_elapsed_ns": [
+            622000,
+            625000,
+            649000,
+            643000,
+            619000
+          ],
+          "cpu_median_ns": 625000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 19,
+          "scalar": "0xbeb799193f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            638166,
+            621667,
+            631792,
+            647167,
+            638333
+          ],
+          "median_ns": 638166,
+          "cpu_elapsed_ns": [
+            639000,
+            622000,
+            633000,
+            648000,
+            639000
+          ],
+          "cpu_median_ns": 639000,
+          "calldata_felts": 23
+        }
+      ]
+    },
+    {
+      "curve": "SECP256R1",
+      "backend": "rust",
+      "median_ns": 1222520.5,
+      "median_cpu_ns": 1222500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x23b8c1e9392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            1227208,
+            1197417,
+            1178583,
+            1165875,
+            1180834
+          ],
+          "median_ns": 1180834,
+          "cpu_elapsed_ns": [
+            1229000,
+            1198000,
+            1179000,
+            1166000,
+            1182000
+          ],
+          "cpu_median_ns": 1182000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 1,
+          "scalar": "0x972a846916419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            1190417,
+            1225208,
+            1187167,
+            1166042,
+            1160250
+          ],
+          "median_ns": 1187167,
+          "cpu_elapsed_ns": [
+            1190000,
+            1226000,
+            1188000,
+            1167000,
+            1160000
+          ],
+          "cpu_median_ns": 1188000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 2,
+          "scalar": "0x9a1de644815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            1228833,
+            1213834,
+            1207000,
+            1207250,
+            1200625
+          ],
+          "median_ns": 1207250,
+          "cpu_elapsed_ns": [
+            1232000,
+            1214000,
+            1207000,
+            1209000,
+            1201000
+          ],
+          "cpu_median_ns": 1209000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 3,
+          "scalar": "0x6b65a6a48b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            1186375,
+            1179916,
+            1173125,
+            1158417,
+            1173583
+          ],
+          "median_ns": 1173583,
+          "cpu_elapsed_ns": [
+            1187000,
+            1181000,
+            1174000,
+            1159000,
+            1174000
+          ],
+          "cpu_median_ns": 1174000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 4,
+          "scalar": "0xc241330b01a9e71fde8a774bcf36d58b4737819096da1dac72ff5d2a386ecbe2",
+          "elapsed_ns": [
+            1272125,
+            1256459,
+            1245667,
+            1247334,
+            1270791
+          ],
+          "median_ns": 1256459,
+          "cpu_elapsed_ns": [
+            1273000,
+            1257000,
+            1246000,
+            1247000,
+            1271000
+          ],
+          "cpu_median_ns": 1257000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 5,
+          "scalar": "0x371ecd7b27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            1235542,
+            1214917,
+            1215417,
+            1206541,
+            1253917
+          ],
+          "median_ns": 1215417,
+          "cpu_elapsed_ns": [
+            1239000,
+            1216000,
+            1216000,
+            1208000,
+            1254000
+          ],
+          "cpu_median_ns": 1216000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 6,
+          "scalar": "0x5be6128e18c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            1250792,
+            1251166,
+            1243667,
+            1239375,
+            1248458
+          ],
+          "median_ns": 1248458,
+          "cpu_elapsed_ns": [
+            1251000,
+            1253000,
+            1244000,
+            1240000,
+            1248000
+          ],
+          "cpu_median_ns": 1248000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 7,
+          "scalar": "0x759cde66bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            1225417,
+            1212750,
+            1208125,
+            1214542,
+            1202459
+          ],
+          "median_ns": 1212750,
+          "cpu_elapsed_ns": [
+            1226000,
+            1213000,
+            1208000,
+            1214000,
+            1202000
+          ],
+          "cpu_median_ns": 1213000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 8,
+          "scalar": "0x4b0dbb418d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            1244834,
+            1249458,
+            1274125,
+            1232709,
+            1182208
+          ],
+          "median_ns": 1244834,
+          "cpu_elapsed_ns": [
+            1246000,
+            1251000,
+            1273000,
+            1233000,
+            1183000
+          ],
+          "cpu_median_ns": 1246000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 9,
+          "scalar": "0x3139d32c93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            1250583,
+            1226416,
+            1208417,
+            1201208,
+            1248000
+          ],
+          "median_ns": 1226416,
+          "cpu_elapsed_ns": [
+            1251000,
+            1227000,
+            1209000,
+            1201000,
+            1241000
+          ],
+          "cpu_median_ns": 1227000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 10,
+          "scalar": "0xfc377a4c4a15544dc5e7ce8a3a578a8ea9488d990bbb259911ce5dd2b45ed1f2",
+          "elapsed_ns": [
+            1196125,
+            1180292,
+            1198125,
+            1176916,
+            1171542
+          ],
+          "median_ns": 1180292,
+          "cpu_elapsed_ns": [
+            1196000,
+            1181000,
+            1198000,
+            1177000,
+            1172000
+          ],
+          "cpu_median_ns": 1181000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 11,
+          "scalar": "0x7412b29347294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            1261875,
+            1245083,
+            1238292,
+            1226333,
+            1216875
+          ],
+          "median_ns": 1238292,
+          "cpu_elapsed_ns": [
+            1263000,
+            1245000,
+            1239000,
+            1227000,
+            1218000
+          ],
+          "cpu_median_ns": 1239000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 12,
+          "scalar": "0xab9099a435a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            1217917,
+            1197542,
+            1192375,
+            1189000,
+            1192542
+          ],
+          "median_ns": 1192542,
+          "cpu_elapsed_ns": [
+            1218000,
+            1198000,
+            1193000,
+            1189000,
+            1193000
+          ],
+          "cpu_median_ns": 1193000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 13,
+          "scalar": "0xa28defe39bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            1276583,
+            1270916,
+            1258166,
+            1264916,
+            1256125
+          ],
+          "median_ns": 1264916,
+          "cpu_elapsed_ns": [
+            1277000,
+            1271000,
+            1258000,
+            1265000,
+            1256000
+          ],
+          "cpu_median_ns": 1265000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 14,
+          "scalar": "0x451b4cf36123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            1282042,
+            1282250,
+            1269333,
+            1264375,
+            1289000
+          ],
+          "median_ns": 1282042,
+          "cpu_elapsed_ns": [
+            1282000,
+            1283000,
+            1271000,
+            1264000,
+            1289000
+          ],
+          "cpu_median_ns": 1282000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 15,
+          "scalar": "0x5304317faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            1229000,
+            1218625,
+            1227792,
+            1205292,
+            1211250
+          ],
+          "median_ns": 1218625,
+          "cpu_elapsed_ns": [
+            1228000,
+            1218000,
+            1229000,
+            1205000,
+            1211000
+          ],
+          "cpu_median_ns": 1218000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 16,
+          "scalar": "0xce177b4e0837b8a3d261a7ab3aa2e4f90e51f30dc6a7ee39c4b032ccd7c524a7",
+          "elapsed_ns": [
+            1269959,
+            1248416,
+            1240958,
+            1235375,
+            1240792
+          ],
+          "median_ns": 1240958,
+          "cpu_elapsed_ns": [
+            1270000,
+            1249000,
+            1241000,
+            1235000,
+            1241000
+          ],
+          "cpu_median_ns": 1241000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 17,
+          "scalar": "0x9132b63ef16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            1331334,
+            1248000,
+            1157875,
+            1170667,
+            1158583
+          ],
+          "median_ns": 1170667,
+          "cpu_elapsed_ns": [
+            1326000,
+            1249000,
+            1158000,
+            1171000,
+            1159000
+          ],
+          "cpu_median_ns": 1171000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 18,
+          "scalar": "0xe27a984d654821d07fcd9eb1a7cad415366eb16f508ebad7b7c93acfe059a0f0",
+          "elapsed_ns": [
+            1253250,
+            1237958,
+            1226917,
+            1222500,
+            1208750
+          ],
+          "median_ns": 1226917,
+          "cpu_elapsed_ns": [
+            1254000,
+            1238000,
+            1227000,
+            1223000,
+            1209000
+          ],
+          "cpu_median_ns": 1227000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 19,
+          "scalar": "0xbeb799193f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            1271709,
+            1276333,
+            1292000,
+            1248125,
+            1263833
+          ],
+          "median_ns": 1271709,
+          "cpu_elapsed_ns": [
+            1272000,
+            1276000,
+            1292000,
+            1249000,
+            1264000
+          ],
+          "cpu_median_ns": 1272000,
+          "calldata_felts": 23
+        }
+      ]
+    },
+    {
+      "curve": "ED25519",
+      "backend": "python",
+      "median_ns": 4898020.5,
+      "median_cpu_ns": 4898500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x477183d392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            4689167,
+            4949500,
+            4804417,
+            4862375,
+            4861250
+          ],
+          "median_ns": 4861250,
+          "cpu_elapsed_ns": [
+            4691000,
+            4946000,
+            4805000,
+            4863000,
+            4861000
+          ],
+          "cpu_median_ns": 4861000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 1,
+          "scalar": "0xd6cb4d48b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            4811125,
+            4797583,
+            4865458,
+            4803083,
+            4814792
+          ],
+          "median_ns": 4811125,
+          "cpu_elapsed_ns": [
+            4812000,
+            4799000,
+            4866000,
+            4804000,
+            4816000
+          ],
+          "cpu_median_ns": 4812000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 2,
+          "scalar": "0x6e3d9af27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            4850375,
+            4795833,
+            4823291,
+            4874833,
+            4759833
+          ],
+          "median_ns": 4823291,
+          "cpu_elapsed_ns": [
+            4854000,
+            4796000,
+            4823000,
+            4868000,
+            4761000
+          ],
+          "cpu_median_ns": 4823000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 3,
+          "scalar": "0xb7cc25118c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            4882042,
+            4903875,
+            4985667,
+            4810250,
+            4886750
+          ],
+          "median_ns": 4886750,
+          "cpu_elapsed_ns": [
+            4885000,
+            4904000,
+            4986000,
+            4811000,
+            4887000
+          ],
+          "cpu_median_ns": 4887000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 4,
+          "scalar": "0xeb39bccbacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            5019584,
+            5283250,
+            5193542,
+            5108000,
+            5110916
+          ],
+          "median_ns": 5110916,
+          "cpu_elapsed_ns": [
+            5020000,
+            5281000,
+            5191000,
+            5109000,
+            5112000
+          ],
+          "cpu_median_ns": 5112000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 5,
+          "scalar": "0x961b7688d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            5008625,
+            5016167,
+            4792875,
+            4968667,
+            5022209
+          ],
+          "median_ns": 5008625,
+          "cpu_elapsed_ns": [
+            5011000,
+            5017000,
+            4794000,
+            4969000,
+            5022000
+          ],
+          "cpu_median_ns": 5011000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 6,
+          "scalar": "0x6273a6593cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            5074417,
+            5029333,
+            5194667,
+            5296125,
+            4972875
+          ],
+          "median_ns": 5074417,
+          "cpu_elapsed_ns": [
+            5059000,
+            5020000,
+            5171000,
+            5272000,
+            4974000
+          ],
+          "cpu_median_ns": 5059000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 7,
+          "scalar": "0xe82565247294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            5016083,
+            5113459,
+            5267042,
+            5110500,
+            5053500
+          ],
+          "median_ns": 5110500,
+          "cpu_elapsed_ns": [
+            5013000,
+            5113000,
+            5261000,
+            5111000,
+            5054000
+          ],
+          "cpu_median_ns": 5111000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 8,
+          "scalar": "0x8a3699e6123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            5107833,
+            5081167,
+            5095416,
+            5032500,
+            4987917
+          ],
+          "median_ns": 5081167,
+          "cpu_elapsed_ns": [
+            5104000,
+            5081000,
+            5095000,
+            5033000,
+            4987000
+          ],
+          "cpu_median_ns": 5081000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 9,
+          "scalar": "0xa60862faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            4750750,
+            4741250,
+            4719167,
+            4689917,
+            4760583
+          ],
+          "median_ns": 4741250,
+          "cpu_elapsed_ns": [
+            4751000,
+            4742000,
+            4719000,
+            4690000,
+            4762000
+          ],
+          "cpu_median_ns": 4742000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 10,
+          "scalar": "0xfcae1bb827050a82369b584ff5e9ff0ff50bde4382567b85cabcc97663f1c99",
+          "elapsed_ns": [
+            4899375,
+            4909291,
+            4949458,
+            4934666,
+            4882333
+          ],
+          "median_ns": 4909291,
+          "cpu_elapsed_ns": [
+            4903000,
+            4910000,
+            4949000,
+            4935000,
+            4882000
+          ],
+          "cpu_median_ns": 4910000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 11,
+          "scalar": "0x51e9290a0a04dc427209bdf1c11f735dc713d960c0fd195c17af08a1745d6da",
+          "elapsed_ns": [
+            4645333,
+            4709084,
+            4659000,
+            4753083,
+            4647167
+          ],
+          "median_ns": 4659000,
+          "cpu_elapsed_ns": [
+            4649000,
+            4710000,
+            4659000,
+            4753000,
+            4648000
+          ],
+          "cpu_median_ns": 4659000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 12,
+          "scalar": "0x50fa0d96f4cc69a4b22d3081c8eaee95715bd6fa4161293c4c2e2e3444ea7ca",
+          "elapsed_ns": [
+            4697458,
+            4679042,
+            4744709,
+            4726834,
+            4806083
+          ],
+          "median_ns": 4726834,
+          "cpu_elapsed_ns": [
+            4701000,
+            4680000,
+            4746000,
+            4728000,
+            4806000
+          ],
+          "cpu_median_ns": 4728000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 13,
+          "scalar": "0xbf71a2d2720797d32ebd6899be578c781f631d4a39231a7d777a4774c66e0aa",
+          "elapsed_ns": [
+            4946625,
+            5065750,
+            5018917,
+            4960084,
+            5090750
+          ],
+          "median_ns": 5018917,
+          "cpu_elapsed_ns": [
+            4948000,
+            5058000,
+            5007000,
+            4962000,
+            5087000
+          ],
+          "cpu_median_ns": 5007000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 14,
+          "scalar": "0xb9d89d6edd968311ca35cfb04fc6d827d15438552fbe43b99546eb400257ad3",
+          "elapsed_ns": [
+            5264792,
+            5518375,
+            5046708,
+            5141750,
+            5013083
+          ],
+          "median_ns": 5141750,
+          "cpu_elapsed_ns": [
+            5220000,
+            5473000,
+            5044000,
+            5131000,
+            5005000
+          ],
+          "cpu_median_ns": 5131000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 15,
+          "scalar": "0x7b538550ed42f1a3d4cbf374eb93effce88cb2dd4e80839fc3e058be0f3eab2",
+          "elapsed_ns": [
+            5429500,
+            5326250,
+            4859750,
+            5058042,
+            5090833
+          ],
+          "median_ns": 5090833,
+          "cpu_elapsed_ns": [
+            5318000,
+            5282000,
+            4861000,
+            5054000,
+            5085000
+          ],
+          "cpu_median_ns": 5085000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 16,
+          "scalar": "0xbf30f8ea65e688eabf3ad39fec21bbe66245bfa4fcca39ab683d2e6337ea2e1",
+          "elapsed_ns": [
+            5042333,
+            5266792,
+            5172500,
+            5204167,
+            4977583
+          ],
+          "median_ns": 5172500,
+          "cpu_elapsed_ns": [
+            5044000,
+            5265000,
+            5173000,
+            5191000,
+            4978000
+          ],
+          "cpu_median_ns": 5173000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 17,
+          "scalar": "0x20c800b3985c3cf3f76be1d1efa21977394988f847fd9b4e64d1bcb702753a3",
+          "elapsed_ns": [
+            4849000,
+            4944625,
+            4882958,
+            4833625,
+            4975625
+          ],
+          "median_ns": 4882958,
+          "cpu_elapsed_ns": [
+            4850000,
+            4943000,
+            4876000,
+            4829000,
+            4976000
+          ],
+          "cpu_median_ns": 4876000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 18,
+          "scalar": "0x3ae84a38602ab696a402f23ae8cc938dcdcd03969b666205628059568cc69d",
+          "elapsed_ns": [
+            4560125,
+            4522458,
+            4806500,
+            4864333,
+            4679875
+          ],
+          "median_ns": 4679875,
+          "cpu_elapsed_ns": [
+            4560000,
+            4522000,
+            4801000,
+            4851000,
+            4669000
+          ],
+          "cpu_median_ns": 4669000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 19,
+          "scalar": "0x10155bfe7c99b26114125c63a9bedd40f1259e0a18ff6b6b535106e122c9a58",
+          "elapsed_ns": [
+            4775416,
+            4704709,
+            4788625,
+            4913291,
+            4832459
+          ],
+          "median_ns": 4788625,
+          "cpu_elapsed_ns": [
+            4768000,
+            4705000,
+            4780000,
+            4900000,
+            4833000
+          ],
+          "cpu_median_ns": 4780000,
+          "calldata_felts": 23
+        }
+      ]
+    },
+    {
+      "curve": "ED25519",
+      "backend": "rust",
+      "median_ns": 926125.0,
+      "median_cpu_ns": 926500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x477183d392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            1005542,
+            979541,
+            919167,
+            890042,
+            877250
+          ],
+          "median_ns": 919167,
+          "cpu_elapsed_ns": [
+            1009000,
+            981000,
+            920000,
+            890000,
+            878000
+          ],
+          "cpu_median_ns": 920000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 1,
+          "scalar": "0xd6cb4d48b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            879292,
+            873333,
+            870791,
+            862625,
+            860625
+          ],
+          "median_ns": 870791,
+          "cpu_elapsed_ns": [
+            881000,
+            873000,
+            871000,
+            863000,
+            861000
+          ],
+          "cpu_median_ns": 871000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 2,
+          "scalar": "0x6e3d9af27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            1016750,
+            967542,
+            948500,
+            914541,
+            903083
+          ],
+          "median_ns": 948500,
+          "cpu_elapsed_ns": [
+            1018000,
+            969000,
+            949000,
+            914000,
+            903000
+          ],
+          "cpu_median_ns": 949000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 3,
+          "scalar": "0xb7cc25118c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            1015292,
+            980833,
+            958708,
+            959333,
+            950333
+          ],
+          "median_ns": 959333,
+          "cpu_elapsed_ns": [
+            1016000,
+            982000,
+            959000,
+            960000,
+            951000
+          ],
+          "cpu_median_ns": 960000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 4,
+          "scalar": "0xeb39bccbacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            1009292,
+            991208,
+            981667,
+            984792,
+            980292
+          ],
+          "median_ns": 984792,
+          "cpu_elapsed_ns": [
+            1009000,
+            991000,
+            982000,
+            985000,
+            980000
+          ],
+          "cpu_median_ns": 985000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 5,
+          "scalar": "0x961b7688d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            936416,
+            939625,
+            936916,
+            936708,
+            936500
+          ],
+          "median_ns": 936708,
+          "cpu_elapsed_ns": [
+            937000,
+            940000,
+            937000,
+            934000,
+            936000
+          ],
+          "cpu_median_ns": 937000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 6,
+          "scalar": "0x6273a6593cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            1028583,
+            909000,
+            900083,
+            886042,
+            886542
+          ],
+          "median_ns": 900083,
+          "cpu_elapsed_ns": [
+            1017000,
+            909000,
+            901000,
+            886000,
+            886000
+          ],
+          "cpu_median_ns": 901000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 7,
+          "scalar": "0xe82565247294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            960250,
+            1052375,
+            948250,
+            944042,
+            935000
+          ],
+          "median_ns": 948250,
+          "cpu_elapsed_ns": [
+            961000,
+            1040000,
+            949000,
+            945000,
+            936000
+          ],
+          "cpu_median_ns": 949000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 8,
+          "scalar": "0x8a3699e6123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            979791,
+            975583,
+            958875,
+            952291,
+            951583
+          ],
+          "median_ns": 958875,
+          "cpu_elapsed_ns": [
+            980000,
+            976000,
+            959000,
+            953000,
+            952000
+          ],
+          "cpu_median_ns": 959000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 9,
+          "scalar": "0xa60862faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            944750,
+            925666,
+            922208,
+            917208,
+            912125
+          ],
+          "median_ns": 922208,
+          "cpu_elapsed_ns": [
+            945000,
+            925000,
+            923000,
+            918000,
+            912000
+          ],
+          "cpu_median_ns": 923000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 10,
+          "scalar": "0xfcae1bb827050a82369b584ff5e9ff0ff50bde4382567b85cabcc97663f1c99",
+          "elapsed_ns": [
+            1001667,
+            987000,
+            959416,
+            962583,
+            956125
+          ],
+          "median_ns": 962583,
+          "cpu_elapsed_ns": [
+            1002000,
+            988000,
+            960000,
+            963000,
+            957000
+          ],
+          "cpu_median_ns": 963000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 11,
+          "scalar": "0x51e9290a0a04dc427209bdf1c11f735dc713d960c0fd195c17af08a1745d6da",
+          "elapsed_ns": [
+            940458,
+            948042,
+            925000,
+            928125,
+            919125
+          ],
+          "median_ns": 928125,
+          "cpu_elapsed_ns": [
+            940000,
+            949000,
+            925000,
+            928000,
+            919000
+          ],
+          "cpu_median_ns": 928000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 12,
+          "scalar": "0x50fa0d96f4cc69a4b22d3081c8eaee95715bd6fa4161293c4c2e2e3444ea7ca",
+          "elapsed_ns": [
+            990125,
+            924083,
+            875833,
+            843000,
+            833667
+          ],
+          "median_ns": 875833,
+          "cpu_elapsed_ns": [
+            991000,
+            925000,
+            876000,
+            844000,
+            834000
+          ],
+          "cpu_median_ns": 876000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 13,
+          "scalar": "0xbf71a2d2720797d32ebd6899be578c781f631d4a39231a7d777a4774c66e0aa",
+          "elapsed_ns": [
+            932916,
+            916375,
+            907292,
+            914042,
+            905417
+          ],
+          "median_ns": 914042,
+          "cpu_elapsed_ns": [
+            933000,
+            916000,
+            908000,
+            914000,
+            906000
+          ],
+          "cpu_median_ns": 914000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 14,
+          "scalar": "0xb9d89d6edd968311ca35cfb04fc6d827d15438552fbe43b99546eb400257ad3",
+          "elapsed_ns": [
+            933916,
+            918583,
+            912959,
+            912292,
+            901084
+          ],
+          "median_ns": 912959,
+          "cpu_elapsed_ns": [
+            935000,
+            919000,
+            914000,
+            913000,
+            901000
+          ],
+          "cpu_median_ns": 914000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 15,
+          "scalar": "0x7b538550ed42f1a3d4cbf374eb93effce88cb2dd4e80839fc3e058be0f3eab2",
+          "elapsed_ns": [
+            965291,
+            940667,
+            950291,
+            925333,
+            921000
+          ],
+          "median_ns": 940667,
+          "cpu_elapsed_ns": [
+            966000,
+            942000,
+            950000,
+            925000,
+            921000
+          ],
+          "cpu_median_ns": 942000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 16,
+          "scalar": "0xbf30f8ea65e688eabf3ad39fec21bbe66245bfa4fcca39ab683d2e6337ea2e1",
+          "elapsed_ns": [
+            959959,
+            946708,
+            964250,
+            948709,
+            934584
+          ],
+          "median_ns": 948709,
+          "cpu_elapsed_ns": [
+            960000,
+            947000,
+            965000,
+            950000,
+            935000
+          ],
+          "cpu_median_ns": 950000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 17,
+          "scalar": "0x20c800b3985c3cf3f76be1d1efa21977394988f847fd9b4e64d1bcb702753a3",
+          "elapsed_ns": [
+            927458,
+            924125,
+            928917,
+            912417,
+            908084
+          ],
+          "median_ns": 924125,
+          "cpu_elapsed_ns": [
+            928000,
+            925000,
+            929000,
+            913000,
+            909000
+          ],
+          "cpu_median_ns": 925000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 18,
+          "scalar": "0x3ae84a38602ab696a402f23ae8cc938dcdcd03969b666205628059568cc69d",
+          "elapsed_ns": [
+            909917,
+            845459,
+            815417,
+            810416,
+            790417
+          ],
+          "median_ns": 815417,
+          "cpu_elapsed_ns": [
+            911000,
+            846000,
+            816000,
+            811000,
+            790000
+          ],
+          "cpu_median_ns": 816000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 19,
+          "scalar": "0x10155bfe7c99b26114125c63a9bedd40f1259e0a18ff6b6b535106e122c9a58",
+          "elapsed_ns": [
+            919334,
+            897917,
+            902458,
+            879583,
+            894125
+          ],
+          "median_ns": 897917,
+          "cpu_elapsed_ns": [
+            920000,
+            898000,
+            903000,
+            881000,
+            894000
+          ],
+          "cpu_median_ns": 898000,
+          "calldata_felts": 23
+        }
+      ]
+    },
+    {
+      "curve": "GRUMPKIN",
+      "backend": "python",
+      "median_ns": 582062.5,
+      "median_cpu_ns": 583500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x8ee307a392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            579709,
+            590917,
+            586584,
+            584666,
+            584834
+          ],
+          "median_ns": 584834,
+          "cpu_elapsed_ns": [
+            580000,
+            591000,
+            587000,
+            585000,
+            586000
+          ],
+          "cpu_median_ns": 586000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 1,
+          "scalar": "0x25caa11a16419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            590250,
+            600208,
+            578500,
+            566167,
+            578125
+          ],
+          "median_ns": 578500,
+          "cpu_elapsed_ns": [
+            591000,
+            601000,
+            578000,
+            566000,
+            578000
+          ],
+          "cpu_median_ns": 578000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 2,
+          "scalar": "0x26877991815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            577541,
+            583916,
+            581417,
+            580041,
+            561541
+          ],
+          "median_ns": 580041,
+          "cpu_elapsed_ns": [
+            579000,
+            584000,
+            582000,
+            580000,
+            562000
+          ],
+          "cpu_median_ns": 580000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 3,
+          "scalar": "0x1ad969a98b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            577292,
+            563542,
+            570208,
+            588667,
+            584625
+          ],
+          "median_ns": 577292,
+          "cpu_elapsed_ns": [
+            577000,
+            563000,
+            570000,
+            589000,
+            585000
+          ],
+          "cpu_median_ns": 577000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 4,
+          "scalar": "0xdc7b35e27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            584292,
+            569417,
+            586667,
+            587042,
+            586334
+          ],
+          "median_ns": 586334,
+          "cpu_elapsed_ns": [
+            585000,
+            570000,
+            587000,
+            587000,
+            587000
+          ],
+          "cpu_median_ns": 587000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 5,
+          "scalar": "0x16f984a318c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            590625,
+            579166,
+            590959,
+            597291,
+            571958
+          ],
+          "median_ns": 590625,
+          "cpu_elapsed_ns": [
+            591000,
+            579000,
+            591000,
+            597000,
+            573000
+          ],
+          "cpu_median_ns": 591000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 6,
+          "scalar": "0x1d673799bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            575209,
+            577959,
+            595542,
+            568792,
+            586333
+          ],
+          "median_ns": 577959,
+          "cpu_elapsed_ns": [
+            576000,
+            580000,
+            595000,
+            569000,
+            587000
+          ],
+          "cpu_median_ns": 580000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 7,
+          "scalar": "0x12c36ed08d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            573584,
+            586041,
+            586042,
+            585667,
+            582917
+          ],
+          "median_ns": 585667,
+          "cpu_elapsed_ns": [
+            577000,
+            588000,
+            586000,
+            587000,
+            584000
+          ],
+          "cpu_median_ns": 586000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 8,
+          "scalar": "0xc4e74cb93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            572917,
+            585583,
+            571625,
+            562000,
+            596583
+          ],
+          "median_ns": 572917,
+          "cpu_elapsed_ns": [
+            573000,
+            585000,
+            571000,
+            562000,
+            597000
+          ],
+          "cpu_median_ns": 573000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 9,
+          "scalar": "0x1d04aca447294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            593917,
+            585250,
+            570542,
+            567167,
+            585125
+          ],
+          "median_ns": 585125,
+          "cpu_elapsed_ns": [
+            595000,
+            586000,
+            571000,
+            568000,
+            586000
+          ],
+          "cpu_median_ns": 586000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 10,
+          "scalar": "0x2ae4266935a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            591166,
+            591708,
+            559625,
+            575375,
+            584000
+          ],
+          "median_ns": 584000,
+          "cpu_elapsed_ns": [
+            592000,
+            592000,
+            559000,
+            576000,
+            584000
+          ],
+          "cpu_median_ns": 584000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 11,
+          "scalar": "0x28a37bf89bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            580417,
+            574459,
+            578375,
+            574333,
+            586250
+          ],
+          "median_ns": 578375,
+          "cpu_elapsed_ns": [
+            582000,
+            575000,
+            579000,
+            574000,
+            586000
+          ],
+          "cpu_median_ns": 579000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 12,
+          "scalar": "0x1146d33c6123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            567500,
+            584042,
+            582833,
+            561042,
+            585167
+          ],
+          "median_ns": 582833,
+          "cpu_elapsed_ns": [
+            569000,
+            584000,
+            584000,
+            561000,
+            585000
+          ],
+          "cpu_median_ns": 584000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 13,
+          "scalar": "0x14c10c5faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            570458,
+            572000,
+            579208,
+            585875,
+            571750
+          ],
+          "median_ns": 572000,
+          "cpu_elapsed_ns": [
+            570000,
+            572000,
+            579000,
+            587000,
+            572000
+          ],
+          "cpu_median_ns": 572000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 14,
+          "scalar": "0x244cad8ff16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            587583,
+            596708,
+            571042,
+            570000,
+            595666
+          ],
+          "median_ns": 587583,
+          "cpu_elapsed_ns": [
+            588000,
+            597000,
+            572000,
+            570000,
+            597000
+          ],
+          "cpu_median_ns": 588000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 15,
+          "scalar": "0x2fade6463f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            599334,
+            575958,
+            624000,
+            580375,
+            568083
+          ],
+          "median_ns": 580375,
+          "cpu_elapsed_ns": [
+            600000,
+            577000,
+            624000,
+            580000,
+            569000
+          ],
+          "cpu_median_ns": 580000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 16,
+          "scalar": "0x25589a7ce5d7b8756dadd6c795a76d79bf3c4c06434308bc89fa6a688fb5d27d",
+          "elapsed_ns": [
+            589541,
+            592750,
+            577250,
+            595375,
+            563250
+          ],
+          "median_ns": 589541,
+          "cpu_elapsed_ns": [
+            591000,
+            593000,
+            577000,
+            595000,
+            564000
+          ],
+          "cpu_median_ns": 591000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 17,
+          "scalar": "0x1f95c377827050a82369b584ff5e9ff0ff50bde4382567b85cabcc97663f1c99",
+          "elapsed_ns": [
+            605833,
+            587500,
+            601167,
+            573875,
+            628083
+          ],
+          "median_ns": 601167,
+          "cpu_elapsed_ns": [
+            606000,
+            588000,
+            601000,
+            574000,
+            628000
+          ],
+          "cpu_median_ns": 601000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 18,
+          "scalar": "0xa3d2520a0a04dc427209bdf1c11f735dc713d960c0fd195c17af08a1745d6da",
+          "elapsed_ns": [
+            578959,
+            592333,
+            573875,
+            588333,
+            566750
+          ],
+          "median_ns": 578959,
+          "cpu_elapsed_ns": [
+            580000,
+            594000,
+            574000,
+            588000,
+            567000
+          ],
+          "cpu_median_ns": 580000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 19,
+          "scalar": "0x2623093261b1cd2262801c4510435a1098ae43346c12ace8ae340454cac5b68e",
+          "elapsed_ns": [
+            581292,
+            577917,
+            600208,
+            589167,
+            570292
+          ],
+          "median_ns": 581292,
+          "cpu_elapsed_ns": [
+            583000,
+            578000,
+            600000,
+            589000,
+            571000
+          ],
+          "cpu_median_ns": 583000,
+          "calldata_felts": 23
+        }
+      ]
+    },
+    {
+      "curve": "GRUMPKIN",
+      "backend": "rust",
+      "median_ns": 1203396.0,
+      "median_cpu_ns": 1203500.0,
+      "samples": [
+        {
+          "sample": 0,
+          "scalar": "0x8ee307a392456de3eb13b9046685257bdd640fb06671ad11c80317fa3b1799f",
+          "elapsed_ns": [
+            1207084,
+            1190542,
+            1173041,
+            1168208,
+            1157875
+          ],
+          "median_ns": 1173041,
+          "cpu_elapsed_ns": [
+            1207000,
+            1191000,
+            1173000,
+            1168000,
+            1158000
+          ],
+          "cpu_median_ns": 1173000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 1,
+          "scalar": "0x25caa11a16419f828b9d2434e465e150bd9c66b3ad3c2d6d1a3d1fa7bc8960ab",
+          "elapsed_ns": [
+            1217583,
+            1217916,
+            1170583,
+            1154292,
+            1149875
+          ],
+          "median_ns": 1170583,
+          "cpu_elapsed_ns": [
+            1211000,
+            1219000,
+            1171000,
+            1155000,
+            1151000
+          ],
+          "cpu_median_ns": 1171000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 2,
+          "scalar": "0x26877991815ef6d13b8faa1837f8a88b17fc695a07a0ca6e0822e8f36c03119b",
+          "elapsed_ns": [
+            1228667,
+            1206916,
+            1200416,
+            1226208,
+            1215584
+          ],
+          "median_ns": 1215584,
+          "cpu_elapsed_ns": [
+            1229000,
+            1207000,
+            1200000,
+            1222000,
+            1214000
+          ],
+          "cpu_median_ns": 1214000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 3,
+          "scalar": "0x1ad969a98b8148f6b38a088ca65ed389b74d0fb132e706298fadc1a606cb0fb5",
+          "elapsed_ns": [
+            1165250,
+            1153583,
+            1128542,
+            1121500,
+            1123709
+          ],
+          "median_ns": 1128542,
+          "cpu_elapsed_ns": [
+            1166000,
+            1153000,
+            1129000,
+            1121000,
+            1123000
+          ],
+          "cpu_median_ns": 1129000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 4,
+          "scalar": "0xdc7b35e27cd813047229389571aa8766c307511b2b9437a28df6ec4ce4a2bbf",
+          "elapsed_ns": [
+            1273917,
+            1212375,
+            1182459,
+            1176334,
+            1192250
+          ],
+          "median_ns": 1192250,
+          "cpu_elapsed_ns": [
+            1266000,
+            1213000,
+            1183000,
+            1176000,
+            1193000
+          ],
+          "cpu_median_ns": 1193000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 5,
+          "scalar": "0x16f984a318c267976142ea7d17be31111a2a73ed562b0f79c37459eef50bea65",
+          "elapsed_ns": [
+            1266625,
+            1256250,
+            1245791,
+            1234708,
+            1233250
+          ],
+          "median_ns": 1245791,
+          "cpu_elapsed_ns": [
+            1268000,
+            1256000,
+            1246000,
+            1235000,
+            1233000
+          ],
+          "cpu_median_ns": 1246000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 6,
+          "scalar": "0x1d673799bacfb3d00b1f9163ce9ff57f43b7a3a69a8dca03580d7b71d8f56415",
+          "elapsed_ns": [
+            1283084,
+            1279542,
+            1273292,
+            1283458,
+            1306500
+          ],
+          "median_ns": 1283084,
+          "cpu_elapsed_ns": [
+            1284000,
+            1280000,
+            1273000,
+            1283000,
+            1308000
+          ],
+          "cpu_median_ns": 1283000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 7,
+          "scalar": "0x12c36ed08d5288f1142c3fe860e7a113ec1b8ca1f91e1d4c1ff49b7889463e87",
+          "elapsed_ns": [
+            1213084,
+            1185458,
+            1239750,
+            1207167,
+            1176208
+          ],
+          "median_ns": 1207167,
+          "cpu_elapsed_ns": [
+            1213000,
+            1186000,
+            1238000,
+            1207000,
+            1176000
+          ],
+          "cpu_median_ns": 1207000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 8,
+          "scalar": "0xc4e74cb93cd59bf5c941cf0dc98d2c1e2acf72f9e574f7aa0ee89aed453dd34",
+          "elapsed_ns": [
+            1258625,
+            1231333,
+            1217750,
+            1216167,
+            1209000
+          ],
+          "median_ns": 1217750,
+          "cpu_elapsed_ns": [
+            1259000,
+            1231000,
+            1218000,
+            1216000,
+            1210000
+          ],
+          "cpu_median_ns": 1218000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 9,
+          "scalar": "0x1d04aca447294739614ff3d719db3ad0ddd1dfb23b982ef8daf61a26146d3f33",
+          "elapsed_ns": [
+            1262541,
+            1254916,
+            1246542,
+            1220750,
+            1243166
+          ],
+          "median_ns": 1246542,
+          "cpu_elapsed_ns": [
+            1263000,
+            1255000,
+            1247000,
+            1221000,
+            1244000
+          ],
+          "cpu_median_ns": 1247000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 10,
+          "scalar": "0x2ae4266935a240ae5af305535ec42e0829a3b2e95d65a441d58842dea2bc3731",
+          "elapsed_ns": [
+            1230125,
+            1208083,
+            1194500,
+            1180166,
+            1180625
+          ],
+          "median_ns": 1194500,
+          "cpu_elapsed_ns": [
+            1231000,
+            1209000,
+            1195000,
+            1180000,
+            1182000
+          ],
+          "cpu_median_ns": 1195000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 11,
+          "scalar": "0x28a37bf89bf0027312476f57a5e5a5abaefcfad8efc89849b3aa7efe4458a887",
+          "elapsed_ns": [
+            1254458,
+            1215375,
+            1199625,
+            1191459,
+            1167041
+          ],
+          "median_ns": 1199625,
+          "cpu_elapsed_ns": [
+            1255000,
+            1215000,
+            1200000,
+            1192000,
+            1167000
+          ],
+          "cpu_median_ns": 1200000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 12,
+          "scalar": "0x1146d33c6123fdf77656af7229d4beef3eabedcbbaa80dd488bd64072bcfbe03",
+          "elapsed_ns": [
+            1246042,
+            1222375,
+            1214292,
+            1203667,
+            1217584
+          ],
+          "median_ns": 1217584,
+          "cpu_elapsed_ns": [
+            1247000,
+            1223000,
+            1215000,
+            1204000,
+            1217000
+          ],
+          "cpu_median_ns": 1217000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 13,
+          "scalar": "0x14c10c5faf42e12f3838b3268e944239b02b61c4a3d70628ece66fa2fd5166e8",
+          "elapsed_ns": [
+            1189875,
+            1175708,
+            1167541,
+            1167042,
+            1163584
+          ],
+          "median_ns": 1167541,
+          "cpu_elapsed_ns": [
+            1190000,
+            1176000,
+            1167000,
+            1168000,
+            1164000
+          ],
+          "cpu_median_ns": 1168000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 14,
+          "scalar": "0x244cad8ff16287e4e9c349e03602f8ac10f1bc81448aaa9e66b2bc5b50c187fe",
+          "elapsed_ns": [
+            1198083,
+            1180417,
+            1181875,
+            1282958,
+            1278750
+          ],
+          "median_ns": 1198083,
+          "cpu_elapsed_ns": [
+            1198000,
+            1182000,
+            1182000,
+            1280000,
+            1279000
+          ],
+          "cpu_median_ns": 1198000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 15,
+          "scalar": "0x2fade6463f22faf823bed01d43cf2fde24933b83757750a9a491f0b2ea1fca67",
+          "elapsed_ns": [
+            1124208,
+            1144541,
+            1839584,
+            1598708,
+            2128125
+          ],
+          "median_ns": 1598708,
+          "cpu_elapsed_ns": [
+            1127000,
+            1145000,
+            1778000,
+            1592000,
+            2132000
+          ],
+          "cpu_median_ns": 1592000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 16,
+          "scalar": "0x25589a7ce5d7b8756dadd6c795a76d79bf3c4c06434308bc89fa6a688fb5d27d",
+          "elapsed_ns": [
+            2168916,
+            1461709,
+            1310083,
+            1248500,
+            1181583
+          ],
+          "median_ns": 1310083,
+          "cpu_elapsed_ns": [
+            1851000,
+            1422000,
+            1310000,
+            1249000,
+            1182000
+          ],
+          "cpu_median_ns": 1310000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 17,
+          "scalar": "0x1f95c377827050a82369b584ff5e9ff0ff50bde4382567b85cabcc97663f1c99",
+          "elapsed_ns": [
+            1250833,
+            1224375,
+            1205709,
+            1202958,
+            1233584
+          ],
+          "median_ns": 1224375,
+          "cpu_elapsed_ns": [
+            1247000,
+            1225000,
+            1206000,
+            1203000,
+            1224000
+          ],
+          "cpu_median_ns": 1224000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 18,
+          "scalar": "0xa3d2520a0a04dc427209bdf1c11f735dc713d960c0fd195c17af08a1745d6da",
+          "elapsed_ns": [
+            1182375,
+            1180208,
+            1162417,
+            1151208,
+            1149708
+          ],
+          "median_ns": 1162417,
+          "cpu_elapsed_ns": [
+            1183000,
+            1180000,
+            1163000,
+            1151000,
+            1151000
+          ],
+          "cpu_median_ns": 1163000,
+          "calldata_felts": 23
+        },
+        {
+          "sample": 19,
+          "scalar": "0x2623093261b1cd2262801c4510435a1098ae43346c12ace8ae340454cac5b68e",
+          "elapsed_ns": [
+            1183208,
+            1088625,
+            1086291,
+            1072750,
+            1064708
+          ],
+          "median_ns": 1086291,
+          "cpu_elapsed_ns": [
+            1180000,
+            1090000,
+            1087000,
+            1073000,
+            1065000
+          ],
+          "cpu_median_ns": 1087000,
+          "calldata_felts": 23
+        }
+      ]
+    }
+  ],
+  "commands": {
+    "cwd": "/tmp/garaga-glv-adversarial-baseline",
+    "benchmark": "PYTHONPATH=hydra uv run --no-project --python /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python python /tmp/garaga-glv-baseline/benchmark_hint_cpu.py --output /tmp/garaga-glv-baseline/hint-cpu-before.json",
+    "build": "CARGO_PROFILE_RELEASE_DEBUG=1 RUSTUP_TOOLCHAIN=1.97.0 uv run --no-project --python /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python python -m maturin build --manifest-path tools/garaga_rs/Cargo.toml --release --features python --interpreter /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/.venv/bin/python --out /tmp/garaga-glv-baseline/wheels"
+  },
+  "timers": {
+    "wall": "time.perf_counter_ns",
+    "process_cpu": "time.process_time_ns"
+  },
+  "benchmark_script_sha256": "2fbebb0544298f31b2a32f451e6f747646966a6de4a4b52bcf6e5fa17bbe64a3"
+}
