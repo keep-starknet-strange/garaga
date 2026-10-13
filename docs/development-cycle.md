@@ -164,3 +164,38 @@ source venv/bin/activate
 pytest tests/hydra/test_black_hook.py
 pre-commit run black --all-files
 ```
+
+## Regenerate only the affected circuit family
+
+Run a focused circuit regeneration:
+
+```sh
+make circuits CIRCUITS=ec
+make circuits CIRCUITS="ec rsa"
+```
+
+Each selector names a complete output file family, not an individual function.
+This preserves sibling functions in the selected file. Unknown selectors fail before any writes.
+Unselected files retain their bytes and modification times.
+The full `make rewrite` gate remains unchanged.
+
+Five real Scarb runs compared the same registry and source with temporary output projects:
+
+- Full circuit generation: 84 variants, seven files, median 1.0806s.
+- EC generation: 24 variants, one file, median 0.5831s.
+- RSA generation: one variant, one file, median 0.1243s.
+
+The default generation remained byte-identical and measured 1.0835s after the change.
+Every selected family matched the corresponding formatted full-generation file.
+The focused command also avoids the five verifier projects and application-test generation in `make rewrite`.
+These circuit-only timings do not include verifier generation or Cairo compilation.
+
+Run the selection and preservation checks:
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_circuit_generation.py
+```
+
+All 18 cases pass, including every family, duplicate selectors, and invalid-selection safety.
+This PR does not change any Cairo cryptographic source file.
