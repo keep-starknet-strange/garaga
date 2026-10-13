@@ -356,3 +356,35 @@ make maturin
 source venv/bin/activate
 pytest tests/hydra/test_native_build_config.py
 ```
+
+## Initialize embedded WASM directly
+
+The wrapper decodes embedded WASM bytes directly when `Buffer` is available.
+Without `Buffer`, it retains the existing data-URI loader.
+Concurrent and repeated calls share one initialization promise. Failed initialization can retry.
+The public Promise API, declarations, raw WASM bytes, and cryptographic implementations remain unchanged.
+
+The new measurement tool ran 15 alternating fresh-process pairs per module format, after one warmup pair.
+On Node 24.19.0 and macOS arm64, CJS process time decreased from 90.1ms to 56.3ms (37.6%).
+ESM process time decreased from 88.2ms to 54.8ms (37.9%).
+These times include Node startup, module loading, initialization, a known Poseidon vector, and output writes.
+Inner initialization time decreased from 41.7ms to 10.3ms for CJS and from 42.5ms to 10.2ms for ESM.
+CJS median peak RSS decreased from 111,744KiB to 81,904KiB. ESM decreased from 107,120KiB to 79,872KiB.
+
+Five paired runs of the unchanged seven Jest suites (34 cases) decreased from 5.8646s to 5.5532s (5.3%).
+The three new initialization cases are outside that timing comparison.
+Five paired Node builds did not establish a build-time change: 1.2548s before and 1.2617s after.
+The declaration artifact remained byte-identical in every pair.
+
+Every sample preserved the export list, Poseidon result, and WASM memory size.
+The temporary package snapshots had no Git metadata. Their source and bundle SHA256 values identify the measured inputs separately.
+All 37 Jest cases, TypeScript checking, and all four CJS, ESM, Next.js, and Webpack integration consumers pass.
+The browser integrations preserve their fixture output, including browsers with a bundled `Buffer` implementation.
+The [CJS report](benchmarks/development-cycle/node-runtime-cjs.json), [ESM report](benchmarks/development-cycle/node-runtime-esm.json), and [inner samples](benchmarks/development-cycle/node-runtime-inner.json) preserve the measurements.
+The [driver](benchmarks/development-cycle/node-runtime-runner.mjs) runs from each built package directory and checks the known Poseidon result.
+
+```sh
+cd tools/npm/garaga_ts
+npm run build:node
+npm test -- --runInBand
+```
