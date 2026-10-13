@@ -32,6 +32,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
+from garaga.starknet.constants import CAIRO_VERSION, STARKNET_FOUNDRY_VERSION
 from rich.align import Align
 from rich.console import Console
 from rich.panel import Panel
@@ -47,7 +48,6 @@ from rich.progress import (
 from rich.text import Text
 from tabulate import tabulate
 
-from garaga.starknet.constants import CAIRO_VERSION, STARKNET_FOUNDRY_VERSION
 from tools.process_manager import ProcessManager, managed_subprocess
 
 # Global state
@@ -565,9 +565,15 @@ class CheckDependenciesCommand(Command):
 class RunTestsCommand(Command):
     """Command to run tests with trace collection."""
 
-    def __init__(self, paths: Paths, test_filter: Optional[str] = None):
+    def __init__(
+        self,
+        paths: Paths,
+        test_filter: Optional[str] = None,
+        package: Optional[str] = None,
+    ):
         self.paths = paths
         self.test_filter = test_filter
+        self.package = package
         self.passed_tests = []
 
     @log_step("Running Tests & Collecting Traces")
@@ -583,6 +589,15 @@ class RunTestsCommand(Command):
         cmd.extend(["--tracked-resource", "cairo-steps"])
 
         test_dirs = [self.paths.src_dir] + self._get_contract_paths()
+        if self.package:
+            test_dirs = [
+                directory
+                for directory in test_dirs
+                if ("garaga" if directory == self.paths.src_dir else directory.name)
+                == self.package
+            ]
+            if not test_dirs:
+                raise ValueError(f"Unknown profiling package: {self.package}")
         success_count = 0
 
         with managed_subprocess() as (run_cmd, pm):
@@ -1163,6 +1178,7 @@ class WorkflowExecutor:
         test_filter: Optional[str] = None,
         parallel_jobs: int = 2,
         generate_benchmarks: bool = False,
+        package: Optional[str] = None,
     ) -> bool:
         """Execute the complete workflow."""
         try:
@@ -1170,7 +1186,7 @@ class WorkflowExecutor:
 
             commands = [
                 CheckDependenciesCommand(self.config),
-                RunTestsCommand(self.paths, test_filter),
+                RunTestsCommand(self.paths, test_filter, package),
             ]
 
             for cmd in commands:
@@ -1237,6 +1253,7 @@ class CLIConfig:
     parallel_jobs: int = 2
     generate_benchmarks: bool = False
     benchmarks_only: bool = False
+    package: Optional[str] = None
 
 
 def main():
@@ -1248,6 +1265,11 @@ def main():
     parser.add_argument("test_filter", nargs="?", help="Test name filter")
     parser.add_argument("--all", action="store_true", help="Run all tests")
     parser.add_argument("--workspace", help="Workspace root path")
+    parser.add_argument(
+        "--package",
+        choices=["garaga"] + [Path(contract).name for contract in Config().contracts],
+        help="Profile only this Cairo package (default: all packages)",
+    )
     parser.add_argument("--parallel-jobs", type=int, default=2, help="Parallel jobs")
     parser.add_argument(
         "--generate-benchmarks", action="store_true", help="Generate benchmarks"
@@ -1265,6 +1287,7 @@ def main():
         parallel_jobs=max(1, min(8, args.parallel_jobs)),
         generate_benchmarks=args.generate_benchmarks,
         benchmarks_only=args.benchmarks_only,
+        package=args.package,
     )
 
     # Setup paths and config
@@ -1301,6 +1324,7 @@ def main():
             cli_config.test_filter,
             cli_config.parallel_jobs,
             cli_config.generate_benchmarks,
+            cli_config.package,
         )
     except KeyboardInterrupt:
         Logger.exit_panel(

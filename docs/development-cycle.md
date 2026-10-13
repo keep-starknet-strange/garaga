@@ -199,3 +199,22 @@ pytest tests/hydra/test_circuit_generation.py
 
 All 18 cases pass, including every family, duplicate selectors, and invalid-selection safety.
 This PR does not change any Cairo cryptographic source file.
+
+## Profile the package under investigation
+
+Select the package and test through the existing profiler:
+
+```sh
+make profile-test PACKAGE=garaga TEST=test_msm_SECP256K1_1P
+```
+
+The selector uses the existing package registry. Omitting it retains the six-package workflow.
+Unknown packages fail before subprocess execution. The selected package keeps the same test filter and trace options.
+
+The test-running phase measured three alternating warm runs after one warm-up per mode.
+Both modes found the same one relevant MSM test.
+The full mode invoked six packages and had a median of 5.7966s.
+The selected mode invoked one package and had a median of 3.3738s.
+These timings exclude trace processing and report generation. The stable work reduction is six subprocess invocations to one.
+
+Eight profiler regression cases pass, including selected library and contract packages, default coverage, and invalid-selection rejection.
