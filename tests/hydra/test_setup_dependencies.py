@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 import subprocess
@@ -8,6 +9,7 @@ from zipfile import ZipFile
 import pytest
 
 SETUP = Path(__file__).resolve().parents[2] / "tools" / "make" / "setup.sh"
+CONSTANTS = SETUP.with_name("constants.json")
 
 
 def wheel(directory, name, version="1.0.0"):
@@ -72,15 +74,17 @@ def setup_project(tmp_path):
     )
     commands = tmp_path / "commands"
     commands.mkdir()
+    cairo_version = json.loads(CONSTANTS.read_text())["release_info"]["cairo_version"]
     for name in ("parallel", "cmake", "pre-commit", "maturin", "scarb"):
         command = commands / name
         command.write_text(
             f'#!/bin/sh\necho "{name} $*" >> "$SETUP_COMMAND_LOG"\n'
-            + ('echo "scarb 2.21.0"\n' if name == "scarb" else "")
+            + (f'echo "scarb {cairo_version}"\n' if name == "scarb" else "")
         )
         command.chmod(0o755)
     (tmp_path / "src").mkdir()
     (tmp_path / "tools" / "make").mkdir(parents=True)
+    shutil.copyfile(CONSTANTS, tmp_path / "tools" / "make" / "constants.json")
     env["PATH"] = str(commands) + os.pathsep + env["PATH"]
     env["SETUP_COMMAND_LOG"] = str(tmp_path / "commands.log")
     return tmp_path, env

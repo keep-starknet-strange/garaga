@@ -9,7 +9,8 @@ The setup smoke test consumes Python dependencies, Rust sources, and the Python 
 Each workflow now includes those inputs in its path filters.
 
 The path regression suite failed for 18 dependency-change cases before this change.
-All 34 cases now pass, including unrelated documentation changes that still skip these workflows.
+All 35 current cases pass, including unrelated documentation changes that still skip these workflows.
+The added canonical toolchain source is also a setup input.
 The package README remains a setup input because maturin reads it during the native build.
 The existing test jobs, release conditions, and matrices remain unchanged.
 
@@ -235,3 +236,40 @@ Four regression cases cover pool ownership, error cleanup, ordered results, and 
 source venv/bin/activate
 pytest tests/hydra/test_test_writer.py
 ```
+
+## Synchronize the Cairo toolchain from one owner
+
+Edit `release_info.cairo_version` and, for an intentional Foundry update, `release_info.starknet_foundry_version` in `tools/make/constants.json`.
+Then run:
+
+```sh
+make sync-toolchain
+make check-toolchain
+```
+
+One command synchronizes 57 derived pins across 28 files from that single owner.
+The previous upgrade procedure required separate edits across manifests, tool-version files, CI inputs, and Python generator constants.
+The command covers every tracked Scarb manifest and `.tool-versions` file, including manual and generated projects.
+Setup reads the required Scarb version from the same source instead of three duplicated literals.
+Hydra checks consistency before dependency installation.
+
+Check mode reports drift, returns a failure status, and writes nothing.
+Update mode accepts only known toolchain fields and checks every input before writing any file.
+It preserves comments, package versions, unrelated constants, and cryptographic source files.
+This PR changes no toolchain versions or deployment hashes.
+An actual upgrade still requires installation, regeneration, class-hash recomputation, and the full compatibility checks.
+The [upgrade command](../.claude/commands/upgrade-cairo.md) describes those separate steps.
+
+Run the synchronization and setup regressions:
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_sync_toolchain.py tests/hydra/test_setup_dependencies.py
+```
+
+The 15 cases include deliberate drift, all 57 pin updates, unsupported-format rejection before writes, and unchanged cryptographic snapshots.
+They also preserve both complete offline setup checks and require the warning to match the canonical version exactly.
+
+Nine process runs on macOS arm64 measured a 44.1ms median for check mode and 43.1ms for a no-op synchronization.
+Repairing deliberate Cairo-version drift across 23 files took 45.7ms (nine runs).
+These measurements cover configuration synchronization, not compilation, regeneration, or a complete toolchain upgrade.

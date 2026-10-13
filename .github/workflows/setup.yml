@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tools/make/setup.sh'
+      - 'tools/make/constants.json'
       - '.github/workflows/setup.yml'
       - 'Makefile'
       - 'pyproject.toml'
@@ -19,6 +20,7 @@ on:
   pull_request:
     paths:
       - 'tools/make/setup.sh'
+      - 'tools/make/constants.json'
       - '.github/workflows/setup.yml'
       - 'Makefile'
       - 'pyproject.toml'

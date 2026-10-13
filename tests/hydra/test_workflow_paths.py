@@ -45,6 +45,7 @@ def workflow_path_filters(workflow):
         ("wasm", ".cargo/config.toml"),
         ("wasm", ".github/workflows/wasm.yml"),
         ("setup", "tools/make/setup.sh"),
+        ("setup", "tools/make/constants.json"),
         ("setup", ".github/workflows/setup.yml"),
         ("setup", "Makefile"),
         ("setup", "pyproject.toml"),

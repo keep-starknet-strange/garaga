@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 ACTIVATE := source venv/bin/activate &&
 
-.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash maturin maturin-dev circuits
+.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash maturin maturin-dev circuits sync-toolchain check-toolchain
 
 constants:
 	$(ACTIVATE) python tools/make/generate_constants.py
@@ -23,6 +23,12 @@ rewrite-no-tests:
 
 circuits:
 	$(ACTIVATE) python hydra/garaga/precompiled_circuits/all_circuits.py $(if $(CIRCUITS),--only $(CIRCUITS))
+
+sync-toolchain:
+	$(ACTIVATE) python tools/make/sync_toolchain.py
+
+check-toolchain:
+	$(ACTIVATE) python tools/make/sync_toolchain.py --check
 
 regen:
 	cd src/contracts/mutator_set && make regen
