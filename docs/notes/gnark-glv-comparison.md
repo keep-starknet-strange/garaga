@@ -10,6 +10,8 @@ The gnark-crypto snapshot is [`8911ee45d22bdf9d1c6ab4affe2d4f7ffaedd557`](https:
 
 The Garaga comparison baseline is PR #521 at [`a01fad00d0f77fe8e252ca8c2c64423e5efeb812`](https://github.com/keep-starknet-strange/garaga/tree/a01fad00d0f77fe8e252ca8c2c64423e5efeb812). Findings in this document describe that baseline unless a section states otherwise.
 
+The [measured impact report](glv-impact.md) contains the Cairo and host benchmarks, migration requirements, and reproduced security failures.
+
 ## Required soundness invariants
 
 Let `P` denote the input point, `Q` the hinted result, `s` the scalar, and `r` the prime subgroup order.
@@ -70,6 +72,8 @@ gnark's October fix also corrects `AddUnified` on curves with nonzero `a`. Oppos
 
 Completeness and soundness remain separate properties. A zero denominator that rejects a valid witness is a completeness defect. A free slope that accepts a false statement is a soundness defect.
 
+A valid secp256r1 witness also reaches an infinite final bias correction. The [completeness log](../benchmarks/glv/completeness-before.log) records its rejection in the pre-fix implementation.
+
 ### 4. Lattice reconstruction and shorter accumulators: May 2026
 
 gnark replaces Eisenstein Half-GCD with rank-four lattice reconstruction for GLV+fake-GLV. The new lattice has determinant `r`:
@@ -128,7 +132,7 @@ gnark failed to constrain fake-GLV hinted outputs to the curve. A malicious prov
 
 The fix explicitly constrains both hinted-output algorithms. It also documents their curve and subgroup contracts. Sources: [GHSA-7fx8-hmgc-82jp](https://github.com/Consensys/gnark/security/advisories/GHSA-7fx8-hmgc-82jp) and [`4d476392b169eaffaaafe0796ba750e2a5081652`](https://github.com/Consensys/gnark/commit/4d476392b169eaffaaafe0796ba750e2a5081652).
 
-Garaga already constrains `hint.Q` on the curve in both ordinary paths. Scalars `0`, `1`, and `r-1` bypass the hint and compute their result directly. The fix is present for those paths. Direct helper preconditions still require review. Source: baseline [`ec_ops.cairo`](https://github.com/keep-starknet-strange/garaga/blob/a01fad00d0f77fe8e252ca8c2c64423e5efeb812/src/src/ec/ec_ops.cairo).
+Garaga already constrains `hint.Q` on the curve in both ordinary paths. Scalars `0`, `1`, and `r-1` bypass the hint and compute their result directly. The upstream curve-membership fix is present. Separate subgroup and canonical-encoding gaps remain in the baseline. Source: baseline [`ec_ops.cairo`](https://github.com/keep-starknet-strange/garaga/blob/a01fad00d0f77fe8e252ca8c2c64423e5efeb812/src/src/ec/ec_ops.cairo).
 
 ## Garaga-specific Ed25519 full-curve binding
 
@@ -199,7 +203,17 @@ The producer accepts a candidate only after all three contract constraints pass:
 
 Regression tests inject invalid, wide, and zero-denominator fast candidates. They require the actual LLL result, not a replacement test value. A deterministic fallback example also exceeds the early-exit fourth-root bound, while it fits the final bit bound. Sources: [`test_checked_glv_reconstruction.py`](../../tests/hydra/hints/test_checked_glv_reconstruction.py) and [`fake_glv.rs`](../../tools/garaga_rs/src/hints/fake_glv.rs).
 
-## Cairo impact requirements
+## Verified baseline failures and measured impact
+
+Four executable probes reproduce invalid baseline outputs: a zero GLV denominator, a BLS three-torsion offset, an Ed25519 two-torsion offset, and noncanonical Y.
+
+The [probe source](../benchmarks/glv/baseline-probes.cairo) explicitly asserts the forged outputs. The [baseline execution log](../benchmarks/glv/security-before.log) records all four passes. These are successful demonstrations of the defects, not passing security tests.
+
+The [hardened regression log](../benchmarks/glv/security-after.log) records rejection and positive cases. The [impact report](glv-impact.md#security-evidence) explains the constraints that reject each vector.
+
+The [117 paired Cairo cases](../benchmarks/glv/cairo-paired.json) cover MSM, signatures, drand, and five proof verifiers. The [host comparison](../benchmarks/glv/hint-cpu-comparison.json) measures uncached Python and Rust calldata production. The [impact report](glv-impact.md) reports the measured tradeoffs and package migration.
+
+## Measurement and completion boundaries
 
 gnark constraint counts cannot establish Cairo performance. Cairo measurements must use the same compiler, runner, test inputs, and optimization settings before and after the changes.
 
@@ -209,7 +223,7 @@ The measured security result requires adversarial Cairo tests, not only honest s
 
 End-to-end evidence also requires Python/Rust calldata parity and regenerated WASM artifacts. Generated Honk and Groth16 consumers must exercise the same checked helpers as the library API.
 
-This source comparison does not claim that implementation, benchmarks, or CI are complete. Those claims require the final branch's test and CI evidence.
+The measurements establish the reported resource changes on the recorded fixtures. They do not establish costs for every possible scalar or exceptional fallback. CI status requires the draft PR's current checks, not this source comparison.
 
 ## Independent Cairo encoding review
 

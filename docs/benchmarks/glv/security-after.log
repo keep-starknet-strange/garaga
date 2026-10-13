@@ -4,7 +4,7 @@ warn: unknown manifest field `package.licence` (/Users/felt/PycharmProjects/star
     Blocking waiting for file lock on package cache
     Blocking waiting for file lock on package cache
     Blocking waiting for file lock on package cache
-    Finished `release` profile [optimized] target(s) in 0.21s
+    Finished `release` profile [optimized] target(s) in 0.30s
    Compiling test(garaga_unittest) garaga v1.1.0 (/Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/Scarb.toml)
 warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_inverse`
  --> /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/src/circuits/extf_mul.cairo:2:75
@@ -26,23 +26,15 @@ warn[E2100]: Unused import: `garaga::circuits::rsa::circuit_inverse`
     CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
                                                                           ^^^^^^^^^^^^^^^
 
-    Finished `dev` profile target(s) in 18 seconds
+    Finished `dev` profile target(s) in 19 seconds
 
 
-Collected 41 test(s) from garaga package
-Running 41 test(s) from src/
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_zero_denominator (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1040000)
-        steps: 2214
-        memory holes: 442
-        builtins: (Builtin(range_check96): 640, Builtin(mul_mod): 64, Builtin(range_check): 41, Builtin(add_mod): 32)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_direct_bls_core_rejects_torsion_input (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~480000)
-        steps: 645
-        memory holes: 46
-        builtins: (Builtin(range_check96): 277, Builtin(mul_mod): 27, Builtin(add_mod): 17, Builtin(range_check): 3)
+Collected 43 test(s) from garaga package
+Running 43 test(s) from src/
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_rejects_offcurve_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 950
+        memory holes: 112
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 30, Builtin(mul_mod): 18, Builtin(add_mod): 10)
         syscalls: ()
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
@@ -55,42 +47,18 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_zero_denominator (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1040000)
+        steps: 2214
+        memory holes: 442
+        builtins: (Builtin(range_check96): 640, Builtin(mul_mod): 64, Builtin(range_check): 41, Builtin(add_mod): 32)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
 [PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_u1 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
         steps: 76
         memory holes: 2
         builtins: (Builtin(range_check): 3)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_even_denominator_cannot_hide_torsion (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1440000)
-        steps: 3007
-        memory holes: 1312
-        builtins: (Builtin(range_check96): 877, Builtin(mul_mod): 94, Builtin(range_check): 71, Builtin(add_mod): 57)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_offcurve_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 837
-        memory holes: 200
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 29, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_even_scalar (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~17440000)
-        steps: 9932
-        memory holes: 2091
-        builtins: (Builtin(range_check96): 10899, Builtin(add_mod): 1244, Builtin(mul_mod): 1186, Builtin(range_check): 546)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_direct_bls_core_rejects_torsion_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~36960000)
-        steps: 38036
-        memory holes: 1688
-        builtins: (Builtin(range_check96): 23084, Builtin(mul_mod): 2644, Builtin(add_mod): 1652, Builtin(range_check): 261)
         syscalls: ()
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
@@ -103,46 +71,6 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_glv_subgroup_scalar_edges (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~20720000)
-        steps: 26687
-        memory holes: 3613
-        builtins: (Builtin(range_check96): 12945, Builtin(mul_mod): 1471, Builtin(add_mod): 891, Builtin(range_check): 343)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_4_rejects_noncanonical_output_y (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 927
-        memory holes: 96
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 48, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_rejects_offcurve_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 950
-        memory holes: 112
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 30, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_v1 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
-        steps: 76
-        memory holes: 2
-        builtins: (Builtin(range_check): 3)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_small_scalars_all_curves (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~107720000)
-        steps: 66087
-        memory holes: 14000
-        builtins: (Builtin(range_check96): 67317, Builtin(add_mod): 7696, Builtin(mul_mod): 7220, Builtin(range_check): 3359)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
 [PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_rejects_zero_denominator (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~560000)
         steps: 1509
         memory holes: 159
@@ -151,90 +79,10 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_3_rejects_noncanonical_output_y (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 964
-        memory holes: 107
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 30, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_pure_torsion_scalars (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1160000)
-        steps: 6606
-        memory holes: 4957
-        builtins: (Builtin(range_check96): 498, Builtin(range_check): 326, Builtin(mul_mod): 54, Builtin(add_mod): 30)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_v2 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
-        steps: 76
-        memory holes: 2
-        builtins: (Builtin(range_check): 3)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_4_rejects_noncanonical_output_x (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 919
-        memory holes: 100
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 48, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_offcurve_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1200000)
-        steps: 2401
-        memory holes: 787
-        builtins: (Builtin(range_check96): 729, Builtin(mul_mod): 81, Builtin(range_check): 71, Builtin(add_mod): 47)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_complete_fallback_rejects_wrong_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2000000)
-        steps: 3097
-        memory holes: 1330
-        builtins: (Builtin(range_check96): 1235, Builtin(add_mod): 118, Builtin(mul_mod): 104, Builtin(range_check): 68)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_public_double_and_add_8_nonzero_a (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2760000)
-        steps: 1422
-        memory holes: 117
-        builtins: (Builtin(range_check96): 1724, Builtin(add_mod): 192, Builtin(mul_mod): 176, Builtin(range_check): 3)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_msm_rejects_truncated_coefficients_before_fallback (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~840000)
-        steps: 2030
-        memory holes: 443
-        builtins: (Builtin(range_check96): 505, Builtin(mul_mod): 50, Builtin(range_check): 40, Builtin(add_mod): 29)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_order_minus_one (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2320000)
-        steps: 4049
-        memory holes: 1487
-        builtins: (Builtin(range_check96): 1431, Builtin(mul_mod): 160, Builtin(add_mod): 95, Builtin(range_check): 82)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_3_rejects_noncanonical_output_x (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 956
-        memory holes: 111
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 30, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_wrong_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1720000)
-        steps: 3170
-        memory holes: 956
-        builtins: (Builtin(range_check96): 1062, Builtin(mul_mod): 117, Builtin(range_check): 71, Builtin(add_mod): 68)
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_infinite_last_correction (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~9960000)
+        steps: 21717
+        memory holes: 7292
+        builtins: (Builtin(range_check96): 6218, Builtin(range_check): 1514, Builtin(mul_mod): 643, Builtin(add_mod): 517)
         syscalls: ()
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
@@ -247,66 +95,10 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_rejects_offcurve_input_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
-        steps: 1043
-        memory holes: 119
-        builtins: (Builtin(range_check96): 166, Builtin(range_check): 65, Builtin(mul_mod): 18, Builtin(add_mod): 10)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_torsion_shifted_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1040000)
-        steps: 2346
-        memory holes: 1141
-        builtins: (Builtin(range_check96): 638, Builtin(range_check): 71, Builtin(mul_mod): 70, Builtin(add_mod): 42)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_glv_rejects_torsion_shifted_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~20480000)
-        steps: 24168
-        memory holes: 2236
-        builtins: (Builtin(range_check96): 12779, Builtin(mul_mod): 1454, Builtin(add_mod): 883, Builtin(range_check): 215)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_all_coefficient_sign_patterns (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~181240000)
-        steps: 147184
-        memory holes: 388867
-        builtins: (Builtin(range_check96): 113269, Builtin(range_check): 14483, Builtin(add_mod): 13120, Builtin(mul_mod): 11456)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_u2 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
-        steps: 76
-        memory holes: 2
-        builtins: (Builtin(range_check): 3)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_complete_fallback_rejects_wrong_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2120000)
-        steps: 3420
-        memory holes: 1780
-        builtins: (Builtin(range_check96): 1315, Builtin(add_mod): 115, Builtin(mul_mod): 87, Builtin(range_check): 74)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_rejects_offcurve_output_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~10440000)
-        steps: 12676
-        memory holes: 1128
-        builtins: (Builtin(range_check96): 6504, Builtin(mul_mod): 740, Builtin(add_mod): 448, Builtin(range_check): 140)
-        syscalls: ()
-        events: (count: 0, keys: 0, data size: 0)
-        messages: (l2 to l1: 0, l1 handler: 0)
-
-[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_small_scalars_all_curves (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~164680000)
-        steps: 159942
-        memory holes: 230790
-        builtins: (Builtin(range_check96): 102902, Builtin(mul_mod): 10905, Builtin(add_mod): 10077, Builtin(range_check): 8702)
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_glv_subgroup_scalar_edges (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~20720000)
+        steps: 26687
+        memory holes: 3613
+        builtins: (Builtin(range_check96): 12945, Builtin(mul_mod): 1471, Builtin(add_mod): 891, Builtin(range_check): 343)
         syscalls: ()
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
@@ -315,6 +107,14 @@ Running 41 test(s) from src/
         steps: 554
         memory holes: 49
         builtins: (Builtin(range_check96): 83, Builtin(range_check): 29, Builtin(mul_mod): 9, Builtin(add_mod): 5)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_glv_rejects_torsion_shifted_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~20480000)
+        steps: 24168
+        memory holes: 2236
+        builtins: (Builtin(range_check96): 12779, Builtin(mul_mod): 1454, Builtin(add_mod): 883, Builtin(range_check): 215)
         syscalls: ()
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
@@ -335,6 +135,78 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_v1 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
+        steps: 76
+        memory holes: 2
+        builtins: (Builtin(range_check): 3)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_u2 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
+        steps: 76
+        memory holes: 2
+        builtins: (Builtin(range_check): 3)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_selectors_reject_high_v2 (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~40000)
+        steps: 76
+        memory holes: 2
+        builtins: (Builtin(range_check): 3)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_3_rejects_noncanonical_output_x (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 956
+        memory holes: 111
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 30, Builtin(mul_mod): 18, Builtin(add_mod): 10)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_even_denominator_cannot_hide_torsion (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1440000)
+        steps: 3007
+        memory holes: 1312
+        builtins: (Builtin(range_check96): 877, Builtin(mul_mod): 94, Builtin(range_check): 71, Builtin(add_mod): 57)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_msm_rejects_truncated_coefficients_before_fallback (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~840000)
+        steps: 2030
+        memory holes: 443
+        builtins: (Builtin(range_check96): 505, Builtin(mul_mod): 50, Builtin(range_check): 40, Builtin(add_mod): 29)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_direct_bls_core_rejects_torsion_input (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~480000)
+        steps: 645
+        memory holes: 46
+        builtins: (Builtin(range_check96): 277, Builtin(mul_mod): 27, Builtin(add_mod): 17, Builtin(range_check): 3)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_infinite_correction_rejects_wrong_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2000000)
+        steps: 5012
+        memory holes: 1834
+        builtins: (Builtin(range_check96): 1238, Builtin(range_check): 469, Builtin(mul_mod): 124, Builtin(add_mod): 117)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_even_scalar (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~17440000)
+        steps: 9934
+        memory holes: 2091
+        builtins: (Builtin(range_check96): 10899, Builtin(add_mod): 1244, Builtin(mul_mod): 1186, Builtin(range_check): 546)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
 [PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_0_rejects_noncanonical_output_x (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
         steps: 842
         memory holes: 200
@@ -351,6 +223,30 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_rejects_offcurve_output_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~10440000)
+        steps: 12676
+        memory holes: 1128
+        builtins: (Builtin(range_check96): 6504, Builtin(mul_mod): 740, Builtin(add_mod): 448, Builtin(range_check): 140)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_pure_torsion_scalars (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1160000)
+        steps: 6606
+        memory holes: 4957
+        builtins: (Builtin(range_check96): 498, Builtin(range_check): 326, Builtin(mul_mod): 54, Builtin(add_mod): 30)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_offcurve_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1200000)
+        steps: 2401
+        memory holes: 787
+        builtins: (Builtin(range_check96): 729, Builtin(mul_mod): 81, Builtin(range_check): 71, Builtin(add_mod): 47)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
 [PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_0_rejects_noncanonical_output_y (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
         steps: 850
         memory holes: 196
@@ -359,4 +255,124 @@ Running 41 test(s) from src/
         events: (count: 0, keys: 0, data size: 0)
         messages: (l2 to l1: 0, l1 handler: 0)
 
-Tests: 41 passed, 0 failed, 0 ignored, 147 filtered out
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_3_rejects_noncanonical_output_y (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 964
+        memory holes: 107
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 30, Builtin(mul_mod): 18, Builtin(add_mod): 10)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_public_double_and_add_8_nonzero_a (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2760000)
+        steps: 1422
+        memory holes: 117
+        builtins: (Builtin(range_check96): 1724, Builtin(add_mod): 192, Builtin(mul_mod): 176, Builtin(range_check): 3)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_small_scalars_all_curves (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~107720000)
+        steps: 66099
+        memory holes: 14000
+        builtins: (Builtin(range_check96): 67317, Builtin(add_mod): 7696, Builtin(mul_mod): 7220, Builtin(range_check): 3359)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_4_rejects_noncanonical_output_y (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 927
+        memory holes: 96
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 48, Builtin(mul_mod): 18, Builtin(add_mod): 10)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_direct_bls_core_rejects_torsion_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~36960000)
+        steps: 38036
+        memory holes: 1688
+        builtins: (Builtin(range_check96): 23084, Builtin(mul_mod): 2644, Builtin(add_mod): 1652, Builtin(range_check): 261)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_wrong_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1720000)
+        steps: 3170
+        memory holes: 956
+        builtins: (Builtin(range_check96): 1062, Builtin(mul_mod): 117, Builtin(range_check): 71, Builtin(add_mod): 68)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_complete_fallback_rejects_wrong_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2120000)
+        steps: 3420
+        memory holes: 1780
+        builtins: (Builtin(range_check96): 1315, Builtin(add_mod): 115, Builtin(mul_mod): 87, Builtin(range_check): 74)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_rejects_offcurve_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 837
+        memory holes: 200
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 29, Builtin(mul_mod): 18, Builtin(add_mod): 10)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_mixed_order_order_minus_one (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2320000)
+        steps: 4049
+        memory holes: 1487
+        builtins: (Builtin(range_check96): 1431, Builtin(mul_mod): 160, Builtin(add_mod): 95, Builtin(range_check): 82)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_ed25519_rejects_torsion_shifted_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~1040000)
+        steps: 2346
+        memory holes: 1141
+        builtins: (Builtin(range_check96): 638, Builtin(range_check): 71, Builtin(mul_mod): 70, Builtin(add_mod): 42)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_small_scalars_all_curves (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~164680000)
+        steps: 159942
+        memory holes: 230790
+        builtins: (Builtin(range_check96): 102902, Builtin(mul_mod): 10905, Builtin(add_mod): 10077, Builtin(range_check): 8702)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_bls_rejects_offcurve_input_preimage (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 1043
+        memory holes: 119
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 65, Builtin(mul_mod): 18, Builtin(add_mod): 10)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_glv_all_coefficient_sign_patterns (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~181240000)
+        steps: 147184
+        memory holes: 388867
+        builtins: (Builtin(range_check96): 113269, Builtin(range_check): 14483, Builtin(add_mod): 13120, Builtin(mul_mod): 11456)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_curve_4_rejects_noncanonical_output_x (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~280000)
+        steps: 919
+        memory holes: 100
+        builtins: (Builtin(range_check96): 166, Builtin(range_check): 48, Builtin(mul_mod): 18, Builtin(add_mod): 10)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_complete_fallback_rejects_wrong_output (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~2000000)
+        steps: 3097
+        memory holes: 1330
+        builtins: (Builtin(range_check96): 1235, Builtin(add_mod): 118, Builtin(mul_mod): 104, Builtin(range_check): 68)
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+Tests: 43 passed, 0 failed, 0 ignored, 147 filtered out

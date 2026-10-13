@@ -1,0 +1,43 @@
+warn: unknown manifest field `package.licence` (/Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/Scarb.toml:5:1)
+warn: unknown manifest field `package.licence` (/Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/Scarb.toml:5:1)
+   Compiling snforge_scarb_plugin v0.64.1
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `release` profile [optimized] target(s) in 0.24s
+   Compiling test(garaga_unittest) garaga v1.1.0 (/Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/Scarb.toml)
+warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_inverse`
+ --> /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/src/circuits/extf_mul.cairo:2:75
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+                                                                          ^^^^^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_sub`
+ --> /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/src/circuits/extf_mul.cairo:3:18
+    circuit_mul, circuit_sub, u384,
+                 ^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::isogeny::circuit_sub`
+ --> /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/src/circuits/isogeny.cairo:3:18
+    circuit_mul, circuit_sub, u384,
+                 ^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::rsa::circuit_inverse`
+ --> /Users/felt/PycharmProjects/starknet/garaga-glv-soundness/src/src/circuits/rsa.cairo:2:75
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+                                                                          ^^^^^^^^^^^^^^^
+
+    Finished `dev` profile target(s) in 21 seconds
+
+
+Collected 1 test(s) from garaga package
+Running 1 test(s) from src/
+[FAIL] garaga::tests::scalar_mul_soundness_tests::test_fake_glv_infinite_last_correction
+
+Failure data:
+    0x77726f6e672046616b65474c5620726573756c74 ('wrong FakeGLV result')
+
+note: run with `SNFORGE_BACKTRACE=1` environment variable to display a backtrace
+Tests: 0 passed, 1 failed, 0 ignored, 188 filtered out
+
+Failures:
+    garaga::tests::scalar_mul_soundness_tests::test_fake_glv_infinite_last_correction

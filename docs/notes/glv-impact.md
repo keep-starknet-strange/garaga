@@ -23,11 +23,21 @@ The [hardened regressions](../../src/src/tests/scalar_mul_soundness_tests.cairo)
 The [regression log](../benchmarks/glv/security-after.log) records the new rejection and positive cases.
 
 The new constraints require canonical coordinates, Boolean signs, complete coefficient consumption, and an invertible GLV denominator.
-BLS12-381 checks both subgroup preimages with a 64-bit clearing factor.
+BLS12-381 binds the input and result to the subgroup through a 64-bit cofactor preimage check.
 ED25519 checks the prime component and torsion component separately, so mixed-order arithmetic remains exact.
 
 A constrained inversion failure selects complete arithmetic for exceptional point combinations.
-Correct multiplication now works for small scalars, pure torsion, mixed-order points, and subgroup-order boundary scalars.
+Correct multiplication now works for small scalars and subgroup-order boundary scalars.
+ED25519 also supports pure torsion and mixed-order points.
+
+## Completeness evidence
+
+A separate valid secp256r1 witness uses `s1 = 5`, `s2 = -10`, and scalar `2^-1 mod r`.
+Its final bias correction is infinity, and the pre-fix affine correction rejects it.
+The [pre-fix log](../benchmarks/glv/completeness-before.log) records this completeness failure, not acceptance of a false multiplication.
+The final guard verifies the full relation with complete arithmetic when the corrected table point is infinity.
+Positive [regressions](../../src/src/tests/scalar_mul_soundness_tests.cairo) cover secp256r1, ED25519, and GRUMPKIN.
+A negative regression rejects an incorrect result.
 
 ## Cairo resources
 
@@ -48,11 +58,12 @@ The [raw dataset](../benchmarks/glv/cairo-paired.json) includes steps, memory ho
 | BN254 | 8,984 → 9,589 | 2,065,978 → 2,026,672 | -1.9% |
 | BLS12-381 | 8,997 → 31,967 | 2,072,674 → 6,014,226 | +190.2% |
 | secp256k1 | 9,278 → 9,901 | 2,111,354 → 2,071,570 | -1.9% |
-| secp256r1 | 7,026 → 7,992 | 2,223,216 → 2,332,474 | +4.9% |
-| ED25519 | 6,865 → 10,428 | 2,193,698 → 2,735,006 | +24.7% |
-| GRUMPKIN | 6,874 → 7,700 | 2,194,598 → 2,287,018 | +4.2% |
+| secp256r1 | 7,026 → 7,994 | 2,223,216 → 2,332,674 | +4.9% |
+| ED25519 | 6,865 → 10,430 | 2,193,698 → 2,735,206 | +24.7% |
+| GRUMPKIN | 6,874 → 7,702 | 2,194,598 → 2,287,218 | +4.2% |
 
-The 65-bit loop reduces weighted resources on BN254 and secp256k1.
+The combined changes reduce weighted resources on BN254 and secp256k1.
+The shorter 65-bit loop contributes to this reduction.
 New canonical, sign, and complete-arithmetic checks increase native Cairo steps.
 BLS12-381 and ED25519 spend more resources to enforce the missing subgroup or torsion constraints.
 
@@ -81,18 +92,23 @@ Debug symbols avoid a local Xcode linker defect. They do not disable release opt
 
 | Curve | Python CPU: before → after | Rust CPU: before → after |
 |---|---:|---:|
-| BN254 | 0.682 → 0.711 ms | 1.352 → 1.433 ms |
-| BLS12-381 | 8.136 → 28.652 ms | 2.771 → 14.937 ms |
-| secp256k1 | 0.721 → 0.739 ms | 1.164 → 1.183 ms |
-| secp256r1 | 0.631 → 0.662 ms | 1.222 → 1.247 ms |
-| ED25519 | 4.899 → 10.252 ms | 0.926 → 1.798 ms |
-| GRUMPKIN | 0.584 → 0.601 ms | 1.204 → 1.213 ms |
+| BN254 | 0.682 → 0.696 ms | 1.352 → 1.435 ms |
+| BLS12-381 | 8.136 → 28.285 ms | 2.771 → 14.337 ms |
+| secp256k1 | 0.721 → 0.711 ms | 1.164 → 1.169 ms |
+| secp256r1 | 0.631 → 0.645 ms | 1.222 → 1.285 ms |
+| ED25519 | 4.899 → 10.015 ms | 0.926 → 1.876 ms |
+| GRUMPKIN | 0.584 → 0.604 ms | 1.204 → 1.261 ms |
 
 Exact LLL on every input increased Rust secp256k1 CPU time by 32.05× in the first experiment.
 The [initial comparison](../benchmarks/glv/hint-cpu-comparison-lll-only.json) records that result.
 The final producer accepts an Eisenstein candidate only after the exact width, scalar relation, and denominator checks.
 It uses the ported rank-four LLL algorithm for outliers.
 The [final comparison](../benchmarks/glv/hint-cpu-comparison.json) records the resulting near-baseline BN254 and secp256k1 timings.
+
+The final host run measures commit `c59517adbd68ef31e70878934597a2228ada9f1f`.
+All four recorded producer source hashes and the native-extension binary hash match that measurement.
+BLS12-381 CPU time rises by 3.48× in Python and 5.17× in Rust.
+ED25519 CPU time rises by 2.04× in Python and 2.02× in Rust.
 
 BLS12-381 hints grow from 12 to 28 felts. One-point full calldata grows from 25 to 41 felts.
 ED25519 hints grow from 10 to 18 felts. One-point full calldata grows from 23 to 31 felts.
@@ -107,12 +123,28 @@ The earlier `_scalar_mul_fake_glv` export is private. Public MSM functions inclu
 
 Generated verifiers refer to the new UniversalECIP class hash.
 The RISC0 sample, mutator-set verifier, and drand decrypt caller also contain updated dependency hashes.
-These source changes do not declare classes on a network.
+These source changes do not declare classes on a public network.
 Declare the matching dependency classes before deployment. Existing release class hashes remain historical records.
+
+## Validation
+
+The final local Cairo run passes all 190 library tests, including 43 security and completeness regressions.
+All five generated proof verifiers and both mutator-set tests pass.
+Python passes 793 tests with five skips. Rust passes 62 tests and one doctest.
+WASM passes five tests. npm passes eight suites with 50 tests.
+All four Node and browser integration examples pass with unchanged snapshots.
+
+The maximum-log-N bytecode uses 68,466 bytes against the 81,290-byte limit.
+Regeneration preserves all 50 tracked generated files.
+The [WASM rebuild record](../benchmarks/glv/wasm-idempotence.json) confirms byte-identical generated files and package output.
+
+The [draft PR](https://github.com/keep-starknet-strange/garaga/pull/523) contains the current GitHub CI results.
+No public-network deployments or package releases are part of this migration.
 
 ## Reproduction
 
-The raw datasets record the exact commands, toolchain versions, source hashes, and binary hashes.
+The Cairo dataset records its measurement commands, toolchain versions, and resources.
+The host datasets also record source hashes and Python-extension binary hashes.
 The [host benchmark](../benchmarks/glv/benchmark_hint_cpu.py) accepts an output path through `--output`.
 
 ```bash

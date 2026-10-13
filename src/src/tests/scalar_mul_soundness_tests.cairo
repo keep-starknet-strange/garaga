@@ -1314,3 +1314,112 @@ fn test_public_double_and_add_8_nonzero_a() {
     };
     assert!(double_and_add_8(point, q, q, q, q, q, q, q, q, get_modulus(4)) == expected);
 }
+
+#[test]
+fn test_fake_glv_infinite_last_correction() {
+    let q = G1Point {
+        x: u384 {
+            limb0: 0x54bd644fdd6bf3d1f2da8db6,
+            limb1: 0x83f4d83f8fa3874d7b74dcb4,
+            limb2: 0x2afa386b3f2bdcdb,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0xe1472b36b952a7686908d63,
+            limb1: 0x9d4ac90ef7ad299a51759b03,
+            limb2: 0x8de7b41d3557a9cc,
+            limb3: 0x0,
+        },
+    };
+    let preimage = G1Point {
+        x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    };
+    let scalar = u256 {
+        low: 0xde737d56d38bcf4279dce5617e3192a9, high: 0x7fffffff800000007fffffffffffffff,
+    };
+    assert!(
+        fake_mul(get_G(3), scalar, 3, FakeGlvHint { Q: q, s1: 5, s2: SIGN + 10 }, preimage) == q
+    );
+    let q = G1Point {
+        x: u384 {
+            limb0: 0x9f1e3fe051b0c0507b108033,
+            limb1: 0x5050e695f7ce06629cdb0628,
+            limb2: 0x6f82051d02193240,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0x313d1f3221b914baf00b2897,
+            limb1: 0x33a62b2ed2b05ebd94cc66c9,
+            limb2: 0x5c03497672f21345,
+            limb3: 0x0,
+        },
+    };
+    let preimage = G1Point {
+        x: u384 {
+            limb0: 0xe6615a7b05395f56c208e493,
+            limb1: 0xb7cc1b31e53a1b60922f715f,
+            limb2: 0x2711d4a9d77ae210,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0x391e80d0e3b986cdd8123ed4,
+            limb1: 0xc24b940e1ac92919c8d392ac,
+            limb2: 0x4d229b323a7f87ec,
+            limb3: 0x0,
+        },
+    };
+    let scalar = u256 {
+        low: 0xa6f7cef517bce6b2c09318d2e7ae9f7, high: 0x8000000000000000000000000000000,
+    };
+    assert!(
+        fake_mul(get_G(4), scalar, 4, FakeGlvHint { Q: q, s1: 5, s2: SIGN + 10 }, preimage) == q
+    );
+    let q = G1Point {
+        x: u384 {
+            limb0: 0x2fdb08592c4382d1cc90e822,
+            limb1: 0xcfcd5163d42b67817e085b92,
+            limb2: 0x143d8f580d68625f,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0x63b3b8247d5dc7110430ea0b,
+            limb1: 0x7b30f2a174abff5c36adf99a,
+            limb2: 0x144d34a1fec58816,
+            limb3: 0x0,
+        },
+    };
+    let preimage = G1Point {
+        x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+    };
+    let scalar = u256 {
+        low: 0xcbc0b548b438e5469e10460b6c3e7ea4, high: 0x183227397098d014dc2822db40c0ac2e,
+    };
+    assert!(
+        fake_mul(get_G(5), scalar, 5, FakeGlvHint { Q: q, s1: 5, s2: SIGN + 10 }, preimage) == q
+    );
+}
+
+#[test]
+#[should_panic(expected: ('wrong FakeGLV result',))]
+fn test_fake_glv_infinite_correction_rejects_wrong_output() {
+    let q = G1Point {
+        x: u384 {
+            limb0: 0xc0473e2f530a861fa608f682,
+            limb1: 0x82fa880b0b940b96c6108eae,
+            limb2: 0x7469a88fab79ae9,
+            limb3: 0x0,
+        },
+        y: u384 {
+            limb0: 0xa48c61bdec3967ce7599070e,
+            limb1: 0x9d34f636baad01315fc61fa9,
+            limb2: 0x4940f93e0ba7e7f7,
+            limb3: 0x0,
+        },
+    };
+    let scalar = u256 {
+        low: 0xde737d56d38bcf4279dce5617e3192a8, high: 0x7fffffff800000007fffffffffffffff,
+    };
+    fake_mul(get_G(3), scalar, 3, FakeGlvHint { Q: q, s1: 2, s2: 4 }, G1PointZero::zero());
+}

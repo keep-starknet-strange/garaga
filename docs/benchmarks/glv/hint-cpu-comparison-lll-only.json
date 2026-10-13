@@ -20,7 +20,7 @@
   },
   "raw_files": {
     "before": "hint-cpu-before.json",
-    "after": "hint-cpu-after.json"
+    "after": "hint-cpu-after-lll-only.json"
   },
   "benchmark_script_sha256": "2fbebb0544298f31b2a32f451e6f747646966a6de4a4b52bcf6e5fa17bbe64a3",
   "comparisons": [

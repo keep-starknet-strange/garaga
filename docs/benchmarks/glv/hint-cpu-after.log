@@ -1,0 +1,12 @@
+BN254 python: wall 0.695 ms, CPU 0.696 ms
+BN254 rust: wall 1.436 ms, CPU 1.435 ms
+BLS12_381 python: wall 28.331 ms, CPU 28.285 ms
+BLS12_381 rust: wall 14.377 ms, CPU 14.337 ms
+SECP256K1 python: wall 0.710 ms, CPU 0.711 ms
+SECP256K1 rust: wall 1.170 ms, CPU 1.169 ms
+SECP256R1 python: wall 0.645 ms, CPU 0.644 ms
+SECP256R1 rust: wall 1.285 ms, CPU 1.285 ms
+ED25519 python: wall 10.101 ms, CPU 10.015 ms
+ED25519 rust: wall 1.883 ms, CPU 1.876 ms
+GRUMPKIN python: wall 0.604 ms, CPU 0.604 ms
+GRUMPKIN rust: wall 1.270 ms, CPU 1.261 ms

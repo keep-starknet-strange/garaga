@@ -331,6 +331,14 @@ fn _scalar_mul_fake_glv(
     let last_selector = *selectors.pop_front().unwrap();
     let last_selector_pt = *Ts[last_selector];
     let last_selector_pt_corrected = _ec_safe_add(last_selector_pt, R2, modulus, curve_index);
+    if last_selector_pt_corrected.is_infinity() {
+        // The affine ladder can accept infinity as an off-curve (0,0) input without inversion
+        // failure.
+        assert_fake_glv_complete(
+            point, hint.Q, hint.s1, _s2_abs, _s2_sign_base, modulus, curve_index,
+        );
+        return hint.Q;
+    }
     Ts.append(last_selector_pt_corrected);
 
     let Ts = Ts.span();
