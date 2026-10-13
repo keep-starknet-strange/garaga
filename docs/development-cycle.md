@@ -111,7 +111,8 @@ The new installation step does not compile the CLI.
 A local check downloaded, checked, and extracted the pinned Linux archive in 0.35 seconds on macOS arm64.
 The archive contained 2,871,133 bytes and matched the SHA256 in the [installer manifest](https://github.com/taiki-e/install-action/blob/main/manifests/wasm-pack.json).
 This local check excludes GitHub Action overhead. Different systems and network conditions prevent a direct timing comparison with the Ubuntu baseline.
-The pinned release has no native macOS arm64 binary. The Ubuntu CI job must pass before this change merges.
+The pinned release has no native macOS arm64 binary.
+The Ubuntu CI job passed all five WASM tests and one doctest after a 0.37-second installation.
 
 ## Faster native edit-build cycles
 
@@ -273,6 +274,79 @@ They also preserve both complete offline setup checks and require the warning to
 Nine process runs on macOS arm64 measured a 44.1ms median for check mode and 43.1ms for a no-op synchronization.
 Repairing deliberate Cairo-version drift across 23 files took 45.7ms (nine runs).
 These measurements cover configuration synchronization, not compilation, regeneration, or a complete toolchain upgrade.
+The [raw samples](benchmarks/development-cycle/toolchain.json) preserve each process run.
+
+## Group connected dependency updates
+
+Dependabot coverage increases from zero configured inputs to 24 tracked dependency inputs across six native ecosystems.
+The configuration covers uv, Cargo, npm, GitHub Actions, Docker, and pre-commit.
+It includes the three independent Cargo workspace roots, both npm roots, and their workspace members.
+Locked projects use their existing lockfile roots. Python updates use `uv.lock` rather than a parallel pip owner.
+The local `garaga.tgz` package remains excluded from npm updates because it is the package under test.
+
+Each ecosystem groups patch and minor version updates into weekly review PRs.
+Major version updates remain separate. Version-update PRs have a three-PR cap per ecosystem.
+This change does not configure automatic merging.
+Dependency PRs still require the existing test, regeneration, and package integration gates.
+
+The [GitHub service reads this configuration from the default branch](https://docs.github.com/en/code-security/concepts/supply-chain-security/about-the-dependabot-yml-file).
+The first hosted update run remains pending until this configuration merges there.
+The local regression checks configuration coverage, not a successful hosted dependency upgrade.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_dependency_updates.py
+```
+
+## Load E2E fixture plugins only for E2E tests
+
+The E2E test module registers its three fixture plugins instead of loading them from the global pytest configuration.
+Unit-only runs avoid the account, client, and devnet imports.
+E2E collection retains all nine fixtures and pytest assertion rewriting.
+The Hypothesis profile and storage configuration remain unchanged.
+
+Five warm runs of the actual 13-test PyFelt suite compared the same environment and test selection.
+The median decreased from 0.9455s to 0.3878s.
+Full Hydra collection showed no gain; those tests also load SDK modules through other imports.
+These results describe a unit-only inner loop, not faster E2E execution.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_pytest_configuration.py
+pytest tests/hydra/algebra/test_pyfelt.py
+```
+
+## Share Groth16 calldata conformance vectors
+
+Python and TypeScript now consume one six-case catalog instead of two independently maintained case lists.
+The catalog stores fixture paths, output lengths, and compact SHA256 fingerprints, not duplicate calldata arrays.
+The independent pure-Python oracle still compares every output element with native Rust.
+Both suites also require the expected length, ABI length prefix, and full output fingerprint.
+The fingerprint includes the prefix and uses decimal ASCII integers separated by newlines, without a trailing newline.
+
+All six former TypeScript callbacks accepted empty output in the mutation experiment.
+Each updated callback rejects empty output, changed payload, an incorrect ABI prefix, and a mismatched fingerprint.
+The Python assertions reject the same four mutations for every vector.
+All 20 Python parsing/parity cases and all six TypeScript conformance cases pass with the unchanged valid outputs.
+Node CI does not need a Python runtime.
+
+Run the existing suites:
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/starknet/test_groth16_vk_proof_parsing.py
+(cd tools/npm/garaga_ts && npm test -- --runTestsByPath tests/starknet/groth16Calldata.test.ts --runInBand)
+```
+
+For an intentional output change, review the proof fixtures and ABI before updating the golden fingerprints:
+
+```sh
+source venv/bin/activate
+python tests/hydra/starknet/test_groth16_vk_proof_parsing.py --update-golden
+```
+
+The opt-in updater requires pure-Python/native Rust array equality and valid ABI prefixes before writing the catalog.
+It never derives expected fingerprints from WASM. Review the catalog diff and rerun both suites before committing it.
 
 ## Compile TypeScript once per declaration build
 
@@ -288,6 +362,7 @@ The reproduction used Node 24.19.0 and npm 11.17.0 on macOS arm64.
 
 All five CJS, ESM, source-map, and declaration artifacts remained byte-identical in every pair.
 All 34 Jest cases pass. These timings exclude Rust/WASM compilation and npm dependency installation.
+The [reproduction samples](benchmarks/development-cycle/node-build.json) include all five artifact hashes.
 
 ```sh
 cd tools/npm/garaga_ts
@@ -295,43 +370,30 @@ npm run build:node
 npm test -- --runInBand
 ```
 
-## Compare commands with one measurement tool
+## Final local verification
 
-The dependency-free `tools.measure` command replaces separate timing scripts for each language.
-It alternates baseline and candidate runs, excludes warmups, and records every wall-time and child-CPU sample in JSON.
-The report includes medians, percentage changes, platform details, and Git source fingerprints before and after the commands.
+The [verification record](benchmarks/development-cycle/verification.json) identifies source commit `85d843d` and baseline `a01fad0`.
+All 83 tracked Cairo source files match the baseline byte-for-byte.
+The full regeneration gate also leaves every tracked generated artifact unchanged.
 
-Use separate checkouts with identical installed toolchains and native build profiles.
-For example, compare full regeneration and require identical circuit output:
+The current local checks pass:
 
-```sh
-venv/bin/python -m tools.measure \
-  --baseline ../garaga-baseline --candidate . \
-  --runs 5 --warmups 1 \
-  --artifact 'src/src/circuits/*.cairo' \
-  --output /tmp/generation.json -- make rewrite
-```
+- Python: 907 passed, five skipped, with the optimized native extension.
+- Rust: 54 unit tests, one doctest, and workspace Clippy.
+- Node: 37 cases, TypeScript checking, and four package integration consumers.
+- Toolchain: 57 matching pins across 28 files.
+- Formatting and workflow checks: Black, commit hooks, and actionlint with the existing npm publish-glob warning excluded.
 
-Artifact hashes exclude modification times and run outside the timed command.
-The tool checks every measured output, not only the final sample.
-Changed paths, changed bytes, or nondeterministic output cause a failure exit.
-Commands must finish their child work. Background work is outside the measurement scope.
-The command inherits the environment and does not record environment variables.
+Scarb 2.21.0 and Foundry 0.64.1 report unchanged L2 gas estimates with `--tracked-resource cairo-steps`:
 
-The Cairo profiler now records its input Git revision, dirty state, and local-change fingerprint before tests start.
-Generated reports cannot relabel a clean input as dirty or overwrite the provenance of historical entries.
-Ignored files and installed toolchains are not part of the Git fingerprint.
-For directories without Git, the report records unknown provenance instead of inventing a revision.
+- `test_msm_SECP256K1_1P`: 12,320,000.
+- `test_BN254_mpcheck_2P_2F`: 52,880,000.
 
-Thirty-five focused checks pass, including a dependency-free CLI run, failure handling, output mismatch, nondeterminism, and pre-test capture.
-Nine source-fingerprint runs measured a 32.9ms wall median and a 26.6ms child-CPU median.
-Fingerprint and artifact work stays outside command timings.
-The [raw fingerprint samples](benchmarks/development-cycle/provenance.json) record the measured source state.
-
-```sh
-source venv/bin/activate
-pytest tests/hydra/test_measure.py tests/hydra/test_profile_provenance.py tests/hydra/test_profile_tests.py
-```
+These numbers are the tool's estimates, not a new gas calculation.
+The max-log-N bytecode check passes at 67,136 elements against the 81,290 limit.
+Full regeneration reports 16 seconds. The full Python verification reports 53.40 seconds.
+These verification timings are not matched speed comparisons.
+Hosted CI status remains separate and belongs to each pushed commit.
 
 ## Keep optimized macOS extensions loadable
 
@@ -359,36 +421,36 @@ source venv/bin/activate
 pytest tests/hydra/test_native_build_config.py
 ```
 
-## Initialize embedded WASM directly
+## Cache Rust dependencies only in the measured WASM test job
 
-The wrapper decodes embedded WASM bytes directly when `Buffer` is available.
-Without `Buffer`, it retains the existing data-URI loader.
-Concurrent and repeated calls share one initialization promise. Failed initialization can retry.
-The public Promise API, declarations, raw WASM bytes, and cryptographic implementations remain unchanged.
+The WASM unit-test job caches Rust dependencies through `Swatinem/rust-cache@v2`.
+The cache uses the actual Cargo target directory, `.cargo/garaga_rs/target`, and a WASM-specific key.
+The existing `RUSTFLAGS` value is available before cache-key computation and remains unchanged.
 
-The new measurement tool ran 15 alternating fresh-process pairs per module format, after one warmup pair.
-On Node 24.19.0 and macOS arm64, CJS process time decreased from 90.1ms to 56.3ms (37.6%).
-ESM process time decreased from 88.2ms to 54.8ms (37.9%).
-These times include Node startup, module loading, initialization, a known Poseidon vector, and output writes.
-Inner initialization time decreased from 41.7ms to 10.3ms for CJS and from 42.5ms to 10.2ms for ESM.
-CJS median peak RSS decreased from 111,744KiB to 81,904KiB. ESM decreased from 107,120KiB to 79,872KiB.
+The action retains its [compiler, platform, environment, and Cargo input hashing](https://github.com/Swatinem/rust-cache#cache-key).
+An explicit root `Cargo.toml` hash also covers the virtual workspace's release-profile inputs.
+The default dependency-only cache leaves workspace crates to rebuild.
+Native, setup smoke, and release jobs remain uncached. Scarb retains `cache: false`.
+The existing test, regeneration, bytecode, artifact-build, and integration gates remain unchanged.
 
-Five paired runs of the unchanged seven Jest suites (34 cases) decreased from 5.8646s to 5.5532s (5.3%).
-The three new initialization cases are outside that timing comparison.
-Five paired Node builds did not establish a build-time change: 1.2548s before and 1.2617s after.
-The declaration artifact remained byte-identical in every pair.
+One hosted cold/warm pair used head `641909b`, Rust 1.99.0, and the same Ubuntu 24.04.5 image.
+The [cold job](https://github.com/keep-starknet-strange/garaga/actions/runs/38477888642/job/115573071769) missed the cache.
+The [warm job](https://github.com/keep-starknet-strange/garaga/actions/runs/38477888642/job/115575102716) restored the exact key and all six tests passed again.
+The two release compilation phases decreased from 40.07s + 49.95s to 29.30s + 31.43s.
+The restore-through-final-test-report envelope decreased from 100.856s to 69.990s, including binary installation and cache overhead.
+The cache step took 0.566s on the cold miss and 2.296s on the warm hit.
+These single paired-run results do not predict other runs or full-suite performance.
 
-Every sample preserved the export list, Poseidon result, and WASM memory size.
-The temporary package snapshots had no Git metadata. Their source and bundle SHA256 values identify the measured inputs separately.
-All 37 Jest cases, TypeScript checking, and all four CJS, ESM, Next.js, and Webpack integration consumers pass.
-The browser integrations preserve their fixture output, including browsers with a bundled `Buffer` implementation.
-The [CJS report](benchmarks/development-cycle/node-runtime-cjs.json), [ESM report](benchmarks/development-cycle/node-runtime-esm.json), and [inner samples](benchmarks/development-cycle/node-runtime-inner.json) preserve the measurements.
-The [driver](benchmarks/development-cycle/node-runtime-runner.mjs) runs from each built package directory and checks the known Poseidon result.
+The native-cache experiment did not establish a meaningful end-to-end benefit.
+Native release compilation remained 35.66s versus 35.25s, while warm restoration added 3.876s.
+The restore-through-Rust-test envelope changed only from 64.240s to 63.053s.
+Hydra and E2E cache entries were therefore removed instead of retaining unproven configuration.
+
+Three focused cases check the target directory, compiler flags, hash inputs, and unchanged uncached jobs:
 
 ```sh
-cd tools/npm/garaga_ts
-npm run build:node
-npm test -- --runInBand
+source venv/bin/activate
+pytest tests/hydra/test_rust_cache.py
 ```
 
 ## Verify the MPCheck equation once
@@ -438,4 +500,74 @@ The [paired samples](benchmarks/development-cycle/polynomial-evaluation.json), [
 ```sh
 source venv/bin/activate
 pytest tests/hydra/algebra/test_polynomial_evaluate.py
+```
+
+## Compare commands with one measurement tool
+
+The dependency-free `tools.measure` command replaces separate timing scripts for each language.
+It alternates baseline and candidate runs, excludes warmups, and records every wall-time and child-CPU sample in JSON.
+The report includes medians, percentage changes, platform details, and Git source fingerprints before and after the commands.
+
+Use separate checkouts with identical installed toolchains and native build profiles.
+For example, compare full regeneration and require identical circuit output:
+
+```sh
+venv/bin/python -m tools.measure \
+  --baseline ../garaga-baseline --candidate . \
+  --runs 5 --warmups 1 \
+  --artifact 'src/src/circuits/*.cairo' \
+  --output /tmp/generation.json -- make rewrite
+```
+
+Artifact hashes exclude modification times and run outside the timed command.
+The tool checks every measured output, not only the final sample.
+Changed paths, changed bytes, or nondeterministic output cause a failure exit.
+Commands must finish their child work. Background work is outside the measurement scope.
+The command inherits the environment and does not record environment variables.
+
+The Cairo profiler now records its input Git revision, dirty state, and local-change fingerprint before tests start.
+Generated reports cannot relabel a clean input as dirty or overwrite the provenance of historical entries.
+Ignored files and installed toolchains are not part of the Git fingerprint.
+For directories without Git, the report records unknown provenance instead of inventing a revision.
+
+Thirty-five focused checks pass, including a dependency-free CLI run, failure handling, output mismatch, nondeterminism, and pre-test capture.
+Nine source-fingerprint runs measured a 32.9ms wall median and a 26.6ms child-CPU median.
+Fingerprint and artifact work stays outside command timings.
+The [raw fingerprint samples](benchmarks/development-cycle/provenance.json) record the measured source state.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_measure.py tests/hydra/test_profile_provenance.py tests/hydra/test_profile_tests.py
+```
+
+## Initialize embedded WASM directly
+
+The wrapper decodes embedded WASM bytes directly when `Buffer` is available.
+Without `Buffer`, it retains the existing data-URI loader.
+Concurrent and repeated calls share one initialization promise. Failed initialization can retry.
+The public Promise API, declarations, raw WASM bytes, and cryptographic implementations remain unchanged.
+
+The new measurement tool ran 15 alternating fresh-process pairs per module format, after one warmup pair.
+On Node 24.19.0 and macOS arm64, CJS process time decreased from 90.1ms to 56.3ms (37.6%).
+ESM process time decreased from 88.2ms to 54.8ms (37.9%).
+These times include Node startup, module loading, initialization, a known Poseidon vector, and output writes.
+Inner initialization time decreased from 41.7ms to 10.3ms for CJS and from 42.5ms to 10.2ms for ESM.
+CJS median peak RSS decreased from 111,744KiB to 81,904KiB. ESM decreased from 107,120KiB to 79,872KiB.
+
+Five paired runs of the unchanged seven Jest suites (34 cases) decreased from 5.8646s to 5.5532s (5.3%).
+The three new initialization cases are outside that timing comparison.
+Five paired Node builds did not establish a build-time change: 1.2548s before and 1.2617s after.
+The declaration artifact remained byte-identical in every pair.
+
+Every sample preserved the export list, Poseidon result, and WASM memory size.
+The temporary package snapshots had no Git metadata. Their source and bundle SHA256 values identify the measured inputs separately.
+All 37 Jest cases, TypeScript checking, and all four CJS, ESM, Next.js, and Webpack integration consumers pass.
+The browser integrations preserve their fixture output, including browsers with a bundled `Buffer` implementation.
+The [CJS report](benchmarks/development-cycle/node-runtime-cjs.json), [ESM report](benchmarks/development-cycle/node-runtime-esm.json), and [inner samples](benchmarks/development-cycle/node-runtime-inner.json) preserve the measurements.
+The [driver](benchmarks/development-cycle/node-runtime-runner.mjs) runs from each built package directory and checks the known Poseidon result.
+
+```sh
+cd tools/npm/garaga_ts
+npm run build:node
+npm test -- --runInBand
 ```
