@@ -8,7 +8,9 @@ State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & S
 pip install garaga
 ```
 
-**Requirements:** Python 3.10 through 3.14
+**Requirements:** Python 3.11 through 3.14
+
+Garaga uses fastecdsa 4 with a Rust backend. GMP is not required.
 
 ## What is Garaga?
 
