@@ -42,15 +42,15 @@ profile-test:
 	@JOBS_VAL=$${JOBS:-$(DEFAULT_JOBS)}; \
 	if [ -z "$(TEST)" ]; then \
 		echo "Running all tests with profiling ($$JOBS_VAL jobs)..."; \
-		$(ACTIVATE) python tools/profile_tests.py --all --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
+		$(ACTIVATE) python -m tools.profile_tests --all --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
 	else \
 		echo "Running tests with filter: $(TEST) ($$JOBS_VAL jobs)"; \
-		$(ACTIVATE) python tools/profile_tests.py $(TEST) --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
+		$(ACTIVATE) python -m tools.profile_tests $(TEST) --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
 	fi
 
 benchmarks:
 	@echo "Generating Cairo benchmarks from existing test data..."
-	$(ACTIVATE) python tools/profile_tests.py --benchmarks-only
+	$(ACTIVATE) python -m tools.profile_tests --benchmarks-only
 
 ci-e2e:
 	./tools/make/ci_e2e.sh

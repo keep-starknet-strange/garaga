@@ -7,13 +7,13 @@ generating individual profile data using cairo-profiler, creating performance
 visualizations using pprof, and organizing the results.
 
 Usage:
-    python tools/profile_tests.py [test_name_filter]
-    python tools/profile_tests.py --all
+    python -m tools.profile_tests [test_name_filter]
+    python -m tools.profile_tests --all
 
 Examples:
-    python tools/profile_tests.py msm_BN254_1P    # Run specific test
-    python tools/profile_tests.py --all           # Run all tests
-    python tools/profile_tests.py                 # Run all tests (same as --all)
+    python -m tools.profile_tests msm_BN254_1P    # Run specific test
+    python -m tools.profile_tests --all           # Run all tests
+    python -m tools.profile_tests                 # Run all tests (same as --all)
 """
 
 import argparse
@@ -259,6 +259,15 @@ class TestResourceInfo:
             if not self.test_name_hierarchical.startswith("garaga::"):
                 self.category = "contracts"
 
+    @property
+    def artifact_name(self) -> str:
+        if self.category == "contracts":
+            package = self.test_name_hierarchical.split("::")[0].removesuffix(
+                "_integrationtest"
+            )
+            return f"{package}_{self.test_name_simple}"
+        return self.test_name_simple
+
     @classmethod
     def from_trace_file(
         cls,
@@ -381,20 +390,18 @@ class TraceProcessor:
                     return False, test_name, "", None
 
                 resources = self._extract_resources(profile_file, run_cmd)
-                test_name_simple = test_name.split("::")[-1]
-                docs_image_path = (
-                    Paths(Path.cwd()).docs_benchmarks / f"{test_name_simple}.png"
-                )
-                image_success = self._generate_image(
-                    profile_file, docs_image_path, run_cmd
-                )
-
                 test_info = TestResourceInfo.from_trace_file(
                     test_name,
                     trace_path,
                     profile_file,
                     resources,
-                    f"docs/benchmarks/{test_name_simple}.png",
+                )
+                test_info.image_path = f"docs/benchmarks/{test_info.artifact_name}.png"
+                docs_image_path = Paths(Path.cwd()).docs_benchmarks / (
+                    f"{test_info.artifact_name}.png"
+                )
+                image_success = self._generate_image(
+                    profile_file, docs_image_path, run_cmd
                 )
 
                 return image_success, test_name, test_info.image_path, test_info
@@ -799,7 +806,7 @@ class ProcessTracesCommand(Command):
 
         timestamp_iso = datetime.now().isoformat()
         for test_info in self.test_resources:
-            summary_data[test_info.test_name_simple] = {
+            summary_data[test_info.artifact_name] = {
                 "last_updated": timestamp_iso,
                 "cairo_version": CAIRO_VERSION,
                 "starknet_foundry_version": STARKNET_FOUNDRY_VERSION,
