@@ -79,3 +79,19 @@ uv run --no-project --python venv/bin/python python -m pytest tests/hydra/starkn
 ```
 
 The tests cover default constants, custom constants inside the project, and external constants.
+
+## Supported CI action runtimes
+
+The workflows use `dtolnay/rust-toolchain` instead of the obsolete `actions-rs/toolchain` action.
+They retain the same Rust channels, the 1.87.0 E2E pin, and the requested `rustfmt` components.
+Four checkout actions now use the existing repository standard, `actions/checkout@v4`.
+These substitutions remove 10 obsolete-runtime errors from actionlint 1.7.12 and delete 20 lines of configuration.
+The test matrices, test commands, and release conditions remain unchanged.
+
+Run the workflow checks:
+
+```sh
+actionlint -ignore 'SC2035:info:1:29' .github/workflows/*.yml
+```
+
+The ignore expression covers the existing npm publish-glob warning. This change does not modify that command.
