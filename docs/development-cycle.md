@@ -273,3 +273,24 @@ They also preserve both complete offline setup checks and require the warning to
 Nine process runs on macOS arm64 measured a 44.1ms median for check mode and 43.1ms for a no-op synchronization.
 Repairing deliberate Cairo-version drift across 23 files took 45.7ms (nine runs).
 These measurements cover configuration synchronization, not compilation, regeneration, or a complete toolchain upgrade.
+
+## Compile TypeScript once per declaration build
+
+The declaration-only Rollup pass no longer repeats the TypeScript plugin already used by the JavaScript pass.
+The existing `tsc` gate, JavaScript compilation, and declaration bundler remain in place.
+Five paired warm runs measured the complete `npm run build:node` command.
+The median decreased from 1.6566s to 1.4496s, a 12.5% reduction.
+Median CPU time decreased from 3.1063s to 2.7167s.
+
+A second five-pair run reproduced the result: wall time decreased from 1.5911s to 1.3741s (13.6%).
+Child CPU time decreased from 3.0186s to 2.6317s.
+The reproduction used Node 24.19.0 and npm 11.17.0 on macOS arm64.
+
+All five CJS, ESM, source-map, and declaration artifacts remained byte-identical in every pair.
+All 34 Jest cases pass. These timings exclude Rust/WASM compilation and npm dependency installation.
+
+```sh
+cd tools/npm/garaga_ts
+npm run build:node
+npm test -- --runInBand
+```
