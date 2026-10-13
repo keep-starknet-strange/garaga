@@ -6,10 +6,30 @@ on:
     paths:
       - 'tools/make/setup.sh'
       - '.github/workflows/setup.yml'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'docs/PYPI_README.md'
+      - 'uv.lock'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - 'tools/garaga_rs/**'
+      - 'hydra/**'
+      - '.pre-commit-config.yaml'
   pull_request:
     paths:
       - 'tools/make/setup.sh'
       - '.github/workflows/setup.yml'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'docs/PYPI_README.md'
+      - 'uv.lock'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - 'tools/garaga_rs/**'
+      - 'hydra/**'
+      - '.pre-commit-config.yaml'
 
 jobs:
   pre_job:

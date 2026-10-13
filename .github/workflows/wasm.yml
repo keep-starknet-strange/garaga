@@ -22,7 +22,9 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'never'
-          paths: '["tools/**"]'
+          paths: >-
+            ["tools/**", "Cargo.toml", "Cargo.lock", ".cargo/config.toml",
+             ".github/workflows/wasm.yml"]
 
   test-wasm:
     needs: pre_job
