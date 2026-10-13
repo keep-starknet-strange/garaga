@@ -218,3 +218,20 @@ The selected mode invoked one package and had a median of 3.3738s.
 These timings exclude trace processing and report generation. The stable work reduction is six subprocess invocations to one.
 
 Eight profiler regression cases pass, including selected library and contract packages, default coverage, and invalid-selection rejection.
+
+## Reuse the generated-test worker pool
+
+Full test generation now creates one process pool for its six parallel stages.
+The pool stays open until all stages finish and closes if a stage fails.
+Arithmetic, seeds, submission order, and result order remain unchanged.
+
+Three balanced runs per version generated all seven files in fresh projects, including real Scarb formatting.
+On macOS with 12 CPUs and Python 3.14.7, the median fell from 15.5554s to 9.9269s (36.2%).
+Pool creation fell from six to one; instrumented worker starts fell from 48 to 12 in every run.
+All seven files matched both the baseline and the tracked Cairo fixtures byte-for-byte.
+Four regression cases cover pool ownership, error cleanup, ordered results, and unchanged seeds.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_test_writer.py
+```
