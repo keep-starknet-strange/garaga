@@ -19,3 +19,35 @@ Run the regression suite:
 source venv/bin/activate
 pytest tests/hydra/test_workflow_paths.py
 ```
+
+## Locked setup dependencies
+
+`make setup` installs development dependencies from `uv.lock` instead of resolving package versions into a second requirements file.
+Setup stops if the lockfile does not match `pyproject.toml`.
+It keeps `venv`, the selected Python interpreter, user-installed packages, and the explicit `maturin develop --release --features python` build.
+The `--no-install-project` flag avoids a second project build. The `--inexact` flag preserves unrelated packages.
+These flags follow the [uv synchronization documentation](https://docs.astral.sh/uv/concepts/projects/sync/).
+
+Both measurements used PR 521 commit `a01fad0`, the same `pyproject.toml`, and CPython 3.14.7 on macOS arm64.
+The old dependency commands installed 56 versions that differed from the 88 applicable packages in `uv.lock`.
+Locked synchronization reduced this count to zero.
+Five warm dependency-step runs had medians of 29.8ms for compile/install and 15.5ms for locked synchronization.
+These timings exclude Rust compilation and do not predict total setup time.
+
+Run the offline regression suite:
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_setup_dependencies.py
+```
+
+The tests run the setup script with real uv and local wheels, without network access.
+They check lockfile rejection, the active environment, preserved packages, and the absence of a project build during dependency installation.
+
+After an intentional dependency change, update the lockfile:
+
+```sh
+uv lock
+```
+
+Commit the updated `uv.lock` with the dependency change.

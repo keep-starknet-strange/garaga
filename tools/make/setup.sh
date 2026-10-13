@@ -186,8 +186,8 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export CXXFLAGS="-Wno-overriding-option ${CXXFLAGS:-}"
 fi
 
-uv pip compile pyproject.toml --extra dev --output-file tools/make/requirements.txt -q
-uv pip install -r tools/make/requirements.txt
+# Keep the active venv and its local tools while installing locked dependencies.
+uv sync --locked --extra dev --no-install-project --active --inexact
 
 # Install the commit hooks (black, isort)
 pre-commit install
