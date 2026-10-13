@@ -346,6 +346,8 @@ The source distribution explicitly includes that configuration, so source builds
 The ordinary Maturin release build, installed Python import, native loader, and known Poseidon vector now pass.
 Five regression cases run Cargo target probes for both macOS architectures, Linux, and WASM, then inspect the actual source archive.
 The cases pass in 1.18s. The locked dependency check leaves `uv.lock` unchanged.
+The probes request plain output even when CI forces color.
+The forced-color regression changed from four failures and one pass to five passes in 1.34s.
 One configuration-triggered release build took 26.61s. This is not a paired build-speed comparison.
 The loadable Maturin artifact contains 2,395,992 bytes, a 4.17% increase from the broken artifact.
 No Rust algorithm, WASM byte, or Cairo source changes.

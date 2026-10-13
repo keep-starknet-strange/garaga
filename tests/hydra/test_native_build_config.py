@@ -31,6 +31,8 @@ def test_cargo_disables_strip_only_for_macos(tmp_path, target):
         "[profile.release]\nopt-level = 3\nlto = true\ndebug = false\n"
     )
     environment = os.environ.copy()
+    # Check that the CLI overrides the forced color used by CI runners.
+    environment["CARGO_TERM_COLOR"] = "always"
     for key in ("RUSTFLAGS", "CARGO_ENCODED_RUSTFLAGS", "CARGO_BUILD_RUSTFLAGS"):
         environment.pop(key, None)
     # --print cfg exercises Cargo's target flags without cross-target standard libraries.
@@ -39,6 +41,8 @@ def test_cargo_disables_strip_only_for_macos(tmp_path, target):
             "cargo",
             "rustc",
             "--offline",
+            "--color",
+            "never",
             "--release",
             "--target",
             target,
