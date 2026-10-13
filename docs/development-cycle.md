@@ -294,3 +294,41 @@ cd tools/npm/garaga_ts
 npm run build:node
 npm test -- --runInBand
 ```
+
+## Compare commands with one measurement tool
+
+The dependency-free `tools.measure` command replaces separate timing scripts for each language.
+It alternates baseline and candidate runs, excludes warmups, and records every wall-time and child-CPU sample in JSON.
+The report includes medians, percentage changes, platform details, and Git source fingerprints before and after the commands.
+
+Use separate checkouts with identical installed toolchains and native build profiles.
+For example, compare full regeneration and require identical circuit output:
+
+```sh
+venv/bin/python -m tools.measure \
+  --baseline ../garaga-baseline --candidate . \
+  --runs 5 --warmups 1 \
+  --artifact 'src/src/circuits/*.cairo' \
+  --output /tmp/generation.json -- make rewrite
+```
+
+Artifact hashes exclude modification times and run outside the timed command.
+The tool checks every measured output, not only the final sample.
+Changed paths, changed bytes, or nondeterministic output cause a failure exit.
+Commands must finish their child work. Background work is outside the measurement scope.
+The command inherits the environment and does not record environment variables.
+
+The Cairo profiler now records its input Git revision, dirty state, and local-change fingerprint before tests start.
+Generated reports cannot relabel a clean input as dirty or overwrite the provenance of historical entries.
+Ignored files and installed toolchains are not part of the Git fingerprint.
+For directories without Git, the report records unknown provenance instead of inventing a revision.
+
+Thirty-five focused checks pass, including a dependency-free CLI run, failure handling, output mismatch, nondeterminism, and pre-test capture.
+Nine source-fingerprint runs measured a 32.9ms wall median and a 26.6ms child-CPU median.
+Fingerprint and artifact work stays outside command timings.
+The [raw fingerprint samples](benchmarks/development-cycle/provenance.json) record the measured source state.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/test_measure.py tests/hydra/test_profile_provenance.py tests/hydra/test_profile_tests.py
+```

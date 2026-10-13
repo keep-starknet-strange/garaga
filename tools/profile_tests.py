@@ -49,6 +49,7 @@ from rich.text import Text
 from tabulate import tabulate
 
 from tools.process_manager import ProcessManager, managed_subprocess
+from tools.source_provenance import capture_source_provenance
 
 # Global state
 console = Console()
@@ -673,11 +674,22 @@ class RunTestsCommand(Command):
 class ProcessTracesCommand(Command):
     """Command to process trace files and generate profiles."""
 
-    def __init__(self, paths: Paths, passed_tests: List[str], parallel_jobs: int = 4):
+    def __init__(
+        self,
+        paths: Paths,
+        passed_tests: List[str],
+        parallel_jobs: int = 4,
+        source_provenance: Optional[dict] = None,
+    ):
         self.paths = paths
         self.passed_tests = passed_tests
         self.parallel_jobs = parallel_jobs
         self.test_resources = []
+        self.source_provenance = (
+            source_provenance
+            if source_provenance is not None
+            else capture_source_provenance(paths.workspace_root)
+        )
 
     @log_step("Processing Traces & Extracting Resources")
     def execute(self) -> bool:
@@ -826,6 +838,7 @@ class ProcessTracesCommand(Command):
                 "cairo_version": CAIRO_VERSION,
                 "starknet_foundry_version": STARKNET_FOUNDRY_VERSION,
                 "latest_metrics": test_info.to_benchmark_row(),
+                **self.source_provenance,
             }
 
         if JsonManager.write(summary_file, summary_data):
@@ -1182,6 +1195,7 @@ class WorkflowExecutor:
     ) -> bool:
         """Execute the complete workflow."""
         try:
+            source_provenance = capture_source_provenance(self.paths.workspace_root)
             self.paths.ensure_dirs()
 
             commands = [
@@ -1207,7 +1221,7 @@ class WorkflowExecutor:
 
             # Process traces
             process_cmd = ProcessTracesCommand(
-                self.paths, run_tests_cmd.passed_tests, parallel_jobs
+                self.paths, run_tests_cmd.passed_tests, parallel_jobs, source_provenance
             )
             if not process_cmd.can_execute():
                 raise Exception("Cannot execute ProcessTracesCommand")
