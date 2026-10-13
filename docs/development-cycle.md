@@ -51,3 +51,31 @@ uv lock
 ```
 
 Commit the updated `uv.lock` with the dependency change.
+
+## Format generated verifiers once
+
+The verifier writer formats each complete project once.
+Constants inside the project no longer require a separate formatter process.
+For external constants, such as SP1 constants, it formats only the generated file, then the verifier project.
+It does not format neighboring handwritten files.
+
+The measurement compared PR 521 commit `a01fad0` with this change, using Scarb 2.21.0 on the same machine.
+Each run generated both bundled Groth16 verifiers, BN254 and BLS12-381, in fresh temporary directories.
+Five repetitions included key parsing, line precomputation, file writes, and real Scarb formatting.
+
+| Measurement | Before | After |
+| --- | --- | --- |
+| Formatter processes for ten verifier projects | 20 | 10 |
+| Median generation time for two verifiers | 0.5765s | 0.3442s |
+
+The measured generation time decreased by 40.3%.
+All 12 generated files in the output comparison remained byte-identical.
+A separate external-constants check preserved identical generated constants and left an unformatted handwritten neighbor unchanged.
+
+Run the focused regression suite:
+
+```sh
+uv run --no-project --python venv/bin/python python -m pytest tests/hydra/starknet/test_contract_generator.py
+```
+
+The tests cover default constants, custom constants inside the project, and external constants.
