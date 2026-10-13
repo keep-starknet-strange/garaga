@@ -37,7 +37,11 @@ jobs:
         with:
           node-version: 'lts/*'
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install wasm-pack
+      - name: Install pinned wasm-pack binary
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack@0.13.1
+          fallback: none
       - name: Run wasm specific tests
         working-directory: tools/garaga_rs
         run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features --features wasm

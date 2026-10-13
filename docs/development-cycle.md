@@ -95,3 +95,19 @@ actionlint -ignore 'SC2035:info:1:29' .github/workflows/*.yml
 ```
 
 The ignore expression covers the existing npm publish-glob warning. This change does not modify that command.
+
+## Install the WASM test tool without compilation
+
+The WASM test job downloads `wasm-pack@0.13.1`, the same version that the existing Docker generator uses.
+The [installer action](https://github.com/taiki-e/install-action#security-on-installation-from-github-releases) checks the archive SHA256 before extraction.
+The `fallback: none` input stops installation if the pinned binary is unavailable. It prevents an unexpected source build.
+The test command, test coverage, package build, and release conditions remain unchanged.
+
+The [baseline CI job](https://github.com/keep-starknet-strange/garaga/actions/runs/38467549883/job/115538190551) used PR 521 commit `998b013` on Ubuntu.
+That job compiled an unpinned `wasm-pack@0.15.0` from source in 77 seconds before the project build and tests.
+The new installation step does not compile the CLI.
+
+A local check downloaded, checked, and extracted the pinned Linux archive in 0.35 seconds on macOS arm64.
+The archive contained 2,871,133 bytes and matched the SHA256 in the [installer manifest](https://github.com/taiki-e/install-action/blob/main/manifests/wasm-pack.json).
+This local check excludes GitHub Action overhead. Different systems and network conditions prevent a direct timing comparison with the Ubuntu baseline.
+The pinned release has no native macOS arm64 binary. The Ubuntu CI job must pass before this change merges.
