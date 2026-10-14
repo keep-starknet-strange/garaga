@@ -35,7 +35,7 @@ jobs:
           components: rustfmt
 
       - name: Setup Starknet Foundry
-        uses: foundry-rs/setup-snfoundry@v4
+        uses: foundry-rs/setup-snfoundry@v6
         with:
           starknet-foundry-version: "0.64.1"
       - name: Setup Scarb
