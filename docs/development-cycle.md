@@ -370,13 +370,13 @@ npm run build:node
 npm test -- --runInBand
 ```
 
-## Final local verification
+## Local verification at 85d843d
 
 The [verification record](benchmarks/development-cycle/verification.json) identifies source commit `85d843d` and baseline `a01fad0`.
 All 83 tracked Cairo source files match the baseline byte-for-byte.
 The full regeneration gate also leaves every tracked generated artifact unchanged.
 
-The current local checks pass:
+The local checks at that checkpoint passed:
 
 - Python: 907 passed, five skipped, with the optimized native extension.
 - Rust: 54 unit tests, one doctest, and workspace Clippy.
@@ -730,3 +730,35 @@ The optimized extension, matching WASM package, TypeScript checks, and all four 
 All twelve CJS/ESM sparse-pairing array comparisons retain the Python output after the binary change.
 Full regeneration preserves all 83 Cairo source files; the MSM/pairing gas estimates remain 12,320,000/52,880,000, and max-log-N bytecode remains 67,136 against its 81,290 limit.
 The [combined functional record](benchmarks/development-cycle/rust-monic-verification.json) identifies these gates; their durations are not speed comparisons.
+
+## Reject architecture-dependent generation
+
+An isolated native-arm64 Docker trial compared the same clean `8aeeb61` source at `/garaga` with the canonical amd64 build.
+Both used Rust 1.87.0, Node 20.17.0, npm 10.8.2, wasm-pack 0.13.1, wasm-bindgen 0.2.100, and wasm-opt 117.
+Both generations succeeded, but six of the eleven complete artifacts differed: WASM, CJS/ESM bundles and maps, and the npm archive.
+The declaration, glue, and package metadata artifacts matched.
+The retained Rust-produced WASM inputs already differed before wasm-opt; the canonical amd64 output matched the tracked artifact.
+The candidate failed the required byte-identity gate before timing; no speed claim or shared architecture change was made.
+The generator retains its canonical `linux/amd64` platform.
+The [rejected experiment record](benchmarks/development-cycle/docker-native-rejected.json) preserves the identities, commands, and artifact hashes.
+
+## Final preservation checkpoint
+
+The [final local record](benchmarks/development-cycle/verification-final.json) identifies runtime source commit `8aeeb61` and Cairo baseline `a01fad0`.
+All 83 tracked Cairo files match the baseline byte-for-byte after full regeneration.
+The selected MSM and pairing tests retain their reported L2 gas estimates, and the max-log-N contract remains below the unchanged bytecode limit.
+
+The final optimized bindings pass 933 Python tests with five skips, 65 Rust tests plus a doctest, 37 Node tests, TypeScript checking, and all four forced consumer builds/tests.
+Workspace Clippy passes with its three existing test warnings.
+The complete sparse-pairing outputs also match Python in both CJS and ESM after the final WASM rebuild.
+The 57-pin/28-file toolchain check and commit hooks pass.
+These gate runtimes are functional verification, not aggregate speed comparisons.
+
+The accepted changes cover Python, native Rust, TypeScript/Node, Cairo development tools, CI, and Noir compiler/witness work.
+Actual Barretenberg proof generation/verification and RISC0 guest compiler/prover execution remain unmeasured because those tools were unavailable.
+No proof-generation speed claim or speculative proving dependency upgrade is made.
+Rejected or configuration-mismatched experiments are not included in the improvement claims.
+
+Hosted CI at `8aeeb61` completed all six workflows successfully: 21 successful checks and two expected skips.
+The Python 3.11/3.12/3.14 matrices, both Devnet matrices, all three setup platforms, and the Node/WASM/four-consumer gates passed.
+The skipped checks were the input-filtered Cairo job and tag-only npm release.
