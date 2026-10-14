@@ -594,3 +594,32 @@ No Cairo source or circuit operation changed.
 source venv/bin/activate
 pytest tests/hydra/algebra/test_polynomial_xgcd.py tests/hydra/algebra/test_polynomial.py
 ```
+
+## Remove Rust polynomial allocation work
+
+Rust polynomial division now consumes and updates the numerator buffer in place.
+It no longer builds scaled, shifted, negated subtraction polynomials at every step.
+Extended GCD also reuses each division remainder and avoids cloning the quotient.
+The field operations, normalized quotient/remainder values, and public interfaces remain unchanged.
+
+Five alternating paired runs used Rust 1.93.0, the same optimized release profile, and one warmup pair.
+The complete native workload decreased from 1.0793s to 0.9823s (9.0%); child CPU decreased by 8.9%.
+It includes dense division cases, one/two/eight-point ECIP hints for all six curves, and eight native MPCheck calldata configurations.
+Individual ECIP cases improved by 6.0–14.3%; MPCheck cases improved by 2.3–7.0%.
+The dense division loops improved by 18.1–54.5%; those inner timings cover repeated divisions, not one call.
+All hint, quotient/remainder, and calldata artifacts stayed byte-identical and stable.
+These results do not predict all proof workloads or total build time.
+
+The [command samples](benchmarks/development-cycle/rust-polynomial.json) and [inner samples, source digests, and complete driver](benchmarks/development-cycle/rust-polynomial-source.json) retain the evidence.
+Seven new mathematical tests cover constructed quotient/remainder values, zero/lower-degree numerators, padding, input preservation, Bézout identities, and zero-denominator failure across all six fields.
+All 54 existing Rust unit tests and the doctest pass; workspace Clippy and TypeScript checks pass.
+The optimized Python extension and matching WASM package were regenerated with the existing compiler pins.
+All 37 Node cases and the forced four-consumer integration build pass.
+The full Python run passed 926 cases; its sole manifest-read failure raced the concurrent WASM generator's temporary file replacement.
+After generation, all eight dependency-manifest checks passed, including the affected case.
+These gate runtimes are verification results under concurrent functional work, not speed comparisons.
+
+Full Cairo regeneration left all 83 tracked Cairo source files byte-identical to PR 521.
+
+All four forced CJS, ESM, Next.js, and Webpack consumer tests also pass.
+The representative MSM test retains its 12,320,000 L2 gas estimate under Cairo-step tracking.

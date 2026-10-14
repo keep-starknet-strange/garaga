@@ -138,10 +138,10 @@ impl<F: IsPrimeField> Polynomial<F> {
             panic!("Division by zero polynomial");
         }
         let num_deg = self.degree;
-        let mut remainder = self.clone();
         if num_deg < den_deg {
             return (Polynomial::zero(), self);
         }
+        let mut remainder = self;
 
         let mut quotient_coeffs = vec![FieldElement::<F>::zero(); (num_deg - den_deg + 1) as usize];
         let denom_lead_inv = denominator.leading_coefficient().inv().unwrap();
@@ -151,12 +151,22 @@ impl<F: IsPrimeField> Polynomial<F> {
             let shift = rem_deg - den_deg;
             let coefficient = &remainder.coefficients[rem_deg as usize] * &denom_lead_inv;
             quotient_coeffs[shift as usize] = coefficient.clone();
-            let subtractee = denominator
-                .scale_by_coeff(&coefficient)
-                .shift(shift as usize);
-            remainder = remainder - subtractee;
-            rem_deg = remainder.degree;
+            for (i, den_coeff) in denominator.coefficients[..=den_deg as usize]
+                .iter()
+                .enumerate()
+            {
+                let rem_coeff = &mut remainder.coefficients[i + shift as usize];
+                *rem_coeff = &*rem_coeff - &coefficient * den_coeff;
+            }
+            while rem_deg >= 0 && remainder.coefficients[rem_deg as usize] == FieldElement::zero() {
+                rem_deg -= 1;
+            }
         }
+
+        remainder.degree = rem_deg;
+        remainder
+            .coefficients
+            .truncate((rem_deg + 1).max(1) as usize);
 
         let degree = num_deg - den_deg;
         let quotient = Polynomial {
@@ -214,17 +224,15 @@ impl<F: IsPrimeField> Polynomial<F> {
         let mut t = Polynomial::one();
 
         while r.degree != -1 {
-            let quotient = old_r.clone().div_with_ref(&r);
-
-            let new_r = old_r - quotient.clone().mul_with_ref(&r);
+            let (quotient, new_r) = old_r.divmod(&r);
             old_r = r;
             r = new_r;
 
-            let new_s = old_s - quotient.clone().mul_with_ref(&s);
+            let new_s = old_s - quotient.mul_with_ref(&s);
             old_s = s;
             s = new_s;
 
-            let new_t = old_t - quotient.clone().mul_with_ref(&t);
+            let new_t = old_t - quotient.mul_with_ref(&t);
             old_t = t;
             t = new_t;
         }
