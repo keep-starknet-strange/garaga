@@ -1,13 +1,13 @@
 use core::circuit::{
-    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384, u96,
+    CircuitElement, CircuitInput, CircuitInputs, CircuitModulus, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384, u96,
 };
 use core::num::traits::Zero;
 use core::sha256::compute_sha256_u32_array;
 use garaga::basic_field_ops::{is_even_u384, u32_8_to_u384, u512_mod_p};
 use garaga::circuits::ec::{run_ADD_EC_POINT_circuit, run_CLEAR_COFACTOR_BLS12_381_circuit};
 use garaga::circuits::isogeny::run_BLS12_381_APPLY_ISOGENY_BLS12_381_circuit;
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait};
 use garaga::definitions::{
     BLS_G2_GENERATOR, G1Point, G2Point, deserialize_u384, get_BLS12_381_modulus, serialize_u384,
 };
@@ -1053,4 +1053,3 @@ mod tests {
         );
     }
 }
-

@@ -1,12 +1,12 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitTrait, circuit_add, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, circuit_add,
+    circuit_sub, u384,
 };
 use core::num::traits::Zero;
 use core::option::Option;
 use garaga::basic_field_ops::{neg_mod_p, reduce_mod_p};
 use garaga::circuits::ec;
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait};
 use garaga::definitions::{G2Point, G2PointZero, get_a, get_b_twist, get_modulus};
 use garaga::utils::u384_assert_zero;
 
@@ -452,4 +452,3 @@ mod tests {
         assert!(r == g5);
     }
 }
-

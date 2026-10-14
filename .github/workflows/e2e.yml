@@ -25,7 +25,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.14']
+        python-version: ['3.11', '3.14']
       fail-fast: false
 
     steps:
@@ -43,7 +43,8 @@ jobs:
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.16.1"
+          scarb-version: "2.21.0"
+          cache: false
       - name: Install dependencies
         run: make setup
         env:

@@ -36,6 +36,7 @@ tools/noir/hello/foundry.toml
 
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json
 !docs/benchmarks/test_summary.json
+!docs/benchmarks/cairo10443-results.json
 *snfoundry_cache
 !tools/npm/garaga_rs/*.json
 !tools/make/constants.json

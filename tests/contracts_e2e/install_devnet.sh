@@ -2,8 +2,8 @@
 set -e
 
 DEVNET_INSTALL_DIR="$(git rev-parse --show-toplevel)/tests/contracts_e2e/devnet/bin"
-DEVNET_REPO="https://github.com/0xSpaceShard/starknet-devnet"
-DEVNET_VERSION="v0.5.1"
+DEVNET_REPO="https://github.com/starknet-io/starknet-devnet"
+DEVNET_VERSION="v0.10.1"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then

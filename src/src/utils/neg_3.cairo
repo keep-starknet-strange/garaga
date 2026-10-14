@@ -257,4 +257,3 @@ mod tests {
         assert_eq!(sign_n, -1);
     }
 }
-

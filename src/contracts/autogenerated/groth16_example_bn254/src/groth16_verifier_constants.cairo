@@ -4028,4 +4028,3 @@ pub const precomputed_lines: [G2Line<u288>; 176] = [
         },
     },
 ];
-

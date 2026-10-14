@@ -1,11 +1,13 @@
 use core::circuit::{
-    CircuitElement, CircuitInput, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait, circuit_add,
-    circuit_inverse, circuit_mul, circuit_sub, u384,
+    CircuitElement, CircuitInput, CircuitInputs, circuit_add, circuit_inverse, circuit_mul,
+    circuit_sub, u384,
 };
 use core::integer::u128_byte_reverse;
 use garaga::basic_field_ops::{neg_mod_p, u512_mod_p};
 use garaga::circuits::ec;
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{
+    AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
+};
 use garaga::definitions::{
     G1Point, Zero, get_ED25519_modulus, get_a, get_curve_order_modulus, get_modulus, u288Serde,
 };
