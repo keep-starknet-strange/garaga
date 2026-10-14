@@ -56,4 +56,4 @@ rand = "0.9.0"
 starknet-types-core = { version = "1.0", default-features = false, optional = true }
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329", default-features = false, features = ["std"] }
 arbitrary = "1.0"
-itertools = "0.14"
+itertools = "0.15"

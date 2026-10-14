@@ -37,10 +37,7 @@ updates:
         update-types: [patch, minor]
 
   - package-ecosystem: npm
-    directories:
-      - /tools/npm/garaga_ts
-      # Includes packages/* through npm's workspace declaration.
-      - /tools/npm/integration-test-suite
+    directory: /tools/npm/garaga_ts
     schedule:
       interval: weekly
     open-pull-requests-limit: 3
@@ -48,6 +45,26 @@ updates:
       # This is the local package under test, packed by the WASM build.
       - dependency-name: garaga
       # Babel 8 needs a coordinated Babel/Jest/Node migration.
+      - dependency-name: "@babel/preset-env"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@babel/preset-typescript"
+        update-types: [version-update:semver-major]
+      # These build tools need the legacy compiler API, absent from TS 7.
+      - dependency-name: typescript
+        versions: [">=7"]
+    groups:
+      javascript-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: npm
+    # CLI-only consumers can use TS 7; includes packages/* workspaces.
+    directory: /tools/npm/integration-test-suite
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: garaga
       - dependency-name: "@babel/preset-env"
         update-types: [version-update:semver-major]
       - dependency-name: "@babel/preset-typescript"

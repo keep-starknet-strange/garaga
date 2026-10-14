@@ -9,6 +9,6 @@
     "garaga": "file:../../garaga.tgz"
   },
   "devDependencies": {
-    "typescript": "^5.5.4"
+    "typescript": "^7.0.2"
   }
 }
