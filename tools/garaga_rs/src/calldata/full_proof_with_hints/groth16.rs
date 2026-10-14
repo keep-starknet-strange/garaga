@@ -11,12 +11,12 @@ use crate::io::{
     biguint_split, element_to_biguint, field_elements_from_big_uints,
     parse_g1_points_from_flattened_field_elements_list,
 };
-use hex;
 use lambdaworks_math::field::traits::IsPrimeField;
 use lambdaworks_math::traits::ByteConversion;
 use num_bigint::{BigInt, BigUint, Sign};
 use num_traits::Num;
 use sha2::{Digest, Sha256};
+#[cfg(feature = "starknet-types")]
 use starknet_types_core::felt::Felt;
 pub struct Groth16Proof {
     pub a: G1PointBigUint,
@@ -183,7 +183,9 @@ impl Groth16Proof {
         let proof = &proof[4..];
 
         // Validate SP1 verifier version by checking selector against expected hash
-        let expected_selector = hex::decode(&SP1_VERIFIER_HASH[2..]).unwrap()[..4].to_vec();
+        let expected_selector = u32::from_str_radix(&SP1_VERIFIER_HASH[2..10], 16)
+            .unwrap()
+            .to_be_bytes();
         if selector != expected_selector {
             panic!(
                 "Invalid SP1 proof version. Expected {:02x}{:02x}{:02x}{:02x} for version {}, got {:02x}{:02x}{:02x}{:02x}\nPlease use SP1 verifier version {} or contact garaga developers to update the SP1 verifier version.",
@@ -294,6 +296,8 @@ pub fn get_sp1_vk() -> Groth16VerificationKey {
     )
 }
 
+/// Build calldata as Starknet `Felt` values (requires the `starknet-types` feature).
+#[cfg(feature = "starknet-types")]
 pub fn get_groth16_calldata_felt(
     proof: &Groth16Proof,
     vk: &Groth16VerificationKey,
@@ -416,7 +420,6 @@ where
 
 pub mod risc0_utils {
     use super::Groth16VerificationKey;
-    use hex;
     use num_bigint::BigUint;
     use num_traits::Num;
     use sha2::{Digest, Sha256};
@@ -518,9 +521,11 @@ pub mod risc0_utils {
     }
 
     pub fn ok_digest(image_id: &[u8], journal_digest: &[u8]) -> Vec<u8> {
-        let system_state_zero_digest =
-            hex::decode("A3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2")
-                .unwrap();
+        let system_state_zero_digest = vec![
+            0xa3, 0xac, 0xc2, 0x71, 0x17, 0x41, 0x89, 0x96, 0x34, 0x0b, 0x84, 0xe5, 0xa9, 0x0f,
+            0x3e, 0xf4, 0xc4, 0x9d, 0x22, 0xc7, 0x9e, 0x44, 0xaa, 0xd8, 0x22, 0xec, 0x9c, 0x31,
+            0x3e, 0x1e, 0xb8, 0xe2,
+        ];
         let output = Output {
             journal_digest: journal_digest.to_vec(),
             assumptions_digest: vec![0; 32],
