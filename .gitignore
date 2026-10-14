@@ -42,6 +42,8 @@ tools/noir/hello/foundry.toml
 !tools/make/constants.json
 
 # Benchmarks and profiling data
+/docs/benchmarks/dev-cycle/
+/docs/benchmarks/development-cycle/
 .cargo/benchmarks/*/
 src/profile/
 /profiles/
