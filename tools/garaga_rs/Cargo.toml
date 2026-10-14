@@ -52,7 +52,7 @@ num-traits = "0.2"
 sha2 = "0.10"
 # Keep the accelerated Keccak backend previously enabled by lambdaworks-crypto.
 sha3 = { version = "0.10", features = ["asm"] }
-rand = "0.9.0"
+rand = "0.10.3"
 starknet-types-core = { version = "1.0", default-features = false, optional = true }
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329", default-features = false, features = ["std"] }
 arbitrary = "1.0"
