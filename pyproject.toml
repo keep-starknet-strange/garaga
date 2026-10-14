@@ -79,6 +79,7 @@ dev = [
 garaga = "garaga.starknet.cli.starknet_cli:app"
 
 [tool.maturin]
+no-default-features = true
 # Source builds need the Python module as well as the extension linker settings.
 features = ["python", "pyo3/extension-module"]
 manifest-path = "tools/garaga_rs/Cargo.toml"
