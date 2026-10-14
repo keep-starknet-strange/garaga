@@ -36,7 +36,7 @@ jobs:
 
     steps:
       # 1️⃣  Check out the latest MAIN in a clean worktree
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
@@ -108,7 +108,7 @@ jobs:
 
     steps:
       # 1) Check out docs branch (create it if it doesn't exist)
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: docs
           fetch-depth: 0

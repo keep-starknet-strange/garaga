@@ -49,7 +49,7 @@ jobs:
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run ShellCheck
         # SC2016: single-quoted strings intentionally prevent expansion (activate script)
         # SC1091: sourced files (venv/bin/activate) don't exist at lint time
@@ -69,7 +69,7 @@ jobs:
       fail-fast: false
     name: setup (${{ matrix.name }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
@@ -94,7 +94,7 @@ jobs:
       - name: Install base tools
         run: dnf install -y git curl gcc g++ make perl-FindBin python3-devel
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Mark workspace as safe for git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
