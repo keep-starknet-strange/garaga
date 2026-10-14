@@ -44,6 +44,7 @@ tools/garaga_rs/src/
 │   └── eisenstein.rs      # Eisenstein integers
 ├── crypto/                # Hash functions
 │   ├── poseidon_bn254.rs  # Poseidon hash
+│   ├── poseidon_stark252.rs # Starknet Poseidon permutation
 │   └── mmr/               # Merkle Mountain Range
 ├── python_bindings/       # PyO3 bindings
 └── wasm_bindings.rs       # WASM bindings
@@ -62,14 +63,22 @@ tools/garaga_rs/src/
 
 ## Feature Flags
 
-The crate uses feature flags to control which bindings are compiled:
+The crate uses feature flags to select bindings and optional Rust APIs:
 
 ```toml
 [features]
-default = []           # Pure Rust library
-python = ["pyo3"]      # Python bindings via PyO3
-wasm = ["wasm-bindgen", "js-sys"]  # WASM bindings
+default = ["starknet-types"] # Pure Rust library with the existing Felt API
+python = ["dep:pyo3"]  # Python bindings via PyO3
+wasm = ["dep:wasm-bindgen", "dep:js-sys"]  # WASM bindings
+starknet-types = ["dep:starknet-types-core"] # Rust Felt convenience API
 ```
+
+The default `starknet-types` feature preserves `get_groth16_calldata_felt` and
+its `starknet_types_core::felt::Felt` return type. Rust callers that do not need
+this helper can use `default-features = false` to avoid compiling a second
+Lambdaworks math version. `get_groth16_calldata` still returns `Vec<BigUint>`
+without this feature. Python and WASM builds omit the unused helper; their APIs
+do not change.
 
 ## Key Exports
 
@@ -153,12 +162,18 @@ cargo test
 
 Key external crates:
 
-- **lambdaworks-math/crypto**: Field arithmetic and cryptographic primitives
+- **lambdaworks-math**: Field arithmetic
 - **num-bigint**: Arbitrary precision integers
 - **pyo3**: Python bindings (optional)
 - **wasm-bindgen**: WASM bindings (optional)
 - **sha2/sha3**: Hash functions
-- **rayon**: Parallel computation
+- **starknet-types-core**: Rust Felt convenience API (optional)
+
+The Starknet Poseidon permutation is extracted from Lambdaworks at revision
+`be4a329dad5c847a37ab3831b6fdee546b2d0af9`. Garaga includes only the permutation
+and its 107 optimized round constants, under the upstream Apache-2.0 license.
+The field arithmetic backend remains unchanged. SHA3 assembly support remains
+enabled.
 
 ## Next Steps
 

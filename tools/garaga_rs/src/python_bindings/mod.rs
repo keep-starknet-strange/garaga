@@ -11,7 +11,7 @@ pub mod pairing;
 pub mod signatures;
 pub mod zk_honk_calldata;
 
-use lambdaworks_crypto::hash::poseidon::{starknet::PoseidonCairoStark252, Poseidon};
+use crate::crypto::poseidon_stark252::PoseidonCairoStark252;
 
 use lambdaworks_math::{field::traits::IsPrimeField, traits::ByteConversion};
 
