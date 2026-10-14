@@ -186,8 +186,8 @@ if [[ "$OSTYPE" == darwin* ]]; then
     export CXXFLAGS="-Wno-overriding-option ${CXXFLAGS:-}"
 fi
 
-uv pip compile pyproject.toml --extra dev --output-file tools/make/requirements.txt -q
-uv pip install -r tools/make/requirements.txt
+# Keep the active venv and its local tools while installing locked dependencies.
+uv sync --locked --extra dev --no-install-project --active --inexact
 
 # Install the commit hooks (black, isort)
 pre-commit install
@@ -203,10 +203,12 @@ maturin develop --release --features python
 echo "All done!"
 
 # Check Scarb version and print warning if it's not
+required_scarb_version=$(python -c 'import json; print(json.load(open("tools/make/constants.json"))["release_info"]["cairo_version"])')
 cd src/ # To use the .tool-versions file with asdf.
 scarb_version=$(scarb --version 2>/dev/null || true)
-if ! echo "$scarb_version" | grep -q "2.21.0"; then
-    echo "Warning: Scarb is not installed or its version is not 2.21.0."
+if [[ "$scarb_version" != "scarb $required_scarb_version" \
+    && "$scarb_version" != "scarb $required_scarb_version "* ]]; then
+    echo "Warning: Scarb is not installed or its version is not $required_scarb_version."
     echo "Got: ${scarb_version:-<not found>}"
-    echo "Please install Scarb 2.21.0 before continuing. https://docs.swmansion.com/scarb/download.html"
+    echo "Please install Scarb $required_scarb_version before continuing. https://docs.swmansion.com/scarb/download.html"
 fi

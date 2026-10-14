@@ -1,0 +1,50 @@
+[
+  {
+    "name": "bn254",
+    "proof": "proof_bn254.json",
+    "vk": "vk_bn254.json",
+    "public_inputs": null,
+    "length": 1936,
+    "sha256": "87089985dd240775d7e3eb61e32cc0b3013531cfffaed653e0ea6bf3115806e3"
+  },
+  {
+    "name": "bls12_381",
+    "proof": "proof_bls.json",
+    "vk": "vk_bls.json",
+    "public_inputs": null,
+    "length": 2224,
+    "sha256": "8a0030280bd095f6d5d3f1d491e0d477824c1b25d91d99318baf6bedec3fbf84"
+  },
+  {
+    "name": "gnark",
+    "proof": "gnark_proof_bn254.json",
+    "vk": "gnark_vk_bn254.json",
+    "public_inputs": "gnark_public_bn254.json",
+    "length": 1950,
+    "sha256": "2fd7e66d4252f430f31e7618b0007729ad34c4ad9086078efb0182d90e892e8f"
+  },
+  {
+    "name": "snarkjs",
+    "proof": "snarkjs_proof_bn254.json",
+    "vk": "snarkjs_vk_bn254.json",
+    "public_inputs": "snarkjs_public_bn254.json",
+    "length": 1936,
+    "sha256": "e6a0dbc13c1567ff30f33ac6b4dea15aedd7440c61f8176f318da65678a557c4"
+  },
+  {
+    "name": "risc0",
+    "proof": "proof_risc0.json",
+    "vk": "vk_risc0.json",
+    "public_inputs": null,
+    "length": 1976,
+    "sha256": "0757040d2dc5bb7ca1cf8f2332ca1f8e09284b528b8cbe6d8ef0335457013a6d"
+  },
+  {
+    "name": "sp1",
+    "proof": "proof_sp1.json",
+    "vk": "vk_sp1.json",
+    "public_inputs": null,
+    "length": 1972,
+    "sha256": "1b6b2edaeea11a3967d9c50b044d8dd96e6aa643a39bc057d5fc63ff133d6ab1"
+  }
+]

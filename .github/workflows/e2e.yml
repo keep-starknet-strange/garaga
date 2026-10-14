@@ -29,17 +29,13 @@ jobs:
       fail-fast: false
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: 1.87.0
-          override: true
-          profile: minimal
+        uses: dtolnay/rust-toolchain@1.87.0
       - name: Setup Scarb
         uses: software-mansion/setup-scarb@v1
         with:

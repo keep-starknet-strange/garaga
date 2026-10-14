@@ -1,2 +1,6 @@
 [build]
 target-dir = ".cargo/garaga_rs/target"
+
+[target.'cfg(target_os = "macos")']
+# Avoid misaligned Mach-O string tables from LLVM stripping (rust-lang/rust#157750).
+rustflags = ["-C", "strip=none"]
