@@ -571,3 +571,26 @@ cd tools/npm/garaga_ts
 npm run build:node
 npm test -- --runInBand
 ```
+
+## Reuse Python Euclidean remainders
+
+Polynomial extended GCD now reuses the remainder returned by division.
+The old loop computed that remainder twice, including an extra polynomial multiply and subtraction.
+A check at entry retains the old normalization and errors for accepted noncanonical, mixed-modulus, and mismatched coefficient types.
+The public API and padded coefficient storage remain unchanged.
+
+Five alternating paired runs compared the same four real ECIP hint-and-verification workloads after one warmup pair.
+They covered two-point G1 and G2 hints on BN254 and BLS12-381, including native G1 parity checks.
+Median command time decreased from 2.9534s to 2.6103s (11.6%).
+Median child CPU time decreased from 2.9490s to 2.6074s (11.6%).
+Every complete hint coefficient artifact remained byte-identical and stable across the runs.
+These results apply to this ECIP workload, not all proof generation.
+
+The [paired samples](benchmarks/development-cycle/python-xgcd.json) and [source context](benchmarks/development-cycle/python-xgcd-source.json) identify the inputs and driver.
+Twenty focused mathematical and compatibility cases cover Bézout identities, divisibility, unchanged inputs, padded storage, and legacy failures.
+No Cairo source or circuit operation changed.
+
+```sh
+source venv/bin/activate
+pytest tests/hydra/algebra/test_polynomial_xgcd.py tests/hydra/algebra/test_polynomial.py
+```

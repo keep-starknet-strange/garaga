@@ -906,9 +906,26 @@ class Polynomial(Generic[T]):
         old_s, s = (one, zero)
         old_t, t = (zero, one)
 
+        reuse_remainder = (
+            x.coeff_type == y.coeff_type
+            and x.p == y.p
+            and all(
+                c.p == x.p
+                and all(
+                    isinstance(value, int) and 0 <= value < x.p
+                    for value in ((c.value,) if isinstance(c, PyFelt) else c.value)
+                )
+                for poly in (x, y)
+                for c in poly.coefficients
+            )
+        )
         while not r.is_zero():
-            quotient = old_r // r
-            old_r, r = (r, old_r - quotient * r)
+            if reuse_remainder:
+                quotient, remainder = divmod(old_r, r)
+            else:
+                quotient = old_r // r
+                remainder = old_r - quotient * r
+            old_r, r = (r, remainder)
             old_s, s = (s, old_s - quotient * s)
             old_t, t = (t, old_t - quotient * t)
 
