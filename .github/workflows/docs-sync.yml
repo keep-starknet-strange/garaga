@@ -36,7 +36,7 @@ jobs:
 
     steps:
       # 1️⃣  Check out the latest MAIN in a clean worktree
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: main
           fetch-depth: 0
@@ -68,7 +68,7 @@ jobs:
           git commit -m "📚 Sync docs/gitbook @ ${{ github.sha }}"
 
       # 4️⃣  Create / update the rolling PR on branch docs-sync
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         if: env.SKIP_PR != 'true'
         id: cpr
         with:
@@ -108,7 +108,7 @@ jobs:
 
     steps:
       # 1) Check out docs branch (create it if it doesn't exist)
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: docs
           fetch-depth: 0
@@ -139,7 +139,7 @@ jobs:
           git commit -m "🔄 Sync all files from main @ ${{ github.sha }}"
 
       # ─── 3) Open (or update) a PR towards docs ─────────────────────────────
-      - uses: peter-evans/create-pull-request@v7
+      - uses: peter-evans/create-pull-request@v8
         id: cpr
         with:
           token: ${{ secrets.DOCS_SYNC_PAT }}
