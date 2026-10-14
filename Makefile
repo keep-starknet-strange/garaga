@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 ACTIVATE := source venv/bin/activate &&
 
-.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash
+.PHONY: build test coverage run run-profile generate-constants profile-test benchmarks update-risc0-class-hash maturin maturin-dev circuits sync-toolchain check-toolchain
 
 constants:
 	$(ACTIVATE) python tools/make/generate_constants.py
@@ -21,6 +21,15 @@ rewrite:
 rewrite-no-tests:
 	$(ACTIVATE) ./tools/make/rewrite.sh no-tests
 
+circuits:
+	$(ACTIVATE) python hydra/garaga/precompiled_circuits/all_circuits.py $(if $(CIRCUITS),--only $(CIRCUITS))
+
+sync-toolchain:
+	$(ACTIVATE) python tools/make/sync_toolchain.py
+
+check-toolchain:
+	$(ACTIVATE) python tools/make/sync_toolchain.py --check
+
 regen:
 	cd src/contracts/mutator_set && make regen
 
@@ -34,18 +43,19 @@ fmt:
 	scarb fmt && cargo fmt
 
 # Profile a specific test and generate performance visualizations
-# Usage: make profile-test [TEST=<test_name_filter>] [JOBS=<parallel_jobs>]
+# Usage: make profile-test [TEST=<test_name_filter>] [PACKAGE=<cairo_package>] [JOBS=<parallel_jobs>]
 # Each job takes ~3GB of ram
 DEFAULT_JOBS := 8
+PROFILE_PACKAGE := $(if $(PACKAGE),--package "$(PACKAGE)")
 
 profile-test:
 	@JOBS_VAL=$${JOBS:-$(DEFAULT_JOBS)}; \
 	if [ -z "$(TEST)" ]; then \
 		echo "Running all tests with profiling ($$JOBS_VAL jobs)..."; \
-		$(ACTIVATE) python -m tools.profile_tests --all --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
+		$(ACTIVATE) python -m tools.profile_tests --all $(PROFILE_PACKAGE) --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
 	else \
 		echo "Running tests with filter: $(TEST) ($$JOBS_VAL jobs)"; \
-		$(ACTIVATE) python -m tools.profile_tests $(TEST) --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
+		$(ACTIVATE) python -m tools.profile_tests "$(TEST)" $(PROFILE_PACKAGE) --parallel-jobs $$JOBS_VAL --generate-benchmarks; \
 	fi
 
 benchmarks:
@@ -72,6 +82,9 @@ wasm-test-gen:
 
 maturin:
 	$(ACTIVATE) maturin develop --release --features python
+
+maturin-dev:
+	$(ACTIVATE) maturin develop --features python
 
 clean:
 	sudo rm -rf build/

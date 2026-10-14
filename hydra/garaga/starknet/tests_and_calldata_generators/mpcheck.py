@@ -185,39 +185,17 @@ class MPCheckCalldataBuilder:
     ):
         lhs = self.field.zero()
         ci = self.field.one()
-        k = 0
         for i in range(n_relations_with_ci - 1, -1, -1):
-            # if self.public_pair is None:
-            #     print(f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs, False)}")
-            k += 1
             Prod_Pis_of_z = functools.reduce(
                 lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
             )
             Ri_of_z = Polynomial(Ris[i]).evaluate(z)
             lhs += ci * (Prod_Pis_of_z - Ri_of_z)
             ci *= c1
-            # print(f"lhs_{i} : {io.int_to_u384(lhs)}")
-
-        lhs_print = self.field.zero()
-        k = 0
-        for i in range(n_relations_with_ci):
-            # if self.public_pair is None:
-            #     print(
-            #         f"{self.curve_id.name} = LHS_{k} : {io.int_to_u384(lhs_print, False)}"
-            #     )
-            k += 1
-            Prod_Pis_of_z = functools.reduce(
-                lambda x, y: x * y, [Polynomial(pi).evaluate(z) for pi in Pis[i]]
-            )
-            Ri_of_z = Polynomial(Ris[i]).evaluate(z)
-            __lhs = Prod_Pis_of_z - Ri_of_z
-            lhs_print = lhs_print * c1 + __lhs
 
         P_irr = get_irreducible_poly(curve_id=self.curve_id, extension_degree=12)
         big_Q_of_z = big_Q.evaluate(z)
         P_of_z = P_irr.evaluate(z)
-        # print(f"big_Q_of_z : {io.int_to_u384(big_Q_of_z)}")
-        # print(f"P_of_z : {io.int_to_u384(P_of_z)}")
         assert lhs == big_Q_of_z * P_of_z, "Check failed."
 
     @lru_cache(maxsize=1)

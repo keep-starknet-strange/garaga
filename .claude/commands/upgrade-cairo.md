@@ -1,157 +1,137 @@
 # Upgrade Cairo Version
 
-Upgrade the Cairo/Scarb version (and optionally the Starknet Foundry version) across the entire codebase.
+Upgrade the Cairo/Scarb toolchain from its canonical version source, then run the full compatibility checks.
 
 ## Arguments
 
-The user provides:
-- **NEW_CAIRO_VERSION**: The new Cairo/Scarb version (e.g. `2.16.0`)
-- **NEW_FOUNDRY_VERSION** (optional): The new Starknet Foundry version (e.g. `0.58.0`). If not provided, keep the current Foundry version unchanged.
+- **NEW_CAIRO_VERSION**: The exact target Cairo/Scarb version, in `major.minor.patch` format.
+- **NEW_FOUNDRY_VERSION**: An optional exact Starknet Foundry version. Without this argument, keep the current Foundry version.
 
 ## Procedure
 
-### Step 0: Detect current versions and propose latest available
+### 1. Select the target versions
 
-Read `tools/make/constants.json` to extract the current `cairo_version` and `starknet_foundry_version`. These are the OLD versions that will be replaced everywhere.
+Read `release_info` in `tools/make/constants.json` for the current versions.
+Use the target versions that the user already selected.
+If the user has not selected versions, inspect the available releases:
 
-Then query asdf for the latest available versions:
-- Run `asdf list all scarb` and pick the latest stable version (no `-rc`, `-alpha`, `-beta`, `-nightly` suffixes).
-- Run `asdf list all starknet-foundry` and pick the latest stable version.
-
-Present the current and latest available versions to the user, e.g.:
-```
-Current:  scarb 2.14.0, starknet-foundry 0.53.0
-Latest:   scarb 2.16.1, starknet-foundry 0.58.0
+```sh
+asdf list all scarb
+asdf list all starknet-foundry
 ```
 
-Ask the user to confirm the target versions before proceeding. If the user already provided explicit version numbers as arguments, skip the proposal and use those directly.
+Present stable target versions and obtain the user's selection before changing them.
+Record the current and target versions for the upgrade report.
 
-### Step 1: Update `tools/make/constants.json`
+### 2. Synchronize the toolchain configuration
 
-Update `release_info.cairo_version` to the new Cairo version.
-If a new Foundry version was provided, also update `release_info.starknet_foundry_version`.
+If `venv` is absent, run `make setup` before changing the version source.
+Update `release_info.cairo_version` in `tools/make/constants.json`.
+If the user selected a Foundry update, also update `release_info.starknet_foundry_version`.
+From the repository root, run:
 
-### Step 2: Run `generate_constants.py`
+```sh
+make sync-toolchain
+make check-toolchain
+```
 
-Run `make constants` from the project root (the makefile activates the venv automatically).
-This auto-regenerates:
-- `hydra/garaga/starknet/constants.py` (CAIRO_VERSION, STARKNET_FOUNDRY_VERSION)
-- `tools/garaga_rs/src/constants.rs`
-- `tools/npm/garaga_ts/src/constants.ts`
+The synchronization command updates tracked Scarb manifests, `.tool-versions`, CI toolchain inputs, and the two Python generator version constants.
+It includes manual and generated projects. Setup reads its required Scarb version directly from the canonical source.
+It preserves package versions, unrelated constants, comments, and cryptographic source files.
+If an unsupported configuration format stops synchronization, resolve that format before continuing.
+Require the check command to exit successfully.
 
-If the script fails (e.g. missing dependencies), fall back to manually editing `hydra/garaga/starknet/constants.py` to update `CAIRO_VERSION` and `STARKNET_FOUNDRY_VERSION`.
+### 3. Install the selected toolchain
 
-### Step 3: Update root `Scarb.toml`
+From the repository root, run:
 
-Update `[workspace.dependencies]`:
-- `cairo_test = "OLD"` → `"NEW_CAIRO_VERSION"`
-- `starknet = "OLD"` → `"NEW_CAIRO_VERSION"`
+```sh
+asdf install
+scarb --version
+snforge --version
+```
 
-### Step 4: Update `src/Scarb.toml`
+Require the installed versions to match the selected versions.
+If asdf is unavailable, install those exact releases through the supported Scarb and Foundry installers.
+Report installation failures before proceeding.
 
-Update:
-- `starknet = "..."` → `"NEW_CAIRO_VERSION"` (in `[dependencies]`)
-- `assert_macros = "..."` → `"NEW_CAIRO_VERSION"` (in `[dev-dependencies]`)
-- `cairo_execute = "..."` → `"NEW_CAIRO_VERSION"` (in `[dev-dependencies]`)
-- If new Foundry version provided: `snforge_std = "..."` → `"NEW_FOUNDRY_VERSION"` (in `[dev-dependencies]`)
+### 4. Regenerate and format the artifacts
 
-### Step 5: Update `src/corelib_imports/Scarb.toml`
+Run the complete regeneration:
 
-Update `cairo_test = "..."` → `"NEW_CAIRO_VERSION"` (in `[dev-dependencies]`).
+```sh
+make rewrite
+make check-toolchain
+```
 
-### Step 6: Update `.tool-versions` files
+This step regenerates Cairo circuits, verifier contracts, and application tests. It is separate from configuration synchronization.
+Review the generated diff and require both commands to succeed.
+If the compiler requires Cairo or generator logic changes, handle those changes in separate compatibility work.
+Keep the upgrade incomplete until that work and its checks pass.
 
-Update the root `.tool-versions`:
-- `scarb OLD` → `scarb NEW_CAIRO_VERSION`
-- If new Foundry version: `starknet-foundry OLD` → `starknet-foundry NEW_FOUNDRY_VERSION`
+### 5. Recompute compiler-dependent class hashes
 
-Update `src/.tool-versions`:
-- `scarb OLD` → `scarb NEW_CAIRO_VERSION`
-- If new Foundry version: `starknet-foundry OLD` → `starknet-foundry NEW_FOUNDRY_VERSION`
+Build the universal ECIP contract and compute its class hash:
 
-After updating both `.tool-versions` files, run `asdf install` from the project root to install the new tool versions. Report the output to the user. If asdf is not available or fails, tell the user to manually install the required scarb and starknet-foundry versions.
+```sh
+(cd src/contracts/universal_ecip && scarb build)
+(cd src/contracts/universal_ecip && sncast utils class-hash --contract-name UniversalECIP)
+```
 
-### Step 7: Update manual (non-autogenerated) contract `Scarb.toml` files
+Remove leading hexadecimal zeroes after `0x` from the reported hash.
+Update `ECIP_OPS_CLASS_HASH` in `hydra/garaga/starknet/groth16_contract_generator/generator.py` with that value.
+Regenerate the verifier contracts, then update the RISC0 sample application hash:
 
-The following contract directories are NOT auto-generated by `make rewrite` and must be updated manually:
-- `src/contracts/drand_quicknet/Scarb.toml`
-- `src/contracts/drand_decrypt_quicknet/Scarb.toml`
-- `src/contracts/mutator_set/Scarb.toml`
-- `src/contracts/universal_ecip/Scarb.toml`
-- `src/contracts/risc0_sample_app/fibonacci_sequencer/Scarb.toml`
+```sh
+make rewrite
+make update-risc0-class-hash
+make check-toolchain
+```
 
-In each, update:
-- `starknet = "OLD_CAIRO"` → `"NEW_CAIRO_VERSION"`
-- `assert_macros = "OLD_CAIRO"` → `"NEW_CAIRO_VERSION"` (if present)
-- If new Foundry version: `snforge_std = "OLD_FOUNDRY"` → `"NEW_FOUNDRY_VERSION"` (if present)
+Require the generated ECIP references and the RISC0 sample hash to match the compiled contracts.
+These deployment references require separate recomputation. The synchronization command does not change them.
 
-Also update any `.tool-versions` files in these directories (currently only `src/contracts/drand_quicknet/.tool-versions` and `src/contracts/mutator_set/.tool-versions` exist).
+### 6. Update current installation instructions
 
-**DO NOT** manually edit files under `src/contracts/autogenerated/` — those are regenerated by `make rewrite` in the next step.
+Review Scarb and Foundry version references in:
 
-### Step 8: Run `make rewrite`
-
-Run `make rewrite` from the project root. This regenerates:
-- All `src/contracts/autogenerated/*/Scarb.toml` (using CAIRO_VERSION from constants.py)
-- All `src/contracts/autogenerated/*/.tool-versions` (using CAIRO_VERSION and STARKNET_FOUNDRY_VERSION from constants.py)
-- All Cairo circuit files under `src/src/circuits/`
-- All autogenerated contract source code and tests
-
-This takes a few minutes. The makefile activates the venv automatically. If it fails, report the error — the user may need to run `make setup` first.
-
-### Step 9: Update CI workflows
-
-Update `scarb-version: "OLD"` → `"NEW_CAIRO_VERSION"` in:
-- `.github/workflows/e2e.yml`
-- `.github/workflows/hydra.yml`
-- `.github/workflows/maturin.yml`
-- `.github/workflows/wasm.yml`
-
-Only update lines that contain `scarb-version:`.
-
-### Step 10: Update `tools/make/setup.sh`
-
-Replace all occurrences of the old Cairo version with the new one in the Scarb version check block near the end of the file (the `grep -q` line and the two echo lines that mention the version).
-
-### Step 11: Update documentation
-
-Update the old Cairo/Scarb version string to the new one in:
 - `README.md`
 - `docs/gitbook/installation/developer-setup.md`
 - `docs/gitbook/maintained-smart-contracts/risczero.md`
 - `docs/CONTRIBUTING.md`
 
-Only change lines that reference Scarb version numbers. If new Foundry version provided, also update any Foundry version references in these docs.
+Update current installation requirements to the selected versions.
+Preserve historical version references in changelogs and benchmark reports.
+Use `rg` to find remaining references to the previous versions and account for each intentional reference.
 
-### Step 12: Update hardcoded class hashes
+### 7. Run the full compatibility checks
 
-The Cairo compiler version affects compiled Sierra output, so all hardcoded class hashes must be recomputed.
+Run the local compilation and formatting checks:
 
-**ECIP class hash** — used by all Groth16 verifier contracts:
-1. `cd src/contracts/universal_ecip && scarb build`
-2. `sncast utils class-hash --contract-name UniversalECIP` → copy the hash (strip leading zeros after `0x`)
-3. Update `ECIP_OPS_CLASS_HASH` in `hydra/garaga/starknet/groth16_contract_generator/generator.py`
-4. Re-run `make rewrite` to regenerate autogenerated contracts with the new hash
+```sh
+(cd src && scarb build && scarb fmt --check)
+source venv/bin/activate
+black --check .
+```
 
-**RISC0 verifier class hash** — used by the fibonacci_sequencer sample app:
-Run `make update-risc0-class-hash` (this builds, computes, and patches automatically).
+Black comes from the locked `venv` environment. Its version owner is `uv.lock`, not a separate requirements file.
+The commit hook uses that same executable and retains the Python 3.11 formatting target.
 
-### Step 13: Verify
+With `act` or `gh act` configured, run the existing workflow runners:
 
-Run `grep -r "OLD_CAIRO_VERSION" --include="*.toml" --include="*.yml" --include="*.json" --include="*.py" --include="*.sh" --include="*.md" .` to check for any remaining references to the old version. Report any stragglers found (some may be intentional, e.g. changelogs).
+```sh
+make ci-hydra
+make ci-cairo
+make ci-e2e
+make ci-wasm
+```
 
-### Step 14: Test compilation
+Require all hosted Hydra, Cairo, E2E, WASM, Node, and setup checks to pass for the upgrade commit.
+Include every Python matrix entry, generated-code cleanliness, bytecode size limits, and package integration checks.
+Configuration consistency alone does not prove compiler or runtime compatibility.
 
-Run `cd src && scarb build` to verify the new version compiles. If it fails with type errors on `const` declarations (e.g. `E2126: Constant type must not depend on its value`), the Cairo version may require explicit generic type parameters. Update the Python generators in `hydra/garaga/starknet/groth16_contract_generator/` and `hydra/garaga/starknet/honk_contract_generator/` to emit the required generics (e.g. `Groth16VerifyingKey<u288>`, `G2Line<u288>`), then fix the generated `.cairo` files and re-run `make rewrite`.
+### 8. Report the result
 
-### Step 15: Run black formatting check
-
-Run `source venv/bin/activate && black --target-version py311 --check hydra/` to verify Python formatting passes. Use the minimum supported Python version to keep formatting consistent with the pre-commit hook and CI. If files need reformatting, run `black --target-version py311 hydra/` and include the changes.
-
-## Notes
-
-- This procedure does NOT modify Cairo source code. If the new Cairo version introduces breaking language changes, those must be handled separately.
-- The `generate_constants.py` script propagates constants from `constants.json` into Python/Rust/TS constants files — it does NOT touch Scarb.toml or .tool-versions files.
-- `make rewrite` auto-generates everything under `src/contracts/autogenerated/` and `src/src/circuits/`. Never manually edit those — they will be overwritten.
-- Manual contracts (`drand_quicknet`, `drand_decrypt_quicknet`, `mutator_set`, `universal_ecip`, `fibonacci_sequencer`) must be updated by hand since they are not regenerated.
-- The pre-commit hook uses black from `.pre-commit-config.yaml` (must match the version in `tools/make/requirements.txt`). If they diverge, formatting will pass locally but fail in CI.
+Report the selected versions, synchronization result, regenerated artifacts, recomputed hashes, and compatibility-check results.
+Identify any intentional historical references and any incomplete compatibility work.
+Complete the upgrade only after every required check passes.

@@ -5,7 +5,7 @@ regen:
 NOIR_FOLDER = "zk_program"
 
 build:
-	cd ${NOIR_FOLDER} && nargo build && nargo execute witness
+	cd ${NOIR_FOLDER} && nargo execute witness
 
 prove:
 	cd ${NOIR_FOLDER} && bb prove -s ultra_honk --oracle_hash keccak -b ./target/zk_program.json -w ./target/witness.gz -o ./target/

@@ -86,13 +86,15 @@ manifest-path = "tools/garaga_rs/Cargo.toml"
 module-name = "garaga.garaga_rs"
 # python source root must be under <tool.maturin.python-source>/<project.name>
 python-source = "hydra"
+include = [{ path = ".cargo/config.toml", format = "sdist" }]
 
 [tool.isort]
 profile = "black"
 
 [tool.pytest.ini_options]
 cache_dir = ".cargo/.pytest_cache"
-testpaths = ["tests/hydra"]
+pythonpath = ["."]
+testpaths = ["tests/hydra", "tests/tools", "tests/configuration", "tests/ci"]
 # addopts = "--tb=short --showlocals"
 asyncio_default_fixture_loop_scope = "function" # Explicitly set the loop scope
 

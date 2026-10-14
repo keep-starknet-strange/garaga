@@ -285,7 +285,14 @@ def write_verifier_files(
         with open(target_constants_path, "w") as f:
             f.write(header_cairo + constants_code)
 
-        subprocess.run(["scarb", "fmt", "."], cwd=target_constants_dir, check=True)
+        # The project formatter also covers constants inside the project.
+        project_path = Path(output_folder_path).resolve()
+        if not Path(target_constants_path).resolve().is_relative_to(project_path):
+            subprocess.run(
+                ["scarb", "fmt", os.path.basename(target_constants_path)],
+                cwd=target_constants_dir,
+                check=True,
+            )
 
     # Write contract file
     with open(os.path.join(src_dir, contract_filename), "w") as f:

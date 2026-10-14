@@ -1,7 +1,6 @@
 from subprocess import CompletedProcess
 
 import pytest
-
 from garaga.curves import ProofSystem
 from garaga.starknet.groth16_contract_generator import generator
 
@@ -64,3 +63,56 @@ def test_generated_verifier_test_declares_ecip_without_network():
     assert test_body.index('declare_contract("UniversalECIP")') < test_body.index(
         'declare_contract("Verifier")'
     )
+
+
+@pytest.mark.parametrize("constants_location", ["default", "internal", "external"])
+def test_generated_files_are_formatted_once(
+    monkeypatch, release_checkout, constants_location
+):
+    output_path = release_checkout / "verifier"
+    constants_path = {
+        "default": output_path / "src/groth16_verifier_constants.cairo",
+        "internal": output_path / "src/custom_constants.cairo",
+        "external": release_checkout / "shared/constants.cairo",
+    }[constants_location]
+    formatter_calls = []
+
+    def format_files(command, **kwargs):
+        if kwargs["cwd"] == str(output_path):
+            assert (output_path / "src/groth16_verifier.cairo").is_file()
+            assert (output_path / "src/lib.cairo").is_file()
+            assert (output_path / "src/circuits.cairo").is_file()
+            assert (output_path / "tests/test_contract.cairo").is_file()
+        assert constants_path.is_file()
+        formatter_calls.append((command, kwargs))
+        return CompletedProcess(command, 0)
+
+    monkeypatch.setattr(generator.subprocess, "run", format_files)
+    generator.write_verifier_files(
+        str(output_path),
+        "verifier",
+        "pub const VALUE: felt252 = 1;\n",
+        "mod verifier {}\n",
+        "Verifier",
+        "verify_proof",
+        ProofSystem.Groth16,
+        circuits_code="pub fn circuit() {}\n",
+        circuits_filename="circuits.cairo",
+        constants_output_path=(
+            None if constants_location == "default" else str(constants_path)
+        ),
+    )
+
+    assert formatter_calls[-1] == (
+        ["scarb", "fmt", "."],
+        {"cwd": str(output_path), "check": True},
+    )
+    if constants_location == "external":
+        assert formatter_calls[:-1] == [
+            (
+                ["scarb", "fmt", constants_path.name],
+                {"cwd": str(constants_path.parent), "check": True},
+            )
+        ]
+    else:
+        assert len(formatter_calls) == 1

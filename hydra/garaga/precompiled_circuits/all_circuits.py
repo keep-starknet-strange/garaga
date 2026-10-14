@@ -1,3 +1,6 @@
+import argparse
+import random
+import subprocess
 from enum import Enum
 from pathlib import Path
 
@@ -655,8 +658,22 @@ def main(
     PRECOMPILED_CIRCUITS_DIR: str,
     CIRCUITS_TO_COMPILE: dict[CircuitID, dict],
     compilation_mode: int = 1,
+    only: list[str] | None = None,
 ):
     """Compiles and writes all circuits to .cairo files"""
+    if only is not None:
+        requested = set(only)
+        available = {info["filename"] for info in CIRCUITS_TO_COMPILE.values()}
+        if not requested or requested - available:
+            raise ValueError(
+                f"Select circuit families from: {', '.join(sorted(available))}"
+            )
+        CIRCUITS_TO_COMPILE = {
+            circuit_id: info
+            for circuit_id, info in CIRCUITS_TO_COMPILE.items()
+            if info["filename"] in requested
+        }
+
     filenames_used, codes, cairo1_tests_functions, cairo1_full_function_names, files = (
         initialize_compilation(PRECOMPILED_CIRCUITS_DIR, CIRCUITS_TO_COMPILE)
     )
@@ -699,19 +716,42 @@ def main(
     for file in files.values():
         file.close()
 
-    format_cairo_files_in_parallel(
-        filenames_used, compilation_mode, PRECOMPILED_CIRCUITS_DIR
-    )
+    if only is not None and compilation_mode == 1:
+        for filename in sorted(filenames_used):
+            subprocess.run(
+                [
+                    "scarb",
+                    "fmt",
+                    str(Path(PRECOMPILED_CIRCUITS_DIR) / f"{filename}.cairo"),
+                ],
+                check=True,
+            )
+    else:
+        format_cairo_files_in_parallel(
+            filenames_used, compilation_mode, PRECOMPILED_CIRCUITS_DIR
+        )
     return None
 
 
-if __name__ == "__main__":
-    import random
-
+def cli(argv: list[str] | None = None):
+    parser = argparse.ArgumentParser(description="Generate Cairo circuit files.")
+    parser.add_argument(
+        "--only",
+        nargs="+",
+        action="extend",
+        choices=sorted({info["filename"] for info in ALL_CAIRO_CIRCUITS.values()}),
+        help="Regenerate complete output families. Omit to regenerate all circuit files.",
+    )
+    args = parser.parse_args(argv)
     random.seed(0)
     print("Compiling Cairo 1 circuits...")
     main(
         PRECOMPILED_CIRCUITS_DIR="src/src/circuits/",
         CIRCUITS_TO_COMPILE=ALL_CAIRO_CIRCUITS,
         compilation_mode=1,
+        only=args.only,
     )
+
+
+if __name__ == "__main__":
+    cli()
