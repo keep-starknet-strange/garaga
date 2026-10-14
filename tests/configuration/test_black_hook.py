@@ -97,5 +97,5 @@ def test_hook_matches_cli_formatting_and_rejects_invalid_python(hook_project, so
         assert run_hook(project, env).returncode == 0
     else:
         assert sample.read_text() == source
-        assert "Cannot parse" in result.stdout
-        assert "Cannot parse" in cli.stderr
+        assert source.strip() in result.stdout
+        assert source.strip() in cli.stderr
