@@ -91,7 +91,7 @@ jobs:
             libcups2 libxcomposite1 libxdamage1 libxrandr2 libgbm1 \
             libpango-1.0-0 libpangocairo-1.0-0 libpangoft2-1.0-0 libgtk-3-0
       - name: Download package file as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: npm-package
           path: tools/npm/garaga_ts
@@ -136,7 +136,7 @@ jobs:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'
       - name: Download package file as artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: npm-package
       - name: Publish to npm
