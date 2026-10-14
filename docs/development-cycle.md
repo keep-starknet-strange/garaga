@@ -659,3 +659,26 @@ Hello's one Noir test and the mutator's two Noir tests pass; both programs execu
 Barretenberg was not installed, so these results do not claim proof-generation or verification speed changes.
 
 The [warm samples](benchmarks/development-cycle/noir-build-warm.json), [cold samples](benchmarks/development-cycle/noir-build-cold.json), [pinned source/tool context](benchmarks/development-cycle/noir-build-source.json), and [functional probes](benchmarks/development-cycle/noir-build-verification.json) retain the evidence.
+
+## Compile only the Rust features used by Garaga
+
+The Rust crate no longer requests the unused Rayon dependency or test-strategy macro dependency.
+Its pinned Lambdaworks math dependency retains `std` without the unused default parallel feature.
+Garaga's field, curve, polynomial, and Merkle construction paths remain unchanged.
+The Merkle method's documentation now describes its existing sequential implementation; the public method name remains unchanged.
+No dependency version or cryptographic algorithm changed.
+
+Three alternating cold `cargo test --locked --no-run -p garaga_rs` pairs used new empty target directories and the same warm registry.
+The source snapshots start from b968847 and differ only in the manifest/lock feature selection.
+Median command time decreased from 5.4418s to 4.8517s (10.8%); child CPU decreased from 26.9046s to 23.4627s (12.8%).
+Compiled packages decreased from 48 to 40 in every sample; the last target's logical file size decreased from 368.9MB to 335.4MB (9.1%).
+Production native, Python, and WASM graphs each remove five unused packages; test graphs remove eight.
+These measurements isolate dependency compilation and do not predict full CI time or runtime performance.
+
+Both frozen source variants pass the same 54 native tests with identical test lists.
+The current source also passes all 61 Rust tests and its doctest; workspace Clippy passes.
+The matching WASM package was regenerated through the normal `make wasm` target.
+The [cold samples](benchmarks/development-cycle/rust-features-cold.json), [source/config/toolchain identities](benchmarks/development-cycle/rust-features-source.json), [compile and size summary](benchmarks/development-cycle/rust-features-summary.json), and [native semantic gates](benchmarks/development-cycle/rust-features-native.json) retain the evidence.
+
+All 37 Node cases, all four forced consumer builds/tests, and 116 Python calldata/signature parity cases pass with the regenerated feature-selected artifacts.
+No tracked Cairo source differs from PR 521.
