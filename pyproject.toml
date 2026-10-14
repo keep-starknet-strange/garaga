@@ -93,7 +93,8 @@ profile = "black"
 
 [tool.pytest.ini_options]
 cache_dir = ".cargo/.pytest_cache"
-testpaths = ["tests/hydra"]
+pythonpath = ["."]
+testpaths = ["tests/hydra", "tests/tools", "tests/configuration", "tests/ci"]
 # addopts = "--tb=short --showlocals"
 asyncio_default_fixture_loop_scope = "function" # Explicitly set the loop scope
 

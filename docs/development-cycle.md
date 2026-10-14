@@ -2,6 +2,9 @@
 
 This work starts from PR 521. It preserves that PR's Cairo, Python, and runtime compatibility decisions.
 
+The measurements and historical CI results refer to the source checkpoints before the PR history cleanup.
+The cleanup removed raw benchmark records from every PR commit. The raw evidence remains outside this repository.
+
 ## CI dependency coverage
 
 Node tests consume proof fixtures outside `tools/`. WASM builds consume the root Cargo manifests, lockfile, and configuration.
@@ -18,7 +21,7 @@ Run the regression suite:
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_workflow_paths.py
+pytest tests/ci/test_workflow_paths.py
 ```
 
 ## Locked setup dependencies
@@ -39,7 +42,7 @@ Run the offline regression suite:
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_setup_dependencies.py
+pytest tests/tools/make/test_setup_dependencies.py
 ```
 
 The tests run the setup script with real uv and local wheels, without network access.
@@ -163,7 +166,7 @@ Run the focused checks:
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_black_hook.py
+pytest tests/configuration/test_black_hook.py
 pre-commit run black --all-files
 ```
 
@@ -196,7 +199,7 @@ Run the selection and preservation checks:
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_circuit_generation.py
+pytest tests/hydra/circuits/test_circuit_generation.py
 ```
 
 All 18 cases pass, including every family, duplicate selectors, and invalid-selection safety.
@@ -235,7 +238,7 @@ Four regression cases cover pool ownership, error cleanup, ordered results, and 
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_test_writer.py
+pytest tests/hydra/starknet/test_test_writer.py
 ```
 
 ## Synchronize the Cairo toolchain from one owner
@@ -265,7 +268,7 @@ Run the synchronization and setup regressions:
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_sync_toolchain.py tests/hydra/test_setup_dependencies.py
+pytest tests/tools/make/test_sync_toolchain.py tests/tools/make/test_setup_dependencies.py
 ```
 
 The 15 cases include deliberate drift, all 57 pin updates, unsupported-format rejection before writes, and unchanged cryptographic snapshots.
@@ -274,7 +277,6 @@ They also preserve both complete offline setup checks and require the warning to
 Nine process runs on macOS arm64 measured a 44.1ms median for check mode and 43.1ms for a no-op synchronization.
 Repairing deliberate Cairo-version drift across 23 files took 45.7ms (nine runs).
 These measurements cover configuration synchronization, not compilation, regeneration, or a complete toolchain upgrade.
-The [raw samples](benchmarks/development-cycle/toolchain.json) preserve each process run.
 
 ## Group connected dependency updates
 
@@ -295,7 +297,7 @@ The local regression checks configuration coverage, not a successful hosted depe
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_dependency_updates.py
+pytest tests/ci/test_dependency_updates.py
 ```
 
 ## Load E2E fixture plugins only for E2E tests
@@ -312,7 +314,7 @@ These results describe a unit-only inner loop, not faster E2E execution.
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_pytest_configuration.py
+pytest tests/configuration/test_pytest_configuration.py
 pytest tests/hydra/algebra/test_pyfelt.py
 ```
 
@@ -362,7 +364,6 @@ The reproduction used Node 24.19.0 and npm 11.17.0 on macOS arm64.
 
 All five CJS, ESM, source-map, and declaration artifacts remained byte-identical in every pair.
 All 34 Jest cases pass. These timings exclude Rust/WASM compilation and npm dependency installation.
-The [reproduction samples](benchmarks/development-cycle/node-build.json) include all five artifact hashes.
 
 ```sh
 cd tools/npm/garaga_ts
@@ -372,7 +373,7 @@ npm test -- --runInBand
 
 ## Local verification at 85d843d
 
-The [verification record](benchmarks/development-cycle/verification.json) identifies source commit `85d843d` and baseline `a01fad0`.
+The local verification checkpoint used source commit `85d843d` and baseline `a01fad0`.
 All 83 tracked Cairo source files match the baseline byte-for-byte.
 The full regeneration gate also leaves every tracked generated artifact unchanged.
 
@@ -413,12 +414,11 @@ The forced-color regression changed from four failures and one pass to five pass
 One configuration-triggered release build took 26.61s. This is not a paired build-speed comparison.
 The loadable Maturin artifact contains 2,395,992 bytes, a 4.17% increase from the broken artifact.
 No Rust algorithm, WASM byte, or Cairo source changes.
-The [proof record](benchmarks/development-cycle/macos-native.json) includes artifact hashes, tools, timings, and checks.
 
 ```sh
 make maturin
 source venv/bin/activate
-pytest tests/hydra/test_native_build_config.py
+pytest tests/configuration/test_native_build_config.py
 ```
 
 ## Cache Rust dependencies only in the measured WASM test job
@@ -450,7 +450,7 @@ Three focused cases check the target directory, compiler flags, hash inputs, and
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_rust_cache.py
+pytest tests/ci/test_rust_cache.py
 ```
 
 ## Verify the MPCheck equation once
@@ -462,7 +462,7 @@ The builder now evaluates the live equation once and retains the original assert
 Five alternating process pairs exercised all eight existing BN254 and BLS12-381 configurations with the same optimized extension.
 The complete Python/native builder workload decreased from a 1.5022s median to 1.4281s (4.9%).
 Child CPU decreased from 1.4593s to 1.4067s (3.6%).
-One candidate wall sample had a scheduler outlier. The [raw samples](benchmarks/development-cycle/mpcheck-validation.json) preserve that result.
+One candidate wall sample had a scheduler outlier.
 An earlier comparison before debug-counter cleanup measured a smaller 2.7% reduction.
 These process timings include native parity checks and do not describe faster native Rust computation.
 
@@ -470,7 +470,6 @@ Every sample produced eight byte-identical, stable calldata artifacts and requir
 Eight independent equation checks retain acceptance and reject corrupted quotients, remainders, and challenges on both curves.
 Those checks and all eight existing native-parity cases pass.
 Full `make rewrite` leaves every tracked generated artifact unchanged.
-The [source record](benchmarks/development-cycle/mpcheck-validation-source.json) identifies both Python snapshots and the shared native extension.
 
 ```sh
 source venv/bin/activate
@@ -494,8 +493,6 @@ A separate comparison preserved all eight generated Cairo pairing tests. Its sin
 Forty-two evaluation cases include independent direct-power property checks over PyFelt and Fp2.
 Those cases, eight equation-invariant checks, and eight native-parity cases pass (58 focused checks).
 A separate peer review compared 600 additional cases with the old evaluator, including mixed coefficient and point moduli.
-
-The [paired samples](benchmarks/development-cycle/polynomial-evaluation.json), [source hashes](benchmarks/development-cycle/polynomial-evaluation-source.json), and [Cairo output hashes](benchmarks/development-cycle/polynomial-evaluation-cairo.json) preserve the evidence.
 
 ```sh
 source venv/bin/activate
@@ -533,11 +530,10 @@ For directories without Git, the report records unknown provenance instead of in
 Thirty-five focused checks pass, including a dependency-free CLI run, failure handling, output mismatch, nondeterminism, and pre-test capture.
 Nine source-fingerprint runs measured a 32.9ms wall median and a 26.6ms child-CPU median.
 Fingerprint and artifact work stays outside command timings.
-The [raw fingerprint samples](benchmarks/development-cycle/provenance.json) record the measured source state.
 
 ```sh
 source venv/bin/activate
-pytest tests/hydra/test_measure.py tests/hydra/test_profile_provenance.py tests/hydra/test_profile_tests.py
+pytest tests/tools/test_measure.py tests/tools/test_profile_provenance.py tests/tools/test_profile_tests.py
 ```
 
 ## Initialize embedded WASM directly
@@ -563,8 +559,6 @@ Every sample preserved the export list, Poseidon result, and WASM memory size.
 The temporary package snapshots had no Git metadata. Their source and bundle SHA256 values identify the measured inputs separately.
 All 37 Jest cases, TypeScript checking, and all four CJS, ESM, Next.js, and Webpack integration consumers pass.
 The browser integrations preserve their fixture output, including browsers with a bundled `Buffer` implementation.
-The [CJS report](benchmarks/development-cycle/node-runtime-cjs.json), [ESM report](benchmarks/development-cycle/node-runtime-esm.json), and [inner samples](benchmarks/development-cycle/node-runtime-inner.json) preserve the measurements.
-The [driver](benchmarks/development-cycle/node-runtime-runner.mjs) runs from each built package directory and checks the known Poseidon result.
 
 ```sh
 cd tools/npm/garaga_ts
@@ -586,7 +580,6 @@ Median child CPU time decreased from 2.9490s to 2.6074s (11.6%).
 Every complete hint coefficient artifact remained byte-identical and stable across the runs.
 These results apply to this ECIP workload, not all proof generation.
 
-The [paired samples](benchmarks/development-cycle/python-xgcd.json) and [source context](benchmarks/development-cycle/python-xgcd-source.json) identify the inputs and driver.
 Twenty focused mathematical and compatibility cases cover Bézout identities, divisibility, unchanged inputs, padded storage, and legacy failures.
 No Cairo source or circuit operation changed.
 
@@ -610,7 +603,6 @@ The dense division loops improved by 18.1–54.5%; those inner timings cover rep
 All hint, quotient/remainder, and calldata artifacts stayed byte-identical and stable.
 These results do not predict all proof workloads or total build time.
 
-The [command samples](benchmarks/development-cycle/rust-polynomial.json) and [inner samples, source digests, and complete driver](benchmarks/development-cycle/rust-polynomial-source.json) retain the evidence.
 Seven new mathematical tests cover constructed quotient/remainder values, zero/lower-degree numerators, padding, input preservation, Bézout identities, and zero-denominator failure across all six fields.
 All 54 existing Rust unit tests and the doctest pass; workspace Clippy and TypeScript checks pass.
 The optimized Python extension and matching WASM package were regenerated with the existing compiler pins.
@@ -641,8 +633,6 @@ Two isolated source snapshots on the same Docker foundation produced 11 byte-ide
 Five installer self-checks cover both architectures, wrong/stale checksums, and the locked fallback's exit status.
 The existing 57-pin/28-file Cairo/Foundry checker remains passing.
 
-The [image, artifact, and installer evidence](benchmarks/development-cycle/docker-wasm-pack.json) preserves the commands, identities, and checks.
-
 ## Execute the Noir build once
 
 The mutator-set Make recipe now runs only `nargo execute witness`.
@@ -657,8 +647,6 @@ Every complete ACIR JSON and compressed witness remained byte-identical and stab
 The same absolute source path and committed Prover inputs prevented debug-path or fixture differences.
 Hello's one Noir test and the mutator's two Noir tests pass; both programs execute from deleted targets.
 Barretenberg was not installed, so these results do not claim proof-generation or verification speed changes.
-
-The [warm samples](benchmarks/development-cycle/noir-build-warm.json), [cold samples](benchmarks/development-cycle/noir-build-cold.json), [pinned source/tool context](benchmarks/development-cycle/noir-build-source.json), and [functional probes](benchmarks/development-cycle/noir-build-verification.json) retain the evidence.
 
 ## Compile only the Rust features used by Garaga
 
@@ -678,7 +666,6 @@ These measurements isolate dependency compilation and do not predict full CI tim
 Both frozen source variants pass the same 54 native tests with identical test lists.
 The current source also passes all 61 Rust tests and its doctest; workspace Clippy passes.
 The matching WASM package was regenerated through the normal `make wasm` target.
-The [cold samples](benchmarks/development-cycle/rust-features-cold.json), [source/config/toolchain identities](benchmarks/development-cycle/rust-features-source.json), [compile and size summary](benchmarks/development-cycle/rust-features-summary.json), and [native semantic gates](benchmarks/development-cycle/rust-features-native.json) retain the evidence.
 
 All 37 Node cases, all four forced consumer builds/tests, and 116 Python calldata/signature parity cases pass with the regenerated feature-selected artifacts.
 No tracked Cairo source differs from PR 521.
@@ -701,8 +688,6 @@ The native suite, optimized Python binding, and regenerated WASM package pass th
 Full Cairo regeneration leaves all 83 tracked Cairo source files byte-identical to PR 521.
 No Cairo algorithm or gas cost changed.
 
-The [paired samples](benchmarks/development-cycle/frobenius.json), [source and reference context](benchmarks/development-cycle/frobenius-source.json), and [regression evidence](benchmarks/development-cycle/frobenius-verification.json) retain the proof.
-
 ## Skip inversion for monic divisors
 
 Rust polynomial division now reuses a leading coefficient of one as its own inverse.
@@ -723,13 +708,11 @@ These comparisons use the same feature selection and macOS configuration, before
 Earlier exploratory runs with mismatched configuration are excluded.
 
 The existing mathematical suite now covers 480 constructed monic/nonmonic divisions across six fields, plus Bézout identities and zero-denominator failure.
-The [full samples](benchmarks/development-cycle/rust-monic.json), [dense samples](benchmarks/development-cycle/rust-monic-dense.json), [case summary](benchmarks/development-cycle/rust-monic-summary.json), [complete drivers and source identities](benchmarks/development-cycle/rust-monic-source.json), and [frozen native gates](benchmarks/development-cycle/rust-monic-native.json) retain the evidence.
 
 The combined current source passes 933 Python cases with five skips, 65 Rust tests plus one doctest, workspace Clippy, and 37 Node cases.
 The optimized extension, matching WASM package, TypeScript checks, and all four forced consumer builds/tests pass.
 All twelve CJS/ESM sparse-pairing array comparisons retain the Python output after the binary change.
 Full regeneration preserves all 83 Cairo source files; the MSM/pairing gas estimates remain 12,320,000/52,880,000, and max-log-N bytecode remains 67,136 against its 81,290 limit.
-The [combined functional record](benchmarks/development-cycle/rust-monic-verification.json) identifies these gates; their durations are not speed comparisons.
 
 ## Reject architecture-dependent generation
 
@@ -740,11 +723,10 @@ The declaration, glue, and package metadata artifacts matched.
 The retained Rust-produced WASM inputs already differed before wasm-opt; the canonical amd64 output matched the tracked artifact.
 The candidate failed the required byte-identity gate before timing; no speed claim or shared architecture change was made.
 The generator retains its canonical `linux/amd64` platform.
-The [rejected experiment record](benchmarks/development-cycle/docker-native-rejected.json) preserves the identities, commands, and artifact hashes.
 
 ## Final preservation checkpoint
 
-The [final local record](benchmarks/development-cycle/verification-final.json) identifies runtime source commit `8aeeb61` and Cairo baseline `a01fad0`.
+The final local checkpoint used runtime source commit `8aeeb61` and Cairo baseline `a01fad0`.
 All 83 tracked Cairo files match the baseline byte-for-byte after full regeneration.
 The selected MSM and pairing tests retain their reported L2 gas estimates, and the max-log-N contract remains below the unchanged bytecode limit.
 

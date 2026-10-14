@@ -37,12 +37,13 @@ tools/noir/hello/foundry.toml
 !hydra/garaga/starknet/groth16_contract_generator/examples/*.json
 !docs/benchmarks/test_summary.json
 !docs/benchmarks/cairo10443-results.json
-!docs/benchmarks/development-cycle/*.json
 *snfoundry_cache
 !tools/npm/garaga_rs/*.json
 !tools/make/constants.json
 
 # Benchmarks and profiling data
+/docs/benchmarks/dev-cycle/
+/docs/benchmarks/development-cycle/
 .cargo/benchmarks/*/
 src/profile/
 /profiles/

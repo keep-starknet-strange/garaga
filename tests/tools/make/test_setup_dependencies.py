@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 import pytest
 
-SETUP = Path(__file__).resolve().parents[2] / "tools" / "make" / "setup.sh"
+SETUP = Path(__file__).resolve().parents[3] / "tools" / "make" / "setup.sh"
 CONSTANTS = SETUP.with_name("constants.json")
 
 

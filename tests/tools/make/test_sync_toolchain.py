@@ -11,7 +11,7 @@ import pytest
 
 from tools.make.sync_toolchain import toolchain_plan
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 
 
 def versions(root):
