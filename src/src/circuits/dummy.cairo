@@ -1,8 +1,10 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
-    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{
+    AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
+};
 
 #[inline(always)]
 pub fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u384> {
@@ -32,8 +34,7 @@ pub fn run_DUMMY_circuit(mut input: Array<u384>, curve_index: usize) -> Array<u3
     let outputs = circuit_inputs.done_2().eval(modulus).unwrap();
     let res = array![
         outputs.get_output(t0), outputs.get_output(t2), outputs.get_output(t3),
-        outputs.get_output(t4), outputs.get_output(t5), outputs.get_output(t7),
+        outputs.get_output(t4), outputs.get_output(t5), outputs.get_output(t7)
     ];
     return res;
 }
-

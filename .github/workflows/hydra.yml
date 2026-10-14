@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.10', '3.12', '3.14']
+        python-version: ['3.11', '3.12', '3.14']
       fail-fast: false
 
     steps:
@@ -62,7 +62,8 @@ jobs:
       - name: Set up Scarb
         uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.16.1"
+          scarb-version: "2.21.0"
+          cache: false
       - name: Run make rewrite and check for unstaged changes
         if: matrix.python-version == '3.14'
         run: |

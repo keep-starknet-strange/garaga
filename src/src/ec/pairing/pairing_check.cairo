@@ -1,7 +1,7 @@
 use core::array::{ArrayTrait, SpanTrait};
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitTrait, circuit_inverse, circuit_mul, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, circuit_inverse,
+    circuit_mul, circuit_sub, u384,
 };
 use core::num::traits::{One, Zero};
 use core::option::Option;
@@ -24,6 +24,7 @@ use garaga::circuits::multi_pairing_check::{
     run_BN254_MP_CHECK_BIT01_2P_2F_circuit, run_BN254_MP_CHECK_BIT10_2P_2F_circuit,
     run_BN254_MP_CHECK_FINALIZE_2P_2F_circuit, run_BN254_MP_CHECK_INIT_BIT_2P_2F_circuit,
 };
+use garaga::core::circuit::{CircuitOutputsTrait, EvalCircuitTrait};
 use garaga::definitions::{
     BLS12_381_SEED_BITS_COMPRESSED, BN254_SEED_BITS_JY00_COMPRESSED, E12D, G1G2Pair, G2Line,
     get_BLS12_381_modulus, get_BN254_modulus, u288,

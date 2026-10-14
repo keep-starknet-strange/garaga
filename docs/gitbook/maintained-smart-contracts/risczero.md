@@ -57,14 +57,14 @@ sudo apt install -y python3
 
 In order to implement the Verifier one needs to install the tooling for Cairo development and Garaga:
 
-4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.16.1)
+4. Install the Starknet/Cairo bundler tool [`scarb`](https://docs.swmansion.com/scarb/download#install-via-installation-script) (default version 2.21.0)
 
 ```bash
 curl --proto '=https' --tlsv1.2 -sSf https://docs.swmansion.com/scarb/install.sh | bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.57.0)
+5. Install Starknet Foundry using [`snfoundryup`](https://foundry-rs.github.io/starknet-foundry/getting-started/installation.html) (default version 0.64.1)
 
 ```bash
 curl -L https://raw.githubusercontent.com/foundry-rs/starknet-foundry/master/scripts/install.sh | bash
@@ -253,8 +253,7 @@ Here is how to verify the RiscZero proof and update the smart contract state for
 
 ```rust
 fn verify_and_submit_fibonacci_number(ref self: ContractState, full_proof_with_hints: Span<felt252>) {
-    // sets the class hash for the RiscZero verifier already declared on-chain
-    // by the Garaga team
+    // Use the class hash of the declared verifier build.
     let class_hash: ClassHash = RISC_ZERO_VERIFIER_CLASS_HASH.try_into().unwrap();
 
     // instantiate a library dispatcher to perform the library call
@@ -287,13 +286,15 @@ fn verify_and_submit_fibonacci_number(ref self: ContractState, full_proof_with_h
 }
 ```
 
-Along with the `verify_and_submit_fibonacci_number` contract method, we need to define the RiscZero Verifier class hash, which can be obtained [here](./)
+The sample uses the verifier built from this source tree. Declare that verifier before you deploy the sequencer.
+Run `make update-risc0-class-hash` to update the sample after a compiler change.
+The [release class hashes](./) identify earlier declared builds, not this source build.
 
 ```rust
 use core::starknet::ClassHash;
 
 pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-    0x41d5e111b93acbf1afb531253e0bc64d43f90a8a99290361e851ec0c4968ab1;
+    0x1eb1a211b378d4f146ea7e3669eeeee9c568b2d1b0afdfa9ab9a9ed32295526;
 ```
 
 The contract state which stores the current lower bound which gets updated whenever a new Fibonacci number is submitted

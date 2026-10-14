@@ -146,7 +146,7 @@ Run `cd src && scarb build` to verify the new version compiles. If it fails with
 
 ### Step 15: Run black formatting check
 
-Run `source venv/bin/activate && black --target-version py310 --check hydra/` to verify Python formatting passes. The pre-commit hook and CI both use `--target-version py310` to avoid formatting differences across Python versions. If files need reformatting, run `black --target-version py310 hydra/` and include the changes.
+Run `source venv/bin/activate && black --target-version py311 --check hydra/` to verify Python formatting passes. Use the minimum supported Python version to keep formatting consistent with the pre-commit hook and CI. If files need reformatting, run `black --target-version py311 hydra/` and include the changes.
 
 ## Notes
 

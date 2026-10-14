@@ -190,10 +190,34 @@ mod UltraKeccakZKHonkVerifier {
 
             // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
-                vk.qm, vk.qc, vk.ql, vk.qr, vk.qo, vk.q4, vk.qLookup, vk.qArith, vk.qDeltaRange,
-                vk.qElliptic, vk.qMemory, vk.qNnf, vk.qPoseidon2External, vk.qPoseidon2Internal,
-                vk.s1, vk.s2, vk.s3, vk.s4, vk.id1, vk.id2, vk.id3, vk.id4, vk.t1, vk.t2, vk.t3,
-                vk.t4, vk.lagrange_first, vk.lagrange_last,
+                vk.qm,
+                vk.qc,
+                vk.ql,
+                vk.qr,
+                vk.qo,
+                vk.q4,
+                vk.qLookup,
+                vk.qArith,
+                vk.qDeltaRange,
+                vk.qElliptic,
+                vk.qMemory,
+                vk.qNnf,
+                vk.qPoseidon2External,
+                vk.qPoseidon2Internal,
+                vk.s1,
+                vk.s2,
+                vk.s3,
+                vk.s4,
+                vk.id1,
+                vk.id2,
+                vk.id3,
+                vk.id4,
+                vk.t1,
+                vk.t2,
+                vk.t3,
+                vk.t4,
+                vk.lagrange_first,
+                vk.lagrange_last,
                 full_proof.proof.gemini_masking_poly.into(), // Proof point 1,
                 full_proof.proof.w1.into(), // Proof point 2,
                 full_proof.proof.w2.into(), // Proof point 3,
@@ -295,4 +319,3 @@ mod UltraKeccakZKHonkVerifier {
         }
     }
 }
-

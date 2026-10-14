@@ -860,5 +860,3 @@ pub fn get_zk_proof_keccak() -> ZKHonkProof {
 //         assert(check.is_zero(), 'check should be zero');
 //     }
 // }
-
-
