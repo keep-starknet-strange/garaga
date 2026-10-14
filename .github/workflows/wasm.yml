@@ -121,7 +121,7 @@ jobs:
           scarb-version: "2.21.0"
           cache: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.11"
       - name: Install dependencies
