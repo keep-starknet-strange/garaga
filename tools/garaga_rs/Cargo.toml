@@ -49,7 +49,7 @@ getrandom = { version = "0.3.1", features = ["wasm_js"] }
 num-bigint = "0.4"
 num-integer = "0.1"
 num-traits = "0.2"
-sha2 = "0.10"
+sha2 = "0.11"
 # Keep the accelerated Keccak backend previously enabled by lambdaworks-crypto.
 sha3 = { version = "0.10", features = ["asm"] }
 rand = "0.9.0"
