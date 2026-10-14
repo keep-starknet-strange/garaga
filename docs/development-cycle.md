@@ -642,3 +642,20 @@ Five installer self-checks cover both architectures, wrong/stale checksums, and 
 The existing 57-pin/28-file Cairo/Foundry checker remains passing.
 
 The [image, artifact, and installer evidence](benchmarks/development-cycle/docker-wasm-pack.json) preserves the commands, identities, and checks.
+
+## Execute the Noir build once
+
+The mutator-set Make recipe now runs only `nargo execute witness`.
+That command compiles when needed, including from an absent target directory.
+The removed `nargo build` command was a valid hidden alias, but performed redundant compiler work before execution.
+No Noir source, proving dependency, proof flag, compiler pin, or Cairo artifact changed.
+
+Three alternating actual-Make pairs used the repository-pinned Nargo 1.0.0-beta.16 compiler.
+Warm target time decreased from 0.3984s to 0.2717s (31.8%); child CPU decreased by 35.3%.
+With a deleted target before each sample, time decreased from 2.1112s to 1.9702s (6.7%); child CPU decreased by 7.7%.
+Every complete ACIR JSON and compressed witness remained byte-identical and stable in both comparisons.
+The same absolute source path and committed Prover inputs prevented debug-path or fixture differences.
+Hello's one Noir test and the mutator's two Noir tests pass; both programs execute from deleted targets.
+Barretenberg was not installed, so these results do not claim proof-generation or verification speed changes.
+
+The [warm samples](benchmarks/development-cycle/noir-build-warm.json), [cold samples](benchmarks/development-cycle/noir-build-cold.json), [pinned source/tool context](benchmarks/development-cycle/noir-build-source.json), and [functional probes](benchmarks/development-cycle/noir-build-verification.json) retain the evidence.
