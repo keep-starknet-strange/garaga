@@ -1,0 +1,78 @@
+version: 2
+
+# Each ecosystem batches patch/minor updates across its connected projects.
+# Major updates remain separate review PRs. No updates merge automatically.
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    allow:
+      - dependency-type: all
+    groups:
+      python-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: cargo
+    directories:
+      - /
+      - /src/contracts/risc0_sample_app/fibonacci_prover
+      # The guest declares its own workspace, outside the host/methods workspace.
+      - /src/contracts/risc0_sample_app/fibonacci_prover/methods/guest
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    allow:
+      - dependency-type: all
+    groups:
+      rust-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: npm
+    directories:
+      - /tools/npm/garaga_ts
+      # Includes packages/* through npm's workspace declaration.
+      - /tools/npm/integration-test-suite
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      # This is the local package under test, packed by the WASM build.
+      - dependency-name: garaga
+    groups:
+      javascript-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      actions-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: docker
+    directory: /tools/npm/garaga_ts
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      containers-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      hooks-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]

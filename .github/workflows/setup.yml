@@ -5,11 +5,33 @@ on:
     branches: [main]
     paths:
       - 'tools/make/setup.sh'
+      - 'tools/make/constants.json'
       - '.github/workflows/setup.yml'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'docs/PYPI_README.md'
+      - 'uv.lock'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - 'tools/garaga_rs/**'
+      - 'hydra/**'
+      - '.pre-commit-config.yaml'
   pull_request:
     paths:
       - 'tools/make/setup.sh'
+      - 'tools/make/constants.json'
       - '.github/workflows/setup.yml'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'docs/PYPI_README.md'
+      - 'uv.lock'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - 'tools/garaga_rs/**'
+      - 'hydra/**'
+      - '.pre-commit-config.yaml'
 
 jobs:
   pre_job:
@@ -50,11 +72,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Run make setup
         run: make setup

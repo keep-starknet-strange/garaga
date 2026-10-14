@@ -125,9 +125,9 @@ impl<H: HashFunction> MerkleTree<H> {
 
     /// Build a MerkleTree with the given leafs.
     ///
-    /// Uses [`rayon`] to parallelize Merkle tree construction. If the use of
-    /// [`rayon`] is not an option in your context, use
-    /// [`MerkleTree::sequential_new`], which is equivalent but usually slower.
+    /// This implementation processes each tree level sequentially.
+    /// The name remains for API compatibility.
+    /// [`MerkleTree::sequential_new`] uses the same leaf and hash semantics.
     ///
     /// # Errors
     ///

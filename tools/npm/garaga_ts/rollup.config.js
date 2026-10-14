@@ -27,6 +27,6 @@ export default [
       sourcemap: false,
     },
     external: ['fs', 'crypto', 'path', 'util', 'os', 'stream', 'buffer'],
-    plugins: [typescript(), dts()],
+    plugins: [dts()],
   },
 ];
