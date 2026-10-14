@@ -623,3 +623,22 @@ Full Cairo regeneration left all 83 tracked Cairo source files byte-identical to
 
 All four forced CJS, ESM, Next.js, and Webpack consumer tests also pass.
 The representative MSM test retains its 12,320,000 L2 gas estimate under Cairo-step tracking.
+
+## Install the generator CLI without compiling it
+
+The Docker generator downloads the same pinned wasm-pack 0.13.1 release on amd64 and arm64.
+It checks each archive's reviewed SHA256 before extraction and removes the archive in the same layer.
+Other architectures retain the original locked source-install command.
+One local version value drives the release URL, archive member, and fallback.
+A version change requires new verified hashes; stale hashes fail before extraction.
+Rust 1.87.0, Node 20.17.0, build commands, and generated package interfaces remain unchanged.
+
+The CLI installation layer decreased from 141MB to 7.2MB.
+A fresh local production image build took 14.8966s, with 1.0s in the CLI-install RUN.
+The historical Ubuntu CI source-install step took 49.9s.
+These are different environments, not a paired timing comparison; no percentage or total-generation speedup is claimed.
+Two isolated source snapshots on the same Docker foundation produced 11 byte-identical WASM, JS, declaration, distribution, and npm-package artifacts.
+Five installer self-checks cover both architectures, wrong/stale checksums, and the locked fallback's exit status.
+The existing 57-pin/28-file Cairo/Foundry checker remains passing.
+
+The [image, artifact, and installer evidence](benchmarks/development-cycle/docker-wasm-pack.json) preserves the commands, identities, and checks.
