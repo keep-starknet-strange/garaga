@@ -114,9 +114,14 @@ def test_locked_projects_update_from_their_lockfile_roots():
 
 def test_weekly_groups_coordinate_projects_without_grouping_major_updates():
     assert CONFIG["version"] == 2
-    ecosystems = [entry["package-ecosystem"] for entry in UPDATES]
-    assert len(ecosystems) == len(set(ecosystems))
+    owners = {}
     for entry in UPDATES:
+        ecosystem = entry["package-ecosystem"]
+        if ecosystem in MANIFESTS:
+            manifests = owned_manifests(entry)
+            existing = owners.setdefault(ecosystem, set())
+            assert manifests.isdisjoint(existing), sorted(manifests & existing)
+            existing.update(manifests)
         directories = update_directories(entry)
         assert len(directories) == len(set(directories))
         assert all(directory.startswith("/") for directory in directories)
