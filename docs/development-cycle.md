@@ -682,3 +682,23 @@ The [cold samples](benchmarks/development-cycle/rust-features-cold.json), [sourc
 
 All 37 Node cases, all four forced consumer builds/tests, and 116 Python calldata/signature parity cases pass with the regenerated feature-selected artifacts.
 No tracked Cairo source differs from PR 521.
+
+## Preserve sparse Frobenius outputs
+
+The runtime checks exposed an existing Rust Frobenius bug, not a speed improvement.
+Normalized short polynomials could panic when the map read an absent coefficient.
+Limiting output rows to the input length could also discard valid higher-degree output.
+The fix evaluates every extension-field output row and treats absent input coefficients as zero, without cloning or padding the input.
+
+Independent tower-field exponentiation checks cover 120 comparisons across BN254 and BLS12-381, including every basis monomial and stored input length.
+Pairing each G1 generator and its negation with the same G2 generator previously panicked on both curves.
+All six Python/native cases now pass with exact complete-calldata equality, covering zero, one, and two fixed G2 points.
+The existing eight full-width calldata artifacts remain byte-identical.
+
+Five alternating full-width MPCheck pairs after one warmup measured 0.3571s before and 0.3599s after: a 0.8% off-chain wall-time cost, with a 0.8% CPU cost.
+This small cost fixes valid inputs; it is not presented as a performance gain.
+The native suite, optimized Python binding, and regenerated WASM package pass their checks.
+Full Cairo regeneration leaves all 83 tracked Cairo source files byte-identical to PR 521.
+No Cairo algorithm or gas cost changed.
+
+The [paired samples](benchmarks/development-cycle/frobenius.json), [source and reference context](benchmarks/development-cycle/frobenius-source.json), and [regression evidence](benchmarks/development-cycle/frobenius-verification.json) retain the proof.
