@@ -144,7 +144,12 @@ impl<F: IsPrimeField> Polynomial<F> {
         let mut remainder = self;
 
         let mut quotient_coeffs = vec![FieldElement::<F>::zero(); (num_deg - den_deg + 1) as usize];
-        let denom_lead_inv = denominator.leading_coefficient().inv().unwrap();
+        let denom_lead = denominator.leading_coefficient();
+        let denom_lead_inv = if denom_lead == FieldElement::<F>::one() {
+            denom_lead
+        } else {
+            denom_lead.inv().unwrap()
+        };
 
         let mut rem_deg = num_deg;
         while rem_deg >= den_deg {

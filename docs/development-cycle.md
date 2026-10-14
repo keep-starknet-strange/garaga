@@ -702,3 +702,31 @@ Full Cairo regeneration leaves all 83 tracked Cairo source files byte-identical 
 No Cairo algorithm or gas cost changed.
 
 The [paired samples](benchmarks/development-cycle/frobenius.json), [source and reference context](benchmarks/development-cycle/frobenius-source.json), and [regression evidence](benchmarks/development-cycle/frobenius-verification.json) retain the proof.
+
+## Skip inversion for monic divisors
+
+Rust polynomial division now reuses a leading coefficient of one as its own inverse.
+Other leading coefficients retain the existing inverse operation.
+This matters in the Montgomery fields: inverting field one still runs the general inversion loop.
+No multiplication shortcut, extra helper, or size threshold is needed.
+
+Five alternating matched release pairs after one warmup compared 42 cases: 18 ECIP workloads across six curves, eight MPCheck configurations, and 16 monic/nonmonic dense-division cases.
+Median process time decreased from 0.9990s to 0.9253s (7.4%); child CPU decreased by 7.4%.
+All 18 ECIP cases improved by 6.8–17.0%; their summed case medians decreased by 11.5%.
+MPCheck's summed case medians changed by only -0.4%, not a substantial gain.
+Every complete payload stayed byte-identical and stable.
+
+A separate five-pair dense run repeated each of the 16 cases 20 times per process.
+Monic summed case medians decreased by 15.5%; nonmonic medians decreased by 1.7%.
+The nonmonic BN254 cases ranged from a 2.0% improvement to a 0.1% increase, with no material slowdown.
+These comparisons use the same feature selection and macOS configuration, before the separate sparse-Frobenius fix; only polynomial division differs between the timed sources.
+Earlier exploratory runs with mismatched configuration are excluded.
+
+The existing mathematical suite now covers 480 constructed monic/nonmonic divisions across six fields, plus Bézout identities and zero-denominator failure.
+The [full samples](benchmarks/development-cycle/rust-monic.json), [dense samples](benchmarks/development-cycle/rust-monic-dense.json), [case summary](benchmarks/development-cycle/rust-monic-summary.json), [complete drivers and source identities](benchmarks/development-cycle/rust-monic-source.json), and [frozen native gates](benchmarks/development-cycle/rust-monic-native.json) retain the evidence.
+
+The combined current source passes 933 Python cases with five skips, 65 Rust tests plus one doctest, workspace Clippy, and 37 Node cases.
+The optimized extension, matching WASM package, TypeScript checks, and all four forced consumer builds/tests pass.
+All twelve CJS/ESM sparse-pairing array comparisons retain the Python output after the binary change.
+Full regeneration preserves all 83 Cairo source files; the MSM/pairing gas estimates remain 12,320,000/52,880,000, and max-log-N bytecode remains 67,136 against its 81,290 limit.
+The [combined functional record](benchmarks/development-cycle/rust-monic-verification.json) identifies these gates; their durations are not speed comparisons.

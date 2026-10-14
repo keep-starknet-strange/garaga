@@ -18,27 +18,32 @@ fn coefficients<F: IsPrimeField>(degree: usize, seed: u64) -> Polynomial<F> {
 }
 fn constructed_divisions<F: IsPrimeField>() {
     for den_degree in [0, 1, 2, 12, 32] {
-        let denominator = coefficients::<F>(den_degree, 41);
-        for quotient_degree in [0, 1, 2, 12] {
-            let quotient = coefficients::<F>(quotient_degree, 104729);
-            for remainder in [
-                Polynomial::zero(),
-                if den_degree == 0 {
-                    Polynomial::zero()
-                } else {
-                    coefficients::<F>(den_degree - 1, 37)
-                },
-            ] {
-                let mut numerator = &denominator * &quotient + remainder.clone();
-                let length = numerator.coefficients.len() + 3;
-                pad_with_zero_coefficients_to_length(&mut numerator, length);
-                let unchanged_denominator = denominator.coefficients.clone();
-                let (actual_quotient, actual_remainder) = numerator.divmod(&denominator);
-                assert_eq!(actual_quotient.coefficients, quotient.coefficients);
-                assert_eq!(actual_remainder.coefficients, remainder.coefficients);
-                assert_eq!(actual_quotient.degree(), quotient.degree());
-                assert_eq!(actual_remainder.degree(), remainder.degree());
-                assert_eq!(denominator.coefficients, unchanged_denominator);
+        for monic in [false, true] {
+            let mut denominator = coefficients::<F>(den_degree, 41);
+            if monic {
+                *denominator.coefficients.last_mut().unwrap() = FieldElement::one();
+            }
+            for quotient_degree in [0, 1, 2, 12] {
+                let quotient = coefficients::<F>(quotient_degree, 104729);
+                for remainder in [
+                    Polynomial::zero(),
+                    if den_degree == 0 {
+                        Polynomial::zero()
+                    } else {
+                        coefficients::<F>(den_degree - 1, 37)
+                    },
+                ] {
+                    let mut numerator = &denominator * &quotient + remainder.clone();
+                    let length = numerator.coefficients.len() + 3;
+                    pad_with_zero_coefficients_to_length(&mut numerator, length);
+                    let unchanged_denominator = denominator.coefficients.clone();
+                    let (actual_quotient, actual_remainder) = numerator.divmod(&denominator);
+                    assert_eq!(actual_quotient.coefficients, quotient.coefficients);
+                    assert_eq!(actual_remainder.coefficients, remainder.coefficients);
+                    assert_eq!(actual_quotient.degree(), quotient.degree());
+                    assert_eq!(actual_remainder.degree(), remainder.degree());
+                    assert_eq!(denominator.coefficients, unchanged_denominator);
+                }
             }
         }
     }
