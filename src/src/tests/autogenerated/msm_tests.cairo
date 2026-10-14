@@ -12,7 +12,7 @@ fn test_msm_BN254_1P() {
         0xa9f0001b3fc543c76e78dbe5, 0x59d3efe5fc893f110337f203, 0x2a3c4edaf4eb5933, 0x0,
         0x47c7d40af526b19cd3c8e9d6, 0x77e086d9ab1747415c8a345, 0x2ecf62cd2d14d49c, 0x0,
         0x10000000000000000358f1af3ace11fdc, 0x100000000000000004ac9542b22967d33,
-        0x100000000000000000cf05f964742cc6d, 0x1000000000000000081d342cffb91cba7,
+        0x100000000000000000cf05f964742cc6d, 0x1000000000000000081d342cffb91cba7
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -25,15 +25,15 @@ fn test_msm_BN254_1P() {
                 limb0: 0xa9f0001b3fc543c76e78dbe5,
                 limb1: 0x59d3efe5fc893f110337f203,
                 limb2: 0x2a3c4edaf4eb5933,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x47c7d40af526b19cd3c8e9d6,
                 limb1: 0x77e086d9ab1747415c8a345,
                 limb2: 0x2ecf62cd2d14d49c,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -54,8 +54,7 @@ fn test_msm_BN254_2P() {
         0x277449c3e218531f, 0x5211712cf983c9bb37a437a3, 0x3c9da9e18a4323d2ed3b9bcb,
         0x135de21f5341b7ec, 0x0, 0x3c22df03e388c6cea0664c2b, 0xc1036691dedbab22e63b1e2a,
         0x104e399500d777b8, 0x0, 0x100000000000000005fcd1b724f1296a6,
-        0x1000000000000000016e3236cbd22722f, 0x4dac40f4f32b51f2,
-        0x1000000000000000000417aa85f133ffd,
+        0x1000000000000000016e3236cbd22722f, 0x4dac40f4f32b51f2, 0x1000000000000000000417aa85f133ffd
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -68,15 +67,15 @@ fn test_msm_BN254_2P() {
                 limb0: 0x9234d7617541ef6bd6a55e9e,
                 limb1: 0x7a1353bb00de9de1d818c849,
                 limb2: 0x21e43e4fdf41dbf4,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x30dd41ab3aae480eb7924f99,
                 limb1: 0xa94c0b54f99635a912b59f0f,
                 limb2: 0x187498a467804f5b,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -104,7 +103,7 @@ fn test_msm_BN254_3P() {
         0x9f30216b591e9f34501cf268, 0x7aebbd8d9c7bedb729aab01f, 0x16413acc47520c69, 0x0,
         0x596a902a02766a7777a12a86, 0xcd89979d5d539a6d7dfb9208, 0x12c9d036ab478f21, 0x0,
         0x257275fdb7e6a5fd, 0x437a0a16546be43f, 0x100000000000000001e20dc33694e8500,
-        0x4c004b142b3cda1a,
+        0x4c004b142b3cda1a
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -117,15 +116,15 @@ fn test_msm_BN254_3P() {
                 limb0: 0xa505aa539534e1ed3825e1d3,
                 limb1: 0xd3d6e50ccbd336be810ae134,
                 limb2: 0x2b8806194c015dab,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xe3066db5d6cc9577162aa35c,
                 limb1: 0x3ab20c13b3f5fdea9441aaa8,
                 limb2: 0xc21ee843d06bdd4,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -159,7 +158,7 @@ fn test_msm_BN254_4P() {
         0xfa187fa0605efdbcf49ce5e0, 0x9bba09b74197b6f6a0c7d548, 0x15f5043298d09f8f, 0x0,
         0x69bb1bf803d830390621ff4b, 0xeab9213022b9471b2f5ffb27, 0x20e0ff3bce0d13ab, 0x0,
         0x6d0d75af97fefa50, 0x1000000000000000021d60bf2c3658c74,
-        0x1000000000000000034f51fecbdff851a, 0x1000000000000000002c54143b4f61e7f,
+        0x1000000000000000034f51fecbdff851a, 0x1000000000000000002c54143b4f61e7f
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -172,15 +171,15 @@ fn test_msm_BN254_4P() {
                 limb0: 0xda530556c75d2e27b35e716b,
                 limb1: 0xe263c10943a7c230d41bb940,
                 limb2: 0x1d051a29c6a2eafe,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x679ed4b58350eefe8c88ae2a,
                 limb1: 0x46b4e4ba8a6a9374a0120664,
                 limb2: 0x121c2c711b7c7f40,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -252,7 +251,7 @@ fn test_msm_BN254_10P() {
         0x15945e750a0443c5, 0x7f83b4b51d00fc80bb831daf, 0x25d239976a348f767993ced5,
         0x2b84658d4f6cb5c8, 0x0, 0xfff31f69291319d397b31124, 0x156bf2f02ea3e4621278874b,
         0x103cc7bade9316ae, 0x0, 0x1ac00f1b74998794, 0x1000000000000000024c1b4e8a2305293,
-        0x59d3cc6f01477796, 0xc9c2a2cd82f7e2d,
+        0x59d3cc6f01477796, 0xc9c2a2cd82f7e2d
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -265,15 +264,15 @@ fn test_msm_BN254_10P() {
                 limb0: 0x7f5a9b9409f2cc39825a02c,
                 limb1: 0xcae0e79fbccb0daf22e3d147,
                 limb2: 0xe6a2d797f40f61,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x2a28940c5db0b16b11bcb83b,
                 limb1: 0x909e67a632b9f3e09db0636b,
                 limb2: 0x18643fa5fa438363,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -352,7 +351,7 @@ fn test_msm_BN254_11P() {
         0x1000000000000000023ae98fa95aa07b8, 0x4b9261005811ccafc4725902, 0x689c7c5528fbcab2ffdd0e45,
         0xee7f574a2b0c0fe, 0x0, 0x98e15c5c68cffe74a22c43c7, 0x77bc1a28c4ad8e05bfa5a214,
         0xb4a65415b0eba66, 0x0, 0x1000000000000000059cfa117d9318779,
-        0x100000000000000008ef4027bb5693ee0, 0x3ae8a87244a109a4, 0x558c79eb7e83bb58,
+        0x100000000000000008ef4027bb5693ee0, 0x3ae8a87244a109a4, 0x558c79eb7e83bb58
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -365,15 +364,15 @@ fn test_msm_BN254_11P() {
                 limb0: 0x8f1d04d9dacdeb4b06745aae,
                 limb1: 0x5c68471b1c99a97baed7f423,
                 limb2: 0x1e8ed25080c73efd,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xc479efb2cb1c33352e438dbe,
                 limb1: 0x1f9fcbf3fb537094c9816470,
                 limb2: 0x2e15234a5a95acac,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -459,7 +458,7 @@ fn test_msm_BN254_12P() {
         0x8435d0668aada26, 0x0, 0x6d5907f5ae10fced2d3d609d, 0x4720c6ca15b721ac824fd1dc,
         0x28fd8e028bbd4327, 0x0, 0x100000000000000000615f3f7b8d448b9,
         0x100000000000000007f9651eee6b31ff4, 0x1000000000000000016a63b2f0da9904c,
-        0x1000000000000000047f4ef94b6a2cc82,
+        0x1000000000000000047f4ef94b6a2cc82
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -472,15 +471,15 @@ fn test_msm_BN254_12P() {
                 limb0: 0x744865055917ca125348c4f8,
                 limb1: 0x5c545244519dd218c72f1665,
                 limb2: 0xcc6f1868dc806a6,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xcbb128d3e724151be03bef12,
                 limb1: 0x3d9dca95a86b6ea20b40f368,
                 limb2: 0x1d2cfc3fd3c3ff7f,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -496,7 +495,7 @@ fn test_msm_BLS12_381_1P() {
         0xb603ffc901ec7f3e42216ae4, 0x269adaf11286bf338b9dacb1, 0xab33b097e05378c0867894f,
         0xbfd8ef26d4610b8e77f5c28, 0x9afe78c2bb0f305eccbffb90, 0xc8b06f9aaf49eda1f9fd6cfd,
         0xc422cd476b9611aef3a1ee3, 0x1201e1e9a2b0867eb9da1725, 0x1000000000000000062a39ac9655a0af5,
-        0x10000000000000000b59da527feb9e759, 0x885278dc00a1125a, 0x2fe0754b9fadfe7b,
+        0x10000000000000000b59da527feb9e759, 0x885278dc00a1125a, 0x2fe0754b9fadfe7b
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -509,15 +508,15 @@ fn test_msm_BLS12_381_1P() {
                 limb0: 0xb603ffc901ec7f3e42216ae4,
                 limb1: 0x269adaf11286bf338b9dacb1,
                 limb2: 0xab33b097e05378c0867894f,
-                limb3: 0xbfd8ef26d4610b8e77f5c28,
+                limb3: 0xbfd8ef26d4610b8e77f5c28
             },
             y: u384 {
                 limb0: 0x9afe78c2bb0f305eccbffb90,
                 limb1: 0xc8b06f9aaf49eda1f9fd6cfd,
                 limb2: 0xc422cd476b9611aef3a1ee3,
-                limb3: 0x1201e1e9a2b0867eb9da1725,
-            },
-        },
+                limb3: 0x1201e1e9a2b0867eb9da1725
+            }
+        }
     );
 }
 
@@ -541,7 +540,7 @@ fn test_msm_BLS12_381_2P() {
         0x428ff9cfd30586deea516488, 0xc0c17be01b5ec83544d88ff, 0xfdf2fbfb66f355ed990a534f,
         0x98f6b2b220c2c0e179e4d145, 0xe2766e3b994a5f31518b1b4, 0xb1861e2a35c8eceb1eb84bf,
         0x3827704126429022, 0x59c3b34a3b390fcf, 0x1000000000000000076a605fca076460a,
-        0x2f4183d416809c9a,
+        0x2f4183d416809c9a
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -554,15 +553,15 @@ fn test_msm_BLS12_381_2P() {
                 limb0: 0x32321a942ef961780ca91c06,
                 limb1: 0x57e5605fbba104f908e63665,
                 limb2: 0x843c0bbd70b5a837b690bd95,
-                limb3: 0xbe7f58485672327a5c447c1,
+                limb3: 0xbe7f58485672327a5c447c1
             },
             y: u384 {
                 limb0: 0x2150b2afd97c7793d20d0ecc,
                 limb1: 0x4f6a0ae7eaf68e727f2fcb5d,
                 limb2: 0x96407ddecb1fe770faf07c8c,
-                limb3: 0x4c4183b2e457821188d59e7,
-            },
-        },
+                limb3: 0x4c4183b2e457821188d59e7
+            }
+        }
     );
 }
 
@@ -593,7 +592,7 @@ fn test_msm_BLS12_381_3P() {
         0x8070e05e9145d1c520b0bc9f, 0xd2505d00fcfa7f814e629e1f, 0x789f47493e01360b240d31be,
         0xd4d252b4e71c49b728891b0, 0x32fd0164a7284bf6631f2131, 0xbf29e9b9d14edb8796f7c003,
         0x73032a27b08ccde5970c792a, 0x14128a5b1473f5285668a863, 0x29d77abed65ff201,
-        0x4ea390aeeae13c8a, 0x426754eb9138bd09, 0x100000000000000007ebb92a3d2545c26,
+        0x4ea390aeeae13c8a, 0x426754eb9138bd09, 0x100000000000000007ebb92a3d2545c26
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -606,15 +605,15 @@ fn test_msm_BLS12_381_3P() {
                 limb0: 0x21b85c07d97d8ad7ed64cf5c,
                 limb1: 0xc68ab576217c87f6afe7e8f6,
                 limb2: 0x8aecb918175dcc693f68b02c,
-                limb3: 0x16bdc982d01b9f8d1782060e,
+                limb3: 0x16bdc982d01b9f8d1782060e
             },
             y: u384 {
                 limb0: 0x11cf0b8dceb54a416ec13f47,
                 limb1: 0x81a05b3acc5b76a765127289,
                 limb2: 0xcdbd38ba08efd726fae10661,
-                limb3: 0x9747640d51b315635b0059a,
-            },
-        },
+                limb3: 0x9747640d51b315635b0059a
+            }
+        }
     );
 }
 
@@ -654,7 +653,7 @@ fn test_msm_BLS12_381_4P() {
         0xe54a1c91c8cebd80422d7472, 0x18f20ed943760167480b399c, 0x3c855ffac29166b79418290c,
         0x16673746c28add51dbb908b6, 0x6bba7b68853a2592c3ab118d, 0x56b1a0d430dbe3db167379b,
         0x100000000000000004bed5581e0e7a253, 0x100000000000000009c34387abab6c0fe,
-        0xb72bffe782e92797, 0x3a8e5d970236b4f1,
+        0xb72bffe782e92797, 0x3a8e5d970236b4f1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -667,15 +666,15 @@ fn test_msm_BLS12_381_4P() {
                 limb0: 0x7406fee5d57362d0bd20a5fe,
                 limb1: 0x9c148946ef3f3c63933238ab,
                 limb2: 0x29449d34c8a2d4f2985f3c36,
-                limb3: 0xa598551ba8198a566f2d4be,
+                limb3: 0xa598551ba8198a566f2d4be
             },
             y: u384 {
                 limb0: 0x79e483b729f05957e7c73f33,
                 limb1: 0x3a0046ded0b81194df4ad0d5,
                 limb2: 0x6bb49380867caf051586303a,
-                limb3: 0xc750343cc7a561d93f3d0c0,
-            },
-        },
+                limb3: 0xc750343cc7a561d93f3d0c0
+            }
+        }
     );
 }
 
@@ -763,7 +762,7 @@ fn test_msm_BLS12_381_10P() {
         0xa924b5316afad687fc174c75, 0x136a13276f643b22873d7490, 0xfa56e794ab2e49db1a65d154,
         0xa8c32e8861e673612ae9f3a2, 0xd12e4badeb492211212793, 0x5fe3e9844a34155419eb432,
         0x100000000000000000d9e2865dd56177d, 0x1000000000000000027d8ecbd5198c228,
-        0x1000000000000000022c5f7e952ac9b2b, 0x10000000000000000a2e9b304305db746,
+        0x1000000000000000022c5f7e952ac9b2b, 0x10000000000000000a2e9b304305db746
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -776,15 +775,15 @@ fn test_msm_BLS12_381_10P() {
                 limb0: 0x85cd6b5af7b7cca272f94a3,
                 limb1: 0x55be389217b4b81baee9530f,
                 limb2: 0x1b5a70fff8b31b3cfc4b68de,
-                limb3: 0x101c3dcc7f2a1be1afe50e39,
+                limb3: 0x101c3dcc7f2a1be1afe50e39
             },
             y: u384 {
                 limb0: 0xdc944be6d0d78b23304e3193,
                 limb1: 0xe1cdd664f4036ec4bd90db8,
                 limb2: 0xf9e55c43073f3a6163464638,
-                limb3: 0x14396fc17f6c6bc8f76ea501,
-            },
-        },
+                limb3: 0x14396fc17f6c6bc8f76ea501
+            }
+        }
     );
 }
 
@@ -880,7 +879,7 @@ fn test_msm_BLS12_381_11P() {
         0x6eda656d7e631870e3600441, 0x170f2b8ebab1a7c6884463a3, 0xd7bfea3459a831bff9178452,
         0xf1e34eceee6376fc7ca9b25, 0x9245d44dca719c11569e91c5, 0x829977ffedfa58f78ae0959e,
         0xcbb65cb0a53b9639d2fcd418, 0x7635fac8f26c4762db2fb7, 0x100000000000000003b4d8d413c8654e3,
-        0x480407e0ff6c1d6c, 0x1011af9ee2cc20e6, 0x2dde429d4509a6dc,
+        0x480407e0ff6c1d6c, 0x1011af9ee2cc20e6, 0x2dde429d4509a6dc
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -893,15 +892,15 @@ fn test_msm_BLS12_381_11P() {
                 limb0: 0x20ed31b5bd1a6a99cbc5f536,
                 limb1: 0x455cd2878abeba8b867a4290,
                 limb2: 0x9dfb4341a83a69b41feb23e4,
-                limb3: 0x16dfcd6d60e4be40819587ca,
+                limb3: 0x16dfcd6d60e4be40819587ca
             },
             y: u384 {
                 limb0: 0xe898728a87fdf94569d6fc7b,
                 limb1: 0xebd6dcf86bcbaf6626552df1,
                 limb2: 0x3892cf6167890a8cfbb63c03,
-                limb3: 0xcc772bf8b9e03accf1bd62,
-            },
-        },
+                limb3: 0xcc772bf8b9e03accf1bd62
+            }
+        }
     );
 }
 
@@ -1005,7 +1004,7 @@ fn test_msm_BLS12_381_12P() {
         0x4ad0adea7d44208504ffa544, 0x122dbd49c1be9a7cede8f22d, 0xa7a998d5d885d32646167830,
         0x5f83ce9f704555fd5177aa16, 0x95cdcf02e2e556a08a988e4, 0xdac0c3fac6c4b903f15e3af,
         0x6249de39f2cc9280, 0x100000000000000008d2562f99f8222e7, 0x28c4e5bf72e345ad,
-        0x10000000000000000222b64363b6a2501,
+        0x10000000000000000222b64363b6a2501
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1018,15 +1017,15 @@ fn test_msm_BLS12_381_12P() {
                 limb0: 0x8bce5042829fff73a3bcf235,
                 limb1: 0x24302605af7afd068c1bac35,
                 limb2: 0x37e884c17dfeef6ccab457b5,
-                limb3: 0xd33acb51b348e3a6fe9f58b,
+                limb3: 0xd33acb51b348e3a6fe9f58b
             },
             y: u384 {
                 limb0: 0x26976f00ce9dc19a844a55bf,
                 limb1: 0x305566a6af04e25742e40b78,
                 limb2: 0xeb73722c02dbef5226438532,
-                limb3: 0x1618caeaf7d7b6c6e1bf656,
-            },
-        },
+                limb3: 0x1618caeaf7d7b6c6e1bf656
+            }
+        }
     );
 }
 
@@ -1039,7 +1038,7 @@ fn test_msm_SECP256R1_1P() {
         0xeb1167b367a9c3787c65c1e582e2e662, 0xf7c1bd874da5e709d4713d60c8a70639, 0x3,
         0x5ecaccc77099015edd4567b8, 0xa82e8c31fd89230e9e054b35, 0x9b8f95662d8ac62b, 0x0,
         0x197a10d65c49dfb9020a06d1, 0x385d645da0e58782b062bea8, 0xce16e956485f6821, 0x0,
-        0x35a5b9ab55bd33dd4dec8ec8c85b8754, 0x1256a1018e9a2606d3efc444e5bc9e97,
+        0x35a5b9ab55bd33dd4dec8ec8c85b8754, 0x1256a1018e9a2606d3efc444e5bc9e97
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1052,15 +1051,15 @@ fn test_msm_SECP256R1_1P() {
                 limb0: 0x5ecaccc77099015edd4567b8,
                 limb1: 0xa82e8c31fd89230e9e054b35,
                 limb2: 0x9b8f95662d8ac62b,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x197a10d65c49dfb9020a06d1,
                 limb1: 0x385d645da0e58782b062bea8,
                 limb2: 0xce16e956485f6821,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1079,7 +1078,7 @@ fn test_msm_SECP256R1_2P() {
         0x29fa93ff2e088f257810ffaf340cbe2f, 0x67db401fe06eea845a19e61367b76a34,
         0xf89789bfc970e55d00b6c590, 0xf75a68e0b3fa2545ac20867c, 0x2960649db3055cd8, 0x0,
         0x89f368de0f28fdf05075bde, 0x528cd10ce08cfe5ddb208066, 0xda975b1ed45230dd, 0x0,
-        0x44faf735503f8d6a4fd7c1f1541b0e83, 0x108efc1b039167d94064f65615a509dcb,
+        0x44faf735503f8d6a4fd7c1f1541b0e83, 0x108efc1b039167d94064f65615a509dcb
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1092,15 +1091,15 @@ fn test_msm_SECP256R1_2P() {
                 limb0: 0x7c99e6e15710cca6d05a228c,
                 limb1: 0xb3b0695cd0bcf4e2fff2aa40,
                 limb2: 0xf51b415c36a8d206,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x3ed9af037beeebe8a4e51272,
                 limb1: 0x59c17339e41ffb8881d8ff31,
                 limb2: 0x8659e768c3fbaf89,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1125,7 +1124,7 @@ fn test_msm_SECP256R1_3P() {
         0x97f029beb074caf4db383ce1b6f43018, 0x676a9d25b186deaeeb154f6f81c3cac5,
         0xcb6fdbee18c8593a5411d8d4, 0xb5481fe44962e7d3e222115, 0x871c9156dc079065, 0x0,
         0x8c26b99697ee8e8f646fc0eb, 0x73d06be2b40891cb15d4a6c8, 0x97c7a60ae52be2f, 0x0,
-        0xe1a61de4d41b08744b95b20a4e12fcb3, 0x153b6b6be0d5eaf38f83e1294ef38c98b,
+        0xe1a61de4d41b08744b95b20a4e12fcb3, 0x153b6b6be0d5eaf38f83e1294ef38c98b
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1138,15 +1137,15 @@ fn test_msm_SECP256R1_3P() {
                 limb0: 0x60a04d1cd61720fd649a635,
                 limb1: 0x4de992ec1fe826266faf9542,
                 limb2: 0x7fcc86284cb4d8d5,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xc5cc56bee25131b3aec25cee,
                 limb1: 0x60f429ebbf34f181ee9e0f69,
                 limb2: 0xeaba7780c9c9f8a8,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1178,7 +1177,7 @@ fn test_msm_SECP256R1_4P() {
         0x26994a6057531b28435aaa960f280193, 0x30924dc9b5e85e844f4ee14d4bfe0e12,
         0xfeea2dd70b8a91873d10df4b, 0xb8e2d33a659ef7fa87e3fa0, 0x74fc51cbe8e5400d, 0x0,
         0xe4d3e3cf55a86291a7c5da22, 0xd3b103edfa5860bd1f94cdf8, 0x3480d7e452a5d2b5, 0x0,
-        0x935644fe1e5f8844579a502568d12dc6, 0x177896bfd1e087a003ea64e9eaecd32d3,
+        0x935644fe1e5f8844579a502568d12dc6, 0x177896bfd1e087a003ea64e9eaecd32d3
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1191,15 +1190,15 @@ fn test_msm_SECP256R1_4P() {
                 limb0: 0x34c12d0510448edd8a4f435e,
                 limb1: 0x1c1b70597d3d6f0ffda68cdc,
                 limb2: 0x8f60be7a69fb2da6,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x67b330ca24613a628c5f1d44,
                 limb1: 0xa12378b8d8a57f7ee45cf035,
                 limb2: 0x7f7102c7548d7593,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1267,7 +1266,7 @@ fn test_msm_SECP256R1_10P() {
         0x10c6c0d26e3816ea1b2e066d32578f8e, 0xe883f51850260b2857cb5d63a26adb1d,
         0x642b3b250974accb2a19bddd, 0xab3e89d8cf48dc55485119e6, 0xc5f80116c5e9c74, 0x0,
         0xff9bfb138c144d05684a114c, 0x7e7e1ae6a3570325390ed38e, 0x92eb23ab15e45e63, 0x0,
-        0xa318a477495afb754a1e314186443137, 0x1a9d9d5e84e930f6526918aa8ca162b82,
+        0xa318a477495afb754a1e314186443137, 0x1a9d9d5e84e930f6526918aa8ca162b82
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1280,15 +1279,15 @@ fn test_msm_SECP256R1_10P() {
                 limb0: 0xfba2105cfbf4fb86b8691c25,
                 limb1: 0x737afa206da896812a1683ed,
                 limb2: 0x3770a73db013e250,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x5590076303a44e451ab3856b,
                 limb1: 0xd5fcd660db51d063c730f5c7,
                 limb2: 0x506410f9c703c100,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1362,7 +1361,7 @@ fn test_msm_SECP256R1_11P() {
         0x2785e73e00b487bf30548408ffb58c02, 0x15f510a537d9b81be6f4a2335fa207095,
         0xff532f80c81fe274ac646064, 0x8c46882da4fde0295beab9e1, 0xc2b5cd8a7a93240a, 0x0,
         0xc949597e8e67ebee593df861, 0xa4849c0210fd9206fdaffcfd, 0x510cde5a5da7c46e, 0x0,
-        0xe293dda213f46bf461aba1d96a9d193b, 0x15cb16111d99d7ae505af716e48e6b599,
+        0xe293dda213f46bf461aba1d96a9d193b, 0x15cb16111d99d7ae505af716e48e6b599
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1375,15 +1374,15 @@ fn test_msm_SECP256R1_11P() {
                 limb0: 0xe702738c3be4c98312c6fd8,
                 limb1: 0xdf289702da4292e2baf6d123,
                 limb2: 0xd2e3d9fa85ae9ec9,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xb24620fd1d6468e74e756e09,
                 limb1: 0xa92f0cfbb6159a6b7d73d3c8,
                 limb2: 0xfdfb28f19d569756,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1463,7 +1462,7 @@ fn test_msm_SECP256R1_12P() {
         0x5747d2a86b06c3af37767b79685e955a, 0x12d5f64271c5145c58fdf6149840ae47,
         0x93b81d705fbc02e172727cfd, 0x4de473fa4428b4c924d7bd53, 0x1939f32498b8d75d, 0x0,
         0x8ab3d19f0f073043eb950bf9, 0xee1962e119ef85b4c508ad6d, 0x6808f2627e81135c, 0x0,
-        0xf49af9f8629ea294f624aa92983015e9, 0x1046b42b340cdb380acd6a9b3aecef690,
+        0xf49af9f8629ea294f624aa92983015e9, 0x1046b42b340cdb380acd6a9b3aecef690
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1476,15 +1475,15 @@ fn test_msm_SECP256R1_12P() {
                 limb0: 0xce6a9b69daea1558dcbe14f1,
                 limb1: 0x3d82daa514f325d29522e5e7,
                 limb2: 0xc9833209611997e9,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x84af480eeea70b1a6120dc57,
                 limb1: 0xc6df620bb03464672b4e6d28,
                 limb2: 0x53ae491c8e1b5177,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1498,7 +1497,7 @@ fn test_msm_SECP256K1_1P() {
         0xc20f5aa13afc3a2097ce088b, 0x50220928f8ca04bf313c1d7, 0x70743ffac9bb07f9, 0x0,
         0xfa42792834ae5445fcaca832, 0x6796f84b7340adf44ed49d33, 0x62fd8a76eedcb778, 0x0,
         0x100000000000000006d17da9dde38d3aa, 0x100000000000000008e0801a3d001f325, 0x87ea3597eb650e8,
-        0xe42d003a1f0e89bd,
+        0xe42d003a1f0e89bd
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1511,15 +1510,15 @@ fn test_msm_SECP256K1_1P() {
                 limb0: 0xc20f5aa13afc3a2097ce088b,
                 limb1: 0x50220928f8ca04bf313c1d7,
                 limb2: 0x70743ffac9bb07f9,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xfa42792834ae5445fcaca832,
                 limb1: 0x6796f84b7340adf44ed49d33,
                 limb2: 0x62fd8a76eedcb778,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1539,7 +1538,7 @@ fn test_msm_SECP256K1_2P() {
         0x13bfcc5670fee7eb, 0xef8bfd5fa527215c20165899, 0x7e263c9c3df47bc32eb4890b,
         0x9a3ee712d779bbf1, 0x0, 0x7d54e9e980c0873b3755c17e, 0x22a963dcae22fec5cacd5431,
         0x817adf30a086d140, 0x0, 0x40c3f72fa123bad6, 0x461e3a87e8955f53, 0x53ec0e0286c9f6ad,
-        0x1000000000000000074832ec5bb09d4f6,
+        0x1000000000000000074832ec5bb09d4f6
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1552,15 +1551,15 @@ fn test_msm_SECP256K1_2P() {
                 limb0: 0x97ad9ae598203a75c13a895,
                 limb1: 0xed9fb4bee5b2f54ca5cffb42,
                 limb2: 0x284782b62d08871c,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xfb082c65dab4069694f90f18,
                 limb1: 0xb12d25f5fb5e746c12686571,
                 limb2: 0x7d0eb16046d10c7e,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1586,7 +1585,7 @@ fn test_msm_SECP256K1_3P() {
         0x10000000000000000701b1de1a64611a5, 0x7bb19b6adc4d85f4, 0x2fd5ac7d0446c0d3,
         0x8a41f2a7e7ad4089990a1bcd, 0xec1d1ff466f58331529b0acd, 0x5649d8d001330363, 0x0,
         0xfc543db1835e8a78f0994291, 0x43c390ccae632a174f607c8a, 0x813ee8122c9dfa7b, 0x0,
-        0x7f7b9792bad13df8, 0xf56d08780b0b13f5, 0x535b7499f702bf5d, 0xce3ee818c4660dc,
+        0x7f7b9792bad13df8, 0xf56d08780b0b13f5, 0x535b7499f702bf5d, 0xce3ee818c4660dc
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1599,15 +1598,15 @@ fn test_msm_SECP256K1_3P() {
                 limb0: 0x793f03cb81255db0817da454,
                 limb1: 0x5ed27cf7207443f37bfeee3c,
                 limb2: 0x42943c6416752a12,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xf2d25838b8b95a3caaef5ce4,
                 limb1: 0xce58bfff9d25e997305603f3,
                 limb2: 0x5d776495b03d0b6c,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1641,7 +1640,7 @@ fn test_msm_SECP256K1_4P() {
         0x1000000000000000006a4728421f58565, 0xa46be4f636be4779570df4e8, 0x7380a6e3dc3aa91b3650ca10,
         0x3ef088ac9bc45c0e, 0x0, 0xce7710a9c0715f82fea0f76a, 0xf51283a23eaaaca518d43319,
         0x5069f990b18886d0, 0x0, 0xa5ba5bf9830a178c, 0xf8d715433d751f7e,
-        0x1000000000000000001b585fab6a98780, 0x100000000000000001ee3ebda652c4c63,
+        0x1000000000000000001b585fab6a98780, 0x100000000000000001ee3ebda652c4c63
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1654,15 +1653,15 @@ fn test_msm_SECP256K1_4P() {
                 limb0: 0xafc19dabd2b0bef1f47a78e4,
                 limb1: 0x64c8cfa2f6ce21bd45380a70,
                 limb2: 0xd6ec71e82872d984,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x1afed7037f7e7362dceb03ec,
                 limb1: 0x149013c6ed7333d6e4ded96a,
                 limb2: 0xaf1489c5a6180b55,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1734,7 +1733,7 @@ fn test_msm_SECP256K1_10P() {
         0x5d40472f64481ec66b6dfdcb, 0xd9d5a457d4f31dcc2466d69c, 0x449dc00f6eae442, 0x0,
         0x6c92237c0eb59cbc2c25069c, 0x11d28a7835aabe323b14a8c6, 0x921e2140e6ae64cd, 0x0,
         0x1000000000000000065147afbdc695a04, 0x10000000000000000018d0e419fe453c3,
-        0x1000000000000000032ded75d2eb0eb80, 0x10000000000000000ee7c926d371453c4,
+        0x1000000000000000032ded75d2eb0eb80, 0x10000000000000000ee7c926d371453c4
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1747,15 +1746,15 @@ fn test_msm_SECP256K1_10P() {
                 limb0: 0x1c835913f9cca4833f4dee66,
                 limb1: 0x192924721b46c95f86539366,
                 limb2: 0xb6324fc7eea725e5,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x1655ccd2f516c24c8b23cd23,
                 limb1: 0x5a78708d282fbf676e9eafa4,
                 limb2: 0x8f71e12b03a69c94,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1834,7 +1833,7 @@ fn test_msm_SECP256K1_11P() {
         0x1089abd09e19fd5df, 0xc69eeeb967755694, 0xfdaa8c8434c1fdf1f6736acd,
         0xbb1563781b62fc9b97ec831c, 0x4a33d42ad138f3ae, 0x0, 0x61cfb29de0788d394e459f95,
         0x4c2cf12dc88f92c32a6186ae, 0xa44f474e566f0d73, 0x0, 0x4f62e61d803963a6, 0x6f08b65992670489,
-        0x67cea05dbb9a909d, 0x96fb2bd0b03403bc,
+        0x67cea05dbb9a909d, 0x96fb2bd0b03403bc
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1847,15 +1846,15 @@ fn test_msm_SECP256K1_11P() {
                 limb0: 0x64fc5a7a1dbb0ded5877d244,
                 limb1: 0x690efd6ba8db4b9093e04859,
                 limb2: 0x4a95e2ad2036bb89,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x787161946cccf45a982322c8,
                 limb1: 0xfb559d2c2a26b632cf7c2894,
                 limb2: 0x4ed9af33445b7a3f,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1941,7 +1940,7 @@ fn test_msm_SECP256K1_12P() {
         0x8fc19cd46a492745, 0x278a81bdcc0f4f0f1b17c004, 0xf44d7e6bc07af6f2ee512475,
         0x999ae67b5d65554a, 0x0, 0x6f57b1bfa3ea31cc6d8812f7, 0x709574ee1724876336af416d,
         0x6b54f96429ec82f6, 0x0, 0x984e110d1ee38dcc, 0x1000000000000000004d4f2a3b925c2b8,
-        0x1000000000000000008b29d4fa5dec6e5, 0x100000000000000004e45715b78d9bfec,
+        0x1000000000000000008b29d4fa5dec6e5, 0x100000000000000004e45715b78d9bfec
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1954,15 +1953,15 @@ fn test_msm_SECP256K1_12P() {
                 limb0: 0x37558e45b8041762de768836,
                 limb1: 0x5d514037c232b89fb7a06905,
                 limb2: 0x2515485638a3a199,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xb85967bc1c9cde890f6a236f,
                 limb1: 0xeece653858fb74a34a817724,
                 limb2: 0x71995703660dd489,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -1976,7 +1975,7 @@ fn test_msm_ED25519_1P() {
         0xb4862b21fb97d43588561712e8e5216a, 0x4b3e865e6f4590b9a164106cf6a659e, 0x4,
         0x62c2b89a3152e22243cf864d, 0xaf83913cf31609fd7b4f9a32, 0x6da9a48b077c3954, 0x0,
         0xa54703c64365ab4373eae904, 0x87e47f46101c003371e14338, 0x462e50d88b5b5c17, 0x0,
-        0x21ef407bea1953254c1bc318a0af2527, 0x1c147c0993c84eed5f426b94b3350045,
+        0x21ef407bea1953254c1bc318a0af2527, 0x1c147c0993c84eed5f426b94b3350045
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -1989,15 +1988,15 @@ fn test_msm_ED25519_1P() {
                 limb0: 0x62c2b89a3152e22243cf864d,
                 limb1: 0xaf83913cf31609fd7b4f9a32,
                 limb2: 0x6da9a48b077c3954,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xa54703c64365ab4373eae904,
                 limb1: 0x87e47f46101c003371e14338,
                 limb2: 0x462e50d88b5b5c17,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2017,7 +2016,7 @@ fn test_msm_ED25519_2P() {
         0x211c4f690d00cb3af0b34c381ddf6429, 0x10dbbf233e0f266b14c85329c2440c426,
         0x20b84e815be93309f3490609, 0xcddf2646d9499c09fa01ac80, 0x47a3d45b5433479c, 0x0,
         0x257b7612e4301ed9448341a6, 0x4f3236c077377add9253d652, 0x3b0d15e6632e50c, 0x0,
-        0x3242668a77ced3cb6ca4b87c1b759c91, 0x128e825972592d2a632df711368a1c105,
+        0x3242668a77ced3cb6ca4b87c1b759c91, 0x128e825972592d2a632df711368a1c105
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2030,15 +2029,15 @@ fn test_msm_ED25519_2P() {
                 limb0: 0x78cd6990a813b6a2588ccb19,
                 limb1: 0xcb57433fd1eaa5787491656f,
                 limb2: 0x70e4c58e64e4a9f3,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x428873cad69986b7befbd0f0,
                 limb1: 0x5dde16f78dd45ec0c5a51f9d,
                 limb2: 0x67295fe953f1c748,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2064,7 +2063,7 @@ fn test_msm_ED25519_3P() {
         0x25b58a4ace1755dfa44b5f1f5d91fdcb, 0x23fa824d04875112a551d6ef70fef39,
         0x6444144efd61c928f158778, 0x90d9eaffbf7e696c0b22614, 0x6879c7c3d7314db0, 0x0,
         0xd6ae7f02956e20ce1359317d, 0x3545b77c84a0952ba44fa34, 0x54c416a35489a439, 0x0,
-        0x46f42706c0113ff0ccf72fe8f742fd2, 0x1035b8cd8e980519d9ab6ef3f50ee8fa9,
+        0x46f42706c0113ff0ccf72fe8f742fd2, 0x1035b8cd8e980519d9ab6ef3f50ee8fa9
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2077,15 +2076,15 @@ fn test_msm_ED25519_3P() {
                 limb0: 0x9292b7770106624b91a73738,
                 limb1: 0x2c9a7c1a0496485effe3922e,
                 limb2: 0x7cc025fefaaec43f,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x44e571d5378b2d6e5b1d7114,
                 limb1: 0x5d34cb1a17260d862ef07e73,
                 limb2: 0x3d6ee7ee0c8df451,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2117,7 +2116,7 @@ fn test_msm_ED25519_4P() {
         0x25f8e65eae4eb72e4febaca4a978a32e, 0x3138e75e7839c1e424a845740cd897e1,
         0xa2afdf272784379c88d18a53, 0x15e4f535a988eb9702bc3741, 0x2317d852a07769d1, 0x0,
         0x29cd9f41fe12ae23c14fe282, 0x85611a868445899f82b3529c, 0x676eb93f52742f3f, 0x0,
-        0x1efc8eeeff5d60d288b61287fc750073, 0x1205819efd721c8fa9d99528aa8086dd8,
+        0x1efc8eeeff5d60d288b61287fc750073, 0x1205819efd721c8fa9d99528aa8086dd8
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2130,15 +2129,15 @@ fn test_msm_ED25519_4P() {
                 limb0: 0x54e30b1dbc54acd91542088c,
                 limb1: 0x702b532dab377f0636d9f465,
                 limb2: 0x25ee2efd1d7ca3f6,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xd25f547d7c2f7258cbdb9c6b,
                 limb1: 0xcae4d4cae9a1aba26935de1e,
                 limb2: 0x277ff10c5815321e,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2206,7 +2205,7 @@ fn test_msm_ED25519_10P() {
         0x5e0ad7648a4f59729af8617b82d4b15, 0x1204a5942db3ff32572d539505799c162,
         0xfed466728e21ebb6ec730686, 0x4c84b97d2b2b549c0205e93d, 0x6d18c143ec437b75, 0x0,
         0x1375c64d45b624c9fcbbbfc7, 0xa154d66ebcc37fc1b61f1bd0, 0x35765a06dfd06c00, 0x0,
-        0x1bb625624ceab37b75f8eb6d9baaec37, 0x8869d6e2bfcd45999b706e500bdf6e9,
+        0x1bb625624ceab37b75f8eb6d9baaec37, 0x8869d6e2bfcd45999b706e500bdf6e9
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2219,15 +2218,15 @@ fn test_msm_ED25519_10P() {
                 limb0: 0x9dd56ed7fdf1e5a3e9cbb3b5,
                 limb1: 0xd0df8ca018c550bbd230f67,
                 limb2: 0x75b3c38a01fed369,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xa1bb56d8c1b7c9598a692c1c,
                 limb1: 0xc940b96f597931f22e3c4b07,
                 limb2: 0x41ca6082f12494f3,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2301,7 +2300,7 @@ fn test_msm_ED25519_11P() {
         0x4f7c63b27ca63da0b0528098af0dab, 0xf35e51f8509ab42e70f2e964b3fd8c,
         0x93dd0836e7e13591e646d775, 0x165ef3a2c6f0a3c905a9eb74, 0x41d60538e230bb0, 0x0,
         0xa8dc2a660b9336e923e82fd8, 0xf329310a470287aef66cbfc9, 0x5d6441cffa1f00d2, 0x0,
-        0x122200117465217fb53ec8140b91481, 0x13d5f8e8fedb409022970ed842b78a9c4,
+        0x122200117465217fb53ec8140b91481, 0x13d5f8e8fedb409022970ed842b78a9c4
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2314,15 +2313,15 @@ fn test_msm_ED25519_11P() {
                 limb0: 0x1518e158cd20a0734c8395d6,
                 limb1: 0x9e542f72e122bba6f1c46e7,
                 limb2: 0x74cb223a70d329c9,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x779bfa346b625483d1999346,
                 limb1: 0xf6901ab1d5d3d000b7fb3634,
                 limb2: 0x6898c5fa74d3665a,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2402,7 +2401,7 @@ fn test_msm_ED25519_12P() {
         0x37b10ae5354582f85190f7870b858c63, 0x1316ba5fddb42e06735d0f1fdcc24a38,
         0x45a14721d6abe459bc5aea8, 0x1568bffaa9565041d7dbaf28, 0x3e6067b9f8935c8, 0x0,
         0x26d59ad679daa7e759147eba, 0x9503c0a1029b0f7ce7406c4b, 0x3db5661841ebce66, 0x0,
-        0x121b5378cd43ffc919a2305e76423029, 0x18300af219c488c1a25884d5c7401c30,
+        0x121b5378cd43ffc919a2305e76423029, 0x18300af219c488c1a25884d5c7401c30
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2415,15 +2414,15 @@ fn test_msm_ED25519_12P() {
                 limb0: 0x4ee4167708b29620b1a9e142,
                 limb1: 0x6fd520385a98769aa6f2e833,
                 limb2: 0x29e58ca78283490e,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xf78829d77fe7c51b0788aa60,
                 limb1: 0x98af3b491451a91c0de5fdab,
                 limb2: 0x4ba4b20ac788a99,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2437,7 +2436,7 @@ fn test_msm_GRUMPKIN_1P() {
         0xb4862b21fb97d43588561712e8e5216a, 0x967d0cae6f4590b9a164106cf6a659e, 0x5,
         0x41c610705003caeb41ebc2e1, 0x7e86ece0ef89d80aca46deac, 0x121b38a9ddb387ef, 0x0,
         0x5d4d7ed98f7bc32e88ca220f, 0xc1b7d0a1662fc4fbf7fefffe, 0x24a447a3fd6b6dd0, 0x0,
-        0x5520c252aad219e02bf5055a4ed023b7, 0x197e50b8e7adb6dd93eeede129c12721,
+        0x5520c252aad219e02bf5055a4ed023b7, 0x197e50b8e7adb6dd93eeede129c12721
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2450,15 +2449,15 @@ fn test_msm_GRUMPKIN_1P() {
                 limb0: 0x41c610705003caeb41ebc2e1,
                 limb1: 0x7e86ece0ef89d80aca46deac,
                 limb2: 0x121b38a9ddb387ef,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x5d4d7ed98f7bc32e88ca220f,
                 limb1: 0xc1b7d0a1662fc4fbf7fefffe,
                 limb2: 0x24a447a3fd6b6dd0,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2478,7 +2477,7 @@ fn test_msm_GRUMPKIN_2P() {
         0x39dea48eef47b3e6bcae980c9112d477, 0x538cc4627274d8f320bf5df15c887356,
         0xc0a469a5b7f47ad22e92fe7d, 0xd7d5b526e50c6900bdcfeb9d, 0x21df2654af8f907c, 0x0,
         0x19ca14fef97aef829a022e99, 0x3436a3a9d29787ffa53573f3, 0x16d3f0d2e78b2950, 0x0,
-        0x10a2e45b33049f11b360c09b6389565b, 0x63f1d0c59d848c415389772b72561b3d,
+        0x10a2e45b33049f11b360c09b6389565b, 0x63f1d0c59d848c415389772b72561b3d
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2491,15 +2490,15 @@ fn test_msm_GRUMPKIN_2P() {
                 limb0: 0x512920e074cbe690304d839e,
                 limb1: 0xb077d5884dbdc5fcb9424a35,
                 limb2: 0x16cd67edce8be7ac,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x70cd2c4a003d407aabc7cc,
                 limb1: 0xe2748dd5f8c2a0e1dadd02d5,
                 limb2: 0x1c1cfa79fda07581,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2525,7 +2524,7 @@ fn test_msm_GRUMPKIN_3P() {
         0x4330e45cf056866449d6d2b7255a6d25, 0x102e9d68e73086da22f4b98d2103a3c22,
         0x2e20c00e88de121d37fa2696, 0x86ac870558aabfae43dc69a0, 0x26095fa9606bf53, 0x0,
         0x327031fef1203666f47f2099, 0xdb951627a7f45379f1e51f4f, 0x376fe09acf51529, 0x0,
-        0x32cbca2bbd2f37ecb19ba4403b940cc1, 0x12977bae8a28f111cf0a43807982d3bb7,
+        0x32cbca2bbd2f37ecb19ba4403b940cc1, 0x12977bae8a28f111cf0a43807982d3bb7
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2538,15 +2537,15 @@ fn test_msm_GRUMPKIN_3P() {
                 limb0: 0x213a074a0215934c65d47250,
                 limb1: 0x57ceadf09cd8ebde50476db0,
                 limb2: 0x1f82780f1a4c3d23,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x7282af42d1608d1f8c034960,
                 limb1: 0x81214b248c88a391f72dd6e0,
                 limb2: 0x5df1db744450be3,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2578,7 +2577,7 @@ fn test_msm_GRUMPKIN_4P() {
         0x453503237fe891d4168e4f9228c400b7, 0x72e13e861339a4b3dab61e0d640fc66,
         0x7ec3a5c2c9499344ac050cdd, 0x791b53545bf433b7079614ac, 0x21453b32e9702074, 0x0,
         0xdb015deb84bb2b7b687999ca, 0xf553ab53e8fed39de94cc1f5, 0x1c73bed188a1cf2f, 0x0,
-        0x3370dc3b2f6a7a7d6a4917e6cae4e0e1, 0x14488bb2a825221dfb2b87de071f1b27c,
+        0x3370dc3b2f6a7a7d6a4917e6cae4e0e1, 0x14488bb2a825221dfb2b87de071f1b27c
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2591,15 +2590,15 @@ fn test_msm_GRUMPKIN_4P() {
                 limb0: 0x577ddc8cb42b7a3b83e4d525,
                 limb1: 0x74e9415eb1dbca9529930fc,
                 limb2: 0x26b61a5d6d67dd31,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x6cc0d22d0549fc5bbbb24080,
                 limb1: 0x315ae072448564ca12dc062e,
                 limb2: 0x2d218fcb973e8f23,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2667,7 +2666,7 @@ fn test_msm_GRUMPKIN_10P() {
         0x146dc11c44642a7552be554048969667, 0x1240b81ea23b0099fa77c5be92a2a8286,
         0xead19fc6d1fe6777fc7fe69f, 0x75f5a9115bf9d3ee7a306806, 0x325b9bf2679afd4, 0x0,
         0x69479ee6fe51ea5b53a60c39, 0xb467acaf148cd9cc4e51a679, 0x1aa47e4314e976ec, 0x0,
-        0x2024c45822518dadf0322fb9e8b505e1, 0x1581e6419c45af5a4b61bbe76efb6a640,
+        0x2024c45822518dadf0322fb9e8b505e1, 0x1581e6419c45af5a4b61bbe76efb6a640
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2680,15 +2679,15 @@ fn test_msm_GRUMPKIN_10P() {
                 limb0: 0x664e7a2a841e9440a32b6d19,
                 limb1: 0xafdb5f6d16a62de9213ee040,
                 limb2: 0x13f95a9cdebbf34c,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x7ff039b0dc46b2d7c69d0faf,
                 limb1: 0x2e4a2bd3a50e076ea1b3056,
                 limb2: 0x2dbf12d12987fc34,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2762,7 +2761,7 @@ fn test_msm_GRUMPKIN_11P() {
         0x32d3a03325ee181cc9c2b39a4e2916d9, 0x219449b8074d447b4f3f2fb27633a5e1,
         0x85028124eee08fb0e6ef7707, 0x91fb6fec286026bab476ba92, 0x2733c400e9b74caf, 0x0,
         0x7660634344195f9b47cdb6ca, 0x4fdc765e611b89333602fe6d, 0x1152965b31d3e6b7, 0x0,
-        0xa131e2b48ec3bee1efa6016b50ac441, 0x10c7fd5e62bf48ea70c58c0cfa9a06e45,
+        0xa131e2b48ec3bee1efa6016b50ac441, 0x10c7fd5e62bf48ea70c58c0cfa9a06e45
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2775,15 +2774,15 @@ fn test_msm_GRUMPKIN_11P() {
                 limb0: 0xffdf31426d80fe0e0c50bc6c,
                 limb1: 0x3f2ee5e0c6081e2b90431a5d,
                 limb2: 0xee45d84f0c8d969,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xe2ce9a7cc98cfccbbfd0057,
                 limb1: 0xcb704f80e53cbafb61a4cf65,
                 limb2: 0x2249c2809c6b67ce,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2863,7 +2862,7 @@ fn test_msm_GRUMPKIN_12P() {
         0x14a37dd97b695d69cf3442e2c033af3c, 0x21a0482fffb4108132fea168f764c63f,
         0x6ea786336e5cc29f4f62bb0a, 0xfe31116e59152678d3e658f7, 0x1d659cd996e57821, 0x0,
         0x7f9bfd31230be6f74a939865, 0xceae5af5704b817d79a4b61e, 0x11c5608e4816db0f, 0x0,
-        0x5396fa1ad3cb506768c58b91578ff06d, 0x542910fa71de1143e977087fee8f6313,
+        0x5396fa1ad3cb506768c58b91578ff06d, 0x542910fa71de1143e977087fee8f6313
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2876,15 +2875,15 @@ fn test_msm_GRUMPKIN_12P() {
                 limb0: 0xcb36822ddaf2d31c783a48a,
                 limb1: 0x8bdd749154654edb9553e2d,
                 limb2: 0x27b9db3dc009b797,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x98d17fd0a10d23d8218f14dc,
                 limb1: 0xe9084619146a3dc82331192,
                 limb2: 0xd5e171223497006,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2897,7 +2896,7 @@ fn test_msm_BN254_1P_edge_case() {
         0x0, 0x0, 0x2833e84879b9709143e1f593f0000000, 0x30644e72e131a029b85045b68181585d, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x1, 0x0, 0x0, 0x0,
         0x6871ca8d3c208c16d87cfd45, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0,
-        0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2911,9 +2910,9 @@ fn test_msm_BN254_1P_edge_case() {
                 limb0: 0x6871ca8d3c208c16d87cfd45,
                 limb1: 0xb85045b68181585d97816a91,
                 limb2: 0x30644e72e131a029,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2931,7 +2930,7 @@ fn test_msm_BN254_2P_edge_case() {
         0x10000000000000000358f1af3ace11fdc, 0x100000000000000004ac9542b22967d33,
         0x100000000000000000cf05f964742cc6d, 0x1000000000000000081d342cffb91cba7, 0x1, 0x0, 0x0,
         0x0, 0x6871ca8d3c208c16d87cfd45, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0,
-        0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2945,9 +2944,9 @@ fn test_msm_BN254_2P_edge_case() {
                 limb0: 0x6871ca8d3c208c16d87cfd45,
                 limb1: 0xb85045b68181585d97816a91,
                 limb2: 0x30644e72e131a029,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -2971,7 +2970,7 @@ fn test_msm_BN254_3P_edge_case() {
         0x0, 0x100000000000000005fcd1b724f1296a6, 0x1000000000000000016e3236cbd22722f,
         0x4dac40f4f32b51f2, 0x1000000000000000000417aa85f133ffd, 0x1, 0x0, 0x0, 0x0,
         0x6871ca8d3c208c16d87cfd45, 0xb85045b68181585d97816a91, 0x30644e72e131a029, 0x0,
-        0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -2984,15 +2983,15 @@ fn test_msm_BN254_3P_edge_case() {
                 limb0: 0x8cb92121f4f98343b28bd83d,
                 limb1: 0xa60bedf2a6dc9ea3a4503a84,
                 limb2: 0x242282a9381754f,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x41c01095a54c1bf16eec174b,
                 limb1: 0x84b781a7f16d430823b44408,
                 limb2: 0x26bc23f1f4abf016,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3009,7 +3008,7 @@ fn test_msm_BLS12_381_1P_edge_case() {
         0x1, 0x0, 0xf97a1aeffb3af00adb22c6bb, 0xa14e3a3f171bac586c55e83f,
         0x4fa9ac0fc3688c4f9774b905, 0x17f1d3a73197d7942695638c, 0xecb751bad54dcd6b939c2ca,
         0x6655b9d5caac42364e6f38ba, 0xcf2e21f267816aef1db507c9, 0x114d1d6855d545a8aa7d76c8,
-        0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3022,15 +3021,15 @@ fn test_msm_BLS12_381_1P_edge_case() {
                 limb0: 0xf97a1aeffb3af00adb22c6bb,
                 limb1: 0xa14e3a3f171bac586c55e83f,
                 limb2: 0x4fa9ac0fc3688c4f9774b905,
-                limb3: 0x17f1d3a73197d7942695638c,
+                limb3: 0x17f1d3a73197d7942695638c
             },
             y: u384 {
                 limb0: 0xecb751bad54dcd6b939c2ca,
                 limb1: 0x6655b9d5caac42364e6f38ba,
                 limb2: 0xcf2e21f267816aef1db507c9,
-                limb3: 0x114d1d6855d545a8aa7d76c8,
-            },
-        },
+                limb3: 0x114d1d6855d545a8aa7d76c8
+            }
+        }
     );
 }
 
@@ -3052,7 +3051,7 @@ fn test_msm_BLS12_381_2P_edge_case() {
         0x885278dc00a1125a, 0x2fe0754b9fadfe7b, 0xf97a1aeffb3af00adb22c6bb,
         0xa14e3a3f171bac586c55e83f, 0x4fa9ac0fc3688c4f9774b905, 0x17f1d3a73197d7942695638c,
         0xecb751bad54dcd6b939c2ca, 0x6655b9d5caac42364e6f38ba, 0xcf2e21f267816aef1db507c9,
-        0x114d1d6855d545a8aa7d76c8, 0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x114d1d6855d545a8aa7d76c8, 0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3065,15 +3064,15 @@ fn test_msm_BLS12_381_2P_edge_case() {
                 limb0: 0xf97a1aeffb3af00adb22c6bb,
                 limb1: 0xa14e3a3f171bac586c55e83f,
                 limb2: 0x4fa9ac0fc3688c4f9774b905,
-                limb3: 0x17f1d3a73197d7942695638c,
+                limb3: 0x17f1d3a73197d7942695638c
             },
             y: u384 {
                 limb0: 0xecb751bad54dcd6b939c2ca,
                 limb1: 0x6655b9d5caac42364e6f38ba,
                 limb2: 0xcf2e21f267816aef1db507c9,
-                limb3: 0x114d1d6855d545a8aa7d76c8,
-            },
-        },
+                limb3: 0x114d1d6855d545a8aa7d76c8
+            }
+        }
     );
 }
 
@@ -3103,7 +3102,7 @@ fn test_msm_BLS12_381_3P_edge_case() {
         0xf97a1aeffb3af00adb22c6bb, 0xa14e3a3f171bac586c55e83f, 0x4fa9ac0fc3688c4f9774b905,
         0x17f1d3a73197d7942695638c, 0xecb751bad54dcd6b939c2ca, 0x6655b9d5caac42364e6f38ba,
         0xcf2e21f267816aef1db507c9, 0x114d1d6855d545a8aa7d76c8, 0x100000000000000000000000000000001,
-        0x0, 0x1, 0x0,
+        0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3116,15 +3115,15 @@ fn test_msm_BLS12_381_3P_edge_case() {
                 limb0: 0xba6f9a258a5c81eb5c00d6d3,
                 limb1: 0xa5d26fbf164440da345149b7,
                 limb2: 0xf226b85ccdee44779e368a95,
-                limb3: 0x187795607228007e29c792fb,
+                limb3: 0x187795607228007e29c792fb
             },
             y: u384 {
                 limb0: 0x7393cfd2196053529ef8ea01,
                 limb1: 0xf856ee4c4e2adaa88c09b7d9,
                 limb2: 0x499710d15a098f2ff8b26e13,
-                limb3: 0x119aed04afd21b50d616ee0e,
-            },
-        },
+                limb3: 0x119aed04afd21b50d616ee0e
+            }
+        }
     );
 }
 
@@ -3139,7 +3138,7 @@ fn test_msm_SECP256R1_1P_edge_case() {
         0xbce6faada7179e84f3b9cac2fc632550, 0xffffffff00000000ffffffffffffffff, 0x3, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x100000000000000000000000000000001,
         0x2deb33a0f4a13945d898c296, 0xf8bce6e563a440f277037d81, 0x6b17d1f2e12c4247, 0x0,
-        0x94cea1313449bf97c840ae0a, 0x711814b583f061e9d431cca9, 0xb01cbd1c01e58065, 0x0, 0x1, 0x1,
+        0x94cea1313449bf97c840ae0a, 0x711814b583f061e9d431cca9, 0xb01cbd1c01e58065, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3152,15 +3151,15 @@ fn test_msm_SECP256R1_1P_edge_case() {
                 limb0: 0x2deb33a0f4a13945d898c296,
                 limb1: 0xf8bce6e563a440f277037d81,
                 limb2: 0x6b17d1f2e12c4247,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x94cea1313449bf97c840ae0a,
                 limb1: 0x711814b583f061e9d431cca9,
                 limb2: 0xb01cbd1c01e58065,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3181,7 +3180,7 @@ fn test_msm_SECP256R1_2P_edge_case() {
         0x100000000000000000000000000000001, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x35a5b9ab55bd33dd4dec8ec8c85b8754, 0x1256a1018e9a2606d3efc444e5bc9e97,
         0x2deb33a0f4a13945d898c296, 0xf8bce6e563a440f277037d81, 0x6b17d1f2e12c4247, 0x0,
-        0x94cea1313449bf97c840ae0a, 0x711814b583f061e9d431cca9, 0xb01cbd1c01e58065, 0x0, 0x1, 0x1,
+        0x94cea1313449bf97c840ae0a, 0x711814b583f061e9d431cca9, 0xb01cbd1c01e58065, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3194,15 +3193,15 @@ fn test_msm_SECP256R1_2P_edge_case() {
                 limb0: 0x2deb33a0f4a13945d898c296,
                 limb1: 0xf8bce6e563a440f277037d81,
                 limb2: 0x6b17d1f2e12c4247,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x94cea1313449bf97c840ae0a,
                 limb1: 0x711814b583f061e9d431cca9,
                 limb2: 0xb01cbd1c01e58065,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3229,7 +3228,7 @@ fn test_msm_SECP256R1_3P_edge_case() {
         0x67db401fe06eea845a19e61367b76a34, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x44faf735503f8d6a4fd7c1f1541b0e83, 0x108efc1b039167d94064f65615a509dcb,
         0x2deb33a0f4a13945d898c296, 0xf8bce6e563a440f277037d81, 0x6b17d1f2e12c4247, 0x0,
-        0x94cea1313449bf97c840ae0a, 0x711814b583f061e9d431cca9, 0xb01cbd1c01e58065, 0x0, 0x1, 0x1,
+        0x94cea1313449bf97c840ae0a, 0x711814b583f061e9d431cca9, 0xb01cbd1c01e58065, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3242,15 +3241,15 @@ fn test_msm_SECP256R1_3P_edge_case() {
                 limb0: 0xdffcaf62be678f4d3d103700,
                 limb1: 0x4ae0c3b5a4fb0e4e7ee75279,
                 limb2: 0x651ce75927276c9a,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xb27867c3cd0eb05ed74c5f9c,
                 limb1: 0xd30f6d2e04931e22def1d510,
                 limb2: 0x645a0d9d9776e75f,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3266,7 +3265,7 @@ fn test_msm_SECP256K1_1P_edge_case() {
         0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x0, 0x2dce28d959f2815b16f81798,
         0x55a06295ce870b07029bfcdb, 0x79be667ef9dcbbac, 0x0, 0x597aabe663b82f6f04ef2777,
         0xa25b0403f1eef75702e84bb7, 0xb7c52588d95c3b9a, 0x0, 0x100000000000000000000000000000001,
-        0x0, 0x1, 0x0,
+        0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3279,15 +3278,15 @@ fn test_msm_SECP256K1_1P_edge_case() {
                 limb0: 0x2dce28d959f2815b16f81798,
                 limb1: 0x55a06295ce870b07029bfcdb,
                 limb2: 0x79be667ef9dcbbac,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x597aabe663b82f6f04ef2777,
                 limb1: 0xa25b0403f1eef75702e84bb7,
                 limb2: 0xb7c52588d95c3b9a,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3307,7 +3306,7 @@ fn test_msm_SECP256K1_2P_edge_case() {
         0x100000000000000008e0801a3d001f325, 0x87ea3597eb650e8, 0xe42d003a1f0e89bd,
         0x2dce28d959f2815b16f81798, 0x55a06295ce870b07029bfcdb, 0x79be667ef9dcbbac, 0x0,
         0x597aabe663b82f6f04ef2777, 0xa25b0403f1eef75702e84bb7, 0xb7c52588d95c3b9a, 0x0,
-        0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3320,15 +3319,15 @@ fn test_msm_SECP256K1_2P_edge_case() {
                 limb0: 0x2dce28d959f2815b16f81798,
                 limb1: 0x55a06295ce870b07029bfcdb,
                 limb2: 0x79be667ef9dcbbac,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x597aabe663b82f6f04ef2777,
                 limb1: 0xa25b0403f1eef75702e84bb7,
                 limb2: 0xb7c52588d95c3b9a,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3354,7 +3353,7 @@ fn test_msm_SECP256K1_3P_edge_case() {
         0x461e3a87e8955f53, 0x53ec0e0286c9f6ad, 0x1000000000000000074832ec5bb09d4f6,
         0x2dce28d959f2815b16f81798, 0x55a06295ce870b07029bfcdb, 0x79be667ef9dcbbac, 0x0,
         0x597aabe663b82f6f04ef2777, 0xa25b0403f1eef75702e84bb7, 0xb7c52588d95c3b9a, 0x0,
-        0x100000000000000000000000000000001, 0x0, 0x1, 0x0,
+        0x100000000000000000000000000000001, 0x0, 0x1, 0x0
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3367,15 +3366,15 @@ fn test_msm_SECP256K1_3P_edge_case() {
                 limb0: 0x8ae1b945a4bee5df2482580e,
                 limb1: 0x113a509c4213fb90b017895a,
                 limb2: 0xdb53345431b0c359,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x5f8a05f7d421794bf1c2f718,
                 limb1: 0xf026f2017517996e6dc446ce,
                 limb2: 0xc09762999f005286,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3390,7 +3389,7 @@ fn test_msm_ED25519_1P_edge_case() {
         0x14def9dea2f79cd65812631a5cf5d3ec, 0x10000000000000000000000000000000, 0x4, 0x0, 0x0, 0x0,
         0x0, 0x0, 0x0, 0x0, 0x0, 0x1, 0x100000000000000000000000000000001,
         0xd617c9aca55c89b025aef35, 0xf00b8f02f1c20618a9c13fdf, 0x2a78dd0fd02c0339, 0x0,
-        0x7f8ece9a6487cf0c09d3e2d9, 0x41b7c45a9c867cdc30902f9e, 0x5639bb5a38e25dd1, 0x0, 0x1, 0x1,
+        0x7f8ece9a6487cf0c09d3e2d9, 0x41b7c45a9c867cdc30902f9e, 0x5639bb5a38e25dd1, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3403,15 +3402,15 @@ fn test_msm_ED25519_1P_edge_case() {
                 limb0: 0xd617c9aca55c89b025aef35,
                 limb1: 0xf00b8f02f1c20618a9c13fdf,
                 limb2: 0x2a78dd0fd02c0339,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x7f8ece9a6487cf0c09d3e2d9,
                 limb1: 0x41b7c45a9c867cdc30902f9e,
                 limb2: 0x5639bb5a38e25dd1,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3432,7 +3431,7 @@ fn test_msm_ED25519_2P_edge_case() {
         0x100000000000000000000000000000001, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x21ef407bea1953254c1bc318a0af2527, 0x1c147c0993c84eed5f426b94b3350045,
         0xd617c9aca55c89b025aef35, 0xf00b8f02f1c20618a9c13fdf, 0x2a78dd0fd02c0339, 0x0,
-        0x7f8ece9a6487cf0c09d3e2d9, 0x41b7c45a9c867cdc30902f9e, 0x5639bb5a38e25dd1, 0x0, 0x1, 0x1,
+        0x7f8ece9a6487cf0c09d3e2d9, 0x41b7c45a9c867cdc30902f9e, 0x5639bb5a38e25dd1, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3445,15 +3444,15 @@ fn test_msm_ED25519_2P_edge_case() {
                 limb0: 0xd617c9aca55c89b025aef35,
                 limb1: 0xf00b8f02f1c20618a9c13fdf,
                 limb2: 0x2a78dd0fd02c0339,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x7f8ece9a6487cf0c09d3e2d9,
                 limb1: 0x41b7c45a9c867cdc30902f9e,
                 limb2: 0x5639bb5a38e25dd1,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3480,7 +3479,7 @@ fn test_msm_ED25519_3P_edge_case() {
         0x10dbbf233e0f266b14c85329c2440c426, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x3242668a77ced3cb6ca4b87c1b759c91, 0x128e825972592d2a632df711368a1c105,
         0xd617c9aca55c89b025aef35, 0xf00b8f02f1c20618a9c13fdf, 0x2a78dd0fd02c0339, 0x0,
-        0x7f8ece9a6487cf0c09d3e2d9, 0x41b7c45a9c867cdc30902f9e, 0x5639bb5a38e25dd1, 0x0, 0x1, 0x1,
+        0x7f8ece9a6487cf0c09d3e2d9, 0x41b7c45a9c867cdc30902f9e, 0x5639bb5a38e25dd1, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3493,15 +3492,15 @@ fn test_msm_ED25519_3P_edge_case() {
                 limb0: 0xea1930f7f9c99711b76d5726,
                 limb1: 0xa06d0a2a0011cdaa581c307a,
                 limb2: 0x6a9d379c7dcfb5b6,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0xe529194a47d7db7a9a8b88b1,
                 limb1: 0xebb88d8901d42d55b9966ff5,
                 limb2: 0x2ea083fb0eb0877c,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3514,7 +3513,7 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
         0xcf135e7506a45d632d270d45, 0x2, 0x0, 0x2, 0x0, 0x0, 0x97816a916871ca8d3c208c16d87cfd46,
         0x30644e72e131a029b85045b68181585d, 0x5, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x1,
         0x100000000000000000000000000000001, 0x1, 0x0, 0x0, 0x0, 0x88a15dfcc0a231066dc0d8d5,
-        0xe93ce7417adcfaf9fb0cdb02, 0x30644e72e131a026, 0x0, 0x1, 0x1,
+        0xe93ce7417adcfaf9fb0cdb02, 0x30644e72e131a026, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3528,9 +3527,9 @@ fn test_msm_GRUMPKIN_1P_edge_case() {
                 limb0: 0x88a15dfcc0a231066dc0d8d5,
                 limb1: 0xe93ce7417adcfaf9fb0cdb02,
                 limb2: 0x30644e72e131a026,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3549,7 +3548,7 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
         0x2f596ae4492a87c66f7bda1a, 0x9dffb4dcdb94df9, 0x0, 0x1,
         0x100000000000000000000000000000001, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x5520c252aad219e02bf5055a4ed023b7, 0x197e50b8e7adb6dd93eeede129c12721, 0x1, 0x0, 0x0, 0x0,
-        0x88a15dfcc0a231066dc0d8d5, 0xe93ce7417adcfaf9fb0cdb02, 0x30644e72e131a026, 0x0, 0x1, 0x1,
+        0x88a15dfcc0a231066dc0d8d5, 0xe93ce7417adcfaf9fb0cdb02, 0x30644e72e131a026, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3563,9 +3562,9 @@ fn test_msm_GRUMPKIN_2P_edge_case() {
                 limb0: 0x88a15dfcc0a231066dc0d8d5,
                 limb1: 0xe93ce7417adcfaf9fb0cdb02,
                 limb2: 0x30644e72e131a026,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
 
@@ -3590,7 +3589,7 @@ fn test_msm_GRUMPKIN_3P_edge_case() {
         0x1704905427d31a82, 0x0, 0x39dea48eef47b3e6bcae980c9112d477,
         0x538cc4627274d8f320bf5df15c887356, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0,
         0x10a2e45b33049f11b360c09b6389565b, 0x63f1d0c59d848c415389772b72561b3d, 0x1, 0x0, 0x0, 0x0,
-        0x88a15dfcc0a231066dc0d8d5, 0xe93ce7417adcfaf9fb0cdb02, 0x30644e72e131a026, 0x0, 0x1, 0x1,
+        0x88a15dfcc0a231066dc0d8d5, 0xe93ce7417adcfaf9fb0cdb02, 0x30644e72e131a026, 0x0, 0x1, 0x1
     ]
         .span();
     let points = Serde::deserialize(ref data).unwrap();
@@ -3603,15 +3602,14 @@ fn test_msm_GRUMPKIN_3P_edge_case() {
                 limb0: 0xf8c1f1ea2f76ef32e8aaa1e5,
                 limb1: 0x4f332469fd3c88e2a2a255c6,
                 limb2: 0x25bea91cb12ea60f,
-                limb3: 0x0,
+                limb3: 0x0
             },
             y: u384 {
                 limb0: 0x13dd399b7d2ee3c5048e382d,
                 limb1: 0x8d9fd23cff123740ae29ea9a,
                 limb2: 0x8aa44466337bea4,
-                limb3: 0x0,
-            },
-        },
+                limb3: 0x0
+            }
+        }
     );
 }
-

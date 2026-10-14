@@ -1,8 +1,7 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
-    circuit_add, circuit_mul, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_mul, u384,
 };
-use garaga::core::circuit::AddInputResultTrait2;
+use garaga::core::circuit::{AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait};
 use garaga::definitions::get_GRUMPKIN_modulus;
 
 
@@ -3849,4 +3848,3 @@ mod tests {
         assert_eq!(poseidon_hash_2_bn254(x, y), z);
     }
 }
-

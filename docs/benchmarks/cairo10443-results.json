@@ -1,0 +1,493 @@
+{
+  "cairo_source_sha256": "e737132b95107241d8b68427a92f5045eb704398c1c8b6e3b156afc355c7cad4",
+  "core_circuit_sha256": "d9afa945ba24df8b21fc60087ad76b80e51a177ca93f8e555bd895731117a7d7",
+  "core_version": "2.21.0",
+  "iterations": 1000,
+  "micro": {
+    "v1": {
+      "branches": {
+        "0": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2727,
+            "memory_segment_sizes": {
+              "execution": 165,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 19,
+            "n_steps": 175,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 412663,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 356165,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 127019,
+            "n_steps": 273175,
+            "syscalls": []
+          },
+          "steps_per_iteration": 273.0
+        },
+        "1": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2728,
+            "memory_segment_sizes": {
+              "execution": 166,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 19,
+            "n_steps": 176,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 412664,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 356166,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 131019,
+            "n_steps": 270176,
+            "syscalls": []
+          },
+          "steps_per_iteration": 270.0
+        },
+        "2": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2729,
+            "memory_segment_sizes": {
+              "execution": 167,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 18,
+            "n_steps": 179,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 412665,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 356167,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 138018,
+            "n_steps": 262179,
+            "syscalls": []
+          },
+          "steps_per_iteration": 262.0
+        },
+        "3": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2730,
+            "memory_segment_sizes": {
+              "execution": 168,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 17,
+            "n_steps": 179,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 412666,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 356168,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 147017,
+            "n_steps": 252179,
+            "syscalls": []
+          },
+          "steps_per_iteration": 252.0
+        }
+      },
+      "sizes": {
+        "casm_felts": 2542,
+        "sierra_libfuncs": 417,
+        "sierra_statements": 1910,
+        "verify_libfuncs": [
+          "u96_limbs_less_than_guarantee_verify",
+          "u96_limbs_less_than_guarantee_verify_v2"
+        ]
+      }
+    },
+    "v2": {
+      "branches": {
+        "0": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2676,
+            "memory_segment_sizes": {
+              "execution": 165,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 19,
+            "n_steps": 175,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 391612,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 335165,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 127019,
+            "n_steps": 253175,
+            "syscalls": []
+          },
+          "steps_per_iteration": 253.0
+        },
+        "1": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2677,
+            "memory_segment_sizes": {
+              "execution": 166,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 19,
+            "n_steps": 176,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 391613,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 335166,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 128019,
+            "n_steps": 252176,
+            "syscalls": []
+          },
+          "steps_per_iteration": 252.0
+        },
+        "2": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2678,
+            "memory_segment_sizes": {
+              "execution": 167,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 18,
+            "n_steps": 179,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 391614,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 335167,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 129018,
+            "n_steps": 250179,
+            "syscalls": []
+          },
+          "steps_per_iteration": 250.0
+        },
+        "3": {
+          "baseline_resources": {
+            "builtin_instance_counter": {
+              "output_builtin": 1,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 2679,
+            "memory_segment_sizes": {
+              "execution": 168,
+              "output": 1,
+              "range_check": 5
+            },
+            "n_memory_holes": 17,
+            "n_steps": 179,
+            "syscalls": []
+          },
+          "program_output": "1000",
+          "resources": {
+            "builtin_instance_counter": {
+              "add_mod_builtin": 1000,
+              "mul_mod_builtin": 2000,
+              "output_builtin": 1,
+              "range_check96_builtin": 25000,
+              "range_check_builtin": 5
+            },
+            "max_memory_address": 391615,
+            "memory_segment_sizes": {
+              "add_mod": 7000,
+              "execution": 335168,
+              "mul_mod": 14000,
+              "output": 1,
+              "range_check": 5,
+              "range_check96": 25000
+            },
+            "n_memory_holes": 130017,
+            "n_steps": 248179,
+            "syscalls": []
+          },
+          "steps_per_iteration": 248.0
+        }
+      },
+      "sizes": {
+        "casm_felts": 2491,
+        "sierra_libfuncs": 403,
+        "sierra_statements": 1878,
+        "verify_libfuncs": [
+          "u96_limbs_less_than_guarantee_verify_v2"
+        ]
+      }
+    }
+  },
+  "pairing": {
+    "bn254_2p_2f": {
+      "v1": {
+        "program_output": "",
+        "resources": {
+          "builtin_instance_counter": {
+            "add_mod_builtin": 1731,
+            "mul_mod_builtin": 4665,
+            "poseidon_builtin": 460,
+            "range_check96_builtin": 33047,
+            "range_check_builtin": 92
+          },
+          "max_memory_address": 225388,
+          "memory_segment_sizes": {
+            "add_mod": 12117,
+            "execution": 79731,
+            "mul_mod": 32655,
+            "poseidon": 2760,
+            "range_check": 92,
+            "range_check96": 33047
+          },
+          "n_memory_holes": 7431,
+          "n_steps": 92952,
+          "syscalls": []
+        },
+        "sizes": {
+          "casm_felts": 29927,
+          "sierra_libfuncs": 4831,
+          "sierra_statements": 19340,
+          "verify_libfuncs": [
+            "u96_limbs_less_than_guarantee_verify"
+          ]
+        }
+      },
+      "v2": {
+        "program_output": "",
+        "resources": {
+          "builtin_instance_counter": {
+            "add_mod_builtin": 1731,
+            "mul_mod_builtin": 4665,
+            "poseidon_builtin": 460,
+            "range_check96_builtin": 33047,
+            "range_check_builtin": 92
+          },
+          "max_memory_address": 223711,
+          "memory_segment_sizes": {
+            "add_mod": 12117,
+            "execution": 78072,
+            "mul_mod": 32655,
+            "poseidon": 2760,
+            "range_check": 92,
+            "range_check96": 33047
+          },
+          "n_memory_holes": 6720,
+          "n_steps": 92004,
+          "syscalls": []
+        },
+        "sizes": {
+          "casm_felts": 29909,
+          "sierra_libfuncs": 4833,
+          "sierra_statements": 19313,
+          "verify_libfuncs": [
+            "u96_limbs_less_than_guarantee_verify",
+            "u96_limbs_less_than_guarantee_verify_v2"
+          ]
+        }
+      }
+    },
+    "groth16_bn254_pairing": {
+      "v1": {
+        "program_output": "",
+        "resources": {
+          "builtin_instance_counter": {
+            "add_mod_builtin": 4469,
+            "mul_mod_builtin": 7922,
+            "poseidon_builtin": 509,
+            "range_check96_builtin": 59008,
+            "range_check_builtin": 103
+          },
+          "max_memory_address": 324087,
+          "memory_segment_sizes": {
+            "add_mod": 31283,
+            "execution": 103194,
+            "mul_mod": 55454,
+            "poseidon": 3054,
+            "range_check": 103,
+            "range_check96": 59008
+          },
+          "n_memory_holes": 10310,
+          "n_steps": 117740,
+          "syscalls": []
+        },
+        "sizes": {
+          "casm_felts": 39356,
+          "sierra_libfuncs": 4032,
+          "sierra_statements": 24833,
+          "verify_libfuncs": [
+            "u96_limbs_less_than_guarantee_verify"
+          ]
+        }
+      },
+      "v2": {
+        "program_output": "",
+        "resources": {
+          "builtin_instance_counter": {
+            "add_mod_builtin": 4469,
+            "mul_mod_builtin": 7922,
+            "poseidon_builtin": 509,
+            "range_check96_builtin": 59008,
+            "range_check_builtin": 103
+          },
+          "max_memory_address": 319470,
+          "memory_segment_sizes": {
+            "add_mod": 31283,
+            "execution": 98658,
+            "mul_mod": 55454,
+            "poseidon": 3054,
+            "range_check": 103,
+            "range_check96": 59008
+          },
+          "n_memory_holes": 8366,
+          "n_steps": 115148,
+          "syscalls": []
+        },
+        "sizes": {
+          "casm_felts": 39275,
+          "sierra_libfuncs": 4034,
+          "sierra_statements": 24764,
+          "verify_libfuncs": [
+            "u96_limbs_less_than_guarantee_verify",
+            "u96_limbs_less_than_guarantee_verify_v2"
+          ]
+        }
+      }
+    }
+  },
+  "runner": "execute 2.21.0",
+  "scarb": "scarb 2.21.0 (fbd5bd03d 2026-10-09)\ncairo: 2.21.0 (https://crates.io/crates/cairo-lang-compiler/2.21.0)\nsierra: 1.9.5\narch: aarch64-apple-darwin",
+  "source_dirty": true,
+  "source_revision": "fb4dd3f31aced580e92cb559897426c3127311af"
+}

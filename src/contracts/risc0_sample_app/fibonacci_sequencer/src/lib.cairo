@@ -11,7 +11,7 @@ mod FibonacciSequencer {
     use starknet::storage::{StoragePointerReadAccess, StoragePointerWriteAccess};
 
     pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-        0x41d5e111b93acbf1afb531253e0bc64d43f90a8a99290361e851ec0c4968ab1;
+        0x1eb1a211b378d4f146ea7e3669eeeee9c568b2d1b0afdfa9ab9a9ed32295526;
 
     #[storage]
     struct Storage {
@@ -23,8 +23,7 @@ mod FibonacciSequencer {
         fn verify_and_submit_fibonacci_number(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) {
-            // sets the class hash for the RiscZero verifier already declared on-chain
-            // by the Garaga team
+            // Declare this compiled RiscZero verifier class on the target network before use.
             let class_hash: ClassHash = RISC_ZERO_VERIFIER_CLASS_HASH.try_into().unwrap();
 
             // instantiate a library dispatcher to perform the library call

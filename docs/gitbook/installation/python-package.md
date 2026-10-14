@@ -26,11 +26,13 @@ The easiest way to install Garaga is via `pip`, which will fetch and install the
     ```
 
 {% hint style="info" %}
-**Garaga supports Python 3.10 through 3.14.** If you need to install a specific Python version, you can use [uv](https://docs.astral.sh/uv/):
+**Garaga supports Python 3.11 through 3.14.** If you need to install a specific Python version, you can use [uv](https://docs.astral.sh/uv/):
 ```bash
-uv python install 3.14  # or 3.13, 3.12, 3.11, 3.10
+uv python install 3.14  # or 3.13, 3.12, 3.11
 ```
 {% endhint %}
+
+Garaga uses [fastecdsa 4](https://pypi.org/project/fastecdsa/) with a Rust backend. You do not need to install GMP.
 
 {% hint style="info" %}
 Please, ensure that the directory containing Python's executable files is included in your system's `PATH` environment variable. If you're using a venv, the necessary paths are automatically managed, so simply activate your venv before running the CLI.

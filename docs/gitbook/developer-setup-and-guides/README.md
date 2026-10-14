@@ -11,7 +11,9 @@ To work with Garaga, you need the following dependencies :
 * [Rust](https://www.rust-lang.org/tools/install)
 * [Scarb](https://docs.swmansion.com/scarb/download.html) with the version specified in [https://github.com/keep-starknet-strange/garaga/blob/main/src/.tool-versions](https://github.com/keep-starknet-strange/garaga/blob/main/src/.tool-versions)
 
-Python 3.10-3.14 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available.
+Python 3.11-3.14 is used for development but does **not** need to be installed manually — `make setup` will auto-install it via [uv](https://docs.astral.sh/uv/) if it's not already available.
+
+fastecdsa 4 uses a Rust backend. GMP is not required.
 
 Simply clone the [repository](https://github.com/keep-starknet-strange/garaga) :
 

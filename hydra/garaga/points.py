@@ -2,7 +2,8 @@ import functools
 import random
 from dataclasses import dataclass
 
-from fastecdsa import curvemath
+from fastecdsa.curve import Curve as FastCurve
+from fastecdsa.point import Point as FastPoint
 
 from garaga.algebra import Fp2, ModuloCircuitElement, Polynomial, PyFelt, get_sparsity
 from garaga.curves import (
@@ -14,6 +15,14 @@ from garaga.curves import (
     get_irreducible_poly,
 )
 from garaga.hints.io import int_to_u384
+
+
+@functools.cache
+def _fastecdsa_curve(curve_id: CurveID) -> FastCurve:
+    curve = CURVES[curve_id.value]
+    return FastCurve(
+        curve_id.name, curve.p, curve.a, curve.b, curve.n, curve.Gx, curve.Gy
+    )
 
 
 @dataclass(slots=True)
@@ -245,7 +254,7 @@ class G1Point:
         Performs scalar multiplication on the point.
 
         Args:
-            scalar (int): The scalar to multiply by. abs(scalar) should be less than the order of the curve.
+            scalar (int): The scalar to multiply by. It can be negative or exceed the subgroup order.
 
         Returns:
             G1Point: The resulting point after scalar multiplication.
@@ -254,29 +263,28 @@ class G1Point:
             return self
         if scalar == 0:
             return G1Point(0, 0, self.curve_id, self.iso_point)
-        if self.iso_point:
-            a = CURVES[self.curve_id.value].swu_params.A
-            b = CURVES[self.curve_id.value].swu_params.B
-        else:
-            a = CURVES[self.curve_id.value].a
-            b = CURVES[self.curve_id.value].b
-        # Fastecdsa C binding.
-        x, y = curvemath.mul(
-            str(self.x),
-            str(self.y),
-            str(abs(scalar)),
-            str(CURVES[self.curve_id.value].p),
-            str(a),
-            str(b),
-            str(CURVES[self.curve_id.value].n),
-            str(CURVES[self.curve_id.value].Gx),
-            str(CURVES[self.curve_id.value].Gy),
+        curve = CURVES[self.curve_id.value]
+        if self.iso_point or curve.h != 1:
+            # Fastecdsa 4 reduces scalars modulo n, which is invalid outside the subgroup.
+            result = G1Point(0, 0, self.curve_id, self.iso_point)
+            point = G1Point(
+                self.x % curve.p, self.y % curve.p, self.curve_id, self.iso_point
+            )
+            remaining = abs(scalar)
+            while remaining:
+                if remaining & 1:
+                    result = result.add(point)
+                point = point.add(point)
+                remaining >>= 1
+            return -result if scalar < 0 else result
+
+        point = FastPoint(
+            self.x % curve.p, self.y % curve.p, _fastecdsa_curve(self.curve_id)
         )
-        # Fastecdsa already returns (0, 0) for the identity element.
-        if scalar < 0:
-            return -G1Point(int(x), int(y), self.curve_id, self.iso_point)
-        else:
-            return G1Point(int(x), int(y), self.curve_id, self.iso_point)
+        result = point * scalar
+        if result.z == 0:
+            return G1Point(0, 0, self.curve_id, self.iso_point)
+        return G1Point(result.x, result.y, self.curve_id, self.iso_point)
 
     def add(self, other: "G1Point") -> "G1Point":
         """
@@ -299,27 +307,31 @@ class G1Point:
             raise ValueError("Points are not on the same curve")
         if self.iso_point != other.iso_point:
             raise ValueError("Points are not on the same curve")
-        if self.iso_point:
-            a = CURVES[self.curve_id.value].swu_params.A
-            b = CURVES[self.curve_id.value].swu_params.B
-        else:
-            a = CURVES[self.curve_id.value].a
-            b = CURVES[self.curve_id.value].b
 
-        x, y = curvemath.add(
-            str(self.x),
-            str(self.y),
-            str(other.x),
-            str(other.y),
-            str(CURVES[self.curve_id.value].p),
-            str(a),
-            str(b),
-            str(CURVES[self.curve_id.value].n),
-            str(CURVES[self.curve_id.value].Gx),
-            str(CURVES[self.curve_id.value].Gy),
+        curve = CURVES[self.curve_id.value]
+        if self.iso_point or curve.h != 1:
+            # Fastecdsa 4's generic addition is incomplete on ED25519 torsion cosets;
+            # its main-curve generator is also invalid for the SWU isogenous curve.
+            p = curve.p
+            a = curve.swu_params.A if self.iso_point else curve.a
+            x1, y1, x2, y2 = self.x % p, self.y % p, other.x % p, other.y % p
+            if x1 == x2:
+                if (y1 + y2) % p == 0:
+                    return G1Point(0, 0, self.curve_id, self.iso_point)
+                slope = (3 * x1 * x1 + a) * pow(2 * y1, -1, p) % p
+            else:
+                slope = (y2 - y1) * pow(x2 - x1, -1, p) % p
+            x = (slope * slope - x1 - x2) % p
+            y = (slope * (x1 - x) - y1) % p
+            return G1Point(x, y, self.curve_id, self.iso_point)
+
+        fast_curve = _fastecdsa_curve(self.curve_id)
+        result = FastPoint(self.x % curve.p, self.y % curve.p, fast_curve) + FastPoint(
+            other.x % curve.p, other.y % curve.p, fast_curve
         )
-        # NB : Fastecdsa returns (0, 0) for the identity element.
-        return G1Point(int(x), int(y), self.curve_id, self.iso_point)
+        if result.z == 0:
+            return G1Point(0, 0, self.curve_id, self.iso_point)
+        return G1Point(result.x, result.y, self.curve_id, self.iso_point)
 
     def __neg__(self) -> "G1Point":
         """
