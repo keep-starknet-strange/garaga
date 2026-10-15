@@ -9,7 +9,7 @@ use core::option::Option;
 /// This file contains utilities to verify a pairing check of the form :
 /// e(P1, Qf1) * e(P2, Qf2) == 1, where Qf1 and Qf2 are fixed known points. (2P_2F circuits are used
 /// for double pairs and double fixed G2 points)
-/// Qf1 and Qf2 are represented by their pre-computed line functions for the specifc miller loop
+/// Qf1 and Qf2 are represented by their pre-computed line functions for the specific miller loop
 /// implementation.
 /// Two functions are provided for BN254 and BLS12-381 respectively.
 /// To generate the lines functions, you can use garaga's python backend.

@@ -469,7 +469,7 @@ class G1CofactorClearing(BasicEC):
             [x]P: The point multiplied by x
         """
 
-        # Todo : Incude automatic addition chain for any number computed at runtime ?
+        # Todo : Include automatic addition chain for any number computed at runtime ?
         assert (
             self.curve_id == CurveID.BLS12_381.value
         ), "This circuit is only supported for BLS12-381"
