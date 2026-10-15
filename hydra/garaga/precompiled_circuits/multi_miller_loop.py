@@ -129,9 +129,7 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         n_pairs = n_pairs or self.n_pairs
         if not skip_P_precompute:
             self.yInv = [self.inv(self.P[i][1]) for i in range(n_pairs)]
-            self.xNegOverY = [
-                self.neg(self.div(self.P[i][0], self.P[i][1])) for i in range(n_pairs)
-            ]
+            self.xNegOverY = [(-(self.P[i][0] / self.P[i][1])) for i in range(n_pairs)]
 
         if -1 in self.loop_counter:
             self.Qneg = [
@@ -158,12 +156,12 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         num_tmp = [
             self.mul(
                 self.add(x0, x1, comment="Doubling slope numerator start"),
-                self.sub(x0, x1),
+                (x0 - x1),
             ),
-            self.mul(x0, x1),
+            (x0 * x1),
         ]
         num = [
-            self.mul(num_tmp[0], self.set_or_get_constant(3)),
+            (num_tmp[0] * self.set_or_get_constant(3)),
             self.mul(
                 num_tmp[1],
                 self.set_or_get_constant(6),
@@ -208,13 +206,13 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
             return [
                 ONE,
                 self.mul(
-                    self.add(R0[0], self.mul(self.set_or_get_constant(-9), R0[1])),
+                    (R0[0] + (self.set_or_get_constant(-9) * R0[1])),
                     xNegOverY,
                     comment="eval bn line by xNegOverY",
                 ),
                 ZERO,
                 self.mul(
-                    self.add(R1[0], self.mul(self.set_or_get_constant(-9), R1[1])),
+                    (R1[0] + (self.set_or_get_constant(-9) * R1[1])),
                     yInv,
                     comment="eval bn line by yInv",
                 ),
@@ -230,11 +228,11 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         elif self.curve_id == BLS12_381_ID:
             return [
                 self.mul(
-                    self.sub(R1[0], R1[1]), yInv, comment="eval bls line by yInv"
+                    (R1[0] - R1[1]), yInv, comment="eval bls line by yInv"
                 ),  # nr=1
                 ZERO,
                 self.mul(
-                    self.sub(R0[0], R0[1]),
+                    (R0[0] - R0[1]),
                     xNegOverY,
                     comment="eval blsline by xNegOverY",
                 ),  # nr=1
@@ -434,12 +432,12 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         # Compute λ = 3x² / 2y. Manually to keep den = 2y to be re-used for λ2.
         x0, x1 = Q[0][0], Q[0][1]
         num_tmp = [
-            self.mul(self.add(x0, x1), self.sub(x0, x1)),
-            self.mul(x0, x1),
+            ((x0 + x1) * (x0 - x1)),
+            (x0 * x1),
         ]
         num = [
-            self.mul(num_tmp[0], self.set_or_get_constant(3)),
-            self.mul(num_tmp[1], self.set_or_get_constant(6)),
+            (num_tmp[0] * self.set_or_get_constant(3)),
+            (num_tmp[1] * self.set_or_get_constant(6)),
         ]
         den = self.vector_add(Q[1], Q[1])
         λ1 = self.fp2_div(num, den)
@@ -627,8 +625,8 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
                 )
             else:
                 nr1p2, nr1p3, nr2p2, nr2p3 = set_or_get_constants()
-                q1x = [self.Q[k][0][0], self.neg(self.Q[k][0][1])]
-                q1y = [self.Q[k][1][0], self.neg(self.Q[k][1][1])]
+                q1x = [self.Q[k][0][0], (-self.Q[k][0][1])]
+                q1y = [self.Q[k][1][0], (-self.Q[k][1][1])]
                 q1x = self.fp2_mul(
                     q1x,
                     nr1p2,
@@ -715,17 +713,17 @@ class MultiMillerLoopCircuit(ExtensionFieldModuloCircuit):
         elif self.curve_id == CurveID.BLS12_381.value:
             f = [
                 f[0],
-                self.neg(f[1]),
+                (-f[1]),
                 f[2],
-                self.neg(f[3]),
+                (-f[3]),
                 f[4],
-                self.neg(f[5]),
+                (-f[5]),
                 f[6],
-                self.neg(f[7]),
+                (-f[7]),
                 f[8],
-                self.neg(f[9]),
+                (-f[9]),
                 f[10],
-                self.neg(f[11]),
+                (-f[11]),
             ]
         else:
             raise NotImplementedError(f"Curve {self.curve_id} not implemented")

@@ -48,14 +48,14 @@ class IsOnCurveCircuit(Fp2Circuits):
         a = self.a
         b = self.b
 
-        y2 = self.mul(y, y)
-        x3 = self.mul(x, self.mul(x, x))
+        y2 = y * y
+        x3 = x * (x * x)
 
         if a.value != 0:
-            ax = self.mul(a, x)
-            x3_ax_b = self.add(x3, self.add(ax, b))
+            ax = a * x
+            x3_ax_b = x3 + (ax + b)
         else:
-            x3_ax_b = self.add(x3, b)
+            x3_ax_b = x3 + b
 
         return y2, x3_ax_b
 
@@ -75,10 +75,10 @@ class IsOnCurveCircuit(Fp2Circuits):
         x2 = self.fp2_square([x0, x1])
         x3 = self.fp2_mul([x0, x1], x2)
 
-        ax = [self.mul(a, x0), self.mul(a, x1)]
-        ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
+        ax = [(a * x0), (a * x1)]
+        ax_b = [(ax[0] + b0), (ax[1] + b1)]
 
-        x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
+        x3_ax_b = [(x3[0] + ax_b[0]), (x3[1] + ax_b[1])]
 
         return y2, x3_ax_b
 
@@ -102,10 +102,10 @@ class DerivePointFromX(ModuloCircuit):
     ) -> list[ModuloCircuitElement]:
         # y^2 = x^3 + ax + b
         # Assumes a == 0.
-        x3 = self.mul(x, self.mul(x, x))
-        rhs = self.add(x3, self.add(self.mul(a, x), b))
+        x3 = x * (x * x)
+        rhs = x3 + ((a * x) + b)
 
-        grhs = self.mul(g, rhs)
+        grhs = g * rhs
 
         # WRITE g*rhs and rhs "square roots" to circuit.
         # If rhs is a square, write zero to gx and the square root of rhs to x3_ax_b_sqrt.
@@ -128,9 +128,9 @@ class DerivePointFromX(ModuloCircuit):
             )
 
         ## %}
-        should_be_rhs = self.mul(rhs_sqrt, rhs_sqrt)
+        should_be_rhs = rhs_sqrt * rhs_sqrt
 
-        should_be_grhs = self.mul(grhs_sqrt, grhs_sqrt)
+        should_be_grhs = grhs_sqrt * grhs_sqrt
 
         return (rhs, grhs, should_be_rhs, should_be_grhs, rhs_sqrt)
 
@@ -179,11 +179,11 @@ class DecompressG1Point(ModuloCircuit):
         ), "This circuit is only supported for CairoZero"
 
         # y^2 = x^3 + b
-        x3 = self.mul(x, self.mul(x, x))
-        rhs = self.add(x3, b)
+        x3 = x * (x * x)
+        rhs = x3 + b
 
         y = self.fp_sqrt(rhs)
-        neg_y = self.neg(y)
+        neg_y = -y
 
         return (y, neg_y)
 
@@ -214,37 +214,30 @@ class ECIPCircuits(ModuloCircuit):
         xA0, yA0 = P
         three = self.set_or_get_constant(self.field(3))
 
-        mA0_num = self.add(
-            self.mul(three, self.mul(xA0, xA0)),
-            A_weirstrass,
-        )
-        mA0_den = self.add(yA0, yA0)
-        m_A0 = self.div(mA0_num, mA0_den)
+        mA0_num = (three * (xA0 * xA0)) + A_weirstrass
+        mA0_den = yA0 + yA0
+        m_A0 = mA0_num / mA0_den
 
         # Compute intercept b = y - x*m
-        b_A0 = self.sub(yA0, self.mul(xA0, m_A0))
+        b_A0 = yA0 - (xA0 * m_A0)
 
         # Compute A2 = -(2*P)
-        xA2 = self.sub(self.mul(m_A0, m_A0), self.add(xA0, xA0))
-        yA2 = self.sub(self.mul(m_A0, self.sub(xA0, xA2)), yA0)
-        yA2 = self.neg(yA2)
+        xA2 = (m_A0 * m_A0) - (xA0 + xA0)
+        yA2 = (m_A0 * (xA0 - xA2)) - yA0
+        yA2 = -yA2
 
         # Compute slope between A0 and A2
-        mA0A2_num = self.sub(yA2, yA0)
-        mA0A2_den = self.sub(xA2, xA0)
-        m_A0A2 = self.div(mA0A2_num, mA0A2_den)
+        mA0A2_num = yA2 - yA0
+        mA0A2_den = xA2 - xA0
+        m_A0A2 = mA0A2_num / mA0A2_den
 
         #   coeff2 = (2 * yA2) * (xA0 - xA2) / (3 * xA2^2 + A - 2 * m * yA2)
-        m_yA2 = self.mul(m_A0A2, yA2)
+        m_yA2 = m_A0A2 * yA2
 
-        coeff2 = self.div(
-            self.mul(self.add(yA2, yA2), self.sub(xA0, xA2)),
-            self.add(
-                self.mul(three, self.mul(xA2, xA2)),
-                self.sub(A_weirstrass, self.add(m_yA2, m_yA2)),
-            ),
+        coeff2 = ((yA2 + yA2) * (xA0 - xA2)) / (
+            (three * (xA2 * xA2)) + (A_weirstrass - (m_yA2 + m_yA2))
         )
-        coeff0 = self.add(coeff2, self.add(m_A0A2, m_A0A2))
+        coeff0 = coeff2 + (m_A0A2 + m_A0A2)
 
         # Return slope intercept of A0 (for RHS) and coeff0/2 for LHS
         return (
@@ -277,22 +270,22 @@ class ECIPCircuits(ModuloCircuit):
         )
         m, b = slope_intercept
         xP, yP = P
-        num = self.sub(xA, xP)
+        num = xA - xP
 
         # den_tmp = m*xP + b
-        den_tmp = self.add(self.mul(m, xP), b)
+        den_tmp = (m * xP) + b
 
         # den_pos = yP - (m*xP + b) = yP - m*xP - b
-        den_pos = self.sub(yP, den_tmp)
+        den_pos = yP - den_tmp
 
         # den_neg = -yP - m*xP -b
-        den_neg = self.sub(self.neg(yP), den_tmp)
+        den_neg = (-yP) - den_tmp
 
-        eval_pos = self.mul(self.mul(sign_ep, ep), self.div(num, den_pos))
-        eval_neg = self.mul(self.mul(sign_en, en), self.div(num, den_neg))
+        eval_pos = (sign_ep * ep) * (num / den_pos)
+        eval_neg = (sign_en * en) * (num / den_neg)
 
-        eval_signed = self.add(eval_pos, eval_neg)
-        res = self.add(eval_accumulator, eval_signed)
+        eval_signed = eval_pos + eval_neg
+        res = eval_accumulator + eval_signed
         return res
 
     def _RHS_finalize_acc(
@@ -304,18 +297,18 @@ class ECIPCircuits(ModuloCircuit):
     ):
         m, b = slope_intercept
         xQ, yQ = Q
-        num = self.sub(xA, xQ)
+        num = xA - xQ
 
         # den_tmp = m*xQ + b
-        den_tmp = self.add(self.mul(m, xQ), b)
+        den_tmp = (m * xQ) + b
 
         # den_neg = -yQ - m*xQ -b
 
-        den_neg = self.sub(self.neg(yQ), den_tmp)
+        den_neg = (-yQ) - den_tmp
 
-        eval_neg = self.div(num, den_neg)
+        eval_neg = num / den_neg
 
-        res = self.add(eval_accumulator, eval_neg)
+        res = eval_accumulator + eval_neg
         return res
 
     def _eval_function_challenge_single(
@@ -329,34 +322,31 @@ class ECIPCircuits(ModuloCircuit):
         var_name: str = "xA",
     ) -> ModuloCircuitElement:
         xA, yA = A
-        F_A = self.add(
-            self.div(
+        F_A = (
+            self.eval_horner(
+                log_div_a_num, xA, poly_name="sumdlogdiv_a_num", var_name=var_name
+            )
+            / self.eval_horner(
+                log_div_a_den, xA, poly_name="sumdlogdiv_a_den", var_name=var_name
+            )
+        ) + (
+            yA
+            * (
                 self.eval_horner(
-                    log_div_a_num, xA, poly_name="sumdlogdiv_a_num", var_name=var_name
-                ),
-                self.eval_horner(
-                    log_div_a_den, xA, poly_name="sumdlogdiv_a_den", var_name=var_name
-                ),
-            ),
-            self.mul(
-                yA,
-                self.div(
-                    self.eval_horner(
-                        log_div_b_num,
-                        xA,
-                        poly_name="sumdlogdiv_b_num",
-                        var_name=var_name,
-                    ),
-                    self.eval_horner(
-                        log_div_b_den,
-                        xA,
-                        poly_name="sumdlogdiv_b_den",
-                        var_name=var_name,
-                    ),
-                ),
-            ),
+                    log_div_b_num,
+                    xA,
+                    poly_name="sumdlogdiv_b_num",
+                    var_name=var_name,
+                )
+                / self.eval_horner(
+                    log_div_b_den,
+                    xA,
+                    poly_name="sumdlogdiv_b_den",
+                    var_name=var_name,
+                )
+            )
         )
-        return self.mul(coeff, F_A)
+        return coeff * F_A
 
     def _eval_function_challenge_dupl(
         self,
@@ -397,7 +387,7 @@ class ECIPCircuits(ModuloCircuit):
 
         # return coeff0*F(A0) - coeff2*F(A2)
 
-        res = self.sub(F_A0, F_A2)
+        res = F_A0 - F_A2
 
         return res
 
@@ -485,36 +475,24 @@ class ECIPCircuits(ModuloCircuit):
         next_b_den_coeff: ModuloCircuitElement,
     ):
         # Update accumulators for A0
-        new_a_num_acc_A0 = self.add(a_num_acc_A0, self.mul(next_a_num_coeff, xA0_power))
-        next_xA0_power = self.mul(xA0_power, xA0)
-        new_a_den_acc_A0 = self.add(
-            a_den_acc_A0, self.mul(next_a_den_coeff, next_xA0_power)
-        )
-        new_b_num_acc_A0 = self.add(
-            b_num_acc_A0, self.mul(next_b_num_coeff, next_xA0_power)
-        )
-        next_b_den_A0_power = self.mul(next_xA0_power, xA0)
+        new_a_num_acc_A0 = a_num_acc_A0 + (next_a_num_coeff * xA0_power)
+        next_xA0_power = xA0_power * xA0
+        new_a_den_acc_A0 = a_den_acc_A0 + (next_a_den_coeff * next_xA0_power)
+        new_b_num_acc_A0 = b_num_acc_A0 + (next_b_num_coeff * next_xA0_power)
+        next_b_den_A0_power = next_xA0_power * xA0
         for _ in range(2):
-            next_b_den_A0_power = self.mul(next_b_den_A0_power, xA0)
-        new_b_den_acc_A0 = self.add(
-            b_den_acc_A0, self.mul(next_b_den_coeff, next_b_den_A0_power)
-        )
+            next_b_den_A0_power = next_b_den_A0_power * xA0
+        new_b_den_acc_A0 = b_den_acc_A0 + (next_b_den_coeff * next_b_den_A0_power)
 
         # Update accumulators for A2
-        new_a_num_acc_A2 = self.add(a_num_acc_A2, self.mul(next_a_num_coeff, xA2_power))
-        next_xA2_power = self.mul(xA2_power, xA2)
-        new_a_den_acc_A2 = self.add(
-            a_den_acc_A2, self.mul(next_a_den_coeff, next_xA2_power)
-        )
-        new_b_num_acc_A2 = self.add(
-            b_num_acc_A2, self.mul(next_b_num_coeff, next_xA2_power)
-        )
+        new_a_num_acc_A2 = a_num_acc_A2 + (next_a_num_coeff * xA2_power)
+        next_xA2_power = xA2_power * xA2
+        new_a_den_acc_A2 = a_den_acc_A2 + (next_a_den_coeff * next_xA2_power)
+        new_b_num_acc_A2 = b_num_acc_A2 + (next_b_num_coeff * next_xA2_power)
         next_b_den_A2_power = next_xA2_power
         for _ in range(3):
-            next_b_den_A2_power = self.mul(next_b_den_A2_power, xA2)
-        new_b_den_acc_A2 = self.add(
-            b_den_acc_A2, self.mul(next_b_den_coeff, next_b_den_A2_power)
-        )
+            next_b_den_A2_power = next_b_den_A2_power * xA2
+        new_b_den_acc_A2 = b_den_acc_A2 + (next_b_den_coeff * next_b_den_A2_power)
 
         return (
             new_a_num_acc_A0,
@@ -545,18 +523,18 @@ class ECIPCircuits(ModuloCircuit):
         coeff_A2: ModuloCircuitElement,
     ):
         F_A0 = self.add(
-            self.div(a_num_acc_A0, a_den_acc_A0),
-            self.mul(yA0, self.div(b_num_acc_A0, b_den_acc_A0)),
+            (a_num_acc_A0 / a_den_acc_A0),
+            (yA0 * (b_num_acc_A0 / b_den_acc_A0)),
             comment="a(x0) + y0 b(x0)",
         )
         F_A2 = self.add(
-            self.div(a_num_acc_A2, a_den_acc_A2),
-            self.mul(yA2, self.div(b_num_acc_A2, b_den_acc_A2)),
+            (a_num_acc_A2 / a_den_acc_A2),
+            (yA2 * (b_num_acc_A2 / b_den_acc_A2)),
             comment="a(x2) + y2 b(x2)",
         )
 
         # return coeff0*F(A0) - coeff2*F(A2)
-        res = self.sub(self.mul(coeff_A0, F_A0), self.mul(coeff_A2, F_A2))
+        res = (coeff_A0 * F_A0) - (coeff_A2 * F_A2)
         return res
 
 
@@ -577,7 +555,7 @@ class BasicEC(ModuloCircuit):
     ):
         xP, yP = P
         xQ, yQ = Q
-        slope = self.div(self.sub(yP, yQ), self.sub(xP, xQ))
+        slope = (yP - yQ) / (xP - xQ)
         return slope
 
     def _compute_doubling_slope(
@@ -590,12 +568,9 @@ class BasicEC(ModuloCircuit):
         # Compute doubling slope m = (3x^2 + A) / 2y
         three = self.set_or_get_constant(self.field(3))
 
-        m_num = self.add(
-            self.mul(three, self.mul(xP, xP)),
-            A,
-        )
-        m_den = self.add(yP, yP)
-        m = self.div(m_num, m_den)
+        m_num = (three * (xP * xP)) + A
+        m_den = yP + yP
+        m = m_num / m_den
         return m
 
     def add_points(
@@ -606,9 +581,9 @@ class BasicEC(ModuloCircuit):
         xP, yP = P
         xQ, yQ = Q
         slope = self._compute_adding_slope(P, Q)
-        slope_sqr = self.mul(slope, slope)
-        nx = self.sub(self.sub(slope_sqr, xP), xQ)
-        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        slope_sqr = slope * slope
+        nx = (slope_sqr - xP) - xQ
+        ny = (slope * (xP - nx)) - yP
         return (nx, ny)
 
     def double_point(
@@ -618,9 +593,9 @@ class BasicEC(ModuloCircuit):
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
         xP, yP = P
         slope = self._compute_doubling_slope(P, A)
-        slope_sqr = self.mul(slope, slope)
-        nx = self.sub(self.sub(slope_sqr, xP), xP)
-        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        slope_sqr = slope * slope
+        nx = (slope_sqr - xP) - xP
+        ny = (slope * (xP - nx)) - yP
         return (nx, ny)
 
     def scalar_mul_2_pow_k(
@@ -641,10 +616,10 @@ class BasicEC(ModuloCircuit):
         b: ModuloCircuitElement,
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
         # y^2 = x^3 + ax + b
-        y2 = self.mul(y, y)
-        x3 = self.mul(x, self.mul(x, x))
-        ax = self.mul(A, x)
-        x3_ax_b = self.add(x3, self.add(ax, b))
+        y2 = y * y
+        x3 = x * (x * x)
+        ax = A * x
+        x3_ax_b = x3 + (ax + b)
         return y2, x3_ax_b
 
     def negate_point(
@@ -652,7 +627,7 @@ class BasicEC(ModuloCircuit):
     ) -> tuple[ModuloCircuitElement, ModuloCircuitElement]:
         """Negate a point in G1."""
         x, y = P
-        return (x, self.neg(y))
+        return (x, (-y))
 
     def add_points(
         self,
@@ -663,9 +638,9 @@ class BasicEC(ModuloCircuit):
         xP, yP = P
         xQ, yQ = Q
         slope = self._compute_adding_slope(P, Q)
-        slope_sqr = self.mul(slope, slope)
-        nx = self.sub(self.sub(slope_sqr, xP), xQ)
-        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        slope_sqr = slope * slope
+        nx = (slope_sqr - xP) - xQ
+        ny = (slope * (xP - nx)) - yP
         return (nx, ny)
 
     def double_point_a_eq_0(
@@ -675,12 +650,10 @@ class BasicEC(ModuloCircuit):
         """Double a point in G1 when curve parameter a=0."""
         xP, yP = P
         three = self.set_or_get_constant(self.field(3))
-        slope = self.div(
-            self.mul(three, self.mul(xP, xP)), self.add(yP, yP)  # 3x^2  # 2y
-        )
-        slope_sqr = self.mul(slope, slope)
-        nx = self.sub(self.sub(slope_sqr, xP), xP)
-        ny = self.sub(self.mul(slope, self.sub(xP, nx)), yP)
+        slope = (three * (xP * xP)) / (yP + yP)  # 3x^2 / 2y
+        slope_sqr = slope * slope
+        nx = (slope_sqr - xP) - xP
+        ny = (slope * (xP - nx)) - yP
         return (nx, ny)
 
     def triple_point(
@@ -693,23 +666,23 @@ class BasicEC(ModuloCircuit):
         # compute λ1 = (3p.x²+a)/2p.y,
         xx = self.square(xP)
         three_xx = self.sum([xx, xx, xx])
-        m_num = self.add(three_xx, A)
-        λ1 = self.div(m_num, self.double(yP))
+        m_num = three_xx + A
+        λ1 = m_num / self.double(yP)
 
         # xr = λ1²-2p.x
-        x2 = self.sub(self.square(λ1), self.add(xP, xP))
+        x2 = self.square(λ1) - (xP + xP)
 
         # omit y2 computation, and
         # compute λ2 = 2p.y/(x2 − p.x) − λ1.
-        x1x2 = self.sub(xP, x2)
-        λ2 = self.div(self.double(yP), x1x2)
-        λ2 = self.sub(λ2, λ1)
+        x1x2 = xP - x2
+        λ2 = self.double(yP) / x1x2
+        λ2 = λ2 - λ1
 
         # xr = λ²-p.x-x2
-        xr = self.sub(self.square(λ2), self.add(xP, x2))
+        xr = self.square(λ2) - (xP + x2)
 
         # yr = λ(p.x-xr) - p.y
-        yr = self.sub(self.mul(λ2, self.sub(xP, xr)), yP)
+        yr = (λ2 * (xP - xr)) - yP
 
         return (xr, yr)
 
@@ -744,26 +717,26 @@ class BasicEC(ModuloCircuit):
         Px, Py = P
         Qx, Qy = add
         # compute λ1 = (q.y-p.y)/(q.x-p.x)
-        yqyp = self.sub(Qy, Py)
-        xqxp = self.sub(Qx, Px)
-        λ1 = self.div(yqyp, xqxp)
+        yqyp = Qy - Py
+        xqxp = Qx - Px
+        λ1 = yqyp / xqxp
 
         # compute x2 = λ1²-p.x-q.x
-        x2 = self.sub(self.square(λ1), self.add(Px, Qx))
+        x2 = self.square(λ1) - (Px + Qx)
 
         # omit y2 computation
 
         # compute -λ2 = λ1+2*p.y/(x2-p.x)
         ypyp = self.double(Py)
-        x2xp = self.sub(x2, Px)
-        λ2 = self.div(ypyp, x2xp)
-        λ2 = self.add(λ1, λ2)
+        x2xp = x2 - Px
+        λ2 = ypyp / x2xp
+        λ2 = λ1 + λ2
 
         # compute x3 = (-λ2)²-p.x-x2
-        x3 = self.sub(self.square(λ2), self.add(Px, x2))
+        x3 = self.square(λ2) - (Px + x2)
 
         # compute y3 = -λ2*(x3 - p.x)-p.y
-        y3 = self.sub(self.mul(λ2, self.sub(x3, Px)), Py)
+        y3 = (λ2 * (x3 - Px)) - Py
 
         return (x3, y3)
 
@@ -794,10 +767,10 @@ class BasicECG2(Fp2Circuits):
         x2 = self.fp2_square([x0, x1])
         x3 = self.fp2_mul([x0, x1], x2)
 
-        ax = [self.mul(a, x0), self.mul(a, x1)]
-        ax_b = [self.add(ax[0], b0), self.add(ax[1], b1)]
+        ax = [(a * x0), (a * x1)]
+        ax_b = [(ax[0] + b0), (ax[1] + b1)]
 
-        x3_ax_b = [self.add(x3[0], ax_b[0]), self.add(x3[1], ax_b[1])]
+        x3_ax_b = [(x3[0] + ax_b[0]), (x3[1] + ax_b[1])]
 
         return y2, x3_ax_b
 
@@ -912,23 +885,23 @@ class FakeGLVCircuits(BasicEC):
         Q0 = (Qx, Q0y)
 
         S0 = self.add_points(P0, Q0)
-        S1 = (S0[0], self.neg(S0[1]))
+        S1 = (S0[0], (-S0[1]))
 
         S2 = self.add_points(P1, Q0)
 
-        Phi_P0x = self.mul(Px, third_root)
+        Phi_P0x = Px * third_root
 
         Phi_P0 = (Phi_P0x, Phi_P0y)
         Phi_P1 = (Phi_P0x, Phi_P1y)
 
-        Phi_Q0x = self.mul(Q0[0], third_root)
+        Phi_Q0x = Q0[0] * third_root
         Phi_Q0 = (Phi_Q0x, Phi_Q0y)
 
         Phi_S0 = self.add_points(Phi_P0, Phi_Q0)
-        Phi_S1 = (Phi_S0[0], self.neg(Phi_S0[1]))
+        Phi_S1 = (Phi_S0[0], (-Phi_S0[1]))
 
         Phi_S2 = self.add_points(Phi_P1, Phi_Q0)
-        Phi_S3 = (Phi_S2[0], self.neg(Phi_S2[1]))
+        Phi_S3 = (Phi_S2[0], (-Phi_S2[1]))
 
         B1 = self.add_points(S1, Phi_S1)  #  P + Q + Φ(P) + Φ(Q)
         B2 = self.add_points(S1, Phi_S2)  #  P + Q + Φ(P) - Φ(Q)
@@ -939,14 +912,14 @@ class FakeGLVCircuits(BasicEC):
         B7 = self.add_points(S2, Phi_S3)  #  P - Q - Φ(P) + Φ(Q)
         B8 = self.add_points(S2, Phi_S0)  #  P - Q - Φ(P) - Φ(Q)
 
-        B9y = self.neg(B8[1])  # -P + Q + Φ(P) + Φ(Q)
-        B10y = self.neg(B7[1])  #  -P + Q + Φ(P) - Φ(Q)
-        B11y = self.neg(B6[1])  #  -P + Q - Φ(P) + Φ(Q)
-        B12y = self.neg(B5[1])  #  -P + Q - Φ(P) - Φ(Q)
-        B13y = self.neg(B4[1])  #  -P - Q + Φ(P) + Φ(Q)
-        B14y = self.neg(B3[1])  #  -P - Q + Φ(P) - Φ(Q)
-        B15y = self.neg(B2[1])  #  -P - Q - Φ(P) + Φ(Q)
-        B16y = self.neg(B1[1])  #  -P - Q - Φ(P) - Φ(Q)
+        B9y = -B8[1]  # -P + Q + Φ(P) + Φ(Q)
+        B10y = -B7[1]  #  -P + Q + Φ(P) - Φ(Q)
+        B11y = -B6[1]  #  -P + Q - Φ(P) + Φ(Q)
+        B12y = -B5[1]  #  -P + Q - Φ(P) - Φ(Q)
+        B13y = -B4[1]  #  -P - Q + Φ(P) + Φ(Q)
+        B14y = -B3[1]  #  -P - Q + Φ(P) - Φ(Q)
+        B15y = -B2[1]  #  -P - Q - Φ(P) + Φ(Q)
+        B16y = -B1[1]  #  -P - Q - Φ(P) - Φ(Q)
 
         Acc = self.add_points(B1, Gen)
 
@@ -983,12 +956,12 @@ class FakeGLVCircuits(BasicEC):
         Q = (Q[0], Q[1])
 
         table_P = [None, None, None]
-        # table_P[0] = (P[0], self.neg(P[0])) # Unused
+        # table_P[0] = (P[0], (-P[0])) # Unused
         table_P[1] = P
         table_P[2] = self.triple_point(P, A_weirstrass)
 
         table_R = [None, None, None]
-        R_signed = [Q[0], self.mul(s2_sign, Q[1])]
+        R_signed = [Q[0], (s2_sign * Q[1])]
         table_R[0] = self.negate_point(R_signed)
         table_R[1] = R_signed
         table_R[2] = self.triple_point(R_signed, A_weirstrass)
@@ -997,10 +970,10 @@ class FakeGLVCircuits(BasicEC):
         T2 = Acc = self.add_points(table_P[1], table_R[1])
         T3 = self.add_points(table_P[2], table_R[1])
         T4 = self.add_points(table_P[1], table_R[2])
-        T5y = self.neg(T2[1])
-        T6y = self.neg(T1[1])
-        T7y = self.neg(T4[1])
-        T8y = self.neg(T3[1])
+        T5y = -T2[1]
+        T6y = -T1[1]
+        T7y = -T4[1]
+        T8y = -T3[1]
 
         T9 = self.add_points(table_P[2], table_R[0])
         _neg_table_R_verify_2 = self.negate_point(table_R[2])
@@ -1008,10 +981,10 @@ class FakeGLVCircuits(BasicEC):
         T11 = self.add_points(table_P[2], _neg_table_R_verify_2)
         T12 = self.add_points(table_R[0], table_P[1])
 
-        T13y = self.neg(T10[1])
-        T14y = self.neg(T9[1])
-        T15y = self.neg(T12[1])
-        T16y = self.neg(T11[1])
+        T13y = -T10[1]
+        T14y = -T9[1]
+        T15y = -T12[1]
+        T16y = -T11[1]
 
         # P0y = table_P[0][1]
         return (

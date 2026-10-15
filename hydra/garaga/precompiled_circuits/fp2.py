@@ -37,9 +37,8 @@ class Fp2Circuits(ModuloCircuit):
 
         # Either part must be non-zero for the Fp2 element to be non-zero
         # Using 1-(1-a)(1-b) = a + b - ab to compute OR
-        result = self.sub(
-            self.add(real_is_non_zero, imag_is_non_zero),
-            self.mul(real_is_non_zero, imag_is_non_zero),
+        result = (
+            real_is_non_zero + imag_is_non_zero - real_is_non_zero * imag_is_non_zero
         )
 
         # Return as Fp2 element [result, 0]
@@ -53,16 +52,8 @@ class Fp2Circuits(ModuloCircuit):
         )
         # xy = (x0 + i*x1) * (y0 + i*y1) = (x0*y0 - x1*y1) + i * (x0*y1 + x1*y0)
         return [
-            self.sub(
-                self.mul(X[0], Y[0], comment="Fp2 mul start"),
-                self.mul(X[1], Y[1]),
-                comment="Fp2 mul real part end",
-            ),
-            self.add(
-                self.mul(X[0], Y[1]),
-                self.mul(X[1], Y[0]),
-                comment="Fp2 mul imag part end",
-            ),
+            X[0] * Y[0] - X[1] * Y[1],
+            X[0] * Y[1] + X[1] * Y[0],
         ]
 
     def fp2_mul_by_non_residue(self, X: list[ModuloCircuitElement]):
@@ -70,20 +61,20 @@ class Fp2Circuits(ModuloCircuit):
         if self.curve_id == 1:
             # Non residue (1,1)
             # (a0 + i*a1) * (1 + i)
-            a_tmp = self.add(X[0], X[1])
-            a = self.add(a_tmp, a_tmp)
+            a_tmp = X[0] + X[1]
+            a = a_tmp + a_tmp
             b = X[0]
-            z_a0 = self.sub(b, X[1])
-            z_a1 = self.sub(self.sub(a, b), X[1])
+            z_a0 = b - X[1]
+            z_a1 = a - b - X[1]
             return [z_a0, z_a1]
         elif self.curve_id == 0:
             # Non residue (9, 1)
             # (a0 + i*a1) * (9 + i)
-            a_tmp = self.add(X[0], X[1])
-            a = self.mul(a_tmp, self.set_or_get_constant(10))
-            b = self.mul(X[0], self.set_or_get_constant(9))
-            z_a0 = self.sub(b, X[1])
-            z_a1 = self.sub(self.sub(a, b), X[1])
+            a_tmp = X[0] + X[1]
+            a = a_tmp * self.set_or_get_constant(10)
+            b = X[0] * self.set_or_get_constant(9)
+            z_a0 = b - X[1]
+            z_a1 = a - b - X[1]
             return [z_a0, z_a1]
 
         else:
@@ -97,8 +88,8 @@ class Fp2Circuits(ModuloCircuit):
         # (x0+x1)*(x0-x1) is cheaper than x0² - x1². (2 ADD + 1 MUL) vs (1 ADD + 2 MUL) (16 vs 20 steps)
         assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
         return [
-            self.mul(self.add(X[0], X[1]), self.sub(X[0], X[1])),
-            self.double(self.mul(X[0], X[1])),
+            (X[0] + X[1]) * (X[0] - X[1]),
+            self.double(X[0] * X[1]),
         ]
 
     def fp2_sqrt(
@@ -125,12 +116,12 @@ class Fp2Circuits(ModuloCircuit):
 
     def fp2_inv(self, X: list[ModuloCircuitElement]):
         assert len(X) == 2 and all(isinstance(x, ModuloCircuitElement) for x in X)
-        t0 = self.mul(X[0], X[0], comment="Fp2 Inv start")
-        t1 = self.mul(X[1], X[1])
-        t0 = self.add(t0, t1)
+        t0 = X[0] * X[0]
+        t1 = X[1] * X[1]
+        t0 = t0 + t1
         t1 = self.inv(t0)
-        inv0 = self.mul(X[0], t1, comment="Fp2 Inv real part end")
-        inv1 = self.neg(self.mul(X[1], t1), comment="Fp2 Inv imag part end")
+        inv0 = X[0] * t1
+        inv1 = -(X[1] * t1)
         return [inv0, inv1]
 
     def fp2_div(self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]):
@@ -170,7 +161,7 @@ class Fp2Circuits(ModuloCircuit):
         Therefore: (a + bi)^p = a - bi
         """
         a, b = element  # element = a + bi
-        return [a, self.neg(b)]  # return a - bi
+        return [a, -b]  # return a - bi
 
     def fp2_add(
         self, X: list[ModuloCircuitElement], Y: list[ModuloCircuitElement]

@@ -112,13 +112,13 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
         xy = self.extf_mul([X, Y], self.extension_degree)
 
         num = copy.deepcopy(xy)
-        num[1] = self.add(xy[1], self.set_or_get_constant(1))
+        num[1] = xy[1] + self.set_or_get_constant(1)
 
         den = self.vector_add(X, Y)
         return self.extf_div(num, den, self.extension_degree)
 
     def inverse_torus(self, X: list[ModuloCircuitElement]):
-        return [self.neg(x) for x in X]
+        return [(-x) for x in X]
 
     def decompress_torus(
         self, X: list[ModuloCircuitElement]
@@ -157,13 +157,11 @@ class FinalExpTorusCircuit(ExtensionFieldModuloCircuit):
                     list_op_result.append(X[index])
                 else:
                     list_op_result.append(
-                        self.mul(
-                            X[index], self.set_or_get_constant(self.field(constant))
-                        )
+                        (X[index] * self.set_or_get_constant(self.field(constant)))
                     )
             frob[i] = list_op_result[0]
             for op_res in list_op_result[1:]:
-                frob[i] = self.add(frob[i], op_res)
+                frob[i] = frob[i] + op_res
 
         if len(self.v_torus_powers_inv[frob_power]) == 1:
             return self.vector_scale(frob, self.v_torus_powers_inv[frob_power][0])

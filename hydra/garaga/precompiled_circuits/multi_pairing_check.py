@@ -142,13 +142,11 @@ class MultiPairingCheckCircuit(MultiMillerLoopCircuit):
                     list_op_result.append(X[index])
                 else:
                     list_op_result.append(
-                        self.mul(
-                            X[index], self.set_or_get_constant(self.field(constant))
-                        )
+                        (X[index] * self.set_or_get_constant(self.field(constant)))
                     )
             frob[i] = list_op_result[0]
             for op_res in list_op_result[1:]:
-                frob[i] = self.add(frob[i], op_res)
+                frob[i] = frob[i] + op_res
 
         return frob
 

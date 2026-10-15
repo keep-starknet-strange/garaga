@@ -391,17 +391,17 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
         assert len(e12d) == 12
         return [
             e12d[0],
-            self.neg(e12d[1]),
+            (-e12d[1]),
             e12d[2],
-            self.neg(e12d[3]),
+            (-e12d[3]),
             e12d[4],
-            self.neg(e12d[5]),
+            (-e12d[5]),
             e12d[6],
-            self.neg(e12d[7]),
+            (-e12d[7]),
             e12d[8],
-            self.neg(e12d[9]),
+            (-e12d[9]),
             e12d[10],
-            self.neg(e12d[11]),
+            (-e12d[11]),
         ]
 
     def update_LHS_state(
@@ -450,7 +450,7 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
                 LHS_current_eval
             )
             # Update LHS
-            LHS = self.mul(LHS, LHS_current_eval)
+            LHS = LHS * LHS_current_eval
 
         ci_XY_of_z = self.mul(s1, LHS, "ci_XY_of_z")
 
@@ -493,9 +493,9 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
                     self.acc[acc_index] = EuclideanPolyAccumulator(
                         lhs=self.acc[acc_index].lhs,
                         R=self.acc[acc_index].R,
-                        R_evaluated=self.add(
-                            self.acc[acc_index].R_evaluated,
-                            self.mul(s1, already_computed_R_of_z),
+                        R_evaluated=(
+                            self.acc[acc_index].R_evaluated
+                            + (s1 * already_computed_R_of_z)
                         ),
                     )
                     return
@@ -512,18 +512,15 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
             for i, (r_acc, r) in enumerate(zip(self.acc[acc_index].R, R)):
                 match r_sparsity[i]:
                     case 1:
-                        R_acc.append(self.add(r_acc, self.mul(s1, r)))
+                        R_acc.append((r_acc + (s1 * r)))
                     case 2:
-                        R_acc.append(self.add(r_acc, s1))
+                        R_acc.append((r_acc + s1))
                     case _:
                         R_acc.append(r_acc)
 
         else:
             # Computes R_acc = R_acc + s1 * R without sparsity info.
-            R_acc = [
-                self.add(r_acc, self.mul(s1, r))
-                for r_acc, r in zip(self.acc[acc_index].R, R)
-            ]
+            R_acc = [(r_acc + (s1 * r)) for r_acc, r in zip(self.acc[acc_index].R, R)]
         # Update accumulator state
         self.acc[acc_index] = EuclideanPolyAccumulator(
             lhs=self.acc[acc_index].lhs,
@@ -558,9 +555,9 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
             Qs[acc_index] = self.accumulate_poly_instructions[acc_index].Qis[0] * c0
             for i in range(1, self.accumulate_poly_instructions[acc_index].n):
                 self.accumulate_poly_instructions[acc_index].rlc_coeffs.append(
-                    self.mul(
-                        self.accumulate_poly_instructions[acc_index].rlc_coeffs[i - 1],
-                        c0,
+                    (
+                        self.accumulate_poly_instructions[acc_index].rlc_coeffs[i - 1]
+                        * c0
                     )
                 )
                 Qs[acc_index] += (
@@ -624,17 +621,14 @@ class ExtensionFieldModuloCircuit(Fp2Circuits):
             R_of_Z = self.eval_poly_in_precomputed_Z(R)
 
             lhs = self.acc[acc_index].lhs
-            rhs = self.add(
-                self.mul(Q_of_Z, P_of_z),
-                self.add(R_of_Z, self.acc[acc_index].R_evaluated),
-            )
+            rhs = (Q_of_Z * P_of_z) + (R_of_Z + self.acc[acc_index].R_evaluated)
             assert lhs.value == rhs.value, f"{lhs.value} != {rhs.value}, {acc_index}"
             if self.compilation_mode == 0:
                 self.sub_and_assert(
                     lhs, rhs, self.set_or_get_constant(self.field.zero())
                 )
             else:
-                eq_check = self.sub(rhs, lhs)
+                eq_check = rhs - lhs
                 self.extend_output([eq_check])
         return True
 
