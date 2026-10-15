@@ -1,0 +1,6 @@
+[package]
+name = "combined_recursive_circuit"
+type = "bin"
+authors = [""]
+
+[dependencies]
