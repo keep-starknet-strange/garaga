@@ -187,10 +187,34 @@ mod UltraKeccakZKHonkVerifier {
 
             // Starts with 1 * shplonk_q, not included in msm
             let mut _points: Array<G1Point> = array![
-                vk.qm, vk.qc, vk.ql, vk.qr, vk.qo, vk.q4, vk.qLookup, vk.qArith, vk.qDeltaRange,
-                vk.qElliptic, vk.qMemory, vk.qNnf, vk.qPoseidon2External, vk.qPoseidon2Internal,
-                vk.s1, vk.s2, vk.s3, vk.s4, vk.id1, vk.id2, vk.id3, vk.id4, vk.t1, vk.t2, vk.t3,
-                vk.t4, vk.lagrange_first, vk.lagrange_last,
+                vk.qm,
+                vk.qc,
+                vk.ql,
+                vk.qr,
+                vk.qo,
+                vk.q4,
+                vk.qLookup,
+                vk.qArith,
+                vk.qDeltaRange,
+                vk.qElliptic,
+                vk.qMemory,
+                vk.qNnf,
+                vk.qPoseidon2External,
+                vk.qPoseidon2Internal,
+                vk.s1,
+                vk.s2,
+                vk.s3,
+                vk.s4,
+                vk.id1,
+                vk.id2,
+                vk.id3,
+                vk.id4,
+                vk.t1,
+                vk.t2,
+                vk.t3,
+                vk.t4,
+                vk.lagrange_first,
+                vk.lagrange_last,
                 full_proof.proof.gemini_masking_poly.into(), // Proof point 1,
                 full_proof.proof.w1.into(), // Proof point 2,
                 full_proof.proof.w2.into(), // Proof point 3,
@@ -199,7 +223,7 @@ mod UltraKeccakZKHonkVerifier {
                 full_proof.proof.z_perm.into(), // Proof point 6,
                 full_proof.proof.lookup_inverses.into(), // Proof point 7,
                 full_proof.proof.lookup_read_counts.into(), // Proof point 8,
-                full_proof.proof.lookup_read_tags.into() // Proof point 9
+                full_proof.proof.lookup_read_tags.into(), // Proof point 9
             ];
 
             for gem_comm in full_proof.proof.gemini_fold_comms {
@@ -220,7 +244,7 @@ mod UltraKeccakZKHonkVerifier {
                 scalar_30, scalar_31, scalar_32, scalar_33, scalar_34, scalar_35, scalar_36,
                 scalar_37, scalar_38, scalar_39, scalar_40, scalar_41, scalar_42, scalar_43,
                 scalar_44, scalar_45, scalar_46, scalar_47, scalar_48, scalar_49, scalar_50,
-                scalar_51, transcript.shplonk_z.into(), scalar_52,
+                scalar_51, transcript.shplonk_z.into(), scalar_52
             ]
                 .span();
 
@@ -291,4 +315,3 @@ mod UltraKeccakZKHonkVerifier {
         }
     }
 }
-

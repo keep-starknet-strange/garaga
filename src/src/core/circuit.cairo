@@ -1,3 +1,4 @@
+use core::circuit::{CircuitElement, CircuitModulus};
 use core::panic_with_felt252;
 use corelib_imports::bounded_int::bounded_int;
 use corelib_imports::circuit::conversions::{
@@ -6,10 +7,52 @@ use corelib_imports::circuit::conversions::{
     NZ_POW32_TYPED, NZ_POW64_TYPED, NZ_POW96_TYPED, POW64_TYPED, POW96_TYPED, upcast,
 };
 use corelib_imports::circuit::{
-    AddInputResult, CircuitData, IntoCircuitInputValue, U96Guarantee, add_circuit_input,
+    AddInputResult, CircuitData, CircuitDescriptor, CircuitOutputs, CircuitPartialOutputs,
+    IntoCircuitInputValue, IntoU96Guarantee, U96Guarantee, add_circuit_input,
+    circuit_failure_guarantee_verify, eval_circuit, get_circuit_descriptor, get_circuit_output,
     into_u96_guarantee, u384, u96,
 };
 use garaga::definitions::u288;
+
+// Cairo 2.21's default destructors use a libfunc not yet supported by Starknet runtimes.
+// Keep the legacy checks for both output ranges and failed inversions.
+pub type EvalCircuitResult<C> = Result<CircuitOutputs<C>, (CircuitPartialOutputs<C>, ())>;
+
+#[generate_trait]
+pub impl EvalCircuitImpl<C> of EvalCircuitTrait<C> {
+    #[inline]
+    fn eval(self: CircuitData<C>, modulus: CircuitModulus) -> EvalCircuitResult<C> {
+        self.eval_ex(get_circuit_descriptor::<C>(), modulus)
+    }
+
+    #[inline]
+    fn eval_ex(
+        self: CircuitData<C>, descriptor: CircuitDescriptor<C>, modulus: CircuitModulus,
+    ) -> EvalCircuitResult<C> {
+        match eval_circuit::<C>(descriptor, self, modulus, 0, 1) {
+            Result::Ok(outputs) => Result::Ok(outputs),
+            Result::Err((partial_outputs, guarantee)) => {
+                circuit_failure_guarantee_verify(guarantee, 0, 1).into_u96_guarantee().destruct();
+                Result::Err((partial_outputs, ()))
+            },
+        }
+    }
+}
+
+pub trait CircuitOutputsTrait<Outputs, OutputElement> {
+    fn get_output(self: Outputs, output: OutputElement) -> u384;
+}
+
+pub impl CircuitOutputsImpl<
+    C, Output,
+> of CircuitOutputsTrait<CircuitOutputs<C>, CircuitElement<Output>> {
+    #[inline]
+    fn get_output(self: CircuitOutputs<C>, output: CircuitElement<Output>) -> u384 {
+        let (value, guarantee) = get_circuit_output::<C, Output>(self);
+        guarantee.into_u96_guarantee().destruct();
+        value
+    }
+}
 
 
 pub impl U32IntoU384 of Into<u32, u384> {

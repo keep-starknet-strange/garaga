@@ -1,5 +1,5 @@
 use crate::definitions::{FieldElement, GrumpkinPrimeField};
-use lazy_static::lazy_static;
+use std::sync::LazyLock;
 
 type F = GrumpkinPrimeField;
 
@@ -9,34 +9,42 @@ const N_ROUNDS_F: usize = 8; // Number of full rounds
 const N_ROUNDS_P: usize = 57; // Number of partial rounds
 
 // Precompute and cache the Poseidon constants.
-lazy_static! {
-    static ref POSEIDON_C_VEC: Vec<FieldElement<F>> = POSEIDON_C
+static POSEIDON_C_VEC: LazyLock<Vec<FieldElement<F>>> = LazyLock::new(|| {
+    POSEIDON_C
         .iter()
         .copied()
         .map(FieldElement::from_hex_unchecked)
-        .collect();
-    static ref POSEIDON_M_MAT: Vec<Vec<FieldElement<F>>> = POSEIDON_M
+        .collect()
+});
+static POSEIDON_M_MAT: LazyLock<Vec<Vec<FieldElement<F>>>> = LazyLock::new(|| {
+    POSEIDON_M
         .iter()
-        .map(|row| row
-            .iter()
-            .copied()
-            .map(FieldElement::from_hex_unchecked)
-            .collect())
-        .collect();
-    static ref POSEIDON_P_MAT: Vec<Vec<FieldElement<F>>> = POSEIDON_P
+        .map(|row| {
+            row.iter()
+                .copied()
+                .map(FieldElement::from_hex_unchecked)
+                .collect()
+        })
+        .collect()
+});
+static POSEIDON_P_MAT: LazyLock<Vec<Vec<FieldElement<F>>>> = LazyLock::new(|| {
+    POSEIDON_P
         .iter()
-        .map(|row| row
-            .iter()
-            .copied()
-            .map(FieldElement::from_hex_unchecked)
-            .collect())
-        .collect();
-    static ref POSEIDON_S_VEC: Vec<FieldElement<F>> = POSEIDON_S
+        .map(|row| {
+            row.iter()
+                .copied()
+                .map(FieldElement::from_hex_unchecked)
+                .collect()
+        })
+        .collect()
+});
+static POSEIDON_S_VEC: LazyLock<Vec<FieldElement<F>>> = LazyLock::new(|| {
+    POSEIDON_S
         .iter()
         .copied()
         .map(FieldElement::from_hex_unchecked)
-        .collect();
-}
+        .collect()
+});
 
 /// Computes the Poseidon hash for BN254 given two inputs.
 pub fn poseidon_hash_bn254(x: &FieldElement<F>, y: &FieldElement<F>) -> FieldElement<F> {

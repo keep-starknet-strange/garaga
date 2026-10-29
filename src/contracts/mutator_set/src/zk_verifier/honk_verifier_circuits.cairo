@@ -1,8 +1,10 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, CircuitOutputsTrait,
-    EvalCircuitTrait, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitModulus, circuit_add,
+    circuit_inverse, circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{
+    AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
+};
 use garaga::definitions::G1Point;
 
 #[inline(always)]
@@ -3663,4 +3665,3 @@ pub fn is_on_curve_excluding_infinity_bn254(p: G1Point, modulus: CircuitModulus)
     let zero_check: u384 = outputs.get_output(y2_minus_x3);
     return zero_check == u384 { limb0: 3, limb1: 0, limb2: 0, limb3: 0 };
 }
-

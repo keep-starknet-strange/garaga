@@ -22,7 +22,10 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'never'
-          paths: '["tools/**"]'
+          paths: >-
+            ["tools/**", ".github/workflows/node.yml",
+             "hydra/garaga/starknet/groth16_contract_generator/examples/**",
+             "hydra/garaga/starknet/honk_contract_generator/examples/**"]
 
   npm-test:
     needs: pre_job
@@ -30,8 +33,8 @@ jobs:
     name: NPM Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
       - name: Run npm test in garaga_ts

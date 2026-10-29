@@ -5,11 +5,33 @@ on:
     branches: [main]
     paths:
       - 'tools/make/setup.sh'
+      - 'tools/make/constants.json'
       - '.github/workflows/setup.yml'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'docs/PYPI_README.md'
+      - 'uv.lock'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - 'tools/garaga_rs/**'
+      - 'hydra/**'
+      - '.pre-commit-config.yaml'
   pull_request:
     paths:
       - 'tools/make/setup.sh'
+      - 'tools/make/constants.json'
       - '.github/workflows/setup.yml'
+      - 'Makefile'
+      - 'pyproject.toml'
+      - 'docs/PYPI_README.md'
+      - 'uv.lock'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - 'tools/garaga_rs/**'
+      - 'hydra/**'
+      - '.pre-commit-config.yaml'
 
 jobs:
   pre_job:
@@ -27,7 +49,7 @@ jobs:
     if: needs.pre_job.outputs.should_skip != 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Run ShellCheck
         # SC2016: single-quoted strings intentionally prevent expansion (activate script)
         # SC1091: sourced files (venv/bin/activate) don't exist at lint time
@@ -47,14 +69,10 @@ jobs:
       fail-fast: false
     name: setup (${{ matrix.name }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          override: true
-          profile: minimal
+        uses: dtolnay/rust-toolchain@stable
 
       - name: Run make setup
         run: make setup
@@ -63,6 +81,8 @@ jobs:
         run: |
           source venv/bin/activate
           python --version
+          python -c 'from garaga import garaga_rs'
+          python -c 'from garaga.points import G1Point'
 
   test-setup-fedora:
     needs: pre_job
@@ -72,9 +92,9 @@ jobs:
     name: setup (Fedora dnf)
     steps:
       - name: Install base tools
-        run: dnf install -y git curl gcc g++ make perl-FindBin
+        run: dnf install -y git curl gcc g++ make perl-FindBin python3-devel
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Mark workspace as safe for git
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
@@ -94,3 +114,5 @@ jobs:
           source "$HOME/.cargo/env"
           source venv/bin/activate
           python --version
+          python -c 'from garaga import garaga_rs'
+          python -c 'from garaga.points import G1Point'

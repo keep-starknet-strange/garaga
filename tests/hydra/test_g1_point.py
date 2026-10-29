@@ -212,3 +212,179 @@ def test_is_in_subgroup(curve_id):
             p = G1Point.gen_random_point_not_in_subgroup(curve_id)
             assert not p.is_in_prime_order_subgroup()
             assert not p.is_in_prime_order_subgroup_generic()
+
+
+# Independent Jacobian arithmetic checks the affine fallback and native backend.
+def _jacobian_double(point, a, modulus):
+    x, y, z = point
+    y_squared = y * y % modulus
+    s = 4 * x * y_squared % modulus
+    m = (3 * x * x + a * pow(z, 4, modulus)) % modulus
+    rx = (m * m - 2 * s) % modulus
+    ry = (m * (s - rx) - 8 * y_squared * y_squared) % modulus
+    return rx, ry, 2 * y * z % modulus
+
+
+def _jacobian_add(left, right, a, modulus):
+    x1, y1, z1 = left
+    x2, y2, z2 = right
+    if z1 == 0:
+        return right
+    if z2 == 0:
+        return left
+    u1, u2 = x1 * z2 * z2 % modulus, x2 * z1 * z1 % modulus
+    s1, s2 = y1 * pow(z2, 3, modulus) % modulus, y2 * pow(z1, 3, modulus) % modulus
+    if u1 == u2:
+        return _jacobian_double(left, a, modulus) if s1 == s2 else (0, 1, 0)
+    h, r = (u2 - u1) % modulus, (s2 - s1) % modulus
+    h_squared = h * h % modulus
+    h_cubed = h_squared * h % modulus
+    rx = (r * r - h_cubed - 2 * u1 * h_squared) % modulus
+    ry = (r * (u1 * h_squared - rx) - s1 * h_cubed) % modulus
+    return rx, ry, z1 * z2 * h % modulus
+
+
+def _jacobian_to_affine(point, modulus):
+    x, y, z = point
+    if z == 0:
+        return 0, 0
+    inverse = pow(z, -1, modulus)
+    return x * inverse**2 % modulus, y * inverse**3 % modulus
+
+
+def _reference_scalar_mul(point, scalar):
+    curve = CURVES[point.curve_id.value]
+    a = curve.swu_params.A if point.iso_point else curve.a
+    base = (point.x % curve.p, point.y % curve.p, 1)
+    if scalar < 0:
+        base = (base[0], -base[1] % curve.p, 1)
+    result = (0, 1, 0)
+    for bit in bin(abs(scalar))[2:]:
+        result = _jacobian_double(result, a, curve.p)
+        if bit == "1":
+            result = _jacobian_add(result, base, a, curve.p)
+    return _jacobian_to_affine(result, curve.p)
+
+
+def _reference_add(left, right):
+    curve = CURVES[left.curve_id.value]
+    a = curve.swu_params.A if left.iso_point else curve.a
+    result = _jacobian_add((left.x, left.y, 1), (right.x, right.y, 1), a, curve.p)
+    return _jacobian_to_affine(result, curve.p)
+
+
+@pytest.mark.parametrize("curve_id", curve_ids)
+@pytest.mark.parametrize("negative", [False, True])
+def test_scalar_mul_huge_integer_matches_independent_math(curve_id, negative):
+    curve = CURVES[curve_id.value]
+    point = G1Point(curve.Gx, curve.Gy, curve_id)
+    scalar = (1 << 1024) + curve.n + 17
+    if negative:
+        scalar = -scalar
+    result = point.scalar_mul(scalar)
+    assert (result.x, result.y) == _reference_scalar_mul(point, scalar)
+
+
+@pytest.fixture(
+    params=["bls_torsion", "bls_coset", "ed_order2", "ed_order4", "ed_coset", "iso"]
+)
+def generic_point(request):
+    if request.param.startswith("bls"):
+        curve = CURVES[CurveID.BLS12_381.value]
+        point = G1Point(0, 2, CurveID.BLS12_381)
+        if request.param == "bls_coset":
+            generator = G1Point(curve.Gx, curve.Gy, CurveID.BLS12_381)
+            point = G1Point(*_reference_add(generator, point), CurveID.BLS12_381)
+        return point
+    if request.param == "iso":
+        from garaga.curves import get_base_field
+        from garaga.signature import map_to_curve
+
+        return map_to_curve(get_base_field(CurveID.BLS12_381)(7), CurveID.BLS12_381)
+    curve = CURVES[CurveID.ED25519.value]
+    if request.param == "ed_order2":
+        x = (curve.a_twisted + curve.d_twisted) * pow(6, -1, curve.p) % curve.p
+        return G1Point(x, 0, CurveID.ED25519)
+    sqrt_minus_one = pow(2, (curve.p - 1) // 4, curve.p)
+    point = G1Point(*curve.to_weierstrass(sqrt_minus_one, 0), CurveID.ED25519)
+    if request.param == "ed_coset":
+        generator = G1Point(curve.Gx, curve.Gy, CurveID.ED25519)
+        point = G1Point(*_reference_add(generator, point), CurveID.ED25519)
+    return point
+
+
+@pytest.mark.parametrize(
+    "scalar_kind", ["zero", "one", "order", "past_order", "negative", "huge"]
+)
+def test_generic_scalar_mul_does_not_reduce_to_subgroup_order(
+    generic_point, scalar_kind
+):
+    order = CURVES[generic_point.curve_id.value].n
+    scalar = {
+        "zero": 0,
+        "one": 1,
+        "order": order,
+        "past_order": order + 1,
+        "negative": -order - 1,
+        "huge": -(1 << 1024) - order - 17,
+    }[scalar_kind]
+    result = generic_point.scalar_mul(scalar)
+    assert (result.x, result.y) == _reference_scalar_mul(generic_point, scalar)
+    assert result.iso_point == generic_point.iso_point
+
+
+def test_bls_order3_point_is_not_in_subgroup():
+    point = G1Point(0, 2, CurveID.BLS12_381)
+    assert point.scalar_mul(CURVES[CurveID.BLS12_381.value].n) == point
+    assert not point.is_in_prime_order_subgroup_generic()
+    assert not point.is_in_prime_order_subgroup()
+
+
+def test_ed25519_addition_with_order4_torsion_cosets():
+    curve = CURVES[CurveID.ED25519.value]
+    generator = G1Point(curve.Gx, curve.Gy, CurveID.ED25519)
+    torsion = G1Point(
+        *curve.to_weierstrass(pow(2, (curve.p - 1) // 4, curve.p), 0), CurveID.ED25519
+    )
+    left = G1Point(*_reference_add(generator, torsion), CurveID.ED25519)
+    right = G1Point(*_reference_add(generator, -torsion), CurveID.ED25519)
+    result = left.add(right)
+    assert (result.x, result.y) == _reference_scalar_mul(generator, 2)
+    assert not result.is_infinity()
+
+
+@pytest.mark.parametrize("curve_id", curve_ids)
+@pytest.mark.parametrize("multiple", [-1, 1, 1 << 512])
+def test_noncanonical_coordinates_preserve_point_arithmetic(curve_id, multiple):
+    curve = CURVES[curve_id.value]
+    generator = G1Point(curve.Gx, curve.Gy, curve_id)
+    point = G1Point(
+        curve.Gx + multiple * curve.p, curve.Gy + multiple * curve.p, curve_id
+    )
+    summed = generator.add(point)
+    assert (summed.x, summed.y) == _reference_scalar_mul(generator, 2)
+    for scalar in (1, -1, curve.n + 1):
+        result = point.scalar_mul(scalar)
+        assert (result.x, result.y) == _reference_scalar_mul(generator, scalar)
+
+
+@pytest.mark.parametrize("generic_point", ["iso"], indirect=True)
+def test_isogenous_identity_operations_preserve_metadata(generic_point):
+    zero = generic_point.scalar_mul(0)
+    assert zero.is_infinity() and zero.iso_point
+    assert zero.scalar_mul(123).iso_point
+    assert zero.add(generic_point) == generic_point
+    assert generic_point.add(-generic_point).iso_point
+    assert G1Point.infinity(generic_point.curve_id).add(generic_point) == generic_point
+
+
+def test_nonidentity_addition_rejects_different_curve_equations(generic_point):
+    curve = CURVES[CurveID.SECP256K1.value]
+    other = G1Point(curve.Gx, curve.Gy, CurveID.SECP256K1)
+    with pytest.raises(ValueError, match="same curve"):
+        generic_point.add(other)
+    if generic_point.iso_point:
+        curve = CURVES[generic_point.curve_id.value]
+        ordinary = G1Point(curve.Gx, curve.Gy, generic_point.curve_id)
+        with pytest.raises(ValueError, match="same curve"):
+            generic_point.add(ordinary)

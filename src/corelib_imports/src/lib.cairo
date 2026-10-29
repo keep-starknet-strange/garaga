@@ -24,9 +24,11 @@ pub mod bounded_int {
 
 pub mod circuit {
     pub use core::circuit::{
-        AddInputResult, CircuitData, CircuitDefinition, CircuitInputAccumulator,
-        IntoCircuitInputValue, U96Guarantee, add_circuit_input, init_circuit_data,
-        into_u96_guarantee, u384, u96,
+        AddInputResult, CircuitData, CircuitDefinition, CircuitDescriptor, CircuitInputAccumulator,
+        CircuitOutputs, CircuitPartialOutputs, IntoCircuitInputValue, IntoU96Guarantee,
+        U96Guarantee, add_circuit_input, circuit_failure_guarantee_verify, eval_circuit,
+        get_circuit_descriptor, get_circuit_output, init_circuit_data, into_u96_guarantee, u384,
+        u96,
     };
 
     pub mod conversions {

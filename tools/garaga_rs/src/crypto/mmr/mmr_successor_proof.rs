@@ -243,35 +243,40 @@ impl<H: HashFunction> MmrSuccessorProof<H> {
     }
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash, thiserror::Error)] // , Arbitrary)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Hash)] // , Arbitrary)]
 enum Error {
-    #[error("the new MMRA must not take away any leafs")]
     OldHasMoreLeafsThanNew,
-
-    #[error("the old MMRA must be self-consistent")]
     InconsistentOldMmr,
-
-    #[error("the new MMRA must be self-consistent")]
     InconsistentNewMmr,
-
-    #[error("the old MMRA has too few peaks – is it consistent?")]
     MissingOldPeak,
-
-    #[error("the new MMRA has too few peaks – is it consistent?")]
     MissingNewPeak,
-
-    #[error("the authentication path contains too few elements")]
     AuthenticationPathTooShort,
-
-    #[error("the authentication path contains spurious elements")]
     AuthenticationPathTooLong,
-
-    #[error("a peak that should be shared between old and new MMRA is unequal")]
     DifferentSharedPeak,
-
-    #[error("the first peak that's unshared between old and new MMRA is not as claimed")]
     DifferentUnsharedPeak,
 }
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(match self {
+            Self::OldHasMoreLeafsThanNew => "the new MMRA must not take away any leafs",
+            Self::InconsistentOldMmr => "the old MMRA must be self-consistent",
+            Self::InconsistentNewMmr => "the new MMRA must be self-consistent",
+            Self::MissingOldPeak => "the old MMRA has too few peaks – is it consistent?",
+            Self::MissingNewPeak => "the new MMRA has too few peaks – is it consistent?",
+            Self::AuthenticationPathTooShort => "the authentication path contains too few elements",
+            Self::AuthenticationPathTooLong => "the authentication path contains spurious elements",
+            Self::DifferentSharedPeak => {
+                "a peak that should be shared between old and new MMRA is unequal"
+            }
+            Self::DifferentUnsharedPeak => {
+                "the first peak that's unshared between old and new MMRA is not as claimed"
+            }
+        })
+    }
+}
+
+impl std::error::Error for Error {}
 
 // #[cfg(test)]
 // mod test {

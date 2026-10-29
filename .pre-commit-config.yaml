@@ -1,18 +1,18 @@
 repos:
 -   repo: https://github.com/PyCQA/autoflake
-    rev: v2.3.1
+    rev: v2.4.0
     hooks:
     -   id: autoflake
         args: ["--in-place", "--remove-all-unused-imports"]
         files: \.py$
 -   repo: https://github.com/pycqa/isort
-    rev: 5.13.2
+    rev: 9.0.2
     hooks:
     -   id: isort
         args: ["--profile", "black"]
         files: \.py$
 -   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+    rev: v6.0.0
     hooks:
     -   id: trailing-whitespace
         exclude: ^tools/npm/garaga_ts/src/wasm/pkg/
@@ -20,14 +20,16 @@ repos:
         exclude: (\.cairo$|^tools/npm/garaga_ts/src/wasm/pkg/)
     -   id: check-yaml
     -   id: check-toml
--   repo: https://github.com/psf/black
-    rev: 26.1.0
-    hooks:
-    -   id: black
-        args: ["--target-version", "py310"]
-        files: \.py$
 -   repo: local
     hooks:
+    -   id: black
+        name: black
+        entry: venv/bin/black
+        language: unsupported
+        types_or: [python, pyi]
+        require_serial: true
+        args: ["--target-version", "py311"]
+        files: \.py$
     -   id: scarb-fmt
         name: scarb fmt
         entry: bash -c 'cd src && scarb fmt'

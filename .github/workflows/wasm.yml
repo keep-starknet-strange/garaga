@@ -22,23 +22,36 @@ jobs:
         uses: fkirc/skip-duplicate-actions@v5
         with:
           concurrent_skipping: 'never'
-          paths: '["tools/**"]'
+          paths: >-
+            ["tools/**", "Cargo.toml", "Cargo.lock", ".cargo/config.toml",
+             ".github/workflows/wasm.yml"]
 
   test-wasm:
     needs: pre_job
     if: needs.pre_job.outputs.should_skip != 'true'
     name: test-wasm
     runs-on: ubuntu-latest
+    env:
+      RUSTFLAGS: '--cfg getrandom_backend="wasm_js"'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
       - uses: dtolnay/rust-toolchain@stable
-      - run: cargo install wasm-pack
+      - name: Restore Rust dependency cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: ". -> .cargo/garaga_rs/target"
+          key: wasm-${{ hashFiles('Cargo.toml') }}
+      - name: Install pinned wasm-pack binary
+        uses: taiki-e/install-action@v2
+        with:
+          tool: wasm-pack@0.13.1
+          fallback: none
       - name: Run wasm specific tests
         working-directory: tools/garaga_rs
-        run: RUSTFLAGS='--cfg getrandom_backend="wasm_js"' wasm-pack test --node --release --no-default-features --features wasm
+        run: wasm-pack test --node --release --no-default-features --features wasm
 
   build-wasm:
     needs: pre_job
@@ -46,7 +59,7 @@ jobs:
     name: build-wasm
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build and check for changes in generated code
         working-directory: tools/npm/garaga_ts
         run: |
@@ -66,8 +79,8 @@ jobs:
     name: test-integration
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
       - name: Install Puppeteer dependencies
@@ -97,22 +110,20 @@ jobs:
     if: "startsWith(github.ref, 'refs/tags/')"  # Only run on tag pushes
     needs: [build-wasm, test-wasm, test-integration]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Set up Rust
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
-          override: true
-          profile: minimal
           components: rustfmt
 
       - uses: software-mansion/setup-scarb@v1
         with:
-          scarb-version: "2.16.1"
+          scarb-version: "2.21.0"
+          cache: false
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.11"
       - name: Install dependencies
         run: make setup
       - name: Verify Contract Declaration
@@ -120,7 +131,7 @@ jobs:
           SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
           MAINNET_RPC_URL: ${{ secrets.MAINNET_RPC_URL }}
         run: source venv/bin/activate && python .github/scripts/verify_contracts.py
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 'lts/*'
           registry-url: 'https://registry.npmjs.org'

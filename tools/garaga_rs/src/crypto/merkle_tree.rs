@@ -1,24 +1,22 @@
 use crate::crypto::digest::{Digest, HashFunction};
 use arbitrary::{Arbitrary, Unstructured};
 use itertools::Itertools;
-use lazy_static::lazy_static;
 // use rayon::prelude::*;
 use std::collections::hash_map::Entry::*;
 use std::collections::*;
-use std::fmt::Debug;
+use std::fmt::{self, Debug};
 use std::result;
-use thiserror::Error; // Add this import
+use std::sync::LazyLock;
 
 // use crate::prelude::*;
 
 const DEFAULT_PARALLELIZATION_CUTOFF: usize = 512;
-lazy_static! {
-    static ref PARALLELIZATION_CUTOFF: usize =
-        std::env::var("TWENTY_FIRST_MERKLE_TREE_PARALLELIZATION_CUTOFF")
-            .ok()
-            .and_then(|v| v.parse().ok())
-            .unwrap_or(DEFAULT_PARALLELIZATION_CUTOFF);
-}
+static PARALLELIZATION_CUTOFF: LazyLock<usize> = LazyLock::new(|| {
+    std::env::var("TWENTY_FIRST_MERKLE_TREE_PARALLELIZATION_CUTOFF")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(DEFAULT_PARALLELIZATION_CUTOFF)
+});
 
 /// Enforces that all compilation targets have a consistent [`MAX_TREE_HEIGHT`].
 /// In particular, if `usize` has more than 32 bits, the maximum height of a
@@ -125,9 +123,9 @@ impl<H: HashFunction> MerkleTree<H> {
 
     /// Build a MerkleTree with the given leafs.
     ///
-    /// Uses [`rayon`] to parallelize Merkle tree construction. If the use of
-    /// [`rayon`] is not an option in your context, use
-    /// [`MerkleTree::sequential_new`], which is equivalent but usually slower.
+    /// This implementation processes each tree level sequentially.
+    /// The name remains for API compatibility.
+    /// [`MerkleTree::sequential_new`] uses the same leaf and hash semantics.
     ///
     /// # Errors
     ///
@@ -558,35 +556,53 @@ impl<H: HashFunction> TryFrom<MerkleTreeInclusionProof<H>> for PartialMerkleTree
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Error)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MerkleTreeError {
-    #[error("All leaf indices must be valid, i.e., less than {num_leafs}.")]
     LeafIndexInvalid { num_leafs: usize },
-
-    #[error("The length of the supplied authentication structure must match the expected length.")]
     AuthenticationStructureLengthMismatch,
-
-    #[error("Leaf digests of repeated indices must be identical.")]
     RepeatedLeafDigestMismatch,
-
-    #[error("The partial tree must be minimal. Node {0} was supplied but can be computed.")]
     SpuriousNodeIndex(usize),
-
-    #[error("The partial tree must contain all necessary information. Node {0} is missing.")]
     MissingNodeIndex(usize),
-
-    #[error("Could not compute the root. Maybe no leaf indices were supplied?")]
     RootNotFound,
-
-    #[error("Too few leafs to build a Merkle tree.")]
     TooFewLeafs,
-
-    #[error("The number of leafs must be a power of two.")]
     IncorrectNumberOfLeafs,
-
-    #[error("Tree height must not exceed {MAX_TREE_HEIGHT}.")]
     TreeTooHigh,
 }
+
+impl fmt::Display for MerkleTreeError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::LeafIndexInvalid { num_leafs } => write!(
+                f,
+                "All leaf indices must be valid, i.e., less than {num_leafs}."
+            ),
+            Self::AuthenticationStructureLengthMismatch => f.write_str(
+                "The length of the supplied authentication structure must match the expected length.",
+            ),
+            Self::RepeatedLeafDigestMismatch => {
+                f.write_str("Leaf digests of repeated indices must be identical.")
+            }
+            Self::SpuriousNodeIndex(index) => write!(
+                f,
+                "The partial tree must be minimal. Node {index} was supplied but can be computed."
+            ),
+            Self::MissingNodeIndex(index) => write!(
+                f,
+                "The partial tree must contain all necessary information. Node {index} is missing."
+            ),
+            Self::RootNotFound => {
+                f.write_str("Could not compute the root. Maybe no leaf indices were supplied?")
+            }
+            Self::TooFewLeafs => f.write_str("Too few leafs to build a Merkle tree."),
+            Self::IncorrectNumberOfLeafs => {
+                f.write_str("The number of leafs must be a power of two.")
+            }
+            Self::TreeTooHigh => write!(f, "Tree height must not exceed {MAX_TREE_HEIGHT}."),
+        }
+    }
+}
+
+impl std::error::Error for MerkleTreeError {}
 
 // #[cfg(test)]
 // pub mod merkle_tree_test {

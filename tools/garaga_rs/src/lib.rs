@@ -24,6 +24,7 @@ pub mod crypto {
     pub mod merkle_tree;
     #[allow(dead_code)]
     pub mod poseidon_bn254;
+    pub(crate) mod poseidon_stark252;
 }
 pub mod definitions;
 pub mod ecip {

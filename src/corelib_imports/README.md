@@ -24,6 +24,8 @@ Circuit construction and optimization utilities:
 - `CircuitData`, `CircuitDefinition`: Circuit representation types
 - `u384`, `u96`: Extended precision integer types for cryptographic operations
 - `AddInputResult`: Circuit input accumulation
+- `IntoU96Guarantee`: Legacy multi-limb range verification
+- `get_circuit_output`, `eval_circuit`, `circuit_failure_guarantee_verify`: Checked circuit evaluation primitives
 - `conversions`: Specialized arithmetic helpers for multi-precision operations
 
 ### `integer`
@@ -35,6 +37,10 @@ Extended integer operations:
 Utility functions:
 - `array_slice`: Efficient array slicing operations
 - `cairo_keccak`, `keccak_add_u256_be`: Keccak hash operations
+
+Garaga uses these primitives to retain full circuit checks on current Starknet runtimes.
+Cairo 2.21.0 introduces a verification instruction that these runtimes do not yet support.
+The compatibility API verifies both output ranges and failed inversions with the existing instructions.
 
 ## Usage Examples
 

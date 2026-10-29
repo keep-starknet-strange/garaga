@@ -1,0 +1,109 @@
+version: 2
+
+# Each ecosystem batches patch/minor updates across its connected projects.
+# Major updates remain separate review PRs. No updates merge automatically.
+updates:
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    allow:
+      - dependency-type: all
+    groups:
+      python-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: cargo
+    directories:
+      - /
+      - /src/contracts/risc0_sample_app/fibonacci_prover
+      # The guest declares its own workspace, outside the host/methods workspace.
+      - /src/contracts/risc0_sample_app/fibonacci_prover/methods/guest
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    allow:
+      - dependency-type: all
+    ignore:
+      # This enables the wasm_js backend for rand 0.9's getrandom 0.3.
+      # Move both together when rand supports a newer backend.
+      - dependency-name: getrandom
+        versions: [">=0.4"]
+    groups:
+      rust-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: npm
+    directory: /tools/npm/garaga_ts
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      # This is the local package under test, packed by the WASM build.
+      - dependency-name: garaga
+      # Babel 8 needs a coordinated Babel/Jest/Node migration.
+      - dependency-name: "@babel/preset-env"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@babel/preset-typescript"
+        update-types: [version-update:semver-major]
+      # These build tools need the legacy compiler API, absent from TS 7.
+      - dependency-name: typescript
+        versions: [">=7"]
+    groups:
+      javascript-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: npm
+    # CLI-only consumers can use TS 7; includes packages/* workspaces.
+    directory: /tools/npm/integration-test-suite
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: garaga
+      - dependency-name: "@babel/preset-env"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@babel/preset-typescript"
+        update-types: [version-update:semver-major]
+    groups:
+      javascript-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      # Numeric action refs select a compiler, not the action's version.
+      # Upgrade this toolchain explicitly with the other compiler pins.
+      - dependency-name: dtolnay/rust-toolchain
+    groups:
+      actions-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: docker
+    directory: /tools/npm/garaga_ts
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      containers-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]
+
+  - package-ecosystem: pre-commit
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      hooks-patch-and-minor:
+        patterns: ["*"]
+        update-types: [patch, minor]

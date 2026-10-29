@@ -1,11 +1,12 @@
 use core::circuit::{
     CircuitElement, CircuitElement as CE, CircuitInput, CircuitInput as CI, CircuitInputs,
-    CircuitModulus, CircuitOutputsTrait, EvalCircuitTrait, circuit_add, circuit_inverse,
-    circuit_mul, circuit_sub, u384,
+    CircuitModulus, circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
 };
 use core::num::traits::Zero;
 use corelib_imports::bounded_int::upcast;
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{
+    AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
+};
 use garaga::definitions::{E12D, get_BLS12_381_modulus, get_BN254_modulus, u288};
 use garaga::utils::hashing::{PoseidonState, hades_permutation, hash_quadruple_u288};
 

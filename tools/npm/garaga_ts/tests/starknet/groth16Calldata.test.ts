@@ -1,46 +1,43 @@
-import { Groth16Proof, parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
+import { createHash } from "crypto";
+import { readFileSync } from "fs";
+import {
+  parseGroth16ProofFromJson,
+  parseGroth16VerifyingKeyFromJson,
+} from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
 import * as garaga from "../../src/node/index";
 
+const PATH = "../../../hydra/garaga/starknet/groth16_contract_generator/examples";
 
-const PATH = '../../../hydra/garaga/starknet/groth16_contract_generator/examples';
+type CalldataVector = {
+  name: string;
+  proof: string;
+  vk: string;
+  public_inputs: string | null;
+  length: number;
+  sha256: string;
+};
 
-describe('Groth16 Getting calldata', () => {
+const vectors: CalldataVector[] = JSON.parse(
+  readFileSync(PATH + "/groth16_calldata_test_vectors.json", "utf8"),
+);
 
-  const proofAndVkWithPublicInputs = [
-    [`${PATH}/proof_bn254.json`, `${PATH}/vk_bn254.json`, null],
-    [`${PATH}/proof_bls.json`, `${PATH}/vk_bls.json`, null],
-
-    [`${PATH}/gnark_proof_bn254.json`, `${PATH}/gnark_vk_bn254.json`, `${PATH}/gnark_public_bn254.json`],
-    [`${PATH}/snarkjs_proof_bn254.json`, `${PATH}/snarkjs_vk_bn254.json`, `${PATH}/snarkjs_public_bn254.json`],
-
-    [`${PATH}/proof_risc0.json`, `${PATH}/vk_risc0.json`, null],
-    [`${PATH}/proof_sp1.json`, `${PATH}/vk_sp1.json`, null],
-
-  ]
-
-  test.each(proofAndVkWithPublicInputs)("should  get groth16 calldata from proof %s, vk %s and pub inputs %s", async (proofPath, vkPath, pubInputsPath) => {
-
+describe("Groth16 calldata conformance", () => {
+  test.each(vectors)("$name matches the Python reference", async (vector) => {
     await garaga.init();
 
-    const vk = parseGroth16VerifyingKeyFromJson(vkPath as string);
+    const vk = parseGroth16VerifyingKeyFromJson(PATH + "/" + vector.vk);
+    const proof = parseGroth16ProofFromJson(
+      PATH + "/" + vector.proof,
+      vector.public_inputs ? PATH + "/" + vector.public_inputs : null,
+    );
+    const calldata = garaga.getGroth16CallData(proof, vk, proof.a.curveId);
 
-    let proof: Groth16Proof;
-    if (pubInputsPath == null) {
-      proof = parseGroth16ProofFromJson(proofPath as string);
-    } else {
-      proof = parseGroth16ProofFromJson(proofPath as string, pubInputsPath);
-    }
-
-    const curveId: garaga.CurveId = proof.a.curveId;
-
-    console.log("proof", proof);
-
-    console.log("vk", vk);
-    console.log("curveId", curveId);
-    const groth16Calldata = garaga.getGroth16CallData(proof, vk, curveId);
-
-    console.log("groth16Calldata", groth16Calldata);
-
+    expect(calldata).toHaveLength(vector.length);
+    expect(calldata[0]).toBe(BigInt(calldata.length - 1));
+    // Decimal ASCII words, separated by one newline with no trailing newline.
+    const digest = createHash("sha256")
+      .update(calldata.map(String).join("\n"), "ascii")
+      .digest("hex");
+    expect(digest).toBe(vector.sha256);
   });
-
 });

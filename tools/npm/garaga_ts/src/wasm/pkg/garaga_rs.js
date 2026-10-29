@@ -269,6 +269,35 @@ export function mpc_calldata_builder(curve_id, values1, n_fixed_g2, values2) {
 }
 
 /**
+ * @param {any} proof_js
+ * @param {any} public_inputs_js
+ * @param {any} vk_js
+ * @returns {any[]}
+ */
+export function get_zk_honk_calldata(proof_js, public_inputs_js, vk_js) {
+    const ret = wasm.get_zk_honk_calldata(proof_js, public_inputs_js, vk_js);
+    if (ret[3]) {
+        throw takeFromExternrefTable0(ret[2]);
+    }
+    var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+    return v1;
+}
+
+/**
+ * @param {any} x
+ * @param {any} y
+ * @returns {any}
+ */
+export function poseidon_hash(x, y) {
+    const ret = wasm.poseidon_hash(x, y);
+    if (ret[2]) {
+        throw takeFromExternrefTable0(ret[1]);
+    }
+    return takeFromExternrefTable0(ret[0]);
+}
+
+/**
  * @param {any} rx
  * @param {any} s
  * @param {any} e
@@ -405,35 +434,6 @@ export function get_groth16_calldata(proof_js, vk_js, curve_id_js) {
     var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
     wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
     return v1;
-}
-
-/**
- * @param {any} proof_js
- * @param {any} public_inputs_js
- * @param {any} vk_js
- * @returns {any[]}
- */
-export function get_zk_honk_calldata(proof_js, public_inputs_js, vk_js) {
-    const ret = wasm.get_zk_honk_calldata(proof_js, public_inputs_js, vk_js);
-    if (ret[3]) {
-        throw takeFromExternrefTable0(ret[2]);
-    }
-    var v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
-    wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
-    return v1;
-}
-
-/**
- * @param {any} x
- * @param {any} y
- * @returns {any}
- */
-export function poseidon_hash(x, y) {
-    const ret = wasm.poseidon_hash(x, y);
-    if (ret[2]) {
-        throw takeFromExternrefTable0(ret[1]);
-    }
-    return takeFromExternrefTable0(ret[0]);
 }
 
 async function __wbg_load(module, imports) {

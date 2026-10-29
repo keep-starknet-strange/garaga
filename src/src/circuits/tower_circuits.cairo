@@ -1,8 +1,10 @@
 use core::circuit::{
-    CircuitElement as CE, CircuitInput as CI, CircuitInputs, CircuitOutputsTrait, EvalCircuitTrait,
-    circuit_add, circuit_inverse, circuit_mul, circuit_sub, u384,
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+    circuit_mul, circuit_sub, u384,
 };
-use garaga::core::circuit::{AddInputResultTrait2, u288IntoCircuitInputValue};
+use garaga::core::circuit::{
+    AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
+};
 use garaga::definitions::{E12T, G2Point};
 #[inline(always)]
 pub fn run_BLS12_381_E12T_CYCLOTOMIC_SQUARE_circuit(M: E12T) -> (E12T,) {

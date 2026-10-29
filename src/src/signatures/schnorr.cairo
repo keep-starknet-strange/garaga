@@ -117,4 +117,3 @@ pub fn is_valid_schnorr_signature_assuming_hash(
 
     true
 }
-

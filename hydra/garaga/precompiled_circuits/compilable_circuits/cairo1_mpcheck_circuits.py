@@ -165,7 +165,7 @@ class BaseFixedG2PointsMPCheck(BaseEXTFCircuit, ABC):
         Method responsible for deserializing the input list of elements into the variables in the input map,
         and writing them to the circuit.
         The input list is expected to be in the same order as the input map.
-        Since we use Python 3.10, the input map dict is ordered.
+        Python dictionaries preserve insertion order.
         Returns a vars dict with the same keys as the input map, but with the values being the instances of the structs,
         each struct holding ModuloCircuitElement(s).
         """
