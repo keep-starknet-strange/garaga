@@ -3,7 +3,7 @@
 # - It will update the code generated under src/wasm/pkg
 # Usage: docker compose up --build && docker compose down
 
-FROM rust:1.98.1
+FROM rust:1.99.0
 
 # Update the archive hashes whenever WASM_PACK_VERSION changes.
 RUN WASM_PACK_VERSION=0.13.1 \
@@ -18,7 +18,7 @@ RUN WASM_PACK_VERSION=0.13.1 \
     && rm /tmp/wasm-pack.tar.gz \
     && wasm-pack --version
 
-RUN curl -L https://bit.ly/n-install | bash -s -- -y 20.17.0
+RUN curl -L https://bit.ly/n-install | bash -s -- -y 24.15.0
 
 ENV HOME="/root/"
 ENV N_PREFIX="$HOME/n"
