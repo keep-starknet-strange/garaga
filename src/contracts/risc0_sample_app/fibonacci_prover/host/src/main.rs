@@ -4,7 +4,6 @@ use garaga_rs::calldata::full_proof_with_hints::groth16::risc0_utils::get_risc0_
 use garaga_rs::calldata::full_proof_with_hints::groth16::{get_groth16_calldata, Groth16Proof};
 use garaga_rs::definitions::CurveID;
 use methods::FIBONACCI_GUEST_ELF;
-use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{compute_image_id, default_prover, ExecutorEnv, ProverOpts, VerifierContext};
 
 fn main() {
@@ -55,7 +54,15 @@ fn main() {
 
     // extract the receipt.
     let receipt = prove_info.receipt;
-    let seal = to_bytes(encode_seal(&receipt).unwrap());
+    receipt
+        .verify(compute_image_id(FIBONACCI_GUEST_ELF).unwrap())
+        .unwrap();
+    let groth16 = receipt.inner.groth16().unwrap();
+    let seal = [
+        &groth16.verifier_parameters.as_bytes()[..4],
+        groth16.seal.as_slice(),
+    ]
+    .concat();
     let image_id = to_bytes(compute_image_id(&FIBONACCI_GUEST_ELF).unwrap());
     let journal = to_bytes(receipt.journal);
     // prints the proof artifact as JSON
@@ -83,4 +90,81 @@ fn main() {
             .collect::<Vec<_>>()
             .join(", ")
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use num_bigint::BigUint;
+    use risc0_zkvm::sha::{Digest, Digestible};
+    use risc0_zkvm::{
+        Groth16Receipt, Groth16ReceiptVerifierParameters, InnerReceipt, Receipt, ReceiptClaim,
+    };
+
+    #[test]
+    fn sdk_parameters_match_the_v3_cairo_verifier() {
+        let parameters = Groth16ReceiptVerifierParameters::default();
+        let constants: serde_json::Value = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../../../../tools/make/constants.json"
+        )))
+        .unwrap();
+        let (control_root, control_id) = garaga_rs::constants::get_risc0_constants();
+        assert_eq!(
+            risc0_zkvm::VERSION,
+            constants["release_info"]["risc0_zkvm_version"]
+                .as_str()
+                .unwrap()
+        );
+        assert_eq!(
+            BigUint::from_bytes_be(parameters.control_root.as_bytes()),
+            control_root,
+            "SDK and Garaga default control roots differ. Run make constants."
+        );
+        assert_eq!(
+            BigUint::from_bytes_le(parameters.bn254_control_id.as_bytes()),
+            control_id,
+            "SDK and Garaga default control IDs differ. Run make constants."
+        );
+        for proof_json in [
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../proof.json")),
+            include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../../../hydra/garaga/starknet/groth16_contract_generator/examples/proof_risc0.json")),
+        ] {
+            let proof: serde_json::Value = serde_json::from_str(proof_json).unwrap();
+            let seal = hex::decode(proof["seal"].as_str().unwrap().trim_start_matches("0x")).unwrap();
+            assert_eq!(
+                &seal[..4],
+                &parameters.digest().as_bytes()[..4],
+                "Committed proof selector differs from the SDK verifier parameters. Regenerate proofs."
+            );
+            let image_id = hex::decode(proof["image_id"].as_str().unwrap().trim_start_matches("0x")).unwrap();
+            let image_id = Digest::try_from(image_id.as_slice()).unwrap();
+            let journal = hex::decode(proof["journal"].as_str().unwrap().trim_start_matches("0x")).unwrap();
+            let claim = ReceiptClaim::ok(image_id, journal.clone());
+            let receipt = Receipt::new(
+                InnerReceipt::Groth16(Groth16Receipt::new(
+                    seal[4..].to_vec(), claim.into(), parameters.digest(),
+                )),
+                journal,
+            );
+            receipt.verify(image_id).expect("Committed receipt must verify with the installed SDK");
+        }
+    }
+
+    #[test]
+    fn fibonacci_fixture_matches_the_compiled_guest() {
+        let proof: serde_json::Value = serde_json::from_str(include_str!(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../proof.json"
+        )))
+        .unwrap();
+        assert_eq!(
+            format!(
+                "0x{}",
+                hex::encode(compute_image_id(FIBONACCI_GUEST_ELF).unwrap().as_bytes())
+            ),
+            proof["image_id"].as_str().unwrap(),
+            "Committed Fibonacci proof targets a different guest. Regenerate proof.json."
+        );
+    }
 }
