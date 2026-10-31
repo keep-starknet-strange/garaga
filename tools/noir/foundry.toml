@@ -1,0 +1,11 @@
+[profile.default]
+src = "target/references"
+test = "reference"
+out = "target/solidity"
+cache_path = "target/forge-cache"
+libs = []
+solc_version = "0.8.38"
+evm_version = "cancun"
+optimizer = true
+optimizer_runs = 200
+fs_permissions = [{ access = "read", path = "../../hydra/garaga/starknet/honk_contract_generator/examples" }]

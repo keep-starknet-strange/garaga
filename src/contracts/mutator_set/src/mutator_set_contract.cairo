@@ -1,5 +1,3 @@
-use mutator_set::zk_verifier::honk_verifier_contract::IUltraKeccakZKHonkVerifier;
-
 #[starknet::interface]
 pub trait IMutatorSetContract<TContractState> {
     fn get_n_leaves_aocl(self: @TContractState) -> u64;
@@ -147,14 +145,26 @@ mod MutatorSetContract {
         fn verify_inclusion_proof_aocl(
             ref self: ContractState, full_proof_with_hints: Span<felt252>,
         ) -> bool {
-            let mut res = starknet::syscalls::library_call_syscall(
+            let mut calldata = array![];
+            full_proof_with_hints.serialize(ref calldata);
+            let mut response = starknet::syscalls::library_call_syscall(
                 VERIFIER_CLASS_HASH.try_into().unwrap(),
                 selector!("verify_ultra_keccak_zk_honk_proof"),
-                full_proof_with_hints,
+                calldata.span(),
             )
                 .unwrap_syscall();
-
-            Serde::<bool>::deserialize(ref res).unwrap()
+            let result = Serde::<Result<Span<u256>, felt252>>::deserialize(ref response).unwrap();
+            assert(response.is_empty(), 'Trailing verifier output');
+            match result {
+                Result::Ok(inputs) => {
+                    let peaks = self.get_peaks_aocl();
+                    inputs.len() == 3
+                        && *inputs.at(0) == garaga::crypto::mmr::bag_peaks(peaks.span())
+                        && *inputs.at(1) == self.aocl.n_leaves.read().into()
+                        && *inputs.at(2) < self.aocl.n_leaves.read().into()
+                },
+                Result::Err(_) => false,
+            }
         }
     }
 

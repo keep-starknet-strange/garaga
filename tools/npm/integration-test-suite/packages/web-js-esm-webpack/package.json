@@ -2,11 +2,9 @@
   "name": "web-js-esm-webpack",
   "scripts": {
     "build": "webpack --config webpack.config.js",
-    "start": "webpack-dev-server --port 8080",
-    "start-bg": "npm start & sleep 5",
-    "stop-bg": "pkill webpack",
-    "test": "npm run start-bg && node scrape.cjs > .output.txt; npm run stop-bg; diff .output.txt output.txt",
-    "test-generate": "npm run start-bg && node scrape.cjs > output.txt; npm run stop-bg"
+    "start": "webpack-dev-server",
+    "test": "node ../../run-browser-test.cjs",
+    "test-generate": "node ../../run-browser-test.cjs --update"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^14.0.0",

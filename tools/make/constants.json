@@ -20,8 +20,12 @@
         "risc0_zkvm_version": "3.0.6"
     },
     "noir": {
-        "bb_version": "3.0.0-nightly.20251104",
-        "bbup_version": "3.0.0-nightly.20251104",
-        "nargo_version": "1.0.0-beta.16"
+        "bb_version": "6.0.0",
+        "bbup_version": "6.0.0",
+        "nargo_version": "1.0.0",
+        "bb_source_revision": "0219f11d8133970df3974fe5ae65e006bf8c193a",
+        "noir_source_revision": "275d3ab1a5c916c6ea73e8d6b943f685f574500c",
+        "bb_linux_x86_64_sha256": "6a310ede6457cf47e6dcf11f8d6b59dd709328c272a70c03afb1417c5a798b67",
+        "noir_linux_x86_64_sha256": "a62f5b44a6db8ca8f0c20f841aa788ea56776e5aaf2ebd672c02dcf397901264"
     }
 }

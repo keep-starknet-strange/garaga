@@ -40,6 +40,8 @@ tools/noir/hello/foundry.toml
 *snfoundry_cache
 !tools/npm/garaga_rs/*.json
 !tools/make/constants.json
+!hydra/garaga/starknet/honk_contract_generator/examples/noir_artifacts.json
+!docs/benchmarks/barretenberg-v6/*.json
 
 # Benchmarks and profiling data
 /docs/benchmarks/dev-cycle/
@@ -53,3 +55,5 @@ src/profile/
 .worktrees/
 .stignore
 .claude/worktrees/
+
+!hydra/garaga/starknet/honk_contract_generator/examples/noir_calldata_test_vectors.json

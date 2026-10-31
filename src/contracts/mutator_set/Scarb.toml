@@ -54,3 +54,6 @@ allow-prebuilt-plugins = ["snforge_std"]
 
 # [features]                                                 # Used for conditional compilation
 # enable_for_tests = []                                      # Feature name and list of other features that should be enabled with it
+
+[target-defaults.test]
+build-external-contracts = ["garaga::universal_ecip::UniversalECIP"]

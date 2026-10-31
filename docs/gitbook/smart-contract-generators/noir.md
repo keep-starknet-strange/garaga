@@ -4,11 +4,17 @@ icon: octopus
 
 # Noir
 
-## Requirements (read carefully to avoid 99% of issues!)
+## Toolchain
 
-* Garaga CLI [python-package.md](../installation/python-package.md "mention") version 1.1.0 (install with `pip install garaga==1.1.0`)
-* Noir 1.0.0-beta.16 (install with `noirup --version 1.0.0-beta.16` or `npm i @noir-lang/noir_js@1.0.0-beta.16`)
-* Barretenberg 3.0.0-nightly.20251104 (install with `bbup --version 3.0.0-nightly.20251104` or `npm i @aztec/bb.js@3.0.0-nightly.20251104`)
+* Garaga CLI built from the source revision that generates the Cairo contract.
+* Noir 1.0.0 (install with `noirup --version 1.0.0` or `npm i @noir-lang/noir_js@1.0.0`)
+* Barretenberg 6.0.0 (install with `bbup --version 6.0.0` or `npm i @aztec-foundation/bb.js@6.0.0`)
+
+Until this integration is released, install Garaga from this checkout:
+
+```bash
+uv pip install -e .
+```
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
@@ -27,17 +33,17 @@ This will create a json file in `hello/target/hello.json`
 Now, generate the corresponding verifying key `vk` using barretenberg:
 
 ```bash
-bb write_vk -s ultra_honk --oracle_hash keccak -b target/hello.json -o target/vk
+bb write_vk -t evm -b target/hello.json -o target/honk
 ```
 
 {% hint style="info" %}
-Note: ZK mode is enabled by default in barretenberg. The verification key is the same whether you generate a ZK proof or not.
+`-t evm` selects the Ultra Keccak ZK flavor. Other targets produce different keys or transcripts. Generate the key and proof with the same target.
 {% endhint %}
 
 Finally, generate a smart contract from the verifying key using the garaga CLI.
 
 ```bash
-garaga gen --system ultra_keccak_zk_honk --vk target/vk
+garaga gen --system ultra_keccak_zk_honk --vk target/honk/vk
 ```
 
 This will create a smart contract folder with the following structure.
@@ -74,7 +80,7 @@ In order to interact with the endpoint, we need to generate the `full_proof_with
 To do so, we need a specific proof for your program. But first, Noir requires to specify the inputs of the program in `hello/Prover.toml`
 
 ```toml
-// The "hello" program simply proves that x!=y, with x being private and y public.
+# The hello program proves x != y. The value x is private, and y is public.
 x = "1"
 y = "2"
 ```
@@ -83,21 +89,21 @@ Now, generate a proof with barretenberg:
 
 ```bash
 nargo execute witness
-bb prove -s ultra_honk --oracle_hash keccak -b target/hello.json -w target/witness.gz -o target/
+bb prove -t evm --write_vk --verify -b target/hello.json -w target/witness.gz -o target/honk
 ```
 
-This creates two files in the `target/` directory:
-- `target/proof` - the ZK proof
-- `target/public_inputs` - the public inputs
+This writes the proof, public inputs, key, and key hash in `target/honk/`:
+- `target/honk/proof` - the ZK proof
+- `target/honk/public_inputs` - the public inputs
 
 {% hint style="info" %}
-ZK mode is enabled by default. Use `--disable_zk` flag if you want to generate a non-ZK proof (not recommended for production).
+This verifier accepts Ultra Keccak ZK proofs. The `evm-no-zk`, `noir-recursive`, and `starknet` targets do not produce receipts for this endpoint.
 {% endhint %}
 
 ## Generating the calldata (`full_proof_with_hints` array)
 
 {% hint style="warning" %}
-**Version Compatibility:** Use the same Garaga SDK version (pip/npm/Rust) that generated your verifier contract. Mismatched versions produce incompatible calldata and cause verification to fail.
+**Version compatibility:** Use the same Garaga source revision or release for the SDK and generated contract. The earlier published `1.1.0` packages do not contain this Barretenberg 6 integration.
 {% endhint %}
 
 {% tabs %}
@@ -105,7 +111,7 @@ ZK mode is enabled by default. Use `--disable_zk` flag if you want to generate a
 Finalizing the above CLI example, you can obtain the `full_proof_with_hints` array using the garaga CLI. From within the "hello" directory:
 
 ```bash
-garaga calldata --system ultra_keccak_zk_honk --proof target/proof --vk target/vk --public-inputs target/public_inputs
+garaga calldata --system ultra_keccak_zk_honk --proof target/honk/proof --vk target/honk/vk --public-inputs target/honk/public_inputs
 ```
 
 {% hint style="info" %}
@@ -125,14 +131,14 @@ use std::fs;
 
 fn main() -> Result<(), String> {
     // 1. Load your verification key
-    let vk_bytes = fs::read("target/vk").map_err(|e| e.to_string())?;
+    let vk_bytes = fs::read("target/honk/vk").map_err(|e| e.to_string())?;
     let vk = HonkVerificationKey::from_bytes(&vk_bytes)?;
 
     // 2. Load the proof file
-    let proof_bytes = fs::read("target/proof").map_err(|e| e.to_string())?;
+    let proof_bytes = fs::read("target/honk/proof").map_err(|e| e.to_string())?;
 
     // 3. Load public inputs file
-    let pub_inputs_bytes = fs::read("target/public_inputs").map_err(|e| e.to_string())?;
+    let pub_inputs_bytes = fs::read("target/honk/public_inputs").map_err(|e| e.to_string())?;
 
     // 4. Parse the proof (requires log_circuit_size from vk)
     let proof = ZKHonkProof::from_bytes(&proof_bytes, &pub_inputs_bytes, vk.log_circuit_size)?;
@@ -158,9 +164,9 @@ import { readFileSync } from 'fs';
 await garaga.init();
 
 // 2. Load your proof, public inputs, and verification key as Uint8Array
-const vk = new Uint8Array(readFileSync('target/vk'));
-const proof = new Uint8Array(readFileSync('target/proof'));
-const publicInputs = new Uint8Array(readFileSync('target/public_inputs'));
+const vk = new Uint8Array(readFileSync('target/honk/vk'));
+const proof = new Uint8Array(readFileSync('target/honk/proof'));
+const publicInputs = new Uint8Array(readFileSync('target/honk/public_inputs'));
 
 // 3. Generate calldata for ZK Honk proofs
 const calldata: bigint[] = garaga.getZKHonkCallData(proof, publicInputs, vk);
@@ -180,11 +186,11 @@ from garaga.starknet.honk_contract_generator.calldata import (
 )
 
 # 1. Load your verification key
-vk = HonkVk.from_bytes(open('target/vk', 'rb').read())
+vk = HonkVk.from_bytes(open('target/honk/vk', 'rb').read())
 
 # 2. Load proof and public inputs
-proof_bytes = open('target/proof', 'rb').read()
-public_inputs_bytes = open('target/public_inputs', 'rb').read()
+proof_bytes = open('target/honk/proof', 'rb').read()
+public_inputs_bytes = open('target/honk/public_inputs', 'rb').read()
 
 # 3. Parse the proof
 proof = ZKHonkProof.from_bytes(proof_bytes, public_inputs_bytes, vk)
@@ -206,20 +212,55 @@ Use `bb write_vk --help` and `bb prove --help` to see all available options.
 **Verification Key Generation:**
 
 ```bash
-bb write_vk -s ultra_honk --oracle_hash keccak -b target/hello.json -o target/vk
+bb write_vk -t evm -b target/hello.json -o target/honk
 ```
 
 **Proof Generation (ZK mode is default):**
 
 ```bash
-bb prove -s ultra_honk --oracle_hash keccak -b target/hello.json -w target/witness.gz -o target/
+bb prove -t evm --write_vk --verify -b target/hello.json -w target/witness.gz -o target/honk
 ```
 
 **Proof Verification (optional, for local testing):**
 
 ```bash
-bb verify -s ultra_honk --oracle_hash keccak -p target/proof -k target/vk -i target/public_inputs
+bb verify -t evm -p target/honk/proof -k target/honk/vk -i target/honk/public_inputs
 ```
+
+## Version migration and proof artifacts
+
+Barretenberg 6 changes the proof layout, entity order, relation parameters, and transcript challenges.
+Regenerate verification keys, proofs, calldata, and Cairo contracts together.
+Old verifier classes cannot verify these receipts.
+
+The verifier validates canonical scalar values, point coordinates, and accumulator limbs.
+It aggregates nondefault recursive pairing accumulators before the final pairing check.
+The generated contract tests include public outputs and rejection cases.
+
+From the Garaga repository, regenerate the example, memory, and recursive proof bundles with:
+
+```bash
+make -C tools/noir prove
+make constants
+make rewrite
+```
+
+The recursive fixture verifies the example circuit with an SDK-generated inner proof.
+The regeneration command updates its inner key constant and witness before the outer proof.
+Proof generation is explicit and changes the stored artifacts.
+
+Verify the stored artifacts without proof generation:
+
+```bash
+make -C tools/noir check
+```
+
+This command compiles the Noir sources, rebuilds their verification keys, and compares the keys with the stored artifacts.
+It also verifies the stored proofs with the pinned Barretenberg CLI and rejects modified receipts.
+The Noir CI workflow runs this command.
+Python tests compare the Python and Rust calldata with the generated Cairo fixtures.
+
+See [the Cairo measurements](../../benchmarks/barretenberg-v6/README.md) for steps, Sierra gas, contract size, and profiling results.
 
 ## Complete dApp Tutorial
 

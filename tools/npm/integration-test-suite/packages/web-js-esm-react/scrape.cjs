@@ -11,7 +11,7 @@ async function loadWebContent(url) {
 }
 
 async function scrape() {
-  const content = await loadWebContent('http://localhost:8080');
+  const content = await loadWebContent(process.env.GARAGA_TEST_URL || 'http://localhost:8080');
   console.log(content);
 }
 

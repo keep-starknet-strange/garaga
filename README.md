@@ -132,9 +132,11 @@ Check the profile file for more details.
 <details>
 <summary><strong>└── noir_ultra_keccak_zk_honk_example_integrationtest::test_contract</strong></summary>
 
-| Test Name                                                                                                                              |     Steps |   Range Check |   Range Check 96 |   Bitwise |   Poseidon |   Add Mod |   Mul Mod |   Sierra Gas |
-|----------------------------------------------------------------------------------------------------------------------------------------|-----------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
-| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/noir_ultra_keccak_zk_honk_example_test_verify_ultra_keccak_zk_honk_proof.png) | 1,206,545 |        68,295 |          455,450 |     2,216 |        461 |    50,522 |    48,257 |  193,225,917 |
+| Test Name                                                                                                                              |   Steps |   Range Check |   Range Check 96 |   Bitwise |   Poseidon |   Add Mod |   Mul Mod |   Sierra Gas |
+|----------------------------------------------------------------------------------------------------------------------------------------|---------|---------------|------------------|-----------|------------|-----------|-----------|--------------|
+| [test_verify_ultra_keccak_zk_honk_proof](docs/benchmarks/noir_ultra_keccak_zk_honk_example_test_verify_ultra_keccak_zk_honk_proof.png) | 634,568 |        58,141 |          377,190 |     2,168 |        461 |    41,372 |    40,267 |  123,976,433 |
+
+The gas column above is the profiler estimate. See the [Barretenberg v6 report](docs/benchmarks/barretenberg-v6/README.md) for actual Sierra gas, bytecode size, and the baseline comparison.
 
 </details>
 
@@ -377,6 +379,7 @@ Check the profile file for more details.
 
 ---
 🔄 **To regenerate these benchmarks:** Run `make profile-test` from the project root.
+
 ## Support & How to Contribute
 
 We warmly welcome contributions and support from the community! Here's how you can help Garaga grow and improve:

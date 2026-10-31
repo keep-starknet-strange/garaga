@@ -317,7 +317,7 @@ VERSION_UPDATES = [
         "noir_smart_contract_docs_path",
         UpdateConfig(
             name="BB version in smart contract docs",
-            pattern=r"(\* Barretenberg\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `bbup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+or `npm i @aztec/bb\.js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+\))",
+            pattern=r"(\* Barretenberg\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(\s+\(install with `bbup --version\s+)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s+or `npm i @aztec(?:-foundation)?/bb\.js@)[\d]+\.[\d]+\.[\d]+[-\w\.]*(`\s*\))",
             replacement=r"\g<1>{version}\g<2>{version}\g<3>{version}\g<4>",
             description="Barretenberg version in smart contract generator documentation",
             version_key="bb_version",

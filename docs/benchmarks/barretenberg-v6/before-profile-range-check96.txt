@@ -1,0 +1,36 @@
+
+Showing nodes accounting for 455450 range check96 builtin, 100.00% of 455450 range check96 builtin total
+Showing top 30 nodes out of 302
+
+                         flat |   flat% |    sum% |                          cum |    cum% |
+------------------------------+---------+---------+------------------------------+---------+--------------------------------------------------------------------------------------
+ 455450 range check96 builtin | 100.00% | 100.00% | 455450 range check96 builtin | 100.00% | "Contract: UltraKeccakZKHonkVerifier\nFunction: verify_ultra_keccak_zk_honk_proof\n"
+      0 range check96 builtin |   0.00% | 100.00% | 455450 range check96 builtin | 100.00% | "Contract: SNFORGE_TEST_CODE\nFunction: SNFORGE_TEST_CODE_FUNCTION\n"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "Keccak"
+      0 range check96 builtin |   0.00% | 100.00% | 455450 range check96 builtin | 100.00% | "LibraryCall"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[0]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[102]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[103]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[104]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[105]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[106]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[107]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[108]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[109]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[10]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[110]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[111]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[112]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[113]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[114]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[115]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[117]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[118]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[119]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[11]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[121]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[123]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[125]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[126]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[127]"
+      0 range check96 builtin |   0.00% | 100.00% |      0 range check96 builtin |   0.00% | "[128]"
