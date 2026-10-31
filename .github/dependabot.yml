@@ -26,6 +26,10 @@ updates:
     open-pull-requests-limit: 3
     allow:
       - dependency-type: all
+    ignore:
+      # PyO3 0.30 implements Python conversions for num-bigint 0.4 types.
+      - dependency-name: num-bigint
+        versions: [">=0.5"]
     groups:
       rust-patch-and-minor:
         patterns: ["*"]

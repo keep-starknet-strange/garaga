@@ -1,111 +1,67 @@
-# RISC Zero Rust Starter Template
+# RISC Zero 3 Fibonacci prover
 
-Welcome to the RISC Zero Rust Starter Template! This template is intended to
-give you a starting point for building a project using the RISC Zero zkVM.
-Throughout the template (including in this README), you'll find comments
-labelled `TODO` in places where you'll need to make changes. To better
-understand the concepts behind this template, check out the [zkVM
-Overview][zkvm-overview].
+This example uses zkVM and build tools 3.0.6 with the RISC Zero v3.0.1 verifier parameters.
+It proves that a private Fibonacci index belongs to the public interval `[l, u)`.
+The journal contains `l`, `u`, and the Fibonacci number as little-endian `u32` values.
 
-## Quick Start
+## Build and run
 
-First, make sure [rustup] is installed. The
-[`rust-toolchain.toml`][rust-toolchain] file will be used by `cargo` to
-automatically install the correct version.
+Guest compilation requires Docker with BuildKit.
+The build script pins the official guest-builder image by digest and uses the committed Cargo lockfiles.
+This keeps panic source paths and dependency versions identical locally and in CI.
 
-To build all methods and execute the method within the zkVM, run the following
-command:
+Run these commands from the repository root. Install [rzup](https://dev.risczero.com/api/zkvm/install) first.
 
 ```bash
-cargo run
+rzup install rust 1.97.0
+rzup install r0vm 3.0.6
+CARGO_TARGET_DIR=.cargo/risc0_sample/target cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+CARGO_TARGET_DIR=.cargo/risc0_sample/target RISC0_PROVER=ipc cargo run --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
 ```
 
-This is an empty template, and so there is no expected output (until you modify
-the code).
+The host requests a Groth16 proof and verifies the receipt before it generates calldata.
+Groth16 proving also uses Docker for the Groth16 container.
+The output contains a proof JSON object followed by a JSON array of Starknet calldata.
+Garaga's default Python, Rust, and TypeScript parsers use the same verifier parameters.
 
-### Executing the Project Locally in Development Mode
+## Update the SDK and verifier together
 
-During development, faster iteration upon code changes can be achieved by leveraging [dev-mode], we strongly suggest activating it during your early development phase. Furthermore, you might want to get insights into the execution statistics of your project, and this can be achieved by specifying the environment variable `RUST_LOG="[executor]=info"` before running your project.
+`tools/make/constants.json` defines the SDK version, verifier release, control root, and BN254 control ID.
+The SDK version and verifier release can have different patch versions.
+The SDK tests verify their cryptographic compatibility.
 
-Put together, the command to run your project in development mode while getting execution statistics is:
+1. Update those values in `tools/make/constants.json`.
+2. Run `make constants` to update the three SDK manifests and the Python, Rust, and TypeScript constants.
+3. Update the host and guest lockfiles with `cargo update --manifest-path <path/to/Cargo.toml>` in each workspace.
+4. Run the host command above to generate a new proof.
+5. Save its proof JSON object as `src/contracts/risc0_sample_app/fibonacci_prover/proof.json`.
+6. Replace the shared `proof_risc0.json` example with a valid receipt for the new parameters.
+7. Run the following commands after `make setup`:
 
 ```bash
-RUST_LOG="[executor]=info" RISC0_DEV_MODE=1 cargo run
+make maturin
+make rewrite
+make update-risc0-class-hash
+python tests/hydra/starknet/test_groth16_vk_proof_parsing.py --update-golden
+make wasm
+pytest tests/configuration/test_risc0_release.py
+CARGO_TARGET_DIR=.cargo/risc0_sample/target cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+(cd src/contracts/risc0_sample_app/fibonacci_sequencer && snforge test)
 ```
 
-### Running Proofs Remotely on Bonsai
+`make rewrite` regenerates the Cairo verifier and both stored calldata files.
+`make update-risc0-class-hash` compiles that verifier and updates the sequencer constant.
+`make wasm` rebuilds the committed bindings and integration package.
+Before deployment, declare the generated verifier and UniversalECIP classes on the target network.
 
-_Note: The Bonsai proving service is still in early Alpha; an API key is
-required for access. [Click here to request access][bonsai access]._
+## Automatic consistency tests
 
-If you have access to the URL and API key to Bonsai you can run your proofs
-remotely. To prove in Bonsai mode, invoke `cargo run` with two additional
-environment variables:
+The Python suite verifies SDK versions, default parameters, the generated Cairo point `T`, both receipts, and both stored calldata files.
+It also compares Python and Rust calldata for both receipts.
+The shared calldata vectors test the default Rust and TypeScript/WASM implementations.
 
-```bash
-BONSAI_API_KEY="YOUR_API_KEY" BONSAI_API_URL="BONSAI_URL" cargo run
-```
-
-## How to Create a Project Based on This Template
-
-Search this template for the string `TODO`, and make the necessary changes to
-implement the required feature described by the `TODO` comment. Some of these
-changes will be complex, and so we have a number of instructional resources to
-assist you in learning how to write your own code for the RISC Zero zkVM:
-
-- The [RISC Zero Developer Docs][dev-docs] is a great place to get started.
-- Example projects are available in the [examples folder][examples] of
-  [`risc0`][risc0-repo] repository.
-- Reference documentation is available at [https://docs.rs][docs.rs], including
-  [`risc0-zkvm`][risc0-zkvm], [`cargo-risczero`][cargo-risczero],
-  [`risc0-build`][risc0-build], and [others][crates].
-
-## Directory Structure
-
-It is possible to organize the files for these components in various ways.
-However, in this starter template we use a standard directory structure for zkVM
-applications, which we think is a good starting point for your applications.
-
-```text
-project_name
-├── Cargo.toml
-├── host
-│   ├── Cargo.toml
-│   └── src
-│       └── main.rs                    <-- [Host code goes here]
-└── methods
-    ├── Cargo.toml
-    ├── build.rs
-    ├── guest
-    │   ├── Cargo.toml
-    │   └── src
-    │       └── method_name.rs         <-- [Guest code goes here]
-    └── src
-        └── lib.rs
-```
-
-## Video Tutorial
-
-For a walk-through of how to build with this template, check out this [excerpt
-from our workshop at ZK HACK III][zkhack-iii].
-
-## Questions, Feedback, and Collaborations
-
-We'd love to hear from you on [Discord][discord] or [Twitter][twitter].
-
-[bonsai access]: https://bonsai.xyz/apply
-[cargo-risczero]: https://docs.rs/cargo-risczero
-[crates]: https://github.com/risc0/risc0/blob/main/README.md#rust-binaries
-[dev-docs]: https://dev.risczero.com
-[dev-mode]: https://dev.risczero.com/api/generating-proofs/dev-mode
-[discord]: https://discord.gg/risczero
-[docs.rs]: https://docs.rs/releases/search?query=risc0
-[examples]: https://github.com/risc0/risc0/tree/main/examples
-[risc0-build]: https://docs.rs/risc0-build
-[risc0-repo]: https://www.github.com/risc0/risc0
-[risc0-zkvm]: https://docs.rs/risc0-zkvm
-[rust-toolchain]: rust-toolchain.toml
-[rustup]: https://rustup.rs
-[twitter]: https://twitter.com/risczero
-[zkhack-iii]: https://www.youtube.com/watch?v=Yg_BGqj_6lg&list=PLcPzhUaCxlCgig7ofeARMPwQ8vbuD6hC5&index=5
-[zkvm-overview]: https://dev.risczero.com/zkvm
+The RISC Zero CI job builds the guest and verifies both committed receipts with the installed SDK.
+It also compares the Fibonacci receipt image ID with the compiled guest image ID.
+The Cairo CI job declares the compiled verifier locally, verifies its class hash, and submits the Fibonacci proof through the sequencer.
+The devnet CI job also tests the verifier and sequencer as deployed contracts.
+These tests require no public RPC endpoint and no new proof generation during CI.

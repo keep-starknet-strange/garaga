@@ -1,6 +1,6 @@
 {
     "risc0": {
-        "control_root": "0xCE52BF56033842021AF3CF6DB8A50D1B7535C125A34F1A22C6FDCF002C5A1529",
+        "control_root": "0xA54DC85AC99F851C92D7C96D7318AF41DBE7C0194EDFCC37EB4D422A998C1F56",
         "bn254_control_id": "0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
         "system_state_zero_digest": "0xA3ACC27117418996340B84E5A90F3EF4C49D22C79E44AAD822EC9C313E1EB8E2",
         "tag_digest": "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af",
@@ -12,9 +12,10 @@
     },
     "release_info": {
         "garaga_version": "1.1.0",
-        "risc0_release": "v2.2.2",
+        "risc0_release": "v3.0.1",
         "cairo_version": "2.21.0",
-        "starknet_foundry_version": "0.64.1"
+        "starknet_foundry_version": "0.64.1",
+        "risc0_zkvm_version": "3.0.6"
     },
     "noir": {
         "bb_version": "3.0.0-nightly.20251104",

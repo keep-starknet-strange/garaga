@@ -135,9 +135,20 @@ impl Groth16Proof {
     }
 
     pub fn from_risc0(seal: Vec<u8>, image_id: Vec<u8>, journal: Vec<u8>) -> Self {
-        assert!(image_id.len() <= 32, "image_id must be 32 bytes");
-
         let (control_root, bn254_control_id) = get_risc0_constants();
+        Self::from_risc0_with_parameters(seal, image_id, journal, control_root, bn254_control_id)
+    }
+
+    /// Build a receipt for the control parameters of its RISC Zero release.
+    /// The Cairo verifier must use the same parameters.
+    pub fn from_risc0_with_parameters(
+        seal: Vec<u8>,
+        image_id: Vec<u8>,
+        journal: Vec<u8>,
+        control_root: BigUint,
+        bn254_control_id: BigUint,
+    ) -> Self {
+        assert!(image_id.len() <= 32, "image_id must be 32 bytes");
 
         let (control_root_0, control_root_1) = risc0_utils::split_digest(&control_root);
 
