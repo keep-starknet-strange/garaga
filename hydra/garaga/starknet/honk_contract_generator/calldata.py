@@ -13,9 +13,14 @@ from garaga.precompiled_circuits.zk_honk import (
     ZKHonkProof,
     ZKHonkTranscript,
     ZKHonkVerifierCircuits,
+    aggregate_pairing_points,
+    get_vk_msm_point_mask,
+    get_vk_msm_points,
 )
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
+
+N_VK_POINTS = 28
 
 
 def filter_msm_scalars(
@@ -36,6 +41,46 @@ def extract_msm_scalars(
     return [s.value for s in scalars_msm]
 
 
+def get_msm_points_and_scalars(
+    vk: HonkVk, proof: ZKHonkProof, scalars_msm: list[int]
+) -> tuple[list[G1Point], list[int]]:
+    """
+    Order the MSM points & scalars as the Cairo verifier does:
+    [non-infinity vk points, gemini_masking_poly, w1, w2, w3, w4, z_perm, lookup_inverses,
+     lookup_read_counts, lookup_read_tags, gemini fold comms, libra comms, kzg_quotient, G].
+    `scalars_msm` are the shplemini scalars without the leading 1 (shplonk_q).
+    """
+    # Swap last two scalars (kzg_quotient <-> G) :
+    scalars_msm = scalars_msm[:-2] + scalars_msm[-2:][::-1]
+    # Move the gemini masking scalar just after the vk points.
+    first_scalar = scalars_msm.pop(0)
+    scalars_msm.insert(N_VK_POINTS, first_scalar)
+
+    points = get_vk_msm_points(vk) + [
+        proof.gemini_masking_poly,
+        proof.w1,
+        proof.w2,
+        proof.w3,
+        proof.w4,
+        proof.z_perm,
+        proof.lookup_inverses,
+        proof.lookup_read_counts,
+        proof.lookup_read_tags,
+    ]
+    points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
+    points.extend(proof.libra_commitments)
+    points.append(proof.kzg_quotient)
+    points.append(G1Point.get_nG(CurveID.BN254, 1))
+
+    assert len(points) == len(scalars_msm)
+
+    # Drop the vk commitments to identically-zero polynomials (point at infinity).
+    mask = get_vk_msm_point_mask(vk) + [True] * (len(points) - N_VK_POINTS)
+    points = [pt for pt, keep in zip(points, mask) if keep]
+    scalars_msm = [s for s, keep in zip(scalars_msm, mask) if keep]
+    return points, scalars_msm
+
+
 def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     vk: HonkVk,
     proof: ZKHonkProof,
@@ -49,7 +94,6 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     tp = ZKHonkTranscript.from_proof(vk, proof, system)
     circuit = ZKHonkVerifierCircuits(name="test", log_n=vk.log_circuit_size)
 
-    vk_circuit = vk.to_circuit_elements(circuit)
     proof_circuit = proof.to_circuit_elements(circuit)
     tp = tp.to_circuit_elements(circuit)
 
@@ -68,8 +112,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         gamma=tp.gamma,
         public_inputs_delta=public_input_delta,
         eta=tp.eta,
-        eta_two=tp.etaTwo,
-        eta_three=tp.etaThree,
+        rom_logup_gamma=tp.rom_logup_gamma,
         libra_challenge=tp.libra_challenge,
         sum_check_u_challenges=tp.sum_check_u_challenges,
         gate_challenge=tp.gate_challenge,
@@ -102,57 +145,9 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         tp.sum_check_u_challenges,
     )
 
-    scalars_msm = extract_msm_scalars(scalars, vk.log_circuit_size)
-    # Swap last two scalars :
-    scalars_msm = scalars_msm[:-2] + scalars_msm[-2:][::-1]
-
-    # Place first scalar just after the vk_lagrange_last point (index 27)
-    first_scalar = scalars_msm.pop(0)
-    scalars_msm.insert(28, first_scalar)
-
-    points = [
-        vk.qm,  # 0
-        vk.qc,  # 1
-        vk.ql,  # 2
-        vk.qr,  # 3
-        vk.qo,  # 4
-        vk.q4,  # 5
-        vk.qLookup,  # 6
-        vk.qArith,  # 7
-        vk.qDeltaRange,  # 8
-        vk.qElliptic,  # 9
-        vk.qMemory,  # 10
-        vk.qNnf,  # 11
-        vk.qPoseidon2External,  # 12
-        vk.qPoseidon2Internal,  # 13
-        vk.s1,  # 14
-        vk.s2,  # 15
-        vk.s3,  # 16
-        vk.s4,  # 17
-        vk.id1,  # 18
-        vk.id2,  # 19
-        vk.id3,  # 20
-        vk.id4,  # 21
-        vk.t1,  # 22
-        vk.t2,  # 23
-        vk.t3,  # 24
-        vk.t4,  # 25
-        vk.lagrange_first,  # 26
-        vk.lagrange_last,  # 27
-        proof.gemini_masking_poly,  # 28
-        proof.w1,  # 29
-        proof.w2,  # 30
-        proof.w3,  # 31
-        proof.w4,  # 32
-        proof.z_perm,  # 33
-        proof.lookup_inverses,  # 34
-        proof.lookup_read_counts,  # 35
-        proof.lookup_read_tags,  # 36
-    ]
-    points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
-    points.extend(proof.libra_commitments)
-    points.append(proof.kzg_quotient)
-    points.append(G1Point.get_nG(CurveID.BN254, 1))
+    points, scalars_msm = get_msm_points_and_scalars(
+        vk, proof, extract_msm_scalars(scalars, vk.log_circuit_size)
+    )
 
     msm_builder = MSMCalldataBuilder(
         CurveID.BN254,
@@ -163,7 +158,23 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     P_0 = G1Point.msm(points=points, scalars=scalars_msm).add(proof.shplonk_q)
     P_1 = -proof.kzg_quotient
 
-    pairs = [G1G2Pair(P_0, G2_POINT_KZG_1), G1G2Pair(P_1, G2_POINT_KZG_2)]
+    # Accumulate the recursive pairing points carried in the public inputs.
+    P_0_agg, P_1_agg, separator = aggregate_pairing_points(
+        proof.pairing_point_object, P_0, P_1
+    )
+    if separator is None:
+        aggregation_hint = [0]  # Empty Span<felt252>
+    else:
+        aggregation_hint = MSMCalldataBuilder(
+            CurveID.BN254,
+            points=[P_0, P_1],
+            scalars=[separator, separator],
+        ).serialize_to_calldata(
+            include_points_and_scalars=False,
+            serialize_as_pure_felt252_array=True,
+        )
+
+    pairs = [G1G2Pair(P_0_agg, G2_POINT_KZG_1), G1G2Pair(P_1_agg, G2_POINT_KZG_2)]
 
     mpc_builder = MPCheckCalldataBuilder(
         curve_id=CurveID.BN254, pairs=pairs, n_fixed_g2=2, public_pair=None
@@ -176,12 +187,10 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
             serialize_as_pure_felt252_array=True,
         )
     )
+    cd.extend(aggregation_hint)
     cd.extend(mpc_builder.serialize_to_calldata())
 
     res = [len(cd)] + cd
-
-    # print(f"HONK CALLDATA: {res}")
-    # print(f"HONK CALLDATA LENGTH: {len(res)}")
 
     return res
 

@@ -1,6 +1,17 @@
 pub mod zk_honk_transcript;
-// use garaga::core::circuit::U64IntoU384;
-use garaga::definitions::{G1Point, G2Point, u384};
+use core::circuit::CircuitModulus;
+use garaga::core::circuit::into_u256_unchecked;
+use garaga::definitions::{
+    G1Point, G2Point, get_eigenvalue, get_min_one_order, get_nG_glv_fake_glv,
+    get_third_root_of_unity, u384,
+};
+use garaga::ec_ops::{G1PointTrait, GlvFakeGlvHint, _ec_safe_add, _scalar_mul_glv_and_fake_glv};
+use zk_honk_transcript::{Fq, IHasher, KeccakHasher, POW2_136};
+
+// Pairing points (P0, P1) carried in the public inputs, serialized as
+// [P0.x_lo, P0.x_hi, P0.y_lo, P0.y_hi, P1.x_lo, P1.x_hi, P1.y_lo, P1.y_hi].
+pub const PAIRING_POINT_OBJECT_LENGTH: usize = 8;
+const POW2_120: u256 = 0x1000000000000000000000000000000;
 
 #[derive(Drop, Copy, Serde)]
 pub struct G1Point256 {
@@ -71,6 +82,106 @@ pub struct HonkVk {
 }
 
 
+/// BN254 scalar multiplication with a GLV & fake GLV hint (see `_scalar_mul_glv_and_fake_glv`).
+/// Not inlined, so that the Honk verifier MSM and the pairing points aggregation share a single
+/// copy of the scalar multiplication code, keeping the contract bytecode small.
+/// /!\ Assumes point is on curve (not infinity) and scalar is reduced mod n. /!\
+#[inline(never)]
+pub fn scalar_mul_glv_and_fake_glv_bn254(
+    point: G1Point,
+    scalar: u384,
+    hint: GlvFakeGlvHint,
+    mod_bn: CircuitModulus,
+    mod_grumpkin: CircuitModulus,
+) -> G1Point {
+    _scalar_mul_glv_and_fake_glv(
+        point,
+        scalar,
+        mod_grumpkin,
+        mod_bn,
+        hint,
+        get_eigenvalue(0),
+        get_third_root_of_unity(0),
+        get_min_one_order(0),
+        get_nG_glv_fake_glv(0),
+        0,
+    )
+}
+
+// Decodes a pairing point coordinate from its (lo, hi) limbs, with lo < 2^136, hi < 2^120
+// and the coordinate < Fq, so that each point has a unique encoding.
+fn pairing_point_coordinate(lo: u256, hi: u256) -> u256 {
+    assert(lo < POW2_136 && hi < POW2_120, 'pairing point limb too large');
+    let coordinate = lo + hi * POW2_136;
+    assert(coordinate < Fq, 'pairing point coord >= Fq');
+    coordinate
+}
+
+/// Accumulates the recursive pairing points carried in the public inputs into the KZG pairing
+/// points (p_0, p_1) of a ZK Honk proof, where the final check is e(p_0, [1]_2).e(p_1, [x]_2) == 1.
+///
+/// If all the pairing point limbs are zero (default value, no recursive verification occurred
+/// in the circuit), (p_0, p_1) are returned as is. Otherwise, the pairing points (P0, P1) are
+/// decoded, required to be on the curve and not at infinity, and the function returns
+/// (s * p_0 + P0, s * p_1 + P1) where s = keccak(P0, P1, p_0, p_1) mod Fr is the recursion
+/// separator.
+/// `aggregation_hint` holds the two GLV & fake GLV hints for s * p_0 and s * p_1, and must be
+/// empty for default pairing points.
+pub fn aggregate_pairing_points(
+    pairing_point_object: Span<u256>,
+    p_0: G1Point,
+    p_1: G1Point,
+    aggregation_hint: Span<felt252>,
+    mod_bn: CircuitModulus,
+    mod_grumpkin: CircuitModulus,
+) -> (G1Point, G1Point) {
+    assert(
+        pairing_point_object.len() == PAIRING_POINT_OBJECT_LENGTH, 'wrong pairing point obj len',
+    );
+    let mut is_default = true;
+    for limb in pairing_point_object {
+        if *limb != 0 {
+            is_default = false;
+            break;
+        }
+    }
+    if is_default {
+        assert(aggregation_hint.len() == 0, 'unexpected aggregation hint');
+        return (p_0, p_1);
+    }
+
+    let p0_x = pairing_point_coordinate(*pairing_point_object[0], *pairing_point_object[1]);
+    let p0_y = pairing_point_coordinate(*pairing_point_object[2], *pairing_point_object[3]);
+    let p1_x = pairing_point_coordinate(*pairing_point_object[4], *pairing_point_object[5]);
+    let p1_y = pairing_point_coordinate(*pairing_point_object[6], *pairing_point_object[7]);
+    let proof_p0 = G1Point { x: p0_x.into(), y: p0_y.into() };
+    let proof_p1 = G1Point { x: p1_x.into(), y: p1_y.into() };
+    // Rejects points at infinity on either side (GHSA-2hc8-mq24-76v2) and points not on the curve.
+    proof_p0.assert_on_curve_excluding_infinity(0);
+    proof_p1.assert_on_curve_excluding_infinity(0);
+
+    // p_0 and p_1 are circuit outputs, reduced modulo Fq.
+    let mut hasher = KeccakHasher::new();
+    hasher.update(p0_x);
+    hasher.update(p0_y);
+    hasher.update(p1_x);
+    hasher.update(p1_y);
+    hasher.update(into_u256_unchecked(p_0.x));
+    hasher.update(into_u256_unchecked(p_0.y));
+    hasher.update(into_u256_unchecked(p_1.x));
+    hasher.update(into_u256_unchecked(p_1.y));
+    let separator: u384 = hasher.digest().into();
+
+    let mut aggregation_hint = aggregation_hint;
+    let hint_0: GlvFakeGlvHint = Serde::deserialize(ref aggregation_hint).unwrap();
+    let hint_1: GlvFakeGlvHint = Serde::deserialize(ref aggregation_hint).unwrap();
+    assert(aggregation_hint.len() == 0, 'wrong aggregation hint size');
+
+    let p_0_sep = scalar_mul_glv_and_fake_glv_bn254(p_0, separator, hint_0, mod_bn, mod_grumpkin);
+    let p_1_sep = scalar_mul_glv_and_fake_glv_bn254(p_1, separator, hint_1, mod_bn, mod_grumpkin);
+    (_ec_safe_add(p_0_sep, proof_p0, mod_bn, 0), _ec_safe_add(p_1_sep, proof_p1, mod_bn, 0))
+}
+
 pub const G2_POINT_KZG_1: G2Point = G2Point {
     x0: u384 {
         limb0: 0xf75edadd46debd5cd992f6ed,
@@ -128,390 +239,300 @@ pub const G2_POINT_KZG_2: G2Point = G2Point {
 
 pub fn get_vk() -> HonkVk {
     HonkVk {
-        vk_hash: 1655602901159187576028713697867454584902070339986579942408953720408510516376,
+        vk_hash: 13030503510117565137644711897992967494644514363097683203590798326044017073673,
         log_circuit_size: 12,
-        public_inputs_size: 17,
-        qm: G1Point {
-            x: u384 {
-                limb0: 0x1a11b55dce82f38413640a64,
-                limb1: 0x25c78e040da5a5cbe6f296ee,
-                limb2: 0x142bd66bdb7a2bc1,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x3dc8a5d19d0bf85b0fa95ad4,
-                limb1: 0xaa34836fe60428f70dee9285,
-                limb2: 0xd1415082e63c88e,
-                limb3: 0x0,
-            },
-        },
-        qc: G1Point {
-            x: u384 {
-                limb0: 0xcd51216bd8c56683467cd704,
-                limb1: 0x7c77ce4f20f0fd5a3a264861,
-                limb2: 0x2deae537974aa569,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xa1179c7a8ed5c59a1015e784,
-                limb1: 0x714496966bf5f4374fb6087b,
-                limb2: 0x68627460599c3db,
-                limb3: 0x0,
-            },
-        },
-        ql: G1Point {
-            x: u384 {
-                limb0: 0x36d34df5c2aab80f85a218f2,
-                limb1: 0x864a67847d46222c9aee090f,
-                limb2: 0x6681df238df2a0f,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xbc5d11d2d55e4ac8adccae27,
-                limb1: 0xb9c1b8da3c671ec025fe40ee,
-                limb2: 0x18e37167fd19d013,
-                limb3: 0x0,
-            },
-        },
-        qr: G1Point {
-            x: u384 {
-                limb0: 0xfe3f9cf39c6f73896b06e821,
-                limb1: 0x3dc4669f3d97f847e96e4bce,
-                limb2: 0x177c7a07701c29d1,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x7c23cf6fe4a49a8e4f4c5aba,
-                limb1: 0x38f1a638b192ffc9b995fd68,
-                limb2: 0x2d31ea12ba12ee23,
-                limb3: 0x0,
-            },
-        },
-        qo: G1Point {
-            x: u384 {
-                limb0: 0xd8b0a3fb6597416a145754e3,
-                limb1: 0xac68b01fa7f3faaa5a881854,
-                limb2: 0x2d623ef9f6f62903,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x6059e6db24a7e1bfc51be2ac,
-                limb1: 0x52b442fa3ce1643a24c7ac8e,
-                limb2: 0x20b75671e0dd20da,
-                limb3: 0x0,
-            },
-        },
-        q4: G1Point {
-            x: u384 {
-                limb0: 0x528aeba6bdb01913c3236ff8,
-                limb1: 0xe2edafe7a56dfd287d677b48,
-                limb2: 0x7ea8dd8b4d3fd18,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x853ad38b76968342e932d84b,
-                limb1: 0xe23f777f35827a35ea2716bc,
-                limb2: 0x2826602478d64dc4,
-                limb3: 0x0,
-            },
-        },
-        qLookup: G1Point {
-            x: u384 {
-                limb0: 0x53f9b24d923d8f404cb0bbc9,
-                limb1: 0x75a8449d3d5ce8bc3661650d,
-                limb2: 0xc4032c3079594eb,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xa0ca89441369b7c24301f851,
-                limb1: 0xf0158fd6da81f54eb5fe796,
-                limb2: 0x1084d709650356d4,
-                limb3: 0x0,
-            },
-        },
-        qArith: G1Point {
-            x: u384 {
-                limb0: 0x1c518c7ea0b38257198a9523,
-                limb1: 0xc2c72a3c00da41d4c7c7b6d0,
-                limb2: 0x3057f9cfd5edb0e7,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xf647b842154c13fa145167b7,
-                limb1: 0x6a98575cedc65ee5700a7148,
-                limb2: 0x27eb0839ef4980d,
-                limb3: 0x0,
-            },
-        },
-        qDeltaRange: G1Point {
-            x: u384 {
-                limb0: 0xbefcd8cd631818993e143702,
-                limb1: 0x3b9a8bc08ae2fdbd8e9dc005,
-                limb2: 0x1775fbd3ba5e4316,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xbdde06678d3bce4455d2086f,
-                limb1: 0x9e409fcb2e19a72238c07631,
-                limb2: 0x1d8011ee756abfa1,
-                limb3: 0x0,
-            },
-        },
-        qElliptic: G1Point {
-            x: u384 {
-                limb0: 0x990b1eaa86226b3574e5c43f,
-                limb1: 0x50fb0eae1d72783faba96bc3,
-                limb2: 0x9c706e73a00d844,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x9b1f547ec36638d7b5a1ecd9,
-                limb1: 0x68fcae74683a84de1084739f,
-                limb2: 0x276d401f1c0f9a26,
-                limb3: 0x0,
-            },
-        },
-        qMemory: G1Point {
-            x: u384 {
-                limb0: 0xc20dedd7ff81c5677d3286ce,
-                limb1: 0x276f3537c64334419e05b13f,
-                limb2: 0x12b12523f7d04a83,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x4e602d1c13a77a2472f082da,
-                limb1: 0x55a526829445f3fda95e243c,
-                limb2: 0x2e741be4fe42cc11,
-                limb3: 0x0,
-            },
-        },
-        qNnf: G1Point {
-            x: u384 {
-                limb0: 0x5526834f93c6db848d56dcb0,
-                limb1: 0xe4e8e364439d0abba02dc62a,
-                limb2: 0x16a1350662e14b4c,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xb2e746ed0b6e85782c26040e,
-                limb1: 0x9296d71489889503dda143f0,
-                limb2: 0x563b1f480cad906,
-                limb3: 0x0,
-            },
-        },
-        qPoseidon2External: G1Point {
-            x: u384 {
-                limb0: 0xe4d88b5517e40b2a0133f401,
-                limb1: 0x42f6c756379f231d5f472088,
-                limb2: 0x20e1bb3056279dc3,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x2c8d1a5a6b3bd0ec93b42e77,
-                limb1: 0x9eb4da763de77062d23ce01e,
-                limb2: 0x23ee36ecb11b6278,
-                limb3: 0x0,
-            },
-        },
-        qPoseidon2Internal: G1Point {
-            x: u384 {
-                limb0: 0x19d18424d0e92f60a31671d9,
-                limb1: 0xfdda50b3205d5aa4486b6325,
-                limb2: 0xd1611c856951969,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x94aa3cadd7cd42e719521e0f,
-                limb1: 0x30c0b534ea958de4c47e2f4c,
-                limb2: 0xce97ee59d45d762,
-                limb3: 0x0,
-            },
-        },
+        public_inputs_size: 9,
         s1: G1Point {
             x: u384 {
-                limb0: 0x1b074244b7337b923c097eaf,
-                limb1: 0xd2ae3eafb3800ee0eaf997cb,
-                limb2: 0x154bdee4123a9946,
+                limb0: 0x68d275041d7897cdb7ac0566,
+                limb1: 0xe541b1713407a9ad6a44673d,
+                limb2: 0x2b76e669cb63577d,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0xf34e2352250dd3fb63d6d8c6,
-                limb1: 0x3c0953803a3a34d916eefb5b,
-                limb2: 0xd5f22b8ade2c19f,
+                limb0: 0x7bb79b340b877934e4011b6,
+                limb1: 0xe32104e3a9df02ab26e9a5ab,
+                limb2: 0x17af3ea3e70a6a73,
                 limb3: 0x0,
             },
         },
         s2: G1Point {
             x: u384 {
-                limb0: 0x111168b4d7ab689558c334db,
-                limb1: 0x7c62cc30718076db1836d9e1,
-                limb2: 0x22d2dd0a34c3a1da,
+                limb0: 0x2639a6a255d27e09402a2d0b,
+                limb1: 0xdb69eba5c7807dcb3495f1aa,
+                limb2: 0x2ff071de8ea32964,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x98a26842094b80c6e88321bf,
-                limb1: 0x243059518c261a4137e7f6a6,
-                limb2: 0x262c701396f0e3ae,
+                limb0: 0x456c57d284b57955aa74e2f7,
+                limb1: 0xf0af19a7592736755b619cf8,
+                limb2: 0x2a606c882c2eb84,
                 limb3: 0x0,
             },
         },
         s3: G1Point {
             x: u384 {
-                limb0: 0xe1213cb7ef934c944e4e8374,
-                limb1: 0x84b08b441d010fc2976235c0,
-                limb2: 0x172f8c6455a2bfe2,
+                limb0: 0xbf8532926991ab67b6c7e011,
+                limb1: 0xb1732e0033bc42dcbacdd265,
+                limb2: 0x1097ef14f7286b02,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x960773bd1e8b46a6a182239d,
-                limb1: 0x640beab3f563e0a2402c116a,
-                limb2: 0x178afa12bf161e7e,
+                limb0: 0xf7985cc6319723faaede926c,
+                limb1: 0x44cdb28f3e5c7b15f0610ef5,
+                limb2: 0x270f45c886bc816d,
                 limb3: 0x0,
             },
         },
         s4: G1Point {
             x: u384 {
-                limb0: 0xd14c60e677f8e1897f658057,
-                limb1: 0x33204ad4109fa0fbb54c4fea,
-                limb2: 0x21f45516c16fcb30,
+                limb0: 0x6d44a6218401811f0bae826d,
+                limb1: 0x9eb4f572a62c51998b00469a,
+                limb2: 0x2e3de7ac6635983f,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x52efc7a0ee6a29e06296bb4d,
-                limb1: 0xb82792c925627d7348f0bf11,
-                limb2: 0xa7a5c9f897fd8da,
+                limb0: 0x8ccda8bfcf4ac7ce7f18cc3f,
+                limb1: 0x838cd18fac78aa92d42fde45,
+                limb2: 0x1a2e275796993b43,
                 limb3: 0x0,
             },
         },
         id1: G1Point {
             x: u384 {
-                limb0: 0xaa69e812f125d20848fd1c50,
-                limb1: 0x621962d025f0fbb42467ce5c,
-                limb2: 0x1d1934c19b595461,
+                limb0: 0xad1d842420b9ba94b14ed0ba,
+                limb1: 0xa23dbd10cde333a3b79a53ac,
+                limb2: 0x1c6bece676ee1d83,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x8971dba72882ee742a0b57f4,
-                limb1: 0xdf91438bfa5b19a7bad0f91d,
-                limb2: 0x10e15c437db6ae7e,
+                limb0: 0xa6dac107b821ba99ec1200fc,
+                limb1: 0x40d65c03fe141cacb7a06e46,
+                limb2: 0x299eaf7de90f7de8,
                 limb3: 0x0,
             },
         },
         id2: G1Point {
             x: u384 {
-                limb0: 0x3a6957e0c9aa54ec21894a61,
-                limb1: 0x320938baa053cd1f3dccb71,
-                limb2: 0x146dc127b5450502,
+                limb0: 0x23f09f33781dd7137740c7bd,
+                limb1: 0x7b0a83dd927d6dfd3e08f872,
+                limb2: 0xd27d843c5ab1c3f,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0xfd19216bf0829882cdabebe6,
-                limb1: 0x828ba063530a81a329131fb4,
-                limb2: 0x2d5cbdbf9edeff0d,
+                limb0: 0x6ffca7e9481e58572ba3dd96,
+                limb1: 0x58df3092aa175ecfb72288fa,
+                limb2: 0x17f7fca8dcfea36a,
                 limb3: 0x0,
             },
         },
         id3: G1Point {
             x: u384 {
-                limb0: 0xbe73592b0b543997ac9ec27b,
-                limb1: 0x600ed91fa96cd915db4ed7fd,
-                limb2: 0x1e214a8b0ce35f8e,
+                limb0: 0xd36a993acf8aa1d320de37ab,
+                limb1: 0xea1ac32214fe69d44db36191,
+                limb2: 0x2aaf0ea05d276bda,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x5eb2130b9c574c4e04e6e477,
-                limb1: 0x7203e26ecee99e2307846f5a,
-                limb2: 0x214375d66b2db2ba,
+                limb0: 0x30d3b1c3221ca465b59c1d56,
+                limb1: 0xb8032cd3fccb1d2dc4ffea16,
+                limb2: 0x321a5556753e249,
                 limb3: 0x0,
             },
         },
         id4: G1Point {
             x: u384 {
-                limb0: 0xc0ed29b2c26f8c8cbcbd82cf,
-                limb1: 0x9b46a4cf0acba266c2a9b02,
-                limb2: 0x2825f908ee9357e4,
+                limb0: 0x73d8c92d1e8e8a842ca02142,
+                limb1: 0x53f5e939ba3481bacd1c1d25,
+                limb2: 0x1650c4615868d95d,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0xf0bd3cf808a6d1bcd0d63ba,
-                limb1: 0x8100429b213b9140ed25274a,
-                limb2: 0x264ef648e6714012,
-                limb3: 0x0,
-            },
-        },
-        t1: G1Point {
-            x: u384 {
-                limb0: 0xa63b05df652b0d10ef146d26,
-                limb1: 0xfe18040105b9b395b5d8b7b4,
-                limb2: 0x99e3bd5a0a00ab7,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x7f5a622a32440f860d1e2a7f,
-                limb1: 0xccec99dcd194592129af3a63,
-                limb2: 0x15b8d2515d76e2,
-                limb3: 0x0,
-            },
-        },
-        t2: G1Point {
-            x: u384 {
-                limb0: 0xdc25d1aa450e0b4bc212c37e,
-                limb1: 0x8bc01c9595092a222b888108,
-                limb2: 0x1b917517920bad3d,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0xe42000a1d58ccb74381f6d19,
-                limb1: 0x22e6e992077a84482141c7eb,
-                limb2: 0x305e8992b148eedb,
-                limb3: 0x0,
-            },
-        },
-        t3: G1Point {
-            x: u384 {
-                limb0: 0x400b2bca37e2b1085e924a77,
-                limb1: 0x3ada15236ba5cfa60111b440,
-                limb2: 0x13567e3b915c8101,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x904b434e748f9713de8cc3d7,
-                limb1: 0x8f4674af5744dedafd63caea,
-                limb2: 0x148d22589b91f0d,
-                limb3: 0x0,
-            },
-        },
-        t4: G1Point {
-            x: u384 {
-                limb0: 0x6c840d9c943fdf45521c64ce,
-                limb1: 0x7342af45d0155a28edd1a7e4,
-                limb2: 0x43d063b130adfb3,
-                limb3: 0x0,
-            },
-            y: u384 {
-                limb0: 0x4c573d1686d9cb4a00733854,
-                limb1: 0x6aff96736194949330952ae7,
-                limb2: 0x261522c408933064,
+                limb0: 0x2b9b7a176b96767da7467197,
+                limb1: 0x6ee13023f9d74ac029e6d1a7,
+                limb2: 0x1892b9f8df903fb4,
                 limb3: 0x0,
             },
         },
         lagrange_first: G1Point {
-            x: u384 { limb0: 0x1, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-            y: u384 { limb0: 0x2, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
-        },
-        lagrange_last: G1Point {
             x: u384 {
-                limb0: 0xc894b742744cf102a554d06f,
-                limb1: 0x9ed4d186a2debd4bfe72be9b,
-                limb2: 0x6a032e44c27b0ce,
+                limb0: 0x887f299049b14c11e98460d6,
+                limb1: 0xb9c26747621b821eee81b23a,
+                limb2: 0x2a56ce41f6b0be13,
                 limb3: 0x0,
             },
             y: u384 {
-                limb0: 0x26660c8385d13a63d2078399,
-                limb1: 0xad76960162ff0d8c34d25b61,
-                limb2: 0x53396ef4f905183,
+                limb0: 0xc78656c0d12ca1aea6ef2c7c,
+                limb1: 0x7d8f6de4e725ded5827d6338,
+                limb2: 0x1aa98f2de3ddda54,
                 limb3: 0x0,
             },
+        },
+        lagrange_last: G1Point {
+            x: u384 {
+                limb0: 0xa37edd842f2dbd07c6ade78e,
+                limb1: 0x50051587e272edde3af542d1,
+                limb2: 0x2a06b3387a444dcc,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x453d3d44bf54337b779f318c,
+                limb1: 0x3c575589fee6f52d92a8102a,
+                limb2: 0x22616c241d3fbf6c,
+                limb3: 0x0,
+            },
+        },
+        qLookup: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        t1: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        t2: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        t3: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        t4: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        qm: G1Point {
+            x: u384 {
+                limb0: 0x2f6f77c10094f69a4779eee1,
+                limb1: 0x195999b67322b28166950c3b,
+                limb2: 0x253c21f9f3795b10,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x2706773fd96a2af8e4830f1e,
+                limb1: 0x3db0371b0975619ade0665a8,
+                limb2: 0x1466aeb3b499706d,
+                limb3: 0x0,
+            },
+        },
+        qr: G1Point {
+            x: u384 {
+                limb0: 0x4c6b24411c28feea328ff018,
+                limb1: 0xdc6ae6c1a0dff4d032dcffac,
+                limb2: 0x28883969fa595565,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xef207bca7c45fabf4108edc2,
+                limb1: 0xbfc97ce972c629f0170090a3,
+                limb2: 0x1338e5ebbc48db45,
+                limb3: 0x0,
+            },
+        },
+        qo: G1Point {
+            x: u384 {
+                limb0: 0x66e1b3cdd59f1fd264e0446a,
+                limb1: 0xd80745e338a33bb4bd153fab,
+                limb2: 0xcdbd6b43659bb55,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xf5c3dfbf55e09a99de72e59d,
+                limb1: 0x7932c8ebebfa6032b6a95975,
+                limb2: 0x1c5e60e769562807,
+                limb3: 0x0,
+            },
+        },
+        qc: G1Point {
+            x: u384 {
+                limb0: 0x856a997dcbb509a789786be,
+                limb1: 0x325875ea7b7296dc0bad964c,
+                limb2: 0x40c0f724ffae5d4,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x28ee4d228e4323cae5474d33,
+                limb1: 0x6607b61bc607f76bc256fe0c,
+                limb2: 0x305c566d2733d940,
+                limb3: 0x0,
+            },
+        },
+        ql: G1Point {
+            x: u384 {
+                limb0: 0xc3e2844f3f806dc378ba3aa,
+                limb1: 0x7e23a15921d6ea690974d563,
+                limb2: 0x1616cb30818fee11,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x5f9c99f54224d14fd43a3b33,
+                limb1: 0x85c1f0089db59d8c5b0d25ee,
+                limb2: 0x24e3bf6b5046a398,
+                limb3: 0x0,
+            },
+        },
+        q4: G1Point {
+            x: u384 {
+                limb0: 0xa233c42ed062aaf93a3cf686,
+                limb1: 0x4b7bca51630a296ac05848d2,
+                limb2: 0x2aad9088dc5d4e33,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x1693ac5ff94c90092553b10a,
+                limb1: 0xcefa1351c0a2b49c05cc423,
+                limb2: 0xb031957adfd0101,
+                limb3: 0x0,
+            },
+        },
+        qArith: G1Point {
+            x: u384 {
+                limb0: 0x267f32999e525a4faa2398aa,
+                limb1: 0x1b235c6aab79df4120ac8a6,
+                limb2: 0x21a025ff4ae84ba5,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x4908e3c61a2875b1bc6fed10,
+                limb1: 0xa96db74b203029efa52aa86f,
+                limb2: 0x1a8b5f11e6f51f2e,
+                limb3: 0x0,
+            },
+        },
+        qDeltaRange: G1Point {
+            x: u384 {
+                limb0: 0xd03abbe077caf4c5983240c8,
+                limb1: 0x46aa097657c986e1ed5dd2f4,
+                limb2: 0x31f24378f02832f,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xed51579234244c4da593d7ba,
+                limb1: 0x357fb8db70f1b03ec80ce8d1,
+                limb2: 0x212d3b79b08de95a,
+                limb3: 0x0,
+            },
+        },
+        qElliptic: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        qMemory: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        qNnf: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        qPoseidon2External: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+        },
+        qPoseidon2Internal: G1Point {
+            x: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
+            y: u384 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0 },
         },
     }
 }
@@ -519,299 +540,462 @@ pub fn get_vk() -> HonkVk {
 pub fn get_zk_proof_keccak() -> ZKHonkProof {
     ZKHonkProof {
         public_inputs: array![0x2].span(),
-        pairing_point_object: array![
-            0x42ab5d6d1986846cf, 0xb75c020998797da78, 0x5a107acb64952eca, 0x31e97a575e9d,
-            0xb5666547acf8bd5a4, 0xc410db10a01750aeb, 0xd722669117f9758a4, 0x178cbf4206471,
-            0xe91b8a11e7842c38, 0x7fd51009034b3357f, 0x9889939f81e9c7402, 0xf94656a2ca48,
-            0x6fb128b46c1ddb67f, 0x93fe27776f50224bd, 0x4a0c80c0da527a081, 0x1b52c2020d746,
-        ]
-            .span(),
+        pairing_point_object: array![0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0, 0x0].span(),
         w1: G1Point256 {
-            x: 0x1e34c173234bc959a7180a6bcc4400e875f693f8ba7aa39f084be9ffe2a7030e,
-            y: 0x2b746f5a836e791d389755abda9fb5c9d749337fb05852bff6277a689620de9f,
+            x: 0x1c59700c6ec0560724a5008370d81d17c8025e4e85063744fe2876fd473b7bbf,
+            y: 0x3e913859168211d36aa710ded78836a3968ede1838e1afba0eb4175b3882534,
         },
         w2: G1Point256 {
-            x: 0xfbd3eedde3a077f81b3f6e19e88da20865e0d96ac30dcea46367405b98e7ee8,
-            y: 0x2d9de94695b5f22e2e76d7bbf3c9f2574f674330802f0ead9b527154f08708c8,
+            x: 0x13d644f7d365c0cea6a4a72bf58987021aa60b289fa470da2af3eaa20adf82c9,
+            y: 0xcc5f7b7fd42c428607ce1d6a70c293bab2d90b6fe47aa5a72d9b122360330cc,
         },
         w3: G1Point256 {
-            x: 0x14a120ab523b85cb55ffddc33d5004ad91474cde957a6fdbaf145d18d45ed987,
-            y: 0x1343a5fd555b6456db3af84e21a912c297379b278609d25591063bd444ce1697,
+            x: 0x2ebdb09faf343d90b20b96c12694a602b6930131854cb5aa9f46ae20e2527d09,
+            y: 0xeed07482536470865b1a17018f21eeb5223ce8b3906d5206c46dc5a681a5ca2,
         },
         w4: G1Point256 {
-            x: 0xeba60f911766695f96f1cc1087203076722a4275781461c1cb8512937e9ca09,
-            y: 0x2531eee848f996051e53e155e72d4e2e36d6a192cef36c46d92a9d9573f5c802,
+            x: 0x9442c9e1eaaa55eebbc0a38bd5b8ced0a4193b1150bda0a0b1d8400ddc00fe,
+            y: 0x203eb2148795242a30dd6cff4d511758733812fefc9e5d2ddc593bde776b0427,
         },
         z_perm: G1Point256 {
-            x: 0x2f4d259d57533bb5b04a62e10b3312b1d57c31a72daf5114e65fa1bacf2db0b4,
-            y: 0x122fe61c0c3e49d24cdc6dcfe202787fbf2c12d8de5ec018c5e82491f0a58d26,
+            x: 0x2e0b58da9559276d0607ade5b19595c937e610b93bb439319ccd9ac15114f695,
+            y: 0x6950fe382f0310523607bac0ad8ef7c3a0fcb682eabd759fdb07f6a8daec451,
         },
         lookup_read_counts: G1Point256 {
-            x: 0x1c205828426756e2d6fe1a24e7d2a3f572b75a0b9ca18b0bf2098d68efdb4fd6,
-            y: 0x13d3a102f9b15308b0233b512847b2ed03fe0b9f1eadb624596edda65af3ffae,
+            x: 0x140755b700f38a7f6461a969ce715560698eae3db3bf0154586242d5768f2cb9,
+            y: 0x9528c9058c72d5a7fb0a30f0e9776386df37879fd193474fc73fbe172911973,
         },
         lookup_read_tags: G1Point256 {
-            x: 0x1af83bd052017a1caef1cb49f7493688e4b1d2291a8c81ee828b6d8cd5a3929c,
-            y: 0xeb612b6d43562a5a959a8b335e0e8e699ccedd4331ac12ad01091ebc990b296,
+            x: 0x8ff668c4f7f4524d3ab1d610bbb6266240779e4f12066b45cf7e56e65408f2a,
+            y: 0x14e993c5f73ed1768c26493b82682ffb48c6b0cd567ad349fa7e501879b52930,
         },
         lookup_inverses: G1Point256 {
-            x: 0x8dfe2b0529d66494e26f702f13284b1ec31bccde949e11bb9dcf2f9204b0f72,
-            y: 0x1a17d9e42eeca241deb7880a1987676cbe1043c4b4e39cb8393753d2cbb3b752,
+            x: 0xc7dc46ea0c795f99f9ca039a22a642c73ec40c6ca2ba31286a65e34a716237a,
+            y: 0x1030ef4cee56dcf2877f360715d6208f6a430149884ac7a5ae05a06a226f7107,
         },
         libra_commitments: array![
             G1Point256 {
-                x: 0x170915817e4884ee05a88ce77c8a34875a1821758557e2a15e451c9b44e2bf77,
-                y: 0x2687de64a3db7ce4da18126d442d00cc5a4ed4220812c29b54bd3e0a13dcb1bb,
+                x: 0x2aa0e12a56b783f67389a50f0efc488ab4d13785db72f98cd1d4eb7abb28111a,
+                y: 0x2a6da18e860effedeb0c8e9d03f0fe86aa4143ef28048a60f4e925eeb06466b9,
             },
             G1Point256 {
-                x: 0x2be452b393768e61cfdfeccade5cdf0d1766bbf5e528b5aa1a393e49fa3e5ca9,
-                y: 0x2852b988ed0d271109741f930ea0924fcd94eb67b505d4c88d47ba12d6cfe4e5,
+                x: 0x1de6f45c8be9f226fe7bf8bb436b62b66bbccff2e1fc8e0e58d141e41b9ddd04,
+                y: 0x6fae32feb6d69b0fdc042f219a289efd13fe2c6a7e85259370b9e44dcb187ad,
             },
             G1Point256 {
-                x: 0xd22d803fc19a867752924eb0a1cabb3d416b43cadeace3a3ebc42b49ff1ad06,
-                y: 0x27b8cd7a0a74924ed8c7d07ee75907cfade7005eb42492f8519c62020183be00,
+                x: 0x2e4d79c0bc61aac52aa40fd44ff684159b51378b71c39ce363b860150e114ef5,
+                y: 0x2c34cdf6cdea673c2119172a5daf57fee26fedf855caf41364a8635860b72f88,
             },
         ]
             .span(),
-        libra_sum: 0x90144f9a53cfc333c47451b4adcfe1c23478b5fedc99ded280b54409de73c26,
+        libra_sum: 0x157d96e133dcc6b2e06994fca16d4e2c17d56e519c9813865d799e6d91e4cea3,
         sumcheck_univariates: array![
-            0x3149d68db6edb589893c337f6fa124a4e1e21c4d04fa5de31b29889da3634ec,
-            0x16d5d9a40812efff9f08eb10fbdee1c124d1d7195922927816ce778691e08152,
-            0xe8a05f197b383bbcd4cfa0972e429fc5e35c2d18079035e4979223b3fa5a7fa,
-            0x24f6a24319cafae3b708e9148a9b28d1f26ae5091c97c3a7fbe95c6571aa270,
-            0x151107311f5801d6792bc44aea560e400de6c372dfa64eec2962b1d179ba59b,
-            0xab68b23d47720b06bf7f3a4fad1958f0b036c0cea11533eea85b6831d85a1fa,
-            0x26f4315868b55f723f1c2d036316ea5125f90ecf027262126a7385f4e296e2c,
-            0x1eeb97671be33f66bca8fb643ab214d82cd46ae5afbb60f8a786d164f1f80934,
-            0x24faae84d5ee43de3815a5be73d77e2a8600526f7fc2a76fddc7238089f322e7,
-            0x18a9cb845a1fb2d9625b2251b0953b02f156c09696c3602b5286f06a4205c89,
-            0x7e42892aefeaa5209c01c9e098de4e7f0858dda32bc95da8ec08ab8220e48d8,
-            0x1d3592e48b62d8743793a25cca0e51e716fc09d7fd8f7d1d537ecc204d167d1,
-            0x2997d5b42e40cab8d9b0f7909a6b5c5fab84ba180a0c5a91a3e0b12ebfad76f5,
-            0xa419cbd276cc548aea0f9c168bbfece44382fae6fcebe2659e285655129428a,
-            0x632e4f72070d900a143fb798907979956955681b98feb27169b71caca0825e5,
-            0x2b423792b6cc5bbbb86c7889ee1a9caaa505797f3c0cf0d083c3c732dad38289,
-            0x104a3c02a4c581859887647e5ea591a4cc9ae3ca3f6ea459ca06624a74a6a0ee,
-            0x231fdb9a35dd4a8c5a6d0fd65195ccef5291f4944c627677c24ad42f0150941e,
-            0xb305bdc9fddd22f488eaac6187dae6a0e115b5209f0cbab2600d08767f73d7e,
-            0x22c974bf215ae21071ec73d7b7edc30d12b37737a248881d48ba8aba75110760,
-            0x9b0a436158fb0f2a4888e55b672aaf161884d29b1c92fc566a4769fad1f1662,
-            0x28b84b03b50c5ab8dfd459531675fddac1e9fef6747b724d4aafadd7701ad0b3,
-            0xe12eed7ece4b17ed9aefa90c4f858550d1227af01f5093ea2e1194d01dd5c1b,
-            0x236fd96ffb804945c9705b3eeb39af98329b94ff1e7e1120f1461369e2c1f7a0,
-            0x1945bc69ae6755998f65deff579a24fd45721ac071144d902329d2811c7c7fd9,
-            0x6c58d2ee567254ab86864b4652423a1a938270c740ac0aaa48bc458ee290f15,
-            0x9eab94ff32c8d5e6592803954e3cbfb66e7f2b429bbbbfaeb84480dc31ba603,
-            0x25c025181fb1cb6ac8b54d80d73dd505abebb610e12c4086ce37ef02781d09a7,
-            0x10f6a28fb969623c13a8d03de2d64a46305a1b57a4aeea72b7bb13cb20eecd36,
-            0xfccac954245c3c67536ebafb134c6beaf8068d692d82edef7071f1eec1876f2,
-            0x13bf9c5b2bb484a95f0a9805abb41a5690e353315635b39c21fbd7f580270fc4,
-            0x1933fed4de4ca7ea196d299d5bb300ecf9edbd3d6dfbdb64a17658d20021a4d9,
-            0x265815656b600b952d2e1f1c7819ca82fca81e49888abae58687e8a16440d5e8,
-            0x2ea8b4c68b9f4319d41fadb8687f840a30ad87aaa8066e57e593004f3532e134,
-            0x27f0e547478d3dc127439447953643959ae08665ccb625067efaff37414a7333,
-            0x16091d3d50a304b2711e8ab203f5c75058ccc96ae7805786f284a8ae4dba022c,
-            0x20b017ce49f243ab96013aca53b99ed0ef64836ed7b7111e75c051c042b70b1d,
-            0x16c3c2093db68946aa8daf3b183dacc7cdc72ebf291eb8eff7eb90d30eb04edb,
-            0x1ec3ca15c7f742c257cedc604dd201202ce3248cd37b4005f433688199d56196,
-            0x17952c04233c59b0394e7f6cb5c613807fdb4c99f77c2a496faeefac3b0670c8,
-            0x2cbc304b746d10106d5ca386ff1f4e3cfc7e569c04e46ecd9d69f791f8aab6eb,
-            0x1c77bd01f0bd518100a1454b33bbbdf5e4e93d6cb428894cd6fcb3b022d1e8b4,
-            0x132e106c58142b5679e7006fd3c9bf8ce55ae3e53312b62a1e7a3e3a983f8c24,
-            0x24a0381969a5bb634111aa3e613bf0f7f57a2b1a08cd10855a6cd50539008d17,
-            0x22cacd970c627c6cd704c36c516c89566870a0f05a105b877b0581088e69b35f,
-            0x2afaf6bf152ebd048ee022eb3897a2e7820c4cb8f8466df4c40755a513e33d1d,
-            0x264f26a5e116d1b8167c6d90eeefbb52e7b40ee168a81ef21d0c21a275f36043,
-            0x294253bdea2bf3dcd61bd93732f536a5bc49b57f9bd225766fecbdbab43db963,
-            0x12d8c95ede7c15ddb6ecf9fe0e42baa67e689c3200aad123b59d1cbebc0af2e0,
-            0x104510383e6234abd06c3aeec9fb08854a82620a35e45247b6cd8de461b0259a,
-            0x7d219662f75b601dc2d55fd7da3fcd5a9a18f3858b6ae8a6b043d06a4ea9b44,
-            0xaa4013906a98a1341f5a816f03e9e163eaa64baa846718e56b55255ab82bbe,
-            0x28f931b264c9a2b1e951bb4344c1136d53c6e49d5f44ae07a93b24f300077006,
-            0x27b12d853426db59cc2dbcbcc4f4f65d97f36c42ce8d1b35618cc2406f6bcc2f,
-            0x121d138ad4faf57b387a0c6ceabbcf40d267ba1a57274779d30e82eebf33f499,
-            0x1f4e057d79b4f5067e639ac93daac5c15930ed56fc4668633eec1e0171fc1e1e,
-            0x301e110c5f4bb410002752fadb973462699f99eff2c522bb29fcc3d268838969,
-            0x179b4a790c726b98fdb4e8f3538205caea13c58b21fa5e4744b5f2b32117c6bb,
-            0xfcb8cf6b078413f39e5d03c9a0764144cf69674cf3e8f947adac1867ef5dd25,
-            0x2405407e10a6d25bfc82bd8296581caf938d28ebcbd24b0203b5d24a56a046ac,
-            0x2b50b38db9a82cc14d258e8a3d7447e56ae8525ec296898c97ee2ff8d6c829d7,
-            0x27d6d4a65a494950fd8ee286c4de6d1918e30901f81185d0280a83c925546597,
-            0x66a2b7ccc890a7b28d360e935e3cc649b2ebd93c65e7971993e5d4f8419a88d,
-            0x577eb50c286a240c191897c73621c9a7a5a7eb061fa395d790e38bb3bf0ffa0,
-            0x843ed2873262d670315de6d882611c31934d04f25e7e275ec73cc0322da3204,
-            0x2a9064d23951b7392a196dfb9c89e66c824275ccba1ebdd070f95d1729b06293,
-            0x218eb8c4a137172fe1ced0281376d26148cc83b728964e04aec9d3c9bc2ca0e5,
-            0xb28012720a35d1fde5fc838f56b97e14e831b280dc9d3c5d2cd90f662acb50a,
-            0xa0c9e4e4ae3e002615dd5c69f2165acf31c64d5327df16d46d4f74eac718265,
-            0xce7ff6c1981b21a195472b06ce7d22335b13bf12e76e3070ac90adb7fd95616,
-            0x16a5335bdf6596ac1351dc015c1316098ce91c57d5b5ea50c949fd652bfc815f,
-            0xfe114dc57f1a2f4bae55b57b366d0b499f956da79b1b6736df7fb9dcc4547ca,
-            0x147892a2bba985b7a415c2c108bb60a413581331c4aa3df48abe41bec92bffb7,
-            0x13ecd1b079e18b2a84cc1f92af470baf348518ec044dc4fe416336bcca53b38a,
-            0x1569b0c81db8022270d0af9cafbe881173d952ddf37c07ec2a766b6c578f37d7,
-            0x10db7d41f627623b905f28baed9ae528272d131e9c899885037f7fcd8083b177,
-            0x24c3021fb55a11c5833d4141c529a2166afa1d94208dad69f9ac2a19516ed28f,
-            0x2e7d5fc72956e9825f0f14fb3c0fd27ffbf6de4b248773759f39a30956270c1a,
-            0x2c7a64b108fe865fb1ee22323c3cab2b2d949b80d24642d131b4ff4643a9b9c9,
-            0x2b3c851da00e8c3b44422c1522fe5cf884a786626c34c6e4426a35ec221ce0b7,
-            0x165853d1ecaad0c5aea08d3ddc6511d174697f594afeca57a1ce8f6fda021c14,
-            0x10931a4f5f8e17c9233ae0b7f675ace7d056c244f376958041579b9bf897652d,
-            0x684e5cd9e7d09d905e11e660b811d2afc1e8a248f822cceb80d085e15d37c1f,
-            0x1cfbc7620177d24eab2b2c3184e70d04eb289f87a0d9c141d4d820f7a2eb87c0,
-            0x2471650400ec3bb9ae965ea280132cdd6db6305b1e7503648a42badf4b831bda,
-            0x106f62d6823cae740320e3efa8928f916bf79cebccfd9f6e8c19213d1403df05,
-            0x8c796662cf9ee1ad01ff917be730cbfde624286c76c54a2edc6d202c2b407c8,
-            0x146c0f4c6464f9fb5b15300f2e69c9b08624734c2f68cea603580fd08715822,
-            0x1e519b10d4404fa71f34885ffe96929ba174696f1f683c21d1f97cb04bd4d22b,
-            0x1db5c6b7ffa992613926b14dc9e2d38ccaf540b28989b454b9ba6e827921619c,
-            0x221294410242d3af8f43fb85acaef03ef5f25f9d04334fd7e293355f85d512bd,
-            0x1943b5ae1d9f077ab778c538e49a62e7d4d28b597446b560d16e72da8072bb3d,
-            0x4a9f7d95827a54eee2c8242d174c95ddc3f9d8d69507de49ca41adea8261d19,
-            0xa1810218a2aa24b3aced9a70886da5bf931e5482a7eebc805330e435a0285ad,
-            0x21c33cbe7a21ba6b7abfe15937c1b295bc12afbf582512bdc8bbf5655164c494,
-            0x2ca72a8a3499bfe2d0eb23e7bfe3244f9125ef19f3353bdecb99957b351bdf23,
-            0x236c92d20e92a0670678bd93b9a8d2ce5cd777407337dba37afcde2c73b296e8,
-            0x112ae8a0c5764d4c0de96f7001857726904dab3b66324a96b9272a18185a7761,
-            0x294dc118f95f01a6a77d01341801a12ea3ca8135eea4c593d0e3ab020b17eb3f,
-            0x2d9a0c73e31475e0b545e497b562a3c51340e0a9578ce78019a07f2ea8780d71,
-            0x16538f95bff012672df3fa422dcebc32600ae0cf100b72bbf0e5f36ca55c079c,
-            0x2c141dc8ef9c6ee31c17a04af6ba16b3489956dfd601437312be4571f909a5b,
-            0x231ba01c0cea4e1634851d2195e5bdff65ca184b39812e03be83aa269ba4c094,
-            0x2891195c085604acfdf93ef63e535eced06d41bc8058c31c6e7ab680de727540,
-            0x2cb5ccf9dc7fba5b62f47e20f1dc78bbac5741016e67df2678dac62da61c9ce6,
-            0xd9c684b8b528dea680d100518355c92c9707aae4bbcdcc221c9b947864cfdba,
-            0x18957cdde94d31a2b9961d680b45158e0522d6eaa79daff030d123f0fe463b2e,
-            0x24df9e3fbd718e06157a9de498e0d97becc7ed30174041a90de1cec78cc74fe9,
+            0x26bf22e6bfd0d4c15ef5c5becc57cfd1a7cf0fec6f6de2caf798d6f8642a4500,
+            0x1b400b5da47586b9f91c0137b87ded786f8005068c98599c6f290d10926394d3,
+            0x25bb3aabd31d3c4c6d63b08e5f936f6732e4e06e287d16e840281a4460c377dc,
+            0x1cf407e541239986b29e90937cc12a3ba6ddcf6844bea9fac0db2de7372e55d6,
+            0x1b0d4fa78b999bafa3bebc6f2f3cbd1ecfd8a8b990cb564039b8f10d73e3be5f,
+            0xf1b14f4e431c2f9726724368a30e60ae4944e293bacee9df7c2dd1e9eee301,
+            0x2e6b0962c7a62a2f07f22d8bddbf94afd679e773f1b7757ddb718a42594d7ec2,
+            0x100e64e33a6c151000d4ae2e800bf01aa1bde2eac71703b3aba144a8823f6949,
+            0x1e7dd2a52dce47b51f55bcaf4561632cb7de526760ca51b21ca336d6144ee97a,
+            0x26cd1f18b9acdd64476342a2023e402666f72c50b44c3cbb5c8d62e41bfa402c,
+            0x10a6ab7f653e3d7cee6544920f6d90e350e5a9199b8cf495f98f6ac331e39a6f,
+            0x2fd38bf35fac07cb293303ef7c955147d74d2e91943244b88483c3d3538c4b2e,
+            0x302d11b28efd97a6748193a34c4ad4800d580472ed46dc514033f3a4ff9735e0,
+            0x302b64bca8d76fd8f95b31b83b2c86366ccf89b8eb8566341f64a0822938e780,
+            0x2f184954b50c05fd8f54e8cc0a68f43f8ee51d457d11c65e14620c89c2c7ebb8,
+            0xd211d68e133ffbf2122e4c06ae2f0be76737270da157e3546a3ade8f69a1c30,
+            0xe675474970299e1b8ad7c231931034e4bb5ae33dcdbb9045d42311aaf091504,
+            0x2fa20919db87175333a084b16b26d9f62945d1d19a66e8344be2d176edbc6ac2,
+            0x279ea8c5053aa434833a77b709d05907652299b7e079b095fd32074448a82cd,
+            0x1370bb9816de520d2480a9a84f6e0f1a72fea2a6b5ae7eb3cd95205145deb194,
+            0x1fa7fb7caa5cad308ccc9408df5ea2448d1c55f4e8f520766b085d74acc4ecc1,
+            0x10d9a4fe183297e12abdfe6f73b3344e2908eb0362a8fdafc14b6d2a3fa6c6ce,
+            0x15ec7cdf746bd60f027a1bcf575ade78ec894a3509e6133f9f1ca32edd31d4ee,
+            0x20a6d0c6a0842c0f4b399708a73e634f3014ca26369d077fa35785e5ee08ebc1,
+            0x165298bafe81fcf350398609119b649ca4a0bc3742cb754b5eb2d3dff0a1493c,
+            0x15afe5070be652d7f377199668a16ea69f1c5938e8ab402fa3af7aa1ca32a001,
+            0xe8d700816b7060a7824eb2005c15f13654c0c52d71e1f0190fd29fc5ccf7a84,
+            0x20445ee1c6c688f785f16d72e93313e669f6448e5059a96224e95d898e65ab85,
+            0x20b5e685e88822dbfd124b14507eb15e48a468c64aa0d79d65b57d22483def55,
+            0x444615baac01a420dac35189e9f291ce5f9420f05a366a2c4e299c9655c6db8,
+            0x194fb019b2e17f4d05293e6e2942568f196855675de2bdecfd70cc4da8bec47a,
+            0x23e32ef6643572717bcdc2f8107dbe6607e8c3e471a76afec1b10357c904978b,
+            0x160237058b2b6aa03aa4d859ba2acbf8526ef38c66c6138a737d4a28a8b39fcb,
+            0x16470fe8c41f9998de002b5659d0a5b9ec90cf32b7aac87067ffb53fc5a805b9,
+            0x17fa5dfae584ce83571022d3f6cb44f3b35c499fbfa3b75563ce72eaaebd8894,
+            0x27db9a45b18a6a9f9d99ebf8fed956c06811b83a7cfc7ba155d0ad887ad69db6,
+            0x29e3ab5a408460f709e47bd570ec69863f0ac93024ec72b85fbf736659a3b220,
+            0x16918d55704fbed6270b4a14bf2026769ffd9dfeccdfd2d868b284c5b27e6e2c,
+            0x2f1a9a193f03c295a31eb22ee58bb818d79a33ee5583a2dffebc630806b14aa7,
+            0x264d74067c29f4bc6c9cc7c61dc450222593d2d5b3e6842ec3825c4a6be6be81,
+            0x43d81ef11cc04551577245ec68b21286704c0ed5739afd56b34329a6c772079,
+            0x5ca4f7e55cd5cbd9b2a13109da108a23d0b65d120615e696dc5c651a11b9036,
+            0x105cec41cbe007e3f64fdec961603284c8f66872e0689c30078ce9188e556560,
+            0xf3014658af5f290a4aae91801758e82b28c99be85f8995a02c5e9e35f5b7fa1,
+            0x3e3041a735732a565ccc4084050243c3e78352ff1805ddfda73daeaa96e7f37,
+            0xa443933507f20f4c70f799eacf644ba1183dde24630bd152289c3d69e8d3579,
+            0x15cccc72375ed01ac723844cab0249b4d225de33b7ccb376a8d8b4027e378e7f,
+            0x253a3457d487601f671f62a2a6f4fd7a1cc6d04aedf43ed3f2824c26c6c13ddb,
+            0x2d3fd9d6f0447e9fa6ff320d9030607c190a3baa61c3c75c00664dd094fb2a69,
+            0xa95180fdef3c21848fab06c189af6cc093df5218abe81b35210da784dff331,
+            0x11d0e0dfeed202e14132cc991e924e051e9ca3c3cb305a4ae6001719a90e8fce,
+            0x1126e35304c15fdb2b37aa07c81d10bcad7a098594c032501140cd49d1388027,
+            0x2c2501bf0a0c8e185b7a240876f28b4d5b4e79f90ac7be25c03b1d358e88041e,
+            0x257f2fa6d275a26e21bdcc5ce618a4b8e33d2a161ed0ed23058f3140c7d7b0ee,
+            0x2ea909c9080a219a06c495420d274ae1411313e2b2ce118ea9a6d11aab8ecc09,
+            0x10d53fbe67af37e3130f813f4ef891dfc5658d59e2257583c50a1cba27377be4,
+            0x2ecdd2f76e2e46609d4fc09a42f9e931871df353e872116e66607cc26458e7dd,
+            0x1d0d0d594ac7f243570df3b3b589f596597516c10e9e962b5a543e865d84407a,
+            0x1dac2a32af417e7b1ef2b369670820420e7a507527911dd9c3460774be2b1bb,
+            0x21552b36419bb2449f9f6f90122c887923559645db5bfc52cfb5de479ba6e14,
+            0x73745b1f422bf2bd82560454ddb01ebe7854c0967a4ca5fe0a9bd62eaf18ecf,
+            0x2c6251259c814a4c83eb753eb2155117c87521fc0a6a798d579e0733acbd120b,
+            0x11d98a6eefc601f3657e994cc00779bf2b8b728370701c2bb7a24af0347ad35f,
+            0x21a55801335e16466dfdabd466a206cb2926896a9b375a2af494d9f75d80418a,
+            0x20538a33f1b9d9d13a5b68fbfc67937866ba3c61011601f6c1eb6f89c779be86,
+            0xbdc3430f0f07ff6a3c1b40dde497295ee43ad4e3a1a3bc6eb8461a4f14fa312,
+            0x259458c073383eade8ba1b9b7985200c5098bd52f6d844873ea509b5c53e781c,
+            0x130f8b023150fb3281ac6775d034cbc1f876f520ce8711ef94d3ffb23f9ec14c,
+            0x15a85df88ce4639edbb03f673cf5c0bec412c43545e052a306ab9309beb94806,
+            0x18561c76f353393c1632359643e479d951564f5e81c2ebc6e41301fedf2ba7f0,
+            0x1e2fae2b825b3cf24a441531de91984b315939ea96b1347b19dd4fb48c8aa6f2,
+            0x9d2bbc39b4c7d7b77cd98d9df2785bd22a27e92d4aa7d8710de77012ab27094,
+            0x1ec761ffc5746a36ba8ffe66635a58a02cad30276bea11c193d4116678cc87f8,
+            0x1c13627b54792bbe6181b8583a95c3d03f3bb3b9a813eeb5ea45dc29e3c1475e,
+            0xbf438c94c680f7ac4ff4d395fb0d649ace5a4c8c79f47e82b06335ab991175a,
+            0x19877144f75887e51b42e76fabcf326d41aa0ce2549551d69e7f64a171be8ce7,
+            0x17acc6c52fed98d5c8436bf42ca8454a5d3b24b258104d908f72a4e5d5ca5d38,
+            0x1e3bf45825940810b3a5cb26d43777db1bc9e9f5f7293103310252c4692e2a8b,
+            0x11b979a1cb819a7155dabafa499c2592eaa77c2a1eae09561ea0a263c387ef2,
+            0x1c7bb6c08b930a2b530b09963c685e6387c8f091c7939d1338eed8d4186f7cb5,
+            0x62f26d84525b38c541ff618c771134eb8d17b54ddf29cfa18b98c8b68e2892f,
+            0x2cfcb358a626320bc8601716c649bbda0465fbc85fd64472647f210ede563dde,
+            0x5a7f460659d3e4ae25d2c7c95869e55c11566ec3dc31ef09373fc34104a6d7d,
+            0x1da8a8ac6fc2b271d0311aaa8176148e571dcb7f44bd26f839703d40c2ef64c4,
+            0x1520262d1ad543844ad36fd09dd816e222a98e26341e9121931b4c46c72cabee,
+            0x1dc85accc6f3d1fbe157acc9dce6078f765eab422bafbe73e0bf4b1a1b56ad10,
+            0x1dd20ce6686b981c19cd04db88acd946027a21f43da2cbfb2e67835722bd09b2,
+            0x230317685ddd1923701748d0de7974ec733d31fc59ad48a815d2ef5af9824126,
+            0x1ca9c96be0653c83541152583c5b057fb6dcb79b773d0deb170b251b602ab562,
+            0x1a8f8eff13f12f5702fda0f1b7f00a665e1e7bd5a9f4cff28ebc2d228c59e1d5,
+            0x2cebc90ff5a53b00da26401d37b8e5a12d464095c248dc2a52c0cd406d9527d,
+            0x17bac0760db9cbac64e4e1c65398d686c9169938aebbd09dfb30a7d1b12a6860,
+            0x15c44bb15ce6b91118afd2db5b42e4fec11d071b8618a91f18036d87c241b84e,
+            0xa168e994aacf51f9fd5709a2047788ea75a5fb95877e74bb453b837728ef016,
+            0x1eca57593f211c05b2276e8761987ab38454e6a31d8da8b3cb99dd1358848a07,
+            0xbf0fe33ada0f7d513481ac47d89b551f427cd4142cec2021cb150459bdb43b6,
+            0x2100041e48e89953dff96409582aa5728d0c52997bef2c82dd4e47313c7c63ff,
+            0x37c960650215f3f813bde235bcfeff7021258b75fdca6d228cde81db59a6dd0,
+            0x1d2d19a09284a61643cc05b643bd3aac05c2781288ef40b4be1680ab7cf60011,
+            0x2d5c687d4dcadab38fc7f4f4c2180b70c57bdb0bc5796dc5e820308ef20649b5,
+            0x11fb5538a34421d50890280928d45db97ba28ed43a89b5cbd7628a3904d99f14,
+            0x158ae961b3ef39291eccdf1fbc5a0f56afc66bbc2508d6ec017d60c09bc9583,
+            0x2842fe6c2e1890a8dd11918b5554a4f11f36dd23fc4ad5c146e8425f15ee0e0f,
+            0xf94766b83acc066bcc700489a98f0166e12142334c113262ae5eb53a6ab15c0,
+            0xbd16ac5fffb8e35ba6c418b4b96fcd7a0b48e16a209d4cc0a75abc03eb37cc2,
+            0x1782b8c8ab1554eb5baa3ab17066cf25a1b2f0f78c804dd3d7970991e589c0a1,
+            0x1b42804950a61cd376dddfad1143745d74ac4f258023ee7a26fbe3a2e55e156a,
+            0x1d858b7d0e93e9bb346a5777805d5e520ae406010b5e65bfb8e080a75ba8c64e,
         ]
             .span(),
         sumcheck_evaluations: array![
-            0xda1f5a72d1ec76cda05874ef901ba28ce501879ad38eaf3f9b6361df206a973,
-            0x1ed85d53329e768dd416a57420e6d9cb5932c1882cf4a63394634de89452176a,
-            0x1d04ffeaff81057edef1460352e01891da17828af736f9f25d7e6c0f1ff07596,
-            0x2c9c0a7f812b743a24af92cb933ef6fe0e57872bafe7bcf09edb1ad91a80880b,
-            0x24d368974add765b0465b03cd25e8fa707aa07ac132275bd8f152648626eff34,
-            0x196bc2a2c56b57e59f6a5e9f8776e01d0576858ce4790b584e478242f29e2bff,
-            0x159fb5b8f9d76812eeab102d5881cedaeeb0b57e98e6b4b8466916e3b268aa9c,
-            0x17208caf6206925146bbaf5ba306efd47fa53dbc3d33696a9b33194db83e585e,
-            0x61d45cf35212d7214c22ff7ff9e6ef520b6773d493640fb2988550f972c8802,
-            0x7b91f492b587fade1b237adfeefe507fc76bcbf5a4faafc76ecf7b0346b88b5,
-            0x1dbe57d9bbe4f32165b4e6264ae69058d3143fbb6d01bfa839de3cd003a246a6,
-            0x1612ca4aa2cf172583d2cd1c3a67221abecb16d91d9c4fb067b784d4fdb4c112,
-            0x2266a0bca10cd57eba99438f820e8a0a91f7095831a474510110ce030d68bfbf,
-            0x28a2fb53bc4d65fbd7902353d352fc3ff9f10baf0f565221ba3ccf3a02596e40,
-            0x1a7eb155f45e7585bd3f000ff98c57a44f23df666585dbd04d3f881a8d5c841c,
-            0x1878c1e0ea64fa025d989d85081ddb3c0b3caf1b83f950bdb746cb052f7516a0,
-            0x276dd76fb0ca6fe37e4aa87d9107abd1d499af57e6bb587dfff5fd61969f7b6e,
-            0x1308a2d137e657fcacc9368b5c4dc672ee358f9878dece5aff25994b9797ae9a,
-            0x1f030b8b61847b35361104ae7ed473b72f57126323d35ca00189b532c7a2976,
-            0x2be3abfd1d75a1c0c1c121f602ee6c51c098474b2541c8758cb98bcc1350413c,
-            0x1bb5b1028805b0c1a875939537de220777403b1ef8787b361872cf715cd2c3e9,
-            0x1abafb4da41750fdfbea04d59ec64bb90fb4451b0b24e30035ec08fe832babb2,
-            0x1e9682feb5c4594b7acfe9fa6c8bad335e3c91d215c68034e3b46f11f9f2c61f,
-            0x2658a073798adbbce5691192977b2316626731acd49565ee30953275f96d0f8d,
-            0x25c0a364baa8f10aea8f4295f44e30817662f6c2e446dd71941fcfe377a2500b,
-            0x185ebc437928bcdbb426d9612d876c0b3aa89b5c8987014fdd040e0de6357039,
-            0x832fd6a95e9d33d53d1867f40fe6f5eb2c742c89ffe534ab5fa4b9f28e45192,
-            0x15bba137e6114ef194c6dd0c4a294047720a52ba05bfb3232113fb9c03a2740b,
-            0x20c8d9a09290bf43a0346153491f693ca3af127d9842fe196310bf5e3863a41b,
-            0x2996bbc4aac149f9e1176c8a10e731642acd43ee45b4f39eea30502e7c7b23cf,
-            0x1678d7bdb6529a27bd8bcd78df9237ce30bc8b161c9a03220b27d777694ea3c5,
-            0x26e6234272e92ff6eff8e8391567528de1e1c82f66628aa2679343319fedbdab,
-            0x56d249e93995c56591338bec2af3b770ed0ab09cf9b15c30245268c7c08316d,
-            0x5db0360469781fab0e6e0adc65adf68490b2b4d46bc43a584694e8eaf56f65c,
-            0x2d98fef4d951abf9a4724f5f960a6813fcd1b5bb0e5bcd390a8d5b457fc89c14,
-            0x291453c614c83070310f7eee9103d15858371cf28460788799ba673c94eeeae3,
-            0x9051b6d85fea1b22e85cc849c153074c399f81a241abea2121972ccac321fda,
-            0xc6a75a540dcb928e18bf7b90d1243a7ffe96db6cdf90cdb4698ff4ada76a6e3,
-            0x2ad59d311c014d11a8b906f3696fc86193cc6d228f568b45b06a7ffff25675ce,
-            0x158b238a3c1c894a9c7ab11bedfe7564af3d5fd8c15c8d208c1f347ff2a33ca0,
-            0x703886f358e78a25a832d65cc8fbe5367da5082435cd734f0e796576637d2a1,
+            0x206b4651ad29398df7efb1fecc6dc43cf3d5a00fc021f5c30dcfab5bc5495faf,
+            0x28e38d4f77bcea00b22197a55c4111d894fd8ae962035223ea11ab71d0c8cd12,
+            0x436359427911e2e4196d46e7b4a5aee4b8a4b297fe3f23e087c410be047c61b,
+            0x219a361fc9bc776d7722b9b9d339c1cc8ccaf48981adef89e86d7c4853e33afc,
+            0x17bb4a6c616ccd04e4064a4d2f87dfa83a64616bbcc7ea9054a7d4447065b3d3,
+            0xe8ab2971b9d3907fd8e1fdb483807bea1ce8a2958665136e95cf361276ef25d,
+            0x2a5e1f8245b258a3563cff3e14a7d568dc91a02cf95f4f5d04373bfc9899d5f8,
+            0x2f893891125fc7e56d4179fabf4e00182a143f8515eec1aa840b49f5407fbbc3,
+            0xc8f7627a8c920e3586bd09980cd49a005798bfda07d8ce3c892f7d6feff9860,
+            0x2952a4034a792997cc3283ff997fb0e1b5d5afed465bad11d128562fcf5c05a1, 0x0, 0x0, 0x0, 0x0,
+            0x0, 0x135c848ff45a7132a7264f397116172b71dd3db49a616fb9610e6e2df8fdf877,
+            0x27b60ecef33be96dc4d83c2fef0f6c7e30e296d103f7a176591549731cdec08b,
+            0x300bf3d4c83c6242b77ef75ace7b10055fc1c2e579e209946bf81a2ff0228b7c,
+            0x12bd16682c9bbc85ac925c87a006a1143f0c196a312d5d0740f4cf30aa9bb314,
+            0xd692bb8ead9bf0f83eb52731a38b2c19be7384f23ed2320164d15fbf28e4564,
+            0xcc230a39751a261a8488f49d0779bbdedebab876d647aae65a157d5438328ea,
+            0x23019edf11589bfd93be03b164981fa2e43191a621607f54b30a498077a7916,
+            0x9c25d46f4a40b349f2c7c7ac271fff90166bcb5473ae909ca474c3fbcde2d3f, 0x0, 0x0, 0x0, 0x0,
+            0x0, 0xcf593d7decff338fe5e9cee4909434b341cb3d6ffa683f38c48acb560a88de5,
+            0x25eafffaa9baf1a81b92b88221f4db506d1a7171164a833ea4b27db31aa00963,
+            0x2d8edb9fe6c9e040f60140efe5f308af1b823b94dd898463bd13623298eeec66,
+            0x2d77e38f3339c162866717cfea81304ae8a6ed8a483e81290024990eae7d999e,
+            0x119849cf15f6103abd82a8077233e8e12edb15741f6b4008d62df1b6f52abd2e,
+            0x23c5beb0e8c1228f32da942d948f550bd42c0582d4293af4e920cd39e8739b80,
+            0x46a01e03e947ace725f5a46b8fa5a58bb4cf0b154c2178ea2154e7aaee7e523,
+            0x2917402ced95092f797baa968a08ccd8f32aeb1a97aa52549e29e65204b3bd9a,
+            0x113f8f42c85ff9df265c79f7a8d14e702a73a862a79222b27156fef001188ae5,
+            0x2ce072dba50f7418db256db6b8a8e2e625515e553d30959396221a157ccce2e,
+            0x11f22054795053be2abcc78bda8c4771c5d0329cbf14dd698e37aaca81710813,
+            0x242b9f3780c4099e5e29fbe81a50e14d502f86bfcc41cdfcbcc03a5a3fc50b75,
+            0x1f96253ce11f1cca287c399be6ca363284d7ce8dfd49f5dccbbefbe59be69247,
         ]
             .span(),
-        libra_evaluation: 0x1132ace165bbb656b51a3e2cc2afd3233ec2bec2784a63214acb8615929266e3,
+        libra_evaluation: 0x1ac7f083cb6a373d6f4962756967e15d4869bb51af8b17cdfd87348405b46e42,
         gemini_masking_poly: G1Point256 {
-            x: 0x26014e34fea9af7f7811011ecbde8ebfd88e0756b5a07ddaf6282295fe8b5d2b,
-            y: 0x1f82c2e2c6d56563ffcaf90b0164fed63750d10f0f62e0d436090346b51281da,
+            x: 0x8146cbf3bd870dd498515961f344243c2c768502209d2f3307be8f1924fe69f,
+            y: 0x91a8452ca47f5da81a6e695f8cc52f0911753dc70612f14eabcd4e9b5af8daa,
         },
-        gemini_masking_eval: 0x1c9d49995b00c7ac2b1bd1c5d3c4cc9e3f7e06e37b66a4ed37fcbc212c6b21a2,
+        gemini_masking_eval: 0x123c1f5db793938bfb8f8fb6248463ff95389bbe7d5347e72c5ed862908ca7fc,
         gemini_fold_comms: array![
             G1Point256 {
-                x: 0x2918d3bea258d9e87d3c1864cc4b51e2a660f22b6835bea39099e8d28b644d49,
-                y: 0x1c04a1962be87e2cca7683eeeb89df859b71be6e49bb9addbf6020e1b80af882,
+                x: 0x2bd7715cf5a6b2fc73fbb86f0da820a31802823e5f33216ea7790b7a939ccd98,
+                y: 0x2be30ba3a7402b921e51cd4594a1b16067f082a7c03ac1e27e4409d403e0be60,
             },
             G1Point256 {
-                x: 0xad8457e1af0a0b9c009c589dc2aa7c6ca8184e5ab3b8547eb924c051969d87c,
-                y: 0x1e8136880bc80710c9746ca9ab32e1355814e73bdf996fbb95161a43212c0476,
+                x: 0x4818e590d482aa006779ce4ca3c2338d24fc6eea5a47515b4522cf0137af15d,
+                y: 0xf4e800565ed8fb16684ad2c976bd166bb684f7bc7a6e6f44d08a4ca1cf31da7,
             },
             G1Point256 {
-                x: 0x8dcff84c035e66e9fea2edd57edc0299678373ccfb62264b3f9fb0fa5d85b3b,
-                y: 0x299f4b10d489ce2001d7f05a1a98f120d2088abdb1f1cf6f668aae0519362cce,
+                x: 0x221ee2abc7ca86f47c7cd9b3d41d23e86faa9043158904ca9bb130cf6ab3bc17,
+                y: 0xa18abe9b89d37fe7836e36a45a3589a00654f4e78b66fe43d8dfd00ab94554a,
             },
             G1Point256 {
-                x: 0x21a02af46e8a9449d16f1359f2c0e44484388d70e838c07b826182d4386bf875,
-                y: 0x1489e07ff0ea2d7ed52a64476b9365ceac3268fa3cf4a008243d92c2fa1aa500,
+                x: 0xa5b54d7a6256b213574d75b7a0d7273c497ab0ec5d6c959226086fb05cdfed4,
+                y: 0x1a865f28f40bbb5a925b71f4d545f789a5c0961dbec09d1760abdeaa8ab2136f,
             },
             G1Point256 {
-                x: 0x2fe2ca7bc51f9426d7ac008e8d18f0779f132c5f7b14f8a7070cff82951bfffe,
-                y: 0x21ebd772c6ce32090a524a1fe16b88e1b5acb76a9f553133c15ca0a529eb71d9,
+                x: 0xb1d3ad60c3f00510f35ca08833e912a0d2668258830cb4336dd08d8273f00db,
+                y: 0x2a1b087b7dd511dbf6012c633a8c1bc46b4a84206ceee42a8d5bcb9346807264,
             },
             G1Point256 {
-                x: 0x483d5e7e02ffadc40e03af829fab2d1ec4c3ec2273865ced6f8c9bec0db89a9,
-                y: 0x24cee8d6fd9d9cd11a136c01b160e8ebc63e78fdf2b6bafc0a11ceaf0c7a082a,
+                x: 0x27ac308051e49803b74151ea83e59cb72e0ed0ae583f4ccf720ef7f3600e981c,
+                y: 0x297a87c4f16416b16c7ea59aee9fd8b85c62a1489276556f278a424421f90343,
             },
             G1Point256 {
-                x: 0x1a3ec43fbb203ca00bf3d5206c7399ed48027170e5b4704ac969ce730e5d974b,
-                y: 0x21f38a577ade9fd8bbcf3510a97c358b0c660216e4a83c368406cca6b2fd2799,
+                x: 0x18371b1fb31a51e03d4a3eaf9999f786312d90762d1b0ed3537ebf1abc7ddbc4,
+                y: 0x15adeaf1ab46d7bab1af89422271499f35b4a6e43f0c330c2d481a2bd2b6568b,
             },
             G1Point256 {
-                x: 0x1466ac7fe3cec7cfc27e88415660f632b6a5651f45818a033afc3dd4066f23f1,
-                y: 0xecd64b04c089455277f46b3a946046f1445674cbcb2c537bba2498f34efd7f2,
+                x: 0x28fb544b498200c346b648ad20609d609ac9d0a92d60e717cde5999dd1f0c498,
+                y: 0x1b66a1d05bf22840ba4a22ac8c6a2421bd5f54cac9789f4d8737a7ebad467ebc,
             },
             G1Point256 {
-                x: 0x1dccac0dff547f871103577bd87509dfa0103188faadeddca36dea513dcccd6f,
-                y: 0x8f41998df00acf151dcea7d61f38dcb0f12ba94eba520755684230e1dc43e79,
+                x: 0x2fe5bc6eb60278de9298ef20f78e68fb69438c434d5efdbbf34625b05f902c50,
+                y: 0x1cbca92f7dd3a85cd87b8c9b9fd7e4125e704c4c48d6fb7a5981eb779ae1dad2,
             },
             G1Point256 {
-                x: 0x2201ff1c5b0bc9d9304c8fcb5ceaab7389aaaa639fccc15c99757ae33d0a0bab,
-                y: 0xe817c9e51dca78ff6d0d9390884deac07919706599688a3663e45761c185287,
+                x: 0xdf462f142f33cda08821ebf430a3511b01a2e0690d50c073d20b7d8e424f2a8,
+                y: 0x97a8220e2cf0024800343af64158179a3dccb391929d8299f0eed810e29ef32,
             },
             G1Point256 {
-                x: 0x1b44c9747e5e2e9a8084ff374bedc82ee9c02079cd7017a7f3de5fe6735d9a87,
-                y: 0x23a08eadc1723f6c47ae0da29880b3122be4d80c1c161955be55a7de1ef634b4,
+                x: 0x247ff130baa9d182ae1765bb44cbaaca3f0ceedbe65780e5fb4d7b793e01a852,
+                y: 0x1bb6e25d15cf1843b65c05133474ae46b956facaf003ad312802e8f4633d034c,
             },
         ]
             .span(),
         gemini_a_evaluations: array![
-            0x26a6901a61216f8b4252c1d327711877a6078f277643443896f1f832c6da1f66,
-            0x1bbacd086d6b20ace675bf297a3fcfc6865e986c78ae9171d774d22d1242cbb1,
-            0x27a5d919bb1cecac67cc4bd6b260a04e33a91283e4b9cf071399e8249743876a,
-            0x2bce80ffb28871803bb5cf5dbfa65b9256e0dea0dd9449104ba26ab8db5c7bbb,
-            0x252d45f8db3a296d722dc7df3d9e640b1ee375d598bbf51cd5584ed52e67ae62,
-            0x12e77f2aaf87ba208a822b98f2e02a7928236fcbdc413b9bad32d2bc7bee9c52,
-            0x8c56bc9d6093c8a56d94d7987331aa6cb17008b9460f76785ed2d57ef600d70,
-            0x2cad2a1c5329e115d078e74b264e937adaf4e0eb1ed682424789b6ee340387c1,
-            0x522e03828a6195d3279fffb5b805666a69a582c5c90b17c2a719f790f443483,
-            0x247d32c70f1aadddd49ed465539f1e544b1c9dd7478b4077adf8cae1bae7dad7,
-            0x1e69b320445a0e22ccfbbdb54eee09bf9bd5b293b8d7d727fe8c8e7064b7768d,
-            0x2b592160911cb387fd83294230672bc528a6c25d9b3fb99417c74f7de7f197c2,
+            0x2995d45c93267e05ec4f81332ec64eef6424db3950697dd4d9b6dd37d9aff113,
+            0x14471ae80a8a65a713bd735a777f00512447941c1152d7b2678c752b8d11d590,
+            0x20e2db621821de880234c89f55ac6dd044b2c3bed1d90343352f794eea2564ef,
+            0xced74a7e3014e8a1c10306399db0dbc38168d68e8bdd37ad1b9f2ce359888c8,
+            0x24551158e407efc2c49e18669a5626000b7a7a0b99e9095340b0258e9b69b0c7,
+            0x1b85610f266aa97f64f05b25cd20c5aae2f5166fdbeb8e2687ebec7dbe928d9b,
+            0x10987880752c81a6305ebc43085b764b64fd9221e5d2d47805fea6f3ff652dc3,
+            0x1f5433ce4971b2d2506bab6eeb54118c36fa93f7808e09cab6758fd2c599ad2b,
+            0x501e1dbed8a90941b76e2bdfedf95a9226a52c5b391939590383a6e0f5f038e,
+            0x3f0cb39b04c94801a0d44aa19f1cc9e4ca140cbee613c6c3ddfddb69d2de9f6,
+            0xf6504be417f93177fbbc329ff8f0fc837dbaa9c33fd1a1d4e22163741813b95,
+            0xf17babb342035a8dba8049ad31fd5ed483b6422282d80f8ee3ee010561bd075,
         ]
             .span(),
         libra_poly_evals: array![
-            0x41fd901c2fda436051e8923e20fcc27afb24a65d70eb00473f172e9f7f9776,
-            0xd794e3a56c5c5fb5f5a48ef6f17f1956ef8197b7bfe838e685acae0efcb8d90,
-            0x2f4b4a38d4ecc05f39865b2b05731bde72a9c7b36e3f9cb6486f3653806a56ef,
-            0x131bcf56f4b07e163b777029ef66826bfcdad7f1fd2c881d8e06f2d9b98148fc,
+            0x2da63e22515953651be0994e029bebedd9eeb0b0d1020200216f807ead705983,
+            0x23c70c55707fc4ac98289b913bbe7b1981296dcc76905f92226e8d57e9d4be56,
+            0x815ff6e3d56d47cf892776f56461bf9e8bafcd9f8c9136d35974b658524d143,
+            0x1d8e53b252406fb272a50f84702aba2ae24e12a3dbb34fe1d77565c9499701ff,
         ]
             .span(),
         shplonk_q: G1Point256 {
-            x: 0xc1728e9f86fb53fe3befee017177d6a30a27feb87dfa78846a7fd510618d3b5,
-            y: 0x67583f1cd028a2b317f924ead8e3a00884dfc6966442521972479b22d7d82d5,
+            x: 0x8f022c4e383c41999ad6a9ec4c3f8ab4fd52e4f48b9e5eb0f8d9202729db0a6,
+            y: 0x16fbdc45a9c9b0b35c51e4082a77bf499ccb314223b5efb45309edf0c2516918,
         },
         kzg_quotient: G1Point256 {
-            x: 0x145edb11f0b06a0cccd6233a0f9659439b7c0cf388f18aad29cbe3eb5ae61eb7,
-            y: 0x1912b95a1b1811be10bd6149227d5c11d47c78b76ded7a17e4c77bd1f9b9a841,
+            x: 0x7b654df1c5d1580ea1108dcade248ca48b7d686b5a9a3bb9e64216e339eb341,
+            y: 0x1e464011c2d682086219d9abdaf217628a5479eb2bf10601c4d110ae09d9d16c,
         },
+    }
+}
+#[cfg(test)]
+mod tests {
+    use garaga::definitions::{G1Point, get_BN254_modulus, get_GRUMPKIN_modulus, u384};
+    use super::aggregate_pairing_points;
+
+    // Values from a recursive UltraKeccakZKHonk proof (outer circuit verifying an inner ZK
+    // Honk proof with bb_proof_verification::verify_honk_proof), generated with bb 6.0.0.
+    fn pairing_point_object() -> Span<u256> {
+        array![
+            0x6190a57e749c0124fdea4124ed5d9f517f, 0x12ab67b548045ff18539ff95ca6acd,
+            0xb7f1ca98c695202b27831eca64e5fcca41, 0x2229df99f78d61eff4ca7ecd0ef302,
+            0x2f8c9223b4ac4c8560a54acfd5029ba04, 0xe6a55b2b2648d56733a0009505fe7,
+            0xec5e7423a9bf17d5fec090c25e15f3548c, 0x13b05156a1a611b5791717acef15c9
+        ]
+            .span()
+    }
+
+    fn kzg_pairing_points() -> (G1Point, G1Point) {
+        (
+            G1Point {
+                x: u384 {
+                    limb0: 0x1407539e96bd550956bef1b1,
+                    limb1: 0x99cc34ec6bde0be0e712dd56,
+                    limb2: 0x279b4147666f243d,
+                    limb3: 0x0,
+                },
+                y: u384 {
+                    limb0: 0xc8aeca631474b525d562c210,
+                    limb1: 0x211d7526783514b0e3b74c2a,
+                    limb2: 0x9b52b616e9600b0,
+                    limb3: 0x0,
+                },
+            },
+            G1Point {
+                x: u384 {
+                    limb0: 0xb9c8ecd68134c6f0da53199f,
+                    limb1: 0x93b375775d0050d4b671631,
+                    limb2: 0x1506c1fcd169b545,
+                    limb3: 0x0,
+                },
+                y: u384 {
+                    limb0: 0x81905fa2b214b68d62c31d74,
+                    limb1: 0x1c91f0bd9e39d74738675515,
+                    limb2: 0x1a9a46a1c31edbe7,
+                    limb3: 0x0,
+                },
+            },
+        )
+    }
+
+    fn aggregation_hint() -> Span<felt252> {
+        array![
+            0x9386180a8b2ccfbb3eaacd1b, 0x60c9687a3ea723768ef612f8, 0x1296ba4bef483d92, 0x0,
+            0x6df046fb2472eb955a5c215a, 0x267b5a7c4d264c1114e52e4e, 0x28aab675310332f, 0x0,
+            0x1000000000000000043701fc8ce80c68b, 0x100000000000000002a30f44603eead3e,
+            0x2a9ccede395accf1, 0x2ddf0b2c98f7ec9d, 0xbfa7e06cc20b279906e94316,
+            0xe78155cefda983f61f373a9a, 0x1f1be014dc7237d2, 0x0, 0xd32b1a6977dc4b133f5126b6,
+            0xe6720f6a2b30c4d9aec10a24, 0x801822c00d78451, 0x0, 0x1000000000000000043701fc8ce80c68b,
+            0x100000000000000002a30f44603eead3e, 0x2a9ccede395accf1, 0x2ddf0b2c98f7ec9d
+        ]
+            .span()
+    }
+
+    #[test]
+    fn test_aggregate_pairing_points() {
+        let (p_0, p_1) = kzg_pairing_points();
+        let (agg_0, agg_1) = aggregate_pairing_points(
+            pairing_point_object(),
+            p_0,
+            p_1,
+            aggregation_hint(),
+            get_BN254_modulus(),
+            get_GRUMPKIN_modulus(),
+        );
+        let expected_0: G1Point = G1Point {
+            x: u384 {
+                limb0: 0x625793ebc1b6a7f49b94b000,
+                limb1: 0x6d3eef44c2a1212d66d4850c,
+                limb2: 0x81861ae89474171,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0x6ab278c7a5c288dab4e2540,
+                limb1: 0xf52e44abf205f9fc9f8fdcb0,
+                limb2: 0x2fa2f1c24eb586b0,
+                limb3: 0x0,
+            },
+        };
+        let expected_1: G1Point = G1Point {
+            x: u384 {
+                limb0: 0x96f0d08cbc01711086e9da18,
+                limb1: 0xbf04086bf812cd9ab0aff232,
+                limb2: 0x16566688b29a7dfb,
+                limb3: 0x0,
+            },
+            y: u384 {
+                limb0: 0xdc96a105bf6dc1f5d9dff6ca,
+                limb1: 0xac9d21c2dbaa026ba7f6672f,
+                limb2: 0x10d68667f65de43f,
+                limb3: 0x0,
+            },
+        };
+        assert(agg_0 == expected_0, 'wrong aggregated p_0');
+        assert(agg_1 == expected_1, 'wrong aggregated p_1');
+    }
+
+    #[test]
+    fn test_aggregate_default_pairing_points() {
+        let (p_0, p_1) = kzg_pairing_points();
+        let (agg_0, agg_1) = aggregate_pairing_points(
+            array![0, 0, 0, 0, 0, 0, 0, 0].span(),
+            p_0,
+            p_1,
+            array![].span(),
+            get_BN254_modulus(),
+            get_GRUMPKIN_modulus(),
+        );
+        assert(agg_0 == p_0 && agg_1 == p_1, 'default points must be a no-op');
+    }
+
+    #[test]
+    #[should_panic(expected: 'point not on curve')]
+    fn test_aggregate_mixed_infinity_rejected() {
+        let (p_0, p_1) = kzg_pairing_points();
+        let ppo = pairing_point_object();
+        // P1 at infinity, P0 unchanged.
+        let ppo = array![*ppo[0], *ppo[1], *ppo[2], *ppo[3], 0, 0, 0, 0].span();
+        aggregate_pairing_points(
+            ppo, p_0, p_1, aggregation_hint(), get_BN254_modulus(), get_GRUMPKIN_modulus(),
+        );
+    }
+
+    #[test]
+    #[should_panic(expected: 'pairing point limb too large')]
+    fn test_aggregate_non_canonical_limb_rejected() {
+        let (p_0, p_1) = kzg_pairing_points();
+        let ppo = pairing_point_object();
+        // Same x coordinate as lo + hi * 2^136 with lo >= 2^136.
+        let x_lo = *ppo[0] + 0x10000000000000000000000000000000000;
+        let x_hi = *ppo[1] - 1;
+        let ppo = array![x_lo, x_hi, *ppo[2], *ppo[3], *ppo[4], *ppo[5], *ppo[6], *ppo[7]].span();
+        aggregate_pairing_points(
+            ppo, p_0, p_1, aggregation_hint(), get_BN254_modulus(), get_GRUMPKIN_modulus(),
+        );
+    }
+
+    #[test]
+    #[should_panic(expected: 'Wrong Glv&FakeGLV result')]
+    fn test_aggregate_wrong_hint_rejected() {
+        let (p_0, p_1) = kzg_pairing_points();
+        // Hints for (p_1, p_0) instead of (p_0, p_1).
+        let hint = aggregation_hint();
+        let mut swapped: Array<felt252> = array![];
+        swapped.append_span(hint.slice(12, 12));
+        swapped.append_span(hint.slice(0, 12));
+        aggregate_pairing_points(
+            pairing_point_object(),
+            p_0,
+            p_1,
+            swapped.span(),
+            get_BN254_modulus(),
+            get_GRUMPKIN_modulus(),
+        );
+    }
+
+    #[test]
+    #[should_panic(expected: 'unexpected aggregation hint')]
+    fn test_aggregate_default_with_hint_rejected() {
+        let (p_0, p_1) = kzg_pairing_points();
+        aggregate_pairing_points(
+            array![0, 0, 0, 0, 0, 0, 0, 0].span(),
+            p_0,
+            p_1,
+            aggregation_hint(),
+            get_BN254_modulus(),
+            get_GRUMPKIN_modulus(),
+        );
     }
 }
 // #[cfg(test)]

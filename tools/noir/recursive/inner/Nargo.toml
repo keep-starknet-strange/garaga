@@ -1,0 +1,6 @@
+[package]
+name = "inner"
+type = "bin"
+authors = [""]
+
+[dependencies]

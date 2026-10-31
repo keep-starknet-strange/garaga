@@ -8,12 +8,14 @@ pub const POW2_136: u256 = 0x10000000000000000000000000000000000;
 pub const POW2_136_NZ: NonZero<u256> = 0x10000000000000000000000000000000000;
 pub const POW2_8: NonZero<u128> = 0x100;
 pub const Fr: u256 = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+// BN254 base field modulus.
+pub const Fq: u256 = 21888242871839275222246405745257275088696311157297823662689037894645226208583;
 
 pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
 
-pub const NUMBER_OF_SUBRELATIONS: usize = 26;
+pub const NUMBER_OF_SUBRELATIONS: usize = 31;
 pub const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
-pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
+pub const CONST_PROOF_SIZE_LOG_N: usize = 25;
 pub const NUMBER_OF_ENTITIES: usize = 41;
 
 
@@ -80,10 +82,26 @@ fn u256_byte_reverse(word: u256) -> u256 {
     }
 }
 
+// Asserts the point coordinates are canonical (< Fq) so that each point has a unique encoding.
 #[inline(never)]
-pub fn append_proof_point<T, impl Hasher: IHasher<T>>(ref hasher: T, point: G1Point256) {
+pub fn assert_canonical_proof_point(point: G1Point256) {
+    assert(point.x < Fq && point.y < Fq, 'proof point coord >= Fq');
+}
+
+#[inline(never)]
+pub fn append_proof_point<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
+    ref hasher: T, point: G1Point256,
+) {
+    assert_canonical_proof_point(point);
     hasher.update(point.x);
     hasher.update(point.y);
+}
+
+// Asserts the scalar is canonical (< Fr) before hashing it, so that it has a unique encoding.
+#[inline]
+pub fn append_scalar<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(ref hasher: T, scalar: u256) {
+    assert(scalar < Fr, 'proof scalar >= Fr');
+    hasher.update(scalar);
 }
 
 // Hasher little endian output to big endian challenge.
@@ -95,52 +113,51 @@ fn ke_le_out_to_ch_be(ke_le_out: u256) -> u256 {
 }
 
 
+// All challenges are full Fr elements (the hasher output reduced modulo Fr).
 #[derive(Drop, Debug, PartialEq)]
 pub struct ZKHonkTranscript {
-    pub eta: u128,
-    pub eta_two: u128,
-    pub eta_three: u128,
-    pub beta: u128,
-    pub gamma: u128,
-    pub alpha: u128,
-    pub gate_challenge: u128,
-    pub libra_challenge: u128,
-    pub sum_check_u_challenges: Array<u128>,
-    pub rho: u128,
-    pub gemini_r: u128,
-    pub shplonk_nu: u128,
-    pub shplonk_z: u128,
+    pub eta: u256,
+    pub rom_logup_gamma: u256,
+    pub beta: u256,
+    pub gamma: u256,
+    pub alpha: u256,
+    pub gate_challenge: u256,
+    pub libra_challenge: u256,
+    pub sum_check_u_challenges: Array<u256>,
+    pub rho: u256,
+    pub gemini_r: u256,
+    pub shplonk_nu: u256,
+    pub shplonk_z: u256,
 }
 
-
-#[derive(Drop)]
-pub struct Etas {
-    pub eta: u128,
-    pub eta2: u128,
-    pub eta3: u128,
-}
 
 #[generate_trait]
 pub impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
     fn from_proof<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
         honk_proof: ZKHonkProof, vk_hash: u256, log_circuit_size: usize,
     ) -> (ZKHonkTranscript, felt252, felt252) {
-        let (etas, challenge) = get_eta_challenges::<
+        let (eta, rom_logup_gamma) = get_eta_challenges::<
             T,
         >(
             honk_proof.public_inputs,
             honk_proof.pairing_point_object,
+            honk_proof.gemini_masking_poly,
             honk_proof.w1,
             honk_proof.w2,
             honk_proof.w3,
             vk_hash,
         );
-        let beta_gamma = get_beta_gamma_challenges::<
+        let (beta, gamma) = get_beta_gamma_challenges::<
             T,
-        >(challenge, honk_proof.lookup_read_counts, honk_proof.lookup_read_tags, honk_proof.w4);
+        >(
+            rom_logup_gamma,
+            honk_proof.lookup_read_counts,
+            honk_proof.lookup_read_tags,
+            honk_proof.w4,
+        );
         let alpha_challenge = generate_alpha_challenge::<
             T,
-        >(beta_gamma, honk_proof.lookup_inverses, honk_proof.z_perm);
+        >(gamma, honk_proof.lookup_inverses, honk_proof.z_perm);
         let gate_challenge = generate_gate_challenge::<T>(alpha_challenge);
 
         let libra_challenge = generate_libra_challenge::<
@@ -155,11 +172,10 @@ pub impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
             T,
         >(
             challenge,
+            honk_proof.gemini_masking_eval,
             honk_proof.sumcheck_evaluations,
             honk_proof.libra_evaluation,
             honk_proof.libra_commitments,
-            honk_proof.gemini_masking_poly,
-            honk_proof.gemini_masking_eval,
         );
 
         let gemini_r_challenge = generate_gemini_r_challenge::<
@@ -178,25 +194,27 @@ pub impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
             T,
         >(shplonk_nu_challenge, honk_proof.shplonk_q);
 
+        // The KZG quotient is not part of the transcript but is part of the proof.
+        assert_canonical_proof_point(honk_proof.kzg_quotient);
+
         let (transcript_state, base_rlc, _) = hades_permutation(
             shplonk_z_challenge.low.into(), shplonk_z_challenge.high.into(), 2,
         );
 
         return (
             ZKHonkTranscript {
-                eta: etas.eta,
-                eta_two: etas.eta2,
-                eta_three: etas.eta3,
-                beta: beta_gamma.low,
-                gamma: beta_gamma.high,
-                alpha: alpha_challenge.low,
-                gate_challenge: gate_challenge.low,
-                libra_challenge: libra_challenge.low,
-                sum_check_u_challenges: sum_check_u_challenges,
-                rho: rho_challenge.low,
-                gemini_r: gemini_r_challenge.low,
-                shplonk_nu: shplonk_nu_challenge.low,
-                shplonk_z: shplonk_z_challenge.low,
+                eta,
+                rom_logup_gamma,
+                beta,
+                gamma,
+                alpha: alpha_challenge,
+                gate_challenge,
+                libra_challenge,
+                sum_check_u_challenges,
+                rho: rho_challenge,
+                gemini_r: gemini_r_challenge,
+                shplonk_nu: shplonk_nu_challenge,
+                shplonk_z: shplonk_z_challenge,
             },
             transcript_state,
             base_rlc,
@@ -204,60 +222,64 @@ pub impl ZKHonkTranscriptImpl of ZKHonkTranscriptTrait {
     }
 }
 
-// Return eta and last hasher output
+// Return (eta, rom_logup_gamma). rom_logup_gamma is also the last hasher output.
 #[inline]
 pub fn get_eta_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     pub_inputs: Span<u256>,
     pairing_point_object: Span<u256>,
+    gemini_masking_poly: G1Point256,
     w1: G1Point256,
     w2: G1Point256,
     w3: G1Point256,
     vk_hash: u256,
-) -> (Etas, u256) {
+) -> (u256, u256) {
     let mut hasher = Hasher::new();
 
     hasher.update(vk_hash);
 
     for pub_i in pub_inputs {
-        hasher.update(*pub_i);
+        append_scalar(ref hasher, *pub_i);
     }
     for pub_i in pairing_point_object {
         hasher.update(*pub_i);
     }
+    append_proof_point(ref hasher, gemini_masking_poly);
     append_proof_point(ref hasher, w1);
     append_proof_point(ref hasher, w2);
     append_proof_point(ref hasher, w3);
 
-    let ch_be: u256 = hasher.digest();
+    let eta: u256 = hasher.digest();
 
     let mut hasher_2 = Hasher::new();
-    hasher_2.update(ch_be);
+    hasher_2.update(eta);
 
-    let ch_2_be: u256 = hasher_2.digest();
+    let rom_logup_gamma: u256 = hasher_2.digest();
 
-    (Etas { eta: ch_be.low, eta2: ch_be.high, eta3: ch_2_be.low }, ch_2_be)
+    (eta, rom_logup_gamma)
 }
 
-// Return beta, gamma, and last hasher output.
-// Outut :
-// ch_be.
-// beta = ch_be.low, gamma = ch_be.high, last_hasher_output = ch_be.
+// Return (beta, gamma). gamma is also the last hasher output.
 #[inline]
 pub fn get_beta_gamma_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     prev_hasher_output: u256,
     lookup_read_counts: G1Point256,
     lookup_read_tags: G1Point256,
     w4: G1Point256,
-) -> u256 {
+) -> (u256, u256) {
     let mut hasher = Hasher::new();
     hasher.update(prev_hasher_output);
     append_proof_point(ref hasher, lookup_read_counts);
     append_proof_point(ref hasher, lookup_read_tags);
     append_proof_point(ref hasher, w4);
 
-    let ch_be: u256 = hasher.digest();
+    let beta: u256 = hasher.digest();
 
-    ch_be
+    let mut hasher_2 = Hasher::new();
+    hasher_2.update(beta);
+
+    let gamma: u256 = hasher_2.digest();
+
+    (beta, gamma)
 }
 
 #[inline]
@@ -293,7 +315,7 @@ pub fn generate_libra_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
 
     append_proof_point(ref hasher, (*libra_commitments.at(0)).into());
 
-    hasher.update(libra_sum);
+    append_scalar(ref hasher, libra_sum);
 
     hasher.digest()
 }
@@ -301,19 +323,19 @@ pub fn generate_libra_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
 #[inline]
 pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     prev_hasher_output: u256, sumcheck_univariates: Span<u256>, log_circuit_size: usize,
-) -> (Array<u128>, u256) {
-    let mut sum_check_u_challenges: Array<u128> = array![];
+) -> (Array<u256>, u256) {
+    let mut sum_check_u_challenges: Array<u256> = array![];
     let mut challenge: u256 = prev_hasher_output;
     for i in 0..log_circuit_size {
         let mut hasher = Hasher::new();
         hasher.update(challenge);
         for univariate in sumcheck_univariates
             .slice(i * ZK_BATCHED_RELATION_PARTIAL_LENGTH, ZK_BATCHED_RELATION_PARTIAL_LENGTH) {
-            hasher.update(*univariate);
+            append_scalar(ref hasher, *univariate);
         }
 
         challenge = hasher.digest();
-        sum_check_u_challenges.append(challenge.low);
+        sum_check_u_challenges.append(challenge);
     }
 
     (sum_check_u_challenges, challenge)
@@ -323,25 +345,24 @@ pub fn generate_sumcheck_u_challenges<T, impl Hasher: IHasher<T>, impl Drop: Dro
 #[inline]
 pub fn generate_rho_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
     prev_hasher_output: u256,
+    gemini_masking_eval: u256,
     sumcheck_evaluations: Span<u256>,
     libra_evaluation: u256,
     libra_commitments: Span<G1Point256>,
-    gemini_masking_poly: G1Point256,
-    gemini_masking_eval: u256,
 ) -> u256 {
     let mut hasher = Hasher::new();
     hasher.update(prev_hasher_output);
 
+    // The gemini masking polynomial evaluation comes first, then the regular entities.
+    append_scalar(ref hasher, gemini_masking_eval);
     assert(sumcheck_evaluations.len() == NUMBER_OF_ENTITIES, 'Wrong # of sumcheck evaluations');
     for eval in sumcheck_evaluations {
-        hasher.update(*eval);
+        append_scalar(ref hasher, *eval);
     }
 
-    hasher.update(libra_evaluation);
+    append_scalar(ref hasher, libra_evaluation);
     append_proof_point(ref hasher, (*libra_commitments.at(1)));
     append_proof_point(ref hasher, (*libra_commitments.at(2)));
-    append_proof_point(ref hasher, gemini_masking_poly);
-    hasher.update(gemini_masking_eval);
 
     hasher.digest()
 }
@@ -370,11 +391,11 @@ pub fn generate_shplonk_nu_challenge<T, impl Hasher: IHasher<T>, impl Drop: Drop
     hasher.update(prev_hasher_output);
     assert(gemini_a_evaluations.len() == log_circuit_size, 'Wrong # gemini a evaluations');
     for eval in gemini_a_evaluations {
-        hasher.update(*eval);
+        append_scalar(ref hasher, *eval);
     }
     assert(libra_poly_evals.len() == 4, 'Wrong # libra poly evals');
     for eval in libra_poly_evals {
-        hasher.update(*eval);
+        append_scalar(ref hasher, *eval);
     }
 
     hasher.digest()
@@ -403,30 +424,34 @@ mod tests {
             KeccakHasherState,
         >(proof, vk.vk_hash, vk.log_circuit_size);
         let expected = ZKHonkTranscript {
-            eta: 0xe06b1fc6aaa49ae9fd402ada2b9134b9,
-            eta_two: 0xe542c4b5332d3d478ddb457634915e1,
-            eta_three: 0x8e6609b790521615a5280fb48742cad8,
-            beta: 0x72d843c38074ab30feda0c1fec6c1b3a,
-            gamma: 0x2a2d65e61cca6188a3a8923aa8e5f0fd,
-            alpha: 0x9a4e2bc96d7e1dd703244eef656760ad,
-            gate_challenge: 0x93408fac46045cb577fef77c8ae160e5,
-            libra_challenge: 0x3d7684814dfcb8a69e8ed0d6811500ce,
+            eta: 0x840241e775b3ee0e0f18abd6f831397ca3fc0ee332ce5ca861089f0b635074c,
+            rom_logup_gamma: 0x21574c4505fcfafeb858101dad16a63cac6d5f5e7e6a33a26fc65080dddaad5a,
+            beta: 0x1e44914886d42cac374702f70855a84a352efd741572ceca9d47bdd78acf9444,
+            gamma: 0x2db95a8079405a1cfa1785f2fd51cba96b416a7f53a6ffc98823aa32b5874764,
+            alpha: 0xe6e9f382434750fe6758a72992128e7a6f39e50c215dad836e4acff8f1a779d,
+            gate_challenge: 0x20900f46261680b4b0eca1ef9d0294be397bc252d59c459e349e7bd17a828a14,
+            libra_challenge: 0x2537de63e216ebc082a5d67484b0a8bc43ad9aa3c15febaf2b12404207fffaf7,
             sum_check_u_challenges: array![
-                0xdd54b9aefc090c30ea2968d1f2f2875b, 0x5b2c6faddf41ec1b5b0d30441320df35,
-                0x31a05c60e4601a6e5dd0cbf00ba66d4d, 0x78fd67e59d93d13bd9f90fe775d88759,
-                0x64d775cbd626fc667f7ef431d7a8a026, 0x5a389eb79d036095de26968eff05a52f,
-                0xad7a51b6745cf979f995c463b7c84b33, 0x396d8c7eb553dc399585fcbb227d8819,
-                0x9fbb8219244d68f56af6042a9aed2a6f, 0x8abf1fe8e59622f23abaefbbf040b77a,
-                0x2d8091d0fa8dbe6da6e339538144f442, 0xfc2b3617ce73378503ccce368a9010d5,
+                0xd3cdd2cf32cc7596cbaf25444b4bcea1c107047407efa5621cfe51dd445f970,
+                0x52b6019a26d78299484f5eda1ab4ed211716e8024f83e8542c877db3ea3ac80,
+                0x19e33459d711d0ba42563e914a4865644d1507ac153e1f6ccd31b70eba75fa3f,
+                0x2b1590015ef08dc83f65a55e4c4b209884eb10b41b6de4f34c4b52125a325627,
+                0x16be1c948f7b75b405b16ffddbe3f2e003c753cdcd6eae32b79c7fc7997c97c7,
+                0x751421da61fff83dd72f257265cd47c53a215d78c30b19e0461336b31e9e285,
+                0xa533026b768d5583dbd0b888eac8a87bd72a641adac2be83c291cfc31d0b5d6,
+                0x145365af6c65ece9f3e124c85e3ae323c52ebefc180cc58f2217e3b10b2462d3,
+                0x18bb99d210bd8a1e243e7450cf17ca8526a09c4d95000046b8e5f3941429695,
+                0x696a694cee4a6919441512d8dfc96db59327178094c2d681038e16cc307f2c0,
+                0x3288e5fd415324187800e490610cb5c452d5478e72b603518b356dc843c8710,
+                0xcc679367511decd5fef2a5fc91cb995e50cc2e07f60cf2b1eb5c579b5dc3cc3,
             ],
-            rho: 0x193ead6536b4ba765236aa95c50de7f6,
-            gemini_r: 0x7defebd9a6f21decaac79819dc18596e,
-            shplonk_nu: 0xf2a3267c336f0ee4ab6f5a2b60b47647,
-            shplonk_z: 0x1369879dd6918cd679e6295a75569269,
+            rho: 0x15d37b7a10d2a25097258234d8243a6f53e583edc63e0cbb3fc042742f5da31,
+            gemini_r: 0xc04d3427e66b4d0755178faf35cd2d0b5e3fa6a3e5602f90b55a6eb7803d197,
+            shplonk_nu: 0x243adb78f4033ff41ce199e69d272b7643da477cd4e065ae510841caa3669b07,
+            shplonk_z: 0x11c1715b37aca55d5b23be390501a2107466c015b2d805453ba8af23eb86848d,
         };
         assert_eq!(transcript.eta, expected.eta);
-        assert_eq!(transcript.eta_two, expected.eta_two);
-        assert_eq!(transcript.eta_three, expected.eta_three);
+        assert_eq!(transcript.rom_logup_gamma, expected.rom_logup_gamma);
         assert_eq!(transcript.beta, expected.beta);
         assert_eq!(transcript.gamma, expected.gamma);
         assert_eq!(transcript.alpha, expected.alpha);

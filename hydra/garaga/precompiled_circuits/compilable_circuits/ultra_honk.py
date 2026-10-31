@@ -17,6 +17,7 @@ from garaga.precompiled_circuits.zk_honk import (
     HonkVk,
     Wire,
     ZKHonkVerifierCircuits,
+    get_vk_msm_point_mask,
 )
 from garaga.starknet.honk_contract_generator.calldata import filter_msm_scalars
 
@@ -223,18 +224,17 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         imap["libra_evaluation"] = structs.u384
 
         imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
+            structs.u256Span,
             self.vk.log_circuit_size,
         )
-        imap["tp_gate_challenge"] = structs.u128
+        imap["tp_gate_challenge"] = structs.u384
 
-        imap["tp_eta_1"] = structs.u384
-        imap["tp_eta_2"] = structs.u384
-        imap["tp_eta_3"] = structs.u384
+        imap["tp_eta"] = structs.u384
+        imap["tp_rom_logup_gamma"] = structs.u384
         imap["tp_beta"] = structs.u384
         imap["tp_gamma"] = structs.u384
         imap["tp_base_rlc"] = structs.u384
-        imap["tp_alpha"] = structs.u128
+        imap["tp_alpha"] = structs.u384
         imap["tp_libra_challenge"] = structs.u384
         return imap
 
@@ -273,9 +273,8 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             vars["tp_beta"],
             vars["tp_gamma"],
             tp_delta,
-            vars["tp_eta_1"],
-            vars["tp_eta_2"],
-            vars["tp_eta_3"],
+            vars["tp_eta"],
+            vars["tp_rom_logup_gamma"],
             vars["tp_libra_challenge"],
             vars["tp_sum_check_u_challenges"],
             vars["tp_gate_challenge"],
@@ -320,7 +319,7 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         imap["tp_shplonk_z"] = structs.u384
         imap["tp_shplonk_nu"] = structs.u384
         imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
+            structs.u256Span,
             self.vk.log_circuit_size,
         )
 
@@ -342,11 +341,15 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
             vars["tp_shplonk_z"],
             vars["tp_shplonk_nu"],
             vars["tp_sum_check_u_challenges"],
+            # The vk commitments at infinity are not part of the MSM.
+            vk_points_mask=get_vk_msm_point_mask(self.vk),
         )
 
-        scalars_filtered_no_nones = filter_msm_scalars(
-            scalars, self.vk.log_circuit_size
-        )
+        scalars_filtered_no_nones = [
+            s
+            for s in filter_msm_scalars(scalars, self.vk.log_circuit_size)
+            if s is not None
+        ]
         # Remove shplonk_z (last scalar) (included in transcript)
         scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
         self.msm_len = len(scalars_filtered_no_nones) + 1
@@ -391,7 +394,7 @@ class ZKEvalsConsistencyCircuit(ZKBaseUltraHonkCircuit):
         imap["p_libra_poly_evals"] = (structs.u256Span, 4)
         imap["tp_gemini_r"] = structs.u384
         imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
+            structs.u256Span,
             hk.CONST_PROOF_SIZE_LOG_N,
         )
 

@@ -20,7 +20,9 @@ from garaga.precompiled_circuits.zk_honk import (
     G2_POINT_KZG_2,
     MAX_LOG_N,
     PAIRING_POINT_OBJECT_LENGTH,
+    VK_MSM_POINT_NAMES,
     HonkVk,
+    get_vk_msm_point_mask,
 )
 from garaga.starknet.groth16_contract_generator.generator import (
     write_test_calldata_file_generic,
@@ -94,9 +96,7 @@ def gen_honk_verifier_files(
         is_on_curve_function_name,
     ) = _gen_circuits_code(vk)
 
-    points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
-        log_n=vk.log_circuit_size
-    )
+    points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(vk)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
     scalars_tuple_into = [f"scalar_{idx}" for idx in scalar_indexes]
@@ -138,14 +138,13 @@ def gen_honk_verifier_files(
                 sumcheck_evaluations: full_proof.proof.sumcheck_evaluations,
                 libra_evaluation: u256_to_u384(full_proof.proof.libra_evaluation),
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
-                tp_gate_challenge: transcript.gate_challenge,
-                tp_eta_1: transcript.eta.into(),
-                tp_eta_2: transcript.eta_two.into(),
-                tp_eta_3: transcript.eta_three.into(),
+                tp_gate_challenge: transcript.gate_challenge.into(),
+                tp_eta: transcript.eta.into(),
+                tp_rom_logup_gamma: transcript.rom_logup_gamma.into(),
                 tp_beta: transcript.beta.into(),
                 tp_gamma: transcript.gamma.into(),
                 tp_base_rlc: base_rlc.into(),
-                tp_alpha: transcript.alpha,
+                tp_alpha: transcript.alpha.into(),
                 tp_libra_challenge: transcript.libra_challenge.into(),
                 modulus: mod_grumpkin,
             );
@@ -232,38 +231,39 @@ def _get_msm_kzg_template(
 
             let mut msm_hint = full_proof.msm_hint;
             assert(msm_hint.len() == {msm_len} * 12, 'wrong glv&fakeglv hint size');
-            let eigen = get_eigenvalue(0);
-            let third_root_of_unity = get_third_root_of_unity(0);
-            let min_one = get_min_one_order(0);
-            let nG = get_nG_glv_fake_glv(0);
 
             let mut P_1 = shplonk_q_pt;
             while msm_hint.len() != 0 {{
                 let pt = *points.pop_front().unwrap();
                 let scalar = *scalars.pop_front().unwrap();
-                // Note : Scalars are below curve order by construction (circuit outputs mod n and transcript output (u128))
+                // Note : Scalars are below curve order by construction (circuit outputs mod n and transcript outputs mod n)
                 let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref msm_hint).unwrap();
-                let temp = _scalar_mul_glv_and_fake_glv(
+                let temp = scalar_mul_glv_and_fake_glv_bn254(
                     pt,
                     scalar,
-                    mod_grumpkin,
-                    mod_bn,
                     glv_fake_glv_hint,
-                    eigen,
-                    third_root_of_unity,
-                    min_one,
-                    nG,
-                    0,
+                    mod_bn,
+                    mod_grumpkin,
                 );
                 P_1 = _ec_safe_add(P_1, temp, mod_bn, 0);
             }}
 
             let P_2:G1Point = full_proof.proof.kzg_quotient.into();
 
+            // Accumulate the recursive pairing points carried in the public inputs, if any.
+            let (P_1, P_2_neg) = aggregate_pairing_points(
+                full_proof.proof.pairing_point_object,
+                P_1,
+                P_2.negate(0),
+                full_proof.aggregation_hint,
+                mod_bn,
+                mod_grumpkin,
+            );
+
             // Perform the KZG pairing check.
             let kzg_check = multi_pairing_check_bn254_2P_2F(
                G1G2Pair {{ p: P_1, q: G2_POINT_KZG_1 }},
-               G1G2Pair {{ p: P_2.negate(0), q: G2_POINT_KZG_2 }},
+               G1G2Pair {{ p: P_2_neg, q: G2_POINT_KZG_2 }},
                precomputed_lines.span(),
                full_proof.kzg_hint,
             );
@@ -405,11 +405,11 @@ pub trait IUltraKeccakZKHonkVerifier<TContractState> {{
 
 #[starknet::contract]
 mod UltraKeccakZKHonkVerifier {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254, get_BN254_modulus, get_GRUMPKIN_modulus, u384}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
+    use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, GlvFakeGlvHint}};
     use super::{{vk, precomputed_lines, {imports_str}}};
-    use garaga::apps::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
+    use garaga::apps::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2, aggregate_pairing_points, scalar_mul_glv_and_fake_glv_bn254}};
     use garaga::apps::noir::zk_honk_transcript::{{Point256IntoCircuitPoint, KeccakHasherState, ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, u256_to_u384}};
     use core::num::traits::Zero;
@@ -421,6 +421,7 @@ mod UltraKeccakZKHonkVerifier {{
     struct FullProof {{
         proof: ZKHonkProof,
         msm_hint: Span<felt252>,
+        aggregation_hint: Span<felt252>,
         kzg_hint:MPCheckHintBN254,
     }}
 
@@ -462,36 +463,13 @@ pub const precomputed_lines: [G2Line<u288>; {len(precomputed_lines)//4}] = {prec
 """
 
 
-def _get_msm_points_array_code(log_n: int) -> tuple[str, tuple[int, int]]:
+def _get_msm_points_array_code(vk: HonkVk) -> tuple[str, tuple[int, int]]:
+    log_n = vk.log_circuit_size
+    # VK commitments at infinity (identically-zero polynomials) do not contribute to the MSM.
     vk_points = [
-        "vk.qm",
-        "vk.qc",
-        "vk.ql",
-        "vk.qr",
-        "vk.qo",
-        "vk.q4",
-        "vk.qLookup",
-        "vk.qArith",
-        "vk.qDeltaRange",
-        "vk.qElliptic",
-        "vk.qMemory",
-        "vk.qNnf",
-        "vk.qPoseidon2External",
-        "vk.qPoseidon2Internal",
-        "vk.s1",
-        "vk.s2",
-        "vk.s3",
-        "vk.s4",
-        "vk.id1",
-        "vk.id2",
-        "vk.id3",
-        "vk.id4",
-        "vk.t1",
-        "vk.t2",
-        "vk.t3",
-        "vk.t4",
-        "vk.lagrange_first",
-        "vk.lagrange_last",
+        f"vk.{name}"
+        for name, keep in zip(VK_MSM_POINT_NAMES, get_vk_msm_point_mask(vk))
+        if keep
     ]
 
     next_proof_point_counter = 1

@@ -1,0 +1,8 @@
+[package]
+name = "outer"
+type = "bin"
+authors = [""]
+
+[dependencies]
+# Fetched by run_recursive.sh from AztecProtocol/aztec-packages (barretenberg/noir/bb_proof_verification).
+bb_proof_verification = { path = "../bb_proof_verification" }

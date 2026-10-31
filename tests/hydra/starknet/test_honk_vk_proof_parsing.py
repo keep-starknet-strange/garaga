@@ -1,5 +1,4 @@
 import pytest
-
 from garaga.curves import ProofSystem
 from garaga.precompiled_circuits.zk_honk import HonkVk, honk_proof_from_bytes
 from garaga.starknet.honk_contract_generator.calldata import (
@@ -13,6 +12,10 @@ PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
     "vk_path, vk_hash_path",
     [
         (f"{PATH}/vk_ultra_keccak.bin", f"{PATH}/vk_hash_ultra_keccak.bin"),
+        (
+            f"{PATH}/vk_ultra_keccak_recursive.bin",
+            f"{PATH}/vk_hash_ultra_keccak_recursive.bin",
+        ),
     ],
 )
 def test_vk_parsing(vk_path: str, vk_hash_path: str):
@@ -31,6 +34,12 @@ def test_vk_parsing(vk_path: str, vk_hash_path: str):
             f"{PATH}/proof_ultra_keccak_zk.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakZKHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_keccak_zk_recursive.bin",
+            f"{PATH}/public_inputs_ultra_keccak_recursive.bin",
+            f"{PATH}/vk_ultra_keccak_recursive.bin",
             ProofSystem.UltraKeccakZKHonk,
         ),
     ],
@@ -55,6 +64,12 @@ def test_proof_parsing(
             f"{PATH}/proof_ultra_keccak_zk.bin",
             f"{PATH}/public_inputs_ultra_keccak.bin",
             f"{PATH}/vk_ultra_keccak.bin",
+            ProofSystem.UltraKeccakZKHonk,
+        ),
+        (
+            f"{PATH}/proof_ultra_keccak_zk_recursive.bin",
+            f"{PATH}/public_inputs_ultra_keccak_recursive.bin",
+            f"{PATH}/vk_ultra_keccak_recursive.bin",
             ProofSystem.UltraKeccakZKHonk,
         ),
     ],

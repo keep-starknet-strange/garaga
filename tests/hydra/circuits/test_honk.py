@@ -1,11 +1,7 @@
 import pytest
-
-import garaga.hints.io as io
 from garaga.curves import ProofSystem
-from garaga.hints.keccak256 import keccak_256
 from garaga.points import G1G2Pair
 from garaga.precompiled_circuits.zk_honk import (
-    CURVES,
     G2_POINT_KZG_1,
     G2_POINT_KZG_2,
     CurveID,
@@ -14,84 +10,58 @@ from garaga.precompiled_circuits.zk_honk import (
     ZKHonkProof,
     ZKHonkTranscript,
     ZKHonkVerifierCircuits,
+    aggregate_pairing_points,
+    convert_pairing_points_to_g1,
+    generate_recursion_separator,
     get_msm_points_from_vk_and_proof,
     honk_proof_from_bytes,
+    pairing_points_are_default,
 )
 
 PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
 
+# (vk, proof, public_inputs). The recursive proof verifies an inner ZK Honk proof in-circuit,
+# so its public inputs carry a non-default pairing point accumulator.
+FIXTURES = {
+    "default": (
+        f"{PATH}/vk_ultra_keccak.bin",
+        f"{PATH}/proof_ultra_keccak_zk.bin",
+        f"{PATH}/public_inputs_ultra_keccak.bin",
+    ),
+    "recursive": (
+        f"{PATH}/vk_ultra_keccak_recursive.bin",
+        f"{PATH}/proof_ultra_keccak_zk_recursive.bin",
+        f"{PATH}/public_inputs_ultra_keccak_recursive.bin",
+    ),
+}
 
-def convert_pairing_points_to_g1(
-    pairing_point_object: list[int],
-) -> tuple[G1Point, G1Point]:
-    """Convert the 16 field element pairing point object to two G1 points (lhs, rhs).
-
-    Each point is encoded as 4 68-bit limbs for x and 4 68-bit limbs for y.
-    """
-
-    def decode_coord(limbs):
-        return limbs[0] | (limbs[1] << 68) | (limbs[2] << 136) | (limbs[3] << 204)
-
-    lhs_x = decode_coord(pairing_point_object[0:4])
-    lhs_y = decode_coord(pairing_point_object[4:8])
-    rhs_x = decode_coord(pairing_point_object[8:12])
-    rhs_y = decode_coord(pairing_point_object[12:16])
-
-    lhs = G1Point(x=lhs_x, y=lhs_y, curve_id=CurveID.BN254)
-    rhs = G1Point(x=rhs_x, y=rhs_y, curve_id=CurveID.BN254)
-
-    return lhs, rhs
+ONE = [1] + [0] * 11
 
 
-def generate_recursion_separator(
-    pairing_point_object: list[int], acc_lhs: G1Point, acc_rhs: G1Point
-) -> int:
-    """Generate the recursion separator by hashing the proof and accumulator points.
-
-    Matches Solidity's generateRecursionSeparator function.
-    """
-    proof_lhs, proof_rhs = convert_pairing_points_to_g1(pairing_point_object)
-
-    # Hash 8 uint256 values: proofLhs.x, proofLhs.y, proofRhs.x, proofRhs.y, accLhs.x, accLhs.y, accRhs.x, accRhs.y
-    data = b""
-    data += proof_lhs.x.to_bytes(32, "big")
-    data += proof_lhs.y.to_bytes(32, "big")
-    data += proof_rhs.x.to_bytes(32, "big")
-    data += proof_rhs.y.to_bytes(32, "big")
-    data += acc_lhs.x.to_bytes(32, "big")
-    data += acc_lhs.y.to_bytes(32, "big")
-    data += acc_rhs.x.to_bytes(32, "big")
-    data += acc_rhs.y.to_bytes(32, "big")
-
-    hash_result = keccak_256(data).digest()
-    # Convert to field element (mod p)
-    FR = CURVES[CurveID.GRUMPKIN.value].p
-    return int.from_bytes(hash_result, "big") % FR
-
-
-@pytest.mark.parametrize(
-    "proof_path, system",
-    [
-        (f"{PATH}/proof_ultra_keccak_zk.bin", ProofSystem.UltraKeccakZKHonk),
-    ],
-)
-def test_verify_honk_proof(proof_path: str, system: ProofSystem):
-
-    vk: HonkVk = HonkVk.from_bytes(open(f"{PATH}/vk_ultra_keccak.bin", "rb").read())
-
-    proof: ZKHonkProof = honk_proof_from_bytes(
+def load_fixture(name: str) -> tuple[HonkVk, ZKHonkProof]:
+    vk_path, proof_path, public_inputs_path = FIXTURES[name]
+    vk = HonkVk.from_bytes(open(vk_path, "rb").read())
+    proof = honk_proof_from_bytes(
         open(proof_path, "rb").read(),
-        open(f"{PATH}/public_inputs_ultra_keccak.bin", "rb").read(),
+        open(public_inputs_path, "rb").read(),
         vk,
-        system,
+        ProofSystem.UltraKeccakZKHonk,
     )
+    return vk, proof
 
-    tp = ZKHonkTranscript.from_proof(vk, proof, system)
+
+def pairing_holds(p_0: G1Point, p_1: G1Point) -> bool:
+    pairs = [G1G2Pair(p_0, G2_POINT_KZG_1), G1G2Pair(p_1, G2_POINT_KZG_2)]
+    return G1G2Pair.pair(pairs).value_coeffs == ONE
+
+
+def kzg_pairing_points(vk: HonkVk, proof: ZKHonkProof) -> tuple[G1Point, G1Point]:
+    """Runs the full verifier but the final pairing and returns the KZG pairing points."""
+    tp = ZKHonkTranscript.from_proof(vk, proof, ProofSystem.UltraKeccakZKHonk)
     circuit: ZKHonkVerifierCircuits = ZKHonkVerifierCircuits(
         name="test", log_n=vk.log_circuit_size
     )
 
-    vk_circuit = vk.to_circuit_elements(circuit)
     proof_circuit = proof.to_circuit_elements(circuit)
     tp = tp.to_circuit_elements(circuit)
 
@@ -120,8 +90,7 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
         gamma=tp.gamma,
         public_inputs_delta=public_input_delta,
         eta=tp.eta,
-        eta_two=tp.etaTwo,
-        eta_three=tp.etaThree,
+        rom_logup_gamma=tp.rom_logup_gamma,
         libra_challenge=tp.libra_challenge,
         sum_check_u_challenges=tp.sum_check_u_challenges,
         gate_challenge=tp.gate_challenge,
@@ -132,8 +101,6 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
 
     assert rlc_check.value == 0
     assert check.value == 0
-
-    print(f"Pub input delta: {io.int_to_u384(public_input_delta, as_hex=False)}")
 
     scalars = circuit.compute_shplemini_msm_scalars(
         proof_circuit.sumcheck_evaluations,
@@ -147,46 +114,62 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
         tp.sum_check_u_challenges,
     )
 
-    print([scalar.value if scalar else scalar for scalar in scalars])
-    print(len(scalars))
-
     points = get_msm_points_from_vk_and_proof(vk, proof)
-
-    for i, (p, s) in enumerate(zip(points, scalars)):
-        if s:
-            print(i, hex(s.value))
-
     P_0 = G1Point.msm(points=points, scalars=[scalar.value for scalar in scalars])
-
     P_1 = -proof.kzg_quotient
+    return P_0, P_1
 
-    # Extract the points from pairing_point_object
-    P_0_other, P_1_other = convert_pairing_points_to_g1(proof.pairing_point_object)
-    print(f"P_0_other: x={hex(P_0_other.x)}, y={hex(P_0_other.y)}")
-    print(f"P_1_other: x={hex(P_1_other.x)}, y={hex(P_1_other.y)}")
 
-    # Generate recursion separator
-    recursion_separator = generate_recursion_separator(
+@pytest.mark.parametrize("fixture", ["default", "recursive"])
+def test_verify_honk_proof(fixture: str):
+    vk, proof = load_fixture(fixture)
+    assert pairing_points_are_default(proof.pairing_point_object) == (
+        fixture == "default"
+    )
+
+    P_0, P_1 = kzg_pairing_points(vk, proof)
+    P_0_final, P_1_final, _ = aggregate_pairing_points(
         proof.pairing_point_object, P_0, P_1
     )
-    print(f"Recursion separator: {hex(recursion_separator)}")
+    assert pairing_holds(P_0_final, P_1_final), "Pairing check failed"
 
-    # Aggregate: P_0_final = recursionSeparator * P_0 + P_0_other
-    #            P_1_final = recursionSeparator * P_1 + P_1_other
-    P_0_final = P_0.scalar_mul(recursion_separator).add(P_0_other)
-    P_1_final = P_1.scalar_mul(recursion_separator).add(P_1_other)
 
-    print(f"P_0_final: x={hex(P_0_final.x)}, y={hex(P_0_final.y)}")
-    print(f"P_1_final: x={hex(P_1_final.x)}, y={hex(P_1_final.y)}")
+def test_forged_recursive_accumulator_rejected():
+    """
+    A forged inner accumulator (on the curve, not at infinity, but not satisfying the pairing)
+    must be rejected. Checking the outer KZG pairing alone, without aggregating the pairing
+    points, would accept it.
+    """
+    vk, proof = load_fixture("recursive")
+    P_0, P_1 = kzg_pairing_points(vk, proof)
+    assert pairing_holds(P_0, P_1)
 
-    # Final pairing check with aggregated points
-    pairs = [G1G2Pair(P_0_final, G2_POINT_KZG_1), G1G2Pair(P_1_final, G2_POINT_KZG_2)]
-    pairing_result = G1G2Pair.pair(pairs).value_coeffs
-    print(f"Pairing result WITH recursion aggregation: {pairing_result[:3]}...")
+    proof_lhs, proof_rhs = convert_pairing_points_to_g1(proof.pairing_point_object)
+    assert pairing_holds(proof_lhs, proof_rhs)
 
-    assert (
-        pairing_result == [1] + [0] * 11
-    ), "Pairing check failed with recursion aggregation"
+    forged_lhs = proof_lhs.add(G1Point.get_nG(CurveID.BN254, 1))
+    separator = generate_recursion_separator(forged_lhs, proof_rhs, P_0, P_1)
+    assert not pairing_holds(
+        P_0.scalar_mul(separator).add(forged_lhs),
+        P_1.scalar_mul(separator).add(proof_rhs),
+    )
+
+
+def test_mixed_infinity_pairing_points_rejected():
+    vk, proof = load_fixture("recursive")
+    P_0, P_1 = kzg_pairing_points(vk, proof)
+    pairing_point_object = proof.pairing_point_object[:4] + [0] * 4
+    with pytest.raises(AssertionError, match="infinity"):
+        aggregate_pairing_points(pairing_point_object, P_0, P_1)
+
+
+def test_non_canonical_pairing_point_limbs_rejected():
+    _, proof = load_fixture("recursive")
+    ppo = list(proof.pairing_point_object)
+    # Same x coordinate as lo + hi * 2^136, with lo >= 2^136.
+    ppo[0], ppo[1] = ppo[0] + 2**136, ppo[1] - 1
+    with pytest.raises(AssertionError, match="lo limb"):
+        convert_pairing_points_to_g1(ppo)
 
 
 @pytest.mark.parametrize(

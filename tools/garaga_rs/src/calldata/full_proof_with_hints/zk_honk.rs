@@ -17,33 +17,39 @@ use lambdaworks_math::traits::ByteConversion;
 use num_bigint::BigUint;
 use sha3::{Digest, Keccak256};
 
-pub const NUMBER_OF_SUBRELATIONS: usize = 28;
+pub const NUMBER_OF_SUBRELATIONS: usize = 31;
 pub const NUMBER_OF_ALPHAS: usize = NUMBER_OF_SUBRELATIONS - 1;
 pub const NUMBER_OF_ENTITIES: usize = 41;
+// The gemini masking polynomial evaluation is sent first, ahead of the 41 entities.
+pub const NUM_MASKING_POLYNOMIALS: usize = 1;
+pub const NUMBER_OF_ENTITIES_ZK: usize = NUMBER_OF_ENTITIES + NUM_MASKING_POLYNOMIALS;
 pub const NUMBER_UNSHIFTED: usize = 36;
 pub const NUMBER_TO_BE_SHIFTED: usize = 5;
 pub const SHIFTED_COMMITMENTS_START: usize = 30;
 pub const MAX_LOG_N: usize = 23;
 pub const MAX_CIRCUIT_SIZE: usize = 1 << MAX_LOG_N;
-pub const PAIRING_POINT_OBJECT_LENGTH: usize = 16;
-pub const CONST_PROOF_SIZE_LOG_N: usize = 28;
+// Pairing points (P0, P1) serialized as [x_lo, x_hi, y_lo, y_hi] per point, lo < 2^136, hi < 2^120.
+pub const PAIRING_POINT_OBJECT_LENGTH: usize = 8;
+pub const CONST_PROOF_SIZE_LOG_N: usize = 25;
+// NUM_DISABLED_ROWS_IN_SUMCHECK + NUM_ZERO_ROWS = 4 + 1
+pub const PUBLIC_INPUTS_OFFSET: usize = 5;
 
-pub const NUM_WITNESS_ENTITIES: usize = 8;
+pub const NUM_WITNESS_ENTITIES: usize = 8 + NUM_MASKING_POLYNOMIALS;
 pub const NUM_ELEMENTS_COMM: usize = 2;
 pub const NUM_ELEMENTS_FR: usize = 1;
 
 /// Calculate expected proof size based on log_circuit_size
 pub fn calculate_proof_size(log_circuit_size: usize) -> usize {
-    let mut proof_size = NUM_WITNESS_ENTITIES * NUM_ELEMENTS_COMM; // 16
-    proof_size += NUM_ELEMENTS_COMM * 4; // 8 (Libra concat, grand sum, quotient comms + Gemini masking)
+    let mut proof_size = NUM_WITNESS_ENTITIES * NUM_ELEMENTS_COMM; // 18 (witness commitments incl. Gemini masking)
+    proof_size += NUM_ELEMENTS_COMM * 3; // 6 (Libra concat, grand sum, quotient comms)
     proof_size += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH * NUM_ELEMENTS_FR; // sumcheck univariates
-    proof_size += NUMBER_OF_ENTITIES * NUM_ELEMENTS_FR; // 41 (sumcheck evaluations)
-    proof_size += NUM_ELEMENTS_FR * 3; // 3 (Libra sum, claimed eval, Gemini masking eval)
+    proof_size += NUMBER_OF_ENTITIES_ZK * NUM_ELEMENTS_FR; // 42 (sumcheck evaluations incl. Gemini masking eval)
+    proof_size += NUM_ELEMENTS_FR * 2; // 2 (Libra sum, claimed eval)
     proof_size += log_circuit_size * NUM_ELEMENTS_FR; // Gemini a evaluations
     proof_size += LIBRA_EVALUATIONS * NUM_ELEMENTS_FR; // 4 (libra evaluations)
     proof_size += (log_circuit_size - 1) * NUM_ELEMENTS_COMM; // Gemini Fold commitments
     proof_size += NUM_ELEMENTS_COMM * 2; // 4 (Shplonk Q and KZG W)
-    proof_size += PAIRING_POINT_OBJECT_LENGTH; // 16 (pairing inputs)
+    proof_size += PAIRING_POINT_OBJECT_LENGTH; // 8 (pairing inputs)
     proof_size
 }
 pub const ZK_BATCHED_RELATION_PARTIAL_LENGTH: usize = 9;
@@ -51,6 +57,9 @@ pub const SUBGROUP_SIZE: usize = 256;
 pub const LIBRA_COMMITMENTS: usize = 3;
 pub const LIBRA_EVALUATIONS: usize = 4;
 pub const LIBRA_UNIVARIATES_LENGTH: usize = 9;
+// SmallSubgroupIPA opening claims at {r, g*r, r, 1, r}; the claim at 1 has a hardcoded value of 0.
+pub const NUM_SMALL_IPA_OPENING_CLAIMS: usize = 5;
+pub const SMALL_IPA_BOUNDARY_OPENING_IDX: usize = 3;
 
 // Number of G1 points in the VK
 pub const VK_NUM_POINTS: usize = 28;
@@ -129,7 +138,7 @@ impl HonkVerificationKey {
             .try_into()
             .map_err(|e: num_bigint::TryFromBigIntError<BigUint>| e.to_string())?;
 
-        if public_inputs_offset != 1 {
+        if public_inputs_offset != PUBLIC_INPUTS_OFFSET {
             return Err(format!(
                 "Invalid public inputs offset: {}",
                 public_inputs_offset
@@ -157,7 +166,8 @@ impl HonkVerificationKey {
             cursor += 64;
         }
 
-        let [qm, qc, ql, qr, qo, q4, q_lookup, q_arith, q_delta_range, q_elliptic, q_memory, q_nnf, q_poseidon2_external, q_poseidon2_internal, s1, s2, s3, s4, id1, id2, id3, id4, t1, t2, t3, t4, lagrange_first, lagrange_last] =
+        // Points are serialized in the precomputed entity order.
+        let [s1, s2, s3, s4, id1, id2, id3, id4, lagrange_first, lagrange_last, q_lookup, t1, t2, t3, t4, qm, qr, qo, qc, ql, q4, q_arith, q_delta_range, q_elliptic, q_memory, q_nnf, q_poseidon2_external, q_poseidon2_internal] =
             points.try_into().unwrap();
 
         Ok(Self {
@@ -363,15 +373,15 @@ impl ZKHonkProof {
             G1PointBigUint { x, y }
         }
 
-        // Parse 9 G1 points: w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm, libra_commitment_0
+        // Parse 10 G1 points: gemini_masking_poly, w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm, libra_commitment_0
         let mut points = vec![];
-        for i in (offset..).step_by(2).take(9) {
+        for i in (offset..).step_by(2).take(10) {
             points.push(parse_g1_proof_point(
                 values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
-        offset += 9 * 2;
-        let [w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm, libra_commitment_0] =
+        offset += 10 * 2;
+        let [gemini_masking_poly, w1, w2, w3, lookup_read_counts, lookup_read_tags, w4, lookup_inverses, z_perm, libra_commitment_0] =
             points.try_into().unwrap();
 
         let libra_sum = values[offset].clone();
@@ -398,7 +408,10 @@ impl ZKHonkProof {
             CONST_PROOF_SIZE_LOG_N] = sumcheck_univariates.try_into().unwrap();
         offset += log_circuit_size * ZK_BATCHED_RELATION_PARTIAL_LENGTH;
 
-        // Parse sumcheck evaluations
+        // Parse sumcheck evaluations: gemini masking eval first, then the 41 entities.
+        let gemini_masking_eval = values[offset].clone();
+        offset += NUM_MASKING_POLYNOMIALS;
+
         let sumcheck_evaluations: [BigUint; NUMBER_OF_ENTITIES] = values
             [offset..offset + NUMBER_OF_ENTITIES]
             .to_vec()
@@ -409,21 +422,17 @@ impl ZKHonkProof {
         let libra_evaluation = values[offset].clone();
         offset += 1;
 
-        // Parse libra_commitment_1, libra_commitment_2, gemini_masking_poly
+        // Parse libra_commitment_1, libra_commitment_2
         let mut points = vec![];
-        for i in (offset..).step_by(2).take(3) {
+        for i in (offset..).step_by(2).take(2) {
             points.push(parse_g1_proof_point(
                 values[i..i + 2].to_vec().try_into().unwrap(),
             ));
         }
-        offset += 3 * 2;
-        let [libra_commitment_1, libra_commitment_2, gemini_masking_poly] =
-            points.try_into().unwrap();
+        offset += 2 * 2;
+        let [libra_commitment_1, libra_commitment_2] = points.try_into().unwrap();
 
         let libra_commitments = [libra_commitment_0, libra_commitment_1, libra_commitment_2];
-
-        let gemini_masking_eval = values[offset].clone();
-        offset += 1;
 
         // Parse gemini fold comms
         let mut gemini_fold_comms = vec![];
@@ -498,8 +507,7 @@ impl ZKHonkProof {
 
 pub struct ZKHonkTranscript {
     pub eta: BigUint,
-    pub eta_two: BigUint,
-    pub eta_three: BigUint,
+    pub rom_logup_gamma: BigUint,
     pub beta: BigUint,
     pub gamma: BigUint,
     pub alpha: BigUint,
@@ -690,10 +698,10 @@ pub fn get_zk_honk_calldata(
         scalars_msm.swap(len - 1, len - 2);
     }
 
-    // Place first scalar just after the vk_lagrange_last point (index 28)
+    // Place first scalar (gemini masking) just after the vk points (index 28)
     if !scalars_msm.is_empty() {
         let first_scalar = scalars_msm.remove(0);
-        scalars_msm.insert(28, first_scalar);
+        scalars_msm.insert(VK_NUM_POINTS, first_scalar);
     }
 
     let proof_data = {
@@ -778,35 +786,36 @@ pub fn get_zk_honk_calldata(
         call_data
     };
 
+    // VK points in the precomputed entity order (order of their shplemini scalars).
     let mut points = vec![
-        qm,                   // 0
-        qc,                   // 1
-        ql,                   // 2
-        qr,                   // 3
-        qo,                   // 4
-        q4,                   // 5
-        q_lookup,             // 6
-        q_arith,              // 7
-        q_delta_range,        // 8
-        q_elliptic,           // 9
-        q_memory,             // 10
-        q_nnf,                // 11
-        q_poseidon2_external, // 12
-        q_poseidon2_internal, // 13
-        s1,                   // 14
-        s2,                   // 15
-        s3,                   // 16
-        s4,                   // 17
-        id1,                  // 18
-        id2,                  // 19
-        id3,                  // 20
-        id4,                  // 21
-        t1,                   // 22
-        t2,                   // 23
-        t3,                   // 24
-        t4,                   // 25
-        lagrange_first,       // 26
-        lagrange_last,        // 27
+        s1,                   // 0
+        s2,                   // 1
+        s3,                   // 2
+        s4,                   // 3
+        id1,                  // 4
+        id2,                  // 5
+        id3,                  // 6
+        id4,                  // 7
+        lagrange_first,       // 8
+        lagrange_last,        // 9
+        q_lookup,             // 10
+        t1,                   // 11
+        t2,                   // 12
+        t3,                   // 13
+        t4,                   // 14
+        qm,                   // 15
+        qr,                   // 16
+        qo,                   // 17
+        qc,                   // 18
+        ql,                   // 19
+        q4,                   // 20
+        q_arith,              // 21
+        q_delta_range,        // 22
+        q_elliptic,           // 23
+        q_memory,             // 24
+        q_nnf,                // 25
+        q_poseidon2_external, // 26
+        q_poseidon2_internal, // 27
         gemini_masking_poly,  // 28
         w1,                   // 29
         w2,                   // 30
@@ -823,6 +832,16 @@ pub fn get_zk_honk_calldata(
     points.push(kzg_quotient.clone());
     points.push(G1Point::generator());
 
+    // Drop the vk commitments to identically-zero polynomials (point at infinity),
+    // they do not contribute to the MSM.
+    let (points, scalars_msm): (Vec<_>, Vec<_>) = points
+        .into_iter()
+        .zip(scalars_msm)
+        .enumerate()
+        .filter(|(i, (point, _))| *i >= VK_NUM_POINTS || !point.is_infinity())
+        .map(|(_, pair)| pair)
+        .unzip();
+
     let two = FieldElement::<Stark252PrimeField>::one().double();
 
     let vk_hash_element: FieldElement<Stark252PrimeField> = element_from_biguint(&vk.vk_hash);
@@ -834,6 +853,22 @@ pub fn get_zk_honk_calldata(
 
     let p_0 = G1Point::msm(&points, &scalars_msm).add(&shplonk_q);
     let p_1 = kzg_quotient.neg();
+
+    // Accumulate the recursive pairing points carried in the public inputs.
+    let (p_0, p_1, aggregation_data) =
+        match aggregate_pairing_points(&proof.pairing_point_object, &p_0, &p_1)? {
+            None => (p_0, p_1, vec![BigUint::from(0u8)]), // Empty Span<felt252>
+            Some((p_0_agg, p_1_agg, separator)) => {
+                let aggregation_data = msm_calldata::calldata_builder(
+                    &[p_0, p_1],
+                    &[separator.clone(), separator],
+                    CurveID::BN254 as usize,
+                    false,
+                    true,
+                );
+                (p_0_agg, p_1_agg, aggregation_data)
+            }
+        };
     let g2_point_kzg_1 = G2Point::generator();
     let g2_point_kzg_2 = G2Point::new(
         [
@@ -870,12 +905,74 @@ pub fn get_zk_honk_calldata(
         >(&pairs, 2, &None)?
     };
 
-    let size = proof_data.len() + msm_data.len() + mpc_data.len();
+    let size = proof_data.len() + msm_data.len() + aggregation_data.len() + mpc_data.len();
     let mut call_data = vec![size.into()];
     call_data.extend(proof_data);
     call_data.extend(msm_data);
+    call_data.extend(aggregation_data);
     call_data.extend(mpc_data);
     Ok(call_data)
+}
+
+/// Decodes the pairing points (P0, P1) carried in the public inputs, serialized as
+/// [P0.x_lo, P0.x_hi, P0.y_lo, P0.y_hi, P1.x_lo, P1.x_hi, P1.y_lo, P1.y_hi]
+/// with lo limbs < 2^136, hi limbs < 2^120 and coordinates < p.
+fn convert_pairing_points_to_g1(
+    pairing_point_object: &[BigUint; PAIRING_POINT_OBJECT_LENGTH],
+) -> Result<(G1Point<BN254PrimeField>, G1Point<BN254PrimeField>), String> {
+    let lo_bound = BigUint::from(1u8) << 136;
+    let hi_bound = BigUint::from(1u8) << 120;
+    let p = BigUint::from_bytes_be(&BN254PrimeField::modulus_minus_one().to_bytes_be()) + 1u8;
+    let mut coords = vec![];
+    for limbs in pairing_point_object.chunks(2) {
+        let (lo, hi) = (&limbs[0], &limbs[1]);
+        if lo >= &lo_bound || hi >= &hi_bound {
+            return Err("Pairing point limb out of range".to_string());
+        }
+        let coord = lo + (hi << 136);
+        if coord >= p {
+            return Err("Pairing point coordinate >= p".to_string());
+        }
+        coords.push(element_from_biguint::<BN254PrimeField>(&coord));
+    }
+    let [p0_x, p0_y, p1_x, p1_y]: [FieldElement<BN254PrimeField>; 4] = coords.try_into().unwrap();
+    Ok((
+        G1Point::new(p0_x, p0_y, false)?,
+        G1Point::new(p1_x, p1_y, false)?,
+    ))
+}
+
+/// Accumulates the recursive pairing points carried in the public inputs into the KZG pairing
+/// points (p_0, p_1), where the final check is e(p_0, [1]_2) * e(p_1, [x]_2) == 1.
+/// Returns None for default (all-zero) pairing points, otherwise (p_0', p_1', recursion_separator).
+#[allow(clippy::type_complexity)]
+fn aggregate_pairing_points(
+    pairing_point_object: &[BigUint; PAIRING_POINT_OBJECT_LENGTH],
+    p_0: &G1Point<BN254PrimeField>,
+    p_1: &G1Point<BN254PrimeField>,
+) -> Result<Option<(G1Point<BN254PrimeField>, G1Point<BN254PrimeField>, BigUint)>, String> {
+    if pairing_point_object
+        .iter()
+        .all(|limb| *limb == BigUint::from(0u8))
+    {
+        return Ok(None);
+    }
+    let (proof_p0, proof_p1) = convert_pairing_points_to_g1(pairing_point_object)?;
+    // A point at infinity on either side is rejected (GHSA-2hc8-mq24-76v2).
+    if proof_p0.is_infinity() || proof_p1.is_infinity() {
+        return Err("Pairing point at infinity".to_string());
+    }
+    let mut hasher = KeccakHasher::new();
+    for point in [&proof_p0, &proof_p1, p_0, p_1] {
+        hasher.update(&element_to_biguint(&point.x));
+        hasher.update(&element_to_biguint(&point.y));
+    }
+    let separator = hasher.digest();
+    let p_0_agg =
+        G1Point::msm(std::slice::from_ref(p_0), std::slice::from_ref(&separator)).add(&proof_p0);
+    let p_1_agg =
+        G1Point::msm(std::slice::from_ref(p_1), std::slice::from_ref(&separator)).add(&proof_p1);
+    Ok(Some((p_0_agg, p_1_agg, separator)))
 }
 
 #[allow(clippy::needless_range_loop)]
@@ -888,15 +985,12 @@ fn compute_zk_transcript<T: Hasher>(
     FieldElement<Stark252PrimeField>,
     FieldElement<Stark252PrimeField>,
 ) {
-    fn split(ch: &[u8]) -> [BigUint; 2] {
-        let ch_int = BigUint::from_bytes_be(ch);
-        let mask = (BigUint::from(1u8) << 128) - 1u8;
-        let low_128 = &ch_int & &mask;
-        let high_128 = &ch_int >> 128;
-        [low_128, high_128]
+    // Each challenge is a full Fr element (the hasher output reduced mod Fr).
+    fn challenge(ch: &[u8]) -> BigUint {
+        BigUint::from_bytes_be(ch)
     }
 
-    // Round 0: vk_hash, public_inputs, pairing_point_object, w1, w2, w3
+    // Round 0: vk_hash, public_inputs, pairing_point_object, gemini_masking_poly, w1, w2, w3
     hasher.update(&vk.vk_hash);
 
     for pub_input in &proof.public_inputs {
@@ -906,38 +1000,43 @@ fn compute_zk_transcript<T: Hasher>(
         hasher.update(pub_input);
     }
 
+    hasher.update_point(&proof.gemini_masking_poly);
     hasher.update_point(&proof.w1);
     hasher.update_point(&proof.w2);
     hasher.update_point(&proof.w3);
 
     let ch0 = hasher.digest_reset();
-    let [eta, eta_two] = split(&ch0);
+    let eta = challenge(&ch0);
 
     hasher.update_bytes(&ch0);
     let ch0 = hasher.digest_reset();
-    let [eta_three, _] = split(&ch0);
+    let rom_logup_gamma = challenge(&ch0);
 
-    // Round 1: ch0, lookup_read_counts, lookup_read_tags, w4
+    // Round 1: rom_logup_gamma, lookup_read_counts, lookup_read_tags, w4
     hasher.update_bytes(&ch0);
     hasher.update_point(&proof.lookup_read_counts);
     hasher.update_point(&proof.lookup_read_tags);
     hasher.update_point(&proof.w4);
 
     let ch1 = hasher.digest_reset();
-    let [beta, gamma] = split(&ch1);
+    let beta = challenge(&ch1);
 
-    // Round 2: ch1, lookup_inverses, z_perm -> alpha
+    hasher.update_bytes(&ch1);
+    let ch1 = hasher.digest_reset();
+    let gamma = challenge(&ch1);
+
+    // Round 2: gamma, lookup_inverses, z_perm -> alpha
     hasher.update_bytes(&ch1);
     hasher.update_point(&proof.lookup_inverses);
     hasher.update_point(&proof.z_perm);
 
     let ch2 = hasher.digest_reset();
-    let [alpha, _] = split(&ch2);
+    let alpha = challenge(&ch2);
 
     // Round 3: Gate challenge
     hasher.update_bytes(&ch2);
     let ch3 = hasher.digest_reset();
-    let [gate_challenge, _] = split(&ch3);
+    let gate_challenge = challenge(&ch3);
 
     // Round 3.5: Libra challenge
     hasher.update_bytes(&ch3);
@@ -945,7 +1044,7 @@ fn compute_zk_transcript<T: Hasher>(
     hasher.update(&proof.libra_sum);
 
     let ch3 = hasher.digest_reset();
-    let [libra_challenge, _] = split(&ch3);
+    let libra_challenge = challenge(&ch3);
 
     // Round 4: Sumcheck u challenges
     let mut sumcheck_u_challenges = [0u8; CONST_PROOF_SIZE_LOG_N].map(BigUint::from);
@@ -958,12 +1057,12 @@ fn compute_zk_transcript<T: Hasher>(
         }
 
         ch4 = hasher.digest_reset();
-        let [challenge, _] = split(&ch4);
-        sumcheck_u_challenges[i] = challenge;
+        sumcheck_u_challenges[i] = challenge(&ch4);
     }
 
-    // Rho challenge
+    // Rho challenge: gemini masking eval, sumcheck evaluations, libra evaluation, libra commitments 1 & 2
     hasher.update_bytes(&ch4);
+    hasher.update(&proof.gemini_masking_eval);
     for i in 0..NUMBER_OF_ENTITIES {
         hasher.update(&proof.sumcheck_evaluations[i]);
     }
@@ -971,11 +1070,9 @@ fn compute_zk_transcript<T: Hasher>(
     hasher.update(&proof.libra_evaluation);
     hasher.update_point(&proof.libra_commitments[1]);
     hasher.update_point(&proof.libra_commitments[2]);
-    hasher.update_point(&proof.gemini_masking_poly);
-    hasher.update(&proof.gemini_masking_eval);
 
     let c5 = hasher.digest_reset();
-    let [rho, _] = split(&c5);
+    let rho = challenge(&c5);
 
     // Gemini R
     hasher.update_bytes(&c5);
@@ -984,7 +1081,7 @@ fn compute_zk_transcript<T: Hasher>(
     }
 
     let c6 = hasher.digest_reset();
-    let [gemini_r, _] = split(&c6);
+    let gemini_r = challenge(&c6);
 
     // Shplonk Nu
     hasher.update_bytes(&c6);
@@ -997,18 +1094,19 @@ fn compute_zk_transcript<T: Hasher>(
     }
 
     let c7 = hasher.digest_reset();
-    let [shplonk_nu, _] = split(&c7);
+    let shplonk_nu = challenge(&c7);
 
     // Shplonk Z
     hasher.update_bytes(&c7);
     hasher.update_point(&proof.shplonk_q);
 
     let c8 = hasher.digest_reset();
-    let [shplonk_z_low, shplonk_z_high] = split(&c8);
+    let shplonk_z = challenge(&c8);
 
+    let mask = (BigUint::from(1u8) << 128) - 1u8;
     let mut state: [FieldElement<Stark252PrimeField>; 3] = [
-        element_from_biguint(&shplonk_z_low),
-        element_from_biguint(&shplonk_z_high),
+        element_from_biguint(&(&shplonk_z & &mask)),
+        element_from_biguint(&(&shplonk_z >> 128)),
         FieldElement::one().double(),
     ];
     PoseidonCairoStark252::hades_permutation(&mut state);
@@ -1017,8 +1115,7 @@ fn compute_zk_transcript<T: Hasher>(
     (
         ZKHonkTranscript {
             eta,
-            eta_two,
-            eta_three,
+            rom_logup_gamma,
             beta,
             gamma,
             alpha,
@@ -1028,7 +1125,7 @@ fn compute_zk_transcript<T: Hasher>(
             rho,
             gemini_r,
             shplonk_nu,
-            shplonk_z: shplonk_z_low,
+            shplonk_z,
         },
         s0,
         s1,
@@ -1151,26 +1248,41 @@ fn compute_shplemini_msm_scalars(
         "07B0C561A6148404F086204A9F36FFB0617942546750F230C893619174A57A76",
     );
 
-    let denom_0 = (FieldElement::<GrumpkinPrimeField>::from(1) / (shplonk_z - gemini_r)).unwrap();
-    let denom_1 = (FieldElement::<GrumpkinPrimeField>::from(1)
-        / (shplonk_z - subgroup_generator * gemini_r))
-        .unwrap();
-    let denominators = [denom_0, denom_1, denom_0, denom_0];
+    // Denominators 1/(z - point_i) for the five opening points {r, g*r, r, 1, r}.
+    let one = FieldElement::<GrumpkinPrimeField>::from(1);
+    let denom_0 = (one / (shplonk_z - gemini_r))?;
+    let denom_1 = (one / (shplonk_z - subgroup_generator * gemini_r))?;
+    let denom_boundary = (one / (shplonk_z - one))?;
+    let denominators: [FieldElement<GrumpkinPrimeField>; NUM_SMALL_IPA_OPENING_CLAIMS] =
+        [denom_0, denom_1, denom_0, denom_boundary, denom_0];
 
     let mut batching_scalars = vec![];
-    batching_challenge *= shplonk_nu * shplonk_nu;
-    for i in 0..LIBRA_EVALUATIONS {
+    for i in 0..NUM_SMALL_IPA_OPENING_CLAIMS {
         let scaling_factor = denominators[i] * batching_challenge;
         batching_scalars.push(-scaling_factor);
         // skip last step:
-        if i < LIBRA_EVALUATIONS - 1 {
+        if i < NUM_SMALL_IPA_OPENING_CLAIMS - 1 {
             batching_challenge *= shplonk_nu;
         }
-        constant_term_accumulator += scaling_factor * libra_poly_evals[i];
+        // Boundary claim value is hardcoded to 0: no constant term contribution.
+        if i == SMALL_IPA_BOUNDARY_OPENING_IDX {
+            continue;
+        }
+        let libra_poly_eval_index = if i < SMALL_IPA_BOUNDARY_OPENING_IDX {
+            i
+        } else {
+            i - 1
+        };
+        constant_term_accumulator += scaling_factor * libra_poly_evals[libra_poly_eval_index];
     }
+    // Group per-claim batching scalars by commitment: [G], [A] (three openings), [Q].
     scalars[boundary] = Some(batching_scalars[0]);
-    scalars[boundary + 1] = Some(batching_scalars[1] + batching_scalars[2]);
-    scalars[boundary + 2] = Some(batching_scalars[3]);
+    scalars[boundary + 1] = Some(
+        batching_scalars[1]
+            + batching_scalars[2]
+            + batching_scalars[SMALL_IPA_BOUNDARY_OPENING_IDX],
+    );
+    scalars[boundary + 2] = Some(batching_scalars[NUM_SMALL_IPA_OPENING_CLAIMS - 1]);
 
     scalars[boundary + 3] = Some(constant_term_accumulator);
     scalars[boundary + 4] = Some(*shplonk_z);

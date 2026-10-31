@@ -1,14 +1,9 @@
+import re
 import subprocess
 from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich import print
-from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.tree import Tree
-
 from garaga.curves import ProofSystem
 from garaga.starknet.cli.utils import complete_proof_system, get_package_version
 from garaga.starknet.constants import BB_VERSION, BBUP_VERSION, NARGO_VERSION
@@ -17,6 +12,11 @@ from garaga.starknet.groth16_contract_generator.generator import (
     gen_groth16_verifier,
 )
 from garaga.starknet.honk_contract_generator.generator_honk import gen_honk_verifier
+from rich import print
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.tree import Tree
 
 
 def check_nargo_version(version: str) -> tuple[bool, str]:
@@ -25,6 +25,17 @@ def check_nargo_version(version: str) -> tuple[bool, str]:
 
 def check_bb_version(version: str) -> tuple[bool, str]:
     return check_version("bb", version)
+
+
+def version_matches(version: str, version_output: str) -> bool:
+    """
+    Whether `version_output` contains exactly `version`, so that e.g. "1.0.0" does not match
+    a pre-release such as "1.0.0-beta.16" (a "+<build>" suffix is accepted).
+    """
+    return (
+        re.search(rf"(?<![\w.-]){re.escape(version)}(?![\w.-])", version_output)
+        is not None
+    )
 
 
 def check_version(cmd: str, version: str) -> tuple[bool, str]:
@@ -40,7 +51,7 @@ def check_version(cmd: str, version: str) -> tuple[bool, str]:
             )
         if not result_version:
             return (False, f"'{cmd} --version' returned empty output")
-        return (version in result_version, result_version)
+        return (version_matches(version, result_version), result_version)
     except (FileNotFoundError, OSError):
         # Command not found or other OS error
         return (False, f"Command '{cmd}' not found or not executable")

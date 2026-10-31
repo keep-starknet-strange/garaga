@@ -7,8 +7,8 @@ icon: octopus
 ## Requirements (read carefully to avoid 99% of issues!)
 
 * Garaga CLI [python-package.md](../installation/python-package.md "mention") version 1.1.0 (install with `pip install garaga==1.1.0`)
-* Noir 1.0.0-beta.16 (install with `noirup --version 1.0.0-beta.16` or `npm i @noir-lang/noir_js@1.0.0-beta.16`)
-* Barretenberg 3.0.0-nightly.20251104 (install with `bbup --version 3.0.0-nightly.20251104` or `npm i @aztec/bb.js@3.0.0-nightly.20251104`)
+* Noir 1.0.0 (install with `noirup --version 1.0.0` or `npm i @noir-lang/noir_js@1.0.0`)
+* Barretenberg 6.0.0 (install with `bbup --version 6.0.0` or `npm i @aztec/bb.js@6.0.0`)
 
 To install `noirup` and `bbup`, follow the [quickstart guide from aztec](https://noir-lang.org/docs/getting_started/quick_start).
 
@@ -27,11 +27,13 @@ This will create a json file in `hello/target/hello.json`
 Now, generate the corresponding verifying key `vk` using barretenberg:
 
 ```bash
-bb write_vk -s ultra_honk --oracle_hash keccak -b target/hello.json -o target/vk
+bb write_vk -t evm -b target/hello.json -o target/
 ```
 
+This writes the verifying key to `target/vk` (and its hash to `target/vk_hash`).
+
 {% hint style="info" %}
-Note: ZK mode is enabled by default in barretenberg. The verification key is the same whether you generate a ZK proof or not.
+The `evm` verifier target uses the keccak transcript with zero-knowledge, which is what the `ultra_keccak_zk_honk` Garaga verifier expects. The verification key is the same whether you generate a ZK proof or not.
 {% endhint %}
 
 Finally, generate a smart contract from the verifying key using the garaga CLI.
@@ -83,7 +85,7 @@ Now, generate a proof with barretenberg:
 
 ```bash
 nargo execute witness
-bb prove -s ultra_honk --oracle_hash keccak -b target/hello.json -w target/witness.gz -o target/
+bb prove -t evm -b target/hello.json -w target/witness.gz -k target/vk -o target/
 ```
 
 This creates two files in the `target/` directory:
@@ -91,7 +93,11 @@ This creates two files in the `target/` directory:
 - `target/public_inputs` - the public inputs
 
 {% hint style="info" %}
-ZK mode is enabled by default. Use `--disable_zk` flag if you want to generate a non-ZK proof (not recommended for production).
+Garaga only verifies ZK proofs. Do not use the `*-no-zk` verifier targets.
+{% endhint %}
+
+{% hint style="info" %}
+Recursive proofs (circuits verifying other UltraHonk proofs in-circuit) are supported: the pairing points accumulated by the recursive verification and carried in the public inputs are checked by the Garaga verifier, as in the Barretenberg Solidity verifier.
 {% endhint %}
 
 ## Generating the calldata (`full_proof_with_hints` array)
@@ -206,19 +212,19 @@ Use `bb write_vk --help` and `bb prove --help` to see all available options.
 **Verification Key Generation:**
 
 ```bash
-bb write_vk -s ultra_honk --oracle_hash keccak -b target/hello.json -o target/vk
+bb write_vk -t evm -b target/hello.json -o target/
 ```
 
-**Proof Generation (ZK mode is default):**
+**Proof Generation (keccak transcript, ZK):**
 
 ```bash
-bb prove -s ultra_honk --oracle_hash keccak -b target/hello.json -w target/witness.gz -o target/
+bb prove -t evm -b target/hello.json -w target/witness.gz -k target/vk -o target/
 ```
 
 **Proof Verification (optional, for local testing):**
 
 ```bash
-bb verify -s ultra_honk --oracle_hash keccak -p target/proof -k target/vk -i target/public_inputs
+bb verify -t evm -p target/proof -k target/vk -i target/public_inputs
 ```
 
 ## Complete dApp Tutorial
