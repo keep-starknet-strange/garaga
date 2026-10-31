@@ -35,7 +35,7 @@ wasm-bindgen-test = "0.3"
 # 1. Not on wasm32 target AND
 # 2. "python" feature is enabled (e.g., when building with maturin)
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-pyo3 = { version = "0.28", features = ["extension-module", "num-bigint"], optional = true }
+pyo3 = { version = "0.29", features = ["extension-module", "num-bigint"], optional = true }
 
 # WASM bindings - only available when:
 # 1. On wasm32 target AND
@@ -45,14 +45,14 @@ wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
 
 [dependencies]
-getrandom = { version = "0.3.1", features = ["wasm_js"] }
+getrandom = { version = "0.4.3", features = ["wasm_js"] }
 num-bigint = "0.4"
 num-integer = "0.1"
 num-traits = "0.2"
-sha2 = "0.10"
+sha2 = "0.11"
 # Keep the accelerated Keccak backend previously enabled by lambdaworks-crypto.
 sha3 = { version = "0.10", features = ["asm"] }
-rand = "0.9.0"
+rand = "0.10.3"
 starknet-types-core = { version = "1.0", default-features = false, optional = true }
 lambdaworks-math = { git = "https://github.com/lambdaclass/lambdaworks.git", rev="be4a329", default-features = false, features = ["std"] }
 arbitrary = "1.0"

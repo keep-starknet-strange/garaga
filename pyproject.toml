@@ -13,7 +13,7 @@ dependencies = [
   "python-dotenv",
   "starknet-py==0.30.0",
   "requests",
-  "filelock",
+  "filelock>=4.2.1",
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
 readme = "docs/PYPI_README.md"

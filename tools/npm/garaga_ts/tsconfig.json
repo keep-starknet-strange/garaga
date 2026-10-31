@@ -2,6 +2,8 @@
   "compilerOptions": {
     "rootDir": "./",
     "target": "es2021",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "noEmit": true,
 
     "forceConsistentCasingInFileNames": true,
@@ -22,7 +24,7 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "types": ["jest", "node"],
+    "types": ["vitest/globals", "node"],
     "skipLibCheck": true, // Skipping type checks for external libraries
     "esModuleInterop": true
   },

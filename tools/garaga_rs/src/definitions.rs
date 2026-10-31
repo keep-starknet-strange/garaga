@@ -117,7 +117,7 @@ where
     FieldElement<F>: ByteConversion,
 {
     fn random() -> Self {
-        use rand::Rng;
+        use rand::RngExt;
         let mut rng = rand::rng();
         let bits = F::field_bit_size();
         let bytes = bits.div_ceil(8); // Round up to nearest byte

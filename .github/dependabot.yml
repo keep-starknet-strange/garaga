@@ -26,11 +26,6 @@ updates:
     open-pull-requests-limit: 3
     allow:
       - dependency-type: all
-    ignore:
-      # This enables the wasm_js backend for rand 0.9's getrandom 0.3.
-      # Move both together when rand supports a newer backend.
-      - dependency-name: getrandom
-        versions: [">=0.4"]
     groups:
       rust-patch-and-minor:
         patterns: ["*"]
@@ -44,11 +39,6 @@ updates:
     ignore:
       # This is the local package under test, packed by the WASM build.
       - dependency-name: garaga
-      # Babel 8 needs a coordinated Babel/Jest/Node migration.
-      - dependency-name: "@babel/preset-env"
-        update-types: [version-update:semver-major]
-      - dependency-name: "@babel/preset-typescript"
-        update-types: [version-update:semver-major]
       # These build tools need the legacy compiler API, absent from TS 7.
       - dependency-name: typescript
         versions: [">=7"]
@@ -65,10 +55,6 @@ updates:
     open-pull-requests-limit: 3
     ignore:
       - dependency-name: garaga
-      - dependency-name: "@babel/preset-env"
-        update-types: [version-update:semver-major]
-      - dependency-name: "@babel/preset-typescript"
-        update-types: [version-update:semver-major]
     groups:
       javascript-patch-and-minor:
         patterns: ["*"]
