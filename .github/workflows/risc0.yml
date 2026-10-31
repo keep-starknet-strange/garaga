@@ -47,4 +47,4 @@ jobs:
           cargo fmt --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --all --check
           cargo fmt --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/methods/guest/Cargo.toml --check
       - name: Build guest and test host
-        run: cargo test --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+        run: cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host

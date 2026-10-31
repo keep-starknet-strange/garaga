@@ -42,6 +42,19 @@ def test_sdk_and_default_verifier_use_same_release(manifest, section, dependency
     )
 
 
+@pytest.mark.parametrize("lockfile", ["Cargo.lock", "methods/guest/Cargo.lock"])
+def test_resolved_sdk_matches_the_canonical_release(lockfile):
+    lock = tomllib.loads((PROVER / lockfile).read_text())
+    resolved = next(
+        package["version"]
+        for package in lock["package"]
+        if package["name"] == "risc0-zkvm"
+    )
+    assert (
+        resolved == CONSTANTS["release_info"]["risc0_zkvm_version"]
+    ), "A prover lockfile resolves a different SDK. Update the dependencies and regenerate its proof."
+
+
 def test_default_python_parameters_match_the_release_manifest():
     assert runtime_constants.RISC0_CONTROL_ROOT == int(
         CONSTANTS["risc0"]["control_root"], 16

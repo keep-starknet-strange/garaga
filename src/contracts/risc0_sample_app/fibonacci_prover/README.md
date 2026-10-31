@@ -6,17 +6,21 @@ The journal contains `l`, `u`, and the Fibonacci number as little-endian `u32` v
 
 ## Build and run
 
+Guest compilation requires Docker with BuildKit.
+The build script pins the official guest-builder image by digest and uses the committed Cargo lockfiles.
+This keeps panic source paths and dependency versions identical locally and in CI.
+
 Run these commands from the repository root. Install [rzup](https://dev.risczero.com/api/zkvm/install) first.
 
 ```bash
 rzup install rust 1.97.0
 rzup install r0vm 3.0.6
-cargo test --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
-RISC0_PROVER=ipc cargo run --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+CARGO_TARGET_DIR=.cargo/risc0_sample/target cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+CARGO_TARGET_DIR=.cargo/risc0_sample/target RISC0_PROVER=ipc cargo run --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
 ```
 
 The host requests a Groth16 proof and verifies the receipt before it generates calldata.
-Groth16 proving requires the RISC Zero prover dependencies, including Docker for the Groth16 container.
+Groth16 proving also uses Docker for the Groth16 container.
 The output contains a proof JSON object followed by a JSON array of Starknet calldata.
 Garaga's default Python, Rust, and TypeScript parsers use the same verifier parameters.
 
@@ -28,18 +32,20 @@ The SDK tests verify their cryptographic compatibility.
 
 1. Update those values in `tools/make/constants.json`.
 2. Run `make constants` to update the three SDK manifests and the Python, Rust, and TypeScript constants.
-3. Run the host command above to generate a new proof.
-4. Save its proof JSON object as `src/contracts/risc0_sample_app/fibonacci_prover/proof.json`.
-5. Replace the shared `proof_risc0.json` example with a valid receipt for the new parameters.
-6. Run the following commands after `make setup`:
+3. Update the host and guest lockfiles with `cargo update --manifest-path <path/to/Cargo.toml>` in each workspace.
+4. Run the host command above to generate a new proof.
+5. Save its proof JSON object as `src/contracts/risc0_sample_app/fibonacci_prover/proof.json`.
+6. Replace the shared `proof_risc0.json` example with a valid receipt for the new parameters.
+7. Run the following commands after `make setup`:
 
 ```bash
+make maturin
 make rewrite
 make update-risc0-class-hash
 python tests/hydra/starknet/test_groth16_vk_proof_parsing.py --update-golden
 make wasm
 pytest tests/configuration/test_risc0_release.py
-cargo test --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+CARGO_TARGET_DIR=.cargo/risc0_sample/target cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
 (cd src/contracts/risc0_sample_app/fibonacci_sequencer && snforge test)
 ```
 
