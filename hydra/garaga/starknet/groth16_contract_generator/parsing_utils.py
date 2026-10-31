@@ -24,6 +24,7 @@ from garaga.starknet.constants import (
     RISC0_CONTROL_ROOT,
     SP1_VERIFIER_HASH,
     SP1_VERIFIER_VERSION,
+    SP1_VK_ROOT,
 )
 
 
@@ -501,10 +502,30 @@ class Groth16Proof:
         public_inputs: bytes,
         proof: bytes,
     ) -> "Groth16Proof":
+        if len(vkey) != 32:
+            raise ValueError("SP1 vkey must be 32 bytes")
+        if len(proof) != 356:
+            raise ValueError("SP1 v6 proof must be 356 bytes")
         _selector, proof = proof[:4], proof[4:]
-        assert (
-            _selector == SP1_VERIFIER_HASH[:4]
-        ), f"Invalid SP1 proof version. Expected {SP1_VERIFIER_HASH[:4]} for version {SP1_VERIFIER_VERSION}, got {_selector}\n Please use SP1 verifier version {SP1_VERIFIER_VERSION} or contact garaga developers to update the SP1 verifier version."
+        if _selector != SP1_VERIFIER_HASH[:4]:
+            raise ValueError(
+                f"Invalid SP1 proof version. Expected {SP1_VERIFIER_VERSION}"
+            )
+        exit_code, vk_root, nonce = (
+            int.from_bytes(proof[offset : offset + 32], "big") for offset in (0, 32, 64)
+        )
+        if exit_code != 0:
+            raise ValueError("SP1 exit code must be zero")
+        if vk_root != SP1_VK_ROOT:
+            raise ValueError("Invalid SP1 vk root")
+        if (
+            nonce >= CURVES[CurveID.BN254.value].n
+            or int.from_bytes(vkey, "big") >= CURVES[CurveID.BN254.value].n
+        ):
+            raise ValueError("SP1 public input is out of field")
+        if len(public_inputs) % 32:
+            raise ValueError("SP1 public inputs must be a multiple of 32 bytes")
+        proof = proof[96:]
         pub_input_hash: bytes = hashlib.sha256(public_inputs).digest()
         pub_input_hash: int = int.from_bytes(pub_input_hash, "big") % (
             2**253
@@ -532,7 +553,13 @@ class Groth16Proof:
                 y=int.from_bytes(proof[224:256], "big"),
                 curve_id=CurveID.BN254,
             ),
-            public_inputs=[int.from_bytes(vkey, "big"), pub_input_hash],
+            public_inputs=[
+                int.from_bytes(vkey, "big"),
+                pub_input_hash,
+                exit_code,
+                vk_root,
+                nonce,
+            ],
             public_inputs_sp1=public_inputs,
         )
 
@@ -563,6 +590,9 @@ class Groth16Proof:
             # SP1 mode.
             # Public inputs 0 is vkey
             cd.extend(io.bigint_split(self.public_inputs[0], 2, 2**128))
+            assert len(self.public_inputs) == 5, "SP1 v6 requires five public inputs"
+            for value in self.public_inputs[2:]:
+                cd.extend(io.bigint_split(value, 2, 2**128))
             # Public inputs 1 is sha256(public_inputs_sp1) % 2**253
             # We serialize pub_inputs_sp1 as u32 array for Cairo sha256.
             n_bytes = len(self.public_inputs_sp1)

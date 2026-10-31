@@ -1,0 +1,16 @@
+{
+  "verifier_source": {
+    "repository": "https://github.com/succinctlabs/sp1-contracts",
+    "revision": "d3629729c3216eb51bd4859d027a8eb729399fa4",
+    "path": "contracts/src/v6.1.0/Groth16Verifier.sol"
+  },
+  "fixture_source": {
+    "repository": "https://github.com/Arcora-labs/arcora-perp",
+    "revision": "bb166930ac88f65537adc48bee4ffaf09d629d62",
+    "path": "contracts/integration/fixtures/clock-pkg3-verified",
+    "producer_sdk_version": "6.1.0",
+    "proof_sha256": "28d6804949242eac9a44e0d90542674a4e3325c15fbac30f258215505e6084db",
+    "public_values_sha256": "c1a0fba57e708158aad9667fa00b3dc979322310e3925b9140eb1be05d27d454"
+  },
+  "license": "proof_sp1.LICENSE"
+}

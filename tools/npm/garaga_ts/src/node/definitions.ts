@@ -136,7 +136,7 @@ export const CURVES:  Record<CurveId, WeiertrassCurve | PairingCurve | TwistedEd
         cairoZeroNamespaceName: "bn254",
         curveId: CurveId.BN254,
         p: BigInt("0x30644E72E131A029B85045B68181585D97816A916871CA8D3C208C16D87CFD47"),
-        n: BigInt("0x44E992B44A6909F1"),
+        n: BigInt("0x30644E72E131A029B85045B68181585D2833E84879B9709143E1F593F0000001"),
         h: BigInt(1),
         irreduciblePolys: {
             6: [82, 0, 0, -18, 0, 0, 1],

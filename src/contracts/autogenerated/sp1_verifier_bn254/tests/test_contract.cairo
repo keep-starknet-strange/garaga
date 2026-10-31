@@ -90,3 +90,49 @@ fn test_verify_sp1_groth16_proof_bn254() {
 // assert(public_inputs.len() > 0, 'No public inputs');
 // Additional assertions on the public input values can be added here
 }
+
+fn altered_proof(index: usize, value: felt252) -> Array<felt252> {
+    let file = FileTrait::new("tests/proof_calldata.txt");
+    let original = read_txt(@file);
+    let mut changed = array![];
+    for i in 0..original.len() {
+        changed.append(if i == index {
+            value
+        } else {
+            *original.at(i)
+        });
+    }
+    changed
+}
+
+fn reject_header(index: usize, value: felt252, expected: felt252) {
+    let class_hash = declare_contract("SP1Groth16VerifierBN254");
+    let dispatcher = ISP1Groth16VerifierBN254LibraryDispatcher { class_hash };
+    let changed = altered_proof(index, value);
+    assert_eq!(dispatcher.verify_sp1_groth16_proof_bn254(changed.span()), Result::Err(expected));
+}
+
+#[test]
+fn test_reject_nonzero_exit_code() {
+    reject_header(34, 1, 'SP1 exit code must be zero');
+}
+
+#[test]
+fn test_reject_wrong_vk_root() {
+    reject_header(36, 1, 'Invalid SP1 vk root');
+}
+
+#[test]
+fn test_reject_noncanonical_nonce() {
+    reject_header(39, 0xffffffffffffffffffffffffffffffff, 'SP1 public input out of field');
+}
+
+#[test]
+#[should_panic]
+fn test_nonce_is_bound_to_the_proof() {
+    declare_contract("UniversalECIP");
+    let class_hash = declare_contract("SP1Groth16VerifierBN254");
+    let dispatcher = ISP1Groth16VerifierBN254LibraryDispatcher { class_hash };
+    let changed = altered_proof(38, 1);
+    dispatcher.verify_sp1_groth16_proof_bn254(changed.span()).unwrap();
+}

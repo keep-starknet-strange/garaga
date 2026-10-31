@@ -13,10 +13,13 @@ export const RISC0_BN254_CONTROL_ID = BigInt(
 );
 
 // SP1 Constants
-// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v5.0.0/SP1VerifierGroth16.sol
-export const SP1_VERIFIER_VERSION = "v5.0.0";
+// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v6.1.0/SP1VerifierGroth16.sol
+export const SP1_VERIFIER_VERSION = "v6.1.0";
+export const SP1_SDK_VERSION = "6.10.0";
+export const SP1_VK_ROOT =
+  0x002f850ee998974d6cc00e50cd0814b098c05bfade466d28573240d057f25352n;
 export const SP1_VERIFIER_HASH =
-  "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913";
+  "0x4388a21c687fdd5f218d7e3d13190cac4c5355818d3605fd5fb811df468ee696";
 
 // Additional RISC0 constants for internal use
 export const RISC0_SYSTEM_STATE_ZERO_DIGEST = new Uint8Array([
