@@ -372,7 +372,7 @@ where
 mod tests {
     use super::*;
     use num_traits::Num;
-    use rand::Rng;
+    use rand::RngExt;
     use std::str::FromStr;
 
     #[test]
@@ -400,7 +400,7 @@ mod tests {
 
     #[test]
     fn test_bls12_381() -> Result<(), String> {
-        use rand::Rng;
+        use rand::RngExt;
         let mut rng = rand::rng();
         for _ in 0..100 {
             let scalar = rng.random::<u128>().into();
@@ -423,7 +423,7 @@ mod tests {
 
     #[test]
     fn test_secp256k1() -> Result<(), String> {
-        use rand::Rng;
+        use rand::RngExt;
         let mut rng = rand::rng();
         for _ in 0..100 {
             let scalar = rng.random::<u128>().into();
