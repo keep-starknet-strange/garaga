@@ -1,6 +1,6 @@
 # RISC Zero 3 Fibonacci prover
 
-This example uses zkVM and build tools 3.0.6 with the RISC Zero 3 receipt seal format.
+This example uses zkVM and build tools 3.0.6 with the RISC Zero v3.0.1 verifier parameters.
 It proves that a private Fibonacci index belongs to the public interval `[l, u)`.
 The journal contains `l`, `u`, and the Fibonacci number as little-endian `u32` values.
 
@@ -12,53 +12,50 @@ Run these commands from the repository root. Install [rzup](https://dev.risczero
 rzup install rust 1.97.0
 rzup install r0vm 3.0.6
 cargo test --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
-cargo run --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+RISC0_PROVER=ipc cargo run --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
 ```
 
 The host requests a Groth16 proof and verifies the receipt before it generates calldata.
-Groth16 proving requires the RISC Zero prover dependencies, including Docker when the prover uses the Groth16 container.
+Groth16 proving requires the RISC Zero prover dependencies, including Docker for the Groth16 container.
 The output contains a proof JSON object followed by a JSON array of Starknet calldata.
-Use the host-generated calldata for this version.
-Garaga's default JSON proof parser still uses the existing RISC Zero 2 parameters.
+Garaga's default Python, Rust, and TypeScript parsers use the same verifier parameters.
 
-## Match the Cairo verifier
+## Update the SDK and verifier together
 
-RISC Zero 3 uses this control root:
+`tools/make/constants.json` defines the SDK version, verifier release, control root, and BN254 control ID.
+The SDK version and verifier release can have different patch versions.
+The SDK tests verify their cryptographic compatibility.
 
-```text
-0xa54dc85ac99f851c92d7c96d7318af41dbe7c0194edfcc37eb4d422a998c1f56
+1. Update those values in `tools/make/constants.json`.
+2. Run `make constants` to update the three SDK manifests and the Python, Rust, and TypeScript constants.
+3. Run the host command above to generate a new proof.
+4. Save its proof JSON object as `src/contracts/risc0_sample_app/fibonacci_prover/proof.json`.
+5. Replace the shared `proof_risc0.json` example with a valid receipt for the new parameters.
+6. Run the following commands after `make setup`:
+
+```bash
+make rewrite
+make update-risc0-class-hash
+python tests/hydra/starknet/test_groth16_vk_proof_parsing.py --update-golden
+make wasm
+pytest tests/configuration/test_risc0_release.py
+cargo test --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+(cd src/contracts/risc0_sample_app/fibonacci_sequencer && snforge test)
 ```
 
-The BN254 control ID and Groth16 verification key match the previous release.
-The host obtains both control parameters from `Groth16ReceiptVerifierParameters` in the installed SDK.
-It passes them to `Groth16Proof::from_risc0_with_parameters`.
-The default `Groth16Proof::from_risc0` method retains its RISC Zero 2 behavior.
+`make rewrite` regenerates the Cairo verifier and both stored calldata files.
+`make update-risc0-class-hash` compiles that verifier and updates the sequencer constant.
+`make wasm` rebuilds the committed bindings and integration package.
+Before deployment, declare the generated verifier and UniversalECIP classes on the target network.
 
-Generate a matching Cairo verifier from the repository root after `make setup`:
+## Automatic consistency tests
 
-```python
-from garaga.starknet.groth16_contract_generator.generator_risc0 import (
-    gen_risc0_groth16_verifier,
-)
+The Python suite verifies SDK versions, default parameters, the generated Cairo point `T`, both receipts, and both stored calldata files.
+It also compares Python and Rust calldata for both receipts.
+The shared calldata vectors test the default Rust and TypeScript/WASM implementations.
 
-gen_risc0_groth16_verifier(
-    vk_path="hydra/garaga/starknet/groth16_contract_generator/examples/vk_risc0.json",
-    output_folder_path="/tmp/garaga-risc0-v3",
-    output_folder_name="risc0_v3_verifier",
-    control_root=0xA54DC85AC99F851C92D7C96D7318AF41DBE7C0194EDFCC37EB4D422A998C1F56,
-)
-```
-
-The generated constants record the selected control root.
-Their release tag still describes Garaga's default RISC Zero release, rather than this explicit parameter override.
-
-Before you use the Fibonacci sequencer, declare the generated verifier on the target network.
-Set `RISC_ZERO_VERIFIER_CLASS_HASH` in the sequencer to its class hash, then deploy the sequencer.
-The checked-in sequencer class hash and `make update-risc0-class-hash` refer to the default RISC Zero 2 verifier.
-They cannot verify receipts from this updated prover.
-
-## Validation
-
-The RISC Zero CI workflow builds the guest and runs the host parameter test.
-The Rust library tests use the official RISC Zero 3 receipt fixture.
-They accept the v3 control root and reject the same receipt with the v2 control root.
+The RISC Zero CI job builds the guest and verifies both committed receipts with the installed SDK.
+It also compares the Fibonacci receipt image ID with the compiled guest image ID.
+The Cairo CI job declares the compiled verifier locally, verifies its class hash, and submits the Fibonacci proof through the sequencer.
+The devnet CI job also tests the verifier and sequencer as deployed contracts.
+These tests require no public RPC endpoint and no new proof generation during CI.

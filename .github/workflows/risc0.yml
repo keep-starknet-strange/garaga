@@ -6,6 +6,9 @@ on:
     paths:
       - 'src/contracts/risc0_sample_app/fibonacci_prover/**'
       - 'tools/garaga_rs/**'
+      - 'tools/make/constants.json'
+      - 'tools/make/generate_constants.py'
+      - 'hydra/garaga/starknet/groth16_contract_generator/examples/*risc0.json'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.cargo/config.toml'
@@ -14,6 +17,9 @@ on:
     paths:
       - 'src/contracts/risc0_sample_app/fibonacci_prover/**'
       - 'tools/garaga_rs/**'
+      - 'tools/make/constants.json'
+      - 'tools/make/generate_constants.py'
+      - 'hydra/garaga/starknet/groth16_contract_generator/examples/*risc0.json'
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.cargo/config.toml'

@@ -21,6 +21,7 @@ starknet-types = ["dep:starknet-types-core"]
 
 [dev-dependencies]
 hex = "0.4"
+serde_json = "1.0"
 #proptest = "1.6.0"
 #proptest-arbitrary-interop = "0.1"
 

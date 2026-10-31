@@ -10,7 +10,7 @@ pub trait IRisc0Groth16VerifierBN254<TContractState> {
 }
 
 #[starknet::contract]
-mod Risc0Groth16VerifierBN254 {
+pub mod Risc0Groth16VerifierBN254 {
     use garaga::apps::risc0::{
         compute_receipt_claim, deserialize_full_proof_with_hints_risc0, journal_sha256,
     };
