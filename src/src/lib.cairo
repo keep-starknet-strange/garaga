@@ -13,6 +13,7 @@ pub mod core {
 pub mod circuits {
     pub(crate) mod dummy;
     pub(crate) mod ec;
+    pub(crate) mod ed25519;
     pub(crate) mod extf_mul;
     pub(crate) mod isogeny;
     pub(crate) mod multi_pairing_check;
@@ -28,6 +29,7 @@ pub mod definitions;
 pub mod ec {
     pub mod ec_ops;
     pub mod ec_ops_g2;
+    pub mod ed25519;
     pub mod selectors;
     pub mod pairing {
         pub mod groth16;
@@ -71,6 +73,8 @@ mod tests {
     }
     #[cfg(test)]
     mod calldata_tests;
+    #[cfg(test)]
+    mod ed25519_subgroup_tests;
     #[cfg(test)]
     mod sha512_tests;
     #[cfg(test)]

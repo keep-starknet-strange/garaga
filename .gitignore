@@ -59,3 +59,6 @@ src/profile/
 !hydra/garaga/starknet/honk_contract_generator/examples/noir_calldata_test_vectors.json
 
 !tools/noir/formal/lake-manifest.json
+!tools/divide_and_pair/formal/lake-manifest.json
+!tools/divide_and_pair/formal/field-primality.json
+!docs/benchmarks/divide-and-pair/results.json
