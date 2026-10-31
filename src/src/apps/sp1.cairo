@@ -5,12 +5,15 @@ use garaga::pairing_check::MPCheckHintBN254;
 use garaga::utils::calldata::{
     Groth16ProofRaw, _deserialize_groth16_proof_points, _deserialize_mpcheck_hint_bn254,
 };
-use super::sp1_constants::{ic, precomputed_lines, vk};
+use super::sp1_constants::{SP1_VK_ROOT, ic, precomputed_lines, vk};
 
 #[derive(Drop)]
 pub struct FullProofWithHintsSP1 {
     pub groth16_proof: Groth16ProofRaw,
     pub vkey: u256,
+    pub exit_code: u256,
+    pub vk_root: u256,
+    pub nonce: u256,
     pub public_inputs_sp1: Array<u32>,
     pub mpcheck_hint: MPCheckHintBN254,
     pub msm_hint: Span<felt252>,
@@ -109,6 +112,9 @@ pub fn deserialize_full_proof_with_hints_sp1(
         low: (*serialized.pop_front().unwrap()).try_into().unwrap(),
         high: (*serialized.pop_front().unwrap()).try_into().unwrap(),
     };
+    let exit_code = Serde::<u256>::deserialize(ref serialized).unwrap();
+    let vk_root = Serde::<u256>::deserialize(ref serialized).unwrap();
+    let nonce = Serde::<u256>::deserialize(ref serialized).unwrap();
     let n_words: u32 = (*serialized.pop_front().unwrap()).try_into().unwrap();
     let mut public_inputs_sp1: Array<u32> = array![];
 
@@ -131,11 +137,30 @@ pub fn deserialize_full_proof_with_hints_sp1(
     return FullProofWithHintsSP1 {
         groth16_proof: groth16_proof_raw,
         vkey: vkey,
+        exit_code,
+        vk_root,
+        nonce,
         public_inputs_sp1: public_inputs_sp1,
         mpcheck_hint: mpcheck_hint,
         msm_hint: msm_hint,
     };
 }
+pub fn sp1_public_inputs(
+    vkey: u256, public_values_hash: u256, exit_code: u256, vk_root: u256, nonce: u256,
+) -> Result<Array<u256>, felt252> {
+    if exit_code != 0 {
+        return Result::Err('SP1 exit code must be zero');
+    }
+    if vk_root != SP1_VK_ROOT {
+        return Result::Err('Invalid SP1 vk root');
+    }
+    let order = garaga::definitions::get_n(0);
+    if vkey >= order || nonce >= order {
+        return Result::Err('SP1 public input out of field');
+    }
+    Result::Ok(array![vkey, public_values_hash, exit_code, vk_root, nonce])
+}
+
 pub fn verify_groth16_sp1(proof: FullProofWithHintsSP1) -> Result<Span<u256>, felt252> {
     let groth16_proof_raw = proof.groth16_proof;
     let vkey = proof.vkey;
@@ -148,7 +173,11 @@ pub fn verify_groth16_sp1(proof: FullProofWithHintsSP1) -> Result<Span<u256>, fe
         public_inputs_sp1,
     );
 
-    let proof_pub_input = array![vkey, pub_input_hash];
+    let proof_pub_input =
+        match sp1_public_inputs(vkey, pub_input_hash, proof.exit_code, proof.vk_root, proof.nonce) {
+        Result::Ok(inputs) => inputs,
+        Result::Err(error) => { return Result::Err(error); },
+    };
 
     let proof = Groth16Proof { raw: groth16_proof_raw, public_inputs: proof_pub_input.span() };
 

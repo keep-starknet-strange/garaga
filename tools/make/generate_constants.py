@@ -165,6 +165,10 @@ class PathConfig:
         return self.project_root / "tools" / "garaga_rs" / "Cargo.toml"
 
     @property
+    def sp1_verifier_cargo_path(self) -> Path:
+        return self.project_root / "tools/sp1_verifier/Cargo.toml"
+
+    @property
     def risc0_host_cargo_path(self) -> Path:
         return (
             self.project_root
@@ -218,6 +222,17 @@ class PathConfig:
 
 # File path to update config mappings
 VERSION_UPDATES = [
+    (
+        "SP1 SDK verifier",
+        "sp1_verifier_cargo_path",
+        UpdateConfig(
+            name="SP1 SDK verifier",
+            pattern=r'(sp1-verifier\s*=\s*\{\s*version\s*=\s*")[^"]+("\s*[,}])',
+            replacement=r"\g<1>={version}\g<2>",
+            description="SP1 SDK verifier version",
+            version_key="sp1_sdk_version",
+        ),
+    ),
     *[
         (
             name,
@@ -486,6 +501,8 @@ def generate_unified_constants(
         lines.extend(
             [
                 f'SP1_VERIFIER_VERSION = "{sp1_info["verifier_version"]}"',
+                f'SP1_SDK_VERSION = "{sp1_info["sdk_version"]}"',
+                f'SP1_VK_ROOT = {sp1_info["vk_root"]}',
                 f'SP1_VERIFIER_HASH = bytes.fromhex("{sp1_info["verifier_hash"][2:]}")',
             ]
         )
@@ -493,6 +510,8 @@ def generate_unified_constants(
         lines.extend(
             [
                 f'export const SP1_VERIFIER_VERSION = "{sp1_info["verifier_version"]}";',
+                f'export const SP1_SDK_VERSION = "{sp1_info["sdk_version"]}";',
+                f'export const SP1_VK_ROOT = {sp1_info["vk_root"]}n;',
                 f'export const SP1_VERIFIER_HASH = "{sp1_info["verifier_hash"]}";',
             ]
         )
@@ -500,6 +519,8 @@ def generate_unified_constants(
         lines.extend(
             [
                 f'pub const SP1_VERIFIER_VERSION: &str = "{sp1_info["verifier_version"]}";',
+                f'pub const SP1_SDK_VERSION: &str = "{sp1_info["sdk_version"]}";',
+                f'pub const SP1_VK_ROOT: [u8; 32] = {list(bytes.fromhex(sp1_info["vk_root"][2:]))};',
                 f'pub const SP1_VERIFIER_HASH: &str = "{sp1_info["verifier_hash"]}";',
             ]
         )
@@ -732,6 +753,8 @@ def update_all_versions(
                 version = constants["noir"]["nargo_version"]
             elif config.version_key == "bb_version":
                 version = constants["noir"]["bb_version"]
+            elif config.version_key == "sp1_sdk_version":
+                version = constants["sp1"]["sdk_version"]
             else:
                 version = constants["release_info"][config.version_key]
 
