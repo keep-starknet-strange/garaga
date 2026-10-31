@@ -239,7 +239,7 @@ pub fn get_eta_challenges<T, impl Hasher: IHasher<T>, impl Drop: Drop<T>>(
 }
 
 // Return beta, gamma, and last hasher output.
-// Outut :
+// Output :
 // ch_be.
 // beta = ch_be.low, gamma = ch_be.high, last_hasher_output = ch_be.
 #[inline]
