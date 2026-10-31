@@ -1,0 +1,88 @@
+[
+  {
+    "variant": "after-initial",
+    "steps": 1075193,
+    "sierra_gas": 192587244,
+    "casm_felts": 87243,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-shared",
+    "steps": 1082246,
+    "sierra_gas": 193674104,
+    "casm_felts": 67321,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-static-filter",
+    "steps": 1072746,
+    "sierra_gas": 192630764,
+    "casm_felts": 66771,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-pruned-specialization",
+    "steps": 1072534,
+    "sierra_gas": 192408936,
+    "casm_felts": 66221,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-compact",
+    "steps": 1068406,
+    "sierra_gas": 191988356,
+    "casm_felts": 65780,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-u256-wrapper",
+    "steps": 1077264,
+    "sierra_gas": 192982516,
+    "casm_felts": 65848,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-shared-add",
+    "steps": 1069735,
+    "sierra_gas": 192142716,
+    "casm_felts": 65780,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "variant": "after-default-inlining",
+    "steps": 580803,
+    "sierra_gas": 131835846,
+    "casm_felts": 70431,
+    "proof_sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+  },
+  {
+    "inlining_strategy": 10,
+    "sierra_gas": 175312596,
+    "casm_felts": 64396
+  },
+  {
+    "inlining_strategy": 50,
+    "sierra_gas": 141418616,
+    "casm_felts": 64379
+  },
+  {
+    "inlining_strategy": 200,
+    "sierra_gas": 131311606,
+    "casm_felts": 71837
+  },
+  {
+    "inlining_strategy": 25,
+    "sierra_gas": 166183546,
+    "casm_felts": 66806
+  },
+  {
+    "inlining_strategy": 75,
+    "sierra_gas": 133101006,
+    "casm_felts": 67594
+  },
+  {
+    "inlining_strategy": 100,
+    "sierra_gas": 132756926,
+    "casm_felts": 68059
+  }
+]

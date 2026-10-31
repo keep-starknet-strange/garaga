@@ -3,6 +3,10 @@ use garaga::hashes::poseidon_hash_2_bn254;
 use mutator_set::mutator_set_contract::{
     IMutatorSetContractDispatcher, IMutatorSetContractDispatcherTrait,
 };
+use mutator_set::zk_verifier::honk_verifier_contract::{
+    IUltraKeccakZKHonkVerifierDispatcherTrait, IUltraKeccakZKHonkVerifierLibraryDispatcher,
+};
+use snforge_std::fs::{FileTrait, read_txt};
 // use mutator_set::IMutatorSetContractSafeDispatcher;
 
 use snforge_std::{ContractClassTrait, DeclareResultTrait, declare};
@@ -134,3 +138,38 @@ fn test_append_leaf_aocl() {
 //         },
 //     };
 // }
+
+fn current_noir_proof() -> Array<felt252> {
+    read_txt(@FileTrait::new("tests/proof_calldata.txt"))
+}
+
+#[test]
+fn test_current_noir_verifier_and_class_hash() {
+    let verifier = declare("UltraKeccakZKHonkVerifier").unwrap().contract_class();
+    let class_hash = *verifier.class_hash;
+    assert_eq!(class_hash.into(), mutator_set::VERIFIER_CLASS_HASH);
+    declare("UniversalECIP").unwrap();
+    let dispatcher = IUltraKeccakZKHonkVerifierLibraryDispatcher { class_hash };
+    let outputs = dispatcher
+        .verify_ultra_keccak_zk_honk_proof(current_noir_proof().span())
+        .unwrap();
+    assert_eq!(
+        outputs,
+        array![0x1ba30aaf15c7694786a1f118ca39fcc6c997b48da9dfa62e9ec3e83ac7d6304d, 5, 2].span()
+    );
+}
+
+#[test]
+fn test_inclusion_proof_is_bound_to_current_mmr_state() {
+    declare("UniversalECIP").unwrap();
+    declare("UltraKeccakZKHonkVerifier").unwrap();
+    let dispatcher = IMutatorSetContractDispatcher {
+        contract_address: deploy_contract("MutatorSetContract"),
+    };
+    for _ in 0_usize..4_usize {
+        dispatcher.append_leaf_aocl(0);
+    }
+    assert!(dispatcher.verify_inclusion_proof_aocl(current_noir_proof().span()));
+    dispatcher.append_leaf_aocl(0);
+    assert!(!dispatcher.verify_inclusion_proof_aocl(current_noir_proof().span()));
+}

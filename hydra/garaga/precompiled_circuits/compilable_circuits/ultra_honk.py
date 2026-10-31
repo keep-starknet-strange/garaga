@@ -175,6 +175,9 @@ class ZKBaseUltraHonkCircuit(BaseUltraHonkCircuit):
             name=self.name,
             log_n=self.log_n,
             curve_id=self.curve_id,
+            zero_commitments=(
+                self.vk.zero_commitment_indexes() if hasattr(self, "vk") else ()
+            ),
         )
 
 
@@ -223,18 +226,17 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
         imap["libra_evaluation"] = structs.u384
 
         imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
+            structs.u256Span,
             self.vk.log_circuit_size,
         )
-        imap["tp_gate_challenge"] = structs.u128
+        imap["tp_gate_challenge"] = structs.u256
 
         imap["tp_eta_1"] = structs.u384
-        imap["tp_eta_2"] = structs.u384
-        imap["tp_eta_3"] = structs.u384
+        imap["tp_rom_logup_gamma"] = structs.u384
         imap["tp_beta"] = structs.u384
         imap["tp_gamma"] = structs.u384
         imap["tp_base_rlc"] = structs.u384
-        imap["tp_alpha"] = structs.u128
+        imap["tp_alpha"] = structs.u256
         imap["tp_libra_challenge"] = structs.u384
         return imap
 
@@ -265,6 +267,8 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
 
         assert len(vars["sumcheck_evaluations"]) == len(Wire)
 
+        eta_two = circuit.square(vars["tp_eta_1"])
+        eta_three = circuit.mul(eta_two, vars["tp_eta_1"])
         check_rlc, check = circuit.verify_sum_check(
             vars["libra_sum"],
             sumcheck_univariates,
@@ -274,8 +278,9 @@ class ZKSumCheckCircuit(ZKBaseUltraHonkCircuit):
             vars["tp_gamma"],
             tp_delta,
             vars["tp_eta_1"],
-            vars["tp_eta_2"],
-            vars["tp_eta_3"],
+            eta_two,
+            eta_three,
+            vars["tp_rom_logup_gamma"],
             vars["tp_libra_challenge"],
             vars["tp_sum_check_u_challenges"],
             vars["tp_gate_challenge"],
@@ -320,7 +325,7 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         imap["tp_shplonk_z"] = structs.u384
         imap["tp_shplonk_nu"] = structs.u384
         imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
+            structs.u256Span,
             self.vk.log_circuit_size,
         )
 
@@ -347,6 +352,12 @@ class ZKPrepareScalarsCircuit(ZKBaseUltraHonkCircuit):
         scalars_filtered_no_nones = filter_msm_scalars(
             scalars, self.vk.log_circuit_size
         )
+        omitted = {index + 2 for index in self.vk.zero_commitment_indexes()}
+        scalars_filtered_no_nones = [
+            scalar
+            for index, scalar in enumerate(scalars_filtered_no_nones, start=1)
+            if index not in omitted
+        ]
         # Remove shplonk_z (last scalar) (included in transcript)
         scalars_filtered_no_nones = scalars_filtered_no_nones[:-1]
         self.msm_len = len(scalars_filtered_no_nones) + 1
@@ -391,7 +402,7 @@ class ZKEvalsConsistencyCircuit(ZKBaseUltraHonkCircuit):
         imap["p_libra_poly_evals"] = (structs.u256Span, 4)
         imap["tp_gemini_r"] = structs.u384
         imap["tp_sum_check_u_challenges"] = (
-            structs.u128Span,
+            structs.u256Span,
             hk.CONST_PROOF_SIZE_LOG_N,
         )
 

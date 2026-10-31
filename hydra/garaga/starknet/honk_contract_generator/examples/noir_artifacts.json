@@ -1,0 +1,119 @@
+{
+  "toolchain": {
+    "bb_version": "6.0.0",
+    "bb_source_revision": "0219f11d8133970df3974fe5ae65e006bf8c193a",
+    "nargo_version": "1.0.0",
+    "noir_source_revision": "275d3ab1a5c916c6ea73e8d6b943f685f574500c",
+    "flavor": "ultra_keccak_zk",
+    "verifier_target": "evm"
+  },
+  "cases": {
+    "hello": {
+      "source_sha256": {
+        "tools/noir/hello/Nargo.toml": "8fdf01a195db923548c8456f288c5325f247a0df5701ee52d9db0ec99c8a3968",
+        "tools/noir/hello/Prover.toml": "39467666e57cb4c01d0b11a4437caebfee94915921200893744bdddd8bc6990d",
+        "tools/noir/hello/src/main.nr": "af0edc735163acbefbfd53c3b28df2e22365c90542b20166041448a7a6eb4adc"
+      },
+      "acir_sha256": "f68f70c7911ef934b07ab8bc47dbd2ca1b26e2ebd139f6ee968956167cbd0f0b",
+      "files": {
+        "proof": {
+          "path": "proof_ultra_keccak_zk.bin",
+          "sha256": "0337b1b9eb1aa3ad453cabdb7dd356a9625ff79e43a69eb8024991f057bb9e3f"
+        },
+        "vk": {
+          "path": "vk_ultra_keccak.bin",
+          "sha256": "d46d8978b63f8a74457e7f211b44b4450ad9a7a6c53b2b5f70e851a4a6c1817f"
+        },
+        "vk_hash": {
+          "path": "vk_hash_ultra_keccak.bin",
+          "sha256": "aa77f65715081b4e5a29304d21c9c29aa398aaa58d78c8fde6153985395dca76"
+        },
+        "public_inputs": {
+          "path": "public_inputs_ultra_keccak.bin",
+          "sha256": "9267d3dbed802941483f1afa2a6bc68de5f653128aca9bf1461c5d0a3ad36ed2"
+        }
+      }
+    },
+    "memory": {
+      "source_sha256": {
+        "tools/noir/memory/Nargo.toml": "4b82f28ce0858a67fcd72d4fa2192278f962ad3c9e9aa47a184bd25a4033b8aa",
+        "tools/noir/memory/Prover.toml": "66bca4876838984ddfaad5141f735c8e2578bc08a44ba7551e46e5bcd9b99214",
+        "tools/noir/memory/src/main.nr": "c6bd66f175f385b0d0aa07ff92ce9654cadcca8ac2ed95860500da38857baa8a"
+      },
+      "acir_sha256": "b275f5d1e7de21115caf24435269f9f6c92a2781706b0e2127d0e6d508ebe932",
+      "files": {
+        "proof": {
+          "path": "memory/proof.bin",
+          "sha256": "ae56fe75d8df9f2683d9b3d96a2254cafa4ce7a988b908954468a2766f231ac5"
+        },
+        "vk": {
+          "path": "memory/vk.bin",
+          "sha256": "22aad09e5adf0551ba80eeebb8a68b424ce86e87982e1e13bb8c04774fd80faf"
+        },
+        "vk_hash": {
+          "path": "memory/vk_hash.bin",
+          "sha256": "f79dc1bdb305967f9fa5370f3fcde01141e43781e835aae6c5f47795f18f70da"
+        },
+        "public_inputs": {
+          "path": "memory/public_inputs.bin",
+          "sha256": "3344e7bdb7884439459823d4ebac1c517d06f5f37cb8c932eb1dfd1682d305d1"
+        }
+      }
+    },
+    "recursive": {
+      "source_sha256": {
+        "tools/noir/recursive/Nargo.toml": "4ef5b2d9758edb978b714071e75147fd1637802c7fab60da05b434773a874fed",
+        "tools/noir/recursive/Prover.toml": "52e4b3e37fd5d4c65f9ae3810bb51f8046d740e8e1393dae087cd26c96316f62",
+        "tools/noir/recursive/src/inner_key.nr": "3921c558b4c5a8c9b1cafbdfd10242abe9de586dd33bf32d01c8f7f8398152ec",
+        "tools/noir/recursive/src/main.nr": "1ab501c40346758559ba51025ba1182f46e845d5c484158204f412f802c65d55"
+      },
+      "acir_sha256": "321fa6f3a7030ff075459a1093bff216afc1867eac2d983a063b95f45648fc39",
+      "files": {
+        "proof": {
+          "path": "recursive/proof.bin",
+          "sha256": "689230ecb9711bec05576480c3c093c483a84d9a979c3d0962194077bb88db75"
+        },
+        "vk": {
+          "path": "recursive/vk.bin",
+          "sha256": "26349fea23eb7768f407670df67e79f13d719095bcecb3706c563caacb47951d"
+        },
+        "vk_hash": {
+          "path": "recursive/vk_hash.bin",
+          "sha256": "6c98377e71d8dd5907c717f99bdcb41d027bfc95941b42bdf30778120cd486ad"
+        },
+        "public_inputs": {
+          "path": "recursive/public_inputs.bin",
+          "sha256": "9267d3dbed802941483f1afa2a6bc68de5f653128aca9bf1461c5d0a3ad36ed2"
+        }
+      }
+    },
+    "mutator_set": {
+      "source_sha256": {
+        "src/contracts/mutator_set/zk_program/Nargo.toml": "679c677d60e6f446b2298724704fd25fecc326beecbf33f8089d5e85a9b03652",
+        "src/contracts/mutator_set/zk_program/Prover.toml": "e12f673852a9e60420c44618e98a2cb7d50646ca634b383201068da3041a9736",
+        "src/contracts/mutator_set/zk_program/src/main.nr": "3b9c33171351aca672481861a9210200c3f2627dd33f3f17d9e9f80ab0d9e39b",
+        "src/contracts/mutator_set/zk_program/src/mmr.nr": "0fbcd2dda2fad4df911a1e61f08da07f90835ea01e9da003c320ffbccfe61ec6",
+        "src/contracts/mutator_set/zk_program/src/mmr_tests.nr": "3ca25bea6bc595caa9228132115c75e3d4ba15aadac0c4d9ce60ae6f5a624e52"
+      },
+      "acir_sha256": "76f745f415b3ed7b3dc4f528fc3447fff6584d506dfe45b5bae3788165bd1cbf",
+      "files": {
+        "proof": {
+          "path": "mutator_set/proof.bin",
+          "sha256": "ce341a3ff5d807f2cb6238d3379d9265aa66775ea1206b290163e7829abc48c3"
+        },
+        "vk": {
+          "path": "mutator_set/vk.bin",
+          "sha256": "07b9940d010c10be31114bac7c460b4c7541e25a4051c00014ba87755ffd37f8"
+        },
+        "vk_hash": {
+          "path": "mutator_set/vk_hash.bin",
+          "sha256": "5d6799a209806b342564b2d23dd48a20c8a951c528c2ac10c3163f39f3321443"
+        },
+        "public_inputs": {
+          "path": "mutator_set/public_inputs.bin",
+          "sha256": "d437be64fd04cc426363354a58720c6e87f00d21cdaaa0a93e3814e893483654"
+        }
+      }
+    }
+  }
+}
