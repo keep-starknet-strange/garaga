@@ -1,7 +1,7 @@
 import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from "../../definitions";
 import * as fs from 'fs';
 import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
-import { createHash } from 'crypto';
+import { sha256 } from '@noble/hashes/sha2.js';
 import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION } from "../../../constants";
 
 
@@ -295,7 +295,7 @@ export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Arra
 
 
 
-    const journal_digest = createHash("sha256").update(journalBytes).digest();
+    const journal_digest = sha256(journalBytes);
 
     const claimDigest = digestReceiptClaim(ok(imageId, journal_digest));
 
@@ -425,7 +425,7 @@ const digestReceiptClaim = (receipt: ReceiptClaim): Uint8Array => {
         twoBytes
     );
 
-    return createHash('sha256').update(data).digest();
+    return sha256(data);
 }
 
 function ok(imageId: Uint8Array, journalDigest: Uint8Array): ReceiptClaim {
@@ -436,7 +436,7 @@ function ok(imageId: Uint8Array, journalDigest: Uint8Array): ReceiptClaim {
     };
 
     return {
-        tagDigest: createHash('sha256').update(stringToBytes("risc0.ReceiptClaim")).digest(),
+        tagDigest: sha256(stringToBytes("risc0.ReceiptClaim")),
         preStateDigest: imageId,
         postStateDigest: RISC0_SYSTEM_STATE_ZERO_DIGEST,
         exitCode,
@@ -449,7 +449,7 @@ function ok(imageId: Uint8Array, journalDigest: Uint8Array): ReceiptClaim {
 const digestOutput = (output: Output): Uint8Array => {
     const { journalDigest, assumptionsDigest } = output;
 
-    const tagDigest = createHash('sha256').update(stringToBytes("risc0.Output")).digest();
+    const tagDigest = sha256(stringToBytes("risc0.Output"));
     const twoBytes = uint16ToBE(512);
 
     const combined = concatBytes(
@@ -459,7 +459,7 @@ const digestOutput = (output: Output): Uint8Array => {
         twoBytes
     );
 
-    return createHash('sha256').update(combined).digest();
+    return sha256(combined);
 }
 
 const reverseByteOrderUint256 = (value: bigint | Uint8Array): bigint => {
@@ -718,7 +718,7 @@ export const createGroth16ProofFromSp1 = (vkey: Uint8Array, publicValues: Uint8A
     }
 
     // Hash public values and take mod 2^253
-    const pubInputHash = createHash("sha256").update(publicValues).digest();
+    const pubInputHash = sha256(publicValues);
     const power253 = 1n << 253n; // 2^253 using bit shift
     const pubInputHashBigInt = toBigInt(pubInputHash) % power253;
 
