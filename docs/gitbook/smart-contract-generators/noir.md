@@ -275,3 +275,6 @@ Follow the [Scaffold‑Garaga repository](https://github.com/m-kus/scaffold-gara
 ---
 
 Need [support.md](../support.md "mention") ?
+
+The [Lean package](../../../tools/noir/formal/README.md) proves the relation identities and conditional RLC guarantees.
+Its scope document lists the remaining obligations for complete verifier equivalence.

@@ -57,3 +57,5 @@ src/profile/
 .claude/worktrees/
 
 !hydra/garaga/starknet/honk_contract_generator/examples/noir_calldata_test_vectors.json
+
+!tools/noir/formal/lake-manifest.json

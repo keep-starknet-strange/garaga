@@ -4,6 +4,8 @@ The new verifier reduces Sierra gas by 36.01% and steps by 46.86% on the stored 
 The final bytecode is 64,379 felts, compared with 63,663 on `main` (+1.12%).
 The first v6 implementation exceeded the bytecode limit at 87,243 felts.
 
+The [before/after explanation](BEFORE_AFTER.md) attributes the step reductions and gives the mathematical equations.
+
 ## Measurement scope
 
 - Steps: 1,220,719 → 648,642 (-46.86%).

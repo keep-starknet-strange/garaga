@@ -12,6 +12,9 @@ permissions:
 jobs:
   verify:
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      MATHLIB_NO_CACHE_ON_UPDATE: "1"
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
@@ -27,3 +30,9 @@ jobs:
           version: v1.8.7
       - name: Verify stored receipts with the upstream Solidity verifiers
         run: forge test --root tools/noir -vv
+      - name: Check the Solidity models against the SDK-generated source AST
+        run: uv run --no-project --python 3.11 tools/noir/formal/generate.py --side solidity --check
+      - name: Install the checksum-pinned Lean SDK
+        run: uv run --no-project --python 3.11 tools/noir/formal/install.py "$RUNNER_TEMP/lean-sdk" >> "$GITHUB_PATH"
+      - name: Check Lean proofs and audit theorem dependencies
+        run: tools/noir/formal/check.sh

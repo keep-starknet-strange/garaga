@@ -12,6 +12,7 @@ run_generators() {
     python hydra/garaga/starknet/groth16_contract_generator/generator.py
     python hydra/garaga/starknet/groth16_contract_generator/generator_risc0.py
     python hydra/garaga/starknet/groth16_contract_generator/generator_sp1.py
+    python tools/noir/formal/generate.py --side cairo
     python src/contracts/mutator_set/scripts/regenerate_verifier.py
 }
 
