@@ -2,6 +2,11 @@ import os
 from textwrap import dedent
 
 from garaga.curves import ProofSystem
+from garaga.starknet.constants import (
+    SP1_VERIFIER_HASH,
+    SP1_VERIFIER_VERSION,
+    SP1_VK_ROOT,
+)
 from garaga.starknet.groth16_contract_generator.generator import (
     ECIP_OPS_CLASS_HASH,
     precompute_lines_from_vk,
@@ -34,6 +39,8 @@ def gen_sp1_groth16_verifier(
             use garaga::groth16::Groth16VerifyingKey;
 
             pub const N_PUBLIC_INPUTS: usize = {len(vk.ic) - 1};
+            // Circuit {SP1_VERIFIER_VERSION}, verifier hash {SP1_VERIFIER_HASH.hex()}.
+            pub const SP1_VK_ROOT: u256 = {hex(SP1_VK_ROOT)};
             {vk.serialize_to_cairo()}
             pub const precomputed_lines: [G2Line<u288>; {len(precomputed_lines) // 4}] = {precomputed_lines.serialize(raw=True, const=True)};
             """).strip() + "\n"
@@ -61,7 +68,7 @@ def gen_sp1_groth16_verifier(
                 use garaga::definitions::{{G1Point, G1G2Pair}};
                 use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
                 use garaga::ec_ops::{{G1PointTrait, ec_safe_add}};
-                use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1}};
+                use garaga::apps::sp1::{{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1, sp1_public_inputs}};
                 use garaga::apps::sp1_constants::{{vk, ic, precomputed_lines, N_PUBLIC_INPUTS}};
 
                 const ECIP_OPS_CLASS_HASH: felt252 = {hex(ecip_class_hash)};
@@ -92,6 +99,10 @@ def gen_sp1_groth16_verifier(
 
                     let public_inputs_u32 = public_inputs_sp1.span();
                     let (pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(public_inputs_sp1);
+                    let proof_pub_inputs = match sp1_public_inputs(vkey, pub_input_hash, fph.exit_code, fph.vk_root, fph.nonce) {{
+                        Result::Ok(inputs) => inputs,
+                        Result::Err(error) => {{ return Result::Err(error); }},
+                    }};
 
                     let vk_x: G1Point = match ic.len() {{
                         0 => panic!("Malformed VK"),
@@ -101,9 +112,7 @@ def gen_sp1_groth16_verifier(
                             // Add the points from VK and public inputs to the proof.
                             Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
                             // Serialize public inputs as u256 array.
-                            Serde::serialize(@N_PUBLIC_INPUTS, ref msm_calldata);
-                            Serde::serialize(@vkey, ref msm_calldata);
-                            Serde::serialize(@pub_input_hash, ref msm_calldata);
+                            Serde::serialize(@proof_pub_inputs, ref msm_calldata);
                             // Complete with the curve indentifier ({curve_id.value} for {curve_id.name}):
                             msm_calldata.append({curve_id.value});
                             // Add the hint array.
@@ -177,6 +186,49 @@ def gen_sp1_groth16_verifier(
         cli_mode,
         modules=["groth16_verifier"],
         constants_output_path=os.path.join("src", "src", "apps", "sp1_constants.cairo"),
+        extra_test_code=f"""
+fn altered_proof(index: usize, value: felt252) -> Array<felt252> {{
+    let file = FileTrait::new("tests/proof_calldata.txt");
+    let original = read_txt(@file);
+    let mut changed = array![];
+    for i in 0..original.len() {{
+        changed.append(if i == index {{ value }} else {{ *original.at(i) }});
+    }}
+    changed
+}}
+
+fn reject_header(index: usize, value: felt252, expected: felt252) {{
+    let class_hash = declare_contract("{contract_cairo_name}");
+    let dispatcher = I{contract_cairo_name}LibraryDispatcher {{ class_hash }};
+    let changed = altered_proof(index, value);
+    assert_eq!(dispatcher.{verification_function_name}(changed.span()), Result::Err(expected));
+}}
+
+#[test]
+fn test_reject_nonzero_exit_code() {{
+    reject_header(34, 1, 'SP1 exit code must be zero');
+}}
+
+#[test]
+fn test_reject_wrong_vk_root() {{
+    reject_header(36, 1, 'Invalid SP1 vk root');
+}}
+
+#[test]
+fn test_reject_noncanonical_nonce() {{
+    reject_header(39, 0xffffffffffffffffffffffffffffffff, 'SP1 public input out of field');
+}}
+
+#[test]
+#[should_panic]
+fn test_nonce_is_bound_to_the_proof() {{
+    declare_contract("UniversalECIP");
+    let class_hash = declare_contract("{contract_cairo_name}");
+    let dispatcher = I{contract_cairo_name}LibraryDispatcher {{ class_hash }};
+    let changed = altered_proof(38, 1);
+    dispatcher.{verification_function_name}(changed.span()).unwrap();
+}}
+""",
     )
 
     return constants_code
@@ -212,6 +264,12 @@ if __name__ == "__main__":
         write_test_calldata_file_generic(
             output_folder_path,
             system=ProofSystem.Groth16,  # SP1 uses Groth16
+            vk_path=SP1_VK_PATH,
+            proof_path=PROOF_PATH,
+        )
+        write_test_calldata_file_generic(
+            "src/src",
+            system=ProofSystem.Groth16,
             vk_path=SP1_VK_PATH,
             proof_path=PROOF_PATH,
         )

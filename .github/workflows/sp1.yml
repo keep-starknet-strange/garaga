@@ -1,0 +1,24 @@
+name: SP1 compatibility
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-sp1-compatibility:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.cargo/sp1_verifier/target
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Check reference test formatting
+        run: cargo fmt --manifest-path tools/sp1_verifier/Cargo.toml --all --check
+      - name: Verify committed receipt with the official SDK and Garaga
+        run: cargo test --locked --manifest-path tools/sp1_verifier/Cargo.toml

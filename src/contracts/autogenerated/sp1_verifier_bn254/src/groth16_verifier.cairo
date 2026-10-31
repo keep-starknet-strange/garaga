@@ -11,7 +11,9 @@ pub trait ISP1Groth16VerifierBN254<TContractState> {
 
 #[starknet::contract]
 mod SP1Groth16VerifierBN254 {
-    use garaga::apps::sp1::{deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1};
+    use garaga::apps::sp1::{
+        deserialize_full_proof_with_hints_sp1, process_public_inputs_sp1, sp1_public_inputs,
+    };
     use garaga::apps::sp1_constants::{N_PUBLIC_INPUTS, ic, precomputed_lines, vk};
     use garaga::definitions::{G1G2Pair, G1Point};
     use garaga::ec_ops::{G1PointTrait, ec_safe_add};
@@ -53,6 +55,11 @@ mod SP1Groth16VerifierBN254 {
         let (pub_inputs_256, pub_input_hash): (Span<u256>, u256) = process_public_inputs_sp1(
             public_inputs_sp1,
         );
+        let proof_pub_inputs =
+            match sp1_public_inputs(vkey, pub_input_hash, fph.exit_code, fph.vk_root, fph.nonce) {
+            Result::Ok(inputs) => inputs,
+            Result::Err(error) => { return Result::Err(error); },
+        };
 
         let vk_x: G1Point = match ic.len() {
             0 => panic!("Malformed VK"),
@@ -62,9 +69,7 @@ mod SP1Groth16VerifierBN254 {
                 // Add the points from VK and public inputs to the proof.
                 Serde::serialize(@ic.slice(1, N_PUBLIC_INPUTS), ref msm_calldata);
                 // Serialize public inputs as u256 array.
-                Serde::serialize(@N_PUBLIC_INPUTS, ref msm_calldata);
-                Serde::serialize(@vkey, ref msm_calldata);
-                Serde::serialize(@pub_input_hash, ref msm_calldata);
+                Serde::serialize(@proof_pub_inputs, ref msm_calldata);
                 // Complete with the curve indentifier (0 for BN254):
                 msm_calldata.append(0);
                 // Add the hint array.

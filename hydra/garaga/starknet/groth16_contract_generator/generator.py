@@ -255,6 +255,7 @@ def write_verifier_files(
     circuits_filename: str | None = None,
     include_test_sample: bool = True,
     constants_output_path: str | None = None,
+    extra_test_code: str = "",
 ) -> None:
     """Write all the standard verifier files (directories, constants, contract, scarb.toml, lib.cairo, test files)."""
 
@@ -317,6 +318,7 @@ def write_verifier_files(
                     verification_function_name,
                     package_name,
                 )
+                + extra_test_code
             )
     subprocess.run(["scarb", "fmt", "."], cwd=output_folder_path, check=True)
 

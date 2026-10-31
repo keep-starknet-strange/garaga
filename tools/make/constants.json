@@ -7,8 +7,10 @@
         "output_tag": "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4"
     },
     "sp1": {
-        "verifier_version": "v5.0.0",
-        "verifier_hash": "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913"
+        "sdk_version": "6.10.0",
+        "verifier_version": "v6.1.0",
+        "verifier_hash": "0x4388a21c687fdd5f218d7e3d13190cac4c5355818d3605fd5fb811df468ee696",
+        "vk_root": "0x002f850ee998974d6cc00e50cd0814b098c05bfade466d28573240d057f25352"
     },
     "release_info": {
         "garaga_version": "1.1.0",
