@@ -1,111 +1,64 @@
-# RISC Zero Rust Starter Template
+# RISC Zero 3 Fibonacci prover
 
-Welcome to the RISC Zero Rust Starter Template! This template is intended to
-give you a starting point for building a project using the RISC Zero zkVM.
-Throughout the template (including in this README), you'll find comments
-labelled `TODO` in places where you'll need to make changes. To better
-understand the concepts behind this template, check out the [zkVM
-Overview][zkvm-overview].
+This example uses zkVM and build tools 3.0.6 with Ethereum receipt encoding 3.0.1.
+It proves that a private Fibonacci index belongs to the public interval `[l, u)`.
+The journal contains `l`, `u`, and the Fibonacci number as little-endian `u32` values.
 
-## Quick Start
+## Build and run
 
-First, make sure [rustup] is installed. The
-[`rust-toolchain.toml`][rust-toolchain] file will be used by `cargo` to
-automatically install the correct version.
-
-To build all methods and execute the method within the zkVM, run the following
-command:
+Run these commands from the repository root. Install [rzup](https://dev.risczero.com/api/zkvm/install) first.
 
 ```bash
-cargo run
+rzup install rust 1.97.0
+rzup install r0vm 3.0.6
+cargo test --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+cargo run --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
 ```
 
-This is an empty template, and so there is no expected output (until you modify
-the code).
+The host requests a Groth16 proof and verifies the receipt before it generates calldata.
+Groth16 proving requires the RISC Zero prover dependencies, including Docker when the prover uses the Groth16 container.
+The output contains a proof JSON object followed by a JSON array of Starknet calldata.
+Use the host-generated calldata for this version.
+Garaga's default JSON proof parser still uses the existing RISC Zero 2 parameters.
 
-### Executing the Project Locally in Development Mode
+## Match the Cairo verifier
 
-During development, faster iteration upon code changes can be achieved by leveraging [dev-mode], we strongly suggest activating it during your early development phase. Furthermore, you might want to get insights into the execution statistics of your project, and this can be achieved by specifying the environment variable `RUST_LOG="[executor]=info"` before running your project.
-
-Put together, the command to run your project in development mode while getting execution statistics is:
-
-```bash
-RUST_LOG="[executor]=info" RISC0_DEV_MODE=1 cargo run
-```
-
-### Running Proofs Remotely on Bonsai
-
-_Note: The Bonsai proving service is still in early Alpha; an API key is
-required for access. [Click here to request access][bonsai access]._
-
-If you have access to the URL and API key to Bonsai you can run your proofs
-remotely. To prove in Bonsai mode, invoke `cargo run` with two additional
-environment variables:
-
-```bash
-BONSAI_API_KEY="YOUR_API_KEY" BONSAI_API_URL="BONSAI_URL" cargo run
-```
-
-## How to Create a Project Based on This Template
-
-Search this template for the string `TODO`, and make the necessary changes to
-implement the required feature described by the `TODO` comment. Some of these
-changes will be complex, and so we have a number of instructional resources to
-assist you in learning how to write your own code for the RISC Zero zkVM:
-
-- The [RISC Zero Developer Docs][dev-docs] is a great place to get started.
-- Example projects are available in the [examples folder][examples] of
-  [`risc0`][risc0-repo] repository.
-- Reference documentation is available at [https://docs.rs][docs.rs], including
-  [`risc0-zkvm`][risc0-zkvm], [`cargo-risczero`][cargo-risczero],
-  [`risc0-build`][risc0-build], and [others][crates].
-
-## Directory Structure
-
-It is possible to organize the files for these components in various ways.
-However, in this starter template we use a standard directory structure for zkVM
-applications, which we think is a good starting point for your applications.
+RISC Zero 3 uses this control root:
 
 ```text
-project_name
-├── Cargo.toml
-├── host
-│   ├── Cargo.toml
-│   └── src
-│       └── main.rs                    <-- [Host code goes here]
-└── methods
-    ├── Cargo.toml
-    ├── build.rs
-    ├── guest
-    │   ├── Cargo.toml
-    │   └── src
-    │       └── method_name.rs         <-- [Guest code goes here]
-    └── src
-        └── lib.rs
+0xa54dc85ac99f851c92d7c96d7318af41dbe7c0194edfcc37eb4d422a998c1f56
 ```
 
-## Video Tutorial
+The BN254 control ID and Groth16 verification key match the previous release.
+The host obtains both control parameters from `Groth16ReceiptVerifierParameters` in the installed SDK.
+It passes them to `Groth16Proof::from_risc0_with_parameters`.
+The default `Groth16Proof::from_risc0` method retains its RISC Zero 2 behavior.
 
-For a walk-through of how to build with this template, check out this [excerpt
-from our workshop at ZK HACK III][zkhack-iii].
+Generate a matching Cairo verifier from the repository root after `make setup`:
 
-## Questions, Feedback, and Collaborations
+```python
+from garaga.starknet.groth16_contract_generator.generator_risc0 import (
+    gen_risc0_groth16_verifier,
+)
 
-We'd love to hear from you on [Discord][discord] or [Twitter][twitter].
+gen_risc0_groth16_verifier(
+    vk_path="hydra/garaga/starknet/groth16_contract_generator/examples/vk_risc0.json",
+    output_folder_path="/tmp/garaga-risc0-v3",
+    output_folder_name="risc0_v3_verifier",
+    control_root=0xA54DC85AC99F851C92D7C96D7318AF41DBE7C0194EDFCC37EB4D422A998C1F56,
+)
+```
 
-[bonsai access]: https://bonsai.xyz/apply
-[cargo-risczero]: https://docs.rs/cargo-risczero
-[crates]: https://github.com/risc0/risc0/blob/main/README.md#rust-binaries
-[dev-docs]: https://dev.risczero.com
-[dev-mode]: https://dev.risczero.com/api/generating-proofs/dev-mode
-[discord]: https://discord.gg/risczero
-[docs.rs]: https://docs.rs/releases/search?query=risc0
-[examples]: https://github.com/risc0/risc0/tree/main/examples
-[risc0-build]: https://docs.rs/risc0-build
-[risc0-repo]: https://www.github.com/risc0/risc0
-[risc0-zkvm]: https://docs.rs/risc0-zkvm
-[rust-toolchain]: rust-toolchain.toml
-[rustup]: https://rustup.rs
-[twitter]: https://twitter.com/risczero
-[zkhack-iii]: https://www.youtube.com/watch?v=Yg_BGqj_6lg&list=PLcPzhUaCxlCgig7ofeARMPwQ8vbuD6hC5&index=5
-[zkvm-overview]: https://dev.risczero.com/zkvm
+The generated constants record the selected control root.
+Their release tag still describes Garaga's default RISC Zero release, rather than this explicit parameter override.
+
+Before you use the Fibonacci sequencer, declare the generated verifier on the target network.
+Set `RISC_ZERO_VERIFIER_CLASS_HASH` in the sequencer to its class hash, then deploy the sequencer.
+The checked-in sequencer class hash and `make update-risc0-class-hash` refer to the default RISC Zero 2 verifier.
+They cannot verify receipts from this updated prover.
+
+## Validation
+
+The RISC Zero CI workflow builds the guest and runs the host parameter test.
+The Rust library tests use the official RISC Zero 3 receipt fixture.
+They accept the v3 control root and reject the same receipt with the v2 control root.

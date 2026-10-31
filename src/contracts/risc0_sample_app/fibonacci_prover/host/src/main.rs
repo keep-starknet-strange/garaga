@@ -4,8 +4,12 @@ use garaga_rs::calldata::full_proof_with_hints::groth16::risc0_utils::get_risc0_
 use garaga_rs::calldata::full_proof_with_hints::groth16::{get_groth16_calldata, Groth16Proof};
 use garaga_rs::definitions::CurveID;
 use methods::FIBONACCI_GUEST_ELF;
+use num_bigint::BigUint;
 use risc0_ethereum_contracts::encode_seal;
-use risc0_zkvm::{compute_image_id, default_prover, ExecutorEnv, ProverOpts, VerifierContext};
+use risc0_zkvm::{
+    compute_image_id, default_prover, ExecutorEnv, Groth16ReceiptVerifierParameters, ProverOpts,
+    VerifierContext,
+};
 
 fn main() {
     // Initialize tracing. In order to view logs, run `RUST_LOG=info cargo run`
@@ -55,6 +59,9 @@ fn main() {
 
     // extract the receipt.
     let receipt = prove_info.receipt;
+    receipt
+        .verify(compute_image_id(FIBONACCI_GUEST_ELF).unwrap())
+        .unwrap();
     let seal = to_bytes(encode_seal(&receipt).unwrap());
     let image_id = to_bytes(compute_image_id(&FIBONACCI_GUEST_ELF).unwrap());
     let journal = to_bytes(receipt.journal);
@@ -72,7 +79,15 @@ fn main() {
     }
 
     // prints the calldata as JSON
-    let proof = Groth16Proof::from_risc0(seal, image_id, journal);
+    let parameters = Groth16ReceiptVerifierParameters::default();
+    let proof = Groth16Proof::from_risc0_with_parameters(
+        seal,
+        image_id,
+        journal,
+        BigUint::from_bytes_be(parameters.control_root.as_bytes()),
+        // The Solidity/Cairo public input uses the reverse of the SDK digest byte order.
+        BigUint::from_bytes_le(parameters.bn254_control_id.as_bytes()),
+    );
     let calldata = get_groth16_calldata(&proof, &get_risc0_vk(), CurveID::BN254).unwrap();
     println!(
         "[{}]",
@@ -83,4 +98,22 @@ fn main() {
             .collect::<Vec<_>>()
             .join(", ")
     );
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn sdk_parameters_match_the_v3_cairo_verifier() {
+        let parameters = Groth16ReceiptVerifierParameters::default();
+        assert_eq!(
+            hex::encode(parameters.control_root.as_bytes()),
+            "a54dc85ac99f851c92d7c96d7318af41dbe7c0194edfcc37eb4d422a998c1f56"
+        );
+        assert_eq!(
+            BigUint::from_bytes_le(parameters.bn254_control_id.as_bytes()).to_str_radix(16),
+            "4446e66d300eb7fb45c9726bb53c793dda407a62e9601618bb43c5c14657ac0"
+        );
+    }
 }
