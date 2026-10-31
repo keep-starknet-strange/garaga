@@ -2,7 +2,7 @@ import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from ".
 import * as fs from 'fs';
 import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
 import { sha256 } from '@noble/hashes/sha2.js';
-import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION } from "../../../constants";
+import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT } from "../../../constants";
 
 
 //https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
@@ -233,7 +233,7 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 
             return createGroth16ProofFromSp1(vkeyBytes, publicValuesBytes, proofBytes);
         } catch (err) {
-            // Continue to regular proof parsing
+            if (!(err instanceof KeyPatternNotFoundError)) throw err;
         }
 
         let publicInputs: bigint[] = [];
@@ -704,6 +704,8 @@ const tryParseG2Point = (point: any, curveId: CurveId): G2Point => {
 }
 
 export const createGroth16ProofFromSp1 = (vkey: Uint8Array, publicValues: Uint8Array, proof: Uint8Array): Groth16Proof => {
+    if (vkey.length !== 32) throw new Error("SP1 vkey must be 32 bytes");
+    if (proof.length !== 356) throw new Error("SP1 v6 proof must be 356 bytes");
     // SP1 version checking - first 4 bytes should match expected hash
     const sp1VerifierHashBytes = hexStringToBytes(SP1_VERIFIER_HASH);
     const selector = proof.slice(0, 4);
@@ -722,7 +724,15 @@ export const createGroth16ProofFromSp1 = (vkey: Uint8Array, publicValues: Uint8A
     const power253 = 1n << 253n; // 2^253 using bit shift
     const pubInputHashBigInt = toBigInt(pubInputHash) % power253;
 
-    const actualProof = proof.slice(4);
+    const exitCode = toBigInt(proof.slice(4, 36));
+    const vkRoot = toBigInt(proof.slice(36, 68));
+    const nonce = toBigInt(proof.slice(68, 100));
+    if (exitCode !== 0n) throw new Error("SP1 exit code must be zero");
+    if (vkRoot !== SP1_VK_ROOT) throw new Error("Invalid SP1 vk root");
+    if (toBigInt(vkey) >= CURVES[CurveId.BN254].n || nonce >= CURVES[CurveId.BN254].n) {
+        throw new Error("SP1 public input is out of field");
+    }
+    const actualProof = proof.slice(100);
 
     const groth16Proof: Groth16Proof = {
         a: {
@@ -748,7 +758,10 @@ export const createGroth16ProofFromSp1 = (vkey: Uint8Array, publicValues: Uint8A
         },
         publicInputs: [
             toBigInt(vkey),
-            pubInputHashBigInt
+            pubInputHashBigInt,
+            exitCode,
+            vkRoot,
+            nonce
         ],
         vkeyPublicValuesSp1: {
             vkey,

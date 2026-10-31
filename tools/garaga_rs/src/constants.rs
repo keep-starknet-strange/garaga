@@ -21,10 +21,15 @@ pub fn get_risc0_constants() -> (BigUint, BigUint) {
 }
 
 // SP1 Constants
-// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v5.0.0/SP1VerifierGroth16.sol
-pub const SP1_VERIFIER_VERSION: &str = "v5.0.0";
+// https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v6.1.0/SP1VerifierGroth16.sol
+pub const SP1_VERIFIER_VERSION: &str = "v6.1.0";
+pub const SP1_SDK_VERSION: &str = "6.10.0";
+pub const SP1_VK_ROOT: [u8; 32] = [
+    0, 47, 133, 14, 233, 152, 151, 77, 108, 192, 14, 80, 205, 8, 20, 176, 152, 192, 91, 250, 222,
+    70, 109, 40, 87, 50, 64, 208, 87, 242, 83, 82,
+];
 pub const SP1_VERIFIER_HASH: &str =
-    "0xa4594c59bbc142f3b81c3ecb7f50a7c34bc9af7c4c444b5d48b795427e285913";
+    "0x4388a21c687fdd5f218d7e3d13190cac4c5355818d3605fd5fb811df468ee696";
 
 // Additional RISC0 constants for internal use
 pub const RISC0_SYSTEM_STATE_ZERO_DIGEST: &str =

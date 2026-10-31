@@ -18,6 +18,7 @@ updates:
   - package-ecosystem: cargo
     directories:
       - /
+      - /tools/sp1_verifier
       - /src/contracts/risc0_sample_app/fibonacci_prover
       # The guest declares its own workspace, outside the host/methods workspace.
       - /src/contracts/risc0_sample_app/fibonacci_prover/methods/guest

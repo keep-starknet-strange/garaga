@@ -3,7 +3,7 @@ use crate::calldata::mpc_calldata::mpc_calldata_builder;
 use crate::calldata::msm_calldata::msm_calldata_builder;
 use crate::calldata::G1PointBigUint;
 use crate::calldata::G2PointBigUint;
-use crate::constants::{get_risc0_constants, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION};
+use crate::constants::{get_risc0_constants, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT};
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider, FieldElement,
 };
@@ -93,6 +93,15 @@ impl Groth16Proof {
             let vkey_int = &self.public_inputs[0]; // This should already be the vkey as BigUint
             let vkey_limbs = biguint_split::<2, 128>(vkey_int);
             cd.extend(vkey_limbs.iter().map(|&x| BigUint::from(x)));
+
+            assert_eq!(
+                self.public_inputs.len(),
+                5,
+                "SP1 v6 requires five public inputs"
+            );
+            for value in &self.public_inputs[2..] {
+                cd.extend(biguint_split::<2, 128>(value).map(BigUint::from));
+            }
 
             // Serialize public_values (public_inputs_sp1) as u32 array
             // This matches Python SP1 serialization exactly
@@ -189,6 +198,8 @@ impl Groth16Proof {
         }
     }
     pub fn from_sp1(vkey: Vec<u8>, public_values: Vec<u8>, proof: Vec<u8>) -> Self {
+        assert_eq!(vkey.len(), 32, "SP1 vkey must be 32 bytes");
+        assert_eq!(proof.len(), 356, "SP1 v6 proof must be 356 bytes");
         // Skip the first 4 bytes (selector)
         let selector = &proof[..4];
         let proof = &proof[4..];
@@ -206,6 +217,23 @@ impl Groth16Proof {
                 SP1_VERIFIER_VERSION
             );
         }
+
+        let exit_code = BigUint::from_bytes_be(&proof[..32]);
+        let vk_root = BigUint::from_bytes_be(&proof[32..64]);
+        let nonce = BigUint::from_bytes_be(&proof[64..96]);
+        assert_eq!(exit_code, BigUint::from(0u8), "SP1 exit code must be zero");
+        assert_eq!(
+            vk_root,
+            BigUint::from_bytes_be(&SP1_VK_ROOT),
+            "Invalid SP1 vk root"
+        );
+        let order = BN254PrimeField::get_curve_params().n;
+        assert!(
+            BigUint::from_bytes_be(&vkey) < order,
+            "SP1 vkey is out of field"
+        );
+        assert!(nonce < order, "SP1 nonce is out of field");
+        let proof = &proof[96..];
 
         // sha256(public_values) % 2**253
         assert!(
@@ -238,7 +266,13 @@ impl Groth16Proof {
                 x: BigUint::from_bytes_be(&proof[192..224]),
                 y: BigUint::from_bytes_be(&proof[224..256]),
             },
-            public_inputs: vec![BigUint::from_bytes_be(&vkey), pub_input_hash],
+            public_inputs: vec![
+                BigUint::from_bytes_be(&vkey),
+                pub_input_hash,
+                exit_code,
+                vk_root,
+                nonce,
+            ],
             image_id_journal_risc0: None,
             vkey_public_values_sp1: Some((vkey, public_values)),
         }
@@ -277,26 +311,32 @@ impl Groth16VerificationKey {
 
 pub fn get_sp1_vk() -> Groth16VerificationKey {
     let vk_hex = [
-        "2d4d9aa7e302d9df41749d5507949d05dbea33fbb16c643b22f599a2be6df2e2",
-        "14bedd503c37ceb061d8ec60209fe345ce89830a19230301f076caff004d1926",
-        "e187847ad4c798374d0d6732bf501847dd68bc0e071241e0213bc7fc13db7ab",
-        "967032fcbf776d1afc985f88877f182d38480a653f2decaa9794cbc3bf3060c",
-        "1739c1b1a457a8c7313123d24d2f9192f896b7c63eea05a9d57f06547ad0cec8",
-        "304cfbd1e08a704a99f5e847d93f8c3caafddec46b7a0d379da69a4d112346a7",
+        "21c7d728a5fd961fc179ec5eab938f564deba5b271e1c90c2c29a79648418fc1",
+        "2317bd9b644830ef5ffec1c2d46b5442aa8029d41eb58fb8fc939fb03365e00e",
+        "d964538da2653f2e62499571e6c78afb8909d3ea8107f306bd6928253680a3a",
+        "1c3c9339849225980c7d3f824f80d19e2a9c2554b6ab2160fa9635528f693fc0",
+        "2677b02e199903c8131b8e9fafaa7d5b0eeda406cf3d190e01cfdce881ab30ca",
+        "2c8e3c3c5153ef35c01baddac0d2e24dfee9dd922d819aae54fa90e175f9625e",
         "1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
         "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
         "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
         "90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
-        "3ff41f4ba0c37fe2caf27354d28e4b8f83d3b76777a63b327d736bffb0122ed",
-        "1cc7cb8de715675f21f01ecc9b46d236e0865e0cc020024521998269845f74e6",
-        "17387b4b9cf03927909b4f1c3d80fcd6865afc4a264a04499f7e2f6df690dd85",
-        "2ed3b19b5eb39db0d19a3d72dcd590ac85a971def614f4fd11b56b3c5e53c44c",
-        "26091e1cafb0ad8a4ea0a694cd3743ebf524779233db734c451d28b58aa9758e",
-        "9ff50a6b8b11c3ca6fdb2690a124f8ce25489fefa65a3e782e7ba70b66690e",
-        "61c3fd0fd3da25d2607c227d090cca750ed36c6ec878755e537c1c48951fb4c",
-        "fa17ae9c2033379df7b5c65eff0e107055e9a273e6119a212dd09eb51707219",
-        "4eab241388a79817fe0e0e2ead0b2ec4ffdec51a16028dee020634fd129e71c",
-        "7236256d21c60d02f0bdbf95cff83e03ea9e16fca56b18d5544b0889a65c1f5",
+        "1723616533dd6ae53502c9c506a81f23f543d68750b5133ebfbe1f4746b3b011",
+        "11b7e9276171bb0efd647fc63e38bbfba3076f20daca8cd52bcc7284d9b1c6eb",
+        "5865c701a782e7a81549613e8f8832f6a6d86a809ca794fd7e99b54e626080c",
+        "c4684810202d51d39e2b093a0a9187afacb75e203000170f23687b2cc786b26",
+        "2cd6bf7f164af0b6b0bbbe0fdcb06ee0c1ba07f8e6eb2f9f3943a90cb1d40290",
+        "a76f7e6e8a78d71649eb7e3132018885e2f57ccca64394738e746c63c9fa83b",
+        "f5460f3b7221705435e745da21e276536379c0113c13c4255e7ae101f1e90bf",
+        "22b4d6c4b7dbdeed528d5abe6eddd6f2bd4ae4b9b0450dc18901fc727da799c",
+        "b0ae6e491bc04c544da9e8cd4857d201b4cfa0222dbe96aac97f044fdf1c922",
+        "123e064d2ffdb7f8094b727cde1c0beea6d4d551e5743a336804f8effb7f07ac",
+        "97c875a6ebd0999b06e7267ff3d8a6bf859bb9635abae07cb6b3534ba409a83",
+        "2d84b73fb0f397e356b524f2d0e9ddc9d0f6ac75e566041147ee8554879183ec",
+        "1807204ddcd27506ba72e17b55227b0bf310136ecb40c74acd52f3ccfbcba9f7",
+        "11078b5c7767fe73bb54241dcd143ee805ea4383d48d46bced129482c8c2021",
+        "8c7b7c98d78c07a2c4be5f6be7082ba41021611f9a2dfc016f8bbb37d36bee",
+        "9ce6d246baeac24b5a404ca175c2cc4a974e217176fe2ec2a6c22eb60fd65c1",
     ];
 
     Groth16VerificationKey::from(
@@ -621,7 +661,7 @@ mod test_groth16_calldata {
         let vkey = vec![0u8; 32];
         let public_values = vec![0u8; 64]; // Must be multiple of 32
         let mut proof = vec![0xde, 0xad, 0xbe, 0xef]; // Invalid selector
-        proof.extend(vec![0u8; 252]); // Add remaining proof data
+        proof.extend(vec![0u8; 352]); // Add the v6 header and Groth16 proof.
 
         // This should panic with our error message
         Groth16Proof::from_sp1(vkey, public_values, proof);
