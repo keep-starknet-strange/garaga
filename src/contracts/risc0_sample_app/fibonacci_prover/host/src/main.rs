@@ -5,7 +5,6 @@ use garaga_rs::calldata::full_proof_with_hints::groth16::{get_groth16_calldata, 
 use garaga_rs::definitions::CurveID;
 use methods::FIBONACCI_GUEST_ELF;
 use num_bigint::BigUint;
-use risc0_ethereum_contracts::encode_seal;
 use risc0_zkvm::{
     compute_image_id, default_prover, ExecutorEnv, Groth16ReceiptVerifierParameters, ProverOpts,
     VerifierContext,
@@ -62,7 +61,12 @@ fn main() {
     receipt
         .verify(compute_image_id(FIBONACCI_GUEST_ELF).unwrap())
         .unwrap();
-    let seal = to_bytes(encode_seal(&receipt).unwrap());
+    let groth16 = receipt.inner.groth16().unwrap();
+    let seal = [
+        &groth16.verifier_parameters.as_bytes()[..4],
+        groth16.seal.as_slice(),
+    ]
+    .concat();
     let image_id = to_bytes(compute_image_id(&FIBONACCI_GUEST_ELF).unwrap());
     let journal = to_bytes(receipt.journal);
     // prints the proof artifact as JSON
@@ -103,10 +107,16 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use risc0_zkvm::sha::Digestible;
 
     #[test]
     fn sdk_parameters_match_the_v3_cairo_verifier() {
         let parameters = Groth16ReceiptVerifierParameters::default();
+        // Selector from the official TestReceiptV3_0.sol fixture.
+        assert_eq!(
+            hex::encode(&parameters.digest().as_bytes()[..4]),
+            "73c457ba"
+        );
         assert_eq!(
             hex::encode(parameters.control_root.as_bytes()),
             "a54dc85ac99f851c92d7c96d7318af41dbe7c0194edfcc37eb4d422a998c1f56"

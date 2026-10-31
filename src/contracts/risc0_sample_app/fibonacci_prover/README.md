@@ -1,6 +1,6 @@
 # RISC Zero 3 Fibonacci prover
 
-This example uses zkVM and build tools 3.0.6 with Ethereum receipt encoding 3.0.1.
+This example uses zkVM and build tools 3.0.6 with the RISC Zero 3 receipt seal format.
 It proves that a private Fibonacci index belongs to the public interval `[l, u)`.
 The journal contains `l`, `u`, and the Fibonacci number as little-endian `u32` values.
 

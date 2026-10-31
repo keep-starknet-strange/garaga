@@ -6,7 +6,6 @@ edition = "2021"
 [dependencies]
 methods = { path = "../methods" }
 risc0-zkvm = { version = "3.0.6" }
-risc0-ethereum-contracts = { version = "3.0.1" }
 garaga_rs = { path = "../../../../../tools/garaga_rs" }
 hex = "0.4"
 num-bigint = "0.4"
