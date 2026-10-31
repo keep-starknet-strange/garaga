@@ -2,6 +2,7 @@ import random
 from types import SimpleNamespace
 
 import pytest
+
 from garaga.precompiled_circuits import all_circuits as generator
 
 FAMILIES = sorted({info["filename"] for info in generator.ALL_CAIRO_CIRCUITS.values()})
@@ -133,3 +134,36 @@ def test_cli_rejects_invalid_families_before_generation(
         generator.cli(arguments)
     assert error.value.code == 2
     assert not (tmp_path / "src").exists()
+
+
+@pytest.mark.parametrize("structured", [False, True])
+def test_cairo1_pruning_removes_dead_inputs_constants_and_inverse_dependencies(
+    structured,
+):
+    from garaga.modulo_circuit import ModuloCircuit
+    from garaga.modulo_circuit_structs import u256Span
+
+    circuit = ModuloCircuit("prune_bn254", 0, compilation_mode=1)
+    values = [circuit.field(value) for value in (2, 7, 11, 13)]
+    inputs = (
+        circuit.write_struct(u256Span("values", values))
+        if structured
+        else circuit.write_elements(values)
+    )
+    dead = circuit.mul(inputs[1], circuit.set_or_get_constant(17))
+    live = circuit.sub(inputs[3], inputs[0])
+    result = circuit.mul(circuit.inv(live), circuit.set_or_get_constant(19))
+    circuit.extend_output([result])
+    circuit.prune_unused_cairo1 = True
+    active = circuit.cairo1_live_offsets()
+    assert all(value.offset in active for value in (inputs[0], inputs[3], live, result))
+    assert all(value.offset not in active for value in (inputs[1], inputs[2], dead))
+    code, _ = circuit.compile_circuit()
+    assert "CI<0>" in code and "CI<3>" not in code
+    assert "circuit_inverse" in code and "circuit_sub" in code
+    if structured:
+        assert "values:Span<u256>" in code
+        assert "values.slice(0, 1)" in code and "values.slice(3, 1)" in code
+    else:
+        assert "input.at(0)" in code and "input.at(3)" in code
+        assert "input.at(1)" not in code and "input.at(2)" not in code

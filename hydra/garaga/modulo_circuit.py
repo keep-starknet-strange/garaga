@@ -1037,20 +1037,110 @@ class ModuloCircuit:
         code += "}\n"
         return code
 
+    def cairo1_live_offsets(self) -> set[int]:
+        """Find the dependencies of every requested output before assigning dense Cairo input indexes."""
+        if self.values_segment.assert_eq_instructions:
+            raise NotImplementedError(
+                "Live input pruning requires explicit output constraints"
+            )
+        if any(
+            self.values_segment.segment_stacks[source]
+            for source in (WriteOps.COMMIT, WriteOps.WITNESS, WriteOps.FELT)
+        ):
+            raise NotImplementedError(
+                "Live input pruning supports only constants and explicit inputs"
+            )
+        pending = [value.offset for value in self.output]
+        pending.extend(value.offset for value in (self.exact_output_refs_needed or []))
+        live = set()
+        while pending:
+            offset = pending.pop()
+            if offset in live:
+                continue
+            live.add(offset)
+            instruction = self.values_segment.segment[offset].instruction
+            if instruction:
+                pending.extend(
+                    value
+                    for value in (
+                        instruction.left_offset,
+                        instruction.right_offset,
+                        instruction.result_offset,
+                    )
+                    if value is not None and value != offset
+                )
+        return live
+
+    def fill_live_cairo1_inputs(self, live: set[int]) -> str:
+        """Keep the public input signature while feeding only live scalar and span elements to the circuit."""
+        offsets = list(self.values_segment.segment_stacks[WriteOps.INPUT])
+        if not self.input_structs:
+            indexes = [index for index, offset in enumerate(offsets) if offset in live]
+            return "".join(
+                f"circuit_inputs = circuit_inputs.next_2(*input.at({index}));\n"
+                for index in indexes
+            )
+        code = ""
+        cursor = 0
+        for struct in self.input_structs:
+            selected = [
+                index
+                for index, offset in enumerate(offsets[cursor : cursor + len(struct)])
+                if offset in live
+            ]
+            cursor += len(struct)
+            if len(selected) == len(struct) and selected:
+                code += struct.dump_to_circuit_input() + "\n"
+            elif not selected:
+                code += f"let _ = {struct.name};\n"
+            elif struct.struct_name in (
+                "Span<u256>",
+                "Span<u128>",
+                "Array<u384>",
+                "Span<u384>",
+            ):
+                method = {"Span<u256>": "next_u256", "Span<u128>": "next_u128"}.get(
+                    struct.struct_name, "next_2"
+                )
+                # Contiguous slices avoid a bounds check for each retained element.
+                groups = []
+                for index in selected:
+                    if groups and index == groups[-1][-1] + 1:
+                        groups[-1].append(index)
+                    else:
+                        groups.append([index])
+                for group in groups:
+                    span = struct.name + (
+                        ".span()" if struct.struct_name.startswith("Array") else ""
+                    )
+                    code += f"for value in {span}.slice({group[0]}, {len(group)}) {{\n"
+                    code += f"circuit_inputs = circuit_inputs.{method}(*value);\n}};\n"
+            else:
+                raise NotImplementedError(
+                    f"Partial live input serialization: {struct.struct_name}"
+                )
+        assert cursor == len(offsets)
+        return code
+
     def write_cairo1_input_stack(
         self,
         write_ops: WriteOps,
         code: str,
         offset_to_reference_map: dict[int, str],
         start_index: int,
+        active_offsets: set[int] | None = None,
     ) -> tuple:
         """
         Defines the inputs for the compiled Cairo 1 circuit.
         """
-        len_stack = len(self.values_segment.segment_stacks[write_ops])
+        offsets = [
+            offset
+            for offset in self.values_segment.segment_stacks[write_ops]
+            if active_offsets is None or offset in active_offsets
+        ]
+        len_stack = len(offsets)
         if len_stack > 0:
             code += f"\n // {write_ops.name} stack\n"
-            offsets = list(self.values_segment.segment_stacks[write_ops].keys())
             i = 0
             while i < len_stack:
                 if write_ops == WriteOps.CONSTANT:
@@ -1086,7 +1176,9 @@ class ModuloCircuit:
         else:
             return code, offset_to_reference_map, start_index
 
-    def fill_cairo_1_constants(self) -> tuple[str, str]:
+    def fill_cairo_1_constants(
+        self, active_offsets: set[int] | None = None
+    ) -> tuple[str, str]:
         """
         Return the part of the code that fills the constants to the circuit, and the constants array
         if there are more than 8 constants. In that case, .next_span() is used to save bytecode and
@@ -1095,6 +1187,7 @@ class ModuloCircuit:
         constants_ints = [
             self.values_segment.segment[offset].value
             for offset in self.values_segment.segment_stacks[WriteOps.CONSTANT].keys()
+            if active_offsets is None or offset in active_offsets
         ]
         if len(constants_ints) < 8:
             constants_split = [bigint_split(x, N_LIMBS, BASE) for x in constants_ints]
@@ -1119,7 +1212,11 @@ class ModuloCircuit:
             const_array = f"const {const_name}: [u384; {len(constants_ints)}] = {io.int_array_to_u384_array(constants_ints, const=True)};"
         return constants_filled, const_array
 
-    def write_cairo1_circuit(self, offset_to_reference_map: dict[int, str]) -> str:
+    def write_cairo1_circuit(
+        self,
+        offset_to_reference_map: dict[int, str],
+        active_offsets: set[int] | None = None,
+    ) -> str:
         """
         Defines the arithmetic instructions for the compiled Cairo 1 circuit.
         """
@@ -1127,6 +1224,8 @@ class ModuloCircuit:
         for i, (offset, vs_item) in enumerate(
             self.values_segment.segment_stacks[WriteOps.BUILTIN].items()
         ):
+            if active_offsets is not None and offset not in active_offsets:
+                continue
             op = vs_item.instruction.operation
             left_offset = vs_item.instruction.left_offset
             right_offset = vs_item.instruction.right_offset
@@ -1222,28 +1321,42 @@ class ModuloCircuit:
         else:
             code = f"{attribute}\n{prefix}fn {function_name}{generic_input}({signature_input})->{signature_output} {{\n"
 
+        active_offsets = (
+            self.cairo1_live_offsets()
+            if getattr(self, "prune_unused_cairo1", False)
+            else None
+        )
+
         # Define the input for the circuit.
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
-            WriteOps.CONSTANT, code, {}, 0
+            WriteOps.CONSTANT, code, {}, 0, active_offsets
         )
         (
             code,
             offset_to_reference_map,
             commit_start_index,
         ) = self.write_cairo1_input_stack(
-            WriteOps.INPUT, code, offset_to_reference_map, start_index
+            WriteOps.INPUT, code, offset_to_reference_map, start_index, active_offsets
         )
         code, offset_to_reference_map, commit_end_index = self.write_cairo1_input_stack(
-            WriteOps.COMMIT, code, offset_to_reference_map, commit_start_index
+            WriteOps.COMMIT,
+            code,
+            offset_to_reference_map,
+            commit_start_index,
+            active_offsets,
         )
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
-            WriteOps.WITNESS, code, offset_to_reference_map, commit_end_index
+            WriteOps.WITNESS,
+            code,
+            offset_to_reference_map,
+            commit_end_index,
+            active_offsets,
         )
         code, offset_to_reference_map, start_index = self.write_cairo1_input_stack(
-            WriteOps.FELT, code, offset_to_reference_map, start_index
+            WriteOps.FELT, code, offset_to_reference_map, start_index, active_offsets
         )
 
-        code += self.write_cairo1_circuit(offset_to_reference_map)
+        code += self.write_cairo1_circuit(offset_to_reference_map, active_offsets)
 
         outputs_refs = []
         for out in self.output:
@@ -1275,14 +1388,16 @@ class ModuloCircuit:
     // Prefill constants:
     """
 
-        tmp, const_array = self.fill_cairo_1_constants()
+        tmp, const_array = self.fill_cairo_1_constants(active_offsets)
         code += tmp
         code += """
         // Fill inputs:
         """
 
         acc_len = len(self.values_segment.segment_stacks[WriteOps.CONSTANT])
-        if input_is_struct:
+        if active_offsets is not None:
+            code += self.fill_live_cairo1_inputs(active_offsets)
+        elif input_is_struct:
             for struct in self.input_structs:
                 struct_code = struct.dump_to_circuit_input()
                 struct_code_lines = [

@@ -460,7 +460,7 @@ class u256(Cairo1SerializableStruct):
         raise NotImplementedError
 
     def dump_to_circuit_input(self) -> str:
-        raise NotImplementedError
+        return f"circuit_inputs = circuit_inputs.next_u256({self.name});\n"
 
     def __len__(self) -> int:
         if self.elmts is not None:

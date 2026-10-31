@@ -1100,26 +1100,29 @@
     }
   },
   "noir_ultra_keccak_zk_honk_example_test_verify_ultra_keccak_zk_honk_proof": {
-    "last_updated": "2026-10-13T22:48:46.132593",
+    "last_updated": "2026-10-31T17:43:34.630110",
     "cairo_version": "2.21.0",
     "starknet_foundry_version": "0.64.1",
     "latest_metrics": {
       "test_name_hierarchical": "noir_ultra_keccak_zk_honk_example_integrationtest::test_contract::test_verify_ultra_keccak_zk_honk_proof",
       "test_name": "test_verify_ultra_keccak_zk_honk_proof",
-      "steps": 1206545,
-      "sierra_gas": 193225917,
+      "steps": 634568,
+      "sierra_gas": 123976433,
       "image_path": "docs/benchmarks/noir_ultra_keccak_zk_honk_example_test_verify_ultra_keccak_zk_honk_proof.png",
       "category": "contracts",
-      "range_check": 68295,
-      "range_check96": 455450,
+      "range_check": 58141,
+      "range_check96": 377190,
       "keccak": 0,
       "pedersen": 0,
-      "bitwise": 2216,
+      "bitwise": 2168,
       "ecop": 0,
       "poseidon": 461,
-      "add_mod": 50522,
-      "mul_mod": 48257
-    }
+      "add_mod": 41372,
+      "mul_mod": 40267
+    },
+    "source_revision": "0509ebfb7966d03da8135b21287372d74214071e",
+    "source_dirty": true,
+    "source_changes_sha256": "e126f5736628d912f3d79fff0988418105016587ab2341df5290f919351fa81f"
   },
   "risc0_verifier_bn254_test_verify_r0_groth16_proof_bn254": {
     "last_updated": "2026-10-13T22:48:46.132593",

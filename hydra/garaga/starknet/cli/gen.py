@@ -40,39 +40,33 @@ def check_version(cmd: str, version: str) -> tuple[bool, str]:
             )
         if not result_version:
             return (False, f"'{cmd} --version' returned empty output")
+        first_line = result_version.splitlines()[0]
+        if cmd == "bb":
+            return (first_line == version, result_version)
+        if cmd == "nargo":
+            return (first_line == f"nargo version = {version}", result_version)
         return (version in result_version, result_version)
     except (FileNotFoundError, OSError):
         # Command not found or other OS error
         return (False, f"Command '{cmd}' not found or not executable")
 
 
-def _get_bb_oracle_hash_options() -> list[str]:
-    """Get the available oracle hash options from bb command"""
+def _get_bb_verifier_targets() -> list[str]:
+    """Read the v6 target list instead of the deprecated oracle-hash options."""
+    import re
+
     try:
-        result_hash = subprocess.run(
-            ["bb", "prove", "-h"], capture_output=True, text=True
+        result = subprocess.run(
+            ["bb", "prove", "--help"], capture_output=True, text=True
         )
-        if result_hash.returncode != 0:
+        if result.returncode:
             return []
-
-        # Extract oracle hash options
-        oracle_hash_options = []
-        lines = result_hash.stdout.splitlines()
-        for i, line in enumerate(lines):
-            if "--oracle_hash" in line:
-                # Look in the next few lines for the options
-                for j in range(i + 1, min(i + 100, len(lines))):
-                    if "Options: {" in lines[j]:
-                        options_str = lines[j].split("{")[1].split("}")[0]
-                        oracle_hash_options = [
-                            opt.strip() for opt in options_str.split(",")
-                        ]
-                        break
-                break
-
-        return oracle_hash_options
+        return re.findall(
+            r"^\s+(evm(?:-no-zk)?|noir-recursive(?:-no-zk)?|noir-rollup(?:-no-zk)?|starknet(?:-no-zk)?)\s",
+            result.stdout,
+            re.MULTILINE,
+        )
     except (FileNotFoundError, OSError):
-        # Command not found or other OS error
         return []
 
 
@@ -81,8 +75,8 @@ def check_bb_starknet_support(
 ) -> tuple[bool, str, bool]:
     """Check if bb supports starknet and meets the version requirement"""
     version_ok, version_str = check_bb_version(version)
-    oracle_options = _get_bb_oracle_hash_options()
-    has_starknet = "starknet" in oracle_options
+    verifier_targets = _get_bb_verifier_targets()
+    has_starknet = "starknet" in verifier_targets
     if with_starknet:
         return (version_ok and has_starknet, version_str, has_starknet)
     else:
