@@ -73,7 +73,7 @@ pub trait IRisc0Groth16Verifier{curve_id.name}<TContractState> {{
 }}
 
 #[starknet::contract]
-mod Risc0Groth16Verifier{curve_id.name} {{
+pub mod Risc0Groth16Verifier{curve_id.name} {{
     use starknet::SyscallResultTrait;
     use garaga::definitions::{{G1Point, G1G2Pair}};
     use garaga::groth16::{{multi_pairing_check_{curve_id.name.lower()}_3P_2F_with_extra_miller_loop_result, Groth16ProofRawTrait}};
@@ -206,4 +206,11 @@ if __name__ == "__main__":
         system=ProofSystem.Groth16,  # RISC0 uses Groth16
         vk_path=RISCO_VK_PATH,
         proof_path=PROOF_PATH,
+    )
+
+    write_test_calldata_file_generic(
+        "src/contracts/risc0_sample_app/fibonacci_sequencer",
+        system=ProofSystem.Groth16,
+        vk_path=RISCO_VK_PATH,
+        proof_path="src/contracts/risc0_sample_app/fibonacci_prover/proof.json",
     )

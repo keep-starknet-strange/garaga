@@ -165,6 +165,27 @@ class PathConfig:
         return self.project_root / "tools" / "garaga_rs" / "Cargo.toml"
 
     @property
+    def risc0_host_cargo_path(self) -> Path:
+        return (
+            self.project_root
+            / "src/contracts/risc0_sample_app/fibonacci_prover/host/Cargo.toml"
+        )
+
+    @property
+    def risc0_methods_cargo_path(self) -> Path:
+        return (
+            self.project_root
+            / "src/contracts/risc0_sample_app/fibonacci_prover/methods/Cargo.toml"
+        )
+
+    @property
+    def risc0_guest_cargo_path(self) -> Path:
+        return (
+            self.project_root
+            / "src/contracts/risc0_sample_app/fibonacci_prover/methods/guest/Cargo.toml"
+        )
+
+    @property
     def package_json_path(self) -> Path:
         return self.project_root / "tools" / "npm" / "garaga_ts" / "package.json"
 
@@ -197,6 +218,24 @@ class PathConfig:
 
 # File path to update config mappings
 VERSION_UPDATES = [
+    *[
+        (
+            name,
+            attribute,
+            UpdateConfig(
+                name=name,
+                pattern=rf'({dependency}\s*=\s*\{{\s*version\s*=\s*")[^"]+("\s*[,}}])',
+                replacement=r"\g<1>{version}\g<2>",
+                description="RISC Zero SDK version",
+                version_key="risc0_zkvm_version",
+            ),
+        )
+        for name, attribute, dependency in [
+            ("RISC Zero host", "risc0_host_cargo_path", "risc0-zkvm"),
+            ("RISC Zero build", "risc0_methods_cargo_path", "risc0-build"),
+            ("RISC Zero guest", "risc0_guest_cargo_path", "risc0-zkvm"),
+        ]
+    ],
     (
         "PYPI README",
         "readme_path",
@@ -694,7 +733,7 @@ def update_all_versions(
             elif config.version_key == "bb_version":
                 version = constants["noir"]["bb_version"]
             else:
-                version = constants["release_info"]["garaga_version"]
+                version = constants["release_info"][config.version_key]
 
             success = update_file_version(file_path, config, version)
             results.append((mapping[0], success))

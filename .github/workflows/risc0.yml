@@ -1,0 +1,50 @@
+name: RISC Zero sample
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/contracts/risc0_sample_app/fibonacci_prover/**'
+      - 'tools/garaga_rs/**'
+      - 'tools/make/constants.json'
+      - 'tools/make/generate_constants.py'
+      - 'hydra/garaga/starknet/groth16_contract_generator/examples/*risc0.json'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - '.github/workflows/risc0.yml'
+  pull_request:
+    paths:
+      - 'src/contracts/risc0_sample_app/fibonacci_prover/**'
+      - 'tools/garaga_rs/**'
+      - 'tools/make/constants.json'
+      - 'tools/make/generate_constants.py'
+      - 'hydra/garaga/starknet/groth16_contract_generator/examples/*risc0.json'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - '.cargo/config.toml'
+      - '.github/workflows/risc0.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  test-risc0-sample:
+    runs-on: ubuntu-latest
+    env:
+      CARGO_TARGET_DIR: ${{ github.workspace }}/.cargo/risc0_sample/target
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Install RISC Zero Rust toolchain
+        run: |
+          cargo install rzup --version 0.5.2 --locked
+          rzup install rust 1.97.0
+      - name: Check formatting
+        run: |
+          cargo fmt --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --all --check
+          cargo fmt --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/methods/guest/Cargo.toml --check
+      - name: Build guest and test host
+        run: cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host

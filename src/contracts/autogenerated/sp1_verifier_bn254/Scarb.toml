@@ -4,6 +4,8 @@ name = "sp1_verifier_bn254"
 version = "0.1.0"
 edition = "2024_07"
 
+[lib]
+
 [dependencies]
 garaga = { path = "../../../" }
 starknet = "2.21.0"
