@@ -37,6 +37,8 @@ pub impl G1PointImpl of G1PointTrait {
         let modulus = get_modulus(curve_index);
         G1Point { x: *self.x, y: neg_mod_p(*self.y, modulus) }
     }
+    // Keep the curve switch at the call site to exclude unrelated subgroup tests.
+    #[inline]
     fn assert_in_subgroup_excluding_infinity(self: @G1Point, curve_index: usize) {
         self.assert_on_curve_excluding_infinity(curve_index);
         match curve_index {
@@ -56,7 +58,12 @@ pub impl G1PointImpl of G1PointTrait {
             }, // BLS12-381
             2 => {}, // SECP256K1 (cofactor 1)
             3 => {}, // SECP256R1 (cofactor 1)
-            4 => { panic_with_felt252('ED25519 not implemented'); },
+            4 => {
+                assert!(
+                    garaga::ec::ed25519::is_in_prime_order_subgroup(*self),
+                    "ed25519 pt not in subgroup",
+                );
+            },
             5 => {}, // GRUMPKIN (cofactor 1)
             _ => { panic_with_felt252('invalid curve index') },
         }

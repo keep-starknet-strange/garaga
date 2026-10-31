@@ -156,6 +156,15 @@ class G1Point:
         return self.scalar_mul(CURVES[self.curve_id.value].n).is_infinity()
 
     def is_in_prime_order_subgroup(self) -> bool:
+        if self.curve_id == CurveID.ED25519:
+            from garaga.ed25519 import is_in_prime_order_subgroup
+
+            if self.is_infinity():
+                return True
+            if not self.is_on_curve() or self.y == 0:
+                return False
+            x, y = CURVES[self.curve_id.value].to_twistededwards(self.x, self.y)
+            return is_in_prime_order_subgroup(x, y)
         if CURVES[self.curve_id.value].h == 1:
             # Cofactor is 1 : points on the curve <=> points in the prime order subgroup
             return self.is_on_curve() or self.is_infinity()

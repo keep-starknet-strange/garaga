@@ -1,0 +1,82 @@
+warn: unknown manifest field `package.licence` (/home/felt/PycharmProjects/starknet/garaga/src/Scarb.toml:5:1)
+warn: unknown manifest field `package.licence` (/home/felt/PycharmProjects/starknet/garaga/src/Scarb.toml:5:1)
+   Compiling snforge_scarb_plugin v0.64.1
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Blocking waiting for file lock on package cache
+    Finished `release` profile [optimized] target(s) in 0.09s
+   Compiling test(garaga_unittest) garaga v1.1.0 (/home/felt/PycharmProjects/starknet/garaga/src/Scarb.toml)
+warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_inverse`
+ --> /home/felt/PycharmProjects/starknet/garaga/src/src/circuits/extf_mul.cairo:2:75
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+                                                                          ^^^^^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::extf_mul::circuit_sub`
+ --> /home/felt/PycharmProjects/starknet/garaga/src/src/circuits/extf_mul.cairo:3:18
+    circuit_mul, circuit_sub, u384,
+                 ^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::isogeny::circuit_sub`
+ --> /home/felt/PycharmProjects/starknet/garaga/src/src/circuits/isogeny.cairo:3:18
+    circuit_mul, circuit_sub, u384,
+                 ^^^^^^^^^^^
+
+warn[E2100]: Unused import: `garaga::circuits::rsa::circuit_inverse`
+ --> /home/felt/PycharmProjects/starknet/garaga/src/src/circuits/rsa.cairo:2:75
+    CircuitElement as CE, CircuitInput as CI, CircuitInputs, circuit_add, circuit_inverse,
+                                                                          ^^^^^^^^^^^^^^^
+
+    Finished `dev` profile target(s) in 0 seconds
+
+
+Collected 8 test(s) from garaga package
+Running 8 test(s) from src/
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_divide_pair_prime (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~944652)
+        sierra gas: 944652
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_divide_pair_prime_nqr (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~944652)
+        sierra gas: 944652
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_divide_pair_mixed_even (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~944832)
+        sierra gas: 944832
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_divide_pair_mixed_odd (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~944832)
+        sierra gas: 944832
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_generic_prime_nqr (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~28018310)
+        sierra gas: 28018310
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_generic_prime (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~28018310)
+        sierra gas: 28018310
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_generic_mixed_odd (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~28017690)
+        sierra gas: 28017690
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+[PASS] garaga::tests::ed25519_subgroup_tests::test_ed25519_benchmark_generic_mixed_even (l1_gas: ~0, l1_data_gas: ~0, l2_gas: ~28017690)
+        sierra gas: 28017690
+        syscalls: ()
+        events: (count: 0, keys: 0, data size: 0)
+        messages: (l2 to l1: 0, l1 handler: 0)
+
+Tests: 8 passed, 0 failed, 0 ignored, 227 filtered out
