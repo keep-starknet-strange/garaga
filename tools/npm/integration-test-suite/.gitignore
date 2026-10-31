@@ -1,5 +1,5 @@
 /node_modules/
 /*.tgz
 .turbo
-package-lock.json
+!/package-lock.json
 .output.txt
