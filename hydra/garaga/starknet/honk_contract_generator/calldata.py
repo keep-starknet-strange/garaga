@@ -13,9 +13,24 @@ from garaga.precompiled_circuits.zk_honk import (
     ZKHonkProof,
     ZKHonkTranscript,
     ZKHonkVerifierCircuits,
+    decode_pairing_accumulator,
+    recursion_separator,
 )
 from garaga.starknet.tests_and_calldata_generators.mpcheck import MPCheckCalldataBuilder
 from garaga.starknet.tests_and_calldata_generators.msm import MSMCalldataBuilder
+
+
+def compact_honk_msm_hint(words: list[int]) -> list[int]:
+    """Encode BN254 hint coordinates as u256 while preserving the GLV coefficients."""
+    assert words[0] == len(words) - 1 and words[0] % 12 == 0
+    result = []
+    for start in range(1, len(words), 12):
+        for offset in (0, 4):
+            coordinate = sum(words[start + offset + i] << (96 * i) for i in range(4))
+            assert coordinate < 2**256
+            result.extend((coordinate % 2**128, coordinate >> 128))
+        result.extend(words[start + 8 : start + 12])
+    return [len(result), *result]
 
 
 def filter_msm_scalars(
@@ -70,6 +85,7 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
         eta=tp.eta,
         eta_two=tp.etaTwo,
         eta_three=tp.etaThree,
+        rom_logup_gamma=tp.rom_logup_gamma,
         libra_challenge=tp.libra_challenge,
         sum_check_u_challenges=tp.sum_check_u_challenges,
         gate_challenge=tp.gate_challenge,
@@ -111,48 +127,27 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     scalars_msm.insert(28, first_scalar)
 
     points = [
-        vk.qm,  # 0
-        vk.qc,  # 1
-        vk.ql,  # 2
-        vk.qr,  # 3
-        vk.qo,  # 4
-        vk.q4,  # 5
-        vk.qLookup,  # 6
-        vk.qArith,  # 7
-        vk.qDeltaRange,  # 8
-        vk.qElliptic,  # 9
-        vk.qMemory,  # 10
-        vk.qNnf,  # 11
-        vk.qPoseidon2External,  # 12
-        vk.qPoseidon2Internal,  # 13
-        vk.s1,  # 14
-        vk.s2,  # 15
-        vk.s3,  # 16
-        vk.s4,  # 17
-        vk.id1,  # 18
-        vk.id2,  # 19
-        vk.id3,  # 20
-        vk.id4,  # 21
-        vk.t1,  # 22
-        vk.t2,  # 23
-        vk.t3,  # 24
-        vk.t4,  # 25
-        vk.lagrange_first,  # 26
-        vk.lagrange_last,  # 27
-        proof.gemini_masking_poly,  # 28
-        proof.w1,  # 29
-        proof.w2,  # 30
-        proof.w3,  # 31
-        proof.w4,  # 32
-        proof.z_perm,  # 33
-        proof.lookup_inverses,  # 34
-        proof.lookup_read_counts,  # 35
-        proof.lookup_read_tags,  # 36
+        *(getattr(vk, name) for name in HonkVk.commitment_names()),
+        proof.gemini_masking_poly,
+        proof.w1,
+        proof.w2,
+        proof.w3,
+        proof.w4,
+        proof.z_perm,
+        proof.lookup_inverses,
+        proof.lookup_read_counts,
+        proof.lookup_read_tags,
     ]
+
     points.extend(proof.gemini_fold_comms[: vk.log_circuit_size - 1])
     points.extend(proof.libra_commitments)
     points.append(proof.kzg_quotient)
     points.append(G1Point.get_nG(CurveID.BN254, 1))
+
+    # Remove only constant VK identities. Proof points keep their fixed input positions.
+    keep = [i for i in range(len(points)) if i not in vk.zero_commitment_indexes()]
+    points = [points[i] for i in keep]
+    scalars_msm = [scalars_msm[i] for i in keep]
 
     msm_builder = MSMCalldataBuilder(
         CurveID.BN254,
@@ -163,6 +158,20 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     P_0 = G1Point.msm(points=points, scalars=scalars_msm).add(proof.shplonk_q)
     P_1 = -proof.kzg_quotient
 
+    inner_lhs, inner_rhs = decode_pairing_accumulator(proof.pairing_point_object)
+    recursion_data = [0]
+    if not inner_lhs.is_infinity():
+        separator = recursion_separator(proof.pairing_point_object, P_0, P_1)
+        recursion_data = compact_honk_msm_hint(
+            MSMCalldataBuilder(
+                CurveID.BN254, points=[P_0, P_1], scalars=[separator, separator]
+            ).serialize_to_calldata(
+                include_points_and_scalars=False, serialize_as_pure_felt252_array=True
+            )
+        )
+        P_0 = P_0.scalar_mul(separator).add(inner_lhs)
+        P_1 = P_1.scalar_mul(separator).add(inner_rhs)
+
     pairs = [G1G2Pair(P_0, G2_POINT_KZG_1), G1G2Pair(P_1, G2_POINT_KZG_2)]
 
     mpc_builder = MPCheckCalldataBuilder(
@@ -171,11 +180,14 @@ def get_ultra_flavor_honk_calldata_from_vk_and_proof(
     cd = []
     cd.extend(proof.serialize_to_calldata())
     cd.extend(
-        msm_builder.serialize_to_calldata(
-            include_points_and_scalars=False,
-            serialize_as_pure_felt252_array=True,
+        compact_honk_msm_hint(
+            msm_builder.serialize_to_calldata(
+                include_points_and_scalars=False,
+                serialize_as_pure_felt252_array=True,
+            )
         )
     )
+    cd.extend(recursion_data)
     cd.extend(mpc_builder.serialize_to_calldata())
 
     res = [len(cd)] + cd

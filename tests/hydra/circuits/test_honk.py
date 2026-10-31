@@ -24,18 +24,17 @@ PATH = "hydra/garaga/starknet/honk_contract_generator/examples"
 def convert_pairing_points_to_g1(
     pairing_point_object: list[int],
 ) -> tuple[G1Point, G1Point]:
-    """Convert the 16 field element pairing point object to two G1 points (lhs, rhs).
-
-    Each point is encoded as 4 68-bit limbs for x and 4 68-bit limbs for y.
-    """
+    """Decode the v6 accumulator from two limbs per coordinate (136 low bits and 120 high bits)."""
+    assert len(pairing_point_object) == 8
 
     def decode_coord(limbs):
-        return limbs[0] | (limbs[1] << 68) | (limbs[2] << 136) | (limbs[3] << 204)
+        assert limbs[0] < 2**136 and limbs[1] < 2**120
+        return limbs[0] | (limbs[1] << 136)
 
-    lhs_x = decode_coord(pairing_point_object[0:4])
-    lhs_y = decode_coord(pairing_point_object[4:8])
-    rhs_x = decode_coord(pairing_point_object[8:12])
-    rhs_y = decode_coord(pairing_point_object[12:16])
+    lhs_x = decode_coord(pairing_point_object[0:2])
+    lhs_y = decode_coord(pairing_point_object[2:4])
+    rhs_x = decode_coord(pairing_point_object[4:6])
+    rhs_y = decode_coord(pairing_point_object[6:8])
 
     lhs = G1Point(x=lhs_x, y=lhs_y, curve_id=CurveID.BN254)
     rhs = G1Point(x=rhs_x, y=rhs_y, curve_id=CurveID.BN254)
@@ -122,6 +121,7 @@ def test_verify_honk_proof(proof_path: str, system: ProofSystem):
         eta=tp.eta,
         eta_two=tp.etaTwo,
         eta_three=tp.etaThree,
+        rom_logup_gamma=tp.rom_logup_gamma,
         libra_challenge=tp.libra_challenge,
         sum_check_u_challenges=tp.sum_check_u_challenges,
         gate_challenge=tp.gate_challenge,

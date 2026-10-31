@@ -1,6 +1,7 @@
 'use client';
 
 import verifySp1 from '../../../../verify-sp1.cjs';
+import verifyNoir from '../../../../verify-noir.cjs';
 
 import { useState, useEffect } from 'react';
 import * as garaga from 'garaga';
@@ -15,6 +16,7 @@ export default function Home() {
     try {
       await garaga.init();
       await verifySp1(garaga);
+      await verifyNoir(garaga);
       const result = garaga.msmCalldataBuilder([[1n, 2n]], [10n], garaga.CurveId.BN254);
       const json = JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value + 'n' : value, 2);
       const message = 'Output of msm_calldata_builder: ' + json;

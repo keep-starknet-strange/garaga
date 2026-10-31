@@ -2,11 +2,9 @@
   "name": "web-js-esm-react",
   "scripts": {
     "build": "next build",
-    "start": "PORT=8080 next start",
-    "start-bg": "npm start & sleep 5",
-    "stop-bg": "pkill next-server",
-    "test": "npm run start-bg && node scrape.cjs > .output.txt; npm run stop-bg; diff .output.txt output.txt",
-    "test-generate": "npm run start-bg && node scrape.cjs > output.txt; npm run stop-bg"
+    "start": "next start",
+    "test": "node ../../run-browser-test.cjs",
+    "test-generate": "node ../../run-browser-test.cjs --update"
   },
   "dependencies": {
     "garaga": "file:../../garaga.tgz",

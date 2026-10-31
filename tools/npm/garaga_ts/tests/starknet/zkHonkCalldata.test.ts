@@ -1,35 +1,28 @@
-import { HonkFlavor } from "../../src/node/starknet/honkContractGenerator/parsingUtils";
-import * as fs from 'fs';
-import * as garaga from "../../src/node/index";
+import * as fs from 'node:fs';
+import { createHash } from 'node:crypto';
+import * as garaga from '../../src/node/index';
 
-const PATH = '../../../hydra/garaga/starknet/honk_contract_generator/examples';
+const directory = '../../../hydra/garaga/starknet/honk_contract_generator/examples';
+interface NoirVector { case: string; files: { proof: string; public_inputs: string; vk: string }; length: number; sha256: string; }
+const vectors: NoirVector[] = JSON.parse(fs.readFileSync(`${directory}/noir_calldata_test_vectors.json`, 'utf8'));
 
-describe('ZK Honk Getting calldata', () => {
-
-  const proofAndVkWithFlavors = [
-    [`${PATH}/proof_ultra_keccak_zk.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.KECCAK],
-    // [`${PATH}/proof_ultra_starknet_zk.bin`, `${PATH}/public_inputs_ultra_keccak.bin`, `${PATH}/vk_ultra_keccak.bin`, HonkFlavor.STARKNET],
-  ]
-
-  test.each(proofAndVkWithFlavors)("should  get zk honk calldata from proof %s, public inputs %s, vk %s and pub inputs %s", async (proofPath, publicInputsPath, vkPath, flavor) => {
-
+describe('Barretenberg v6 Ultra Keccak ZK calldata', () => {
+  test.each(vectors)('matches the Python reference for $case', async (vector) => {
     await garaga.init();
-
-    const vkBytes = new Uint8Array(fs.readFileSync(vkPath as string));
-
-    const publicInputsBytes = new Uint8Array(fs.readFileSync(publicInputsPath as string));
-
-    const proofBytes = new Uint8Array(fs.readFileSync(proofPath as string));
-
-    console.log("proof", proofBytes);
-    console.log("publicInputs", publicInputsBytes);
-    console.log("vk", vkBytes);
-    console.log("flavor", flavor);
-
-    const honkCalldata = garaga.getZKHonkCallData(proofBytes, publicInputsBytes, vkBytes);
-
-    console.log("honkCalldata", honkCalldata);
-
+    const bytes = (name: keyof NoirVector["files"]) => new Uint8Array(Buffer.from(vector.files[name], 'hex'));
+    const calldata = garaga.getZKHonkCallData(bytes('proof'), bytes('public_inputs'), bytes('vk'));
+    expect(calldata.length).toBe(vector.length);
+    expect(createHash('sha256').update(calldata.map(String).join('\n')).digest('hex')).toBe(vector.sha256);
   });
 
+  test('rejects a noncanonical public input', async () => {
+    await garaga.init();
+    const { proof, vk } = vectors[0]!.files;
+    const scalarModulus = '30644e72e131a029b85045b68181585d2833e84879b9709143e1f593f0000001';
+    expect(() => garaga.getZKHonkCallData(
+      new Uint8Array(Buffer.from(proof, 'hex')),
+      new Uint8Array(Buffer.from(scalarModulus, 'hex')),
+      new Uint8Array(Buffer.from(vk, 'hex')),
+    )).toThrow();
+  });
 });

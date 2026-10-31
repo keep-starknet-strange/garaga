@@ -1,5 +1,8 @@
 import argparse
+import hashlib
+import json
 import os
+import subprocess
 from pathlib import Path
 
 from garaga.curves import CurveID, ProofSystem
@@ -20,6 +23,7 @@ from garaga.precompiled_circuits.zk_honk import (
     G2_POINT_KZG_2,
     MAX_LOG_N,
     PAIRING_POINT_OBJECT_LENGTH,
+    G1Point,
     HonkVk,
 )
 from garaga.starknet.groth16_contract_generator.generator import (
@@ -34,6 +38,7 @@ def gen_honk_verifier(
     output_folder_name: str,
     cli_mode: bool = False,
     include_test_sample: bool = True,
+    extra_test_code: str = "",
 ) -> bool:
     """
     Generate the honk verifier files and write them to the output folder.
@@ -57,6 +62,7 @@ def gen_honk_verifier(
         contract_name,
         verification_function_name,
         include_test_sample,
+        extra_test_code,
     )
     return True
 
@@ -94,9 +100,7 @@ def gen_honk_verifier_files(
         is_on_curve_function_name,
     ) = _gen_circuits_code(vk)
 
-    points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(
-        log_n=vk.log_circuit_size
-    )
+    points_code, (n_vk_points, n_proof_points) = _get_msm_points_array_code(vk)
 
     scalars_tuple = ",\n            ".join(f"scalar_{idx}" for idx in scalar_indexes)
     scalars_tuple_into = [f"scalar_{idx}" for idx in scalar_indexes]
@@ -127,7 +131,20 @@ def gen_honk_verifier_files(
         ],
     )
 
+    zero_checks = ""
+    if vk.zero_commitment_indexes():
+        zero_indexes = ", ".join(f"{i}_usize" for i in vk.zero_commitment_indexes())
+        zero_checks = f"""
+            // Zero VK commitments bind these polynomial evaluations to zero.
+            for index in array![{zero_indexes}].span() {{
+                if *full_proof.proof.sumcheck_evaluations.at(*index) != 0 {{
+                    return Result::Err('Invalid zero selector eval');
+                }};
+            }};
+        """
+
     contract_code = f"""{contract_header}
+            {zero_checks}
             let (transcript, _, base_rlc) = ZKHonkTranscriptTrait::from_proof::<KeccakHasherState>(full_proof.proof, vk.vk_hash, vk.log_circuit_size);
             let log_n = vk.log_circuit_size;
             let (sum_check_rlc, honk_check) = {sumcheck_function_name}(
@@ -140,8 +157,7 @@ def gen_honk_verifier_files(
                 tp_sum_check_u_challenges: transcript.sum_check_u_challenges.span(),
                 tp_gate_challenge: transcript.gate_challenge,
                 tp_eta_1: transcript.eta.into(),
-                tp_eta_2: transcript.eta_two.into(),
-                tp_eta_3: transcript.eta_three.into(),
+                tp_rom_logup_gamma: transcript.rom_logup_gamma.into(),
                 tp_beta: transcript.beta.into(),
                 tp_gamma: transcript.gamma.into(),
                 tp_base_rlc: base_rlc.into(),
@@ -231,39 +247,31 @@ def _get_msm_kzg_template(
             assert({is_on_curve_function_name}(shplonk_q_pt, mod_bn), 'shplonk_q not on curve');
 
             let mut msm_hint = full_proof.msm_hint;
-            assert(msm_hint.len() == {msm_len} * 12, 'wrong glv&fakeglv hint size');
-            let eigen = get_eigenvalue(0);
-            let third_root_of_unity = get_third_root_of_unity(0);
-            let min_one = get_min_one_order(0);
-            let nG = get_nG_glv_fake_glv(0);
+            assert(msm_hint.len() == {msm_len} * 8, 'wrong glv&fakeglv hint size');
 
             let mut P_1 = shplonk_q_pt;
             while msm_hint.len() != 0 {{
                 let pt = *points.pop_front().unwrap();
                 let scalar = *scalars.pop_front().unwrap();
-                // Note : Scalars are below curve order by construction (circuit outputs mod n and transcript output (u128))
-                let glv_fake_glv_hint: GlvFakeGlvHint = Serde::deserialize(ref msm_hint).unwrap();
-                let temp = _scalar_mul_glv_and_fake_glv(
-                    pt,
-                    scalar,
-                    mod_grumpkin,
-                    mod_bn,
-                    glv_fake_glv_hint,
-                    eigen,
-                    third_root_of_unity,
-                    min_one,
-                    nG,
-                    0,
-                );
+                // Circuit outputs and transcript challenges are reduced modulo the scalar field.
+                let glv_fake_glv_hint: HonkScalarMulHint = Serde::deserialize(ref msm_hint).unwrap();
+                // Zero precomputed polynomials have identity commitments in Barretenberg 6.
+                if pt.is_infinity() {{
+                    continue;
+                }};
+                let temp = honk_scalar_mul(pt, scalar, glv_fake_glv_hint);
                 P_1 = _ec_safe_add(P_1, temp, mod_bn, 0);
             }}
 
             let P_2:G1Point = full_proof.proof.kzg_quotient.into();
+            let (pairing_lhs, pairing_rhs) = aggregate_pairing_accumulator(
+                full_proof.proof.pairing_point_object, P_1, P_2.negate(0), full_proof.recursion_hint,
+            );
 
             // Perform the KZG pairing check.
             let kzg_check = multi_pairing_check_bn254_2P_2F(
-               G1G2Pair {{ p: P_1, q: G2_POINT_KZG_1 }},
-               G1G2Pair {{ p: P_2.negate(0), q: G2_POINT_KZG_2 }},
+               G1G2Pair {{ p: pairing_lhs, q: G2_POINT_KZG_1 }},
+               G1G2Pair {{ p: pairing_rhs, q: G2_POINT_KZG_2 }},
                precomputed_lines.span(),
                full_proof.kzg_hint,
             );
@@ -405,11 +413,11 @@ pub trait IUltraKeccakZKHonkVerifier<TContractState> {{
 
 #[starknet::contract]
 mod UltraKeccakZKHonkVerifier {{
-    use garaga::definitions::{{G1Point, G1G2Pair, BN254, get_BN254_modulus, get_GRUMPKIN_modulus, u384, get_eigenvalue, get_third_root_of_unity, get_min_one_order, get_nG_glv_fake_glv}};
+    use garaga::definitions::{{G1Point, G1G2Pair, BN254, get_BN254_modulus, get_GRUMPKIN_modulus, u384}};
     use garaga::pairing_check::{{multi_pairing_check_bn254_2P_2F, MPCheckHintBN254}};
-    use garaga::ec_ops::{{G1PointTrait, _ec_safe_add, _scalar_mul_glv_and_fake_glv, GlvFakeGlvHint}};
+    use garaga::ec_ops::{{G1PointTrait, _ec_safe_add}};
     use super::{{vk, precomputed_lines, {imports_str}}};
-    use garaga::apps::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2}};
+    use garaga::apps::noir::{{ZKHonkProof, G2_POINT_KZG_1, G2_POINT_KZG_2, validate_zk_honk_proof, aggregate_pairing_accumulator, honk_scalar_mul, HonkScalarMulHint}};
     use garaga::apps::noir::zk_honk_transcript::{{Point256IntoCircuitPoint, KeccakHasherState, ZKHonkTranscriptTrait, ZK_BATCHED_RELATION_PARTIAL_LENGTH}};
     use garaga::core::circuit::{{U32IntoU384, u288IntoCircuitInputValue, U64IntoU384, u256_to_u384}};
     use core::num::traits::Zero;
@@ -421,6 +429,7 @@ mod UltraKeccakZKHonkVerifier {{
     struct FullProof {{
         proof: ZKHonkProof,
         msm_hint: Span<felt252>,
+        recursion_hint: Span<felt252>,
         kzg_hint:MPCheckHintBN254,
     }}
 
@@ -436,6 +445,9 @@ mod UltraKeccakZKHonkVerifier {{
             // Read the documentation to learn how to generate the full_proof_with_hints array given a proof and a verifying key.
             let mut full_proof_with_hints = full_proof_with_hints;
             let full_proof = Serde::<FullProof>::deserialize(ref full_proof_with_hints).expect('deserialization failed');
+            if !full_proof_with_hints.is_empty() || !validate_zk_honk_proof(full_proof.proof, vk.log_circuit_size, vk.public_inputs_size) {{
+                return Result::Err('Invalid Honk proof encoding');
+            }};
             let mod_bn = get_BN254_modulus();
             let mod_grumpkin = get_GRUMPKIN_modulus();
 
@@ -462,36 +474,12 @@ pub const precomputed_lines: [G2Line<u288>; {len(precomputed_lines)//4}] = {prec
 """
 
 
-def _get_msm_points_array_code(log_n: int) -> tuple[str, tuple[int, int]]:
+def _get_msm_points_array_code(vk: HonkVk) -> tuple[str, tuple[int, int]]:
+    log_n = vk.log_circuit_size
     vk_points = [
-        "vk.qm",
-        "vk.qc",
-        "vk.ql",
-        "vk.qr",
-        "vk.qo",
-        "vk.q4",
-        "vk.qLookup",
-        "vk.qArith",
-        "vk.qDeltaRange",
-        "vk.qElliptic",
-        "vk.qMemory",
-        "vk.qNnf",
-        "vk.qPoseidon2External",
-        "vk.qPoseidon2Internal",
-        "vk.s1",
-        "vk.s2",
-        "vk.s3",
-        "vk.s4",
-        "vk.id1",
-        "vk.id2",
-        "vk.id3",
-        "vk.id4",
-        "vk.t1",
-        "vk.t2",
-        "vk.t3",
-        "vk.t4",
-        "vk.lagrange_first",
-        "vk.lagrange_last",
+        f"vk.{name}"
+        for name in HonkVk.commitment_names()
+        if not getattr(vk, name).is_infinity()
     ]
 
     next_proof_point_counter = 1
@@ -553,6 +541,7 @@ def _write_and_format_project_files(
     contract_name: str,
     verification_function_name: str,
     include_test_sample: bool = True,
+    extra_test_code: str = "",
 ):
     # Use the reusable function to write all files
     write_verifier_files(
@@ -570,7 +559,37 @@ def _write_and_format_project_files(
         contract_filename="honk_verifier.cairo",
         circuits_filename="honk_verifier_circuits.cairo",
         include_test_sample=include_test_sample,
+        extra_test_code=extra_test_code,
     )
+    # This threshold reduces both gas and bytecode compared with the generic setting.
+    manifest = Path(output_folder_path, "Scarb.toml")
+    manifest.write_text(
+        manifest.read_text().replace("inlining-strategy = 2", "inlining-strategy = 50")
+    )
+
+
+def write_noir_test_fixtures(vk: HonkVk, proof, directory="src/src/apps/noir"):
+    """Regenerate Cairo fixtures and transcript vectors from the committed proof bundle."""
+    from pathlib import Path
+
+    from garaga.precompiled_circuits.zk_honk import ZKHonkTranscript
+
+    transcript = ZKHonkTranscript.from_proof(vk, proof)
+    vk_value = vk.to_cairo().split(" = ", 1)[1].removesuffix(";")
+    proof_value = proof.to_cairo().removesuffix(";")
+    expected = transcript.to_cairo()
+    code = f"""// Generated by make rewrite from the Barretenberg proof bundle.
+use super::{{HonkVk, ZKHonkProof, G1Point256}};
+use super::zk_honk_transcript::ZKHonkTranscript;
+use garaga::definitions::{{G1Point, u384}};
+
+pub fn get_vk() -> HonkVk {{ {vk_value} }}
+pub fn get_zk_proof_keccak() -> ZKHonkProof {{ {proof_value} }}
+pub fn get_expected_transcript() -> ZKHonkTranscript {{ {expected} }}
+"""
+    path = Path(directory, "test_fixtures.cairo")
+    path.write_text(code)
+    subprocess.run(["scarb", "fmt", str(path)], check=True)
 
 
 if __name__ == "__main__":
@@ -590,43 +609,90 @@ if __name__ == "__main__":
     EXAMPLES_FOLDER = "hydra/garaga/starknet/honk_contract_generator/examples"
 
     if not args.max_log_n:
-        FOLDER_NAME = "noir_ultra_keccak_zk_honk_example"
+        import json
 
-        gen_honk_verifier(
-            VK_PATH,
-            CONTRACTS_FOLDER,
-            FOLDER_NAME,
+        from garaga.precompiled_circuits.zk_honk import ZKHonkProof
+
+        manifest = json.loads(Path(EXAMPLES_FOLDER, "noir_artifacts.json").read_text())
+        vectors = []
+        for case, metadata in manifest["cases"].items():
+            files = {
+                name: Path(EXAMPLES_FOLDER, value["path"])
+                for name, value in metadata["files"].items()
+            }
+            folder = (
+                "noir_ultra_keccak_zk_honk_example"
+                if case == "hello"
+                else f"noir_ultra_keccak_zk_honk_{case}"
+            )
+            from garaga.starknet.honk_contract_generator.test_templates import (
+                release_tests,
+            )
+
+            public_bytes = files["public_inputs"].read_bytes()
+            public_inputs = [
+                int.from_bytes(public_bytes[i : i + 32], "big")
+                for i in range(0, len(public_bytes), 32)
+            ]
+            gen_honk_verifier(
+                files["vk"],
+                CONTRACTS_FOLDER,
+                folder,
+                extra_test_code=release_tests(
+                    public_inputs,
+                    HonkVk.from_bytes(
+                        files["vk"].read_bytes()
+                    ).zero_commitment_indexes(),
+                ),
+            )
+            fixture_vk = HonkVk.from_bytes(files["vk"].read_bytes())
+            fixture_proof = ZKHonkProof.from_bytes(
+                files["proof"].read_bytes(),
+                files["public_inputs"].read_bytes(),
+                fixture_vk,
+            )
+            if case == "hello":
+                write_noir_test_fixtures(fixture_vk, fixture_proof)
+            write_test_calldata_file_generic(
+                os.path.join(CONTRACTS_FOLDER, folder),
+                ProofSystem.UltraKeccakZKHonk,
+                files["vk"],
+                files["proof"],
+                files["public_inputs"],
+            )
+            words = (
+                Path(CONTRACTS_FOLDER, folder, "tests/proof_calldata.txt")
+                .read_text()
+                .split()
+            )
+            calldata = [len(words), *[int(word, 0) for word in words]]
+            vectors.append(
+                {
+                    "case": case,
+                    "files": {
+                        name: path.read_bytes().hex()
+                        for name, path in files.items()
+                        if name != "vk_hash"
+                    },
+                    "length": len(calldata),
+                    "sha256": hashlib.sha256(
+                        "\n".join(map(str, calldata)).encode()
+                    ).hexdigest(),
+                }
+            )
+            print(f"Generated verifier and calldata for {case}")
+        Path(EXAMPLES_FOLDER, "noir_calldata_test_vectors.json").write_text(
+            json.dumps(vectors, indent=2) + "\n"
         )
-
-        # Generate calldata
-        output_folder_path = os.path.join(CONTRACTS_FOLDER, FOLDER_NAME)
-        proof_file = os.path.join(EXAMPLES_FOLDER, "proof_ultra_keccak_zk.bin")
-        public_inputs_file = os.path.join(
-            EXAMPLES_FOLDER, "public_inputs_ultra_keccak.bin"
-        )
-
-        if os.path.exists(proof_file) and os.path.exists(public_inputs_file):
-            try:
-                write_test_calldata_file_generic(
-                    output_folder_path,
-                    ProofSystem.UltraKeccakZKHonk,
-                    VK_PATH,
-                    proof_file,
-                    public_inputs_file,
-                )
-                print(f"Generated calldata for {FOLDER_NAME}")
-            except Exception as e:
-                print(f"Error generating calldata for {FOLDER_NAME}: {e}")
-                raise e
-        else:
-            print(f"Warning: Proof or public inputs file not found for {FOLDER_NAME}")
 
     if args.max_log_n:
-        # NOTE : each additional public input increase bytecode by ~ 21 felts.
-        #       each additional circuit size increase bytecode by ~ 372 felts.
+        # Synthetic capacity case: exercise every relation family at the maximum log size.
+        # This key measures bytecode size; it has no corresponding proof.
         vk = HonkVk.from_bytes(open(VK_PATH, "rb").read())
         vk.log_circuit_size = MAX_LOG_N
         vk.public_inputs_size = 4 + PAIRING_POINT_OBJECT_LENGTH
+        for index, name in enumerate(HonkVk.commitment_names(), start=1):
+            setattr(vk, name, G1Point.get_nG(CurveID.BN254, index))
 
         gen_honk_verifier(
             vk,
