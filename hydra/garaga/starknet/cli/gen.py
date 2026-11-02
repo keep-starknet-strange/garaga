@@ -3,12 +3,6 @@ from pathlib import Path
 from typing import Annotated
 
 import typer
-from rich import print
-from rich.console import Console
-from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
-from rich.tree import Tree
-
 from garaga.curves import ProofSystem
 from garaga.starknet.cli.utils import complete_proof_system, get_package_version
 from garaga.starknet.constants import BB_VERSION, BBUP_VERSION, NARGO_VERSION
@@ -17,6 +11,11 @@ from garaga.starknet.groth16_contract_generator.generator import (
     gen_groth16_verifier,
 )
 from garaga.starknet.honk_contract_generator.generator_honk import gen_honk_verifier
+from rich import print
+from rich.console import Console
+from rich.panel import Panel
+from rich.progress import Progress, SpinnerColumn, TextColumn
+from rich.tree import Tree
 
 
 def check_nargo_version(version: str) -> tuple[bool, str]:
@@ -51,40 +50,8 @@ def check_version(cmd: str, version: str) -> tuple[bool, str]:
         return (False, f"Command '{cmd}' not found or not executable")
 
 
-def _get_bb_verifier_targets() -> list[str]:
-    """Read the v6 target list instead of the deprecated oracle-hash options."""
-    import re
-
-    try:
-        result = subprocess.run(
-            ["bb", "prove", "--help"], capture_output=True, text=True
-        )
-        if result.returncode:
-            return []
-        return re.findall(
-            r"^\s+(evm(?:-no-zk)?|noir-recursive(?:-no-zk)?|noir-rollup(?:-no-zk)?|starknet(?:-no-zk)?)\s",
-            result.stdout,
-            re.MULTILINE,
-        )
-    except (FileNotFoundError, OSError):
-        return []
-
-
-def check_bb_starknet_support(
-    version: str, with_starknet: bool = False
-) -> tuple[bool, str, bool]:
-    """Check if bb supports starknet and meets the version requirement"""
-    version_ok, version_str = check_bb_version(version)
-    verifier_targets = _get_bb_verifier_targets()
-    has_starknet = "starknet" in verifier_targets
-    if with_starknet:
-        return (version_ok and has_starknet, version_str, has_starknet)
-    else:
-        return (version_ok, version_str, has_starknet)
-
-
-def print_bb_warning(soft: bool = False, with_starknet: bool = False):
-    bb_version_ok, bb_version, _ = check_bb_starknet_support(BB_VERSION, with_starknet)
+def print_bb_warning(soft: bool = False):
+    bb_version_ok, bb_version = check_bb_version(BB_VERSION)
     nargo_version_ok, nargo_version = check_version("nargo", NARGO_VERSION)
     if not bb_version_ok or not nargo_version_ok:
         console = Console()
@@ -192,11 +159,6 @@ def gen(
                     print(
                         f"\n[bold red]Error:[/bold red] An error occurred while generating the verifier: \n{traceback.format_exc()}"
                     )
-                    # print_bb_warning(
-                    #     with_starknet=system == ProofSystem.UltraStarknetHonk
-                    #     or system == ProofSystem.UltraStarknetZKHonk
-                    # )
-
                     raise typer.Exit(code=1)
 
             case _:
@@ -223,4 +185,4 @@ def gen(
     if system in [
         ProofSystem.UltraKeccakZKHonk,
     ]:
-        print_bb_warning(soft=True, with_starknet=False)
+        print_bb_warning(soft=True)
