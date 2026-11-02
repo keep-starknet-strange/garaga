@@ -57,51 +57,8 @@ def check_version(cmd: str, version: str) -> tuple[bool, str]:
         return (False, f"Command '{cmd}' not found or not executable")
 
 
-def _get_bb_oracle_hash_options() -> list[str]:
-    """Get the available oracle hash options from bb command"""
-    try:
-        result_hash = subprocess.run(
-            ["bb", "prove", "-h"], capture_output=True, text=True
-        )
-        if result_hash.returncode != 0:
-            return []
-
-        # Extract oracle hash options
-        oracle_hash_options = []
-        lines = result_hash.stdout.splitlines()
-        for i, line in enumerate(lines):
-            if "--oracle_hash" in line:
-                # Look in the next few lines for the options
-                for j in range(i + 1, min(i + 100, len(lines))):
-                    if "Options: {" in lines[j]:
-                        options_str = lines[j].split("{")[1].split("}")[0]
-                        oracle_hash_options = [
-                            opt.strip() for opt in options_str.split(",")
-                        ]
-                        break
-                break
-
-        return oracle_hash_options
-    except (FileNotFoundError, OSError):
-        # Command not found or other OS error
-        return []
-
-
-def check_bb_starknet_support(
-    version: str, with_starknet: bool = False
-) -> tuple[bool, str, bool]:
-    """Check if bb supports starknet and meets the version requirement"""
-    version_ok, version_str = check_bb_version(version)
-    oracle_options = _get_bb_oracle_hash_options()
-    has_starknet = "starknet" in oracle_options
-    if with_starknet:
-        return (version_ok and has_starknet, version_str, has_starknet)
-    else:
-        return (version_ok, version_str, has_starknet)
-
-
-def print_bb_warning(soft: bool = False, with_starknet: bool = False):
-    bb_version_ok, bb_version, _ = check_bb_starknet_support(BB_VERSION, with_starknet)
+def print_bb_warning(soft: bool = False):
+    bb_version_ok, bb_version = check_bb_version(BB_VERSION)
     nargo_version_ok, nargo_version = check_version("nargo", NARGO_VERSION)
     if not bb_version_ok or not nargo_version_ok:
         console = Console()
@@ -209,11 +166,6 @@ def gen(
                     print(
                         f"\n[bold red]Error:[/bold red] An error occurred while generating the verifier: \n{traceback.format_exc()}"
                     )
-                    # print_bb_warning(
-                    #     with_starknet=system == ProofSystem.UltraStarknetHonk
-                    #     or system == ProofSystem.UltraStarknetZKHonk
-                    # )
-
                     raise typer.Exit(code=1)
 
             case _:
@@ -240,4 +192,4 @@ def gen(
     if system in [
         ProofSystem.UltraKeccakZKHonk,
     ]:
-        print_bb_warning(soft=True, with_starknet=False)
+        print_bb_warning(soft=True)

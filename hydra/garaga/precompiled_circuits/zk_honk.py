@@ -250,25 +250,6 @@ class Sha3Transcript(Transcript):
         self.hasher.update(data)
 
 
-class StarknetPoseidonTranscript(Transcript):
-    def reset(self):
-        self.s0, self.s1, self.s2 = hades_permutation(
-            int.from_bytes(b"StarknetHonk", "big"), 0, 1
-        )
-
-    def digest(self) -> bytes:
-        res_bytes = self.s0.to_bytes(32, "big")
-        return res_bytes
-
-    def update(self, data: bytes):
-        val = int.from_bytes(data, "big")
-        assert val < 2**256
-        high, low = divmod(val, 2**128)
-        self.s0, self.s1, self.s2 = hades_permutation(
-            self.s0 + low, self.s1 + high, self.s2
-        )
-
-
 @dataclass
 class ZKHonkProof:
     log_circuit_size: int  # from vk
@@ -749,8 +730,6 @@ class ZKHonkTranscript:
         match system:
             case ProofSystem.UltraKeccakZKHonk:
                 hasher = Sha3Transcript()
-            case ProofSystem.UltraStarknetZKHonk:
-                hasher = StarknetPoseidonTranscript()
             case _:
                 raise ValueError(f"Proof system {system} not compatible")
 
