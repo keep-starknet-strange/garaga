@@ -19,19 +19,12 @@ GRUMPKIN_ID = 5
 class ProofSystem(Enum):
     Groth16 = "groth16"  # Works for Generic Groth16 (BN254/BLS12-381), Risc0 Groth16 (BN254), and SP1 Groth16 (BN254)
     UltraKeccakZKHonk = "ultra_keccak_zk_honk"
-    # UltraStarknetZKHonk = "ultra_starknet_zk_honk" # Disabled.
 
     @property
     def supported_curves(self) -> set[int]:
         if self == ProofSystem.Groth16:
             return {BN254_ID, BLS12_381_ID}
-        if self == ProofSystem.UltraKeccakHonk:
-            return {BN254_ID}
-        if self == ProofSystem.UltraStarknetHonk:
-            return {BN254_ID}
         if self == ProofSystem.UltraKeccakZKHonk:
-            return {BN254_ID}
-        if self == ProofSystem.UltraStarknetZKHonk:
             return {BN254_ID}
         return set()
 
