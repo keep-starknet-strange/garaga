@@ -1,3 +1,4 @@
+pub mod bls_calldata;
 pub mod drand_calldata;
 pub mod drand_tlock_calldata;
 pub mod full_proof_with_hints {
