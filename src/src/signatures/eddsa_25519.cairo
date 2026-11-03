@@ -4,13 +4,11 @@ use core::circuit::{
 };
 use core::integer::u128_byte_reverse;
 use garaga::basic_field_ops::{neg_mod_p, u512_mod_p};
-use garaga::circuits::ec;
 use garaga::core::circuit::{
     AddInputResultTrait2, CircuitOutputsTrait, EvalCircuitTrait, u288IntoCircuitInputValue,
 };
-use garaga::definitions::{
-    G1Point, Zero, get_ED25519_modulus, get_a, get_curve_order_modulus, get_modulus, u288Serde,
-};
+use garaga::definitions::{G1Point, Zero, get_ED25519_modulus, get_curve_order_modulus, u288Serde};
+use garaga::ec::ed25519::is_small_order_edwards;
 use garaga::ec_ops::{G1PointTrait, ec_safe_add, msm_fake_glv};
 use garaga::hashes::sha_512::_sha512;
 
@@ -85,30 +83,22 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint, Py_twisted: u
     let EdDSASignatureWithHint { signature, mut msm_hint, sqrt_Rx_hint, sqrt_Px_hint } = signature;
     let EdDSASignature { Ry_twisted, s, msg } = signature;
 
-    let R_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
-        Ry_twisted, sqrt_Rx_hint,
-    );
-    let P_opt: Option<G1Point> = decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
-        Py_twisted, sqrt_Px_hint,
-    );
+    let R_opt = decompress_edwards_point(Ry_twisted, sqrt_Rx_hint);
+    let P_opt = decompress_edwards_point(Py_twisted, sqrt_Px_hint);
 
     if P_opt.is_none() || R_opt.is_none() {
         return false;
     }
 
-    let P: G1Point = P_opt.unwrap();
-    let R: G1Point = R_opt.unwrap();
-
-    // Verify points lie on the curve (but may be outside the prime-order subgroup)
-    if !R.is_on_curve_excluding_infinity(4) || !P.is_on_curve_excluding_infinity(4) {
+    let (px, py) = P_opt.unwrap();
+    let (rx, ry) = R_opt.unwrap();
+    // Reject pure 8-torsion before the birational map. This preserves the
+    // signature policy and also handles the identity without dividing by zero.
+    if is_small_order_edwards(rx, ry) || is_small_order_edwards(px, py) {
         return false;
     }
-
-    // Reject small-order points explicitly to prevent key-compromise and
-    // signature-malleability attacks. Check [8]P = 𝒪 for both R and the public key.
-    if is_small_order_point(R, 4) || is_small_order_point(P, 4) {
-        return false;
-    }
+    let P = to_weierstrass(px, py);
+    let R = to_weierstrass(rx, ry);
 
     let mut data: Array<u8> = array![];
 
@@ -168,55 +158,18 @@ pub fn is_valid_eddsa_signature(signature: EdDSASignatureWithHint, Py_twisted: u
     return ec_safe_add(msm_result, R, 4).is_infinity();
 }
 
-/// Checks if a point has small order (order dividing the cofactor 8).
-///
-/// For Ed25519 the full curve has order 8×ℓ where ℓ is the prime-order subgroup.
-/// Small-order points (orders 1, 2, 4, 8) can enable attacks, so they must be rejected.
-///
-/// # Implementation
-/// Tests for small-order by checking if [2^k]P = 𝒪 for k = 1, 2, or 3 (i.e., orders 2, 4, or 8).
-/// Uses the fact that on Weierstrass curves, a point equals its negation (hence has order 2)
-/// iff its y-coordinate is zero. Returns true if P has order dividing 8.
-///
-/// # Parameters
-/// - `p`: The point to test
-/// - `curve_index`: Must be 4 (Ed25519)
-///
-/// # Returns
-/// - `true` if P has small order (should be rejected)
-/// - `false` if P is in the large subgroup (acceptable)
-fn is_small_order_point(p: G1Point, curve_index: usize) -> bool {
-    // Compute [8]P = [2^3]P by three doublings
-
-    if p.y.is_zero() {
-        // => P=-P => 2P = 0
-        return true;
-    }
-
-    let modulus = get_modulus(curve_index);
-    let a = get_a(curve_index);
-    let (p2) = ec::run_DOUBLE_EC_POINT_circuit(p, a, modulus);
-
-    if p2.y.is_zero() {
-        // => 2P=-2P => 4P = 0
-        return true;
-    }
-
-    let (p4) = ec::run_DOUBLE_EC_POINT_circuit(p2, a, modulus);
-
-    if p4.y.is_zero() {
-        // => 4P=-4P => 8P = 0
-        return true;
-    }
-
-    // If [8]P = 𝒪 then P has order dividing 8 (small-order point)
-    return false;
-}
-
-
 pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
     y_twisted_compressed: u256, sqrt_hint: u256,
 ) -> Option<G1Point> {
+    let (x, y) = decompress_edwards_point(y_twisted_compressed, sqrt_hint)?;
+    // The identity and order-two point are outside this affine map's domain.
+    if x.is_zero() {
+        return None;
+    }
+    Some(to_weierstrass(x, y))
+}
+
+fn decompress_edwards_point(y_twisted_compressed: u256, sqrt_hint: u256) -> Option<(u384, u384)> {
     let (bit_sign, y_high): (u128, u128) = DivRem::div_rem(
         y_twisted_compressed.high, POW_2_127_u128,
     );
@@ -231,6 +184,9 @@ pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
     };
 
     let y = u256 { low: y_twisted_compressed.low, high: y_high };
+    if y >= X22519_u256 || sqrt_hint >= X22519_u256 {
+        return None;
+    }
     let y_u384: u384 = y.into();
 
     let y = CircuitElement::<CircuitInput<0>> {};
@@ -265,11 +221,7 @@ pub fn decompress_edwards_pt_from_y_compressed_le_into_weirstrass_point(
         return None;
     }
 
-    if sqrt_hint >= X22519_u256 {
-        return None;
-    }
-
-    return Some(to_weierstrass(x_384, y_u384));
+    return Some((x_384, y_u384));
 }
 
 // Convert twisted Edwards Ed25519 point to equivalent Weierstrass point

@@ -102,7 +102,7 @@ This distinction also applies to the trust in the standard field arithmetic inte
 The Noir workflow rebuilds the Solidity AST and rejects a stale Solidity model.
 `make rewrite` regenerates the Cairo model from the production factory and committed keys.
 A Python regression test rejects stale Cairo models before regeneration.
-The same Noir workflow builds the Lean proofs and audits their axiom dependencies.
+The Lean workflow builds the proofs and audits their axiom dependencies.
 
 The audit permits only Lean's standard logical axioms: `propext`, `Classical.choice`, and `Quot.sound`.
 It rejects placeholder axioms and compiler-trust axioms.

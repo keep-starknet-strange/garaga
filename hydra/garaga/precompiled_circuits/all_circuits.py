@@ -62,6 +62,7 @@ from garaga.precompiled_circuits.compilable_circuits.common_cairo_fustat_circuit
     PsiG2BLS12_381Circuit,
     QuadrupleAndAdd9Circuit,
 )
+from garaga.precompiled_circuits.compilable_circuits.ed25519 import Ed25519Circuit
 from garaga.precompiled_circuits.compilable_circuits.rsa import (
     RSAFullVerificationCircuit,
 )
@@ -133,9 +134,16 @@ class CircuitID(Enum):
     PSI_G2_BLS12_381 = int.from_bytes(b"psi_g2_bls12_381", "big")
     FULL_ECIP_BATCHED = int.from_bytes(b"full_ecip__batched", "big")
     RSA_FULL_VERIFICATION = int.from_bytes(b"rsa_full_verif", "big")
+    ED25519_SUBGROUP = int.from_bytes(b"ed25519_subgroup", "big")
 
 
 ALL_CAIRO_CIRCUITS = {
+    CircuitID.ED25519_SUBGROUP: {
+        "class": Ed25519Circuit,
+        "params": [{"operation": name} for name in Ed25519Circuit.INPUTS],
+        "filename": "ed25519",
+        "curve_ids": [CurveID.ED25519],
+    },
     CircuitID.DUMMY: {"class": DummyCircuit, "params": None, "filename": "dummy"},
     CircuitID.IS_ON_CURVE_G1_G2: {
         "class": IsOnCurveG1G2Circuit,

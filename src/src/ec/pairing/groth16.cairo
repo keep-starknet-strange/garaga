@@ -69,6 +69,8 @@ pub struct Groth16VerifyingKey<T> {
 
 #[generate_trait]
 pub impl Groth16RawProofImpl of Groth16ProofRawTrait {
+    // Propagate the known pairing curve into the subgroup checks.
+    #[inline]
     fn check_proof_points(self: @Groth16ProofRaw, curve_id: u32) {
         self.a.assert_in_subgroup_excluding_infinity(curve_id);
         self.b.assert_in_subgroup_excluding_infinity(curve_id);
