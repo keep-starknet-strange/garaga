@@ -3,7 +3,7 @@
 # - It will update the code generated under src/wasm/pkg
 # Usage: docker compose up --build && docker compose down
 
-FROM rust:1.99.0
+FROM rust:1.99.1
 
 # Update the archive hashes whenever WASM_PACK_VERSION changes.
 RUN WASM_PACK_VERSION=0.13.1 \
