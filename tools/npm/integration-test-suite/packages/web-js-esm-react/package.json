@@ -8,11 +8,11 @@
   },
   "dependencies": {
     "garaga": "file:../../garaga.tgz",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
-    "puppeteer": "^25.16.0"
+    "puppeteer": "^25.17.0"
   }
 }

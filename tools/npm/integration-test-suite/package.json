@@ -10,7 +10,7 @@
     "test-generate": "turbo test-generate --concurrency 1"
   },
   "devDependencies": {
-    "turbo": "^2.1.1"
+    "turbo": "^2.11.11"
   },
   "dependencies": {
     "garaga": "file:garaga.tgz"
