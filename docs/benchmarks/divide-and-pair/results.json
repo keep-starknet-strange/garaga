@@ -1,0 +1,143 @@
+{
+  "baseline_revision": "9b327b4ab3e1e2535df689765adb88b99762f739",
+  "notes": [
+    "Steps and Sierra gas come from separate resource modes.",
+    "The baseline Cairo Ed25519 subgroup API was unimplemented.",
+    "The generic subgroup comparison is an added full-integer oracle on identical inputs.",
+    "Sierra gas excludes transaction fees and calldata costs."
+  ],
+  "proof_systems_after": {
+    "groth16_example_bls12_381": {
+      "casm_felts": 50935,
+      "sierra_felts": 27356,
+      "sierra_gas": 51687852,
+      "steps": 337279
+    },
+    "groth16_example_bn254": {
+      "casm_felts": 45575,
+      "sierra_felts": 38353,
+      "sierra_gas": 35512947,
+      "steps": 233039
+    },
+    "risc0_verifier_bn254": {
+      "casm_felts": 50704,
+      "sierra_felts": 34353,
+      "sierra_gas": 45618175,
+      "steps": 274009
+    },
+    "sp1_verifier_bn254": {
+      "casm_felts": 50657,
+      "sierra_felts": 34328,
+      "sierra_gas": 44074584,
+      "steps": 278006
+    }
+  },
+  "proof_systems_before": {
+    "groth16_example_bls12_381": {
+      "casm_felts": 51003,
+      "sierra_felts": 27190,
+      "sierra_gas": 51703072,
+      "steps": 337397
+    },
+    "groth16_example_bn254": {
+      "casm_felts": 58914,
+      "sierra_felts": 41905,
+      "sierra_gas": 35527207,
+      "steps": 233180
+    },
+    "risc0_verifier_bn254": {
+      "casm_felts": 64039,
+      "sierra_felts": 38009,
+      "sierra_gas": 45632235,
+      "steps": 274148
+    },
+    "sp1_verifier_bn254": {
+      "casm_felts": 63978,
+      "sierra_felts": 37986,
+      "sierra_gas": 44088644,
+      "steps": 278145
+    }
+  },
+  "revision": "9b327b4ab3e1e2535df689765adb88b99762f739",
+  "scarb": "scarb 2.21.0 (fbd5bd03d 2026-10-09)\ncairo: 2.21.0 (https://crates.io/crates/cairo-lang-compiler/2.21.0)\nsierra: 1.9.5\narch: x86_64-unknown-linux-gnu",
+  "signature_after": {
+    "test_eddsa_0_0B": {
+      "sierra_gas": 10283718,
+      "steps": 51234
+    },
+    "test_eddsa_16_32B": {
+      "sierra_gas": 10341424,
+      "steps": 51810
+    },
+    "test_eddsa_32_64B": {
+      "sierra_gas": 15671970,
+      "steps": 87588
+    }
+  },
+  "signature_before": {
+    "test_eddsa_0_0B": {
+      "sierra_gas": 10398026,
+      "steps": 51802
+    },
+    "test_eddsa_16_32B": {
+      "sierra_gas": 10455732,
+      "steps": 52378
+    },
+    "test_eddsa_32_64B": {
+      "sierra_gas": 15786278,
+      "steps": 88156
+    }
+  },
+  "snforge": "snforge 0.64.1",
+  "source_dirty": true,
+  "source_sha256": {
+    "hydra/garaga/ed25519.py": "514bb0fc5fbbe8a4bed0786207ccf5ff14f587b6b6a76115ea67e540c343ce4f",
+    "hydra/garaga/precompiled_circuits/compilable_circuits/ed25519.py": "650a98f44574f3cd770b352bb0d5fd6b5a767a3bb622d8244e8bd0f7849f9d6e",
+    "src/Scarb.toml": "f2ac6237a0d529f3ee6e0115ec1264d74c0c6e356d147484486315b5fc81edad",
+    "src/src/circuits/ed25519.cairo": "dcfcd62d230cf9321df6bb2c4cd158ad5c9a5b0b6ebd53e6d7e21048e0ab4d6e",
+    "src/src/definitions/curves.cairo": "faafb41371c3e84e649c36c9c97594f7b80e8119f4881097850a043d2de1c6d9",
+    "src/src/ec/ec_ops.cairo": "1f81db9065026b1fa4c1d7867db66348ae339aded150680e3e6a0e550616d444",
+    "src/src/ec/ed25519.cairo": "dc8af7250ee1a47e0bf534c86493b94b49551f60dfdf274e3081e73e4ca4acd3",
+    "src/src/ec/pairing/groth16.cairo": "e45d745b8ba8f959ceef97b26fbadca7c0d0ed01fb3d7ae4d64acfa541ebc801",
+    "src/src/signatures/eddsa_25519.cairo": "f28e4d9a78ec9cbb6bb536548660c0032b86a3d4882a2ffc254f770402fba7a2",
+    "src/src/tests/ed25519_subgroup_tests.cairo": "6ae40e66e2bcb72e18ccc4662a00a9c1790cddcc3bc85d2ee6355cb0b18e6a1d",
+    "tools/divide_and_pair/benchmark.py": "001151b617a071f9d5b855dbf67fa3a6fcfcc4d8f24c23a23c1b85b395a6a11c",
+    "tools/divide_and_pair/generate.py": "1b4e62b9b0d517e19d55d026b6a615f29604c13eb5bf3be0511a6399be07ef73",
+    "tools/divide_and_pair/vectors.py": "e9f3ff800e72178c79832fd054c01d7f9e54eccae5024a3d425ba0a306d4ff1e",
+    "tools/make/constants.json": "0ee355bd96168e9d15da2ecf1433e88609f5209ae18cd3344aa9138d18a49d6d"
+  },
+  "subgroup": {
+    "test_ed25519_benchmark_divide_pair_mixed_even": {
+      "sierra_gas": 944832,
+      "steps": 1268
+    },
+    "test_ed25519_benchmark_divide_pair_mixed_odd": {
+      "sierra_gas": 944832,
+      "steps": 819
+    },
+    "test_ed25519_benchmark_divide_pair_prime": {
+      "sierra_gas": 944652,
+      "steps": 1450
+    },
+    "test_ed25519_benchmark_divide_pair_prime_nqr": {
+      "sierra_gas": 944652,
+      "steps": 1572
+    },
+    "test_ed25519_benchmark_generic_mixed_even": {
+      "sierra_gas": 28017690,
+      "steps": 158402
+    },
+    "test_ed25519_benchmark_generic_mixed_odd": {
+      "sierra_gas": 28017690,
+      "steps": 158402
+    },
+    "test_ed25519_benchmark_generic_prime": {
+      "sierra_gas": 28018310,
+      "steps": 158399
+    },
+    "test_ed25519_benchmark_generic_prime_nqr": {
+      "sierra_gas": 28018310,
+      "steps": 158399
+    }
+  }
+}

@@ -13,6 +13,9 @@ run_generators() {
     python hydra/garaga/starknet/groth16_contract_generator/generator_risc0.py
     python hydra/garaga/starknet/groth16_contract_generator/generator_sp1.py
     python tools/noir/formal/generate.py --side cairo
+    python -m tools.divide_and_pair.generate
+    python -m tools.divide_and_pair.formal.control_flow
+    python -m tools.divide_and_pair.formal.generate
     python src/contracts/mutator_set/scripts/regenerate_verifier.py
 }
 
