@@ -22,6 +22,7 @@ from garaga.precompiled_circuits.multi_miller_loop import MultiMillerLoopCircuit
 from garaga.starknet.constants import (
     RISC0_BN254_CONTROL_ID,
     RISC0_CONTROL_ROOT,
+    RISC0_GROTH16_SELECTOR,
     SP1_VERIFIER_HASH,
     SP1_VERIFIER_VERSION,
     SP1_VK_ROOT,
@@ -376,18 +377,14 @@ class Groth16Proof:
             seal = find_item_from_key_patterns(data, ["seal"])
             image_id = find_item_from_key_patterns(data, ["image_id"])
             journal = find_item_from_key_patterns(data, ["journal"])
-
-            print("Seal: {}\nImage_id: {}\nJournal: {}".format(seal, image_id, journal))
+        except KeyPatternNotFound:
+            pass
+        else:
             return Groth16Proof._from_risc0(
                 seal=codecs.decode(seal[2:].replace("\\x", ""), "hex"),
                 image_id=codecs.decode(image_id[2:].replace("\\x", ""), "hex"),
                 journal=codecs.decode(journal[2:].replace("\\x", ""), "hex"),
             )
-        except (ValueError, KeyError, KeyPatternNotFound):
-            pass
-        except Exception as e:
-            print(f"Error when attempmting to parse as Risc0 proof: {e}")
-            raise e
 
         try:
             sp1_vkey = find_item_from_key_patterns(data, ["vkey"])
@@ -458,7 +455,16 @@ class Groth16Proof:
         CONTROL_ROOT: int = RISC0_CONTROL_ROOT,
         BN254_CONTROL_ID: int = RISC0_BN254_CONTROL_ID,
     ) -> "Groth16Proof":
-        assert len(image_id) <= 32, "image_id must be 32 bytes"
+        if len(seal) != 260:
+            raise ValueError("RISC Zero Groth16 seal must be 260 bytes")
+        if len(image_id) != 32:
+            raise ValueError("RISC Zero image ID must be 32 bytes")
+        if (
+            CONTROL_ROOT == RISC0_CONTROL_ROOT
+            and BN254_CONTROL_ID == RISC0_BN254_CONTROL_ID
+            and not seal.startswith(RISC0_GROTH16_SELECTOR)
+        ):
+            raise ValueError("Unsupported RISC Zero Groth16 selector")
         CONTROL_ROOT_0, CONTROL_ROOT_1 = split_digest(CONTROL_ROOT)
         proof = seal[4:]
         journal_digest = hashlib.sha256(journal).digest()
@@ -690,49 +696,5 @@ def ok(image_id, journal_digest):
 
 
 if __name__ == "__main__":
-    # PATH = Path(__file__).parent
-    # print(f"PATH: {PATH}")
-    # proof = Groth16Proof.from_json(
-    #     f"{PATH}/examples/gnark_proof_bn254.json",
-    #     f"{PATH}/examples/gnark_public_bn254.json",
-    # )
-    # # print(proof)
-    # vk = Groth16VerifyingKey.from_json(f"{PATH}/examples/gnark_vk_bn254.json")
-    # print(vk)
-
-    # vk_risc0 = Groth16VerifyingKey.from_json(f"{PATH}/examples/vk_risc0.json")
-    # # print(vk_risc0)
-
-    # Risc0 proof extracted from https://sepolia.etherscan.io/tx/0x2308aeefef309097aeaf0e3660915d5b80813e693ac72147b651e0196155235d
-    bproof = bytes.fromhex(
-        "310fe5982466f8f1bab4d00a829cafcda46036fb9c5108df341746ab5f7532aa71aee03b0947eaf1af095584de8d5bd0a91a811f071a555c21a113476aa167108dfeb73913c3a1ef6a5baac68cddd25fafdbf660c4e479f7a836cc1b98904610ead5c9ab2c62f6fdf8ca099964080c95beebf5728b41728128ec0c7823f8adf22e5bfeed1110de7c21ed2dc1e2fd8f2c52d68a15129cf68f18a3087131920e8dcb40a81b003f524b6dcbabdc1e270494bc39b190bddfdb13106409350f80b6204d89da4c16842b4139dd02a39829cf1403657ad00080300a32148c31093cb752809cae2e075db0a79893a6d71a4a7d61111fdff741aeb198dd7fb00b4fa23714ddfd8093"
-    )
-
-    def parse_proof_and_signals(proof: bytes) -> Groth16Proof:
-        proof = proof[4:]
-
-        def bytes_32_iterator(data: bytes):
-            for i in range(0, len(data), 32):
-                yield io.to_int(data[i : i + 32])
-
-        it = bytes_32_iterator(proof)
-        print(len(proof) / 32)
-        _a = G1Point(x=next(it), y=next(it), curve_id=CurveID.BN254)
-        _b = G2Point(
-            x=[next(it), next(it)][::-1],
-            y=[next(it), next(it)][::-1],
-            curve_id=CurveID.BN254,
-        )
-        _c = G1Point(x=next(it), y=next(it), curve_id=CurveID.BN254)
-
-        public_inputs = list(it)
-        print(len(public_inputs))
-        return Groth16Proof(
-            a=_a,
-            b=_b,
-            c=_c,
-            public_inputs=list(it),
-        )
-
-    proof = parse_proof_and_signals(bproof)
-    print(proof)
+    receipt = Path(__file__).with_name("examples") / "proof_risc0.json"
+    print(Groth16Proof.from_json(receipt))

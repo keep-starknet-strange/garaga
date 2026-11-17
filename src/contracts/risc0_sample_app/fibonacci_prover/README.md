@@ -1,6 +1,6 @@
-# RISC Zero 3 Fibonacci prover
+# RISC Zero 3.1 Fibonacci prover
 
-This example uses zkVM and build tools 3.0.6 with the RISC Zero v3.0.1 verifier parameters.
+This example uses `risc0-zkvm` 3.1.0, `risc0-build` 3.0.7, and the RISC Zero 3.1.0 Groth16 verifier.
 It proves that a private Fibonacci index belongs to the public interval `[l, u)`.
 The journal contains `l`, `u`, and the Fibonacci number as little-endian `u32` values.
 
@@ -14,29 +14,31 @@ Run these commands from the repository root. Install [rzup](https://dev.risczero
 
 ```bash
 rzup install rust 1.97.0
-rzup install r0vm 3.0.6
+rzup install r0vm 3.1.0
 CARGO_TARGET_DIR=.cargo/risc0_sample/target cargo test --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
-CARGO_TARGET_DIR=.cargo/risc0_sample/target RISC0_PROVER=ipc cargo run --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
+CARGO_TARGET_DIR=.cargo/risc0_sample/target RISC0_PROVER=ipc RISC0_DEV_MODE=0 cargo run --locked --manifest-path src/contracts/risc0_sample_app/fibonacci_prover/Cargo.toml --package host
 ```
 
-The host requests a Groth16 proof and verifies the receipt before it generates calldata.
-Groth16 proving also uses Docker for the Groth16 container.
+The sample uses the local RISC Zero client. The host requests a Groth16 proof and verifies the receipt before it generates calldata.
+CPU Groth16 proving uses the `risczero/risc0-groth16-prover:v2026-10-20.1` Docker image.
 The output contains a proof JSON object followed by a JSON array of Starknet calldata.
 Garaga's default Python, Rust, and TypeScript parsers use the same verifier parameters.
+Regenerate earlier receipts with `r0vm` 3.1.0 and use the new verifier class. [RISC Zero 3.1.0 release](https://github.com/risc0/risc0/releases/tag/v3.1.0)
 
 ## Update the SDK and verifier together
 
-`tools/make/constants.json` defines the SDK version, verifier release, control root, and BN254 control ID.
-The SDK version and verifier release can have different patch versions.
+`tools/make/constants.json` defines the SDK and build versions, verifier release, control root, BN254 control ID, and Groth16 selector.
+The SDK and build crate have separate versions.
 The SDK tests verify their cryptographic compatibility.
 
 1. Update those values in `tools/make/constants.json`.
-2. Run `make constants` to update the three SDK manifests and the Python, Rust, and TypeScript constants.
-3. Update the host and guest lockfiles with `cargo update --manifest-path <path/to/Cargo.toml>` in each workspace.
-4. Run the host command above to generate a new proof.
-5. Save its proof JSON object as `src/contracts/risc0_sample_app/fibonacci_prover/proof.json`.
-6. Replace the shared `proof_risc0.json` example with a valid receipt for the new parameters.
-7. Run the following commands after `make setup`:
+2. Update `vk_risc0.json` from the corresponding upstream Groth16 verification key.
+3. Run `make constants` to update the SDK manifests and the Python, Rust, and TypeScript constants.
+4. Update both Cargo lockfiles.
+5. Run the host command above to generate a proof.
+6. Save its proof JSON object as `src/contracts/risc0_sample_app/fibonacci_prover/proof.json`.
+7. Update the shared reference receipt in `proof_risc0.json`.
+8. Run these commands after `make setup`.
 
 ```bash
 make maturin
@@ -65,3 +67,6 @@ It also compares the Fibonacci receipt image ID with the compiled guest image ID
 The Cairo CI job declares the compiled verifier locally, verifies its class hash, and submits the Fibonacci proof through the sequencer.
 The devnet CI job also tests the verifier and sequencer as deployed contracts.
 These tests require no public RPC endpoint and no new proof generation during CI.
+
+The shared reference receipt comes from RISC Zero's Ethereum 3.1.0 tests.
+The verification key comes from the same release. [Reference receipt](https://github.com/risc0/risc0-ethereum/blob/v3.1.0/contracts/test/TestReceiptV3_1.sol) · [Groth16 verifier](https://github.com/risc0/risc0-ethereum/blob/v3.1.0/contracts/src/groth16/Groth16Verifier.sol)

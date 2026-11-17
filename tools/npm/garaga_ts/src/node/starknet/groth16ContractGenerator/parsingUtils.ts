@@ -2,10 +2,7 @@ import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from ".
 import * as fs from 'fs';
 import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io.js";
 import { sha256 } from '@noble/hashes/sha2.js';
-import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT } from "../../../constants.js";
-
-
-//https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol
+import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_GROTH16_SELECTOR, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT } from "../../../constants.js";
 
 
 export interface Groth16Proof {
@@ -189,17 +186,14 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 
         // Try RISC0 parsing first
         try {
-            const sealHex = toHexStr(findItemFromKeyPatterns(data, ['seal']));
-            const imageIdHex = toHexStr(findItemFromKeyPatterns(data, ['image_id']));
-            const journalHex = toHexStr(findItemFromKeyPatterns(data, ['journal']));
-
-            const sealBytes = hexStringToBytes(sealHex);
-            const imageIdBytes = hexStringToBytes(imageIdHex);
-            const journalBytes = hexStringToBytes(journalHex);
-
-            return createGroth16ProofFromRisc0(sealBytes, imageIdBytes, journalBytes)
+            const seal = findItemFromKeyPatterns(data, ['seal']);
+            const imageId = findItemFromKeyPatterns(data, ['image_id']);
+            const journal = findItemFromKeyPatterns(data, ['journal']);
+            return createGroth16ProofFromRisc0(
+                decodeReceiptBytes(seal), decodeReceiptBytes(imageId), decodeReceiptBytes(journal),
+            );
         } catch (err) {
-            // Continue to SP1 parsing
+            if (!(err instanceof KeyPatternNotFoundError)) throw err;
         }
 
         // Try SP1 parsing second
@@ -282,11 +276,31 @@ export const parseGroth16ProofFromObject = (data: any, publicInputsData?: bigint
 }
 
 
+function decodeReceiptBytes(value: string | number | bigint): Uint8Array {
+    if (typeof value === 'string' && /^0x/i.test(value.trim())) {
+        const hex = value.trim();
+        if (!/^0x(?:[a-f0-9]{2})*$/i.test(hex)) {
+            throw new Error("RISC Zero receipt fields must contain complete hexadecimal bytes");
+        }
+        return hexStringToBytes(hex);
+    }
+    return hexStringToBytes(toHexStr(value));
+}
+
 export const createGroth16ProofFromRisc0 = (seal: Uint8Array, imageId: Uint8Array, journalBytes: Uint8Array,
     controlRoot: bigint = RISC0_CONTROL_ROOT, bn254ControlId: bigint = RISC0_BN254_CONTROL_ID): Groth16Proof => {
 
-    if (imageId.length > 32) {
-        throw new Error("imageId must be 32 bytes")
+    if (seal.length !== 260) {
+        throw new Error("RISC Zero Groth16 seal must be 260 bytes");
+    }
+    if (imageId.length !== 32) {
+        throw new Error("RISC Zero image ID must be 32 bytes");
+    }
+    if (
+        controlRoot === RISC0_CONTROL_ROOT && bn254ControlId === RISC0_BN254_CONTROL_ID &&
+        `0x${bytesToHex(seal.subarray(0, 4))}` !== RISC0_GROTH16_SELECTOR
+    ) {
+        throw new Error("Unsupported RISC Zero Groth16 selector");
     }
 
     const [controlRoot0, controlRoot1] = splitDigest(controlRoot);
