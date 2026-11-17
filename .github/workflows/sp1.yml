@@ -20,5 +20,13 @@ jobs:
           components: rustfmt
       - name: Check reference test formatting
         run: cargo fmt --manifest-path tools/sp1_verifier/Cargo.toml --all --check
-      - name: Verify committed receipt with the official SDK and Garaga
+      - name: Check Garaga calldata for the committed receipt
         run: cargo test --locked --manifest-path tools/sp1_verifier/Cargo.toml
+      - name: Install Foundry for the official Solidity verifier
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: v1.8.7
+      - name: Verify the receipt with the official Solidity verifier
+        run: |
+          python3 tools/sp1_verifier/download_reference.py
+          forge test --root tools/sp1_verifier -vv
