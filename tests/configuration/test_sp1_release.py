@@ -2,11 +2,9 @@ import copy
 import hashlib
 import json
 import re
-import tomllib
 from pathlib import Path
 
 import pytest
-
 from garaga.curves import CURVES, CurveID
 from garaga.starknet import constants
 from garaga.starknet.groth16_contract_generator.calldata import (
@@ -35,15 +33,11 @@ def test_stored_receipt_matches_its_source_fingerprints():
     )
 
 
-def test_sdk_lock_and_generated_parameters_match_the_release():
-    manifest = tomllib.loads((ROOT / "tools/sp1_verifier/Cargo.toml").read_text())
-    sdk = manifest["dev-dependencies"]["sp1-verifier"]
-    assert sdk["version"] == "=" + RELEASE["sdk_version"]
-    lock = tomllib.loads((ROOT / "tools/sp1_verifier/Cargo.lock").read_text())
-    assert (
-        next(p["version"] for p in lock["package"] if p["name"] == "sp1-verifier")
-        == RELEASE["sdk_version"]
-    )
+def test_reference_and_generated_parameters_match_the_release():
+    source = json.loads((EXAMPLES / "sp1_artifacts.json").read_text())[
+        "verifier_source"
+    ]
+    assert Path(source["path"]).parent.name == RELEASE["verifier_version"]
     assert constants.SP1_SDK_VERSION == RELEASE["sdk_version"]
     assert constants.SP1_VERIFIER_VERSION == RELEASE["verifier_version"]
     assert constants.SP1_VERIFIER_HASH.hex() == RELEASE["verifier_hash"][2:]

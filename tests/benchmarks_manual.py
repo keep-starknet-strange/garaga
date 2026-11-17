@@ -306,13 +306,7 @@ def test_msm_n_points(curve_id: CurveID, n: int):
 
 
 if __name__ == "__main__":
-    import pandas as pd
     from tabulate import tabulate
-
-    pd.set_option("display.max_rows", None)  # None means show all rows
-    pd.set_option("display.max_columns", None)  # None means show all columns
-    pd.set_option("display.width", None)  # None means auto-detect the display width
-    pd.set_option("display.max_colwidth", None)  # None means show full width of columns
 
     builtin_ops_data = []
     builtin_ops_data.append(
@@ -327,13 +321,11 @@ if __name__ == "__main__":
     )
 
     final_exp_data = {CurveID.BN254: None, CurveID.BLS12_381: None}
-    sub_circuit_count = []
     # print(f"Running...")
     for curveID in [CurveID.BN254, CurveID.BLS12_381]:
-        builtin_ops, sub_circuits = test_final_exp_circuit(curveID)
+        builtin_ops, _ = test_final_exp_circuit(curveID)
         builtin_ops_data.append(builtin_ops)
         final_exp_data[curveID] = builtin_ops
-        sub_circuit_count.append(sub_circuits)
 
     # Sub circuits. Same values for both curves
     for test_func, curve_id, ext_degree in [
@@ -355,7 +347,7 @@ if __name__ == "__main__":
         for curve_id in [CurveID.BLS12_381, CurveID.BN254]:
 
             # print(f"Running {curve_id} {n}")
-            builtin_ops, sub_circuits = test_miller_n(curve_id, n)
+            builtin_ops, _ = test_miller_n(curve_id, n)
             builtin_ops_data.append(builtin_ops)
             builtin_ops_data.append(
                 {
@@ -371,13 +363,10 @@ if __name__ == "__main__":
                     "RLC": builtin_ops["RLC"] + final_exp_data[curve_id]["RLC"],
                 }
             )
-            sub_circuit_count.append(sub_circuits)
 
     for n in [1, 2, 3, 10, 50]:
         builtin_ops, _ = test_msm_n_points(CurveID.BN254, n)
         builtin_ops_data.append(builtin_ops)
-
-    df = pd.DataFrame(builtin_ops_data)
 
     costs = [
         {
@@ -427,10 +416,9 @@ if __name__ == "__main__":
             total_cost += row[op] * weight
         return total_cost
 
-    # Apply the function to each row to calculate the total cost
-    df["~steps"] = df.apply(calculate_row_cost, axis=1)
+    for row in builtin_ops_data:
+        row["~steps"] = calculate_row_cost(row)
 
-    pd.set_option("display.colheader_justify", "center")
     print("\n\n")
 
     costs = [cost for cost in costs if cost["OP"] != "POSEIDON"]
@@ -444,36 +432,14 @@ if __name__ == "__main__":
         ]
     )
 
-    df_costs = pd.DataFrame(costs)
-
-    print(tabulate(df_costs, headers="keys", tablefmt="github", showindex=False))
+    print(tabulate(costs, headers="keys", tablefmt="github"))
     print("\n")
-    df.sort_values(by="~steps", inplace=True)
+    builtin_ops_data.sort(key=lambda row: row["~steps"])
     print(
         tabulate(
-            df,
+            builtin_ops_data,
             headers="keys",
             tablefmt="github",
-            showindex=False,
             floatfmt=".2f",
         )
     )
-
-    df_sub_circuits = (
-        pd.DataFrame(sub_circuit_count)
-        .set_index("Circuit")
-        .fillna(0)
-        .astype(int)
-        .transpose()
-    )
-
-    # print("\n")
-    # print(
-    #     tabulate(
-    #         df_sub_circuits,
-    #         headers="keys",
-    #         tablefmt="github",
-    #         showindex=True,
-    #     )
-    # )
-    # print("\n")

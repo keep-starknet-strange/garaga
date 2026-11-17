@@ -42,9 +42,14 @@ def owned_manifests(update):
         members = []
         excluded = []
         if ecosystem == "cargo":
-            workspace = tomllib.loads(manifest.read_text()).get("workspace", {})
+            config = tomllib.loads(manifest.read_text())
+            workspace = config.get("workspace", {})
             members = workspace.get("members", [])
             excluded = workspace.get("exclude", [])
+            for patches in config.get("patch", {}).values():
+                for dependency in patches.values():
+                    if isinstance(dependency, dict) and "path" in dependency:
+                        owned.add((folder / dependency["path"] / name).resolve())
         elif ecosystem == "npm":
             members = json.loads(manifest.read_text()).get("workspaces", [])
             if isinstance(members, dict):

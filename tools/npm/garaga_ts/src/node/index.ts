@@ -1,10 +1,10 @@
-export * from './api'; // exports "ts" interface
-export * from '../wasm/pkg/garaga_rs'; // export "raw" interface
+export * from './api.js'; // exports "ts" interface
+export * from '../wasm/pkg/garaga_rs.js'; // export "raw" interface
 
-export { CurveId } from './definitions';
+export { CurveId } from './definitions.js';
 
-import pkg_init from '../wasm/pkg/garaga_rs';
-import module_or_path from '../wasm/pkg/garaga_rs_bg.wasm';
+import pkg_init from '../wasm/pkg/garaga_rs.js';
+import module_or_path from '../wasm/pkg/garaga_rs_bg.wasm.js';
 
 let initialization: ReturnType<typeof pkg_init> | undefined;
 

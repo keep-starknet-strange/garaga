@@ -189,8 +189,21 @@ fi
 # Keep the active venv and its local tools while installing locked dependencies.
 uv sync --locked --extra dev --no-install-project --active --inexact
 
-# Install the commit hooks (black, isort)
-pre-commit install
+# Replace the old generated hook so it cannot run the prek-only config.
+# Restore any custom hook that pre-commit kept in migration mode.
+if ! git config --get core.hooksPath >/dev/null &&
+    hook_file=$(git rev-parse --git-path hooks/pre-commit 2>/dev/null) &&
+    [[ -f "$hook_file" && ! -L "$hook_file" ]] &&
+    grep -Fqx '# ID: 138fd403232d2ddd5efb44317e38bf03' "$hook_file" &&
+    grep -Fqx 'ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit)' "$hook_file"; then
+    if [[ -e "$hook_file.legacy" || -L "$hook_file.legacy" ]]; then
+        mv -- "$hook_file.legacy" "$hook_file"
+    else
+        rm -- "$hook_file"
+    fi
+fi
+
+prek install
 
 echo "Compiling garaga_rs Rust extension..."
 # Create target directory with proper permissions in the correct location

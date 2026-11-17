@@ -1,19 +1,15 @@
-import * as garaga from "../../src/node/index";
+import * as garaga from "../../src/node/index.js";
+import { describe, test } from 'node:test';
 
 describe('Drand Getting calldata', () => {
 
-    const roundNumbers = [1, 2, 3, 'latest'];
+    const roundNumbers = [1, 2, 3, 'latest'] as const;
 
-    test.each(roundNumbers)("should get Drand calldata for round %s", async (roundNumber) => {
-
-        await garaga.init();
-
-        console.log("roundNumber", roundNumber);
-
-        const drandCalldata = await garaga.fetchAndGetDrandCallData(roundNumber as number | 'latest');
-
-        console.log("drandCalldata", drandCalldata);
-
-    });
+    for (const round of roundNumbers) {
+        test(`should get Drand calldata for round ${round}`, async () => {
+            await garaga.init();
+            await garaga.fetchAndGetDrandCallData(round);
+        });
+    }
 
 });

@@ -4,7 +4,10 @@
     "target": "es2021",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "noEmit": true,
+    "outDir": ".build",
+    "allowJs": true,
+    "sourceMap": true,
+    "inlineSources": true,
 
     "forceConsistentCasingInFileNames": true,
 
@@ -24,9 +27,9 @@
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
-    "types": ["vitest/globals", "node"],
+    "types": ["node"],
     "skipLibCheck": true, // Skipping type checks for external libraries
     "esModuleInterop": true
   },
-  "include": ["src/**/*.ts", "tests/**/*.ts"]
+  "include": ["src/**/*.ts", "src/wasm/pkg/*.js", "tests/**/*.ts"]
 }

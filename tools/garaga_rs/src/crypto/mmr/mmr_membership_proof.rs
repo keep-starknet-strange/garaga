@@ -7,7 +7,6 @@ use std::iter::FromIterator;
 
 // use arbitrary::Arbitrary;
 // use get_size2::GetSize;
-use itertools::Itertools;
 // use serde::Deserialize;
 // use serde::Serialize;
 
@@ -243,8 +242,8 @@ impl<H: HashFunction> MmrMembershipProof<H> {
             membership_proof_leaf_indices
                 .iter()
                 .all(|x| *x < old_leaf_count),
-            "All leaf indices must be in-bounds. Got indices [{}] and old_leaf_count = {}",
-            membership_proof_leaf_indices.iter().join(", "),
+            "All leaf indices must be in-bounds. Got indices {:?} and old_leaf_count = {}",
+            membership_proof_leaf_indices,
             old_leaf_count
         );
 

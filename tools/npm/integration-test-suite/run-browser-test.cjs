@@ -1,54 +1,51 @@
-const { spawn } = require('node:child_process');
-const { readFileSync, writeFileSync } = require('node:fs');
-const net = require('node:net');
-const { setTimeout: delay } = require('node:timers/promises');
-
-async function freePort() {
-  const socket = net.createServer();
-  await new Promise((resolve, reject) => socket.once('error', reject).listen(0, '127.0.0.1', resolve));
-  const port = socket.address().port;
-  await new Promise(resolve => socket.close(resolve));
-  return port;
-}
+const { once } = require('node:events');
+const { readdirSync, readFileSync, writeFileSync } = require('node:fs');
+const { createServer } = require('node:http');
+const { join } = require('node:path');
+const puppeteer = require('puppeteer');
 
 async function main() {
-  const port = await freePort();
-  const url = `http://127.0.0.1:${port}`;
-  const server = spawn('npm', ['run', 'start', '--', '--port', String(port)], {
-    detached: true, stdio: ['ignore', 'pipe', 'pipe'],
+  const html = readFileSync(join(__dirname, 'browser.html'));
+  const bundles = new Map(
+    readdirSync('dist')
+      .filter(file => file.endsWith('.js'))
+      .map(file => ['/' + file, readFileSync(join('dist', file))]),
+  );
+  const server = createServer((request, response) => {
+    if (request.url === '/') {
+      response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      response.end(html);
+    } else if (bundles.has(request.url)) {
+      response.writeHead(200, { 'Content-Type': 'text/javascript; charset=utf-8' });
+      response.end(bundles.get(request.url));
+    } else {
+      response.writeHead(404).end();
+    }
   });
-  server.stdout.pipe(process.stderr);
-  server.stderr.pipe(process.stderr);
-  let exited = false;
-  server.once('exit', () => { exited = true; });
+  server.listen(0, '127.0.0.1');
+
   try {
-    let ready = false;
-    for (let attempt = 0; attempt < 300; attempt++) {
-      if (exited) throw new Error('Browser test server exited before it was ready');
-      try {
-        const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
-        ready = response.ok;
-      } catch { /* Retry until the owned server starts listening. */ }
-      if (ready) break;
-      await delay(100);
+    await once(server, 'listening');
+    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+    try {
+      const page = await browser.newPage();
+      page.on('pageerror', error => console.error(error));
+      page.on('console', message => {
+        if (message.type() === 'error') console.error(message.text());
+      });
+      await page.goto(`http://127.0.0.1:${server.address().port}`);
+      await page.waitForSelector('body pre', { visible: true, timeout: 90000 });
+      const content = await page.$eval('body pre', element => element.textContent);
+      const actual = content + '\n';
+      if (process.argv.includes('--update')) writeFileSync('output.txt', actual);
+      else if (actual !== readFileSync('output.txt', 'utf8')) {
+        throw new Error('Browser output differs from the reference');
+      }
+    } finally {
+      await browser.close();
     }
-    if (!ready) throw new Error('Browser test server did not become ready');
-    const scrape = spawn(process.execPath, ['scrape.cjs'], {
-      env: { ...process.env, GARAGA_TEST_URL: url }, stdio: ['ignore', 'pipe', 'inherit'],
-    });
-    let actual = '';
-    scrape.stdout.on('data', data => { actual += data; });
-    const code = await new Promise((resolve, reject) => {
-      scrape.once('error', reject);
-      scrape.once('exit', resolve);
-    });
-    if (code !== 0) throw new Error(`Browser conformance check failed with exit code ${code}`);
-    if (process.argv.includes('--update')) writeFileSync('output.txt', actual);
-    else if (actual !== readFileSync('output.txt', 'utf8')) throw new Error('Browser output differs from the reference');
   } finally {
-    try { process.kill(-server.pid, 'SIGTERM'); } catch (error) {
-      if (error.code !== 'ESRCH') throw error;
-    }
+    server.close();
   }
 }
 

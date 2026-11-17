@@ -1,4 +1,5 @@
-import { parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils";
+import { parseGroth16ProofFromJson, parseGroth16VerifyingKeyFromJson } from "../../src/node/starknet/groth16ContractGenerator/parsingUtils.js";
+import { describe, test } from 'node:test';
 
 const PATH = '../../../hydra/garaga/starknet/groth16_contract_generator/examples';
 
@@ -13,12 +14,11 @@ describe('Groth16 Parsing Tests', () => {
     `${PATH}/vk_sp1.json`,
   ];
 
-  test.each(vkPaths)('should parse vk from %s', (vkPath) => {
-    const vk = parseGroth16VerifyingKeyFromJson(vkPath);
-    console.log(vk);
-  });
-
-
+  for (const vkPath of vkPaths) {
+    test(`should parse vk from ${vkPath}`, () => {
+      parseGroth16VerifyingKeyFromJson(vkPath);
+    });
+  }
 
   const proofPaths = [
     `${PATH}/proof_bn254.json`,
@@ -27,22 +27,21 @@ describe('Groth16 Parsing Tests', () => {
     `${PATH}/proof_sp1.json`,
   ];
 
-  test.each(proofPaths)('should parse proof from %s', (proofPath) => {
-    const proof = parseGroth16ProofFromJson(proofPath);
-    console.log(proof);
-  });
+  for (const proofPath of proofPaths) {
+    test(`should parse proof from ${proofPath}`, () => {
+      parseGroth16ProofFromJson(proofPath);
+    });
+  }
 
   const proofWithPublicInput = [
     [`${PATH}/snarkjs_proof_bn254.json`, `${PATH}/snarkjs_public_bn254.json`],
     [`${PATH}/snarkjs_proof_bls12381.json`, `${PATH}/snarkjs_public_bls12381.json`],
     [`${PATH}/gnark_proof_bn254.json`, `${PATH}/gnark_public_bn254.json`],
-  ];
+  ] as const;
 
-  test.each(proofWithPublicInput)(
-    'should parse proof with public inputs from %s and %s',
-    (proofPath, pubInputsPath) => {
-      const proof = parseGroth16ProofFromJson(proofPath, pubInputsPath);
-      console.log(proof);
-    }
-  );
+  for (const [proofPath, publicInputsPath] of proofWithPublicInput) {
+    test(`should parse proof with public inputs from ${proofPath} and ${publicInputsPath}`, () => {
+      parseGroth16ProofFromJson(proofPath, publicInputsPath);
+    });
+  }
 });

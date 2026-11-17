@@ -1,36 +1,10 @@
-import verifySp1 from '../../../verify-sp1.cjs';
-import verifyNoir from '../../../verify-noir.cjs';
 import * as garaga from 'garaga';
-import { proofBn254, vkBn254 } from './examples';
+import { conformanceOutput } from '../../../browser-output.mjs';
 
 async function main() {
-  await garaga.init();
-  await verifySp1(garaga);
-  await verifyNoir(garaga);
-  const result = garaga.msmCalldataBuilder([[1n, 2n]], [10n], garaga.CurveId.BN254);
-  const json = JSON.stringify(result, (key, value) => typeof value === 'bigint' ? value + 'n' : value, 2);
-  const message = 'Output of msm_calldata_builder: ' + json;
   const element = document.createElement('pre');
-  element.textContent = message;
-
-  const groth16Calldata = garaga.getGroth16CallData(proofBn254, vkBn254,garaga.CurveId.BN254);
-
-  const jsonCalldata = JSON.stringify(groth16Calldata, (key, value) => typeof value === 'bigint' ? value + 'n' : value, 2);
-
-  const messageCalldata = 'Output of get_groth16_calldata: ' + jsonCalldata;
-
-  element.textContent += "\n" + messageCalldata;
-
-  // Tlock encrypt
-  const message2 = new Uint8Array(16);
-  message2.set(new TextEncoder().encode('Hello, world!'));
-  const randomness = new Uint8Array(16);
-  randomness.set(new TextEncoder().encode('fixed_random_val'));
-  const tlockCalldata = garaga.encryptToDrandRoundAndGetCallData(1, message2, randomness);
-  element.textContent += "\n" + 'Output of encryptToDrandRoundAndGetCallData: ' + tlockCalldata.length + ' elements';
-
-  document.body.appendChild(element);
+  element.textContent = await conformanceOutput(garaga);
+  document.getElementById('app').appendChild(element);
 }
 
-main()
-  .catch(console.error);
+main().catch(console.error);

@@ -1,13 +1,14 @@
 import binascii
 import functools
 import hashlib
+import json
 import random
 from dataclasses import dataclass
 from enum import Enum
+from http.client import HTTPException
 from typing import List, Optional, Union
-
-import requests
-from requests.exceptions import RequestException
+from urllib.error import URLError
+from urllib.request import urlopen
 
 from garaga.curves import CurveID, Fp2, get_base_field
 from garaga.hints import io
@@ -58,7 +59,7 @@ BASE_URLS = [
 ]
 
 
-def make_request(endpoint: str) -> requests.Response:
+def _request_json(endpoint: str) -> dict | list:
     # Create a copy and shuffle instead of random.choice for better distribution
     base_urls = BASE_URLS.copy()
     random.shuffle(base_urls)
@@ -66,15 +67,13 @@ def make_request(endpoint: str) -> requests.Response:
     last_error = None
     for url in base_urls:
         try:
-            response = requests.get(f"{url}{endpoint}", timeout=5)  # Add timeout
-            response.raise_for_status()
-            return response
-        except Exception as e:
-            print(f"Request to {url} failed: {str(e)}")
-            last_error = e
-            continue
+            with urlopen(f"{url}{endpoint}", timeout=5) as response:
+                return json.load(response)
+        except (OSError, HTTPException, ValueError) as error:
+            print(f"Request to {url} failed: {error}")
+            last_error = error
 
-    raise RequestException(f"All URLs failed. Last error: {last_error}")
+    raise URLError(f"All URLs failed. Last error: {last_error}") from last_error
 
 
 def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
@@ -149,8 +148,7 @@ def deserialize_bls_point(s_string: bytes) -> Union[G1Point, G2Point]:
 
 
 def get_chains() -> List[str]:
-    response = make_request("/chains")
-    all_chains = response.json()
+    all_chains = _request_json("/chains")
     # only keep chains present in DrandNetwork enum
     chains = [
         chain
@@ -161,8 +159,7 @@ def get_chains() -> List[str]:
 
 
 def get_chain_info(chain_hash: str) -> NetworkInfo:
-    response = make_request(f"/{chain_hash}/info")
-    data = response.json()
+    data = _request_json(f"/{chain_hash}/info")
 
     # Parse the public key
     public_key_hex = data["public_key"]
@@ -185,13 +182,13 @@ def get_chain_info(chain_hash: str) -> NetworkInfo:
 
 
 def get_latest_randomness(chain_hash: str) -> RandomnessBeacon:
-    response = make_request(f"/{chain_hash}/public/latest")
-    return _parse_randomness_beacon(response.json())
+    return _parse_randomness_beacon(_request_json(f"/{chain_hash}/public/latest"))
 
 
 def get_randomness(chain_hash: str, round_number: int) -> RandomnessBeacon:
-    response = make_request(f"/{chain_hash}/public/{round_number}")
-    return _parse_randomness_beacon(response.json())
+    return _parse_randomness_beacon(
+        _request_json(f"/{chain_hash}/public/{round_number}")
+    )
 
 
 def _parse_randomness_beacon(data: dict) -> RandomnessBeacon:

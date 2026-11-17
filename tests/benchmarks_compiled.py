@@ -1,9 +1,9 @@
 import inspect
-
-import pandas as pd
-from tabulate import tabulate
+from collections import defaultdict
 
 from garaga.curves import CurveID
+from tabulate import tabulate
+
 from hydra.garaga.precompiled_circuits.all_circuits import ALL_CAIRO_CIRCUITS
 
 
@@ -17,7 +17,7 @@ def benchmark_all_cairo_circuits():
     Then we mark circuits as "GENERIC" if they have the same MULMOD/ADDMOD on multiple curves.
     """
 
-    results = []
+    curves_by_cost = defaultdict(set)
 
     for circuit_id, circuit_info in ALL_CAIRO_CIRCUITS.items():
         # If no curve_ids present, default to [BN254, BLS12_381]
@@ -53,43 +53,29 @@ def benchmark_all_cairo_circuits():
                 # Summarize
                 summary = circuit_instance.circuit.summarize()
 
-                # Build row for DataFrame, including separate columns for the class, param, curve
-                row = {
-                    "circuit_class": circuit_class.__name__,
-                    "param": str(param) if param else "",
-                    "curve_id": curve_id.name,
-                    "MULMOD": summary.get("MULMOD", 0),
-                    "ADDMOD": summary.get("ADDMOD", 0),
-                }
-                results.append(row)
+                cost = (
+                    circuit_class.__name__,
+                    str(param) if param else "",
+                    summary.get("MULMOD", 0),
+                    summary.get("ADDMOD", 0),
+                )
+                curves_by_cost[cost].add(curve_id.name)
 
-    # Create a DataFrame
-    df = pd.DataFrame(results)
-
-    # If you want to compute a simple "~steps" metric:
-    costs = {"MULMOD": 8, "ADDMOD": 4}
-
-    def compute_steps(row):
-        return sum(row[op] * wt for op, wt in costs.items())
-
-    df["~steps"] = df.apply(compute_steps, axis=1)
-
-    # Sort by ~steps first
-    df.sort_values(by="~steps", inplace=True, ignore_index=True)
-
-    # 1) Group by (circuit_class, param, MULMOD, ADDMOD).
-    # 2) If multiple distinct curves appear in a group, mark curve_id as "GENERIC".
-    df["curve_id"] = df.groupby(["circuit_class", "param", "MULMOD", "ADDMOD"])[
-        "curve_id"
-    ].transform(lambda g: "GENERIC" if g.nunique() > 1 else g)
-
-    # Drop duplicates, so "GENERIC" appears only once per group
-    df_unique = df.drop_duplicates(
-        subset=["circuit_class", "param", "MULMOD", "ADDMOD", "curve_id"], keep="first"
-    )
+    results = [
+        {
+            "circuit_class": name,
+            "param": param,
+            "curve_id": "GENERIC" if len(curves) > 1 else next(iter(curves)),
+            "MULMOD": mulmod,
+            "ADDMOD": addmod,
+            "~steps": 8 * mulmod + 4 * addmod,
+        }
+        for (name, param, mulmod, addmod), curves in curves_by_cost.items()
+    ]
+    results.sort(key=lambda row: row["~steps"])
 
     print("\n===== Benchmark Summaries (Filtered) =====\n")
-    print(tabulate(df_unique, headers="keys", tablefmt="github", showindex=False))
+    print(tabulate(results, headers="keys", tablefmt="github"))
 
 
 if __name__ == "__main__":

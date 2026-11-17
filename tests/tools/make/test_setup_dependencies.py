@@ -75,7 +75,7 @@ def setup_project(tmp_path):
     commands = tmp_path / "commands"
     commands.mkdir()
     cairo_version = json.loads(CONSTANTS.read_text())["release_info"]["cairo_version"]
-    for name in ("parallel", "cmake", "pre-commit", "maturin", "scarb"):
+    for name in ("parallel", "cmake", "prek", "maturin", "scarb"):
         command = commands / name
         command.write_text(
             f'#!/bin/sh\necho "{name} $*" >> "$SETUP_COMMAND_LOG"\n'
@@ -115,7 +115,7 @@ def test_setup_uses_locked_dependencies_in_existing_venv(setup_project):
     assert not (project / ".venv").exists()
     assert not (project / "tools" / "make" / "requirements.txt").exists()
     assert (project / "commands.log").read_text().splitlines() == [
-        "pre-commit install",
+        "prek install",
         "maturin develop --release --features python",
         "scarb --version",
     ]
@@ -137,3 +137,25 @@ def test_setup_rejects_stale_lock_before_building(setup_project):
     assert "lockfile" in result.stderr.lower()
     assert (project / "uv.lock").read_bytes() == lock
     assert not (project / "commands.log").exists()
+
+
+def test_setup_restores_custom_hook_before_installing_prek(setup_project):
+    project, env = setup_project
+    subprocess.run(["git", "init", "-q"], cwd=project, check=True)
+    hook = project / ".git" / "hooks" / "pre-commit"
+    hook.write_text(
+        "#!/usr/bin/env bash\n"
+        "# ID: 138fd403232d2ddd5efb44317e38bf03\n"
+        "ARGS=(hook-impl --config=.pre-commit-config.yaml --hook-type=pre-commit)\n"
+    )
+    legacy = hook.with_suffix(".legacy")
+    legacy.write_text("#!/bin/sh\nexit 0\n")
+
+    result = subprocess.run(
+        ["bash", str(SETUP)], cwd=project, env=env, capture_output=True, text=True
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert hook.read_text() == "#!/bin/sh\nexit 0\n"
+    assert not legacy.exists()
+    assert (project / "commands.log").read_text().splitlines()[0] == "prek install"

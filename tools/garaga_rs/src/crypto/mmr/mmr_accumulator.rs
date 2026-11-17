@@ -1,9 +1,8 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fmt::Debug;
 
 // use arbitrary::Arbitrary;
 // use get_size2::GetSize;
-use itertools::Itertools;
 // use serde::Deserialize;
 // use serde::Serialize;
 
@@ -122,8 +121,8 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
             membership_proof_leaf_indices
                 .iter()
                 .all(|x| *x < self.leaf_count),
-            "All leaf indices must be in-bounds. Got indices [{}] and leaf_count = {}",
-            membership_proof_leaf_indices.iter().join(", "),
+            "All leaf indices must be in-bounds. Got indices {:?} and leaf_count = {}",
+            membership_proof_leaf_indices,
             self.leaf_count
         );
 
@@ -239,24 +238,22 @@ impl<H: HashFunction> Mmr<H> for MmrAccumulator<H> {
         appended_leafs: &[Digest<H>],
         leaf_mutations: Vec<LeafMutation<H>>,
     ) -> bool {
-        let mut manipulated_leaf_indices = leaf_mutations.iter().map(|x| x.leaf_index);
-        if !manipulated_leaf_indices.clone().all_unique() {
-            return false;
-        }
-        if manipulated_leaf_indices.any(|idx| idx >= self.leaf_count) {
+        let mut seen = HashSet::with_capacity(leaf_mutations.len());
+        if leaf_mutations.iter().any(|mutation| {
+            mutation.leaf_index >= self.leaf_count || !seen.insert(mutation.leaf_index)
+        }) {
             return false;
         }
 
         // Reverse the leaf mutation vectors, since we want to apply them using `pop`
-        let (
-            mut leaf_mutation_indices,
-            mut leaf_mutation_target_values,
-            mut updated_membership_proofs,
-        ): (Vec<_>, Vec<_>, Vec<_>) = leaf_mutations
-            .into_iter()
-            .rev()
-            .map(|m| (m.leaf_index, m.new_leaf, m.membership_proof))
-            .multiunzip();
+        let mut leaf_mutation_indices = Vec::with_capacity(leaf_mutations.len());
+        let mut leaf_mutation_target_values = Vec::with_capacity(leaf_mutations.len());
+        let mut updated_membership_proofs = Vec::with_capacity(leaf_mutations.len());
+        for mutation in leaf_mutations.into_iter().rev() {
+            leaf_mutation_indices.push(mutation.leaf_index);
+            leaf_mutation_target_values.push(mutation.new_leaf);
+            updated_membership_proofs.push(mutation.membership_proof);
+        }
 
         let mut running_peaks = self.peaks.clone();
         while let Some(membership_proof) = updated_membership_proofs.pop() {
@@ -330,8 +327,9 @@ pub mod util {
         leaf_count: u64,
         specified_leafs: Vec<(u64, Digest<H>)>,
     ) -> (MmrAccumulator<H>, Vec<MmrMembershipProof<H>>) {
+        let mut seen = HashSet::with_capacity(specified_leafs.len());
         assert!(
-            specified_leafs.iter().map(|&(idx, _)| idx).all_unique(),
+            specified_leafs.iter().all(|&(idx, _)| seen.insert(idx)),
             "Specified leaf indices must be unique"
         );
 
@@ -377,9 +375,13 @@ pub mod util {
         // Update root
         peaks[first_peak_index as usize] = first_acc_hash;
 
+        assert_eq!(
+            original_node_indices.len(),
+            first_mp.authentication_path.len()
+        );
         let mut all_ap_elements: HashMap<u64, Digest<H>> = original_node_indices
             .into_iter()
-            .zip_eq(first_mp.authentication_path.clone())
+            .zip(first_mp.authentication_path.iter().copied())
             .collect();
         let mut all_mps = vec![first_mp];
         let mut all_leaf_indices = vec![first_leaf_index];
@@ -412,8 +414,9 @@ pub mod util {
             assert!(new_mp.verify(new_leaf_index, new_leaf, &new_peaks, leaf_count));
 
             let leaf_mutations = vec![LeafMutation::new(new_leaf_index, new_leaf, new_mp.clone())];
+            let mut proof_refs: Vec<_> = all_mps.iter_mut().collect();
             let mutated = MmrMembershipProof::batch_update_from_batch_leaf_mutation(
-                &mut all_mps.iter_mut().collect_vec(),
+                &mut proof_refs,
                 &all_leaf_indices,
                 leaf_mutations,
             );
@@ -452,9 +455,10 @@ pub mod util {
             }
 
             // Update all_ap_elements
+            assert_eq!(new_node_indices.len(), new_mp.authentication_path.len());
             for (node_index, ap_element) in new_node_indices
                 .into_iter()
-                .zip_eq(new_mp.authentication_path.clone().into_iter())
+                .zip(new_mp.authentication_path.iter().copied())
             {
                 all_ap_elements.insert(node_index, ap_element);
             }
@@ -476,7 +480,7 @@ impl<'a, H: HashFunction> Arbitrary<'a> for MmrAccumulator<H> {
         let num_leafs = u.arbitrary::<u64>()? >> 1; // num_leafs can be at most 63 bits
         let peaks = (0..num_leafs.count_ones())
             .map(|_| Digest::arbitrary(u))
-            .try_collect()?;
+            .collect::<arbitrary::Result<Vec<_>>>()?;
 
         Ok(MmrAccumulator::init(peaks, num_leafs))
     }

@@ -25,7 +25,7 @@
 
 **WASM regeneration**: After any change to Rust source in `tools/garaga_rs/src/` (except `python_bindings/`) or `Cargo.toml`, run `make wasm` and commit regenerated files in `tools/npm/garaga_ts/src/wasm/pkg/`. CI will fail if out of sync.
 
-**TypeScript coverage**: Every WASM binding needs a typed wrapper in `tools/npm/garaga_ts/src/node/api.ts`, a Jest test, and coverage across all 4 integration suites (Node CJS, Node ESM, Webpack, React).
+**TypeScript coverage**: Every WASM binding needs a typed wrapper in `tools/npm/garaga_ts/src/node/api.ts`, a `node:test` test, and coverage across all four integration suites (Node CJS, Node ESM, Webpack, React).
 
 **E2E tests**: Deploy on starknet-devnet via `SmartContractProject.declare_class_hash()`, generate calldata via Python, invoke contract, assert via `wait_for_acceptance()`.
 

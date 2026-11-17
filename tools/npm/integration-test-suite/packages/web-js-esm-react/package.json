@@ -1,18 +1,13 @@
 {
   "name": "web-js-esm-react",
   "scripts": {
-    "build": "next build",
-    "start": "next start",
+    "build": "webpack --config ../../webpack.config.cjs",
     "test": "node ../../run-browser-test.cjs",
     "test-generate": "node ../../run-browser-test.cjs --update"
   },
   "dependencies": {
     "garaga": "file:../../garaga.tgz",
-    "next": "16.4.3",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
-  },
-  "devDependencies": {
-    "puppeteer": "^25.16.0"
   }
 }
