@@ -16,21 +16,21 @@ import {
   get_groth16_calldata,
   get_zk_honk_calldata,
   poseidon_hash,
-} from '../wasm/pkg/garaga_rs';
-import { CurveId } from './definitions';
-import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils';
+} from '../wasm/pkg/garaga_rs.js';
+import { CurveId } from './definitions.js';
+import { Groth16Proof, Groth16VerifyingKey } from './starknet/groth16ContractGenerator/parsingUtils.js';
 
 export {
   parseGroth16ProofFromJson,
   parseGroth16ProofFromObject,
   parseGroth16VerifyingKeyFromJson,
   parseGroth16VerifyingKeyFromObject,
-} from './starknet/groth16ContractGenerator/parsingUtils';
+} from './starknet/groth16ContractGenerator/parsingUtils.js';
 
 export type {
   Groth16Proof,
   Groth16VerifyingKey,
-} from './starknet/groth16ContractGenerator/parsingUtils';
+} from './starknet/groth16ContractGenerator/parsingUtils.js';
 
 /**
  * Represents a point on an elliptic curve in affine coordinates (x, y)

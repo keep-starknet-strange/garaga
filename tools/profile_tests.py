@@ -31,7 +31,6 @@ from functools import wraps
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
-import pandas as pd
 from garaga.starknet.constants import CAIRO_VERSION, STARKNET_FOUNDRY_VERSION
 from rich.align import Align
 from rich.console import Console
@@ -1016,8 +1015,7 @@ class ReportBuilder:
         # Sort sections alphabetically by module name
         for module_name, module_data in sorted(grouped_data.items()):
             if isinstance(module_data, list):
-                df = self._create_dataframe(module_data)
-                table_content = self._generate_table(df)
+                table_content = self._generate_table(module_data)
                 content += self._collapsible_section(
                     module_name, table_content, False, len(current_path)
                 )
@@ -1027,8 +1025,7 @@ class ReportBuilder:
                 )
 
                 if isinstance(current_data, list):
-                    df = self._create_dataframe(current_data)
-                    table_content = self._generate_table(df)
+                    table_content = self._generate_table(current_data)
                     content += self._collapsible_section(
                         merged_name, table_content, False, len(current_path)
                     )
@@ -1063,76 +1060,11 @@ class ReportBuilder:
 
         return merged_name, current_data
 
-    def _create_dataframe(self, tests: List[dict]) -> pd.DataFrame:
-        """Create DataFrame from test data."""
+    def _generate_table(self, tests: List[dict]) -> str:
+        """Generate a Markdown table from the recorded metrics."""
         if not tests:
-            return pd.DataFrame()
-
-        columns = [
-            "test_name",
-            "steps",
-            "range_check",
-            "range_check96",
-            "bitwise",
-            "poseidon",
-            "add_mod",
-            "mul_mod",
-            "keccak",
-            "pedersen",
-            "ecop",
-            "syscalls_count",
-            "sierra_gas",
-            "image_path",
-        ]
-
-        df = pd.DataFrame(tests)
-        available_columns = [col for col in columns if col in df.columns]
-        df = df[available_columns]
-
-        # Remove zero columns except essentials
-        essential = ["test_name", "steps", "sierra_gas", "image_path"]
-        for col in df.columns:
-            if col not in essential and (df[col] == 0).all():
-                df = df.drop(columns=[col])
-
-        if "sierra_gas" in df.columns:
-            df = df.sort_values("sierra_gas", ascending=False)
-
-        return df
-
-    def _generate_table(self, df: pd.DataFrame) -> str:
-        """Generate markdown table."""
-        if df.empty:
             return "*No tests found.*\n"
 
-        df = df.copy()
-
-        if "test_name" in df.columns:
-            df["test_name"] = df.apply(
-                lambda row: f"[{row['test_name']}]({row.get('image_path', 'docs/benchmarks/' + row['test_name'] + '.png')})",
-                axis=1,
-            )
-
-        # Format numbers
-        numeric_cols = [
-            "steps",
-            "range_check",
-            "range_check96",
-            "bitwise",
-            "poseidon",
-            "add_mod",
-            "mul_mod",
-            "keccak",
-            "pedersen",
-            "ecop",
-            "syscalls_count",
-            "sierra_gas",
-        ]
-        for col in numeric_cols:
-            if col in df.columns:
-                df[col] = df[col].apply(lambda x: f"{x:,}" if pd.notna(x) else "0")
-
-        # Rename columns
         column_mapping = {
             "test_name": "Test Name",
             "steps": "Steps",
@@ -1149,13 +1081,32 @@ class ReportBuilder:
             "sierra_gas": "Sierra Gas",
         }
 
-        display_df = df.drop(columns=["image_path"], errors="ignore")
-        df_display = display_df.rename(columns=column_mapping)
-
-        return (
-            tabulate(df_display, headers="keys", tablefmt="github", showindex=False)
-            + "\n"
-        )
+        available = set().union(*(test.keys() for test in tests))
+        essential = {"test_name", "steps", "sierra_gas"}
+        columns = [
+            column
+            for column in column_mapping
+            if column in available
+            and (column in essential or any(test.get(column) for test in tests))
+        ]
+        rows = []
+        for test in sorted(
+            tests, key=lambda test: test.get("sierra_gas") or 0, reverse=True
+        ):
+            name = test.get("test_name", "")
+            image = test.get("image_path", f"docs/benchmarks/{name}.png")
+            rows.append(
+                [
+                    (
+                        f"[{name}]({image})"
+                        if column == "test_name"
+                        else f"{test.get(column) or 0:,}"
+                    )
+                    for column in columns
+                ]
+            )
+        headers = [column_mapping[column] for column in columns]
+        return tabulate(rows, headers=headers, tablefmt="github") + "\n"
 
     def _collapsible_section(
         self, title: str, content: str, is_open: bool, indent_level: int

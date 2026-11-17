@@ -49,21 +49,18 @@
   "scripts": {
     "build:wasm": "cd ../../garaga_rs && RUSTFLAGS='--cfg getrandom_backend=\"wasm_js\"' wasm-pack build --target web --out-dir ../npm/garaga_ts/src/wasm/pkg --release --no-default-features --features wasm",
     "patch:wasm": "node patch.wasm.cjs",
-    "build:node": "tsc && rollup -c",
+    "build:ts": "node -e \"require('node:fs').rmSync('.build', { recursive: true, force: true })\" && tsc",
+    "build:node": "npm run build:ts && rollup -c",
     "build": "npm run build:wasm && npm run patch:wasm && npm run build:node",
     "prepare": "npm run build:node",
-    "test": "vitest run --coverage",
-    "test:watch": "vitest"
+    "test": "npm run build:ts && node --experimental-test-module-mocks --experimental-test-coverage --test-coverage-include=\".build/src/**/*.js\" --test-coverage-exclude=\".build/src/wasm/**\" --test \".build/tests/**/*.test.js\"",
+    "test:watch": "npm run build:ts && node --experimental-test-module-mocks --test --watch \".build/tests/**/*.test.js\""
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "^12.3.0",
     "@types/node": "^26.6.5",
     "rollup": "^4.24.0",
     "rollup-plugin-dts": "^6.1.1",
-    "tslib": "^2.7.0",
-    "typescript": "^6.0.3",
-    "vitest": "^5.0.5",
-    "@vitest/coverage-v8": "^5.0.5"
+    "typescript": "^6.0.3"
   },
   "exports": {
     ".": {

@@ -3,7 +3,13 @@
 # - It will update the code generated under src/wasm/pkg
 # Usage: docker compose up --build && docker compose down
 
-FROM rust:1.99.0
+FROM node:24.15.0-trixie-slim@sha256:291be77873bc04731968cacf82f0fcef17cee8cf200c6b6951e2bcab41560eb7 AS node
+
+FROM rust:1.99.0@sha256:81015672d6939b0265f09adf96d5de125482bb1330106076956b0518e74edc90
+
+COPY --from=node /usr/local/bin/node /usr/local/bin/node
+COPY --from=node /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm
 
 # Update the archive hashes whenever WASM_PACK_VERSION changes.
 RUN WASM_PACK_VERSION=0.13.1 \
@@ -18,12 +24,6 @@ RUN WASM_PACK_VERSION=0.13.1 \
     && rm /tmp/wasm-pack.tar.gz \
     && wasm-pack --version
 
-RUN curl -L https://bit.ly/n-install | bash -s -- -y 24.15.0
-
-ENV HOME="/root/"
-ENV N_PREFIX="$HOME/n"
-ENV PATH="$HOME/n/bin/:$PATH"
-
 WORKDIR /garaga/tools/npm/garaga_ts
 
-CMD npm ci --ignore-scripts && npm run build && npm pack && ./fix-chown.sh ../..
+CMD npm ci --ignore-scripts && npm run build && npm pack --ignore-scripts && ./fix-chown.sh ../..

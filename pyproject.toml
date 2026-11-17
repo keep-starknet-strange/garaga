@@ -12,7 +12,6 @@ dependencies = [
   "typer",
   "python-dotenv",
   "starknet-py==0.30.0",
-  "requests",
   "filelock>=4.2.1",
 ]
 description = "State-of-the-art Elliptic Curve operations and SNARKS verification for Cairo & Starknet 🐺."
@@ -67,9 +66,8 @@ dev = [
   "pytest-asyncio",
   "pytest-xdist",
   "black>=26.3.1",
-  "pre-commit",
-  "inquirer",
-  "pandas",
+  "prek",
+  "pyyaml",
   "tabulate",
   "hypothesis",
   "rich",
