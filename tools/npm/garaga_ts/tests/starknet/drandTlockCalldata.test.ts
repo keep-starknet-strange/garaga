@@ -1,29 +1,20 @@
-import * as garaga from "../../src/node/index";
+import * as garaga from "../../src/node/index.js";
+import assert from 'node:assert/strict';
+import { describe, test } from 'node:test';
 
 describe('Drand Tlock Encrypting and Getting calldata', () => {
 
-    const roundNumbers = [1, 2, 3];
+    for (const round of [1, 2, 3]) {
+        test(`should encrypt message and get Drand tlock calldata for round ${round}`, async () => {
+            await garaga.init();
+            const message = new Uint8Array(16);
+            message.set(new TextEncoder().encode('Hello, world!'));
+            const randomness = new Uint8Array(16);
+            randomness.set(new TextEncoder().encode('fixed_randomness'));
 
-    test.each(roundNumbers)("should encrypt message and get Drand tlock calldata for round %s", async (roundNumber) => {
-
-        await garaga.init();
-
-        const text = 'Hello, world!';
-        const message = new Uint8Array(16);
-        message.set(new TextEncoder().encode(text));
-
-        const randomness = new Uint8Array(16);
-        randomness.set(new TextEncoder().encode('fixed_randomness'));
-
-        console.log("roundNumber", roundNumber);
-        console.log("message", message);
-
-        const drandCalldata = garaga.encryptToDrandRoundAndGetCallData(roundNumber as number, message, randomness);
-
-        console.log("drandCalldata", drandCalldata);
-
-        expect(drandCalldata).toBeDefined();
-        expect(drandCalldata.length).toBeGreaterThan(0);
-    });
+            const calldata = garaga.encryptToDrandRoundAndGetCallData(round, message, randomness);
+            assert.ok(calldata.length > 0);
+        });
+    }
 
 });

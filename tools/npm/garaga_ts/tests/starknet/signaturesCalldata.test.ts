@@ -1,5 +1,6 @@
-import * as garaga from "../../src/node/index";
-import { CurveId } from "../../src/node/definitions";
+import * as garaga from "../../src/node/index.js";
+import { CurveId } from "../../src/node/definitions.js";
+import { describe, test } from 'node:test';
 
 describe('Signatures Getting calldata', () => {
 

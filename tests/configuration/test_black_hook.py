@@ -8,7 +8,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 BLACK = ROOT / "venv" / "bin" / "black"
-PRE_COMMIT = ROOT / "venv" / "bin" / "pre-commit"
+PREK = ROOT / "venv" / "bin" / "prek"
 
 
 @pytest.fixture
@@ -37,13 +37,13 @@ def hook_project(tmp_path):
     shadow.write_text("#!/bin/sh\necho unexpected-global-black >&2\nexit 1\n")
     shadow.chmod(0o755)
     env["PATH"] = str(commands) + os.pathsep + env["PATH"]
-    env["PRE_COMMIT_HOME"] = str(tmp_path / "hook-cache")
+    env["PREK_HOME"] = str(tmp_path / "hook-cache")
     return tmp_path, hook, env
 
 
 def run_hook(project, env):
     return subprocess.run(
-        [str(PRE_COMMIT), "run", "black", "--files", "sample.py", "--verbose"],
+        [str(PREK), "run", "black", "--files", "sample.py", "--verbose"],
         cwd=project,
         env=env,
         capture_output=True,
@@ -71,7 +71,8 @@ def test_hook_uses_locked_black_without_another_environment(hook_project):
 
     assert result.returncode == 0, result.stdout + result.stderr
     assert cli.stdout.split()[1] == locked_version
-    assert cli.stdout.strip() in result.stdout
+    hook_output = [line.strip() for line in result.stdout.splitlines()]
+    assert all(line in hook_output for line in cli.stdout.splitlines())
     assert not list((project / "hook-cache").rglob("py_env-*"))
     assert "Installing environment" not in result.stdout + result.stderr
 

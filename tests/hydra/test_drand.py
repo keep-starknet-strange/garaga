@@ -1,14 +1,18 @@
 import hashlib
+import json
 import random
+from io import BytesIO
+from urllib.error import URLError
+from urllib.request import urlopen
 
 import pytest
-import requests
-
 from garaga.curves import CurveID
+from garaga.drand import client
 from garaga.drand.client import (
     BASE_URLS,
     DrandNetwork,
     digest_func,
+    get_chains,
     get_randomness,
     print_all_chain_info,
 )
@@ -103,9 +107,8 @@ def test_tlock_encrypt_same_message_gives_different_ciphertexts(round: int):
 def test_all_base_urls_return_chains():
     for url in BASE_URLS:
         try:
-            response = requests.get(f"{url}/chains")
-            response.raise_for_status()
-            chains = response.json()
+            with urlopen(f"{url}/chains", timeout=5) as response:
+                chains = json.load(response)
 
             # Check that both default and quicknet chains are present
             expected_chains = {network.value for network in DrandNetwork}
@@ -119,3 +122,27 @@ def test_all_base_urls_return_chains():
         except Exception as e:
             print(f"✗ {url} failed: {str(e)}")
             continue
+
+
+def test_get_chains_retries_mirrors_on_transport_and_json_errors(monkeypatch):
+    urls = [
+        "https://offline.example",
+        "https://invalid.example",
+        "https://good.example",
+    ]
+    monkeypatch.setattr(client, "BASE_URLS", urls)
+    monkeypatch.setattr(client.random, "shuffle", lambda _items: None)
+    calls = []
+
+    def open_mirror(url, *, timeout):
+        assert timeout == 5
+        calls.append(url)
+        if url.startswith(urls[1]):
+            return BytesIO(b"<html>unavailable</html>")
+        if url.startswith(urls[0]):
+            raise URLError("connection failed")
+        return BytesIO(json.dumps([DrandNetwork.quicknet.value, "unknown"]).encode())
+
+    monkeypatch.setattr(client, "urlopen", open_mirror)
+    assert get_chains() == [DrandNetwork.quicknet.value]
+    assert calls == [url + "/chains" for url in urls]

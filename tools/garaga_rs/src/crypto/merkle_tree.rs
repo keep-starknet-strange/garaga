@@ -1,6 +1,5 @@
 use crate::crypto::digest::{Digest, HashFunction};
 use arbitrary::{Arbitrary, Unstructured};
-use itertools::Itertools;
 // use rayon::prelude::*;
 use std::collections::hash_map::Entry::*;
 use std::collections::*;
@@ -217,8 +216,12 @@ impl<H: HashFunction> MerkleTree<H> {
             }
         }
 
-        let set_difference = node_is_needed.difference(&node_can_be_computed).copied();
-        Ok(set_difference.sorted_unstable().rev())
+        let mut authentication_nodes: Vec<_> = node_is_needed
+            .difference(&node_can_be_computed)
+            .copied()
+            .collect();
+        authentication_nodes.sort_unstable();
+        Ok(authentication_nodes.into_iter().rev())
     }
 
     /// Generate a de-duplicated authentication structure for the given leaf indices.
@@ -452,8 +455,11 @@ impl<H: HashFunction> PartialMerkleTree<H> {
         let num_leafs = self.num_leafs()?;
         let leaf_to_parent_node_index = |&leaf_index| (leaf_index + num_leafs) / 2;
 
-        let parent_node_indices = self.leaf_indices.iter().map(leaf_to_parent_node_index);
-        let mut parent_node_indices = parent_node_indices.collect_vec();
+        let mut parent_node_indices: Vec<_> = self
+            .leaf_indices
+            .iter()
+            .map(leaf_to_parent_node_index)
+            .collect();
         parent_node_indices.sort_unstable();
         parent_node_indices.dedup();
         Ok(parent_node_indices)
@@ -537,9 +543,7 @@ impl<H: HashFunction> TryFrom<MerkleTreeInclusionProof<H>> for PartialMerkleTree
             return Err(MerkleTreeError::AuthenticationStructureLengthMismatch);
         }
 
-        let mut nodes: HashMap<_, _> = node_indices
-            .zip_eq(proof.authentication_structure)
-            .collect();
+        let mut nodes: HashMap<_, _> = node_indices.zip(proof.authentication_structure).collect();
 
         for (leaf_index, leaf_digest) in proof.indexed_leafs {
             let node_index = leaf_index + num_leafs;

@@ -1,9 +1,17 @@
-import typescript from '@rollup/plugin-typescript';
+import { readFileSync } from 'node:fs';
 import dts from 'rollup-plugin-dts';
+
+const emittedSourceMaps = {
+  name: 'tsc-source-maps',
+  load(id) {
+    if (!id.endsWith('.js')) return null;
+    return { code: readFileSync(id, 'utf8'), map: readFileSync(id + '.map', 'utf8') };
+  },
+};
 
 export default [
   {
-    input: './src/node/index.ts',
+    input: './.build/src/node/index.js',
     output: [
       {
         file: 'dist/index.cjs',
@@ -17,7 +25,7 @@ export default [
       },
     ],
     external: ['fs', '@noble/hashes/sha2.js', 'path', 'util', 'os', 'stream', 'buffer'],
-    plugins: [typescript()],
+    plugins: [emittedSourceMaps],
   },
   {
     input: './src/node/index.ts',

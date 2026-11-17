@@ -5,12 +5,15 @@
     "packages/*"
   ],
   "scripts": {
-    "build": "turbo build",
-    "test": "turbo test --concurrency 1",
-    "test-generate": "turbo test-generate --concurrency 1"
+    "build": "npm run build --workspaces",
+    "install-browser": "puppeteer browsers install chrome@pinned",
+    "test": "npm run build && npm run test --workspaces",
+    "test-generate": "npm run build && npm run test-generate --workspaces"
   },
   "devDependencies": {
-    "turbo": "^2.1.1"
+    "puppeteer": "^25.16.0",
+    "webpack": "^5.94.0",
+    "webpack-cli": "^7.2.3"
   },
   "dependencies": {
     "garaga": "file:garaga.tgz"
