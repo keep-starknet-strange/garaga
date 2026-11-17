@@ -10,7 +10,6 @@ use lambdaworks_math::elliptic_curve::{
     short_weierstrass::curves::bn_254::pairing::BN254AtePairing, traits::IsPairing,
 };
 
-use itertools::Itertools;
 use lambdaworks_math::cyclic_group::IsGroup;
 use lambdaworks_math::field::element::FieldElement;
 
@@ -19,6 +18,14 @@ use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254;
 use lambdaworks_math::unsigned_integer::element::U256;
 
 use crate::pairing::final_exp_witness::{to_bls, to_bn};
+
+fn pairing_coordinates<'py>(
+    list: &Bound<'py, PyList>,
+) -> impl Iterator<Item = [BigUint; 6]> + use<'py> {
+    let mut items = list.iter();
+    (0..list.len() / 6)
+        .map(move |_| std::array::from_fn(|_| items.next().unwrap().extract().unwrap()))
+}
 
 #[pyfunction]
 pub fn multi_pairing(
@@ -29,17 +36,8 @@ pub fn multi_pairing(
     assert!(py_list_1.len() % 6 == 0, "invalid length");
 
     if curve_id == CURVE_BN254 {
-        let pairs = py_list_1
-            .iter()
-            .chunks(6)
-            .into_iter()
-            .map(|chunk| {
-                let [a_0, a_1, b_0, b_1, b_2, b_3] = chunk
-                    .map(|item| item.extract::<BigUint>().unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap();
-
+        let pairs = pairing_coordinates(py_list_1)
+            .map(|[a_0, a_1, b_0, b_1, b_2, b_3]| {
                 let ap = ShortWeierstrassProjectivePoint::<BN254Curve>::from_affine(
                     element_from_biguint::<BN254PrimeField>(&a_0),
                     element_from_biguint::<BN254PrimeField>(&a_1),
@@ -84,17 +82,8 @@ pub fn multi_pairing(
             curve::BLS12381Curve, pairing::BLS12381AtePairing, twist::BLS12381TwistCurve,
         };
 
-        let pairs = py_list_1
-            .iter()
-            .chunks(6)
-            .into_iter()
-            .map(|chunk| {
-                let [a_0, a_1, b_0, b_1, b_2, b_3] = chunk
-                    .map(|item| item.extract::<BigUint>().unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap();
-
+        let pairs = pairing_coordinates(py_list_1)
+            .map(|[a_0, a_1, b_0, b_1, b_2, b_3]| {
                 let ap = ShortWeierstrassProjectivePoint::<BLS12381Curve>::from_affine(
                     element_from_biguint::<BLS12381PrimeField>(&a_0),
                     element_from_biguint::<BLS12381PrimeField>(&a_1),
@@ -140,17 +129,8 @@ pub fn multi_miller_loop(
     if curve_id == CURVE_BN254 {
         use lambdaworks_math::elliptic_curve::short_weierstrass::curves::bn_254::field_extension::Degree12ExtensionField;
 
-        let pairs = py_list_1
-            .iter()
-            .chunks(6)
-            .into_iter()
-            .map(|chunk| {
-                let [a_0, a_1, b_0, b_1, b_2, b_3] = chunk
-                    .map(|item| item.extract::<BigUint>().unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap();
-
+        let pairs = pairing_coordinates(py_list_1)
+            .map(|[a_0, a_1, b_0, b_1, b_2, b_3]| {
                 let ap = ShortWeierstrassProjectivePoint::<BN254Curve>::from_affine(
                     element_from_biguint::<BN254PrimeField>(&a_0),
                     element_from_biguint::<BN254PrimeField>(&a_1),
@@ -199,17 +179,8 @@ pub fn multi_miller_loop(
             curve::BLS12381Curve, twist::BLS12381TwistCurve,
         };
 
-        let pairs = py_list_1
-            .iter()
-            .chunks(6)
-            .into_iter()
-            .map(|chunk| {
-                let [a_0, a_1, b_0, b_1, b_2, b_3] = chunk
-                    .map(|item| item.extract::<BigUint>().unwrap())
-                    .collect::<Vec<_>>()
-                    .try_into()
-                    .unwrap();
-
+        let pairs = pairing_coordinates(py_list_1)
+            .map(|[a_0, a_1, b_0, b_1, b_2, b_3]| {
                 let ap = ShortWeierstrassProjectivePoint::<BLS12381Curve>::from_affine(
                     element_from_biguint::<BLS12381PrimeField>(&a_0),
                     element_from_biguint::<BLS12381PrimeField>(&a_1),

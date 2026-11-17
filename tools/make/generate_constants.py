@@ -165,10 +165,6 @@ class PathConfig:
         return self.project_root / "tools" / "garaga_rs" / "Cargo.toml"
 
     @property
-    def sp1_verifier_cargo_path(self) -> Path:
-        return self.project_root / "tools/sp1_verifier/Cargo.toml"
-
-    @property
     def risc0_host_cargo_path(self) -> Path:
         return (
             self.project_root
@@ -222,17 +218,6 @@ class PathConfig:
 
 # File path to update config mappings
 VERSION_UPDATES = [
-    (
-        "SP1 SDK verifier",
-        "sp1_verifier_cargo_path",
-        UpdateConfig(
-            name="SP1 SDK verifier",
-            pattern=r'(sp1-verifier\s*=\s*\{\s*version\s*=\s*")[^"]+("\s*[,}])',
-            replacement=r"\g<1>={version}\g<2>",
-            description="SP1 SDK verifier version",
-            version_key="sp1_sdk_version",
-        ),
-    ),
     *[
         (
             name,
@@ -753,8 +738,6 @@ def update_all_versions(
                 version = constants["noir"]["nargo_version"]
             elif config.version_key == "bb_version":
                 version = constants["noir"]["bb_version"]
-            elif config.version_key == "sp1_sdk_version":
-                version = constants["sp1"]["sdk_version"]
             else:
                 version = constants["release_info"][config.version_key]
 

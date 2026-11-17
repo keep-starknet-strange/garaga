@@ -1,8 +1,8 @@
-import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from "../../definitions";
+import { CURVES, CurveId, G1Point, G2Point, findValueInStringToCurveId } from "../../definitions.js";
 import * as fs from 'fs';
-import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io";
+import { bitLength, hexStringToBytes, modInverse, split128, toBigInt, toHexStr } from "../../hints/io.js";
 import { sha256 } from '@noble/hashes/sha2.js';
-import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT } from "../../../constants";
+import { RISC0_CONTROL_ROOT, RISC0_BN254_CONTROL_ID, RISC0_SYSTEM_STATE_ZERO_DIGEST, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT } from "../../../constants.js";
 
 
 //https://github.com/risc0/risc0-ethereum/blob/main/contracts/src/groth16/ControlID.sol

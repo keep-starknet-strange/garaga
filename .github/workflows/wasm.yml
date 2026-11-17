@@ -99,9 +99,8 @@ jobs:
         working-directory: tools/npm/integration-test-suite
         run: |
           cp ../garaga_ts/garaga-*.tgz garaga.tgz
-          npm install garaga.tgz
-          npm run build
-          npx puppeteer browsers install
+          npm install --ignore-scripts garaga.tgz
+          npm run install-browser
           npm run test
 
   release:

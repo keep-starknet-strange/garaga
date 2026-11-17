@@ -11,8 +11,7 @@ repos:
     -   id: isort
         args: ["--profile", "black"]
         files: \.py$
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+-   repo: builtin
     hooks:
     -   id: trailing-whitespace
         exclude: ^tools/npm/garaga_ts/src/wasm/pkg/

@@ -167,7 +167,7 @@ Run the focused checks:
 ```sh
 source venv/bin/activate
 pytest tests/configuration/test_black_hook.py
-pre-commit run black --all-files
+prek run black --all-files
 ```
 
 ## Regenerate only the affected circuit family
@@ -286,6 +286,9 @@ It includes the three independent Cargo workspace roots, both npm roots, and the
 Locked projects use their existing lockfile roots. Python updates use `uv.lock` rather than a parallel pip owner.
 The local `garaga.tgz` package remains excluded from npm updates because it is the package under test.
 
+Run the TypeScript tests with Node.js 24 or later from `tools/npm/garaga_ts`.
+For watch mode, run `npm run test:watch` and `npm exec -- tsc --watch` in separate terminals.
+
 Each ecosystem groups patch and minor version updates into weekly review PRs.
 Major version updates remain separate. Version-update PRs have a three-PR cap per ecosystem.
 This change does not configure automatic merging.
@@ -368,7 +371,7 @@ All 34 Jest cases pass. These timings exclude Rust/WASM compilation and npm depe
 ```sh
 cd tools/npm/garaga_ts
 npm run build:node
-npm test -- --runInBand
+npm test
 ```
 
 ## Local verification at 85d843d
@@ -563,7 +566,7 @@ The browser integrations preserve their fixture output, including browsers with 
 ```sh
 cd tools/npm/garaga_ts
 npm run build:node
-npm test -- --runInBand
+npm test
 ```
 
 ## Reuse Python Euclidean remainders

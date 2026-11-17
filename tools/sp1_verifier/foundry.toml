@@ -1,0 +1,12 @@
+[profile.default]
+src = "target/reference"
+test = "reference"
+out = "target/solidity"
+cache_path = "target/forge-cache"
+libs = []
+solc_version = "0.8.38"
+optimizer = true
+fs_permissions = [
+    { access = "read", path = "../../hydra/garaga/starknet/groth16_contract_generator/examples/proof_sp1.json" },
+    { access = "read", path = "../make/constants.json" },
+]
