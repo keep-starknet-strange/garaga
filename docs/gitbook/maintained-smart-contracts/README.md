@@ -19,6 +19,8 @@ Those contracts:
 These hashes identify the declared v1.1.0 release contracts. Cairo 2.21.0 builds of the current source produce different hashes.
 Declare the current builds before you use their hashes on a network. The compiler migration does not declare contracts.
 
+For RISC Zero 3.1.0 receipts, declare the verifier from the current source and use its class hash. [RISC Zero migration guide](risczero.md)
+
 | Contract                                                                                                                         | Class hash                                                        | Description                                                                                                   |
 | -------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | [Universal ECIP](https://github.com/keep-starknet-strange/garaga/tree/v1.1.0/src/contracts/universal_ecip)                         | 0x396d5915ecf475aab117bb25a0272b261e9e25ffe1c0ce05a51a3f77489c89e | A contract allowing to compute elliptic curve multi scalar multiplication for all supported curve identifiers |

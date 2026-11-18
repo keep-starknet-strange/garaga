@@ -3,14 +3,15 @@
  */
 
 // RISC0 Constants
-// https://github.com/risc0/risc0-ethereum/blob/v3.0.1/contracts/src/groth16/ControlID.sol
-// release v3.0.1
+// https://github.com/risc0/risc0-ethereum/blob/v3.1.0/contracts/src/groth16/ControlID.sol
+// release v3.1.0
 export const RISC0_CONTROL_ROOT = BigInt(
-  "0xA54DC85AC99F851C92D7C96D7318AF41DBE7C0194EDFCC37EB4D422A998C1F56",
+  "0xE6FEEF13DB7AED4A731C7B0852DE1F5C89B137726073F625D05333184D3A551D",
 );
 export const RISC0_BN254_CONTROL_ID = BigInt(
-  "0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0",
+  "0x0AC2EAF9D5AE64FFB75C4747FDE32456E9EE6DB3B32350CB2A0614BA91D081DE",
 );
+export const RISC0_GROTH16_SELECTOR = "0xe71e6620";
 
 // SP1 Constants
 // https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v6.1.0/SP1VerifierGroth16.sol
