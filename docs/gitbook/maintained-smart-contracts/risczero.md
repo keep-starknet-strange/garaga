@@ -8,6 +8,8 @@ RiscZero is a Zero-Knowledge Proof system designed to enable efficient and scala
 
 Garaga provides the tools and makes it possible to verify such proofs on-chain in a Starknet/Cairo smart contract.
 
+The current source uses the RISC Zero 3.1.0 Groth16 verifier. If you migrate from an earlier version, regenerate your receipts with 3.1.0 and declare the new verifier class. [RISC Zero 3.1.0 release](https://github.com/risc0/risc0/releases/tag/v3.1.0)
+
 A Zero-Knowledge proof is a mathematical construct that guarantees that a given value is the output of a predefined computation where some of the inputs are private and must not be disclosed.
 
 This is achieved in two steps:
@@ -31,15 +33,17 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 export PATH="$HOME/.cargo/bin:$PATH"
 ```
 
-2. Install the RiscZero tool-chain using [`rzup`](https://dev.risczero.com/api/zkvm/install) (default version 1.2.0)
+2. Install the RISC Zero tools with [`rzup`](https://dev.risczero.com/api/zkvm/install).
 
 ```bash
 curl -L https://risczero.com/install | bash
 export PATH="$HOME/.risc0/bin:$PATH"
-rzup install
+rzup install rust 1.97.0
+rzup install cargo-risczero 3.1.0
+rzup install r0vm 3.1.0
 ```
 
-_Important: Make sure the RiscZero version installed matches the version supported by Garaga. For RiscZero v2.2.2 use Garaga 1.1.0. Check [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json) for the latest supported versions._
+Match the installed prover to the SDK version in [constants.json](https://github.com/keep-starknet-strange/garaga/blob/main/tools/make/constants.json).
 
 3. Install RiscZero additional/custom dependencies
 
@@ -86,17 +90,12 @@ If you already have a RiscZero project set up, make sure the RiscZero version co
 
 ```toml
 [dependencies]
-risc0-ethereum-contracts = { version = "1.2.0" }
+risc0-zkvm = { version = "=3.1.0", default-features = false, features = ["client"] }
 hex = "0.4"
 ...
 ```
 
-Optionally, if you intend to explicitly generate and handle the call-data, also add the following dependency to `host/Cargo.toml`. Make sure to use a Garaga version tag that is consistent with your setup.
-
-<pre class="language-toml"><code class="lang-toml">[dependencies]
-<strong>garaga_rs = { git = "https://github.com/keep-starknet-strange/garaga.git", tag = "v1.1.0" }
-</strong>...
-</code></pre>
+To generate calldata in the host, use `garaga_rs` from the same source tree as your verifier. [Sample manifest](https://github.com/keep-starknet-strange/garaga/blob/main/src/contracts/risc0_sample_app/fibonacci_prover/host/Cargo.toml)
 
 Then we modify the Host program `host/src/main.rs` to generate the JSON file containing the proof artifact. We start by adding the required imports
 
@@ -104,7 +103,6 @@ Then we modify the Host program `host/src/main.rs` to generate the JSON file con
 use risc0_zkvm::{
     compute_image_id, default_prover, ExecutorEnv, ProverOpts, VerifierContext
 };
-use risc0_ethereum_contracts::encode_seal;
 ```
 
 Optionally, if you intend to generate the call-data explicitly, add the following imports
@@ -155,22 +153,24 @@ let prove_info = prover
 
 Finally, as the last step of the Host program, we extract and print the proof artifact JSON to the standard output
 
-<pre class="language-rust"><code class="lang-rust"><strong>let receipt = prove_info.receipt;
-</strong>let seal = to_bytes(encode_seal(&#x26;receipt).unwrap());
-let image_id = to_bytes(compute_image_id(&#x26;FIBONACCI_GUEST_ELF).unwrap());
-let journal = to_bytes(receipt.journal);
+```rust
+let receipt = prove_info.receipt;
+let image_id = compute_image_id(FIBONACCI_GUEST_ELF).unwrap();
+receipt.verify(image_id).unwrap();
+let groth16 = receipt.inner.groth16().unwrap();
+let seal = [
+    &groth16.verifier_parameters.as_bytes()[..4],
+    groth16.seal.as_slice(),
+].concat();
+let image_id = image_id.as_bytes().to_vec();
+let journal = receipt.journal.bytes;
 println!(
     "{{\"seal\": \"0x{}\", \"image_id\": \"0x{}\", \"journal\": \"0x{}\"}}",
-    hex::encode(&#x26;seal),
-    hex::encode(&#x26;image_id),
-    hex::encode(&#x26;journal)
+    hex::encode(&seal),
+    hex::encode(&image_id),
+    hex::encode(&journal)
 );
-
-// helper function to convert objects to array of bytes
-fn to_bytes&#x3C;T: AsRef&#x3C;[u8]>>(obj: T) -> Vec&#x3C;u8> {
-    obj.as_ref().to_vec()
-}
-</code></pre>
+```
 
 Optionally, if you also intend to handle the call-data explicitly, it can be computed and output as a JSON as well. This produces a large array that encodes the full RiscZero proof wih hints
 
@@ -215,15 +215,10 @@ env::commit(&fib_n);
 
 ### RiscZero Proof Generation
 
-RiscZero provides some options when it comes to proof generation. Please refer to their [documentation](https://dev.risczero.com/api/generating-proofs/proving-options) in case you need to in depth information on that. The easiest and most convenient way is to use the provided [Bonsai](https://www.bonsai.xyz/) service, which works fine for many purposes. In that case, an API key for the service is required.
+To generate a receipt locally, run this command from the prover workspace. The CPU prover needs Docker.
 
-_It is important to note that, if your computation has private inputs, you should definitely protect them from being exposed to external services like Bonsai by performing the proof generation locally._
-
-Here is the command to run the Prover via Bonsai
-
-```
-BONSAI_API_KEY=<YOUR_API_KEY> BONSAI_API_URL=<BONSAI_URL> RISC0_DEV_MODE=0 \
-    cargo run --release
+```bash
+RISC0_PROVER=ipc RISC0_DEV_MODE=0 cargo run --locked --package host
 ```
 
 ### Developing the RiscZero Verifier smart contract
@@ -288,14 +283,7 @@ fn verify_and_submit_fibonacci_number(ref self: ContractState, full_proof_with_h
 
 The sample uses the verifier built from this source tree. Declare that verifier before you deploy the sequencer.
 Run `make update-risc0-class-hash` to update the sample after a compiler change.
-The [release class hashes](./) identify earlier declared builds, not this source build.
-
-```rust
-use core::starknet::ClassHash;
-
-pub const RISC_ZERO_VERIFIER_CLASS_HASH: felt252 =
-    0x1eb1a211b378d4f146ea7e3669eeeee9c568b2d1b0afdfa9ab9a9ed32295526;
-```
+The current class hash is in the [sequencer source](https://github.com/keep-starknet-strange/garaga/blob/main/src/contracts/risc0_sample_app/fibonacci_sequencer/src/lib.cairo).
 
 The contract state which stores the current lower bound which gets updated whenever a new Fibonacci number is submitted
 

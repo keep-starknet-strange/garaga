@@ -225,15 +225,30 @@ VERSION_UPDATES = [
             UpdateConfig(
                 name=name,
                 pattern=rf'({dependency}\s*=\s*\{{\s*version\s*=\s*")[^"]+("\s*[,}}])',
-                replacement=r"\g<1>{version}\g<2>",
+                replacement=r"\g<1>={version}\g<2>",
                 description="RISC Zero SDK version",
-                version_key="risc0_zkvm_version",
+                version_key=version_key,
             ),
         )
-        for name, attribute, dependency in [
-            ("RISC Zero host", "risc0_host_cargo_path", "risc0-zkvm"),
-            ("RISC Zero build", "risc0_methods_cargo_path", "risc0-build"),
-            ("RISC Zero guest", "risc0_guest_cargo_path", "risc0-zkvm"),
+        for name, attribute, dependency, version_key in [
+            (
+                "RISC Zero host",
+                "risc0_host_cargo_path",
+                "risc0-zkvm",
+                "risc0_zkvm_version",
+            ),
+            (
+                "RISC Zero build",
+                "risc0_methods_cargo_path",
+                "risc0-build",
+                "risc0_build_version",
+            ),
+            (
+                "RISC Zero guest",
+                "risc0_guest_cargo_path",
+                "risc0-zkvm",
+                "risc0_zkvm_version",
+            ),
         ]
     ],
     (
@@ -449,6 +464,8 @@ def generate_unified_constants(
     if config.name == "Rust":
         lines.extend(
             [
+                f'pub const RISC0_GROTH16_SELECTOR: [u8; 4] = {list(bytes.fromhex(risc0_info["groth16_selector"][2:]))};',
+                "",
                 "pub fn get_risc0_constants() -> (BigUint, BigUint) {",
                 f'    let risc0_control_root = BigUint::from_str_radix("{risc0_info["control_root"][2:]}", 16).unwrap();',
                 f'    let risc0_bn254_control_id = BigUint::from_str_radix("{risc0_info["bn254_control_id"][2:]}", 16).unwrap();',
@@ -461,6 +478,7 @@ def generate_unified_constants(
             [
                 f'export const RISC0_CONTROL_ROOT = BigInt("{risc0_info["control_root"]}");',
                 f'export const RISC0_BN254_CONTROL_ID = BigInt("{risc0_info["bn254_control_id"]}");',
+                f'export const RISC0_GROTH16_SELECTOR = "{risc0_info["groth16_selector"]}";',
             ]
         )
     else:  # Python
@@ -468,6 +486,7 @@ def generate_unified_constants(
             [
                 f'RISC0_CONTROL_ROOT = {risc0_info["control_root"]}',
                 f'RISC0_BN254_CONTROL_ID = {risc0_info["bn254_control_id"]}',
+                f'RISC0_GROTH16_SELECTOR = bytes.fromhex("{risc0_info["groth16_selector"][2:]}")',
             ]
         )
 

@@ -5,8 +5,8 @@ edition = "2021"
 
 [dependencies]
 methods = { path = "../methods" }
-risc0-zkvm = { version = "3.0.6" }
-garaga_rs = { path = "../../../../../tools/garaga_rs" }
+risc0-zkvm = { version = "=3.1.0", default-features = false, features = ["client"] }
+garaga_rs = { path = "../../../../../tools/garaga_rs", default-features = false }
 hex = "0.4"
 num-bigint = "0.4"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

@@ -3,7 +3,10 @@ use crate::calldata::mpc_calldata::mpc_calldata_builder;
 use crate::calldata::msm_calldata::msm_calldata_builder;
 use crate::calldata::G1PointBigUint;
 use crate::calldata::G2PointBigUint;
-use crate::constants::{get_risc0_constants, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION, SP1_VK_ROOT};
+use crate::constants::{
+    get_risc0_constants, RISC0_GROTH16_SELECTOR, SP1_VERIFIER_HASH, SP1_VERIFIER_VERSION,
+    SP1_VK_ROOT,
+};
 use crate::definitions::{
     BLS12381PrimeField, BN254PrimeField, CurveID, CurveParamsProvider, FieldElement,
 };
@@ -144,6 +147,10 @@ impl Groth16Proof {
     }
 
     pub fn from_risc0(seal: Vec<u8>, image_id: Vec<u8>, journal: Vec<u8>) -> Self {
+        assert!(
+            seal.starts_with(&RISC0_GROTH16_SELECTOR),
+            "Unsupported RISC Zero Groth16 selector"
+        );
         let (control_root, bn254_control_id) = get_risc0_constants();
         Self::from_risc0_with_parameters(seal, image_id, journal, control_root, bn254_control_id)
     }
@@ -157,7 +164,8 @@ impl Groth16Proof {
         control_root: BigUint,
         bn254_control_id: BigUint,
     ) -> Self {
-        assert!(image_id.len() <= 32, "image_id must be 32 bytes");
+        assert_eq!(seal.len(), 260, "RISC Zero Groth16 seal must be 260 bytes");
+        assert_eq!(image_id.len(), 32, "RISC Zero image ID must be 32 bytes");
 
         let (control_root_0, control_root_1) = risc0_utils::split_digest(&control_root);
 
@@ -477,32 +485,32 @@ pub mod risc0_utils {
 
     pub fn get_risc0_vk() -> Groth16VerificationKey {
         let vk_hex = [
-            "2d4d9aa7e302d9df41749d5507949d05dbea33fbb16c643b22f599a2be6df2e2",
-            "14bedd503c37ceb061d8ec60209fe345ce89830a19230301f076caff004d1926",
-            "e187847ad4c798374d0d6732bf501847dd68bc0e071241e0213bc7fc13db7ab",
-            "967032fcbf776d1afc985f88877f182d38480a653f2decaa9794cbc3bf3060c",
-            "1739c1b1a457a8c7313123d24d2f9192f896b7c63eea05a9d57f06547ad0cec8",
-            "304cfbd1e08a704a99f5e847d93f8c3caafddec46b7a0d379da69a4d112346a7",
+            "245229d9b076b3c0e8a4d70bde8c1cccffa08a9fae7557b165b3b0dbd653e2c7",
+            "253ec85988dbb84e46e94b5efa3373b47a000b4ac6c86b2d4b798d274a182302",
+            "2424bcc1f60a5472685fd50705b2809626e170120acaf441e133a2bd5e61d244",
+            "7090a82e8fabbd39299be24705b92cf208ee8b3487f6f2b39ff27978a29a1db",
+            "2b86859fd3d55c9d150fb3f0aeba798826493dd73d357ab0f9fdaced9fc81829",
+            "ae1135cffdaf227c5dc266740607aa930bc3bd92ddc2b135086d9da2dfd3e2a",
             "1800deef121f1e76426a00665e5c4479674322d4f75edadd46debd5cd992f6ed",
             "198e9393920d483a7260bfb731fb5d25f1aa493335a9e71297e485b7aef312c2",
             "12c85ea5db8c6deb4aab71808dcb408fe3d1e7690c43d37b4ce6cc0166fa7daa",
             "90689d0585ff075ec9e99ad690c3395bc4b313370b38ef355acdadcd122975b",
-            "1aa085ff28179a12d922dba0547057ccaae94b9d69cfaa4e60401fea7f3e0333",
-            "3b03cd5effa95ac9bee94f1f5ef907157bda4812ccf0b4c91f42bb629f83a1c",
-            "1e60f31fcbf757e837e867178318832d0b2d74d59e2fea1c7142df187d3fc6d3",
-            "110c10134f200b19f6490846d518c9aea868366efb7228ca5c91d2940d030762",
-            "12ac9a25dcd5e1a832a9061a082c15dd1d61aa9c4d553505739d0f5d65dc3be4",
-            "25aa744581ebe7ad91731911c898569106ff5a2d30f3eee2b23c60ee980acd4",
-            "707b920bc978c02f292fae2036e057be54294114ccc3c8769d883f688a1423f",
-            "2e32a094b7589554f7bc357bf63481acd2d55555c203383782a4650787ff6642",
-            "bca36e2cbe6394b3e249751853f961511011c7148e336f4fd974644850fc347",
-            "2ede7c9acf48cf3a3729fa3d68714e2a8435d4fa6db8f7f409c153b1fcdf9b8b",
-            "1b8af999dbfbb3927c091cc2aaf201e488cbacc3e2c6b6fb5a25f9112e04f2a7",
-            "2b91a26aa92e1b6f5722949f192a81c850d586d81a60157f3e9cf04f679cccd6",
-            "2b5f494ed674235b8ac1750bdfd5a7615f002d4a1dcefeddd06eda5a076ccd0d",
-            "2fe520ad2020aab9cbba817fcbb9a863b8a76ff88f14f912c5e71665b2ad5e82",
-            "f1c3c0d5d9da0fa03666843cde4e82e869ba5252fce3c25d5940320b1c4d493",
-            "214bfcff74f425f6fe8c0d07b307482d8bc8bb2f3608f68287aa01bd0b69e809",
+            "22e147b6d5be7d9e6864f4a92cd04ce58bcd2d991de3a19d0223a7dacc90544c",
+            "2286b6b2c093a9813e01c3bf8f4b03c60b01409fd433bbb7ccccd7458907f8ac",
+            "ebd3c619a32a0531d24233fcd2720d9267c046b53fe2dd660367b21ba61c928",
+            "227f6bb0cfd57252d41763099dc20b72d95f2ca864913d0e174617263d7f388b",
+            "2943674feb63c48529eb9657dafe7c1b3bed74960c9561229b4b1495d434c5d8",
+            "2600aba15653fe46bbdc330f45eb74845e0c0b6d9e484f791a147dde5df3b1ea",
+            "184f5250d6a420bcc0e64f40a01a4905d6c2882718f4d79b4a45e8728763da12",
+            "253b22115032bde5cb1e076a4d8daf47deea4afd244a2c04d0ad40e8b17baeeb",
+            "26144b7b31c87836f3351f97d6505c82be5b265113bd79bd89bbf2afd019b772",
+            "90c1bf455048af08a8401d210d5fa2594b0f45ce968c354135e98f0513bc924",
+            "85308ff4ed53c8c3c36da93488bc9d78224863ba906bd9e527eecf36aee9c81",
+            "1afebdd055565d9bf453cb6eec5a57700a29cdcd319cd21333fe04c8c6a4e19f",
+            "1693c6c2335c8c200844de665c727e57e4ffe6ecd6cfbb96979d2b10d96ff6ca",
+            "ea71982c117da36448eaed1b8ba4ba93d391f3fc4dd59a108056cf45c7e859c",
+            "1dbf0e7b71899b6f210bcfdfb048b545cfb3cdf2dc7c6ce799ff817e04f41970",
+            "134df41c104d7b0016a7bd0a363616a36de0a60d6b59044e7897131a50ae4fde",
         ];
 
         Groth16VerificationKey::from(
@@ -514,10 +522,9 @@ pub mod risc0_utils {
     }
 
     pub fn split_digest(digest: &BigUint) -> (BigUint, BigUint) {
-        // Convert to bytes, ensure 32 bytes, and reverse
-        let mut bytes = digest.to_bytes_be();
+        let mut bytes = digest.to_bytes_le();
+        assert!(bytes.len() <= 32, "RISC Zero digest must fit in 32 bytes");
         bytes.resize(32, 0);
-        bytes.reverse();
 
         // Split into two 128-bit parts
         let lower = BigUint::from_bytes_be(&bytes[0..16]);
@@ -600,6 +607,13 @@ mod test_groth16_calldata {
     use hex;
     use num_bigint::BigUint;
     use sha2::{Digest, Sha256};
+
+    #[test]
+    fn risc0_split_digest_keeps_leading_zero_bytes() {
+        let (low, high) = split_digest(&BigUint::from(1u8));
+        assert_eq!(low, BigUint::from(0u8));
+        assert_eq!(high, BigUint::from(1u8) << 120);
+    }
 
     #[test]
     fn test_ok_digest_1() {
