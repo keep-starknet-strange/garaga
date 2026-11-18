@@ -3,12 +3,13 @@ Auto-generated constants file from constants.json. Do not edit manually.
 """
 
 # RISC0 Constants
-# https://github.com/risc0/risc0-ethereum/blob/v3.0.1/contracts/src/groth16/ControlID.sol
-# release v3.0.1
-RISC0_CONTROL_ROOT = 0xA54DC85AC99F851C92D7C96D7318AF41DBE7C0194EDFCC37EB4D422A998C1F56
+# https://github.com/risc0/risc0-ethereum/blob/v3.1.0/contracts/src/groth16/ControlID.sol
+# release v3.1.0
+RISC0_CONTROL_ROOT = 0xE6FEEF13DB7AED4A731C7B0852DE1F5C89B137726073F625D05333184D3A551D
 RISC0_BN254_CONTROL_ID = (
-    0x04446E66D300EB7FB45C9726BB53C793DDA407A62E9601618BB43C5C14657AC0
+    0x0AC2EAF9D5AE64FFB75C4747FDE32456E9EE6DB3B32350CB2A0614BA91D081DE
 )
+RISC0_GROTH16_SELECTOR = bytes.fromhex("e71e6620")
 
 # SP1 Constants
 # https://github.com/succinctlabs/sp1-contracts/blob/main/contracts/src/v6.1.0/SP1VerifierGroth16.sol
@@ -25,7 +26,7 @@ RISC0_SYSTEM_STATE_ZERO_DIGEST = (
 )
 RISC0_TAG_DIGEST = "0xcb1fefcd1f2d9a64975cbbbf6e161e2914434b0cbb9960b84df5d717e86b48af"
 RISC0_OUTPUT_TAG = "0x77eafeb366a78b47747de0d7bb176284085ff5564887009a5be63da32d3559d4"
-RISC0_RELEASE_VERSION = "v3.0.1"
+RISC0_RELEASE_VERSION = "v3.1.0"
 
 # Version info
 CAIRO_VERSION = "2.21.0"

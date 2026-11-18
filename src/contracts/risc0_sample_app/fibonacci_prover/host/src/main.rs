@@ -95,6 +95,7 @@ fn main() {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use garaga_rs::constants::RISC0_GROTH16_SELECTOR;
     use num_bigint::BigUint;
     use risc0_zkvm::sha::{Digest, Digestible};
     use risc0_zkvm::{
@@ -102,8 +103,9 @@ mod tests {
     };
 
     #[test]
-    fn sdk_parameters_match_the_v3_cairo_verifier() {
+    fn sdk_parameters_match_the_cairo_verifier() {
         let parameters = Groth16ReceiptVerifierParameters::default();
+        let parameters_digest = parameters.digest();
         let constants: serde_json::Value = serde_json::from_str(include_str!(concat!(
             env!("CARGO_MANIFEST_DIR"),
             "/../../../../../tools/make/constants.json"
@@ -126,6 +128,11 @@ mod tests {
             control_id,
             "SDK and Garaga default control IDs differ. Run make constants."
         );
+        assert_eq!(
+            parameters_digest.as_bytes()[..4],
+            RISC0_GROTH16_SELECTOR,
+            "SDK and Garaga default selectors differ. Run make constants."
+        );
         for proof_json in [
             include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../proof.json")),
             include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../../../../../hydra/garaga/starknet/groth16_contract_generator/examples/proof_risc0.json")),
@@ -134,7 +141,7 @@ mod tests {
             let seal = hex::decode(proof["seal"].as_str().unwrap().trim_start_matches("0x")).unwrap();
             assert_eq!(
                 &seal[..4],
-                &parameters.digest().as_bytes()[..4],
+                &RISC0_GROTH16_SELECTOR,
                 "Committed proof selector differs from the SDK verifier parameters. Regenerate proofs."
             );
             let image_id = hex::decode(proof["image_id"].as_str().unwrap().trim_start_matches("0x")).unwrap();
@@ -143,7 +150,7 @@ mod tests {
             let claim = ReceiptClaim::ok(image_id, journal.clone());
             let receipt = Receipt::new(
                 InnerReceipt::Groth16(Groth16Receipt::new(
-                    seal[4..].to_vec(), claim.into(), parameters.digest(),
+                    seal[4..].to_vec(), claim.into(), parameters_digest,
                 )),
                 journal,
             );
