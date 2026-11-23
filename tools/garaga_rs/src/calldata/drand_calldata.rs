@@ -510,7 +510,7 @@ pub struct HashToCurveHint {
 }
 
 impl HashToCurveHint {
-    fn to_calldata(&self) -> Result<Vec<BigUint>, String> {
+    pub fn to_calldata(&self) -> Result<Vec<BigUint>, String> {
         let mut call_data = vec![];
         call_data.extend(self.f0_hint.to_calldata());
         call_data.extend(self.f1_hint.to_calldata());
@@ -518,7 +518,7 @@ impl HashToCurveHint {
     }
 }
 
-fn build_hash_to_curve_hint(message: [u8; 32]) -> Result<HashToCurveHint, String> {
+pub fn build_hash_to_curve_hint(message: [u8; 32]) -> Result<HashToCurveHint, String> {
     let [felt0, felt1] = hash_to_field::<BLS12381PrimeField>(message, 2, "sha256")?
         .try_into()
         .unwrap();
